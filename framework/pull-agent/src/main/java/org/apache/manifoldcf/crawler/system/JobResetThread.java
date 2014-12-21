@@ -56,6 +56,9 @@ public class JobResetThread extends Thread
       IJobManager jobManager = JobManagerFactory.make(threadContext);
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
 
+      INotificationConnectionManager notificationManager = NotificationConnectionManagerFactory.make(threadContext);
+      INotificationConnectorPool notificationPool = NotificationConnectorPoolFactory.make(threadContext);
+      
       // Loop
       while (true)
       {
@@ -96,6 +99,8 @@ public class JobResetThread extends Thread
             connectionManager.recordHistory(desc.getConnectionName(),
               null,connectionManager.ACTIVITY_JOBEND,null,
               desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
+            // As a courtesy, call all the notification connections (if any)
+            doNotifications(desc,notificationManager,notificationPool);
           }
           
           // If there were any job aborts, we must reprioritize all active documents, since we've done something
@@ -171,4 +176,37 @@ public class JobResetThread extends Thread
     }
   }
 
+  protected static void doNotifications(IJobDescription jobDescription, INotificationConnectionManager notificationManager,
+    INotificationConnectorPool notificationPool)
+    throws ManifoldCFException
+  {
+    for (int j = 0; j < jobDescription.countNotifications(); j++)
+    {
+      String notificationConnectionName = jobDescription.getNotificationConnectionName(j);
+      try
+      {
+        INotificationConnection c = notificationManager.load(notificationConnectionName);
+        if (c != null)
+        {
+          INotificationConnector connector = notificationPool.grab(c);
+          if (connector != null)
+          {
+            try
+            {
+              connector.notifyOfJobEnd();
+            }
+            finally
+            {
+              notificationPool.release(c,connector);
+            }
+          }
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        Logging.connectors.warn("Can't notify: "+e.getMessage(),e);
+      }
+    }
+  }
+  
 }
