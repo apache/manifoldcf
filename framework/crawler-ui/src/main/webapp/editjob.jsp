@@ -1179,9 +1179,9 @@
 					<table class="formtable">
 						<tr class="formheaderrow">
 							<td class="formcolumnheader">
-								<input name="pipeline_count" type="hidden" value="<%=notificationConnectionNames.length%>"/>
+								<input name="notification_count" type="hidden" value="<%=notificationConnectionNames.length%>"/>
 							</td>
-							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NotificationNumber")%></nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageNumber")%></nobr></td>
 							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NotificationDescription")%></nobr></td>
 							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NotificationConnectionName")%></nobr></td>
 						</tr>
