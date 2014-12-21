@@ -698,6 +698,28 @@
 	
 %>
 
+<%
+	for (int j = 0; j < notificationConnectionNames.length; j++)
+	{
+		INotificationConnection notificationConnection = notificationMgr.load(notificationConnectionNames[j]);
+		if (notificationConnection != null)
+		{
+			INotificationConnector notificationConnector = notificationConnectorPool.grab(notificationConnection);
+			if (notificationConnector != null)
+			{
+				try
+				{
+					notificationConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),notificationSpecifications[j],1+j,tabsArray);
+				}
+				finally
+				{
+					notificationConnectorPool.release(notificationConnection,notificationConnector);
+				}
+			}
+		}
+	}
+%>
+
 </head>
 
 <body class="standardbody">
@@ -1813,6 +1835,26 @@
 					{
 						transformationConnectorPool.release(transformationConnection,transformationConnector);
 					}
+				}
+			}
+		}
+	}
+	
+	for (int j = 0; j < notificationConnectionNames.length; j++)
+	{
+		INotificationConnection notificationConnection = notificationMgr.load(notificationConnectionNames[j]);
+		if (notificationConnection != null)
+		{
+			INotificationConnector notificationConnector = notificationConnectorPool.grab(notificationConnection);
+			if (notificationConnector != null)
+			{
+				try
+				{
+					notificationConnector.outputSpecificationBody(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),notificationSpecifications[j],1+pipelineConnectionNames.length+j,tabSequenceInt,tabName);
+				}
+				finally
+				{
+					notificationConnectorPool.release(notificationConnection,notificationConnector);
 				}
 			}
 		}
