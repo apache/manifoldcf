@@ -4232,6 +4232,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String JOBNODE_STAGECONNECTIONNAME = "stage_connectionname";
   protected static final String JOBNODE_STAGEDESCRIPTION = "stage_description";
   protected static final String JOBNODE_STAGESPECIFICATION = "stage_specification";
+  protected static final String JOBNODE_NOTIFICATIONSTAGE = "notificationstage";
 
   /** Convert a node into a job description.
   *@param jobDescription is the job to be filled in.
@@ -4296,6 +4297,39 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
           throw new ManifoldCFException("Missing required field: '"+JOBNODE_STAGECONNECTIONNAME+"'");
         pipelineStages.put(stageID,new PipelineStage(stagePrerequisite,stageIsOutput.equals("true"),
           stageConnectionName,stageDescription,stageSpecification));
+      }
+      else if (childType.equals(JOBNODE_NOTIFICATIONSTAGE))
+      {
+        String stageConnectionName = null;
+        String stageDescription = null;
+        ConfigurationNode stageSpecification = null;
+        for (int q = 0; q < child.getChildCount(); q++)
+        {
+          ConfigurationNode cn = child.findChild(q);
+          if (cn.getType().equals(JOBNODE_STAGECONNECTIONNAME))
+            stageConnectionName = cn.getValue();
+          else if (cn.getType().equals(JOBNODE_STAGEDESCRIPTION))
+            stageDescription = cn.getValue();
+          else if (cn.getType().equals(JOBNODE_STAGESPECIFICATION))
+          {
+            stageSpecification = cn;
+          }
+          else
+            throw new ManifoldCFException("Found an unexpected node type: '"+cn.getType()+"'");
+        }
+        if (stageConnectionName == null)
+          throw new ManifoldCFException("Missing required field: '"+JOBNODE_STAGECONNECTIONNAME+"'");
+        Specification os = jobDescription.addNotification(stageConnectionName,stageDescription);
+        os.clearChildren();
+        if (stageSpecification != null)
+        {
+          for (int j = 0; j < stageSpecification.getChildCount(); j++)
+          {
+            ConfigurationNode cn = stageSpecification.findChild(j);
+            os.addChild(os.getChildCount(),new SpecificationNode(cn));
+          }
+        }
+
       }
       else if (childType.equals(JOBNODE_DOCUMENTSPECIFICATION))
       {
@@ -4499,7 +4533,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     
   }
-  
+
   /** Convert a job description into a ConfigurationNode.
   *@param jobNode is the node to be filled in.
   *@param job is the job description.
@@ -4571,6 +4605,34 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         child.addChild(child.getChildCount(),stage);
       }
       Specification spec = job.getPipelineStageSpecification(j);
+      stage = new ConfigurationNode(JOBNODE_STAGESPECIFICATION);
+      for (int k = 0; k < spec.getChildCount(); k++)
+      {
+        ConfigurationNode cn = spec.getChild(k);
+        stage.addChild(stage.getChildCount(),cn);
+      }
+      child.addChild(child.getChildCount(),stage);
+      jobNode.addChild(jobNode.getChildCount(),child);
+    }
+
+    for (int j = 0; j < job.countNotifications(); j++)
+    {
+      child = new ConfigurationNode(JOBNODE_NOTIFICATIONSTAGE);
+      ConfigurationNode stage;
+      stage = new ConfigurationNode(JOBNODE_STAGEID);
+      stage.setValue(Integer.toString(j));
+      child.addChild(child.getChildCount(),stage);
+      stage = new ConfigurationNode(JOBNODE_STAGECONNECTIONNAME);
+      stage.setValue(job.getNotificationConnectionName(j));
+      child.addChild(child.getChildCount(),stage);
+      String description = job.getNotificationDescription(j);
+      if (description != null)
+      {
+        stage = new ConfigurationNode(JOBNODE_STAGEDESCRIPTION);
+        stage.setValue(description);
+        child.addChild(child.getChildCount(),stage);
+      }
+      Specification spec = job.getNotificationSpecification(j);
       stage = new ConfigurationNode(JOBNODE_STAGESPECIFICATION);
       for (int k = 0; k < spec.getChildCount(); k++)
       {
