@@ -3229,6 +3229,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       {
         return apiReadRepositoryConnectionStatus(tc,output,connectionName);
       }
+      else if (connectionType.equals("notificationconnections"))
+      {
+        return apiReadNotificationConnectionStatus(tc,output,connectionName);
+      }
       else
       {
         createErrorNode(output,"Unknown connection type '"+connectionType+"'.");
@@ -3267,6 +3271,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       else if (connectionType.equals("repositoryconnections"))
       {
         return apiReadRepositoryConnectionInfo(tc,output,connectionName,command);
+      }
+      else if (connectionType.equals("notificationconnections"))
+      {
+        return apiReadNotificationConnectionInfo(tc,output,connectionName,command);
       }
       else
       {
