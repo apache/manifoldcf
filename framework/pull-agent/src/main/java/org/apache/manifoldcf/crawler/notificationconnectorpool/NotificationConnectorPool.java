@@ -156,7 +156,7 @@ public class NotificationConnectorPool implements INotificationConnectorPool
     protected boolean isInstalled(IThreadContext tc, String className)
       throws ManifoldCFException
     {
-      IConnectorManager connectorManager = ConnectorManagerFactory.make(tc);
+      INotificationConnectorManager connectorManager = NotificationConnectorManagerFactory.make(tc);
       return connectorManager.isInstalled(className);
     }
 
