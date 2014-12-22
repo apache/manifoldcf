@@ -611,30 +611,6 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     }
   }
 
-  protected static void addIncludedMetadataNode(Specification ds,
-                          String metadataName) {
-    // Build the proper node
-    SpecificationNode sn = new SpecificationNode(EmailConfig.NODE_METADATA);
-    sn.setAttribute(EmailConfig.ATTRIBUTE_NAME, metadataName);
-    // Add to the end
-    ds.addChild(ds.getChildCount(), sn);
-  }
-
-  protected static void addFindParameterNode(Specification ds, String findParameterName, String findParameterValue) {
-    SpecificationNode sn = new SpecificationNode(EmailConfig.NODE_FILTER);
-    sn.setAttribute(EmailConfig.ATTRIBUTE_NAME, findParameterName);
-    sn.setAttribute(EmailConfig.ATTRIBUTE_VALUE, findParameterValue);
-    // Add to the end
-    ds.addChild(ds.getChildCount(), sn);
-  }
-
-  protected static void addFolderNode(Specification ds, String folderName)
-  {
-    SpecificationNode sn = new SpecificationNode(EmailConfig.NODE_FOLDER);
-    sn.setAttribute(EmailConfig.ATTRIBUTE_NAME, folderName);
-    ds.addChild(ds.getChildCount(), sn);
-  }
-  
   /** Handle Messaging exceptions in a consistent global manner */
   protected static void handleMessagingException(MessagingException e, String context)
     throws ManifoldCFException, ServiceInterruption

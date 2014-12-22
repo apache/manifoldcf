@@ -71,40 +71,16 @@ public class EmailConfig {
   
   public static final String PROTOCOL_DEFAULT_VALUE = "IMAP";
   public static final String PORT_DEFAULT_VALUE = "";
-  public static final String[] BASIC_METADATA = {"To","From","Subject","Body","Date","Encoding of Attachment","MIME type of attachment"};
-  public static final String[] BASIC_SEARCHABLE_ATTRIBUTES = {"To","From","Subject","Body","Date"};
 
   // Specification nodes
   
+  public static final String NODE_TO = "to";
+  public static final String NODE_FROM = "from";
+  public static final String NODE_SUBJECT = "subject";
+  public static final String NODE_BODY = "body";
   public static final String NODE_PROPERTIES = "properties";
-  public static final String NODE_METADATA = "metadata";
-  public static final String NODE_FILTER = "filter";
-  public static final String NODE_FOLDER = "folder";
-  
   public static final String ATTRIBUTE_NAME = "name";
   public static final String ATTRIBUTE_VALUE = "value";
 
-  // Metadata field names
-  
-  public static final String EMAIL_SUBJECT = "subject";
-  public static final String EMAIL_FROM = "from";
-  public static final String EMAIL_TO = "to";
-  public static final String EMAIL_BODY = "body";
-  public static final String EMAIL_DATE = "date";
-  public static final String EMAIL_ATTACHMENT_ENCODING = "encoding of attachment";
-  public static final String EMAIL_ATTACHMENT_MIMETYPE = "mime type of attachment";
-  public static final String EMAIL_VERSION = "1.0";
-  
-  // Mime types
-  
-  public static final String MIMETYPE_TEXT_PLAIN = "text/plain";
-  public static final String MIMETYPE_HTML = "text/html";
-  
-  // Fields
-  
-  public static final String ENCODING_FIELD = "encoding";
-  public static final String MIMETYPE_FIELD = "mimetype";
-  //public static final String TO = "To";
-  
 
 }
