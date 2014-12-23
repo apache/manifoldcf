@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 2.0 =====================
 
+CONNECTORS-1128: Job shows no activity when restarting after
+abort.
+(Karl Wright)
+
 CONNECTORS-1127: Fix boilerplate extraction to be compatible with
 current version of boilerplate.
 (Kamil Żyta, Karl Wright)
