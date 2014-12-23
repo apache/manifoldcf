@@ -77,6 +77,8 @@ public class JobResetThread extends Thread
             connectionManager.recordHistory(desc.getConnectionName(),
               null,connectionManager.ACTIVITY_JOBSTOP,null,
               desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
+            // As a courtesy, call all the notification connections (if any)
+            doNotifications(desc,notificationManager,notificationPool);
           }
 
           ArrayList jobResumes = new ArrayList();
@@ -193,7 +195,7 @@ public class JobResetThread extends Thread
           {
             try
             {
-              connector.notifyOfJobEnd(jobDescription.getNotificationSpecification(j));
+              connector.notifyOfJobStop(jobDescription.getNotificationSpecification(j));
             }
             finally
             {
