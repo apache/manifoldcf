@@ -709,7 +709,7 @@
 			{
 				try
 				{
-					notificationConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),notificationSpecifications[j],1+j,tabsArray);
+					notificationConnector.outputSpecificationHeader(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),notificationSpecifications[j],1+pipelineConnectionNames.length+j,tabsArray);
 				}
 				finally
 				{
