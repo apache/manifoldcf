@@ -534,7 +534,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
       removeNodes(ds, EmailConfig.NODE_SUBJECT);
       addNodeValue(ds, EmailConfig.NODE_SUBJECT, subjectString);
     }
-    String bodyString = variableContext.getParameter(seqPrefix + "from");
+    String bodyString = variableContext.getParameter(seqPrefix + "body");
     if (bodyString != null)
     {
       removeNodes(ds, EmailConfig.NODE_BODY);
