@@ -204,7 +204,7 @@ public class JobResetThread extends Thread
       }
       catch (ServiceInterruption e)
       {
-        Logging.connectors.warn("Can't notify: "+e.getMessage(),e);
+        Logging.connectors.warn("Can't notify right now: "+e.getMessage(),e);
       }
     }
   }
