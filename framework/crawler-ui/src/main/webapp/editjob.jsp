@@ -385,6 +385,16 @@
 			}
 <%
 	}
+	for (int j = 0; j < notificationCheckForSaveMethods.length; j++)
+	{
+%>
+			if (window.<%=notificationCheckForSaveMethods[j]%>)
+			{
+				if (<%=notificationCheckForSaveMethods[j]%>() == false)
+					return;
+			}
+<%
+	}
 %>
 			if (window.<%=saveCheckMethod%>)
 			{
@@ -516,6 +526,16 @@
 		if (window.<%=pipelineCheckMethods[j]%>)
 		{
 			if (<%=pipelineCheckMethods[j]%>() == false)
+				return false;
+		}
+<%
+	}
+	for (int j = 0; j < notificationCheckMethods.length; j++)
+	{
+%>
+		if (window.<%=notificationCheckMethods[j]%>)
+		{
+			if (<%=notificationCheckMethods[j]%>() == false)
 				return false;
 		}
 <%
