@@ -56,6 +56,7 @@ public class IdleCleanupThread extends Thread
       IThreadContext threadContext = ThreadContextFactory.make();
       
       IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      INotificationConnectorPool notificationConnectorPool = NotificationConnectorPoolFactory.make(threadContext);
       
       // Loop
       while (true)
@@ -65,6 +66,7 @@ public class IdleCleanupThread extends Thread
         {
           // Do the cleanup
           repositoryConnectorPool.pollAllConnectors();
+          notificationConnectorPool.pollAllConnectors();
           // This is unnecessary because agents.interfaces.IdleCleanupThread does it.
           //ManifoldCF.pollAll(threadContext);
           

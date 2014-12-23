@@ -82,10 +82,12 @@
 	IJobManager manager = JobManagerFactory.make(threadContext);
         IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
 	IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
+	INotificationConnectionManager notificationManager = NotificationConnectionManagerFactory.make(threadContext);
 	ITransformationConnectionManager transformationManager = TransformationConnectionManagerFactory.make(threadContext);
 
 	IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
 	IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+	INotificationConnectorPool notificationConnectorPool = NotificationConnectorPoolFactory.make(threadContext);
 	ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(threadContext);
 
 	String jobID = variableContext.getParameter("jobid");
@@ -204,6 +206,37 @@
 					</table>
 				</td>
 			</tr>
+			<tr>
+				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NotificationsColon")%></nobr></td>
+				<td class="boxcell" colspan="3">
+					<table class="formtable">
+						<tr class="formheaderrow">
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageNumber")%></nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NotificationDescription")%></nobr></td>
+							<td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NotificationConnectionName")%></nobr></td>
+						</tr>
+<%
+		for (int j = 0; j < job.countNotifications(); j++)
+		{
+%>
+						<tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
+							<td class="formcolumncell"><%=(j+job.countPipelineStages()+2)%>.</td>
+							<td class="formcolumncell"><%=(job.getNotificationDescription(j)!=null)?org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getNotificationDescription(j)):""%></td>
+							<td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getNotificationConnectionName(j))%></td>
+						</tr>
+<%
+		}
+		if (job.countNotifications() == 0)
+		{
+%>
+						<tr class="formrow"><td class="formcolumnmessage" colspan="3"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NoNotificationConnections")%></td></tr>
+<%
+		}
+%>
+					</table>
+				</td>
+			</tr>
+
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
 			</tr>
@@ -757,6 +790,39 @@
 			</tr>
 <%
 		}
+		
+		for (int j = 0; j < job.countNotifications(); j++)
+		{
+%>
+			<tr>
+				<td class="separator" colspan="4"><hr/></td>
+			</tr>
+			<tr>
+				<td class="message" colspan="4"><%=(j+job.countPipelineStages()+2)%>.</td>
+			</tr>
+			<tr>
+				<td colspan="4">
+<%
+			Specification os = job.getNotificationSpecification(j);
+			INotificationConnection thisConnection = notificationManager.load(job.getNotificationConnectionName(j));
+			INotificationConnector notificationConnector = notificationConnectorPool.grab(thisConnection);
+			if (notificationConnector != null)
+			{
+				try
+				{
+					notificationConnector.viewSpecification(new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),os,1+job.countPipelineStages()+j);
+				}
+				finally
+				{
+					notificationConnectorPool.release(thisConnection,notificationConnector);
+				}
+			}
+%>
+				</td>
+			</tr>
+<%
+		}
+
 %>
 			<tr>
 				<td class="separator" colspan="4"><hr/></td>
