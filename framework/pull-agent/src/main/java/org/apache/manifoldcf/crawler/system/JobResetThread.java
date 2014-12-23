@@ -193,7 +193,7 @@ public class JobResetThread extends Thread
           {
             try
             {
-              connector.notifyOfJobEnd();
+              connector.notifyOfJobEnd(jobDescription.getNotificationSpecification(j));
             }
             finally
             {
