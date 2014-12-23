@@ -64,7 +64,13 @@ public interface INotificationConnector extends IConnector
   */
   public void notifyOfJobStop(Specification spec)
     throws ManifoldCFException, ServiceInterruption;
-  
+
+  /** Notify of job end
+  *@param spec is the notification specification.
+  */
+  public void notifyOfJobEnd(Specification spec)
+    throws ManifoldCFException, ServiceInterruption;
+	
   // UI support methods.
   //
   // The UI support methods come in two varieties.  The first group (inherited from IConnector) is involved
