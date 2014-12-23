@@ -220,7 +220,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
   *@param spec is the notification specification.
   */
   @Override
-  public void notifyOfJobEnd(Specification spec)
+  public void notifyOfJobStop(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
     // Grab the necessary info from the spec
