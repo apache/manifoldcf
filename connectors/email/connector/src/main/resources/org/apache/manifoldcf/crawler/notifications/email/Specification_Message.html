@@ -24,7 +24,7 @@ limitations under the License.
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ToColon'))</nobr>
     </td>
     <td class="value">
-      <input type="text" name="to" size="32" value="$Encoder.attributeEscape($TO)"/>
+      <input type="text" name="s${SeqNum}_to" size="32" value="$Encoder.attributeEscape($TO)"/>
     </td>
   </tr>
   <tr>
@@ -32,7 +32,7 @@ limitations under the License.
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.FromColon'))</nobr>
     </td>
     <td class="value">
-      <input type="text" name="from" size="32" value="$Encoder.attributeEscape($FROM)"/>
+      <input type="text" name="s${SeqNum}_from" size="32" value="$Encoder.attributeEscape($FROM)"/>
     </td>
   </tr>
   <tr>
@@ -40,7 +40,7 @@ limitations under the License.
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.SubjectColon'))</nobr>
     </td>
     <td class="value">
-      <input type="text" name="subject" size="50" value="$Encoder.attributeEscape($SUBJECT)"/>
+      <input type="text" name="s${SeqNum}_subject" size="50" value="$Encoder.attributeEscape($SUBJECT)"/>
     </td>
   </tr>
   <tr>
@@ -48,7 +48,7 @@ limitations under the License.
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.BodyColon'))</nobr>
     </td>
     <td class="value">
-      <textarea name="body" rows="10" cols="50">$Encoder.bodyEscape($BODY)</textarea>
+      <textarea name="s${SeqNum}_body" rows="10" cols="50">$Encoder.bodyEscape($BODY)</textarea>
     </td>
   </tr>
 
@@ -56,9 +56,9 @@ limitations under the License.
 
 #else
 
-<input type="hidden" name="to" value="$Encoder.attributeEscape($TO)"/>
-<input type="hidden" name="from" value="$Encoder.attributeEscape($FROM)"/>
-<input type="hidden" name="subject" value="$Encoder.attributeEscape($SUBJECT)"/>
-<input type="hidden" name="body" value="$Encoder.attributeEscape($BODY)"/>
+<input type="hidden" name="s${SeqNum}_to" value="$Encoder.attributeEscape($TO)"/>
+<input type="hidden" name="s${SeqNum}_from" value="$Encoder.attributeEscape($FROM)"/>
+<input type="hidden" name="s${SeqNum}_subject" value="$Encoder.attributeEscape($SUBJECT)"/>
+<input type="hidden" name="s${SeqNum}_body" value="$Encoder.attributeEscape($BODY)"/>
 
 #end
