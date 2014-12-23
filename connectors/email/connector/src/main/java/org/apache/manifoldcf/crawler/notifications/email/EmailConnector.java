@@ -649,7 +649,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.error("Email: Error "+context+": "+e.getMessage(),e);
-    throw new ServiceInterruption("Error "+context+": "+e.getMessage(),e,-1,-1,-1,true);
+    throw new ManifoldCFException("Error "+context+": "+e.getMessage(),e);
   }
   
   /** Class to set up connection.
