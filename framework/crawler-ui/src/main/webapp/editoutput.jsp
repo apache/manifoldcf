@@ -232,7 +232,7 @@
 	{
 %>
 	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.EditOutputConnection")%></p>
-	<table class="displaytable"><tr><td class="message">No output connectors registered</td></tr></table>
+	<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.NoOutputConnectorsRegistered")%></td></tr></table>
 <%
 	}
 	else

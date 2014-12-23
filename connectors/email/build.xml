@@ -35,6 +35,10 @@ limitations under the License.
             <param name="connector-label" value="EMail"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.email.EmailConnector"/>
         </antcall>
+        <antcall target="general-add-notification-connector">
+            <param name="connector-label" value="EMail"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.notifications.email.EmailConnector"/>
+        </antcall>
     </target>
 
 </project>

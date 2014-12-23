@@ -54,6 +54,9 @@
 	<li class="menuitem">
 		<nobr><a class="menulink" href="listconnections.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listrepositoryconnections")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListRepositoryConnections")%></a></nobr>
 	</li>
+	<li class="menuitem">
+		<nobr><a class="menulink" href="listnotifications.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listnotificationconnections")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListNotificationConnections")%></a></nobr>
+	</li>
 </ul>
 <p class="menumain"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Jobs")%></nobr></p>
 <ul class="menusecond">

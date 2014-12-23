@@ -56,6 +56,9 @@ public class JobResetThread extends Thread
       IJobManager jobManager = JobManagerFactory.make(threadContext);
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(threadContext);
 
+      INotificationConnectionManager notificationManager = NotificationConnectionManagerFactory.make(threadContext);
+      INotificationConnectorPool notificationPool = NotificationConnectorPoolFactory.make(threadContext);
+      
       // Loop
       while (true)
       {
@@ -67,36 +70,10 @@ public class JobResetThread extends Thread
           
           ArrayList jobStops = new ArrayList();
           jobManager.finishJobStops(currentTime,jobStops);
-          int k = 0;
-          while (k < jobStops.size())
-          {
-            IJobDescription desc = (IJobDescription)jobStops.get(k++);
-            connectionManager.recordHistory(desc.getConnectionName(),
-              null,connectionManager.ACTIVITY_JOBSTOP,null,
-              desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
-          }
-
           ArrayList jobResumes = new ArrayList();
           jobManager.finishJobResumes(currentTime,jobResumes);
-          k = 0;
-          while (k < jobResumes.size())
-          {
-            IJobDescription desc = (IJobDescription)jobResumes.get(k++);
-            connectionManager.recordHistory(desc.getConnectionName(),
-              null,connectionManager.ACTIVITY_JOBCONTINUE,null,
-              desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
-          }
-
           ArrayList jobCompletions = new ArrayList();
           jobManager.resetJobs(currentTime,jobCompletions);
-          k = 0;
-          while (k < jobCompletions.size())
-          {
-            IJobDescription desc = (IJobDescription)jobCompletions.get(k++);
-            connectionManager.recordHistory(desc.getConnectionName(),
-              null,connectionManager.ACTIVITY_JOBEND,null,
-              desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
-          }
           
           // If there were any job aborts, we must reprioritize all active documents, since we've done something
           // not predicted by the algorithm that assigned those priorities.  This is, of course, quite expensive,
@@ -111,8 +88,39 @@ public class JobResetThread extends Thread
             Logging.threads.debug("Job reset thread done reprioritizing documents.");
 
           }
-          else
-            ManifoldCF.sleep(10000L);
+
+          int k = 0;
+          while (k < jobStops.size())
+          {
+            IJobDescription desc = (IJobDescription)jobStops.get(k++);
+            connectionManager.recordHistory(desc.getConnectionName(),
+              null,connectionManager.ACTIVITY_JOBSTOP,null,
+              desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
+            // As a courtesy, call all the notification connections (if any)
+            doStopNotifications(desc,notificationManager,notificationPool);
+          }
+
+          k = 0;
+          while (k < jobResumes.size())
+          {
+            IJobDescription desc = (IJobDescription)jobResumes.get(k++);
+            connectionManager.recordHistory(desc.getConnectionName(),
+              null,connectionManager.ACTIVITY_JOBCONTINUE,null,
+              desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
+          }
+
+          k = 0;
+          while (k < jobCompletions.size())
+          {
+            IJobDescription desc = (IJobDescription)jobCompletions.get(k++);
+            connectionManager.recordHistory(desc.getConnectionName(),
+              null,connectionManager.ACTIVITY_JOBEND,null,
+              desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
+            // As a courtesy, call all the notification connections (if any)
+            doEndNotifications(desc,notificationManager,notificationPool);
+          }
+          
+          ManifoldCF.sleep(10000L);
         }
         catch (ManifoldCFException e)
         {
@@ -168,6 +176,84 @@ public class JobResetThread extends Thread
       System.err.println("agents process could not start - shutting down");
       Logging.threads.fatal("JobResetThread initialization error tossed: "+e.getMessage(),e);
       System.exit(-300);
+    }
+  }
+
+  protected static void doStopNotifications(IJobDescription jobDescription, INotificationConnectionManager notificationManager,
+    INotificationConnectorPool notificationPool)
+    throws ManifoldCFException
+  {
+    for (int j = 0; j < jobDescription.countNotifications(); j++)
+    {
+      String notificationConnectionName = jobDescription.getNotificationConnectionName(j);
+      try
+      {
+        INotificationConnection c = notificationManager.load(notificationConnectionName);
+        if (c != null)
+        {
+          INotificationConnector connector = notificationPool.grab(c);
+          if (connector != null)
+          {
+            try
+            {
+              connector.notifyOfJobStop(jobDescription.getNotificationSpecification(j));
+            }
+            finally
+            {
+              notificationPool.release(c,connector);
+            }
+          }
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        Logging.connectors.warn("Can't notify right now: "+e.getMessage(),e);
+      }
+      catch (ManifoldCFException e)
+      {
+        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+          throw e;
+        Logging.connectors.warn("Error notifying: "+ e.getMessage(),e);
+      }
+    }
+  }
+  
+  protected static void doEndNotifications(IJobDescription jobDescription, INotificationConnectionManager notificationManager,
+    INotificationConnectorPool notificationPool)
+    throws ManifoldCFException
+  {
+    for (int j = 0; j < jobDescription.countNotifications(); j++)
+    {
+      String notificationConnectionName = jobDescription.getNotificationConnectionName(j);
+      try
+      {
+        INotificationConnection c = notificationManager.load(notificationConnectionName);
+        if (c != null)
+        {
+          INotificationConnector connector = notificationPool.grab(c);
+          if (connector != null)
+          {
+            try
+            {
+              connector.notifyOfJobEnd(jobDescription.getNotificationSpecification(j));
+            }
+            finally
+            {
+              notificationPool.release(c,connector);
+            }
+          }
+        }
+      }
+      catch (ServiceInterruption e)
+      {
+        Logging.connectors.warn("Can't notify right now: "+e.getMessage(),e);
+      }
+      catch (ManifoldCFException e)
+      {
+        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+          throw e;
+        Logging.connectors.warn("Error notifying: "+ e.getMessage(),e);
+      }
     }
   }
 

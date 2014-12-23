@@ -346,6 +346,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   protected final HopFilterManager hopFilterManager;
   protected final ForcedParamManager forcedParamManager;
   protected final PipelineManager pipelineManager;
+  protected final NotificationManager notificationManager;
   
   protected final IOutputConnectionManager outputMgr;
   protected final IRepositoryConnectionManager connectionMgr;
@@ -368,6 +369,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     hopFilterManager = new HopFilterManager(threadContext,database);
     forcedParamManager = new ForcedParamManager(threadContext,database);
     pipelineManager = new PipelineManager(threadContext,database);
+    notificationManager = new NotificationManager(threadContext,database);
     
     cacheManager = CacheManagerFactory.make(threadContext);
     lockManager = LockManagerFactory.make(threadContext);
@@ -381,7 +383,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
   */
   public void install(String transTableName, String transNameField,
     String outputTableName, String outputNameField,
-    String connectionTableName, String connectionNameField)
+    String connectionTableName, String connectionNameField,
+    String notificationConnectionTableName, String notificationConnectionNameField)
     throws ManifoldCFException
   {
     // Standard practice: Have a loop around everything, in case upgrade needs it.
@@ -530,6 +533,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
           pipelineManager.writeOutputStage(id,outputConnectionName,outputConnectionSpec);
         }
       }
+      notificationManager.install(getTableName(),idField,notificationConnectionTableName,notificationConnectionNameField);
       scheduleManager.install(getTableName(),idField);
       hopFilterManager.install(getTableName(),idField);
       forcedParamManager.install(getTableName(),idField);
@@ -587,6 +591,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
       forcedParamManager.deinstall();
       hopFilterManager.deinstall();
       scheduleManager.deinstall();
+      notificationManager.deinstall();
       pipelineManager.deinstall();
       performDrop(null);
     }
@@ -622,6 +627,27 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     throws ManifoldCFException
   {
     analyzeTable();
+  }
+
+  /** Find a list of jobs matching specified notification names.
+  */
+  public Long[] findJobsMatchingNotifications(List<String> notificationConnectionNames)
+    throws ManifoldCFException
+  {
+    StringBuilder query = new StringBuilder();
+    ArrayList params = new ArrayList();
+    query.append("SELECT ").append(idField)
+      .append(" FROM ").append(getTableName()).append(" t1 WHERE EXISTS(");
+    notificationManager.buildNotificationQueryClause(query,params,"t1."+idField,notificationConnectionNames);
+    query.append(")");
+    IResultSet set = performQuery(query.toString(),params,null,null);
+    Long[] rval = new Long[set.getRowCount()];
+    for (int i = 0; i < rval.length; i++)
+    {
+      IResultRow row = set.getRow(i);
+      rval[i] = (Long)row.getValue(idField);
+    }
+    return rval;
   }
 
   /** Find a list of jobs matching specified transformation names.
@@ -871,6 +897,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
         hopFilterManager.deleteRows(id);
         forcedParamManager.deleteRows(id);
         pipelineManager.deleteRows(id);
+        notificationManager.deleteRows(id);
         ArrayList params = new ArrayList();
         String query = buildConjunctionClause(params,new ClauseDescription[]{
           new UnitaryClause(idField,id)});
@@ -1024,6 +1051,14 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
                     values.put(assessmentStateField,assessmentStateToString(ASSESSMENT_UNKNOWN));
                 }
 
+                // Changing notifications should never reset seeding.
+                /*
+                if (isSame)
+                {
+                  isSame = notificationManager.compareRows(id,jobDescription);
+                }
+                */
+                
                 if (isSame)
                 {
                   String oldDocSpecXML = (String)row.getValue(documentSpecField);
@@ -1045,6 +1080,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
                   new UnitaryClause(idField,id)});
                 performUpdate(values," WHERE "+query,params,null);
                 pipelineManager.deleteRows(id);
+                notificationManager.deleteRows(id);
                 scheduleManager.deleteRows(id);
                 hopFilterManager.deleteRows(id);
                 forcedParamManager.deleteRows(id);
@@ -1063,6 +1099,8 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
               // Write pipeline rows
               pipelineManager.writeRows(id,jobDescription);
+              // Write notification rows
+              notificationManager.writeRows(id,jobDescription);
               // Write schedule records
               scheduleManager.writeRows(id,jobDescription);
               // Write hop filter rows
@@ -1573,6 +1611,16 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     invalidateCurrentUnregisteredState(jobID,oldStatusValue);
   }
   
+  /** Signal to a job that its underlying notification connector has gone away.
+  *@param jobID is the identifier of the job.
+  *@param oldStatusValue is the current status value for the job.
+  */
+  public void noteNotificationConnectorDeregistration(Long jobID, int oldStatusValue)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+  
   /** Signal to a job that its underlying connector has gone away.
   *@param jobID is the identifier of the job.
   *@param oldStatusValue is the current status value for the job.
@@ -1613,6 +1661,16 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     performUpdate(newValues,"WHERE "+query,list,invKey);
   }
   
+  /** Signal to a job that its underlying notification connector has returned.
+  *@param jobID is the identifier of the job.
+  *@param oldStatusValue is the current status value for the job.
+  */
+  public void noteNotificationConnectorRegistration(Long jobID, int oldStatusValue)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+
   /** Signal to a job that its underlying connector has returned.
   *@param jobID is the identifier of the job.
   *@param oldStatusValue is the current status value for the job.
@@ -1637,6 +1695,16 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(connectionNameField,connectionName)});
     performUpdate(newValues,"WHERE "+query,list,null);
+  }
+
+  /** Note a change in notification connection configuration.
+  * This method will be called whenever a notification connection's configuration is modified, or when an external repository change
+  * is signalled.
+  */
+  public void noteNotificationConnectionChange(String connectionName)
+    throws ManifoldCFException
+  {
+    // Notification configuration change does not change anything in a crawl
   }
 
   /** Note a change in output connection configuration.
@@ -3059,6 +3127,21 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
     return set.getRowCount() > 0;
   }
 
+  /** See if there's a reference to a notification connection name.
+  *@param connectionName is the name of the connection.
+  *@return true if there is a reference, false otherwise.
+  */
+  public boolean checkIfNotificationReference(String connectionName)
+    throws ManifoldCFException
+  {
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(notificationManager.notificationNameField,connectionName)});
+    IResultSet set = performQuery("SELECT "+notificationManager.ownerIDField+" FROM "+notificationManager.getTableName()+
+      " WHERE "+query,list,new StringSet(getJobsKey()),null);
+    return set.getRowCount() > 0;
+  }
+
   /** See if there's a reference to an output connection name.
   *@param connectionName is the name of the connection.
   *@return true if there is a reference, false otherwise.
@@ -3616,6 +3699,7 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
 
       // Fill in schedules for jobs
       pipelineManager.getRows(returnValues,idList,params);
+      notificationManager.getRows(returnValues,idList,params);
       scheduleManager.getRows(returnValues,idList,params);
       hopFilterManager.getRows(returnValues,idList,params);
       forcedParamManager.getRows(returnValues,idList,params);
