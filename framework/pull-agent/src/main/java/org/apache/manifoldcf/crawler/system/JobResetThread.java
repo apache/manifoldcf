@@ -206,6 +206,12 @@ public class JobResetThread extends Thread
       {
         Logging.connectors.warn("Can't notify right now: "+e.getMessage(),e);
       }
+      catch (ManifoldCFException e)
+      {
+        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+          throw e;
+        Logging.connectors.warn("Error notifying: "+ e.getMessage(),e);
+      }
     }
   }
   
