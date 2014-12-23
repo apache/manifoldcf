@@ -689,7 +689,7 @@
 				}
 			}
 		}
-		Integer connectionSequenceNumber = new Integer(1+j);
+		Integer connectionSequenceNumber = new Integer(1+pipelineConnectionNames.length+j);
 		while (sequenceArray.size() < tabsArray.size())
 		{
 			sequenceArray.add(connectionSequenceNumber);
@@ -716,6 +716,11 @@
 					notificationConnectorPool.release(notificationConnection,notificationConnector);
 				}
 			}
+		}
+		Integer connectionSequenceNumber = new Integer(1+j);
+		while (sequenceArray.size() < tabsArray.size())
+		{
+			sequenceArray.add(connectionSequenceNumber);
 		}
 	}
 %>
