@@ -649,29 +649,9 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.error("Email: Error "+context+": "+e.getMessage(),e);
-    throw new ManifoldCFException("Error "+context+": "+e.getMessage(),e);
+    throw new ServiceInterruption("Error "+context+": "+e.getMessage(),e,-1,-1,-1,true);
   }
   
-  /** Handle IO Exception */
-  protected static void handleIOException(IOException e, String context)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    if (e instanceof java.net.SocketTimeoutException)
-    {
-      Logging.connectors.error("Email: Socket timeout "+context+": "+e.getMessage(),e);
-      throw new ManifoldCFException("Socket timeout: "+e.getMessage(),e);
-    }
-    else if (e instanceof InterruptedIOException)
-    {
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
-    }
-    else
-    {
-      Logging.connectors.error("Email: IO error "+context+": "+e.getMessage(),e);
-      throw new ManifoldCFException("IO error "+context+": "+e.getMessage(),e);
-    }
-  }
-
   /** Class to set up connection.
   */
   protected static class ConnectThread extends Thread
