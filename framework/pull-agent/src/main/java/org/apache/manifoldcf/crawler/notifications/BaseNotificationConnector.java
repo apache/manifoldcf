@@ -65,9 +65,10 @@ public abstract class BaseNotificationConnector extends org.apache.manifoldcf.co
   }
 
   /** Notify of job end.
+  *@param spec is the notification specification.
   */
   @Override
-  public void notifyOfJobEnd()
+  public void notifyOfJobEnd(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
   }

@@ -216,6 +216,45 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
 
   //////////////////////////////Start of Notification Connector Method///////////////////////////////////
 
+  /** Notify of job end.
+  *@param spec is the notification specification.
+  */
+  @Override
+  public void notifyOfJobEnd(Specification spec)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    // Grab the necessary info from the spec
+    final List<String> to = new ArrayList<String>();
+    String from = null;
+    String subject = "";
+    String body = "";
+    for (int i = 0; i < spec.getChildCount(); i++) {
+      SpecificationNode sn = spec.getChild(i);
+      if (sn.getType().equals(EmailConfig.NODE_TO))
+        to.add(sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE));
+      else if (sn.getType().equals(EmailConfig.NODE_FROM))
+        from = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
+      else if (sn.getType().equals(EmailConfig.NODE_SUBJECT))
+        subject = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
+      else if (sn.getType().equals(EmailConfig.NODE_BODY))
+        body = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
+    }
+    
+    // Construct and send an email
+    getSession();
+    
+    SendThread st = new SendThread(session,to,from,subject,body);
+    st.start();
+    try {
+      st.finishUp();
+    } catch (InterruptedException e) {
+      throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
+    } catch (MessagingException e) {
+      handleMessagingException(e,"sending email");
+    }
+  }
+
+
   //////////////////////////////End of Notification Connector Methods///////////////////////////////////
 
 
@@ -765,6 +804,64 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
       try
       {
         session.checkConnection();
+      }
+      catch (Throwable e)
+      {
+        exception = e;
+      }
+    }
+    
+    public void finishUp()
+      throws MessagingException, InterruptedException
+    {
+      try
+      {
+        join();
+        if (exception != null)
+        {
+          if (exception instanceof RuntimeException)
+            throw (RuntimeException)exception;
+          else if (exception instanceof Error)
+            throw (Error)exception;
+          else if (exception instanceof MessagingException)
+            throw (MessagingException)exception;
+          else
+            throw new RuntimeException("Unknown exception type: "+exception.getClass().getName()+": "+exception.getMessage(),exception);
+        }
+      } catch (InterruptedException e) {
+        this.interrupt();
+        throw e;
+      }
+    }
+  }
+
+  /** Class to send email.
+  */
+  protected static class SendThread extends Thread
+  {
+    protected final EmailSession session;
+    protected final List<String> to;
+    protected final String from;
+    protected final String subject;
+    protected final String body;
+    
+    protected Throwable exception = null;
+    
+    public SendThread(EmailSession session, List<String> to, String from, String subject, String body)
+    {
+      this.session = session;
+      this.to = to;
+      this.from = from;
+      this.subject = subject;
+      this.body = body;
+      setDaemon(true);
+    }
+    
+    public void run()
+    {
+      try
+      {
+        session.send(to,from,subject,body);
       }
       catch (Throwable e)
       {

@@ -59,9 +59,10 @@ public interface INotificationConnector extends IConnector
   public boolean requestInfo(Configuration output, String command)
     throws ManifoldCFException;
 
-  /** Notify of job end.
+  /** Notify of job end
+  *@param spec is the notification specification.
   */
-  public void notifyOfJobEnd()
+  public void notifyOfJobEnd(Specification spec)
     throws ManifoldCFException, ServiceInterruption;
   
   // UI support methods.

@@ -22,7 +22,7 @@ import java.util.*;
 import javax.mail.*;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
-import javax.mail.search.*;
+import javax.mail.internet.InternetAddress;
 
 /** This class represents a raw email session, without any protection
 * from threads waiting on sockets, etc.
@@ -60,25 +60,6 @@ public class EmailSession
     store = thisStore;
   }
   
-  public String[] listFolders()
-    throws MessagingException
-  {
-    if (store != null)
-    {
-      List<String> folderList = new ArrayList<String>();
-      Folder[] folders = store.getDefaultFolder().list("*");
-      for (Folder folder : folders)
-      {
-        if ((folder.getType() & Folder.HOLDS_MESSAGES) != 0)
-          folderList.add(folder.getFullName());
-      }
-      String[] rval = folderList.toArray(new String[0]);
-      java.util.Arrays.sort(rval);
-      return rval;
-    }
-    return null;
-  }
-  
   public void checkConnection()
     throws MessagingException
   {
@@ -90,34 +71,28 @@ public class EmailSession
     }
   }
 
-  public Folder openFolder(String folderName)
+  public void send(List<String> to, String from, String subject, String body)
     throws MessagingException
   {
-    if (store != null)
-    {
-      Folder thisFolder = store.getFolder(folderName);
-      thisFolder.open(Folder.READ_ONLY);
-      return thisFolder;
+    // Create a default MimeMessage object.
+    MimeMessage message = new MimeMessage(session);
+
+    // Set From: header field of the header.
+    message.setFrom(new InternetAddress(from));
+
+    // Set To: header field of the header.
+    for (String toValue : to) {
+      message.addRecipient(Message.RecipientType.TO, new InternetAddress(toValue));
     }
-    return null;
-  }
-  
-  public void closeFolder(Folder folder)
-    throws MessagingException
-  {
-    folder.close(false);
-  }
-  
-  public Message[] getMessages(Folder folder)
-    throws MessagingException
-  {
-    return folder.getMessages();
-  }
-  
-  public Message[] search(Folder folder, SearchTerm searchTerm)
-    throws MessagingException
-  {
-    return folder.search(searchTerm);
+
+    // Set Subject: header field
+    message.setSubject(subject);
+
+    // Now set the actual message
+    message.setText(body);
+
+    // Send message
+    Transport.send(message);
   }
   
   public void close()
