@@ -231,8 +231,8 @@
 	if (set.getRowCount() == 0)
 	{
 %>
-	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.EditTransformationConnection")%></p>
-	<table class="displaytable"><tr><td class="message">No transformation connectors registered</td></tr></table>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.EditTransformationConnection2")%></p>
+	<table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.NoTransformationConnectorsRegistered")%></td></tr></table>
 <%
 	}
 	else

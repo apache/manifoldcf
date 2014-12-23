@@ -784,6 +784,7 @@ public class CrawlerAgent implements IAgent
 
     // Threads are down; release connectors
     RepositoryConnectorPoolFactory.make(threadContext).flushUnusedConnectors();
+    NotificationConnectorPoolFactory.make(threadContext).flushUnusedConnectors();
     numWorkerThreads = 0;
     numDeleteThreads = 0;
     numExpireThreads = 0;

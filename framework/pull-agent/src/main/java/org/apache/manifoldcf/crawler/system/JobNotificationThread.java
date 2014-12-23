@@ -72,15 +72,14 @@ public class JobNotificationThread extends Thread
           // Before we begin, conditionally reset
           resetManager.waitForReset(threadContext);
 
+          // Find the jobs ready for inactivity and notify them
           JobNotifyRecord[] jobsNeedingNotification = jobManager.getJobsReadyForInactivity(processID);
           try
           {
             Set<OutputAndRepositoryConnection> connectionNames = new HashSet<OutputAndRepositoryConnection>();
             
-            int k = 0;
-            while (k < jobsNeedingNotification.length)
+            for (JobNotifyRecord jsr : jobsNeedingNotification)
             {
-              JobNotifyRecord jsr = jobsNeedingNotification[k++];
               Long jobID = jsr.getJobID();
               IJobDescription job = jobManager.load(jobID,true);
               if (job != null)
@@ -147,10 +146,8 @@ public class JobNotificationThread extends Thread
             }
             
             // Go through jobs again, and put the notified ones into the inactive state.
-            k = 0;
-            while (k < jobsNeedingNotification.length)
+            for (JobNotifyRecord jsr : jobsNeedingNotification)
             {
-              JobNotifyRecord jsr = jobsNeedingNotification[k++];
               Long jobID = jsr.getJobID();
               IJobDescription job = jobManager.load(jobID,true);
               if (job != null)
@@ -249,16 +246,14 @@ public class JobNotificationThread extends Thread
               throw exception;
           }
 
-          // ???
+          // We also need to do a notify for jobs that are about to be deleted
           JobNotifyRecord[] jobsNeedingDeleteNotification = jobManager.getJobsReadyForDelete(processID);
           try
           {
             Set<OutputAndRepositoryConnection> connectionNames = new HashSet<OutputAndRepositoryConnection>();
             
-            int k = 0;
-            while (k < jobsNeedingDeleteNotification.length)
+            for (JobNotifyRecord jsr : jobsNeedingDeleteNotification)
             {
-              JobNotifyRecord jsr = jobsNeedingDeleteNotification[k++];
               Long jobID = jsr.getJobID();
               IJobDescription job = jobManager.load(jobID,true);
               if (job != null)
@@ -325,10 +320,8 @@ public class JobNotificationThread extends Thread
             }
             
             // Go through jobs again, and put the notified ones into the inactive state.
-            k = 0;
-            while (k < jobsNeedingDeleteNotification.length)
+            for (JobNotifyRecord jsr : jobsNeedingDeleteNotification)
             {
-              JobNotifyRecord jsr = jobsNeedingDeleteNotification[k++];
               Long jobID = jsr.getJobID();
               IJobDescription job = jobManager.load(jobID,true);
               if (job != null)
