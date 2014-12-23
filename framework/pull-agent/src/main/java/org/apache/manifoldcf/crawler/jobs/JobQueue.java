@@ -932,8 +932,26 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     noteModifications(0,1,0);
   }
 
+  /** Mark queued documents for prioritization */
+  public void prioritizeQueuedDocuments(Long jobID)
+    throws ManifoldCFException
+  {
+    HashMap map = new HashMap();
+    map.put(needPriorityField,needPriorityToString(NEEDPRIORITY_TRUE));
+    map.put(needPriorityProcessIDField,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_PENDING),
+        statusToString(STATUS_PENDINGPURGATORY),
+        statusToString(STATUS_HOPCOUNTREMOVED)})});
+    performUpdate(map,"WHERE "+query,list,null);
+    noteModifications(0,1,0);
+  }
+  
   /** Clear all document priorities for a job that is going to sleep */
-  public void clearDocPriorities(Long jobID)
+  public void noDocPriorities(Long jobID)
     throws ManifoldCFException
   {
     HashMap map = new HashMap();
