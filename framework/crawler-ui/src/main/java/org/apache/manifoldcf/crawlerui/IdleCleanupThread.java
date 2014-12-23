@@ -53,6 +53,7 @@ public class IdleCleanupThread extends Thread
       IThreadContext threadContext = ThreadContextFactory.make();
       
       IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(threadContext);
+      INotificationConnectorPool notificationConnectorPool = NotificationConnectorPoolFactory.make(threadContext);
       IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(threadContext);
       ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(threadContext);
       IAuthorityConnectorPool authorityConnectorPool = AuthorityConnectorPoolFactory.make(threadContext);
@@ -66,6 +67,7 @@ public class IdleCleanupThread extends Thread
         {
           // Do the cleanup
           repositoryConnectorPool.pollAllConnectors();
+          notificationConnectorPool.pollAllConnectors();
           outputConnectorPool.pollAllConnectors();
           transformationConnectorPool.pollAllConnectors();
           authorityConnectorPool.pollAllConnectors();

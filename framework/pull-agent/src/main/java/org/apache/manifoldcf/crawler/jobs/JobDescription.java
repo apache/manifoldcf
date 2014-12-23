@@ -44,6 +44,7 @@ public class JobDescription implements IJobDescription
   protected String description = null;
   protected String connectionName = null;
   protected final List<PipelineStage> pipelineStages = new ArrayList<PipelineStage>();
+  protected final List<Notification> notifications = new ArrayList<Notification>();
   protected int type = TYPE_CONTINUOUS;
   protected int startMethod = START_WINDOWBEGIN;
   protected int priority = 5;
@@ -100,6 +101,12 @@ public class JobDescription implements IJobDescription
         pipelineStage.getDescription(),
         pipelineStage.getSpecification().duplicate(readOnly)));
     }
+    for (Notification notification : notifications)
+    {
+      rval.notifications.add(new Notification(notification.getConnectionName(),
+        notification.getDescription(),
+        notification.getSpecification().duplicate(readOnly)));
+    }
     rval.description = description;
     rval.type = type;
     // No direct modification of this object is possible
@@ -134,6 +141,10 @@ public class JobDescription implements IJobDescription
     for (PipelineStage pipelineStage : pipelineStages)
     {
       pipelineStage.getSpecification().makeReadOnly();
+    }
+    for (Notification notification : notifications)
+    {
+      notification.getSpecification().makeReadOnly();
     }
     documentSpecification.makeReadOnly();
   }
@@ -333,6 +344,8 @@ public class JobDescription implements IJobDescription
   @Override
   public void deletePipelineStage(int index)
   {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
     PipelineStage ps = pipelineStages.remove(index);
     int stage = index;
     while (stage < pipelineStages.size())
@@ -342,6 +355,100 @@ public class JobDescription implements IJobDescription
     }
   }
 
+  /** Clear notification connections.
+  */
+  @Override
+  public void clearNotifications()
+  {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    notifications.clear();
+  }
+  
+  /** Add a notification.
+  *@param notificationConnectionName is the name of the notification connection to add.
+  *@param notificationDescription is a description of the notification being added.
+  *@return the empty specification for this notification.
+  */
+  @Override
+  public Specification addNotification(String notificationConnectionName, String notificationDescription)
+  {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    Notification ps = new Notification(notificationConnectionName,notificationDescription);
+    notifications.add(ps);
+    return ps.getSpecification();
+  }
+  
+  /** Get a count of pipeline connections.
+  *@return the current number of pipeline connections.
+  */
+  @Override
+  public int countNotifications()
+  {
+    return notifications.size();
+  }
+  
+  /** Get a specific notification connection name.
+  *@param index is the index of the notification whose connection name to get.
+  *@return the name of the connection.
+  */
+  @Override
+  public String getNotificationConnectionName(int index)
+  {
+    return notifications.get(index).getConnectionName();
+  }
+
+  /** Get a specific notification description.
+  *@param index is the index of the notification whose description to get.
+  *@return the name of the connection.
+  */
+  @Override
+  public String getNotificationDescription(int index)
+  {
+    return notifications.get(index).getDescription();
+  }
+
+  /** Get a specific notification specification.
+  *@param index is the index of the notification whose specification is needed.
+  *@return the specification for the connection.
+  */
+  @Override
+  public Specification getNotificationSpecification(int index)
+  {
+    return notifications.get(index).getSpecification();
+  }
+
+  /** Delete a notification.
+  *@param index is the index of the notification to delete.
+  */
+  @Override
+  public void deleteNotification(int index)
+  {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    notifications.remove(index);
+  }
+  
+  /** Insert a new notification.
+  *@param index is the index to insert pipeline stage before
+  *@param notificationConnectionName is the connection name.
+  *@param notificationDescription is the description.
+  *@return the newly-created output specification.
+  */
+  @Override
+  public Specification insertNotification(int index, String notificationConnectionName, String notificationDescription)
+  {
+    if (readOnly)
+      throw new IllegalStateException("Attempt to change read-only object");
+    // What we do here depends on the kind of stage we're inserting.
+    // Both kinds take the current stage's prerequisite as their own.  But what happens to the current stage will
+    // differ as to whether its reference changes or not.
+    Notification ps = new Notification(notificationConnectionName,notificationDescription);
+    notifications.add(index,ps);
+    return ps.getSpecification();
+  }
+  
   /** Set the job type.
   *@param type is the type (as an integer).
   */
@@ -602,6 +709,43 @@ public class JobDescription implements IJobDescription
     hopcountMode = mode;
   }
 
+  protected static class Notification
+  {
+    protected final String connectionName;
+    protected final String description;
+    protected final Specification specification;
+    
+    public Notification(String connectionName, String description)
+    {
+      this.connectionName = connectionName;
+      this.description = description;
+      this.specification = new Specification();
+    }
+
+    public Notification(String connectionName, String description, Specification spec)
+    {
+      this.connectionName = connectionName;
+      this.description = description;
+      this.specification = spec;
+    }
+
+    public Specification getSpecification()
+    {
+      return specification;
+    }
+    
+    public String getConnectionName()
+    {
+      return connectionName;
+    }
+    
+    public String getDescription()
+    {
+      return description;
+    }
+
+  }
+  
   protected static class PipelineStage
   {
     protected int prerequisiteStage;

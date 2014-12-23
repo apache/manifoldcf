@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1119: Add support for notification connectors, and
+an email notification connector.
+(Karl Wright)
 
 ======================= Release 2.0 =====================
 

@@ -141,6 +141,53 @@ public interface IJobDescription
   *@return the newly-created output specification.
   */
   public Specification insertPipelineStage(int index, boolean isOutput, String pipelineStageConnectionName, String pipelineStageDescription);
+
+  /** Clear notification connections.
+  */
+  public void clearNotifications();
+  
+  /** Add a notification.
+  *@param notificationConnectionName is the name of the notification connection to add.
+  *@param notificationDescription is a description of the notification being added.
+  *@return the empty specification for this notification.
+  */
+  public Specification addNotification(String notificationConnectionName, String notificationDescription);
+  
+  /** Get a count of pipeline connections.
+  *@return the current number of pipeline connections.
+  */
+  public int countNotifications();
+  
+  /** Get a specific notification connection name.
+  *@param index is the index of the notification whose connection name to get.
+  *@return the name of the connection.
+  */
+  public String getNotificationConnectionName(int index);
+
+  /** Get a specific notification description.
+  *@param index is the index of the notification whose description to get.
+  *@return the name of the connection.
+  */
+  public String getNotificationDescription(int index);
+
+  /** Get a specific notification specification.
+  *@param index is the index of the notification whose specification is needed.
+  *@return the specification for the connection.
+  */
+  public Specification getNotificationSpecification(int index);
+
+  /** Delete a notification.
+  *@param index is the index of the notification to delete.
+  */
+  public void deleteNotification(int index);
+  
+  /** Insert a new notification.
+  *@param index is the index to insert pipeline stage before
+  *@param notificationConnectionName is the connection name.
+  *@param notificationDescription is the description.
+  *@return the newly-created output specification.
+  */
+  public Specification insertNotification(int index, String notificationConnectionName, String notificationDescription);
   
   /** Set the job type.
   *@param type is the type (as an integer).
