@@ -6398,7 +6398,6 @@ public class JobManager implements IJobManager
     boolean requestMinimum)
     throws ManifoldCFException
   {
-
     // (1) If the connector has MODEL_ADD_CHANGE_DELETE, then
     // we let the connector run the show; there's no purge phase, and therefore the
     // documents are left in a COMPLETED state if they don't show up in the list
@@ -6415,6 +6414,7 @@ public class JobManager implements IJobManager
     
     // Always reset document schedules for those documents already pending!
     jobQueue.resetPendingDocumentSchedules(jobID);
+    jobQueue.prioritizeQueuedDocuments(jobID);
     
     // Complete connector model is told everything, so no delete phase.
     if (connectorModel == IRepositoryConnector.MODEL_ADD_CHANGE_DELETE)
@@ -8120,7 +8120,7 @@ public class JobManager implements IJobManager
         // See CONNECTORS-290.
         // We do this BEFORE updating the job state.
         
-        clearDocPriorities(jobID);
+        noDocPriorities(jobID);
             
         IJobDescription jobDesc = jobs.load(jobID,true);
         modifiedJobs.add(jobDesc);
@@ -8136,7 +8136,7 @@ public class JobManager implements IJobManager
     }
   }
 
-  protected void clearDocPriorities(Long jobID)
+  protected void noDocPriorities(Long jobID)
     throws ManifoldCFException
   {
     while (true)
@@ -8145,7 +8145,7 @@ public class JobManager implements IJobManager
       database.beginTransaction();
       try
       {
-        jobQueue.clearDocPriorities(jobID);
+        jobQueue.noDocPriorities(jobID);
         database.performCommit();
         break;
       }
