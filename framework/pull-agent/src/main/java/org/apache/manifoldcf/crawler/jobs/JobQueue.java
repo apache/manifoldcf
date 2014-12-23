@@ -517,7 +517,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   }
   
   /** Flip all records for a job that have status HOPCOUNTREMOVED back to PENDING.
-  * NOTE: We need to actually schedule these!!!  so the following can't really work.  ???
+  * NOTE: We need to actually schedule these!!!  so the following can't really work. 
   */
   public void reactivateHopcountRemovedRecords(Long jobID)
     throws ManifoldCFException
@@ -525,6 +525,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     Map map = new HashMap();
     // Map HOPCOUNTREMOVED to PENDING
     map.put(statusField,statusToString(STATUS_PENDING));
+    map.put(needPriorityField,needPriorityToString(NEEDPRIORITY_TRUE));
+    map.put(needPriorityProcessIDField,null);
     map.put(checkTimeField,new Long(0L));
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
@@ -772,6 +774,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
     map.put(needPriorityField,needPriorityToString(NEEDPRIORITY_TRUE));
+    map.put(needPriorityProcessIDField,null);
     // Do not reset priorities here!  They should all be blank at this point.
     map.put(checkTimeField,new Long(0L));
     map.put(checkActionField,actionToString(ACTION_RESCAN));
@@ -830,6 +833,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
     map.put(needPriorityField,needPriorityToString(NEEDPRIORITY_TRUE));
+    map.put(needPriorityProcessIDField,null);
     // Do not reset priorities here!  They should all be blank at this point.
     map.put(checkTimeField,new Long(0L));
     map.put(checkActionField,actionToString(ACTION_RESCAN));
@@ -944,8 +948,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID),
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_PENDING),
-        statusToString(STATUS_PENDINGPURGATORY),
-        statusToString(STATUS_HOPCOUNTREMOVED)})});
+        statusToString(STATUS_PENDINGPURGATORY)})});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
   }
@@ -973,6 +976,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     HashMap map = new HashMap();
     map.put(needPriorityField,needPriorityToString(NEEDPRIORITY_TRUE));
+    map.put(needPriorityProcessIDField,null);
     map.put(docPriorityField,nullDocPriority);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
@@ -1047,8 +1051,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     {
     case STATUS_ACTIVE:
     case STATUS_ACTIVEPURGATORY:
-      // Mark as hopcountremove
+      // Mark as hopcountremove (and remove its priority too)
       newStatus = STATUS_HOPCOUNTREMOVED;
+      map.put(needPriorityField,needPriorityToString(NEEDPRIORITY_FALSE));
+      map.put(needPriorityProcessIDField,null);
+      map.put(docPriorityField,nullDocPriority);
       actionFieldValue = actionToString(ACTION_RESCAN);
       checkTimeValue = new Long(0L);
       rval = true;
