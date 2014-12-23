@@ -216,11 +216,25 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
 
   //////////////////////////////Start of Notification Connector Method///////////////////////////////////
 
-  /** Notify of job end.
+  /** Notify of job stop.
   *@param spec is the notification specification.
   */
   @Override
   public void notifyOfJobStop(Specification spec)
+    throws ManifoldCFException, ServiceInterruption {
+    sendMail(spec);
+  }
+  
+  /** Notify of job end.
+  *@param spec is the notification specification.
+  */
+  @Override
+  public void notifyOfJobEnd(Specification spec)
+    throws ManifoldCFException, ServiceInterruption {
+    sendMail(spec);
+  }
+
+  protected void sendMail(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {
     // Grab the necessary info from the spec
