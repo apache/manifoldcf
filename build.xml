@@ -79,15 +79,31 @@
     
     <target name="download-release" depends="setup-release-base-url">
         <mkdir dir="build/releases"/>
-        <get src="${release-base-url}/apache-manifoldcf-${release-version}-bin.zip" dest="build/releases/apache-manifoldcf-${release-version}-bin.zip"/>
+        <get src="${release-base-url}/apache-manifoldcf-${release-version}/apache-manifoldcf-${release-version}-bin.zip" dest="build/releases/apache-manifoldcf-${release-version}-bin.zip"/>
     </target>
 
     <target name="download-archive" depends="setup-archive-base-url">
+        <mkdir dir="build/releases"/>
+        <get src="${archive-base-url}/apache-manifoldcf-${release-version}/apache-manifoldcf-${release-version}-bin.zip" dest="build/releases/apache-manifoldcf-${release-version}-bin.zip"/>
+    </target>
+
+    <target name="download-legacy-archive" depends="setup-archive-base-url">
         <mkdir dir="build/releases"/>
         <get src="${archive-base-url}/apache-manifoldcf-${release-version}-bin.zip" dest="build/releases/apache-manifoldcf-${release-version}-bin.zip"/>
     </target>
 
     <target name="install-release" depends="download-release">
+        <mkdir dir="build/publish/release"/>
+        <!-- unpack -->
+        <unzip src="build/releases/apache-manifoldcf-${release-version}-bin.zip" dest="build/releases/apache-manifoldcf-${release-version}-bin"/>
+        <!-- copy -->
+        <mkdir dir="build/site/release"/>
+        <copy todir="build/site/release/release-${release-version}">
+            <fileset dir="build/releases/apache-manifoldcf-${release-version}-bin/apache-manifoldcf-${release-version}/doc"/>
+        </copy>
+    </target>
+
+    <target name="install-legacy-archive" depends="download-legacy-archive">
         <mkdir dir="build/publish/release"/>
         <!-- unpack -->
         <unzip src="build/releases/apache-manifoldcf-${release-version}-bin.zip" dest="build/releases/apache-manifoldcf-${release-version}-bin"/>
@@ -150,10 +166,10 @@
         <antcall target="install-release">
             <param name="release-version" value="1.8"/>
         </antcall>
-        <antcall target="install-archive">
+        <antcall target="install-legacy-archive">
             <param name="release-version" value="1.7.2"/>
         </antcall>
-        <antcall target="install-archive">
+        <antcall target="install-legacy-archive">
             <param name="release-version" value="1.6.1"/>
         </antcall>
     </target>
