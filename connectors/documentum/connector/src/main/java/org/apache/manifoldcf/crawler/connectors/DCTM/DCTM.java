@@ -3234,6 +3234,36 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               node.addChild(node.getChildCount(),attrNode);
             }
           }
+          x = variableContext.getParameter(seqPrefix+"filter_"+k+"_count");
+          int filterCount = Integer.parseInt(x);
+          for (int kk = 0; kk < filterCount; kk++)
+          {
+            String op = variableContext.getParameter(seqPrefix+"filter_"+k+"_"+kk+"_op");
+            if (!op.equals("Delete"))
+            {
+              String attributeName = variableContext.getParameter(seqPrefix+"filter_"+k+"_"+kk+"_name");
+              String operation = variableContext.getParameter(seqPrefix+"filter_"+k+"_"+kk+"_operation");
+              String value = variableContext.getParameter(seqPrefix+"filter_"+k+"_"+kk+"_value");
+              SpecificationNode filterNode = new SpecificationNode(CONFIG_PARAM_FILTER);
+              filterNode.setAttribute("name",attributeName);
+              filterNode.setAttribute("op",operation);
+              filterNode.setAttribute("value",value);
+              node.addChild(node.getChildCount(),filterNode);
+            }
+          }
+          // Add at the end
+          x = variableContext.getParameter(seqPrefix+"filter_"+k+"_op");
+          if (x.equals("Add"))
+          {
+            String attributeName = variableContext.getParameter(seqPrefix+"filter_"+k+"_name");
+            String operation = variableContext.getParameter(seqPrefix+"filter_"+k+"_operation");
+            String value = variableContext.getParameter(seqPrefix+"filter_"+k+"_value");
+            SpecificationNode filterNode = new SpecificationNode(CONFIG_PARAM_FILTER);
+            filterNode.setAttribute("name",attributeName);
+            filterNode.setAttribute("op",operation);
+            filterNode.setAttribute("value",value);
+            node.addChild(node.getChildCount(),filterNode);
+          }
           ds.addChild(ds.getChildCount(),node);
         }
       }
