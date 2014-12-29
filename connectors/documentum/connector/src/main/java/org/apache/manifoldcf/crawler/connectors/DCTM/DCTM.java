@@ -2112,6 +2112,36 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "  postFormSetAnchor(anchorvalue);\n"+
 "}\n"+
 "\n"+
+"function "+seqPrefix+"DeleteFilter(k,l)\n"+
+"{\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"filter_\"+k+\"_\"+l+\"_op\",\"Delete\",\""+seqPrefix+"filter_\"+k+\"_\"+l);\n"+
+"}\n"+
+"\n"+
+"function "+seqPrefix+"AddFilter(k,l)\n"+
+"{\n"+
+"  if (eval(\"editjob."+seqPrefix+"filter_\"+k+\"_name.value == \\\"\\\"\"))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.SelectAnAttributeFirst") + "\");\n"+
+"    eval(\"editjob."+seqPrefix+"filter_\"+k+\"_name.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"\n"+
+"  if (eval(\"editjob."+seqPrefix+"filter_\"+k+\"_operation.value == \\\"\\\"\"))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.SelectAnOperation") + "\");\n"+
+"    eval(\"editjob."+seqPrefix+"filter_\"+k+\"_operation.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"\n"+
+"  if (eval(\"editjob."+seqPrefix+"filter_\"+k+\"_value.value == \\\"\\\"\"))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.FilterMustHaveValue") + "\");\n"+
+"    eval(\"editjob."+seqPrefix+"filter_\"+k+\"_value.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"filter_\"+k+\"_op\",\"Add\",\""+seqPrefix+"filter_\"+k+\"_\"+l);\n"+
+"}\n"+
+"\n"+
 "function "+seqPrefix+"SpecAddToPath(anchorvalue)\n"+
 "{\n"+
 "  if (editjob."+seqPrefix+"pathaddon.value == \"\")\n"+
@@ -2515,6 +2545,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         {
           if (strObjectType != null && strObjectType.length() > 0)
 	  {
+            // Get the attributes for this data type
+            String[] values = getIngestableAttributes(strObjectType);
+
             out.print(
 "        <tr class=\""+(((k % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"
@@ -2535,16 +2568,99 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             }
             out.print(
 "          </td>\n"+
-"          <td class=\"formcolumncell\">\n"
+"          <td class=\"boxcell\">\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_op\" value=\"Continue\"/>\n"+
+"            <table class=\"formtable\">\n"+
+"              <tr class=\"formheaderrow\">\n"+
+"                <td class=\"formcolumnheader\"></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.AttributeName") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Operation") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Value") + "</nobr></td>\n"+
+"              </tr>\n"
             );
             
             // Now, do filters.  This will be a table-with-a-table, with an "Add" button at the bottom.
-            // MHL
+            Map<String,List<FilterInfo>> currentFilters = dtFilters.get(strObjectType);
+            int l = 0;
+            String[] filterAttributes = currentFilters.keySet().toArray(new String[0]);
+            java.util.Arrays.sort(filterAttributes);
+            for (String filterAttribute : filterAttributes)
+            {
+              List<FilterInfo> filters = currentFilters.get(filterAttribute);
+              for (FilterInfo filter : filters)
+              {
+                String filterOperation = filter.operation;
+                String filterValue = filter.value;
+                out.print(
+"              <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_op\" value=\"Continue\"/>\n"+
+"                  <input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_name\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterAttribute)+"\"/>\n"+
+"                  <input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_operation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterOperation)+"\"/>\n"+
+"                  <input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_value\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterValue)+"\"/>\n"+
+"                  <a name=\""+seqPrefix+"filter_"+k+"_"+l+"\">\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"DCTM.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"DCTM.DeleteFilter")+"\" onclick='javascript:"+seqPrefix+"FilterDelete("+k+","+l+");'/>\n"+
+"                  </a>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filterAttribute)+"\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filterOperation)+"\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filterValue)+"\n"+
+"                </td>\n"+
+"              </tr>\n"
+                );
+                l++;
+              }
+            }
             
+            if (l == 0)
+            {
+              out.print(
+"              <tr class=\"formrow\"><td colspan=\"4\" class=\"formcolumnmessage\"><nobr>" + Messages.getBodyString(locale,"DCTM.NoAttributeFiltersSpecified") + "</nobr></td></tr>\n"
+              );
+            }
             out.print(
+"              <tr class=\"formrow\"><td colspan=\"4\" class=\"formseparator\"><hr/></td></tr>\n"+
+"              <tr class=\"formrow\">\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <a name=\""+seqPrefix+"filter_"+k+"_"+l+"\">\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"DCTM.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"DCTM.AddFilter") + "\" onclick='javascript:"+seqPrefix+"FilterAdd("+k+","+l+");'/>\n"+
+"                    <input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_count\" value=\""+l+"\"/>\n"+
+"                  </a>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <select multiple=\"false\" name=\""+seqPrefix+"filter_"+k+"_name\" size=\"1\">\n"+
+"                    <option value=\"\" selected=\"selected\">" + Messages.getBodyString(locale,"DCTM.PickAnAttribute") + "</option>\n"
+            );
+
+            for (String attributeName : values)
+            {
+              out.print(
+"                    <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attributeName)+"\">" + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(attributeName) + "</option>\n"
+              );
+            }
+
+            out.print(
+"                  </select>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <select multiple=\"false\" name=\""+seqPrefix+"filter_"+k+"_operation\" size=\"1\">\n"+
+"                    <option value=\"\" selected=\"selected\">" + Messages.getBodyString(locale,"DCTM.PickAnOperation") + "</option>\n"+
+"                    <option value=\"=\" selected=\"selected\">" + Messages.getBodyString(locale,"DCTM.Equals") + "</option>\n"+
+"                    <option value=\"<>\" selected=\"selected\">" + Messages.getBodyString(locale,"DCTM.NotEquals") + "</option>\n"+
+"                  </select>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\"><input type=\"text\" name=\""+seqPrefix+"filter_"+k+"_value\" size=\"30\" value=\"\"/></td>\n"+
+"              </tr>\n"+
+"            </table>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"
             );
+            
             boolean isAll = false;
             Set<String> attrMap = null;
             if (o instanceof Boolean)
@@ -2563,8 +2679,6 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "          <td class=\"formcolumncell\">\n"+
 "            <select multiple=\"true\" name=\""+seqPrefix+"specfileattrs_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\" size=\"3\">\n"
             );
-            // Get the attributes for this data type
-            String[] values = getIngestableAttributes(strObjectType);
             for (String option : values)
             {
               if (attrMap != null && attrMap.contains(option))
