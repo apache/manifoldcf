@@ -2550,8 +2550,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
             out.print(
 "        <tr class=\""+(((k % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"
+"          <td class=\"formcolumncell\">\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"datatype_"+k+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\"/>\n"
             );
+
             Object o = dtMetadata.get(strObjectType);
             if (o == null)
             {
@@ -2674,10 +2676,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               attrMap = (Set<String>)o;
             }
             out.print(
-"            <input type=\"checkbox\" name=\""+seqPrefix+"specfileallattrs_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\" value=\"true\" "+(isAll?"checked=\"\"":"")+"/>\n"+
+"            <input type=\"checkbox\" name=\""+seqPrefix+"specfileallattrs_"+k+"\" value=\"true\" "+(isAll?"checked=\"\"":"")+"/>\n"+
 "          </td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <select multiple=\"true\" name=\""+seqPrefix+"specfileattrs_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\" size=\"3\">\n"
+"            <select multiple=\"true\" name=\""+seqPrefix+"specfileattrs_"+k+"\" size=\"3\">\n"
             );
             for (String option : values)
             {
@@ -2708,6 +2710,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 	}
         out.print(
 "      </table>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"datatype_count\" value=\""+k+"\"/>\n"+
 "    </td>\n"+
 "  </tr>\n"
         );
@@ -2738,8 +2741,33 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     }
     else
     {
+      k = 0;
       for (String strObjectType : dtMetadata.keySet())
       {
+        out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"datatype_"+k+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\"/>\n"
+        );
+        Map<String,List<FilterInfo>> currentFilters = dtFilters.get(strObjectType);
+        int l = 0;
+        for (String filterAttribute : currentFilters.keySet())
+        {
+          List<FilterInfo> filters = currentFilters.get(filterAttribute);
+          for (FilterInfo filter : filters)
+          {
+            String filterOperation = filter.operation;
+            String filterValue = filter.value;
+            out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_name\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterAttribute)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_operation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterOperation)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_value\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterValue)+"\"/>\n"
+            );
+            l++;
+          }
+        }
+        out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_count\" value=\""+l+"\"/>\n"
+        );
+
         Object o = dtMetadata.get(strObjectType);
         out.print(
 "<input type=\"hidden\" name=\""+seqPrefix+"specfiletype\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\"/>\n"
@@ -2748,7 +2776,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         {
           Boolean b = (Boolean)o;
           out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"specfileallattrs_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\" value=\""+(b.booleanValue()?"true":"false")+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specfileallattrs_"+k+"\" value=\""+(b.booleanValue()?"true":"false")+"\"/>\n"
           );
         }
         else
@@ -2757,11 +2785,16 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           for (String attrName : map)
           {
             out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"specfileattrs_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attrName)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specfileattrs_"+k+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attrName)+"\"/>\n"
             );
           }
         }
+        k++;
       }
+      out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"datatype_count\" value=\""+k+"\"/>\n"
+      );
+
     }
 
     // Content types tab
@@ -3014,9 +3047,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     int connectionSequenceNumber)
     throws ManifoldCFException
   {
+    String x;
+    String[] y;
+    
     String seqPrefix = "s"+connectionSequenceNumber+"_";
 
-    String x = variableContext.getParameter(seqPrefix+"pathcount");
+    x = variableContext.getParameter(seqPrefix+"pathcount");
     if (x != null)
     {
       // Delete all path specs first
@@ -3154,8 +3190,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    String[] y = variableContext.getParameterValues(seqPrefix+"specfiletype");
-    if (y != null)
+    x = variableContext.getParameter(seqPrefix+"datatype_count");
+    if (x != null)
     {
       // Delete all file specs first
       int i = 0;
@@ -3168,28 +3204,38 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           i++;
       }
 
-      // Loop through specs
-      i = 0;
-      while (i < y.length)
+      int dataCount = Integer.parseInt(x);
+      
+      y = variableContext.getParameterValues(seqPrefix+"specfiletype");
+      Set<String> checkedTypes = new HashSet<String>();
+      for (String s : y)
       {
-      	String fileType = y[i++];
-      	SpecificationNode node = new SpecificationNode(CONFIG_PARAM_OBJECTTYPE);
-      	node.setAttribute("token",fileType);
-      	String isAll = variableContext.getParameter(seqPrefix+"specfileallattrs_"+fileType);
-      	if (isAll != null)
-          node.setAttribute("all",isAll);
-      	String[] z = variableContext.getParameterValues(seqPrefix+"specfileattrs_"+fileType);
-      	if (z != null)
-      	{
-          int k = 0;
-          while (k < z.length)
+        checkedTypes.add(s);
+      }
+      
+      // Loop through specs
+      for (int k = 0; k < dataCount; k++)
+      {
+      	String fileType = variableContext.getParameter(seqPrefix+"datatype_"+k);
+        if (checkedTypes.contains(fileType))
+        {
+          SpecificationNode node = new SpecificationNode(CONFIG_PARAM_OBJECTTYPE);
+          node.setAttribute("token",fileType);
+          String isAll = variableContext.getParameter(seqPrefix+"specfileallattrs_"+k);
+          if (isAll != null)
+            node.setAttribute("all",isAll);
+          String[] z = variableContext.getParameterValues(seqPrefix+"specfileattrs_"+k);
+          if (z != null)
           {
-            SpecificationNode attrNode = new SpecificationNode(CONFIG_PARAM_ATTRIBUTENAME);
-            attrNode.setAttribute("attrname",z[k++]);
-            node.addChild(node.getChildCount(),attrNode);
+            for (int kk = 0; kk < z.length; kk++)
+            {
+              SpecificationNode attrNode = new SpecificationNode(CONFIG_PARAM_ATTRIBUTENAME);
+              attrNode.setAttribute("attrname",z[kk]);
+              node.addChild(node.getChildCount(),attrNode);
+            }
           }
-      	}
-      	ds.addChild(ds.getChildCount(),node);
+          ds.addChild(ds.getChildCount(),node);
+        }
       }
     }
 
