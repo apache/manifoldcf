@@ -1052,13 +1052,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
     // First, build the query
 
-    int i = 0;
     StringBuilder strLocationsClause = new StringBuilder();
-    ArrayList tokenList = new ArrayList();
-    ArrayList contentList = null;
+    Map<String,Map<String,Map<String,Set<String>>>> tokenList = new HashMap<String,Map<String,Map<String,Set<String>>>>();
+    List<String> contentList = null;
     String maxSize = null;
 
-    while (i < spec.getChildCount())
+    for (int i = 0; i < spec.getChildCount(); i++)
     {
       SpecificationNode n = spec.getChild(i);
       if (n.getType().equals(CONFIG_PARAM_LOCATION))
@@ -1079,13 +1078,42 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       else if (n.getType().equals(CONFIG_PARAM_OBJECTTYPE))
       {
         String objType = n.getAttributeValue("token");
-        tokenList.add(objType);
+        Map<String,Map<String,Set<String>>> filters = tokenList.get(objType);
+        if (filters == null)
+        {
+          filters = new HashMap<String,Map<String,Set<String>>>();
+          tokenList.put(objType,filters);
+        }
+        // Go through children and pick out filters
+        for (int j = 0; j < n.getChildCount(); j++)
+        {
+          SpecificationNode sn = n.getChild(j);
+          if (sn.getType().equals(CONFIG_PARAM_FILTER))
+          {
+            String attributeName = sn.getAttributeValue("name");
+            String operation = sn.getAttributeValue("op");
+            String value = sn.getAttributeValue("value");
+            Map<String,Set<String>> operations = filters.get(attributeName);
+            if (operations == null)
+            {
+              operations = new HashMap<String,Set<String>>();
+              filters.put(attributeName,operations);
+            }
+            Set<String> values = operations.get(operation);
+            if (values == null)
+            {
+              values = new HashSet<String>();
+              operations.put(operation,values);
+            }
+            values.add(value);
+          }
+        }
       }
       else if (n.getType().equals(CONFIG_PARAM_FORMAT))
       {
         String docType = n.getAttributeValue("value");
         if (contentList == null)
-          contentList = new ArrayList();
+          contentList = new ArrayList<String>();
         contentList.add(docType);
       }
       else if (n.getType().equals(CONFIG_PARAM_MAXLENGTH))
@@ -1093,13 +1121,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         maxSize = n.getAttributeValue("value");
       }
 
-      i++;
     }
 
     if (tokenList.size() == 0)
     {
       Logging.connectors.debug("DCTM: No ObjectType found in Document Spec. Setting it to dm_document");
-      tokenList.add("dm_document");
+      tokenList.put("dm_document",new HashMap<String,Map<String,Set<String>>>());
     }
 
     if (strLocationsClause.length() < 1)
@@ -1133,14 +1160,15 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           strDQLend.append(" AND 1<0");
         else
         {
-          i = 0;
           strDQLend.append(" AND a_content_type IN (");
-          while (i < dctmTypes.length)
+          boolean commaNeeded = false;
+          for (String cType : dctmTypes)
           {
-            if (i > 0)
+            if (commaNeeded)
               strDQLend.append(",");
-            String cType = dctmTypes[i++];
-            strDQLend.append("'").append(cType).append("'");
+            else
+              commaNeeded = true;
+            strDQLend.append(quoteDQLString(cType));
           }
           strDQLend.append(")");
         }
@@ -1156,12 +1184,56 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
 
       // Now, loop through the documents and queue them up.
-      int tokenIndex = 0;
-      while (tokenIndex < tokenList.size())
+      for (String tokenValue : tokenList.keySet())
       {
         activities.checkJobStillActive();
-        String tokenValue = (String)tokenList.get(tokenIndex);
-        String strDQL = strDQLstart + tokenValue + strDQLend;
+        
+        // Construct the filter part of the DQL query
+        Map<String,Map<String,Set<String>>> filters = tokenList.get(tokenValue);
+        
+        StringBuilder filterPart = new StringBuilder();
+        // For each attribute, go through the operations and emit an AND clause
+        for (String attributeName : filters.keySet())
+        {
+          filterPart.append(" AND ");
+          Map<String,Set<String>> operations = filters.get(attributeName);
+          for (String operation : operations.keySet())
+          {
+            Set<String> values = operations.get(operation);
+            if (operation.equals("="))
+            {
+              filterPart.append("\"").append(attributeName).append("\"").append(" IN (");
+              boolean commaNeeded = false;
+              for (String value : values)
+              {
+                if (commaNeeded)
+                  filterPart.append(",");
+                else
+                  commaNeeded = true;
+                filterPart.append(quoteDQLString(value));
+              }
+              filterPart.append(")");
+            }
+            else if (operation.equals("<>"))
+            {
+              filterPart.append("(");
+              boolean andNeeded = false;
+              for (String value : values)
+              {
+                if (andNeeded)
+                  filterPart.append(" AND ");
+                else
+                  andNeeded = true;
+                filterPart.append("\"").append(attributeName).append("\"").append("<>").append(quoteDQLString(value));
+              }
+              filterPart.append(")");
+            }
+            else
+              throw new ManifoldCFException("Unrecognized operation: "+operation);
+          }
+        }
+        
+        String strDQL = strDQLstart + tokenValue + strDQLend + filterPart;
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("DCTM: About to execute query= (" + strDQL + ")");
         while (true)
@@ -1191,7 +1263,6 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                 activities.addSeedDocument(next);
               }
               t.finishUp();
-              tokenIndex++;
               // Go on to next document type and repeat
               break;
             }
@@ -1256,25 +1327,33 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   }
 
   /** Do a query and read back the name column */
-  protected static String[] convertToDCTMTypes(ArrayList contentList)
+  protected static String[] convertToDCTMTypes(List<String> contentList)
     throws ManifoldCFException, ServiceInterruption
   {
     if (contentList != null && contentList.size() > 0)
     {
       // The contentList has type names.
-      String[] rval = new String[contentList.size()];
-      int i = 0;
-      while (i < rval.length)
-      {
-        rval[i] = (String)contentList.get(i);
-        i++;
-      }
-      return rval;
+      return contentList.toArray(new String[0]);
     }
     return null;
 
   }
 
+  protected static String quoteDQLString(String value)
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append("'");
+    for (int i = 0; i < value.length(); i++)
+    {
+      char x = value.charAt(i);
+      if (x == '\'')
+        sb.append("'");
+      sb.append(x);
+    }
+    sb.append("'");
+    return sb.toString();
+  }
+  
   protected class ProcessDocumentThread extends Thread
   {
     // Initial data
