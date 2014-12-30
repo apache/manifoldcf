@@ -2466,7 +2466,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
     // First, build a hash map containing all the currently selected document types
     Map<String,Object> dtMetadata = new HashMap<String,Object>();
-    Map<String,Map<String,List<FilterInfo>>> dtFilters = new HashMap<String,Map<String,List<FilterInfo>>>();
+    Map<String,Map<String,Map<String,Set<String>>>> dtFilters = new HashMap<String,Map<String,Map<String,Set<String>>>>();
     for (int i = 0; i < ds.getChildCount(); i++)
     {
       SpecificationNode sn = ds.getChild(i);
@@ -2493,7 +2493,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             }
             dtMetadata.put(token,attrMap);
           }
-          Map<String,List<FilterInfo>> filterInfo = new HashMap<String,List<FilterInfo>>();
+          Map<String,Map<String,Set<String>>> filterInfo = new HashMap<String,Map<String,Set<String>>>();
           for (int kk = 0; kk < sn.getChildCount(); kk++)
           {
             SpecificationNode dsn = sn.getChild(kk);
@@ -2502,13 +2502,19 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               String name = dsn.getAttributeValue("name");
               String op = dsn.getAttributeValue("op");
               String value = dsn.getAttributeValue("value");
-              List<FilterInfo> filters = filterInfo.get(name);
+              Map<String,Set<String>> filters = filterInfo.get(name);
               if (filters == null)
               {
-                filters = new ArrayList<FilterInfo>();
+                filters = new HashMap<String,Set<String>>();
                 filterInfo.put(name,filters);
               }
-              filters.add(new FilterInfo(op,value));
+              Set<String> filterValues = filters.get(op);
+              if (filterValues == null)
+              {
+                filterValues = new HashSet<String>();
+                filters.put(op,filterValues);
+              }
+              filterValues.add(value);
             }
           }
           dtFilters.put(token,filterInfo);
@@ -2532,7 +2538,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "      <input type=\"hidden\" name=\""+seqPrefix+"filter_op\" value=\"Continue\"/>\n"+
 "      <table class=\"formtable\">\n"+
 "        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.DocumentType") + "</nobr></td>\n"+
 "          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Filters") + "</nobr></td>\n"+
 "          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.AllMetadataQ") + "</nobr></td>\n"+
 "          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Metadata") + "</nobr></td>\n"+
@@ -2582,18 +2588,23 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             );
             
             // Now, do filters.  This will be a table-with-a-table, with an "Add" button at the bottom.
-            Map<String,List<FilterInfo>> currentFilters = dtFilters.get(strObjectType);
+            Map<String,Map<String,Set<String>>> currentFilters = dtFilters.get(strObjectType);
             int l = 0;
             String[] filterAttributes = currentFilters.keySet().toArray(new String[0]);
             java.util.Arrays.sort(filterAttributes);
             for (String filterAttribute : filterAttributes)
             {
-              List<FilterInfo> filters = currentFilters.get(filterAttribute);
-              for (FilterInfo filter : filters)
+              Map<String,Set<String>> filters = currentFilters.get(filterAttribute);
+              String[] sortedOperations = filters.keySet().toArray(new String[0]);
+              java.util.Arrays.sort(sortedOperations);
+              for (String filterOperation : sortedOperations)
               {
-                String filterOperation = filter.operation;
-                String filterValue = filter.value;
-                out.print(
+                Set<String> filterValues = filters.get(filterOperation);
+                String[] sortedValues = filterValues.toArray(new String[0]);
+                java.util.Arrays.sort(sortedValues);
+                for (String filterValue : sortedValues)
+                {
+                  out.print(
 "              <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "                <td class=\"formcolumncell\">\n"+
 "                  <input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_op\" value=\"Continue\"/>\n"+
@@ -2614,8 +2625,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "                  "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filterValue)+"\n"+
 "                </td>\n"+
 "              </tr>\n"
-                );
-                l++;
+                  );
+                  l++;
+                }
               }
             }
             
@@ -2747,21 +2759,23 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         out.print(
 "<input type=\"hidden\" name=\""+seqPrefix+"datatype_"+k+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\"/>\n"
         );
-        Map<String,List<FilterInfo>> currentFilters = dtFilters.get(strObjectType);
+        Map<String,Map<String,Set<String>>> currentFilters = dtFilters.get(strObjectType);
         int l = 0;
         for (String filterAttribute : currentFilters.keySet())
         {
-          List<FilterInfo> filters = currentFilters.get(filterAttribute);
-          for (FilterInfo filter : filters)
+          Map<String,Set<String>> filters = currentFilters.get(filterAttribute);
+          for (String filterOperation : filters.keySet())
           {
-            String filterOperation = filter.operation;
-            String filterValue = filter.value;
-            out.print(
+            Set<String> filterValues = filters.get(filterOperation);
+            for (String filterValue : filterValues)
+            {
+              out.print(
 "<input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_name\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterAttribute)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_operation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterOperation)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_value\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterValue)+"\"/>\n"
-            );
-            l++;
+              );
+              l++;
+            }
           }
         }
         out.print(
@@ -3411,11 +3425,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"
     );
-    int i = 0;
     boolean seenAny = false;
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_LOCATION))
       {
         if (seenAny == false)
@@ -3448,32 +3461,32 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "  </tr>\n"+
 "\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"
+"  <tr>\n"+
+"    <td class=\"boxcell\" colspan=\"2\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.DocumentType") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Filters") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Metadata") + "</nobr></td>\n"+
+"        </tr>\n"
     );
-    seenAny = false;
-    i = 0;
-    while (i < ds.getChildCount())
+    int l = 0;
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_OBJECTTYPE))
       {
-        if (seenAny == false)
-        {
-          out.print(
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.ObjectTypes") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <table class=\"displaytable\">\n"
-          );
-          seenAny = true;
-        }
+        out.print(
+"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"
+        );
+
         String strObjectType = sn.getAttributeValue("token");
         String isAll = sn.getAttributeValue("all");
         out.print(
-"        <tr>\n"+
-"          <td class=\"value\">\n"+
+"          <td class=\"formcolumncell\">\n"+
 "            "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(strObjectType)+"\n"+
 "          </td>\n"+
-"          <td class=\"value\">\n"
+"          <td class=\"formcolumncell\">\n"
         );
         if (isAll != null && isAll.equals("true"))
           out.print(
@@ -3481,50 +3494,123 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           );
         else
         {
-          int k = 0;
-          while (k < sn.getChildCount())
+          for (int k = 0; k < sn.getChildCount(); k++)
           {
-            SpecificationNode dsn = sn.getChild(k++);
+            SpecificationNode dsn = sn.getChild(k);
             if (dsn.getType().equals(CONFIG_PARAM_ATTRIBUTENAME))
             {
               String attrName = dsn.getAttributeValue("attrname");
               out.print(
-"            "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(attrName)+"<br/>\n"
+"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(attrName)+"</nobr>\n"
               );
             }
           }
         }
+        out.print(
+"          </td>\n"+
+"          <td class=\"boxcell\">\n"+
+"            <table class=\"formtable\">\n"+
+"              <tr class=\"formheaderrow\">\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.AttributeName") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Operation") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Value") + "</nobr></td>\n"+
+"              </tr>\n"
+        );
+        Map<String,Map<String,Set<String>>> currentFilters = new HashMap<String,Map<String,Set<String>>>();
+        for (int k = 0; k < sn.getChildCount(); k++)
+        {
+          SpecificationNode dsn = sn.getChild(k);
+          if (dsn.getType().equals(CONFIG_PARAM_FILTER))
+          {
+            String attributeName = dsn.getAttributeValue("name");
+            String operation = dsn.getAttributeValue("op");
+            String value = dsn.getAttributeValue("value");
+            Map<String,Set<String>> filters = currentFilters.get(attributeName);
+            if (filters == null)
+            {
+              filters = new HashMap<String,Set<String>>();
+              currentFilters.put(attributeName,filters);
+            }
+            Set<String> values = filters.get(operation);
+            if (values == null)
+            {
+              values = new HashSet<String>();
+              filters.put(operation,values);
+            }
+            values.add(value);
+          }
+        }
+        
+        int kk = 0;
+        String[] sortedAttributes = currentFilters.keySet().toArray(new String[0]);
+        java.util.Arrays.sort(sortedAttributes);
+        for (String filterAttribute : sortedAttributes)
+        {
+          Map<String,Set<String>> currentOperations = currentFilters.get(filterAttribute);
+          String[] sortedOperations = currentOperations.keySet().toArray(new String[0]);
+          java.util.Arrays.sort(sortedOperations);
+          for (String filterOperation : sortedOperations)
+          {
+            Set<String> currentValues = currentOperations.get(filterOperation);
+            String[] sortedValues = currentValues.toArray(new String[0]);
+            java.util.Arrays.sort(sortedValues);
+            StringBuilder sb = new StringBuilder();
+            boolean commaNeeded = false;
+            for (String value : sortedValues)
+            {
+              if (commaNeeded)
+                sb.append(", ");
+              else
+                commaNeeded = true;
+              sb.append("\"").append(value).append("\"");
+            }
+            out.print(
+"              <tr class=\""+(((kk % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filterAttribute)+"</nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filterOperation)+"</nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sb.toString())+"\n"+
+"                </td>\n"+
+"              </tr>\n"
+            );
+            kk++;
+          }
+        }
         
         out.print(
+"            </table>\n"+
 "          </td>\n"+
 "        </tr>\n"
         );
+        
+        l++;
       }
+      
     }
-    if (seenAny)
+    if (l == 0)
     {
       out.print(
-"      </table>\n"+
-"    </td>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"    <td colspan=\"2\" class=\"message\">" + Messages.getBodyString(locale,"DCTM.NoDocumentTypesSpecified") + "</td>\n"
+"        <tr class=\"formrow\">\n"+
+"          <td colspan=\"3\" class=\"message\">" + Messages.getBodyString(locale,"DCTM.NoDocumentTypesSpecified") + "</td>\n"+
+"        </tr>\n"
       );
     }
     out.print(
+"      </table>\n"+
+"    </td>\n"+
 "  </tr>\n"+
 "\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"
     );
     seenAny = false;
-    i = 0;
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_FORMAT))
       {
         if (seenAny == false)
@@ -3559,11 +3645,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
     // Find max document length
-    i = 0;
     String maxDocumentLength = "unlimited";
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_MAXLENGTH))
       {
         maxDocumentLength = sn.getAttributeValue("value");
@@ -3581,11 +3666,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     );
     
     // Find whether security is on or off
-    i = 0;
     boolean securityOn = true;
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals("security"))
       {
         String securityValue = sn.getAttributeValue("value");
@@ -3607,10 +3691,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     );
     // Go through looking for access tokens
     seenAny = false;
-    i = 0;
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals("access"))
       {
         if (seenAny == false)
@@ -3649,11 +3732,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     );
     
     // Find the path-name metadata attribute name
-    i = 0;
     String pathNameAttribute = "";
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_PATHNAMEATTRIBUTE))
       {
         pathNameAttribute = sn.getAttributeValue("value");
@@ -3686,11 +3768,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     );
     
     // Find the path-value mapping data
-    i = 0;
     org.apache.manifoldcf.crawler.connectors.DCTM.MatchMap matchMap = new org.apache.manifoldcf.crawler.connectors.DCTM.MatchMap();
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_PATHMAP))
       {
         String pathMatch = sn.getAttributeValue("match");
@@ -3705,8 +3786,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "    <td class=\"value\">\n"+
 "      <table class=\"displaytable\">\n"
       );
-      i = 0;
-      while (i < matchMap.getMatchCount())
+      for (int i = 0; i < matchMap.getMatchCount(); i++)
       {
         String matchString = matchMap.getMatchString(i);
         String replaceString = matchMap.getReplaceString(i);
@@ -3717,7 +3797,6 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "          <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
 "        </tr>\n"
         );
-        i++;
       }
 
       out.print(
@@ -4268,17 +4347,4 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     
   }
   
-  protected static class FilterInfo
-  {
-    public final String operation;
-    public final String value;
-    
-    public FilterInfo(String operation, String value)
-    {
-      this.operation = operation;
-      this.value = value;
-    }
-    
-  }
-
 }
