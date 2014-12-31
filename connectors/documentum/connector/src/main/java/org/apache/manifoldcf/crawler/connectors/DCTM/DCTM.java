@@ -46,7 +46,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   public static String CONFIG_PARAM_FORMAT = "mimetype";
   public static String CONFIG_PARAM_PATHNAMEATTRIBUTE = "pathnameattribute";
   public static String CONFIG_PARAM_PATHMAP = "pathmap";
-
+  public static String CONFIG_PARAM_FILTER = "filter";
+  
   // Activities we log
   public final static String ACTIVITY_FETCH = "fetch";
 
@@ -1050,13 +1051,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
     // First, build the query
 
-    int i = 0;
     StringBuilder strLocationsClause = new StringBuilder();
-    ArrayList tokenList = new ArrayList();
-    ArrayList contentList = null;
+    Map<String,Map<String,Map<String,Set<String>>>> tokenList = new HashMap<String,Map<String,Map<String,Set<String>>>>();
+    List<String> contentList = null;
     String maxSize = null;
 
-    while (i < spec.getChildCount())
+    for (int i = 0; i < spec.getChildCount(); i++)
     {
       SpecificationNode n = spec.getChild(i);
       if (n.getType().equals(CONFIG_PARAM_LOCATION))
@@ -1077,13 +1077,42 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       else if (n.getType().equals(CONFIG_PARAM_OBJECTTYPE))
       {
         String objType = n.getAttributeValue("token");
-        tokenList.add(objType);
+        Map<String,Map<String,Set<String>>> filters = tokenList.get(objType);
+        if (filters == null)
+        {
+          filters = new HashMap<String,Map<String,Set<String>>>();
+          tokenList.put(objType,filters);
+        }
+        // Go through children and pick out filters
+        for (int j = 0; j < n.getChildCount(); j++)
+        {
+          SpecificationNode sn = n.getChild(j);
+          if (sn.getType().equals(CONFIG_PARAM_FILTER))
+          {
+            String attributeName = sn.getAttributeValue("name");
+            String operation = sn.getAttributeValue("op");
+            String value = sn.getAttributeValue("value");
+            Map<String,Set<String>> operations = filters.get(attributeName);
+            if (operations == null)
+            {
+              operations = new HashMap<String,Set<String>>();
+              filters.put(attributeName,operations);
+            }
+            Set<String> values = operations.get(operation);
+            if (values == null)
+            {
+              values = new HashSet<String>();
+              operations.put(operation,values);
+            }
+            values.add(value);
+          }
+        }
       }
       else if (n.getType().equals(CONFIG_PARAM_FORMAT))
       {
         String docType = n.getAttributeValue("value");
         if (contentList == null)
-          contentList = new ArrayList();
+          contentList = new ArrayList<String>();
         contentList.add(docType);
       }
       else if (n.getType().equals(CONFIG_PARAM_MAXLENGTH))
@@ -1091,13 +1120,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         maxSize = n.getAttributeValue("value");
       }
 
-      i++;
     }
 
     if (tokenList.size() == 0)
     {
       Logging.connectors.debug("DCTM: No ObjectType found in Document Spec. Setting it to dm_document");
-      tokenList.add("dm_document");
+      tokenList.put("dm_document",new HashMap<String,Map<String,Set<String>>>());
     }
 
     if (strLocationsClause.length() < 1)
@@ -1131,14 +1159,15 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           strDQLend.append(" AND 1<0");
         else
         {
-          i = 0;
           strDQLend.append(" AND a_content_type IN (");
-          while (i < dctmTypes.length)
+          boolean commaNeeded = false;
+          for (String cType : dctmTypes)
           {
-            if (i > 0)
+            if (commaNeeded)
               strDQLend.append(",");
-            String cType = dctmTypes[i++];
-            strDQLend.append("'").append(cType).append("'");
+            else
+              commaNeeded = true;
+            strDQLend.append(quoteDQLString(cType));
           }
           strDQLend.append(")");
         }
@@ -1154,12 +1183,56 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
 
       // Now, loop through the documents and queue them up.
-      int tokenIndex = 0;
-      while (tokenIndex < tokenList.size())
+      for (String tokenValue : tokenList.keySet())
       {
         activities.checkJobStillActive();
-        String tokenValue = (String)tokenList.get(tokenIndex);
-        String strDQL = strDQLstart + tokenValue + strDQLend;
+        
+        // Construct the filter part of the DQL query
+        Map<String,Map<String,Set<String>>> filters = tokenList.get(tokenValue);
+        
+        StringBuilder filterPart = new StringBuilder();
+        // For each attribute, go through the operations and emit an AND clause
+        for (String attributeName : filters.keySet())
+        {
+          filterPart.append(" AND ");
+          Map<String,Set<String>> operations = filters.get(attributeName);
+          for (String operation : operations.keySet())
+          {
+            Set<String> values = operations.get(operation);
+            if (operation.equals("="))
+            {
+              filterPart.append("\"").append(attributeName).append("\"").append(" IN (");
+              boolean commaNeeded = false;
+              for (String value : values)
+              {
+                if (commaNeeded)
+                  filterPart.append(",");
+                else
+                  commaNeeded = true;
+                filterPart.append(quoteDQLString(value));
+              }
+              filterPart.append(")");
+            }
+            else if (operation.equals("<>"))
+            {
+              filterPart.append("(");
+              boolean andNeeded = false;
+              for (String value : values)
+              {
+                if (andNeeded)
+                  filterPart.append(" AND ");
+                else
+                  andNeeded = true;
+                filterPart.append("\"").append(attributeName).append("\"").append("<>").append(quoteDQLString(value));
+              }
+              filterPart.append(")");
+            }
+            else
+              throw new ManifoldCFException("Unrecognized operation: "+operation);
+          }
+        }
+        
+        String strDQL = strDQLstart + tokenValue + strDQLend + filterPart;
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("DCTM: About to execute query= (" + strDQL + ")");
         while (true)
@@ -1189,7 +1262,6 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
                 activities.addSeedDocument(next);
               }
               t.finishUp();
-              tokenIndex++;
               // Go on to next document type and repeat
               break;
             }
@@ -1254,25 +1326,33 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   }
 
   /** Do a query and read back the name column */
-  protected static String[] convertToDCTMTypes(ArrayList contentList)
+  protected static String[] convertToDCTMTypes(List<String> contentList)
     throws ManifoldCFException, ServiceInterruption
   {
     if (contentList != null && contentList.size() > 0)
     {
       // The contentList has type names.
-      String[] rval = new String[contentList.size()];
-      int i = 0;
-      while (i < rval.length)
-      {
-        rval[i] = (String)contentList.get(i);
-        i++;
-      }
-      return rval;
+      return contentList.toArray(new String[0]);
     }
     return null;
 
   }
 
+  protected static String quoteDQLString(String value)
+  {
+    StringBuilder sb = new StringBuilder();
+    sb.append("'");
+    for (int i = 0; i < value.length(); i++)
+    {
+      char x = value.charAt(i);
+      if (x == '\'')
+        sb.append("'");
+      sb.append(x);
+    }
+    sb.append("'");
+    return sb.toString();
+  }
+  
   protected class ProcessDocumentThread extends Thread
   {
     // Initial data
@@ -1859,28 +1939,28 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "{\n"+
 "  if (editconnection.docbasename.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please supply the name of a Docbase\");\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"DCTM.PleaseSupplyTheNameofaDocbase")+"\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Docbase") + "\");\n"+
 "    editconnection.docbasename.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.docbaseusername.value == \"\")\n"+
 "  {\n"+
-"    alert(\"The connection requires a valid Documentum user name\");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.ConnectionRequiresValidDocumentumUsername")+"\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Docbase") + "\");\n"+
 "    editconnection.docbaseusername.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.docbasepassword.value == \"\")\n"+
 "  {\n"+
-"    alert(\"The connection requires the Documentum user's password\");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.ConnectionRequiresPassword")+"\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Docbase") + "\");\n"+
 "    editconnection.docbasepassword.focus();\n"+
 "    return false;\n"+
 "  }\n"+
 "  if (editconnection.webtopbaseurl.value == \"\")\n"+
 "  {\n"+
-"    alert(\"Please specify the base url to a webtop to serve selected documents\");\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.SpecifyBaseWebtopURL")+"\");\n"+
 "    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"DCTM.Webtop") + "\");\n"+
 "    editconnection.webtopbaseurl.focus();\n"+
 "    return false;\n"+
@@ -2132,6 +2212,36 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "  postFormSetAnchor(anchorvalue);\n"+
 "}\n"+
 "\n"+
+"function "+seqPrefix+"DeleteFilter(k,l)\n"+
+"{\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"filter_\"+k+\"_\"+l+\"_op\",\"Delete\",\""+seqPrefix+"filter_\"+k+\"_\"+l);\n"+
+"}\n"+
+"\n"+
+"function "+seqPrefix+"AddFilter(k,l)\n"+
+"{\n"+
+"  if (eval(\"editjob."+seqPrefix+"filter_\"+k+\"_name.value == \\\"\\\"\"))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.SelectAnAttributeFirst") + "\");\n"+
+"    eval(\"editjob."+seqPrefix+"filter_\"+k+\"_name.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"\n"+
+"  if (eval(\"editjob."+seqPrefix+"filter_\"+k+\"_operation.value == \\\"\\\"\"))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.SelectAnOperation") + "\");\n"+
+"    eval(\"editjob."+seqPrefix+"filter_\"+k+\"_operation.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"\n"+
+"  if (eval(\"editjob."+seqPrefix+"filter_\"+k+\"_value.value == \\\"\\\"\"))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"DCTM.FilterMustHaveValue") + "\");\n"+
+"    eval(\"editjob."+seqPrefix+"filter_\"+k+\"_value.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"filter_\"+k+\"_op\",\"Add\",\""+seqPrefix+"filter_\"+k+\"_\"+l);\n"+
+"}\n"+
+"\n"+
 "function "+seqPrefix+"SpecAddToPath(anchorvalue)\n"+
 "{\n"+
 "  if (editjob."+seqPrefix+"pathaddon.value == \"\")\n"+
@@ -2199,7 +2309,6 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   {
     String seqPrefix = "s"+connectionSequenceNumber+"_";
 
-    int i;
     int k;
 
     // Paths tab
@@ -2210,11 +2319,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
       );
       // Now, loop through paths
-      i = 0;
       k = 0;
-      while (i < ds.getChildCount())
+      for (int i = 0; i < ds.getChildCount(); i++)
       {
-        SpecificationNode sn = ds.getChild(i++);
+        SpecificationNode sn = ds.getChild(i);
         if (sn.getType().equals(CONFIG_PARAM_LOCATION))
         {
           String pathDescription = "_" + Integer.toString(k);
@@ -2326,11 +2434,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     else
     {
       // Now, loop through paths
-      i = 0;
       k = 0;
-      while (i < ds.getChildCount())
+      for (int i =0; i < ds.getChildCount(); i++)
       {
-        SpecificationNode sn = ds.getChild(i++);
+        SpecificationNode sn = ds.getChild(i);
         if (sn.getType().equals(CONFIG_PARAM_LOCATION))
         {
           String pathDescription = "_" + Integer.toString(k);
@@ -2348,11 +2455,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
     // Security tab
     // Find whether security is on or off
-    i = 0;
     boolean securityOn = true;
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals("security"))
       {
         String securityValue = sn.getAttributeValue("value");
@@ -2378,11 +2484,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
       );
       // Finally, go through forced ACL
-      i = 0;
       k = 0;
-      while (i < ds.getChildCount())
+      for (int i = 0; i < ds.getChildCount(); i++)
       {
-        SpecificationNode sn = ds.getChild(i++);
+        SpecificationNode sn = ds.getChild(i);
         if (sn.getType().equals("access"))
         {
           String accessDescription = "_"+Integer.toString(k);
@@ -2437,11 +2542,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "<input type=\"hidden\" name=\""+seqPrefix+"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
       );
       // Finally, go through forced ACL
-      i = 0;
       k = 0;
-      while (i < ds.getChildCount())
+      for (int i = 0; i < ds.getChildCount(); i++)
       {
-        SpecificationNode sn = ds.getChild(i++);
+        SpecificationNode sn = ds.getChild(i);
         if (sn.getType().equals("access"))
         {
           String accessDescription = "_"+Integer.toString(k);
@@ -2461,11 +2565,11 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     // Document Types tab
 
     // First, build a hash map containing all the currently selected document types
-    HashMap dtMap = new HashMap();
-    i = 0;
-    while (i < ds.getChildCount())
+    Map<String,Object> dtMetadata = new HashMap<String,Object>();
+    Map<String,Map<String,Map<String,Set<String>>>> dtFilters = new HashMap<String,Map<String,Map<String,Set<String>>>>();
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_OBJECTTYPE))
       {
         String token = sn.getAttributeValue("token");
@@ -2473,23 +2577,47 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         {
           String isAllString = sn.getAttributeValue("all");
           if (isAllString != null && isAllString.equals("true"))
-            dtMap.put(token,new Boolean(true));
+            dtMetadata.put(token,new Boolean(true));
           else
           {
-            HashMap attrMap = new HashMap();
+            Set<String> attrMap = new HashSet<String>();
             // Go through the children and look for attribute records
-            int kk = 0;
-            while (kk < sn.getChildCount())
+            for (int kk = 0; kk < sn.getChildCount(); kk++)
             {
-              SpecificationNode dsn = sn.getChild(kk++);
+              SpecificationNode dsn = sn.getChild(kk);
               if (dsn.getType().equals(CONFIG_PARAM_ATTRIBUTENAME))
               {
                 String attr = dsn.getAttributeValue("attrname");
-                attrMap.put(attr,attr);
+                attrMap.add(attr);
               }
             }
-            dtMap.put(token,attrMap);
+            dtMetadata.put(token,attrMap);
           }
+          Map<String,Map<String,Set<String>>> filterInfo = new HashMap<String,Map<String,Set<String>>>();
+          for (int kk = 0; kk < sn.getChildCount(); kk++)
+          {
+            SpecificationNode dsn = sn.getChild(kk);
+            if (dsn.getType().equals(CONFIG_PARAM_FILTER))
+            {
+              String name = dsn.getAttributeValue("name");
+              String op = dsn.getAttributeValue("op");
+              String value = dsn.getAttributeValue("value");
+              Map<String,Set<String>> filters = filterInfo.get(name);
+              if (filters == null)
+              {
+                filters = new HashMap<String,Set<String>>();
+                filterInfo.put(name,filters);
+              }
+              Set<String> filterValues = filters.get(op);
+              if (filterValues == null)
+              {
+                filterValues = new HashSet<String>();
+                filters.put(op,filterValues);
+              }
+              filterValues.add(value);
+            }
+          }
+          dtFilters.put(token,filterInfo);
         }
       }
     }
@@ -2504,79 +2632,203 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       // Need to catch potential license exception here
       try
       {
+        out.print(
+"  <tr>\n"+
+"    <td class=\"boxcell\" colspan=\"2\">\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"filter_op\" value=\"Continue\"/>\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.DocumentType") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Filters") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.AllMetadataQ") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.SpecificMetadata") + "</nobr></td>\n"+
+"        </tr>\n"
+        );
+
+        k = 0;
         String[] strarrObjTypes = getObjectTypes();
-	int ii = 0;
-        while (ii < strarrObjTypes.length)
+        for (String strObjectType : strarrObjTypes)
         {
-          String strObjectType = strarrObjTypes[ii++];
           if (strObjectType != null && strObjectType.length() > 0)
 	  {
+            // Get the attributes for this data type
+            String[] values = getIngestableAttributes(strObjectType);
+
             out.print(
-"  <tr>\n"+
-"    <td class=\"value\">\n"
+"        <tr class=\""+(((k % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"datatype_"+k+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\"/>\n"
             );
-            Object o = dtMap.get(strObjectType);
+
+            Object o = dtMetadata.get(strObjectType);
             if (o == null)
             {
               out.print(
-"      <input type=\"checkbox\" name=\""+seqPrefix+"specfiletype\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(strObjectType)+"</input>\n"
+"            <input type=\"checkbox\" name=\""+seqPrefix+"specfiletype\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(strObjectType)+"</input>\n"
               );
             }
             else
             {
               out.print(
-"      <input type=\"checkbox\" name=\""+seqPrefix+"specfiletype\" checked=\"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(strObjectType)+"</input>\n"
+"            <input type=\"checkbox\" name=\""+seqPrefix+"specfiletype\" checked=\"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(strObjectType)+"</input>\n"
               );
 
             }
             out.print(
-"    </td>\n"+
-"    <td class=\"value\">\n"
+"          </td>\n"+
+"          <td class=\"boxcell\">\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_op\" value=\"Continue\"/>\n"+
+"            <table class=\"formtable\">\n"+
+"              <tr class=\"formheaderrow\">\n"+
+"                <td class=\"formcolumnheader\"></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.AttributeName") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Operation") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Value") + "</nobr></td>\n"+
+"              </tr>\n"
             );
+            
+            // Now, do filters.  This will be a table-with-a-table, with an "Add" button at the bottom.
+            Map<String,Map<String,Set<String>>> currentFilters = dtFilters.get(strObjectType);
+            int l = 0;
+            if (currentFilters != null)
+            {
+              String[] filterAttributes = currentFilters.keySet().toArray(new String[0]);
+              java.util.Arrays.sort(filterAttributes);
+              for (String filterAttribute : filterAttributes)
+              {
+                Map<String,Set<String>> filters = currentFilters.get(filterAttribute);
+                String[] sortedOperations = filters.keySet().toArray(new String[0]);
+                java.util.Arrays.sort(sortedOperations);
+                for (String filterOperation : sortedOperations)
+                {
+                  Set<String> filterValues = filters.get(filterOperation);
+                  String[] sortedValues = filterValues.toArray(new String[0]);
+                  java.util.Arrays.sort(sortedValues);
+                  for (String filterValue : sortedValues)
+                  {
+                    out.print(
+"              <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_op\" value=\"Continue\"/>\n"+
+"                  <input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_name\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterAttribute)+"\"/>\n"+
+"                  <input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_operation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterOperation)+"\"/>\n"+
+"                  <input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_value\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterValue)+"\"/>\n"+
+"                  <a name=\""+seqPrefix+"filter_"+k+"_"+l+"\">\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"DCTM.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"DCTM.DeleteFilter")+"\" onclick='javascript:"+seqPrefix+"DeleteFilter("+k+","+l+");'/>\n"+
+"                  </a>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filterAttribute)+"\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filterOperation)+"\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filterValue)+"\n"+
+"                </td>\n"+
+"              </tr>\n"
+                    );
+                    l++;
+                  }
+                }
+              }
+            }
+            
+            if (l == 0)
+            {
+              out.print(
+"              <tr class=\"formrow\"><td colspan=\"4\" class=\"formcolumnmessage\"><nobr>" + Messages.getBodyString(locale,"DCTM.NoAttributeFiltersSpecified") + "</nobr></td></tr>\n"
+              );
+            }
+            out.print(
+"              <tr class=\"formrow\"><td colspan=\"4\" class=\"formseparator\"><hr/></td></tr>\n"+
+"              <tr class=\"formrow\">\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <a name=\""+seqPrefix+"filter_"+k+"_"+l+"\">\n"+
+"                    <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"DCTM.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"DCTM.AddFilter") + "\" onclick='javascript:"+seqPrefix+"AddFilter("+k+","+l+");'/>\n"+
+"                    <input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_count\" value=\""+l+"\"/>\n"+
+"                  </a>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <select multiple=\"false\" name=\""+seqPrefix+"filter_"+k+"_name\" size=\"3\">\n"+
+"                    <option value=\"\" selected=\"selected\">" + Messages.getBodyString(locale,"DCTM.PickAnAttribute") + "</option>\n"
+            );
+
+            for (String attributeName : values)
+            {
+              out.print(
+"                    <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attributeName)+"\">" + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(attributeName) + "</option>\n"
+              );
+            }
+
+            out.print(
+"                  </select>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <select multiple=\"false\" name=\""+seqPrefix+"filter_"+k+"_operation\" size=\"3\">\n"+
+"                    <option value=\"\" selected=\"selected\">" + Messages.getBodyString(locale,"DCTM.PickAnOperation") + "</option>\n"+
+"                    <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape("=")+"\">" + Messages.getBodyString(locale,"DCTM.Equals") + "</option>\n"+
+"                    <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape("<>")+"\">" + Messages.getBodyString(locale,"DCTM.NotEquals") + "</option>\n"+
+"                  </select>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\"><input type=\"text\" name=\""+seqPrefix+"filter_"+k+"_value\" size=\"30\" value=\"\"/></td>\n"+
+"              </tr>\n"+
+"            </table>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"
+            );
+            
             boolean isAll = false;
-            HashMap attrMap = null;
+            Set<String> attrMap = null;
             if (o instanceof Boolean)
             {
               isAll = ((Boolean)o).booleanValue();
-              attrMap = new HashMap();
+              attrMap = new HashSet<String>();
             }
             else
             {
               isAll = false;
-              attrMap = (HashMap)o;
+              attrMap = (Set<String>)o;
             }
             out.print(
-"      <input type=\"checkbox\" name=\""+seqPrefix+"specfileallattrs_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\" value=\"true\" "+(isAll?"checked=\"\"":"")+"/>&nbsp;All metadata<br/>\n"+
-"      <select multiple=\"true\" name=\""+seqPrefix+"specfileattrs_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\" size=\"3\">\n"
+"            <input type=\"checkbox\" name=\""+seqPrefix+"specfileallattrs_"+k+"\" value=\"true\" "+(isAll?"checked=\"\"":"")+"/>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <select multiple=\"true\" name=\""+seqPrefix+"specfileattrs_"+k+"\" size=\"3\">\n"
             );
-            // Get the attributes for this data type
-            String[] values = getIngestableAttributes(strObjectType);
-            int iii = 0;
-            while (iii < values.length)
+            for (String option : values)
             {
-              String option = values[iii++];
-              if (attrMap != null && attrMap.get(option) != null)
+              if (attrMap != null && attrMap.contains(option))
               {
                 // Selected
                 out.print(
-"        <option selected=\"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(option)+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(option)+"</option>\n"
+"              <option selected=\"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(option)+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(option)+"</option>\n"
                 );
               }
               else
               {
                 // Unselected
                 out.print(
-"        <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(option)+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(option)+"</option>\n"
+"              <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(option)+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(option)+"</option>\n"
                 );
               }
             }
             out.print(
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"
+"            </select>\n"+
+"          </td>\n"
             );
+            out.print(
+"        </tr>\n"
+            );
+            k++;
       	  }
 	}
+        out.print(
+"      </table>\n"+
+"      <input type=\"hidden\" name=\""+seqPrefix+"datatype_count\" value=\""+k+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"
+        );
       }
       catch (ManifoldCFException e)
       {
@@ -2604,11 +2856,36 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     }
     else
     {
-      Iterator iter = dtMap.keySet().iterator();
-      while (iter.hasNext())
+      k = 0;
+      for (String strObjectType : dtMetadata.keySet())
       {
-        String strObjectType = (String)iter.next();
-        Object o = dtMap.get(strObjectType);
+        out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"datatype_"+k+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\"/>\n"
+        );
+        Map<String,Map<String,Set<String>>> currentFilters = dtFilters.get(strObjectType);
+        int l = 0;
+        for (String filterAttribute : currentFilters.keySet())
+        {
+          Map<String,Set<String>> filters = currentFilters.get(filterAttribute);
+          for (String filterOperation : filters.keySet())
+          {
+            Set<String> filterValues = filters.get(filterOperation);
+            for (String filterValue : filterValues)
+            {
+              out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_name\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterAttribute)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_operation\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterOperation)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_"+l+"_value\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filterValue)+"\"/>\n"
+              );
+              l++;
+            }
+          }
+        }
+        out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"filter_"+k+"_count\" value=\""+l+"\"/>\n"
+        );
+
+        Object o = dtMetadata.get(strObjectType);
         out.print(
 "<input type=\"hidden\" name=\""+seqPrefix+"specfiletype\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\"/>\n"
         );
@@ -2616,40 +2893,42 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         {
           Boolean b = (Boolean)o;
           out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"specfileallattrs_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\" value=\""+(b.booleanValue()?"true":"false")+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specfileallattrs_"+k+"\" value=\""+(b.booleanValue()?"true":"false")+"\"/>\n"
           );
         }
         else
         {
-          HashMap map = (HashMap)o;
-          Iterator iter2 = map.keySet().iterator();
-          while (iter2.hasNext())
+          Set<String> map = (Set<String>)o;
+          for (String attrName : map)
           {
-            String attrName = (String)iter2.next();
             out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"specfileattrs_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strObjectType)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attrName)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specfileattrs_"+k+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attrName)+"\"/>\n"
             );
           }
         }
+        k++;
       }
+      out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"datatype_count\" value=\""+k+"\"/>\n"
+      );
+
     }
 
     // Content types tab
 
     // First, build a hash map containing all the currently selected document types
-    HashMap ctMap = null;
-    i = 0;
-    while (i < ds.getChildCount())
+    Set<String> ctMap = null;
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_FORMAT))
       {
         String token = sn.getAttributeValue("value");
         if (token != null && token.length() > 0)
         {
           if (ctMap == null)
-            ctMap = new HashMap();
-          ctMap.put(token,token);
+            ctMap = new HashSet<String>();
+          ctMap.add(token);
         }
       }
     }
@@ -2664,17 +2943,15 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       try
       {
         String[] strarrMimeTypes = getContentTypes();
-	int ii = 0;
-        while (ii < strarrMimeTypes.length)
+        for (String strMimeType : strarrMimeTypes)
         {
-          String strMimeType = strarrMimeTypes[ii++];
           if (strMimeType != null && strMimeType.length() > 0)
 	  {
             out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"
             );
-            if (ctMap == null || ctMap.get(strMimeType) != null)
+            if (ctMap == null || ctMap.contains(strMimeType))
             {
               out.print(
 "      <input type=\"checkbox\" name=\""+seqPrefix+"specmimetype\" checked=\"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strMimeType)+"\"></input>\n"
@@ -2724,10 +3001,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     {
       if (ctMap != null)
       {
-        Iterator iter = ctMap.keySet().iterator();
-        while (iter.hasNext())
+        for (String strMimeType : ctMap)
         {
-          String strMimeType = (String)iter.next();
           out.print(
 "<input type=\"hidden\" name=\""+seqPrefix+"specmimetype\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strMimeType)+"\"/>\n"
           );
@@ -2740,10 +3015,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
     // Search for max document size
     String maxDocLength = "";
-    i = 0;
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_MAXLENGTH))
       {
         maxDocLength = sn.getAttributeValue("value");
@@ -2777,11 +3051,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     // Path metadata tab
 
     // Find the path-value metadata attribute name
-    i = 0;
     String pathNameAttribute = "";
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_PATHNAMEATTRIBUTE))
       {
         pathNameAttribute = sn.getAttributeValue("value");
@@ -2789,11 +3062,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     }
 
     // Find the path-value mapping data
-    i = 0;
     org.apache.manifoldcf.crawler.connectors.DCTM.MatchMap matchMap = new org.apache.manifoldcf.crawler.connectors.DCTM.MatchMap();
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_PATHMAP))
       {
         String pathMatch = sn.getAttributeValue("match");
@@ -2818,8 +3090,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
       );
-      i = 0;
-      while (i < matchMap.getMatchCount())
+      for (int i = 0; i < matchMap.getMatchCount(); i++)
       {
         String matchString = matchMap.getMatchString(i);
         String replaceString = matchMap.getReplaceString(i);
@@ -2835,9 +3106,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "    <td class=\"value\"><input type=\"hidden\" name=\""+seqPrefix+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
 "  </tr>\n"
         );
-        i++;
       }
-      if (i == 0)
+      if (matchMap.getMatchCount() == 0)
       {
         out.print(
 "  <tr><td colspan=\"4\" class=\"message\">" + Messages.getBodyString(locale,"DCTM.NoMappingsSpecified") + "</td></tr>\n"
@@ -2848,8 +3118,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "\n"+
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
-"      <a name=\""+seqPrefix+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecAddMapping(\""+seqPrefix+"mapping_"+Integer.toString(i+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"DCTM.AddToMappings") + "\" value=\"" + Messages.getAttributeString(locale,"DCTM.Add") + "\"/>\n"+
+"      <a name=\""+seqPrefix+"mapping_"+Integer.toString(matchMap.getMatchCount())+"\">\n"+
+"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecAddMapping(\""+seqPrefix+"mapping_"+Integer.toString(matchMap.getMatchCount()+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"DCTM.AddToMappings") + "\" value=\"" + Messages.getAttributeString(locale,"DCTM.Add") + "\"/>\n"+
 "      </a>\n"+
 "    </td>\n"+
 "    <td class=\"value\">" + Messages.getBodyString(locale,"DCTM.MatchRegexp") + "&nbsp;<input type=\"text\" name=\""+seqPrefix+"specmatch\" size=\"32\" value=\"\"/></td>\n"+
@@ -2865,8 +3135,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "<input type=\"hidden\" name=\""+seqPrefix+"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
 "<input type=\"hidden\" name=\""+seqPrefix+"specpathnameattribute\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"
       );
-      i = 0;
-      while (i < matchMap.getMatchCount())
+      for (int i = 0; i < matchMap.getMatchCount(); i++)
       {
         String matchString = matchMap.getMatchString(i);
         String replaceString = matchMap.getReplaceString(i);
@@ -2874,7 +3143,6 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "<input type=\"hidden\" name=\""+seqPrefix+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+seqPrefix+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
         );
-        i++;
       }
     }
   }
@@ -2896,9 +3164,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     int connectionSequenceNumber)
     throws ManifoldCFException
   {
+    String x;
+    String[] y;
+    
     String seqPrefix = "s"+connectionSequenceNumber+"_";
 
-    String x = variableContext.getParameter(seqPrefix+"pathcount");
+    x = variableContext.getParameter(seqPrefix+"pathcount");
     if (x != null)
     {
       // Delete all path specs first
@@ -3036,8 +3307,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    String[] y = variableContext.getParameterValues(seqPrefix+"specfiletype");
-    if (y != null)
+    x = variableContext.getParameter(seqPrefix+"datatype_count");
+    if (x != null)
     {
       // Delete all file specs first
       int i = 0;
@@ -3050,28 +3321,71 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           i++;
       }
 
-      // Loop through specs
-      i = 0;
-      while (i < y.length)
+      int dataCount = Integer.parseInt(x);
+      
+      y = variableContext.getParameterValues(seqPrefix+"specfiletype");
+      Set<String> checkedTypes = new HashSet<String>();
+      if (y != null)
       {
-      	String fileType = y[i++];
-      	SpecificationNode node = new SpecificationNode(CONFIG_PARAM_OBJECTTYPE);
-      	node.setAttribute("token",fileType);
-      	String isAll = variableContext.getParameter(seqPrefix+"specfileallattrs_"+fileType);
-      	if (isAll != null)
-          node.setAttribute("all",isAll);
-      	String[] z = variableContext.getParameterValues(seqPrefix+"specfileattrs_"+fileType);
-      	if (z != null)
-      	{
-          int k = 0;
-          while (k < z.length)
+        for (String s : y)
+        {
+          checkedTypes.add(s);
+        }
+      }
+      
+      // Loop through specs
+      for (int k = 0; k < dataCount; k++)
+      {
+      	String fileType = variableContext.getParameter(seqPrefix+"datatype_"+k);
+        if (checkedTypes.contains(fileType))
+        {
+          SpecificationNode node = new SpecificationNode(CONFIG_PARAM_OBJECTTYPE);
+          node.setAttribute("token",fileType);
+          String isAll = variableContext.getParameter(seqPrefix+"specfileallattrs_"+k);
+          if (isAll != null)
+            node.setAttribute("all",isAll);
+          String[] z = variableContext.getParameterValues(seqPrefix+"specfileattrs_"+k);
+          if (z != null)
           {
-            SpecificationNode attrNode = new SpecificationNode(CONFIG_PARAM_ATTRIBUTENAME);
-            attrNode.setAttribute("attrname",z[k++]);
-            node.addChild(node.getChildCount(),attrNode);
+            for (int kk = 0; kk < z.length; kk++)
+            {
+              SpecificationNode attrNode = new SpecificationNode(CONFIG_PARAM_ATTRIBUTENAME);
+              attrNode.setAttribute("attrname",z[kk]);
+              node.addChild(node.getChildCount(),attrNode);
+            }
           }
-      	}
-      	ds.addChild(ds.getChildCount(),node);
+          x = variableContext.getParameter(seqPrefix+"filter_"+k+"_count");
+          int filterCount = Integer.parseInt(x);
+          for (int kk = 0; kk < filterCount; kk++)
+          {
+            String op = variableContext.getParameter(seqPrefix+"filter_"+k+"_"+kk+"_op");
+            if (op == null || !op.equals("Delete"))
+            {
+              String attributeName = variableContext.getParameter(seqPrefix+"filter_"+k+"_"+kk+"_name");
+              String operation = variableContext.getParameter(seqPrefix+"filter_"+k+"_"+kk+"_operation");
+              String value = variableContext.getParameter(seqPrefix+"filter_"+k+"_"+kk+"_value");
+              SpecificationNode filterNode = new SpecificationNode(CONFIG_PARAM_FILTER);
+              filterNode.setAttribute("name",attributeName);
+              filterNode.setAttribute("op",operation);
+              filterNode.setAttribute("value",value);
+              node.addChild(node.getChildCount(),filterNode);
+            }
+          }
+          // Add at the end
+          x = variableContext.getParameter(seqPrefix+"filter_"+k+"_op");
+          if (x != null && x.equals("Add"))
+          {
+            String attributeName = variableContext.getParameter(seqPrefix+"filter_"+k+"_name");
+            String operation = variableContext.getParameter(seqPrefix+"filter_"+k+"_operation");
+            String value = variableContext.getParameter(seqPrefix+"filter_"+k+"_value");
+            SpecificationNode filterNode = new SpecificationNode(CONFIG_PARAM_FILTER);
+            filterNode.setAttribute("name",attributeName);
+            filterNode.setAttribute("op",operation);
+            filterNode.setAttribute("value",value);
+            node.addChild(node.getChildCount(),filterNode);
+          }
+          ds.addChild(ds.getChildCount(),node);
+        }
       }
     }
 
@@ -3217,11 +3531,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"
     );
-    int i = 0;
     boolean seenAny = false;
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_LOCATION))
       {
         if (seenAny == false)
@@ -3254,83 +3567,164 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "  </tr>\n"+
 "\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"
+"  <tr>\n"+
+"    <td class=\"boxcell\" colspan=\"2\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.DocumentType") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Filters") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Metadata") + "</nobr></td>\n"+
+"        </tr>\n"
     );
-    seenAny = false;
-    i = 0;
-    while (i < ds.getChildCount())
+    int l = 0;
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_OBJECTTYPE))
       {
-        if (seenAny == false)
-        {
-          out.print(
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"DCTM.ObjectTypes") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <table class=\"displaytable\">\n"
-          );
-          seenAny = true;
-        }
-        String strObjectType = sn.getAttributeValue("token");
-        String isAll = sn.getAttributeValue("all");
         out.print(
-"        <tr>\n"+
-"          <td class=\"value\">\n"+
-"            "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(strObjectType)+"\n"+
-"          </td>\n"+
-"          <td class=\"value\">\n"
+"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"
         );
+
+        String strObjectType = sn.getAttributeValue("token");
+        out.print(
+"          <td class=\"formcolumncell\">\n"+
+"            "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(strObjectType)+"\n"+
+"          </td>\n"
+        );
+        out.print(
+"          <td class=\"boxcell\">\n"+
+"            <table class=\"formtable\">\n"+
+"              <tr class=\"formheaderrow\">\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.AttributeName") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Operation") + "</nobr></td>\n"+
+"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"DCTM.Value") + "</nobr></td>\n"+
+"              </tr>\n"
+        );
+        Map<String,Map<String,Set<String>>> currentFilters = new HashMap<String,Map<String,Set<String>>>();
+        for (int k = 0; k < sn.getChildCount(); k++)
+        {
+          SpecificationNode dsn = sn.getChild(k);
+          if (dsn.getType().equals(CONFIG_PARAM_FILTER))
+          {
+            String attributeName = dsn.getAttributeValue("name");
+            String operation = dsn.getAttributeValue("op");
+            String value = dsn.getAttributeValue("value");
+            Map<String,Set<String>> filters = currentFilters.get(attributeName);
+            if (filters == null)
+            {
+              filters = new HashMap<String,Set<String>>();
+              currentFilters.put(attributeName,filters);
+            }
+            Set<String> values = filters.get(operation);
+            if (values == null)
+            {
+              values = new HashSet<String>();
+              filters.put(operation,values);
+            }
+            values.add(value);
+          }
+        }
+        
+        int kk = 0;
+        String[] sortedAttributes = currentFilters.keySet().toArray(new String[0]);
+        java.util.Arrays.sort(sortedAttributes);
+        for (String filterAttribute : sortedAttributes)
+        {
+          Map<String,Set<String>> currentOperations = currentFilters.get(filterAttribute);
+          String[] sortedOperations = currentOperations.keySet().toArray(new String[0]);
+          java.util.Arrays.sort(sortedOperations);
+          for (String filterOperation : sortedOperations)
+          {
+            Set<String> currentValues = currentOperations.get(filterOperation);
+            String[] sortedValues = currentValues.toArray(new String[0]);
+            java.util.Arrays.sort(sortedValues);
+            StringBuilder sb = new StringBuilder();
+            boolean commaNeeded = false;
+            for (String value : sortedValues)
+            {
+              if (commaNeeded)
+                sb.append(", ");
+              else
+                commaNeeded = true;
+              sb.append("\"").append(value).append("\"");
+            }
+            out.print(
+"              <tr class=\""+(((kk % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filterAttribute)+"</nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filterOperation)+"</nobr>\n"+
+"                </td>\n"+
+"                <td class=\"formcolumncell\">\n"+
+"                  "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sb.toString())+"\n"+
+"                </td>\n"+
+"              </tr>\n"
+            );
+            kk++;
+          }
+        }
+        
+        out.print(
+"            </table>\n"+
+"          </td>\n"
+        );
+        out.print(
+"          <td class=\"formcolumncell\">\n"
+        );
+
+        String isAll = sn.getAttributeValue("all");
         if (isAll != null && isAll.equals("true"))
           out.print(
 "            <nobr>" + Messages.getBodyString(locale,"DCTM.allMetadataAttributes") + "</nobr>\n"
           );
         else
         {
-          int k = 0;
-          while (k < sn.getChildCount())
+          for (int k = 0; k < sn.getChildCount(); k++)
           {
-            SpecificationNode dsn = sn.getChild(k++);
+            SpecificationNode dsn = sn.getChild(k);
             if (dsn.getType().equals(CONFIG_PARAM_ATTRIBUTENAME))
             {
               String attrName = dsn.getAttributeValue("attrname");
               out.print(
-"            "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(attrName)+"<br/>\n"
+"            <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(attrName)+"</nobr>\n"
               );
             }
           }
         }
-        
         out.print(
-"          </td>\n"+
+"          </td>\n"
+        );
+
+        out.print(
 "        </tr>\n"
         );
+        
+        l++;
       }
+      
     }
-    if (seenAny)
+    if (l == 0)
     {
       out.print(
-"      </table>\n"+
-"    </td>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"    <td colspan=\"2\" class=\"message\">" + Messages.getBodyString(locale,"DCTM.NoDocumentTypesSpecified") + "</td>\n"
+"        <tr class=\"formrow\">\n"+
+"          <td colspan=\"3\" class=\"message\">" + Messages.getBodyString(locale,"DCTM.NoDocumentTypesSpecified") + "</td>\n"+
+"        </tr>\n"
       );
     }
     out.print(
+"      </table>\n"+
+"    </td>\n"+
 "  </tr>\n"+
 "\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
 "  <tr>\n"
     );
     seenAny = false;
-    i = 0;
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_FORMAT))
       {
         if (seenAny == false)
@@ -3365,11 +3759,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
     // Find max document length
-    i = 0;
     String maxDocumentLength = "unlimited";
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_MAXLENGTH))
       {
         maxDocumentLength = sn.getAttributeValue("value");
@@ -3387,11 +3780,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     );
     
     // Find whether security is on or off
-    i = 0;
     boolean securityOn = true;
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals("security"))
       {
         String securityValue = sn.getAttributeValue("value");
@@ -3413,10 +3805,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     );
     // Go through looking for access tokens
     seenAny = false;
-    i = 0;
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals("access"))
       {
         if (seenAny == false)
@@ -3455,11 +3846,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     );
     
     // Find the path-name metadata attribute name
-    i = 0;
     String pathNameAttribute = "";
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_PATHNAMEATTRIBUTE))
       {
         pathNameAttribute = sn.getAttributeValue("value");
@@ -3492,11 +3882,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     );
     
     // Find the path-value mapping data
-    i = 0;
     org.apache.manifoldcf.crawler.connectors.DCTM.MatchMap matchMap = new org.apache.manifoldcf.crawler.connectors.DCTM.MatchMap();
-    while (i < ds.getChildCount())
+    for (int i = 0; i < ds.getChildCount(); i++)
     {
-      SpecificationNode sn = ds.getChild(i++);
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_PATHMAP))
       {
         String pathMatch = sn.getAttributeValue("match");
@@ -3511,8 +3900,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "    <td class=\"value\">\n"+
 "      <table class=\"displaytable\">\n"
       );
-      i = 0;
-      while (i < matchMap.getMatchCount())
+      for (int i = 0; i < matchMap.getMatchCount(); i++)
       {
         String matchString = matchMap.getMatchString(i);
         String replaceString = matchMap.getReplaceString(i);
@@ -3523,7 +3911,6 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "          <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
 "        </tr>\n"
         );
-        i++;
       }
 
       out.print(
@@ -3611,6 +3998,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   public String[] getObjectTypes()
     throws ManifoldCFException, ServiceInterruption
   {
+    //if (true)
+    //  return new String[]{"type1","type2","type3"};
     try
     {
       String strDQL = "select distinct A.r_type_name from dmi_type_info A, dmi_dd_type_info B  " +
@@ -3827,6 +4216,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   public String[] getIngestableAttributes(String docType)
     throws ManifoldCFException, ServiceInterruption
   {
+    //if (true)
+    //  return new String[]{"attribute1","attribute2","attribute3"};
     try
     {
       String strDQL = "select attr_name FROM dmi_dd_attr_info where type_name = '" + docType + "' order by attr_name asc";
@@ -4073,4 +4464,5 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     }
     
   }
+  
 }
