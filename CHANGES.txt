@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.9-dev =====================
 
+CONNECTORS-1130: Add support for name/value document filtering
+in Documentum connector.
+(Hemant Jain, Karl Wright)
+
 CONNECTORS-1119: Add support for notification connectors, and
 an email notification connector.
 (Karl Wright)
