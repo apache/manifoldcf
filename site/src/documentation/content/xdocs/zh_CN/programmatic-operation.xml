@@ -85,6 +85,7 @@
             <tr><td>mappingconnectors</td><td>GET</td><td>List all registered mapping connectors</td><td>N/A</td><td>{"mappingconnector":[<em>&lt;list_of_mapping_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>authorityconnectors</td><td>GET</td><td>List all registered authority connectors</td><td>N/A</td><td>{"authorityconnector":[<em>&lt;list_of_authority_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>repositoryconnectors</td><td>GET</td><td>List all registered repository connectors</td><td>N/A</td><td>{"repositoryconnector":[<em>&lt;list_of_repository_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>notificationconnectors</td><td>GET</td><td>List all registered notification connectors</td><td>N/A</td><td>{"notificationconnector":[<em>&lt;list_of_notification_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>authoritygroups</td><td>GET</td><td>List all authority groups</td><td>N/A</td><td>{"authoritygroup":[<em>&lt;list_of_authority_group_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>authoritygroups/<em>&lt;encoded_group_name&gt;</em></td><td>GET</td><td>Get a specific authority group</td><td>N/A</td><td>{"authoritygroup":<em>&lt;authority_group_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>authoritygroups/<em>&lt;encoded_group_name&gt;</em></td><td>PUT</td><td>Save or create an authority group</td><td>{"authoritygroup":<em>&lt;authority_group_object&gt;</em>}</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
@@ -119,6 +120,12 @@
             <tr><td>repositoryconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>DELETE</td><td>Delete a repository connection</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>status/repositoryconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Check the status of a repository connection</td><td>N/A</td><td>{"check_result":<em>&lt;message&gt;</em>} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>info/repositoryconnections/<em>&lt;encoded_connection_name&gt;</em>/<em>&lt;connector_specific_resource&gt;</em></td><td>GET</td><td>Retrieve arbitrary connector-specific resource</td><td>N/A</td><td><em>&lt;response_data&gt;</em> <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} <strong>OR</strong> {"service_interruption":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>notificationconnections</td><td>GET</td><td>List all notification connections</td><td>N/A</td><td>{"notificationconnection":[<em>&lt;list_of_notification_connection_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>notificationconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Get a specific notification connection</td><td>N/A</td><td>{"notificationconnection":<em>&lt;notification_connection_object&gt;</em>} <strong>OR</strong> { } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>notificationconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>PUT</td><td>Save or create a notification connection</td><td>{"notificationconnection":<em>&lt;notification_connection_object&gt;</em>}</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>notificationconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>DELETE</td><td>Delete a notification connection</td><td>N/A</td><td>{ } <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>status/notificationconnections/<em>&lt;encoded_connection_name&gt;</em></td><td>GET</td><td>Check the status of a notification connection</td><td>N/A</td><td>{"check_result":<em>&lt;message&gt;</em>} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
+            <tr><td>info/notificationconnections/<em>&lt;encoded_connection_name&gt;</em>/<em>&lt;connector_specific_resource&gt;</em></td><td>GET</td><td>Retrieve arbitrary connector-specific resource</td><td>N/A</td><td><em>&lt;response_data&gt;</em> <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} <strong>OR</strong> {"service_interruption":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>clearhistory/<em>&lt;encoded_repository_connection_name&gt;</em></td><td>PUT</td><td>Clear history linked with repository connection</td><td>N/A</td><td><em>&lt;response_data&gt;</em> <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>} <strong>OR</strong> {"service_interruption":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>jobs</td><td>GET</td><td>List all job definitions</td><td>N/A</td><td>{"job":[<em>&lt;list_of_job_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>jobs</td><td>POST</td><td>Create a job</td><td>{"job":<em>&lt;job_object&gt;</em>}</td><td>{"job_id":<em>&lt;job_identifier&gt;</em>} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
@@ -282,6 +289,18 @@
           <p></p>
         </section>
         <section>
+          <title>Notification connector objects</title>
+          <p></p>
+          <p>The JSON fields a repository connector object has are as follows:</p>
+          <p></p>
+          <table>
+            <tr><th>Field</th><th>Meaning</th></tr>
+            <tr><td>"description"</td><td>The optional description of the connector</td></tr>
+            <tr><td>"class_name"</td><td>The class name of the class implementing the connector</td></tr>
+          </table>
+          <p></p>
+        </section>
+        <section>
           <title>Authority group objects</title>
           <p></p>
           <p>Authority group names, when they are part of a URL, should be encoded as follows:</p>
@@ -432,6 +451,29 @@
           <p></p>
         </section>
         <section>
+          <title>Notification connection objects</title>
+          <p></p>
+          <p>Notification connection names, when they are part of a URL, should be encoded as follows:</p>
+          <p></p>
+          <ol>
+            <li>All instances of '.' should be replaced by '..'.</li>
+            <li>All instances of '/' should be replaced by '.+'.</li>
+            <li>The URL should be encoded using standard URL utf-8-based %-encoding.</li>
+          </ol>
+          <p></p>
+          <p>The JSON fields for a notification connection object are as follows:</p>
+          <p></p>
+          <table>
+            <tr><th>Field</th><th>Meaning</th></tr>
+            <tr><td>"name"</td><td>The unique name of the connection</td></tr>
+            <tr><td>"description"</td><td>The description of the connection</td></tr>
+            <tr><td>"class_name"</td><td>The java class name of the class implementing the connection</td></tr>
+            <tr><td>"max_connections"</td><td>The total number of outstanding connections allowed to exist at a time</td></tr>
+            <tr><td>"configuration"</td><td>The configuration object for the connection, which is specific to the connection class</td></tr>
+          </table>
+          <p></p>
+        </section>
+        <section>
           <title>Job objects</title>
           <p></p>
           <p>The JSON fields for a job are is as follows:</p>
@@ -441,9 +483,7 @@
             <tr><td>"id"</td><td>The job's identifier, if present.  If not present, ManifoldCF will create one (and will also create the job when saved).</td></tr>
             <tr><td>"description"</td><td>Text describing the job</td></tr>
             <tr><td>"repository_connection"</td><td>The name of the repository connection to use with the job</td></tr>
-            <tr><td>"output_connection"</td><td>The name of the output connection to use with the job</td></tr>
             <tr><td>"document_specification"</td><td>The document specification object for the job, whose format is repository-connection specific</td></tr>
-            <tr><td>"output_specification"</td><td>The output specification object for the job, whose format is output-connection specific</td></tr>
             <tr><td>"start_mode"</td><td>The start mode for the job, which can be one of "schedule window start", "schedule window anytime", or "manual"</td></tr>
             <tr><td>"run_mode"</td><td>The run mode for the job, which can be either "continuous" or "scan once"</td></tr>
             <tr><td>"hopcount_mode"</td><td>The hopcount mode for the job, which can be either "accurate", "no delete", "never delete"</td></tr>
@@ -455,15 +495,29 @@
             <tr><td>"schedule"</td><td>An array of schedule objects, describing when the job should be started and run</td></tr>
             <tr><td>"forcedparam"</td><td>An array of forcedparam objects, describing what forced parameters should be set</td></tr>
             <tr><td>"pipelinestage"</td><td>An array of pipelinestage objects, describing what the transformation pipeline is</td></tr>
+            <tr><td>"notificationstage"</td><td>An array of notificationstage objects, describing what the notifications are</td></tr>
           </table>
           <p></p>
           <p>Each pipelinestage object has the following fields:</p>
           <p></p>
           <table>
             <tr><th>Field</th><th>Meaning</th></tr>
+            <tr><td>"stage_id"</td><td>The unique identifier for the pipeline stage</td></tr>
+            <tr><td>"stage_prerequisite"</td><td>The unique identifier for the preceding pipeline stage; may be missing if none</td></tr>
+            <tr><td>"stage_isoutput"</td><td>"true" if the stage is an output connection</td></tr>
             <tr><td>"stage_connectionname"</td><td>The connection name for the pipeline stage</td></tr>
             <tr><td>"stage_description"</td><td>A description of the pipeline stage</td></tr>
-            <tr><td>"stage_specification"</td><td>The transformation specification for the pipeline stage</td></tr>
+            <tr><td>"stage_specification"</td><td>The specification string for the pipeline stage</td></tr>
+          </table>
+          <p></p>
+          <p>Each notificationstage object has the following fields:</p>
+          <p></p>
+          <table>
+            <tr><th>Field</th><th>Meaning</th></tr>
+            <tr><td>"stage_id"</td><td>The unique identifier for the notification stage</td></tr>
+            <tr><td>"stage_connectionname"</td><td>The connection name for the notification stage</td></tr>
+            <tr><td>"stage_description"</td><td>A description of the notification stage</td></tr>
+            <tr><td>"stage_specification"</td><td>The specification string for the notification stage</td></tr>
           </table>
           <p></p>
           <p>Each forcedparam object has the following fields:</p>
