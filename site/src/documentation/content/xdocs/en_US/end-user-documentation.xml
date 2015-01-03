@@ -276,6 +276,60 @@
                       remove history that is older than a specified interval before the current time.  But if you want to remove all the history right away, this button will do that.</p>
             </section>
 
+            <section id="notifications">
+                <title>Defining Notification Connections</title>
+                <p>The Framework UI's left-side menu contains a link for listing notification connections.  A notification connection is a connection to an engine that generates notification messages, such
+                      as email or text messages, specifically to note the end or unexpected termination of a job.</p>
+                <p>Jobs may specify one or more notification connections.  You can create a notification connection by clicking the "List Notification Connections" link in the left-side navigation menu.  When you do this, the
+                       following screen will appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/list-notification-connections.PNG" alt="List Notification Connections" width="80%"/>
+                <br/><br/>
+                <p>On a freshly created system, there may well be no existing notification connections listed.  If there are already notification connections, they will be listed on this screen, along with links that allow
+                      you to view, edit, or delete them.  To create a new notification connection, click the "Add new notification connection" link at the bottom.  The following screen will then appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-notification-connection-name.PNG" alt="Add New Notification Connection, specify Name" width="80%"/>
+                <br/><br/>
+                <p>The tabs across the top each present a different view of your notification connection.  Each tab allows you to edit a different characteristic of that connection.  The exact set of tabs you see
+                       depends on the connection type you choose for the connection.</p>
+                <p>Start by giving your connection a name and a description.  Remember that all notification connection names must be unique, and cannot be changed after the connection is defined.  The name must be
+                       no more than 32 characters long.  The description can be up to 255 characters long.  When you are done, click on the "Type" tab.  The Type tab for the connection will then appear:</p>
+                <br/><br/>
+                <figure src="images/en_US/add-new-notification-connection-type.PNG" alt="Add New Notification Connection, select Type" width="80%"/>
+                <br/><br/>
+                <p>The list of notification connection types in the pulldown box, and what they are each called, is determined by your system integrator.  The configuration tabs for each different kind of notification connection
+                       type are described in separate sections below.</p>
+                <p>After you choose a notification connection type, click the "Continue" button at the bottom of the pane.  You will then see all the tabs appropriate for that kind of connection appear, and a
+                       "Save" button will also appear at the bottom of the pane.  You <b>must</b> click the "Save" button when you are done in order to create your connection.  If you click "Cancel" instead, the new connection
+                       will not be created.  (The same thing will happen if you click on any of the navigation links in the left-hand pane.)</p>
+                <p>Every notification connection has a "Throttling" tab.  The tab looks like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/notification-throttling.PNG" alt="Notification Connection Throttling" width="80%"/>
+                <br/><br/>
+                <p>On this tab, you can specify only one thing: how many open connections are allowed at any given time to the system the notification connection talks with.  This restriction helps prevent
+                       that system from being overloaded, or in some cases exceeding its license limitations.  Conversely, making this number larger allows for greater overall throughput.  The default
+                       value is 10, which may not be optimal for all types of notificaiton connections.  Please refer to the section of the manual describing your notification connection type for more precise
+                       recommendations.
+                </p>
+                <p>Please refer to the section of the manual describing your chosen notification connection type for a description of the tabs appropriate for that connection type.</p>
+                
+                <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This looks something like this (although the details will differ
+                      somewhat based on what connection type you chose):</p>
+                <br/><br/>
+                <figure src="images/en_US/view-notification-connection.PNG" alt="View Notification Connection" width="80%"/>
+                <br/><br/>
+                <p>The summary screen contains a line where the connection's status is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.
+                      If there was a problem, you will see a connection-type-specific diagnostic message instead.  If this happens, you will need to correct the problem, by either fixing your infrastructure,
+                      or by editing the connection configuration appropriately, before the output connection will work correctly.</p>
+                <p>Also note that there are five buttons along the bottom of the display: "Refresh", "Edit", and "Delete".  We'll
+                      go into the purpose for each of these buttons in turn.</p>
+                <p>The "Refresh" button simply reloads the view page for the notification connection, and updates the connection status.  Use this button when you have made changes to the external system
+                      your output connection is connected to that might affect whether the connection will succeed or not.</p>
+                <p>The "Edit" button allows you to go back and edit the connection parameters.  Use this button if you want to change the connection's characteristics or specifications in any way.</p>
+                <p>The "Delete" button allows you to delete the connection.  Use this button if you no longer want the connection to remain in the available list of notification connections.  Note that ManifoldCF
+                      will not allow you to delete a connection that is being referenced by a job.</p>
+            </section>
+
             <section id="mappers">
                 <title>Defining User Mapping Connections</title>
                 <p>The Framework UI's left-side menu contains a link for listing user mapping connections.  A user mapping connection is a connection to a system
@@ -473,6 +527,9 @@
                 <p>If you do not have any transformation connections defined, you will not be given the option of inserting a transformation connection into the pipeline.  But if
                        you have transformation connections defined, and you want to include them in the document pipeline, you can select them from the transformation connection
                        pulldown, type a description into the description box, and then click one of the "Insert before" buttons to insert it into the document pipeline.</p>
+                <p>If you do not have any notification connections defined, you will not be given the option of adding one or more notifications to the end of the job.  But if
+                       you have notification connections defined, and you want to include them, you can select them from the notification connection
+                       pulldown, type a description into the description box, and then click the appropriate "Add" button to add it into the notification list.</p>
                 <p>You also have the opportunity to modify the job's priority and start method at this time.  The priority
                        controls how important this job's documents are, relative to documents from any other job.  The higher the number, the more important it is considered for that job's
                        documents to be fetched first.  The start method is as previously described; you get a choice of manual start, starting on the beginning of a scheduling window, or
