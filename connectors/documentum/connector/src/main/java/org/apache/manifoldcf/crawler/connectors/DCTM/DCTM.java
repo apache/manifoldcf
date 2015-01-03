@@ -1194,14 +1194,13 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         // For each attribute, go through the operations and emit an AND clause
         for (String attributeName : filters.keySet())
         {
-          filterPart.append(" AND ");
           Map<String,Set<String>> operations = filters.get(attributeName);
           for (String operation : operations.keySet())
           {
             Set<String> values = operations.get(operation);
             if (operation.equals("="))
             {
-              filterPart.append("\"").append(attributeName).append("\"").append(" IN (");
+              filterPart.append(" AND \"").append(attributeName).append("\"").append(" IN (");
               boolean commaNeeded = false;
               for (String value : values)
               {
@@ -1215,7 +1214,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             }
             else if (operation.equals("<>"))
             {
-              filterPart.append("(");
+              filterPart.append(" AND (");
               boolean andNeeded = false;
               for (String value : values)
               {
