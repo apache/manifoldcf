@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1132: Update documentation for notification
+connections.
+(Karl Wright)
+
 CONNECTORS-1130: Add support for name/value document filtering
 in Documentum connector.
 (Hemant Jain, Karl Wright)
