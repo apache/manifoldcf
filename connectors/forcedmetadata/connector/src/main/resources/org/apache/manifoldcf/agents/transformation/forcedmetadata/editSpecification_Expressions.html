@@ -66,9 +66,9 @@
     #set($paramcounter = $paramcounter + 1)
   #end
   #if($paramcounter == 0)
-        <tr class="formrow"><td colspan="3" class="formcolumnmessage"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.NoExpressionsSpecified'))</nobr></td></tr>
+        <tr class="formrow"><td colspan="4" class="formcolumnmessage"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.NoExpressionsSpecified'))</nobr></td></tr>
   #end
-        <tr class="formrow"><td colspan="3" class="formseparator"><hr/></td></tr>
+        <tr class="formrow"><td colspan="4" class="formseparator"><hr/></td></tr>
         <tr class="formrow">
           <td class="formcolumncell">
             <a name="s${SEQNUM}_expression_tag"/>
@@ -82,7 +82,7 @@
           <td class="formcolumncell">
             <select name="s${SEQNUM}_expression_remove" size="2"/>
               <option name="true">$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.True'))</option>
-              <option name="false">$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.False'))</option>
+              <option name="false" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.False'))</option>
             </select>
           </td>
           <td class="formcolumncell">
@@ -92,6 +92,33 @@
       </table>
     </td>
   </tr>
+  
+  <tr><td class="separator" colspan="4"><hr/></td></tr>
+  
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.KeepAllMetadata'))</nobr></td>
+    <td class="value" colspan="3">
+      <input type="hidden" name="s${SEQNUM}_keepallmetadata_present" value="true"/>
+  #if($KEEPALLMETADATA == 'true')
+       <input type="checkbox" checked="true" name="s${SEQNUM}_keepallmetadata" value="true"/>
+  #else
+       <input type="checkbox" name="s${SEQNUM}_keepallmetadata" value="true"/>
+  #end
+    </td>
+  </tr>
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ForcedMetadata.FilterEmpty'))</nobr></td>
+    <td class="value" colspan="3">
+      <input type="hidden" name="s${SEQNUM}_filterempty_present" value="true"/>
+  #if($FILTEREMPTY == 'true')
+       <input type="checkbox" checked="true" name="s${SEQNUM}_filterempty" value="true"/>
+  #else
+       <input type="checkbox" name="s${SEQNUM}_filterempty" value="true"/>
+  #end
+    </td>
+  </tr>
+
 </table>
 
 #else
@@ -104,5 +131,9 @@
     #set($paramcounter = $paramcounter + 1)
   #end
 <input type="hidden" name="s${SEQNUM}_expression_count" value="${paramcounter}"/>
+<input type="hidden" name="s${SEQNUM}_keepallmetadata_present" value="true"/>
+<input type="hidden" name="s${SEQNUM}_keepallmetadata" value="$Encoder.bodyEscape($FILTEREMPTY)"/>
+<input type="hidden" name="s${SEQNUM}_filterempty_present" value="true"/>
+<input type="hidden" name="s${SEQNUM}_filterempty" value="$Encoder.bodyEscape($FILTEREMPTY)"/>
 
 #end
