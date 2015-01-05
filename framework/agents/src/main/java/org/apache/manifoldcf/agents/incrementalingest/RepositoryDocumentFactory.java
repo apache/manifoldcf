@@ -43,7 +43,7 @@ public class RepositoryDocumentFactory
   protected BinaryInput binaryTracker;
   
   // Readers (organized by metadata)
-  protected Map<String,CharacterInput[]> metadataReaders = new HashMap<String,CharacterInput[]>();
+  protected final Map<String,CharacterInput[]> metadataReaders = new HashMap<String,CharacterInput[]>();
   
   /** Constructor.
   * Pass a RepositoryDocument.  This constructor reads all streams and stores them in

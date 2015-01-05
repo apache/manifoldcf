@@ -415,6 +415,17 @@ public class RepositoryDocument
     return binaryLength;
   }
 
+  /** Remove a field.
+  *@param fieldName is the field name.
+  */
+  public void removeField(String fieldName)
+  {
+    fields.remove(fieldName);
+    stringFields.remove(fieldName);
+    readerFields.remove(fieldName);
+    dateFields.remove(fieldName);
+  }
+  
   /** Add/remove a multivalue date field.
   *@param fieldName is the field name.
   *@param fieldData is the multi-valued data (an array of Dates).  Null means
@@ -577,6 +588,12 @@ public class RepositoryDocument
         newValues[i] = newValue.toString();
       }
       stringFields.put(fieldName,newValues);
+      // Reader is no longer useful, since we've read it to the end.
+      // Remove it from the record accordingly.
+      // NOTE WELL: This could cause side effects if the same
+      // field is accessed simultaneously two different ways!
+      readerFields.remove(fieldName);
+      fields.put(fieldName,newValues);
       return newValues;
     }
     else
