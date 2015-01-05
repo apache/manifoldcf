@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1135: Update Japanese translations for JCIFS connector.
+(KOIZUMI Satoru)
+
 CONNECTORS-1132: Update documentation for notification
 connections.
 (Karl Wright)
