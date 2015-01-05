@@ -34,6 +34,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   // Nodes and attributes representing parameters and values.
   // There will be node for every parameter/value pair.
   
+  public static final String NODE_EXPRESSION = "expression";
   public static final String NODE_PAIR = "pair";
   public static final String ATTRIBUTE_PARAMETER = "parameter";
   public static final String NODE_FIELDMAP = "fieldmap";
@@ -47,8 +48,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   
   private static final String VIEW_SPEC = "viewSpecification.html";
   private static final String EDIT_SPEC_HEADER = "editSpecification.js";
-  private static final String EDIT_SPEC_FORCED_METADATA = "editSpecification_ForcedMetadata.html";
-  private static final String EDIT_SPEC_FIELDMAPPING = "editSpecification_FieldMapping.html";
+  private static final String EDIT_SPEC_EXPRESSIONS = "editSpecification_Expressions.html";
 
   /** Get a pipeline version string, given a pipeline specification object.  The version string is used to
   * uniquely describe the pertinent details of the specification and the configuration, to allow the Connector 
@@ -91,41 +91,135 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   {
     // Unpack the forced metadata
     SpecPacker sp = new SpecPacker(pipelineDescription.getSpecification());
-    // We have to create a copy of the Repository Document, since we might be rearranging things
-    RepositoryDocument docCopy = document.duplicate();
-    docCopy.clearFields();
-    // Do the mapping first!!
-    Iterator<String> fields = document.getFields();
-    while (fields.hasNext())
-    {
-      String field = fields.next();
-      String target = sp.getMapping(field);
-      if (target != null)
-      {
-        moveData(docCopy,target,document,field,sp.filterEmpty());
-      }
-      else
-      {
-        if (sp.keepAllMetadata())
+    
+    // Create a structure that will allow us access to fields without sharing Reader objects
+    FieldDataFactory fdf = new FieldDataFactory(document);
+    try {
+      // We have to create a copy of the Repository Document, since we might be rearranging things
+      RepositoryDocument docCopy = document.duplicate();
+      // We must explicitly copy all fields, since we can't share references to Reader objects and
+      // expect anything to work right
+      docCopy.clearFields();
+      
+      // Clear fields, unless we're supposed to keep what we don't specify
+      if (sp.filterEmpty()) {
+        if (sp.keepAllMetadata()) {
+          // Loop through fields and copy them, filtering empties
+          Iterator<String> fields = document.getFields();
+          while (fields.hasNext())
+          {
+            String field = fields.next();
+            moveData(docCopy,field,fdf,field,true);
+          }
+        }
+      } else if (sp.keepAllMetadata()) {
+        // Copy ALL current fields from old document, but go through FieldDataFactory
+        Iterator<String> fields = document.getFields();
+        while (fields.hasNext())
         {
-          moveData(docCopy,field,document,field,sp.filterEmpty());
+          String field = fields.next();
+          moveData(docCopy,field,fdf,field,false);
         }
       }
-    }
+      
+      // Iterate through the expressions
+      Iterator<String> expressionKeys = sp.getExpressionKeys();
+      while (expressionKeys.hasNext()) {
+        String expressionKey = expressionKeys.next();
+        // Get the set of expressions for the key
+        Set<String> values = sp.getExpressionValues(expressionKey);
+        IDataSource[] dataSources = new IDataSource[values.size()];
+        int k = 0;
+        for (String expression : values) {
+          dataSources[k++] = processExpression(expression, fdf);
+        }
+        int totalSize = 0;
+        for (IDataSource dataSource : dataSources) {
+          if (dataSource != null)
+            totalSize += dataSource.getSize();
+        }
+        if (totalSize == 0) {
+          docCopy.removeField(expressionKey);
+        } else {
+          // Each IDataSource will contribute zero or more results to the final array.  But here's the tricky part:
+          // the results all must be of the same type.  If there are any differences, then we have to bash them all to
+          // strings first.
+          Object[] allValues;
+          k = 0;
+          if (allDates(dataSources)) {
+            allValues = new Date[totalSize];
+            for (IDataSource dataSource : dataSources) {
+              if (dataSource != null) {
+                for (Object o : dataSource.getRawForm()) {
+                  allValues[k++] = o;
+                }
+              }
+            }
+            docCopy.addField(expressionKey,(Date[])conditionallyRemoveNulls(allValues,sp.filterEmpty()));
+          } else if (allReaders(dataSources)) {
+            if (sp.filterEmpty())
+              allValues = new String[totalSize];
+            else
+              allValues = new Reader[totalSize];
+            for (IDataSource dataSource : dataSources) {
+              if (dataSource != null) {
+                Object[] sources = sp.filterEmpty()?dataSource.getStringForm():dataSource.getRawForm();
+                for (Object o : sources) {
+                  allValues[k++] = o;
+                }
+              }
+            }
+            if (sp.filterEmpty())
+              docCopy.addField(expressionKey,removeEmpties((String[])allValues));
+            else
+              docCopy.addField(expressionKey,(Reader[])allValues);
+          } else {
+            allValues = new String[totalSize];
+            // Convert to strings throughout
+            for (IDataSource dataSource : dataSources) {
+              if (dataSource != null) {
+                for (Object o : dataSource.getStringForm()) {
+                  allValues[k++] = o;
+                }
+              }
+            }
+            if (sp.filterEmpty())
+              docCopy.addField(expressionKey,removeEmpties((String[])allValues));
+            else
+              docCopy.addField(expressionKey,(String[])allValues);
+          }
+        }
+      }
+      
+      // Finally, send the modified repository document onward to the next pipeline stage.
+      // If we'd done anything to the stream, we'd have needed to create a new RepositoryDocument object and copied the
+      // data into it, and closed the new stream after sendDocument() was called.
+      return activities.sendDocument(documentURI,docCopy);
 
-    Iterator<String> keys = sp.getParameterKeys();
-    while (keys.hasNext())
-    {
-      String key = keys.next();
-      docCopy.addField(key,sp.getParameterValues(key));
+    } finally {
+      fdf.close();
     }
-    // Finally, send the modified repository document onward to the next pipeline stage.
-    // If we'd done anything to the stream, we'd have needed to create a new RepositoryDocument object and copied the
-    // data into it, and closed the new stream after sendDocument() was called.
-    return activities.sendDocument(documentURI,docCopy);
   }
 
-  protected static void moveData(RepositoryDocument docCopy, String target, RepositoryDocument document, String field, boolean filterEmpty)
+  protected static boolean allDates(IDataSource[] dataSources)
+    throws IOException, ManifoldCFException {
+    for (IDataSource ds : dataSources) {
+      if (ds != null && !(ds.getRawForm() instanceof Date[]))
+        return false;
+    }
+    return true;
+  }
+
+  protected static boolean allReaders(IDataSource[] dataSources)
+    throws IOException, ManifoldCFException {
+    for (IDataSource ds : dataSources) {
+      if (ds != null && !(ds.getRawForm() instanceof Reader[]))
+        return false;
+    }
+    return true;
+  }
+  
+  protected static void moveData(RepositoryDocument docCopy, String target, FieldDataFactory document, String field, boolean filterEmpty)
     throws ManifoldCFException, IOException
   {
     Object[] fieldData = document.getField(field);
@@ -240,9 +334,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   {
     // Output specification header
     
-    // Add Forced Metadata to tab array
-    tabsArray.add(Messages.getString(locale, "ForcedMetadata.FieldMappingTabName"));
-    tabsArray.add(Messages.getString(locale, "ForcedMetadata.ForcedMetadata"));
+    tabsArray.add(Messages.getString(locale, "ForcedMetadata.Expressions"));
 
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("SEQNUM",Integer.toString(connectionSequenceNumber));
@@ -272,11 +364,9 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     paramMap.put("SEQNUM",Integer.toString(connectionSequenceNumber));
     paramMap.put("SELECTEDNUM",Integer.toString(actualSequenceNumber));
 
-    fillInForcedMetadataTab(paramMap, os);
-    fillInFieldMappingSpecificationMap(paramMap, os);
+    fillInExpressionsTab(paramMap, os);
 
-    Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_FORCED_METADATA,paramMap);
-    Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_FIELDMAPPING,paramMap);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPEC_EXPRESSIONS,paramMap);
   }
   
   /** Process a specification post.
@@ -296,96 +386,53 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   {
     // Process specification post
     String seqPrefix = "s"+connectionSequenceNumber+"_";
-    String forcedCount = variableContext.getParameter(seqPrefix+"forcedmetadata_count");
-    if (forcedCount != null)
+    String expressionCount = variableContext.getParameter(seqPrefix+"expression_count");
+    if (expressionCount != null)
     {
-      int count = Integer.parseInt(forcedCount);
-      // Delete old spec data
+      int count = Integer.parseInt(expressionCount);
+      // Delete old spec data, including legacy node types we no longer use
       int i = 0;
       while (i < os.getChildCount())
       {
         SpecificationNode cn = os.getChild(i);
-        if (cn.getType().equals(NODE_PAIR))
+        if (cn.getType().equals(NODE_EXPRESSION) || cn.getType().equals(NODE_PAIR) || cn.getType().equals(NODE_FIELDMAP))
           os.removeChild(i);
         else
           i++;
       }
+
       // Now, go through form data
       for (int j = 0; j < count; j++)
       {
-        String op = variableContext.getParameter(seqPrefix+"forcedmetadata_"+j+"_op");
+        String op = variableContext.getParameter(seqPrefix+"expression_"+j+"_op");
         if (op != null && op.equals("Delete"))
           continue;
-        String paramName = variableContext.getParameter(seqPrefix+"forcedmetadata_"+j+"_name");
-        String paramValue = variableContext.getParameter(seqPrefix+"forcedmetadata_"+j+"_value");
-        SpecificationNode sn = new SpecificationNode(NODE_PAIR);
+        String paramName = variableContext.getParameter(seqPrefix+"expression_"+j+"_name");
+        String paramRemove = variableContext.getParameter(seqPrefix+"expression_"+j+"_remove");
+        String paramValue = variableContext.getParameter(seqPrefix+"expression_"+j+"_value");
+        SpecificationNode sn = new SpecificationNode(NODE_EXPRESSION);
         sn.setAttribute(ATTRIBUTE_PARAMETER,paramName);
-        sn.setAttribute(ATTRIBUTE_VALUE,paramValue);
+        if (!(paramRemove != null && paramRemove.equals("true")))
+          sn.setAttribute(ATTRIBUTE_VALUE,paramValue);
         os.addChild(os.getChildCount(),sn);
       }
       // Look for add operation
-      String addOp = variableContext.getParameter(seqPrefix+"forcedmetadata_op");
+      String addOp = variableContext.getParameter(seqPrefix+"expression_op");
       if (addOp != null && addOp.equals("Add"))
       {
-        String paramName = variableContext.getParameter(seqPrefix+"forcedmetadata_name");
-        String paramValue = variableContext.getParameter(seqPrefix+"forcedmetadata_value");
-        SpecificationNode sn = new SpecificationNode(NODE_PAIR);
+        String paramName = variableContext.getParameter(seqPrefix+"expression_name");
+        String paramRemove = variableContext.getParameter(seqPrefix+"expression_remove");
+        String paramValue = variableContext.getParameter(seqPrefix+"expression_value");
+        SpecificationNode sn = new SpecificationNode(NODE_EXPRESSION);
         sn.setAttribute(ATTRIBUTE_PARAMETER,paramName);
-        sn.setAttribute(ATTRIBUTE_VALUE,paramValue);
+        if (!(paramRemove != null && paramRemove.equals("true")))
+          sn.setAttribute(ATTRIBUTE_VALUE,paramValue);
         os.addChild(os.getChildCount(),sn);
       }
+
     }
     
-    String x = variableContext.getParameter(seqPrefix+"fieldmapping_count");
-    if (x != null && x.length() > 0)
-    {
-      // About to gather the fieldmapping nodes, so get rid of the old ones.
-      int i = 0;
-      while (i < os.getChildCount())
-      {
-        SpecificationNode node = os.getChild(i);
-        if (node.getType().equals(NODE_FIELDMAP) || node.getType().equals(NODE_KEEPMETADATA))
-          os.removeChild(i);
-        else
-          i++;
-      }
-      int count = Integer.parseInt(x);
-      i = 0;
-      while (i < count)
-      {
-        String prefix = seqPrefix+"fieldmapping_";
-        String suffix = "_"+Integer.toString(i);
-        String op = variableContext.getParameter(prefix+"op"+suffix);
-        if (op == null || !op.equals("Delete"))
-        {
-          // Gather the fieldmap etc.
-          String source = variableContext.getParameter(prefix+"source"+suffix);
-          String target = variableContext.getParameter(prefix+"target"+suffix);
-          if (target == null)
-            target = "";
-          SpecificationNode node = new SpecificationNode(NODE_FIELDMAP);
-          node.setAttribute(ATTRIBUTE_SOURCE,source);
-          node.setAttribute(ATTRIBUTE_TARGET,target);
-          os.addChild(os.getChildCount(),node);
-        }
-        i++;
-      }
-      
-      String addop = variableContext.getParameter(seqPrefix+"fieldmapping_op");
-      if (addop != null && addop.equals("Add"))
-      {
-        String source = variableContext.getParameter(seqPrefix+"fieldmapping_source");
-        String target = variableContext.getParameter(seqPrefix+"fieldmapping_target");
-        if (target == null)
-          target = "";
-        SpecificationNode node = new SpecificationNode(NODE_FIELDMAP);
-        node.setAttribute(ATTRIBUTE_SOURCE,source);
-        node.setAttribute(ATTRIBUTE_TARGET,target);
-        os.addChild(os.getChildCount(),node);
-      }
-    }
-    
-    x = variableContext.getParameter(seqPrefix+"keepallmetadata_present");
+    String x = variableContext.getParameter(seqPrefix+"keepallmetadata_present");
     if (x != null && x.length() > 0)
     {
       String keepAll = variableContext.getParameter(seqPrefix+"keepallmetadata");
@@ -454,16 +501,17 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     paramMap.put("SEQNUM",Integer.toString(connectionSequenceNumber));
     
     // Fill in the map with data from all tabs
-    fillInForcedMetadataTab(paramMap, os);
-    fillInFieldMappingSpecificationMap(paramMap, os);
+    fillInExpressionsTab(paramMap, os);
 
     Messages.outputResourceWithVelocity(out,locale,VIEW_SPEC,paramMap);
   }
 
-  protected static void fillInFieldMappingSpecificationMap(Map<String,Object> paramMap, Specification os)
+  protected static void fillInExpressionsTab(Map<String,Object> paramMap, Specification os)
   {
-    // Prep for field mappings
-    List<Map<String,String>> fieldMappings = new ArrayList<Map<String,String>>();
+    final Map<String,Set<String>> expressions = new HashMap<String,Set<String>>();
+    final Map<String,Set<String>> expressionAdditions = new HashMap<String,Set<String>>();
+    final Map<String,Set<String>> additions = new HashMap<String,Set<String>>();
+    
     String keepAllMetadataValue = "true";
     String filterEmptyValue = "false";
     for (int i = 0; i < os.getChildCount(); i++)
@@ -473,18 +521,44 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
         String source = sn.getAttributeValue(ATTRIBUTE_SOURCE);
         String target = sn.getAttributeValue(ATTRIBUTE_TARGET);
         String targetDisplay;
-        if (target == null)
+        
+        expressions.put(source,new HashSet<String>());
+        if (target != null)
         {
-          target = "";
-          targetDisplay = "(remove)";
+          Set<String> sources = new HashSet<String>();
+          sources.add("${"+source+"}");
+          expressions.put(target,sources);
         }
-        else
-          targetDisplay = target;
-        Map<String,String> fieldMapping = new HashMap<String,String>();
-        fieldMapping.put("SOURCE",source);
-        fieldMapping.put("TARGET",target);
-        fieldMapping.put("TARGETDISPLAY",targetDisplay);
-        fieldMappings.add(fieldMapping);
+      }
+      else if (sn.getType().equals(NODE_PAIR))
+      {
+        String parameter = sn.getAttributeValue(ATTRIBUTE_PARAMETER);
+        String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
+        // Since the same target is completely superceded by a NODE_PAIR, but NODE_PAIRs
+        // are cumulative, I have to build these completely and then post-process them.
+        Set<String> addition = additions.get(parameter);
+        if (addition == null)
+        {
+          addition = new HashSet<String>();
+          additions.put(parameter,addition);
+        }
+        addition.add(expressionEscape(value));
+      }
+      else if (sn.getType().equals(NODE_EXPRESSION))
+      {
+        String parameter = sn.getAttributeValue(ATTRIBUTE_PARAMETER);
+        String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
+        if (value == null) {
+          expressionAdditions.put(parameter,new HashSet<String>());
+        } else {
+          Set<String> expressionAddition = expressionAdditions.get(parameter);
+          if (expressionAddition == null)
+          {
+            expressionAddition = new HashSet<String>();
+            expressionAdditions.put(parameter,expressionAddition);
+          }
+          expressionAddition.add(value);
+        }
       }
       else if (sn.getType().equals(NODE_KEEPMETADATA))
       {
@@ -495,77 +569,193 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
         filterEmptyValue = sn.getAttributeValue(ATTRIBUTE_VALUE);
       }
     }
-    paramMap.put("FIELDMAPPINGS",fieldMappings);
-    paramMap.put("KEEPALLMETADATA",keepAllMetadataValue);
-    paramMap.put("FILTEREMPTY",filterEmptyValue);
-  }
-
-  protected static void fillInForcedMetadataTab(Map<String,Object> paramMap, Specification os)
-  {
-    // First, sort everything
-    Map<String,Set<String>> params = new HashMap<String,Set<String>>();
-    for (int i = 0; i < os.getChildCount(); i++)
-    {
-      SpecificationNode sn = os.getChild(i);
-      if (sn.getType().equals(NODE_PAIR))
-      {
-        String parameter = sn.getAttributeValue(ATTRIBUTE_PARAMETER);
-        String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
-        Set<String> values = params.get(parameter);
-        if (values == null)
-        {
-          values = new HashSet<String>();
-          params.put(parameter,values);
-        }
-        values.add(value);
-      }
-    }
     
-    // We construct a list of maps from the parameters
-    List<Map<String,String>> pObject = new ArrayList<Map<String,String>>();
-
-    String[] keys = new String[params.size()];
-    int j = 0;
-    for (String key : params.keySet())
+    // Postprocessing.
+    // Override the moves with the additions
+    for (String parameter : additions.keySet())
     {
-      keys[j++] = key;
+      expressions.put(parameter,additions.get(parameter));
     }
+
+    // Override all with expression additions
+    for (String parameter : expressionAdditions.keySet())
+    {
+      expressions.put(parameter,expressionAdditions.get(parameter));
+    }
+
+    // Problem: how to display case where we want a null source??
+    // A: Special value
+    List<Map<String,String>> pObject = new ArrayList<Map<String,String>>();
+    String[] keys = expressions.keySet().toArray(new String[0]);
     java.util.Arrays.sort(keys);
     
     // Now, build map
     for (String key : keys)
     {
-      Set<String> values = params.get(key);
-      String[] valueArray = new String[values.size()];
-      j = 0;
-      for (String value : values)
-      {
-        valueArray[j++] = value;
-      }
-      java.util.Arrays.sort(valueArray);
-      
-      for (String value : valueArray)
-      {
+      Set<String> values = expressions.get(key);
+      if (values.size() == 0) {
         Map<String,String> record = new HashMap<String,String>();
         record.put("parameter",key);
-        record.put("value",value);
+        record.put("value","");
+        record.put("isnull","true");
         pObject.add(record);
+      } else {
+        String[] valueArray = values.toArray(new String[0]);
+        java.util.Arrays.sort(valueArray);
+        
+        for (String value : valueArray)
+        {
+          Map<String,String> record = new HashMap<String,String>();
+          record.put("parameter",key);
+          record.put("value",value);
+          record.put("isnull","false");
+          pObject.add(record);
+        }
       }
     }
     
-    paramMap.put("PARAMETERS",pObject);
+    paramMap.put("EXPRESSIONS",pObject);
+    paramMap.put("KEEPALLMETADATA",keepAllMetadataValue);
+    paramMap.put("FILTEREMPTY",filterEmptyValue);
+  }
+  
+  protected static String expressionEscape(String input) {
+    // Not doing any escaping yet
+    return input;
   }
 
+  protected static String expressionUnescape(String input) {
+    // Not doing any escaping yet
+    return input;
+  }
+  
+  public interface IDataSource {
+    public int getSize() throws IOException, ManifoldCFException;
+    public Object[] getRawForm() throws IOException, ManifoldCFException;
+    public String[] getStringForm() throws IOException, ManifoldCFException;
+  }
+  
+  protected static class StringSource implements IDataSource {
+    protected final String[] data;
+    
+    public StringSource(String data) {
+      this.data = new String[]{data};
+    }
+    
+    public StringSource(String[] data) {
+      this.data = data;
+    }
+    
+    @Override
+    public int getSize() {
+      return data.length;
+    }
+    
+    @Override
+    public Object[] getRawForm() {
+      return data;
+    }
+    
+    @Override
+    public String[] getStringForm() {
+      return data;
+    }
+  }
+  
+  protected static class FieldSource implements IDataSource {
+    
+    protected final FieldDataFactory rd;
+    protected final String fieldName;
+    
+    public FieldSource(FieldDataFactory rd, String fieldName) {
+      this.rd = rd;
+      this.fieldName = fieldName;
+    }
+    
+    @Override
+    public int getSize()
+      throws IOException, ManifoldCFException {
+      Object[] rawForm = getRawForm();
+      if (rawForm == null)
+        return 0;
+      return rawForm.length;
+    }
+    
+    @Override
+    public Object[] getRawForm()
+      throws IOException, ManifoldCFException {
+      return rd.getField(fieldName);
+    }
+    
+    @Override
+    public String[] getStringForm()
+      throws IOException, ManifoldCFException {
+      return rd.getFieldAsStrings(fieldName);
+    }
+  }
+  
+  protected static IDataSource append(IDataSource currentValues, IDataSource data)
+    throws IOException, ManifoldCFException {
+    // currentValues and data can either be:
+    // Date[], String[], or Reader[].
+    // We want to preserve the type in as high a form as possible when we compute the combinations.
+    if (currentValues == null)
+      return data;
+    if (currentValues.getSize() == 0)
+      return currentValues;
+    // Any combination causes conversion to a string, so if we get here, we can read the inputs all
+    // as strings safely.
+    String[] currentStrings = currentValues.getStringForm();
+    String[] dataStrings = data.getStringForm();
+    String[] rval = new String[currentStrings.length * dataStrings.length];
+    int rvalIndex = 0;
+    for (String currentString : currentStrings) {
+      for (String dataString : dataStrings) {
+        rval[rvalIndex++] = currentString + dataString;
+      }
+    }
+    return new StringSource(rval);
+  }
+  
+  public static IDataSource processExpression(String expression, FieldDataFactory sourceDocument)
+    throws IOException, ManifoldCFException {
+    int index = 0;
+    IDataSource input = null;
+    while (true) {
+      // If we're at the end, return the input
+      if (index == expression.length())
+        return input;
+      // Look for next field specification
+      int field = expression.indexOf("${",index);
+      if (field == -1)
+        return append(input, new StringSource(expressionUnescape(expression.substring(index))));
+      if (field > 0)
+        input = append(input, new StringSource(expressionUnescape(expression.substring(index,field))));
+      // Get the field name
+      int fieldEnd = expression.indexOf("}",field);
+      String fieldName;
+      if (fieldEnd == -1) {
+        fieldName = expression.substring(field+2);
+        return append(input, new FieldSource(sourceDocument, fieldName));
+      } else {
+        fieldName = expression.substring(field+2,fieldEnd);
+        input = append(input, new FieldSource(sourceDocument, fieldName));
+        index = fieldEnd+1;
+      }
+    }
+  }
+  
   protected static class SpecPacker {
     
-    private final Map<String,String> sourceTargets = new HashMap<String,String>();
     private final boolean keepAllMetadata;
     private final boolean filterEmpty;
-    private final Map<String,Set<String>> parameters = new HashMap<String,Set<String>>();
+    private final Map<String,Set<String>> expressions = new HashMap<String,Set<String>>();
 
     public SpecPacker(Specification os) {
       boolean keepAllMetadata = true;
       boolean filterEmpty = false;
+      final Map<String,Set<String>> additions = new HashMap<String,Set<String>>();
+      final Map<String,Set<String>> expressionAdditions = new HashMap<String,Set<String>>();
       for (int i = 0; i < os.getChildCount(); i++) {
         SpecificationNode sn = os.getChild(i);
         
@@ -579,24 +769,58 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
           String source = sn.getAttributeValue(ATTRIBUTE_SOURCE);
           String target = sn.getAttributeValue(ATTRIBUTE_TARGET);
           
-          if (target == null) {
-            target = "";
+          expressions.put(source,new HashSet<String>());
+          // Null target means to remove the *source* from the document.
+          if (target != null) {
+            Set<String> sources = new HashSet<String>();
+            sources.add("${"+source+"}");
+            expressions.put(target,sources);
           }
-          sourceTargets.put(source, target);
         }
         else if (sn.getType().equals(NODE_PAIR))
         {
           String parameter = sn.getAttributeValue(ATTRIBUTE_PARAMETER);
           String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
-          Set<String> params = parameters.get(parameter);
-          if (params == null)
+          // Since the same target is completely superceded by a NODE_PAIR, but NODE_PAIRs
+          // are cumulative, I have to build these completely and then post-process them.
+          Set<String> addition = additions.get(parameter);
+          if (addition == null)
           {
-            params = new HashSet<String>();
-            parameters.put(parameter,params);
+            addition = new HashSet<String>();
+            additions.put(parameter,addition);
           }
-          params.add(value);
+          addition.add(expressionEscape(value));
+        }
+        else if (sn.getType().equals(NODE_EXPRESSION))
+        {
+          String parameter = sn.getAttributeValue(ATTRIBUTE_PARAMETER);
+          String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
+          if (value == null) {
+            expressionAdditions.put(parameter,new HashSet<String>());
+          } else {
+            Set<String> expressionAddition = expressionAdditions.get(parameter);
+            if (expressionAddition == null)
+            {
+              expressionAddition = new HashSet<String>();
+              expressionAdditions.put(parameter,expressionAddition);
+            }
+            expressionAddition.add(value);
+          }
         }
       }
+      
+      // Override the moves with the additions
+      for (String parameter : additions.keySet())
+      {
+        expressions.put(parameter,additions.get(parameter));
+      }
+
+      // Override all with expression additions
+      for (String parameter : expressionAdditions.keySet())
+      {
+        expressions.put(parameter,expressionAdditions.get(parameter));
+      }
+      
       this.keepAllMetadata = keepAllMetadata;
       this.filterEmpty = filterEmpty;
     }
@@ -605,25 +829,16 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
       StringBuilder sb = new StringBuilder();
       int i;
       
-      // Mappings
-      final String[] sortArray = new String[sourceTargets.size()];
-      i = 0;
-      for (String source : sourceTargets.keySet()) {
-        sortArray[i++] = source;
-      }
+      final String[] sortArray = expressions.keySet().toArray(new String[0]);
       java.util.Arrays.sort(sortArray);
-      
-      List<String> packedMappings = new ArrayList<String>();
-      String[] fixedList = new String[2];
-      for (String source : sortArray) {
-        String target = sourceTargets.get(source);
-        StringBuilder localBuffer = new StringBuilder();
-        fixedList[0] = source;
-        fixedList[1] = target;
-        packFixedList(localBuffer,fixedList,':');
-        packedMappings.add(localBuffer.toString());
+      // Pack the list of keys
+      packList(sb,sortArray,'+');
+      for (String key : sortArray) {
+        Set<String> values = expressions.get(key);
+        String[] valueArray = values.toArray(new String[0]);
+        java.util.Arrays.sort(valueArray);
+        packList(sb,valueArray,'+');
       }
-      packList(sb,packedMappings,'+');
 
       // Keep all metadata
       if (keepAllMetadata)
@@ -631,30 +846,6 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
       else
         sb.append('-');
       
-      // Get the keys and sort them
-      final String[] keys = new String[parameters.size()];
-      int j = 0;
-      for (String key : parameters.keySet())
-      {
-        keys[j++] = key;
-      }
-      java.util.Arrays.sort(keys);
-      // Pack the list of keys
-      packList(sb,keys,'+');
-      // Now, go through each key and individually pack the values
-      for (String key : keys)
-      {
-        Set<String> values = parameters.get(key);
-        String[] valueArray = new String[values.size()];
-        j = 0;
-        for (String value : values)
-        {
-          valueArray[j++] = value;
-        }
-        java.util.Arrays.sort(valueArray);
-        packList(sb,valueArray,'+');
-      }
-
       // Filter empty
       if (filterEmpty)
         sb.append('+');
@@ -664,8 +855,14 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
       return sb.toString();
     }
     
-    public String getMapping(String source) {
-      return sourceTargets.get(source);
+    public Iterator<String> getExpressionKeys()
+    {
+      return expressions.keySet().iterator();
+    }
+    
+    public Set<String> getExpressionValues(String key)
+    {
+      return expressions.get(key);
     }
     
     public boolean keepAllMetadata() {
@@ -675,27 +872,119 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     public boolean filterEmpty() {
       return filterEmpty;
     }
+  }
+  
+  /** This class provides unique Reader and other field instances, when requested, based
+  * on an input RepositoryDocument.  It does this by pulling the values of the field into
+  * a CharacterInput implementation, thus making a temporary file copy.  So it is imperative
+  * that this object is closed when it is no longer needed.
+  */
+  public static class FieldDataFactory {
     
-    public Iterator<String> getParameterKeys()
-    {
-      return parameters.keySet().iterator();
+    protected final RepositoryDocument sourceDocument;
+    
+    // Readers (organized by metadata)
+    protected final Map<String,CharacterInput[]> metadataReaders = new HashMap<String,CharacterInput[]>();
+
+    public FieldDataFactory(RepositoryDocument sourceDocument) {
+      this.sourceDocument = sourceDocument;
     }
     
-    public String[] getParameterValues(String key)
+    public void close()
+      throws ManifoldCFException
     {
-      Set<String> values = parameters.get(key);
-      if (values == null)
-        return null;
-      String[] rval = new String[values.size()];
-      int i = 0;
-      for (String value : values)
+      for (String key : metadataReaders.keySet())
       {
-        rval[i++] = value;
+        CharacterInput[] rt = metadataReaders.get(key);
+        for (CharacterInput r : rt)
+        {
+          r.discard();
+        }
+      }
+    }
+    
+    public Object[] getField(String fieldName)
+      throws IOException, ManifoldCFException {
+      CharacterInput[] inputs = metadataReaders.get(fieldName);
+      if (inputs == null) {
+        // Either never seen the field before, or it's not a Reader
+        Object[] fieldValues = sourceDocument.getField(fieldName);
+        if (fieldValues == null)
+          return fieldValues;
+        if (fieldValues instanceof Reader[]) {
+          // Create a copy
+          CharacterInput[] newValues = new CharacterInput[fieldValues.length];
+          try {
+            // Populate newValues
+            for (int i = 0; i < newValues.length; i++)
+            {
+              newValues[i] = new TempFileCharacterInput((Reader)fieldValues[i]);
+            }
+            metadataReaders.put(fieldName,newValues);
+            inputs = newValues;
+          } catch (Throwable e) {
+            for (CharacterInput r : newValues)
+            {
+              if (r != null)
+                r.discard();
+            }
+            if (e instanceof IOException)
+              throw (IOException)e;
+            else if (e instanceof RuntimeException)
+              throw (RuntimeException)e;
+            else if (e instanceof Error)
+              throw (Error)e;
+            else
+              throw new RuntimeException("Unknown exception type: "+e.getClass().getName()+": "+e.getMessage(),e);
+          }
+        } else {
+          return fieldValues;
+        }
+      }
+        
+      Reader[] newReaders = new Reader[inputs.length];
+      for (int i = 0; i < inputs.length; i++)
+      {
+        inputs[i].doneWithStream();
+        newReaders[i] = inputs[i].getStream();
+      }
+      return newReaders;
+    }
+    
+    public String[] getFieldAsStrings(String fieldName)
+      throws IOException, ManifoldCFException {
+      CharacterInput[] cilist = metadataReaders.get(fieldName);
+      if (cilist == null)
+        return sourceDocument.getFieldAsStrings(fieldName);
+      
+      // We've created a local array of CharacterInputs from this field.  We'll need to convert these
+      // to strings.
+      char[] buffer = new char[65536];
+      String[] rval = new String[cilist.length];
+      for (int i = 0; i < rval.length; i++) {
+        CharacterInput ci = cilist[i];
+        ci.doneWithStream();
+        Reader r = ci.getStream();
+        // Read into a buffer
+        StringBuilder newValue = new StringBuilder();
+        while (true)
+        {
+          int amt = r.read(buffer);
+          if (amt == -1)
+            break;
+          newValue.append(buffer,0,amt);
+        }
+        rval[i] = newValue.toString();
+      }
+      sourceDocument.addField(fieldName,rval);
+      metadataReaders.remove(fieldName);
+      for (CharacterInput ci : cilist) {
+        ci.discard();
       }
       return rval;
     }
   }
-
+  
 }
 
 
