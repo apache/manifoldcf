@@ -114,7 +114,12 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
         }
       } else if (sp.keepAllMetadata()) {
         // Copy ALL current fields from old document, but go through FieldDataFactory
-        // MHL
+        Iterator<String> fields = document.getFields();
+        while (fields.hasNext())
+        {
+          String field = fields.next();
+          moveData(docCopy,field,fdf,field,false);
+        }
       }
       
       // Iterate through the expressions
@@ -624,7 +629,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     return input;
   }
   
-  protected interface IDataSource {
+  public interface IDataSource {
     public int getSize() throws IOException, ManifoldCFException;
     public Object[] getRawForm() throws IOException, ManifoldCFException;
     public String[] getStringForm() throws IOException, ManifoldCFException;
@@ -712,7 +717,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     return new StringSource(rval);
   }
   
-  protected static IDataSource processExpression(String expression, FieldDataFactory sourceDocument)
+  public static IDataSource processExpression(String expression, FieldDataFactory sourceDocument)
     throws IOException, ManifoldCFException {
     int index = 0;
     IDataSource input = null;
@@ -874,7 +879,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   * a CharacterInput implementation, thus making a temporary file copy.  So it is imperative
   * that this object is closed when it is no longer needed.
   */
-  protected static class FieldDataFactory {
+  public static class FieldDataFactory {
     
     protected final RepositoryDocument sourceDocument;
     
