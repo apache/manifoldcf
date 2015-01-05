@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1136: Update the user documentation to account for
+changes in the metadata adjuster transformer.
+(Karl Wright)
+
 CONNECTORS-1134: Revamp metadata adjuster transformer to
 handle arbitrary combination expressions across multiple fields.
 This replaces the "move" and "add" paradigm with a more general
