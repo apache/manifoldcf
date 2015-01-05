@@ -91,103 +91,113 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   {
     // Unpack the forced metadata
     SpecPacker sp = new SpecPacker(pipelineDescription.getSpecification());
-    // We have to create a copy of the Repository Document, since we might be rearranging things
-    RepositoryDocument docCopy = document.duplicate();
     
-    // Clear fields, unless we're supposed to keep what we don't specify
-    if (sp.filterEmpty()) {
-      // We have to process all the fields either way
+    // Create a structure that will allow us access to fields without sharing Reader objects
+    FieldDataFactory fdf = new FieldDataFactory(document);
+    try {
+      // We have to create a copy of the Repository Document, since we might be rearranging things
+      RepositoryDocument docCopy = document.duplicate();
+      // We must explicitly copy all fields, since we can't share references to Reader objects and
+      // expect anything to work right
       docCopy.clearFields();
-      if (sp.keepAllMetadata()) {
-        // Loop through fields and copy them, filtering empties
-        Iterator<String> fields = document.getFields();
-        while (fields.hasNext())
-        {
-          String field = fields.next();
-          moveData(docCopy,field,document,field,true);
+      
+      // Clear fields, unless we're supposed to keep what we don't specify
+      if (sp.filterEmpty()) {
+        if (sp.keepAllMetadata()) {
+          // Loop through fields and copy them, filtering empties
+          Iterator<String> fields = document.getFields();
+          while (fields.hasNext())
+          {
+            String field = fields.next();
+            moveData(docCopy,field,fdf,field,true);
+          }
         }
+      } else if (sp.keepAllMetadata()) {
+        // Copy ALL current fields from old document, but go through FieldDataFactory
+        // MHL
       }
-    } else if (!sp.keepAllMetadata()) {
-      // Just chuck all fields so we can start fresh
-      docCopy.clearFields();
-    }
-    
-    // Iterate through the expressions
-    Iterator<String> expressionKeys = sp.getExpressionKeys();
-    while (expressionKeys.hasNext()) {
-      String expressionKey = expressionKeys.next();
-      // Get the set of expressions for the key
-      Set<String> values = sp.getExpressionValues(expressionKey);
-      IDataSource[] dataSources = new IDataSource[values.size()];
-      int k = 0;
-      for (String expression : values) {
-        dataSources[k++] = processExpression(expression, document);
-      }
-      int totalSize = 0;
-      for (IDataSource dataSource : dataSources) {
-        if (dataSource != null)
-          totalSize += dataSource.getSize();
-      }
-      if (totalSize == 0) {
-        docCopy.removeField(expressionKey);
-      } else {
-        // Each IDataSource will contribute zero or more results to the final array.  But here's the tricky part:
-        // the results all must be of the same type.  If there are any differences, then we have to bash them all to
-        // strings first.
-        Object[] allValues;
-        k = 0;
-        if (allDates(dataSources)) {
-          allValues = new Date[totalSize];
-          for (IDataSource dataSource : dataSources) {
-            if (dataSource != null) {
-              for (Object o : dataSource.getRawForm()) {
-                allValues[k++] = o;
-              }
-            }
-          }
-          docCopy.addField(expressionKey,(Date[])conditionallyRemoveNulls(allValues,sp.filterEmpty()));
-        } else if (allReaders(dataSources)) {
-          if (sp.filterEmpty())
-            allValues = new String[totalSize];
-          else
-            allValues = new Reader[totalSize];
-          for (IDataSource dataSource : dataSources) {
-            if (dataSource != null) {
-              Object[] sources = sp.filterEmpty()?dataSource.getStringForm():dataSource.getRawForm();
-              for (Object o : sources) {
-                allValues[k++] = o;
-              }
-            }
-          }
-          if (sp.filterEmpty())
-            docCopy.addField(expressionKey,removeEmpties((String[])allValues));
-          else
-            docCopy.addField(expressionKey,(Reader[])allValues);
+      
+      // Iterate through the expressions
+      Iterator<String> expressionKeys = sp.getExpressionKeys();
+      while (expressionKeys.hasNext()) {
+        String expressionKey = expressionKeys.next();
+        // Get the set of expressions for the key
+        Set<String> values = sp.getExpressionValues(expressionKey);
+        IDataSource[] dataSources = new IDataSource[values.size()];
+        int k = 0;
+        for (String expression : values) {
+          dataSources[k++] = processExpression(expression, fdf);
+        }
+        int totalSize = 0;
+        for (IDataSource dataSource : dataSources) {
+          if (dataSource != null)
+            totalSize += dataSource.getSize();
+        }
+        if (totalSize == 0) {
+          docCopy.removeField(expressionKey);
         } else {
-          allValues = new String[totalSize];
-          // Convert to strings throughout
-          for (IDataSource dataSource : dataSources) {
-            if (dataSource != null) {
-              for (Object o : dataSource.getStringForm()) {
-                allValues[k++] = o;
+          // Each IDataSource will contribute zero or more results to the final array.  But here's the tricky part:
+          // the results all must be of the same type.  If there are any differences, then we have to bash them all to
+          // strings first.
+          Object[] allValues;
+          k = 0;
+          if (allDates(dataSources)) {
+            allValues = new Date[totalSize];
+            for (IDataSource dataSource : dataSources) {
+              if (dataSource != null) {
+                for (Object o : dataSource.getRawForm()) {
+                  allValues[k++] = o;
+                }
               }
             }
+            docCopy.addField(expressionKey,(Date[])conditionallyRemoveNulls(allValues,sp.filterEmpty()));
+          } else if (allReaders(dataSources)) {
+            if (sp.filterEmpty())
+              allValues = new String[totalSize];
+            else
+              allValues = new Reader[totalSize];
+            for (IDataSource dataSource : dataSources) {
+              if (dataSource != null) {
+                Object[] sources = sp.filterEmpty()?dataSource.getStringForm():dataSource.getRawForm();
+                for (Object o : sources) {
+                  allValues[k++] = o;
+                }
+              }
+            }
+            if (sp.filterEmpty())
+              docCopy.addField(expressionKey,removeEmpties((String[])allValues));
+            else
+              docCopy.addField(expressionKey,(Reader[])allValues);
+          } else {
+            allValues = new String[totalSize];
+            // Convert to strings throughout
+            for (IDataSource dataSource : dataSources) {
+              if (dataSource != null) {
+                for (Object o : dataSource.getStringForm()) {
+                  allValues[k++] = o;
+                }
+              }
+            }
+            if (sp.filterEmpty())
+              docCopy.addField(expressionKey,removeEmpties((String[])allValues));
+            else
+              docCopy.addField(expressionKey,(String[])allValues);
           }
-          if (sp.filterEmpty())
-            docCopy.addField(expressionKey,removeEmpties((String[])allValues));
-          else
-            docCopy.addField(expressionKey,(String[])allValues);
         }
       }
+      
+      // Finally, send the modified repository document onward to the next pipeline stage.
+      // If we'd done anything to the stream, we'd have needed to create a new RepositoryDocument object and copied the
+      // data into it, and closed the new stream after sendDocument() was called.
+      return activities.sendDocument(documentURI,docCopy);
+
+    } finally {
+      fdf.close();
     }
-    
-    // Finally, send the modified repository document onward to the next pipeline stage.
-    // If we'd done anything to the stream, we'd have needed to create a new RepositoryDocument object and copied the
-    // data into it, and closed the new stream after sendDocument() was called.
-    return activities.sendDocument(documentURI,docCopy);
   }
 
-  protected static boolean allDates(IDataSource[] dataSources) {
+  protected static boolean allDates(IDataSource[] dataSources)
+    throws IOException, ManifoldCFException {
     for (IDataSource ds : dataSources) {
       if (ds != null && !(ds.getRawForm() instanceof Date[]))
         return false;
@@ -195,7 +205,8 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     return true;
   }
 
-  protected static boolean allReaders(IDataSource[] dataSources) {
+  protected static boolean allReaders(IDataSource[] dataSources)
+    throws IOException, ManifoldCFException {
     for (IDataSource ds : dataSources) {
       if (ds != null && !(ds.getRawForm() instanceof Reader[]))
         return false;
@@ -203,7 +214,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     return true;
   }
   
-  protected static void moveData(RepositoryDocument docCopy, String target, RepositoryDocument document, String field, boolean filterEmpty)
+  protected static void moveData(RepositoryDocument docCopy, String target, FieldDataFactory document, String field, boolean filterEmpty)
     throws ManifoldCFException, IOException
   {
     Object[] fieldData = document.getField(field);
@@ -614,9 +625,9 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   }
   
   protected interface IDataSource {
-    public int getSize();
-    public Object[] getRawForm();
-    public String[] getStringForm() throws IOException;
+    public int getSize() throws IOException, ManifoldCFException;
+    public Object[] getRawForm() throws IOException, ManifoldCFException;
+    public String[] getStringForm() throws IOException, ManifoldCFException;
   }
   
   protected static class StringSource implements IDataSource {
@@ -648,16 +659,17 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
   
   protected static class FieldSource implements IDataSource {
     
-    protected final RepositoryDocument rd;
+    protected final FieldDataFactory rd;
     protected final String fieldName;
     
-    public FieldSource(RepositoryDocument rd, String fieldName) {
+    public FieldSource(FieldDataFactory rd, String fieldName) {
       this.rd = rd;
       this.fieldName = fieldName;
     }
     
     @Override
-    public int getSize() {
+    public int getSize()
+      throws IOException, ManifoldCFException {
       Object[] rawForm = getRawForm();
       if (rawForm == null)
         return 0;
@@ -665,19 +677,20 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     }
     
     @Override
-    public Object[] getRawForm() {
+    public Object[] getRawForm()
+      throws IOException, ManifoldCFException {
       return rd.getField(fieldName);
     }
     
     @Override
     public String[] getStringForm()
-      throws IOException {
+      throws IOException, ManifoldCFException {
       return rd.getFieldAsStrings(fieldName);
     }
   }
   
   protected static IDataSource append(IDataSource currentValues, IDataSource data)
-    throws IOException {
+    throws IOException, ManifoldCFException {
     // currentValues and data can either be:
     // Date[], String[], or Reader[].
     // We want to preserve the type in as high a form as possible when we compute the combinations.
@@ -699,8 +712,8 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     return new StringSource(rval);
   }
   
-  protected static IDataSource processExpression(String expression, RepositoryDocument sourceDocument)
-    throws IOException {
+  protected static IDataSource processExpression(String expression, FieldDataFactory sourceDocument)
+    throws IOException, ManifoldCFException {
     int index = 0;
     IDataSource input = null;
     while (true) {
@@ -855,6 +868,118 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
       return filterEmpty;
     }
   }
+  
+  /** This class provides unique Reader and other field instances, when requested, based
+  * on an input RepositoryDocument.  It does this by pulling the values of the field into
+  * a CharacterInput implementation, thus making a temporary file copy.  So it is imperative
+  * that this object is closed when it is no longer needed.
+  */
+  protected static class FieldDataFactory {
+    
+    protected final RepositoryDocument sourceDocument;
+    
+    // Readers (organized by metadata)
+    protected final Map<String,CharacterInput[]> metadataReaders = new HashMap<String,CharacterInput[]>();
+
+    public FieldDataFactory(RepositoryDocument sourceDocument) {
+      this.sourceDocument = sourceDocument;
+    }
+    
+    public void close()
+      throws ManifoldCFException
+    {
+      for (String key : metadataReaders.keySet())
+      {
+        CharacterInput[] rt = metadataReaders.get(key);
+        for (CharacterInput r : rt)
+        {
+          r.discard();
+        }
+      }
+    }
+    
+    public Object[] getField(String fieldName)
+      throws IOException, ManifoldCFException {
+      CharacterInput[] inputs = metadataReaders.get(fieldName);
+      if (inputs == null) {
+        // Either never seen the field before, or it's not a Reader
+        Object[] fieldValues = sourceDocument.getField(fieldName);
+        if (fieldValues == null)
+          return fieldValues;
+        if (fieldValues instanceof Reader[]) {
+          // Create a copy
+          CharacterInput[] newValues = new CharacterInput[fieldValues.length];
+          try {
+            // Populate newValues
+            for (int i = 0; i < newValues.length; i++)
+            {
+              newValues[i] = new TempFileCharacterInput((Reader)fieldValues[i]);
+            }
+            metadataReaders.put(fieldName,newValues);
+            inputs = newValues;
+          } catch (Throwable e) {
+            for (CharacterInput r : newValues)
+            {
+              if (r != null)
+                r.discard();
+            }
+            if (e instanceof IOException)
+              throw (IOException)e;
+            else if (e instanceof RuntimeException)
+              throw (RuntimeException)e;
+            else if (e instanceof Error)
+              throw (Error)e;
+            else
+              throw new RuntimeException("Unknown exception type: "+e.getClass().getName()+": "+e.getMessage(),e);
+          }
+        } else {
+          return fieldValues;
+        }
+      }
+        
+      Reader[] newReaders = new Reader[inputs.length];
+      for (int i = 0; i < inputs.length; i++)
+      {
+        inputs[i].doneWithStream();
+        newReaders[i] = inputs[i].getStream();
+      }
+      return newReaders;
+    }
+    
+    public String[] getFieldAsStrings(String fieldName)
+      throws IOException, ManifoldCFException {
+      CharacterInput[] cilist = metadataReaders.get(fieldName);
+      if (cilist == null)
+        return sourceDocument.getFieldAsStrings(fieldName);
+      
+      // We've created a local array of CharacterInputs from this field.  We'll need to convert these
+      // to strings.
+      char[] buffer = new char[65536];
+      String[] rval = new String[cilist.length];
+      for (int i = 0; i < rval.length; i++) {
+        CharacterInput ci = cilist[i];
+        ci.doneWithStream();
+        Reader r = ci.getStream();
+        // Read into a buffer
+        StringBuilder newValue = new StringBuilder();
+        while (true)
+        {
+          int amt = r.read(buffer);
+          if (amt == -1)
+            break;
+          newValue.append(buffer,0,amt);
+        }
+        rval[i] = newValue.toString();
+      }
+      sourceDocument.addField(fieldName,rval);
+      metadataReaders.remove(fieldName);
+      for (CharacterInput ci : cilist) {
+        ci.discard();
+      }
+      return rval;
+    }
+  }
+  
 }
 
 
