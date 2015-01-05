@@ -3,6 +3,12 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1134: Revamp metadata adjuster transformer to
+handle arbitrary combination expressions across multiple fields.
+This replaces the "move" and "add" paradigm with a more general
+approach.
+(Hemant Jain, Karl Wright)
+
 CONNECTORS-1135: Update Japanese translations for JCIFS connector.
 (KOIZUMI Satoru)
 

@@ -18,6 +18,27 @@
 <script type="text/javascript">
 <!--
 
+function s${SEQNUM}_AddExpression()
+{
+  if (editjob.s${SEQNUM}_expression_name.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ForcedMetadata.ExpressionMetadataNameMustNotBeNull'))");
+    editjob.s${SEQNUM}_expression_name.focus();
+    return;
+  }
+  document.editjob.s${SEQNUM}_expression_op.value="Add";
+  postFormSetAnchor("s${SEQNUM}_expression_tag");
+}
+	
+function s${SEQNUM}_DeleteExpression(n)
+{
+  eval("document.editjob.s${SEQNUM}_expression_"+n+"_op.value = 'Delete'");
+  if (n == 0)
+    postFormSetAnchor("s${SEQNUM}_expression_tag");
+  else
+    postFormSetAnchor("s${SEQNUM}_expression_"+(n-1)+"_tag");
+}
+
 function s${SEQNUM}_AddForcedMetadata()
 {
   if (editjob.s${SEQNUM}_forcedmetadata_name.value == "")
