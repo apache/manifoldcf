@@ -994,27 +994,31 @@ curl -XGET http://localhost:9200/index/_mapping
 
             <section id="metadataadjuster">
                 <title>Metadata Adjuster</title>
-                <p>The Metadata Adjuster transformation filter optionally changes the name of incoming metadata, and then optionally adds additional metadata values.
+                <p>The Metadata Adjuster transformation filter reorganizes and concatenates metadata based on rules that you provide.
                       This can be very helpful in many contexts.  For example, you might use the Metadata Adjuster to label all documents from a particular job with a
                       particular tag in an index.  Or, you might need to map metadata from (say) SharePoint's schema to your final output connection type's schema.
                       The Metadata Adjuster permits you to handle both of the scenarios.</p>
                 <p>As with all document transformers,  more than one Metadata Adjuster transformation filter can be used in a single pipeline.  This may be useful
                       if other document transformers (such as the Tika Content Extractor, below) change the metadata of the document being processed.</p>
                 <p>The Metadata Adjuster transformation connection type does not require anything other than standard configuration information.</p>
-                <p>The Metadata Adjuster transformation connection type contributes two tabs to a job definition.  These are "Move metadata" and "Add metadata"
-                      tabs.  The "Move metadata" tab looks like this:</p>
+                <p>The Metadata Adjuster transformation connection type contributes one tab to a job definition.  This is the "Metadata expressions" tab.
+                      The "Metadata expressions" tab looks like this:</p>
                 <br/><br/>
-                <figure src="images/en_US/metadataadjuster-job-move-metadata.PNG" alt="Metadata Adjuster specification, Move Metadata tab" width="80%"/>
+                <figure src="images/en_US/metadataadjuster-job-expressions-metadata.PNG" alt="Metadata Adjuster specification, Metadata Expressions tab" width="80%"/>
                 <br/><br/>
-                <p>Enter a input metadata name, and a target metadata name, and click the "Add" button to add the mapping to the list.  Uncheck the "Keep all metadata"
+                <p>On the left, you must supply the target metadata name.  You may then choose among two possibilities: either you choose to request that this metadata
+                      field be removed from the target document, or you can choose to specify a rule that would provide a value for that target metadata item.  You can
+                      provide more than one rule for the same metadata item, by simply adding additional lines to the table with the same target metadata name.  But if you specify
+                      a rule to remove the metadata field from the document, that selection overrides all others.</p>
+                <p>Metadata rules are just strings, which may have field specifications within them.  For example, the rule value "hello" will generate a single-valued metadata
+                      field with the value "hello".  The rule "hello ${there}", on the other hand, will generate a value for each value in the incoming field  named "there".  If the incoming
+                      field had the values "a", "b", and "c", then the rule would generate a three-valued field with values "hello a", "hello b", and "hello c".  If more than one incoming
+                      field is specified, then a combinatoric combination of the field values will be produced.</p>
+                <p>Enter a parameter name, and either select to remove the value or provide an expression.  If you chose to supply an expression, enter the expression in the box.
+                      Then, click the "Add" button.</p>
+                <p>When your expressions have been edited, you can uncheck the "Keep all metadata"
                       checkbox in order to prevent unspecified metadata fields from being passed through.  Uncheck the "Remove empty metadata values" checkbox if you
                       want to index empty metadata values.</p>
-                <p>The "Add metadata" tab looks like this:</p>
-                <br/><br/>
-                <figure src="images/en_US/metadataadjuster-job-add-metadata.PNG" alt="Metadata Adjuster specification, Add Metadata tab" width="80%"/>
-                <br/><br/>
-                <p>Enter a parameter name and a value, and then click the "Add" button to add the new metadata field and value to the list.  You may add more than
-                      one value with the same field name.</p>
             </section>
 
             <section id="nulltransformer">
