@@ -36,7 +36,7 @@ public class ExpressionTest
     inputDoc.addField("stringfield",new String[]{"stringa","stringb","stringc"});
     inputDoc.addField("readerfield",new Reader[]{new StringReader("readera"),new StringReader("readerb")});
     inputDoc.addField("datefield",new Date[]{new Date(0L), new Date(100000000L)});
-    ForcedMetadataConnector.FieldDataFactory fdf = new ForcedMetadataConnector.FieldDataFactory(inputDoc);
+    FieldDataFactory fdf = new FieldDataFactory(inputDoc);
     try {
       arrayEquals(new String[]{"stringa","stringb","stringc"}, (String[])(ForcedMetadataConnector.processExpression("${stringfield}", fdf).getRawForm()));
       arrayEquals(new String[]{"prefixstringapostfix","prefixstringbpostfix","prefixstringcpostfix"}, (String[])(ForcedMetadataConnector.processExpression("prefix${stringfield}postfix", fdf).getRawForm()));
