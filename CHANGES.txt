@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.9-dev =====================
 
+CONNECTORS-1138: Loss of all metadata fields but one on pipeline
+bifurcation.
+(Salih Sen, Karl Wright)
+
 CONNECTORS-1136: Update the user documentation to account for
 changes in the metadata adjuster transformer.
 (Karl Wright)
