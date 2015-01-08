@@ -56,13 +56,12 @@ public class RepositoryDocumentFactory
     throws ManifoldCFException, IOException
   {
     this.original = document;
-    
     try
     {
       this.binaryTracker = new TempFileInput(document.getBinaryStream());
       // Copy all reader streams
       Iterator<String> iter = document.getFields();
-      if (iter.hasNext())
+      while (iter.hasNext())
       {
         String fieldName = iter.next();
         Object[] objects = document.getField(fieldName);
@@ -133,7 +132,7 @@ public class RepositoryDocumentFactory
     rd.setBinary(binaryTracker.getStream(),original.getBinaryLength());
     // Copy metadata fields (including minting new Readers where needed)
     Iterator<String> iter = original.getFields();
-    if (iter.hasNext())
+    while (iter.hasNext())
     {
       String fieldName = iter.next();
       Object[] objects = original.getField(fieldName);
