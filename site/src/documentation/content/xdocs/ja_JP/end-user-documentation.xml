@@ -491,7 +491,17 @@
             	<figure src="images/ja_JP/opensearchserver-history-report_ja_JP.PNG" alt="OpenSearchServer, history report" width="80%"/>
              	<p>OpenSearchServerの詳細に付いては<a href="http://www.open-search-server.com/documentation">OpenSearchServerユーザマニュアル</a>を参照してください。</p>
             </section>
-            
+            <section id="amazoncloudsearchoutputconnector">
+                <title>Amazon Cloud Search出力コネクション</title>
+                <p>Amazon Cloud Search出力コネクションタイプは指定されたAmazon Cloud Searchインスタンス内の特定パスにドキュメントを送ります。このコネクションタイプは出来る限りコストを適切なところまで下げるため、更にドキュメントを一括処理します。従いまして、一部ドキュメントは通常のインデックシング時ではなくジョブ実行の最後に送信される場合があります。</p>
+                <p>Amazon Cloud Search出力コネクションタイプのコネクション設定情報には付加的に「サーバー」タブが含めれています：</p>
+                <br/><br/>
+                <figure src="images/ja_JP/amazon-configure-server_ja_JP.png" alt="Amazon Output Configuration, Server tab" width="80%"/>
+                <br/><br/>
+                <p>コネクションが機能するためには「サーバー名」を必ず入力しなければなりません。</p>
+                <p>ジョブ定義時にAmazon Cloud Search出力コネクションタイプと関連するタブは提供されません。</p>
+                <p>Amazon Cloud Search出力コネクションタイプはUTF-8と互換性のあるテキストコンテンツのみアクセス可能です。Amazon Cloud Search出力コネクションタイプに先立って、パイプライン経由でTika Content Extractorを用いてドキュメントをインデックシング可能な形式に変換することをおすすめします。</p>
+            </section>            
             <section id="esssoutputconnector">
             	<title>ElasticSearch出力コネクション</title>
             	<p>ElasticSearch出力コネクションは、XML文書をHTTP APIを介してElasticSearchに送ります。このコネクタは、できるだけ簡単に利用できるように設計されています。</p>
