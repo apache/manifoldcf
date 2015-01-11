@@ -182,8 +182,9 @@ public class ThrottledFetcher
     IKeystoreManager trustStore,
     IThrottleSpec throttleDescription, String[] binNames,
     int connectionLimit,
-    String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
-    throws ManifoldCFException
+    String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
+    IAbortActivity activities)
+    throws ManifoldCFException, ServiceInterruption
   {
     // Get a throttle groups handle
     IThrottleGroups throttleGroups = ThrottleGroupsFactory.make(threadContext);
@@ -224,14 +225,7 @@ public class ThrottledFetcher
       }
     }
     
-    try
-    {
-      return p.grab();
-    }
-    catch (InterruptedException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
-    }
+    return p.grab(activities);
   }
 
   /** Flush connections that have timed out from inactivity. */
@@ -306,7 +300,9 @@ public class ThrottledFetcher
     /** Set if thread has been started */
     protected boolean threadStarted = false;
     
-
+    /** Abort checker */
+    protected AbortChecker abortCheck = null;
+    
     /** Constructor.  Create a connection with a specific server and port, and
     * register it as active against all bins. */
     public ThrottledConnection(ConnectionPool myPool, IFetchThrottler fetchThrottler,
@@ -328,6 +324,14 @@ public class ThrottledFetcher
       this.httpsSocketFactory = httpsSocketFactory;
     }
 
+    /** Set the abort checker.  This must be done before the connection is actually used.
+    */
+    @Override
+    public void setAbortChecker(AbortChecker abortCheck)
+    {
+      this.abortCheck = abortCheck;
+    }
+    
     /** Check whether the connection has expired.
     *@param currentTime is the current time to use to judge if a connection has expired.
     *@return true if the connection has expired, and should be closed.
@@ -369,18 +373,22 @@ public class ThrottledFetcher
     */
     @Override
     public void beginFetch(String fetchType)
-      throws ManifoldCFException
+      throws ManifoldCFException, ServiceInterruption
     {
       this.fetchType = fetchType;
       this.fetchCounter = 0L;
       try
       {
-        if (fetchThrottler.obtainFetchDocumentPermission() == false)
+        if (fetchThrottler.obtainFetchDocumentPermission(abortCheck) == false)
           throw new IllegalStateException("Unexpected return value from obtainFetchDocumentPermission()");
       }
       catch (InterruptedException e)
       {
         throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+      }
+      catch (BreakException e)
+      {
+        abortCheck.rethrowExceptions();
       }
     }
 
@@ -1960,28 +1968,44 @@ public class ThrottledFetcher
       this.proxyAuthPassword = proxyAuthPassword;
     }
     
-    public IThrottledConnection grab()
-      throws InterruptedException
+    public IThrottledConnection grab(IAbortActivity activities)
+      throws ManifoldCFException, ServiceInterruption
     {
-      // Wait for a connection
-      int result = connectionThrottler.waitConnectionAvailable();
-      if (result == IConnectionThrottler.CONNECTION_FROM_POOL)
+      AbortChecker abortCheck = new AbortChecker(activities);
+      try
       {
-        // We are guaranteed to have a connection in the pool, unless there's a coding error.
-        synchronized (connections)
+        // Wait for a connection
+        IThrottledConnection connection;
+        int result = connectionThrottler.waitConnectionAvailable(abortCheck);
+        if (result == IConnectionThrottler.CONNECTION_FROM_POOL)
         {
-          return connections.remove(connections.size()-1);
+          // We are guaranteed to have a connection in the pool, unless there's a coding error.
+          synchronized (connections)
+          {
+            connection = connections.remove(connections.size()-1);
+          }
         }
+        else if (result == IConnectionThrottler.CONNECTION_FROM_CREATION)
+        {
+          connection = new ThrottledConnection(this,connectionThrottler.getNewConnectionFetchThrottler(),
+            protocol,server,port,authentication,baseFactory,
+            proxyHost,proxyPort,
+            proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+        }
+        else
+          throw new IllegalStateException("Unexpected return value from waitConnectionAvailable(): "+result);
+        connection.setAbortChecker(abortCheck);
+        return connection;
       }
-      else if (result == IConnectionThrottler.CONNECTION_FROM_CREATION)
+      catch (InterruptedException e)
       {
-        return new ThrottledConnection(this,connectionThrottler.getNewConnectionFetchThrottler(),
-          protocol,server,port,authentication,baseFactory,
-          proxyHost,proxyPort,
-          proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),ManifoldCFException.INTERRUPTED);
       }
-      else
-        throw new IllegalStateException("Unexpected return value from waitConnectionAvailable(): "+result);
+      catch (BreakException e)
+      {
+        abortCheck.rethrowExceptions();
+        return null;
+      }
     }
     
     public void release(IThrottledConnection connection)
@@ -1995,6 +2019,7 @@ public class ThrottledFetcher
       else
       {
         // Return to pool
+        connection.setAbortChecker(null);
         synchronized (connections)
         {
           connections.add(connection);

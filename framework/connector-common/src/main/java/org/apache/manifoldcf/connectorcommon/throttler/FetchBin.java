@@ -100,8 +100,8 @@ public class FetchBin
   * has permission to do the fetch, and can update the last fetch time.
   *@return false if the fetch bin is being shut down.
   */
-  public synchronized boolean reserveFetchRequest()
-    throws InterruptedException
+  public synchronized boolean reserveFetchRequest(IBreakCheck breakCheck)
+    throws InterruptedException, BreakException
   {
     // First wait for the ability to even get the next fetch from this bin
     while (true)
@@ -113,7 +113,15 @@ public class FetchBin
         reserveNextFetch = true;
         return true;
       }
-      wait();
+      if (breakCheck == null)
+      {
+        wait();
+      }
+      else
+      {
+        long amt = breakCheck.abortCheck();
+        wait(amt);
+      }
     }
   }
   
@@ -131,9 +139,10 @@ public class FetchBin
   * rights already, via reserveFetchRequest().
   *@return false if the wait did not complete because the bin was shut down.
   */
-  public synchronized boolean waitNextFetch()
-    throws InterruptedException
+  public synchronized boolean waitNextFetch(IBreakCheck breakCheck)
+    throws InterruptedException, BreakException
   {
+    // MHL
     if (!reserveNextFetch)
       throw new IllegalStateException("No fetch request reserved!");
     
@@ -145,7 +154,16 @@ public class FetchBin
       if (localMinimum == Long.MAX_VALUE)
       {
         // wait forever - but eventually someone will set a smaller interval and wake us up.
-        wait();
+        if (breakCheck == null)
+        {
+          wait();
+        }
+        else
+        {
+          long amt = breakCheck.abortCheck();
+          wait(amt);
+        }
+        // Back around
       }
       else
       {
@@ -161,11 +179,22 @@ public class FetchBin
           notifyAll();
           return true;
         }
-        wait(waitAmt);
+        if (breakCheck == null)
+        {
+          wait(waitAmt);
+        }
+        else
+        {
+          long amt = breakCheck.abortCheck();
+          if (waitAmt < amt)
+            amt = waitAmt;
+          wait(amt);
+        }
+        // Back around
       }
     }
   }
-  
+
   /** Poll this bin */
   public synchronized void poll(IThreadContext threadContext)
     throws ManifoldCFException

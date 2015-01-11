@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1139: Add support for interruptible throttlers.
+(Karl Wright)
+
 CONNECTORS-1138: Loss of all metadata fields but one on pipeline
 bifurcation.
 (Salih Sen, Karl Wright)

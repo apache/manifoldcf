@@ -174,10 +174,9 @@ public class ThrottleBin
   * read request takes place.  Performs the necessary delay prior to reading specified number of bytes from the server.
   *@return false if the wait was interrupted due to the bin being shut down.
   */
-  public boolean beginRead(int byteCount)
-    throws InterruptedException
+  public boolean beginRead(int byteCount, IBreakCheck breakCheck)
+    throws InterruptedException, BreakException
   {
-
     synchronized (this)
     {
       while (true)
@@ -186,7 +185,15 @@ public class ThrottleBin
           return false;
         if (estimateInProgress)
         {
-          wait();
+          if (breakCheck == null)
+          {
+            wait();
+          }
+          else
+          {
+            long amt = breakCheck.abortCheck();
+            wait(amt);
+          }
           continue;
         }
 
@@ -206,7 +213,15 @@ public class ThrottleBin
         // If we haven't set a proper throttle yet, wait until we do.
         if (localMinimum == Double.MAX_VALUE)
         {
-          wait();
+          if (breakCheck == null)
+          {
+            wait();
+          }
+          else
+          {
+            long amt = breakCheck.abortCheck();
+            wait(amt);
+          }
           continue;
         }
         
@@ -229,7 +244,17 @@ public class ThrottleBin
           return true;
         }
         
-        this.wait(waitTime);
+        if (breakCheck == null)
+        {
+          this.wait(waitTime);
+        }
+        else
+        {
+          long amt = breakCheck.abortCheck();
+          if (waitTime < amt)
+            amt = waitTime;
+          wait(amt);
+        }
         // Back around again...
       }
     }

@@ -39,6 +39,10 @@ public interface IThrottledConnection
   public static final int FETCH_INTERRUPTED = -104;
   public static final int FETCH_UNKNOWN_ERROR = -999;
 
+  /** Set the abort checker.  This must be done before the connection is actually used.
+  */
+  public void setAbortChecker(AbortChecker abortCheck);
+
   /** Check whether the connection has expired.
   *@param currentTime is the current time to use to judge if a connection has expired.
   *@return true if the connection has expired, and should be closed.
@@ -50,7 +54,7 @@ public interface IThrottledConnection
   *        is used solely for logging purposes.
   */
   public void beginFetch(String fetchType)
-    throws ManifoldCFException;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Execute the fetch and get the return code.  This method uses the
   * standard logging mechanism to keep track of the fetch attempt.  It also

@@ -855,7 +855,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             throttleGroupName,
             protocol,ipAddress,port,
             credential,trustStore,throttleDescription,binNames,connectionLimit,
-            proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+            proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword,
+            activities);
           try
           {
             connection.beginFetch((fetchStatus.sessionState == SESSIONSTATE_LOGIN)?FETCH_LOGIN:FETCH_STANDARD);
@@ -5343,7 +5344,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         IThrottledConnection connection = ThrottledFetcher.getConnection(currentContext,throttleGroupName,
           protocol,hostIPAddress,port,credential,
           trustStore,throttleDescription,binNames,connectionLimit,
-          proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+          proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword,
+          versionActivities);
         try
         {
           connection.beginFetch(FETCH_ROBOTS);
