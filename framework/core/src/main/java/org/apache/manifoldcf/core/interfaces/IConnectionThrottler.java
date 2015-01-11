@@ -58,7 +58,17 @@ public interface IConnectionThrottler
   */
   public int waitConnectionAvailable()
     throws InterruptedException;
-  
+
+  /** Get permission to grab a connection for use.  If this object believes there is a connection
+  * available in the pool, it will update its pool size variable and return   If not, this method
+  * evaluates whether a new connection should be created.  If neither condition is true, it
+  * waits until a connection is available.
+  *@return whether to take the connection from the pool, or create one, or whether the
+  * throttler is being shut down.
+  */
+  public int waitConnectionAvailable(IBreakCheck breakCheck)
+    throws InterruptedException, BreakException;
+
   /** For a new connection, obtain the fetch throttler to use for the connection.
   * If the result from waitConnectionAvailable() is CONNECTION_FROM_CREATION,
   * the calling code is expected to create a connection using the result of this method.

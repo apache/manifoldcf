@@ -36,7 +36,16 @@ public interface IStreamThrottler
   */
   public boolean obtainReadPermission(int byteCount)
     throws InterruptedException;
-    
+
+  /** Obtain permission to read a block of bytes.  This method may wait until it is OK to proceed.
+  * The throttle group, bin names, etc are already known
+  * to this specific interface object, so it is unnecessary to include them here.
+  *@param byteCount is the number of bytes to get permissions to read.
+  *@return true if the wait took place as planned, or false if the system is being shut down.
+  */
+  public boolean obtainReadPermission(int byteCount, IBreakCheck breakCheck)
+    throws InterruptedException, BreakException;
+  
   /** Note the completion of the read of a block of bytes.  Call this after
   * obtainReadPermission() was successfully called, and bytes were successfully read.
   *@param origByteCount is the originally requested number of bytes to get permissions to read.

@@ -51,7 +51,7 @@ public interface IThrottledConnection
   *        is used solely for logging purposes.
   */
   public void beginFetch(String fetchType)
-    throws ManifoldCFException;
+    throws ManifoldCFException, ServiceInterruption;
 
   /** Execute the fetch and get the return code.  This method uses the
   * standard logging mechanism to keep track of the fetch attempt.  It also
@@ -92,7 +92,7 @@ public interface IThrottledConnection
   /** Done with the fetch.  Call this when the fetch has been completed.  A log entry will be generated
   * describing what was done.
   */
-  public void doneFetch(IVersionActivity activities)
+  public void doneFetch(IProcessActivity activities)
     throws ManifoldCFException;
 
   /** Close the connection.  Call this to end this server connection.

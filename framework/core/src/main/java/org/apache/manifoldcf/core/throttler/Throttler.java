@@ -421,8 +421,8 @@ public class Throttler
     * are available in the current pool, across all bins.
     *@return the IConnectionThrottler codes for results.
     */
-    public int waitConnectionAvailable(String[] binNames, AtomicInteger[] poolCounts)
-      throws InterruptedException
+    public int waitConnectionAvailable(String[] binNames, AtomicInteger[] poolCounts, IBreakCheck breakCheck)
+      throws InterruptedException, BreakException
     {
       // Each bin can signal something different.  Bins that signal
       // CONNECTION_FROM_NOWHERE are shutting down, but there's also
@@ -456,7 +456,7 @@ public class Throttler
             int result;
             try
             {
-              result = bin.waitConnectionAvailable(poolCounts[i]);
+              result = bin.waitConnectionAvailable(poolCounts[i],breakCheck);
             }
             catch (Throwable e)
             {
@@ -471,6 +471,8 @@ public class Throttler
                 if (bin != null)
                   bin.undoReservation(currentRecommendation, poolCounts[i]);
               }
+              if (e instanceof BreakException)
+                throw (BreakException)e;
               if (e instanceof InterruptedException)
                 throw (InterruptedException)e;
               if (e instanceof Error)
@@ -700,8 +702,8 @@ public class Throttler
     *@param binNames are the names of the bins.
     *@return false if being shut down
     */
-    public boolean obtainFetchDocumentPermission(String[] binNames)
-      throws InterruptedException
+    public boolean obtainFetchDocumentPermission(String[] binNames, IBreakCheck breakCheck)
+      throws InterruptedException, BreakException
     {
       // First, make sure all the bins exist, and reserve a slot in each
       int i = 0;
@@ -714,9 +716,28 @@ public class Throttler
           bin = fetchBins.get(binName);
         }
         // Reserve a slot
-        if (bin == null || !bin.reserveFetchRequest())
+        try
         {
-          // Release previous reservations, and return null
+          if (bin == null || !bin.reserveFetchRequest(breakCheck))
+          {
+            // Release previous reservations, and return null
+            while (i > 0)
+            {
+              i--;
+              binName = binNames[i];
+              synchronized (fetchBins)
+              {
+                bin = fetchBins.get(binName);
+              }
+              if (bin != null)
+                bin.clearReservation();
+            }
+            return false;
+          }
+        }
+        catch (BreakException e)
+        {
+          // Release previous reservations, and rethrow
           while (i > 0)
           {
             i--;
@@ -728,7 +749,7 @@ public class Throttler
             if (bin != null)
               bin.clearReservation();
           }
-          return false;
+          throw e;
         }
         i++;
       }
@@ -746,7 +767,26 @@ public class Throttler
         }
         if (bin != null)
         {
-          if (!bin.waitNextFetch())
+          try
+          {
+            if (!bin.waitNextFetch(breakCheck))
+            {
+              // Undo the reservations we haven't processed yet
+              while (i < binNames.length)
+              {
+                binName = binNames[i];
+                synchronized (fetchBins)
+                {
+                  bin = fetchBins.get(binName);
+                }
+                if (bin != null)
+                  bin.clearReservation();
+                i++;
+              }
+              return false;
+            }
+          }
+          catch (BreakException e)
           {
             // Undo the reservations we haven't processed yet
             while (i < binNames.length)
@@ -760,7 +800,7 @@ public class Throttler
                 bin.clearReservation();
               i++;
             }
-            return false;
+            throw e;
           }
         }
         i++;
@@ -792,8 +832,8 @@ public class Throttler
     *@param byteCount is the number of bytes to get permissions to read.
     *@return true if the wait took place as planned, or false if the system is being shut down.
     */
-    public boolean obtainReadPermission(String[] binNames, int byteCount)
-      throws InterruptedException
+    public boolean obtainReadPermission(String[] binNames, int byteCount, IBreakCheck breakCheck)
+      throws InterruptedException, BreakException
     {
       int i = 0;
       while (i < binNames.length)
@@ -804,7 +844,26 @@ public class Throttler
         {
           bin = throttleBins.get(binName);
         }
-        if (bin == null || !bin.beginRead(byteCount))
+        try
+        {
+          if (bin == null || !bin.beginRead(byteCount, breakCheck))
+          {
+            // End bins we've already done, and exit
+            while (i > 0)
+            {
+              i--;
+              binName = binNames[i];
+              synchronized (throttleBins)
+              {
+                bin = throttleBins.get(binName);
+              }
+              if (bin != null)
+                bin.endRead(byteCount,0);
+            }
+            return false;
+          }
+        }
+        catch (BreakException e)
         {
           // End bins we've already done, and exit
           while (i > 0)
@@ -818,7 +877,7 @@ public class Throttler
             if (bin != null)
               bin.endRead(byteCount,0);
           }
-          return false;
+          throw e;
         }
         i++;
       }
@@ -988,7 +1047,28 @@ public class Throttler
     public int waitConnectionAvailable()
       throws InterruptedException
     {
-      return parent.waitConnectionAvailable(binNames, poolCounts);
+      try
+      {
+        return waitConnectionAvailable(null);
+      }
+      catch (BreakException e)
+      {
+        throw new RuntimeException("Unexpected break exception: "+e.getMessage(),e);
+      }
+    }
+
+    /** Get permission to grab a connection for use.  If this object believes there is a connection
+    * available in the pool, it will update its pool size variable and return   If not, this method
+    * evaluates whether a new connection should be created.  If neither condition is true, it
+    * waits until a connection is available.
+    *@return whether to take the connection from the pool, or create one, or whether the
+    * throttler is being shut down.
+    */
+    @Override
+    public int waitConnectionAvailable(IBreakCheck breakCheck)
+      throws InterruptedException, BreakException
+    {
+      return parent.waitConnectionAvailable(binNames, poolCounts, breakCheck);
     }
     
     /** For a new connection, obtain the fetch throttler to use for the connection.
@@ -1087,7 +1167,26 @@ public class Throttler
     public boolean obtainFetchDocumentPermission()
       throws InterruptedException
     {
-      return parent.obtainFetchDocumentPermission(binNames);
+      try
+      {
+        return obtainFetchDocumentPermission(null);
+      }
+      catch (BreakException e)
+      {
+        throw new RuntimeException("Unexpected break exception: "+e.getMessage(),e);
+      }
+    }
+
+    /** Get permission to fetch a document.  This grants permission to start
+    * fetching a single document, within the connection that has already been
+    * granted permission that created this object.
+    *@return false if the throttler is being shut down.
+    */
+    @Override
+    public boolean obtainFetchDocumentPermission(IBreakCheck breakCheck)
+      throws InterruptedException, BreakException
+    {
+      return parent.obtainFetchDocumentPermission(binNames,breakCheck);
     }
     
     /** Open a fetch stream.  When done (or aborting), call
@@ -1127,9 +1226,30 @@ public class Throttler
     public boolean obtainReadPermission(int byteCount)
       throws InterruptedException
     {
-      return parent.obtainReadPermission(binNames, byteCount);
+      try
+      {
+        return obtainReadPermission(byteCount, null);
+      }
+      catch (BreakException e)
+      {
+        throw new RuntimeException("Unexpected break exception: "+e.getMessage(),e);
+      }
     }
       
+    /** Obtain permission to read a block of bytes.  This method may wait until it is OK to proceed.
+    * The throttle group, bin names, etc are already known
+    * to this specific interface object, so it is unnecessary to include them here.
+    *@param byteCount is the number of bytes to get permissions to read.
+    *@param breakCheck is the break check object.
+    *@return true if the wait took place as planned, or false if the system is being shut down.
+    */
+    @Override
+    public boolean obtainReadPermission(int byteCount, IBreakCheck breakCheck)
+      throws InterruptedException, BreakException
+    {
+      return parent.obtainReadPermission(binNames, byteCount, breakCheck);
+    }
+
     /** Note the completion of the read of a block of bytes.  Call this after
     * obtainReadPermission() was successfully called, and bytes were successfully read.
     *@param origByteCount is the originally requested number of bytes to get permissions to read.

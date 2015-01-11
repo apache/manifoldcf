@@ -444,7 +444,8 @@ public class Robots
       // Do the fetch
       IThrottledConnection connection = fetcher.createConnection(threadContext,throttleGroupName,
         hostName,connectionLimit,ROBOT_TIMEOUT_MILLISECONDS,
-        proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+        proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword,
+        activities);
       try
       {
         connection.beginFetch(ROBOT_CONNECTION_TYPE);

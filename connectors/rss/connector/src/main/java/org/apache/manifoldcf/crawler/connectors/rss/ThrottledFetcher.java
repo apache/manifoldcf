@@ -155,7 +155,8 @@ public class ThrottledFetcher
   */
   public synchronized IThrottledConnection createConnection(IThreadContext threadContext, String throttleGroupName,
     String serverName, int connectionLimit, int connectionTimeoutMilliseconds,
-    String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
+    String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
+    IAbortActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
     IConnectionThrottler server;
@@ -170,7 +171,8 @@ public class ThrottledFetcher
 
     return new ThrottledConnection(serverName, server,
       connectionTimeoutMilliseconds,connectionLimit,
-      proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+      proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword,
+      activities);
   }
 
   /** Poll.  This method is designed to allow idle connections to be closed and freed.
@@ -238,18 +240,23 @@ public class ThrottledFetcher
     /** Set if thread has been started */
     protected boolean threadStarted = false;
     
+    /** Abort checker */
+    protected final AbortChecker abortChecker;
+    
     /** Constructor.
     */
     public ThrottledConnection(String serverName,
       IConnectionThrottler connectionThrottler,
       int connectionTimeoutMilliseconds, int connectionLimit,
-      String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
-      throws ManifoldCFException
+      String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
+      IAbortActivity activities)
+      throws ManifoldCFException, ServiceInterruption
     {
       this.serverName = serverName;
       this.connectionThrottler = connectionThrottler;
       this.connectionTimeoutMilliseconds = connectionTimeoutMilliseconds;
-
+      this.abortChecker = new AbortChecker(activities);
+      
       // Create the https scheme for this connection
       javax.net.ssl.SSLSocketFactory httpsSocketFactory = KeystoreManagerFactory.getTrustingSecureSocketFactory();;
       SSLConnectionSocketFactory myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeoutMilliseconds),
@@ -307,34 +314,43 @@ public class ThrottledFetcher
       registerGlobalHandle(connectionLimit);
       try
       {
-        int result = connectionThrottler.waitConnectionAvailable();
+        int result = connectionThrottler.waitConnectionAvailable(abortChecker);
         if (result != IConnectionThrottler.CONNECTION_FROM_CREATION)
           throw new IllegalStateException("Got back unexpected value from waitForAConnection() of "+result);
-        fetchThrottler = connectionThrottler.getNewConnectionFetchThrottler();
       }
       catch (InterruptedException e)
       {
         throw new ManifoldCFException(e.getMessage(),ManifoldCFException.INTERRUPTED);
       }
+      catch (BreakException e)
+      {
+        abortChecker.rethrowExceptions();
+      }
+      fetchThrottler = connectionThrottler.getNewConnectionFetchThrottler();
     }
 
     /** Begin the fetch process.
     * @param fetchType is a short descriptive string describing the kind of fetch being requested.  This
     *        is used solely for logging purposes.
     */
+    @Override
     public void beginFetch(String fetchType)
-      throws ManifoldCFException
+      throws ManifoldCFException, ServiceInterruption
     {
       this.fetchType = fetchType;
       fetchCounter = 0L;
       try
       {
-        if (fetchThrottler.obtainFetchDocumentPermission() == false)
+        if (fetchThrottler.obtainFetchDocumentPermission(abortChecker) == false)
           throw new IllegalStateException("obtainFetchDocumentPermission() had unexpected return value");
       }
       catch (InterruptedException e)
       {
         throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+      }
+      catch (BreakException e)
+      {
+        abortChecker.rethrowExceptions();
       }
       threadStarted = false;
     }
@@ -366,6 +382,7 @@ public class ThrottledFetcher
     * @param lastModified is the requested lastModified header value.
     * @return the status code: success, static error, or dynamic error.
     */
+    @Override
     public int executeFetch(String protocol, int port, String urlPath, String userAgent, String from,
       String lastETag, String lastModified)
       throws ManifoldCFException, ServiceInterruption
@@ -533,6 +550,7 @@ public class ThrottledFetcher
     /** Get the http response code.
     *@return the response code.  This is either an HTTP response code, or one of the codes above.
     */
+    @Override
     public int getResponseCode()
       throws ManifoldCFException, ServiceInterruption
     {
@@ -542,6 +560,7 @@ public class ThrottledFetcher
     /** Get the response input stream.  It is the responsibility of the caller
     * to close this stream when done.
     */
+    @Override
     public InputStream getResponseBodyStream()
       throws ManifoldCFException, ServiceInterruption
     {
@@ -611,6 +630,7 @@ public class ThrottledFetcher
     *@param headerName is the name of the header.
     *@return the header value, or null if it doesn't exist.
     */
+    @Override
     public String getResponseHeader(String headerName)
       throws ManifoldCFException, ServiceInterruption
     {
@@ -679,7 +699,8 @@ public class ThrottledFetcher
     /** Done with the fetch.  Call this when the fetch has been completed.  A log entry will be generated
     * describing what was done.
     */
-    public void doneFetch(IVersionActivity activities)
+    @Override
+    public void doneFetch(IProcessActivity activities)
       throws ManifoldCFException
     {
       
@@ -729,6 +750,7 @@ public class ThrottledFetcher
 
     /** Close the connection.  Call this to end this server connection.
     */
+    @Override
     public void close()
       throws ManifoldCFException
     {
@@ -1171,5 +1193,51 @@ public class ThrottledFetcher
 
   }
 
-
+  /** This class furnishes an abort signal whenever the job activity says it should.
+  * It should never be invoked from a background thread, only from a ManifoldCF thread.
+  */
+  protected static class AbortChecker implements IBreakCheck
+  {
+    protected final IAbortActivity activities;
+    protected ServiceInterruption serviceInterruption = null;
+    protected ManifoldCFException mcfException = null;
+    
+    public AbortChecker(IAbortActivity activities)
+    {
+      this.activities = activities;
+    }
+    
+    @Override
+    public long abortCheck()
+      throws BreakException, InterruptedException
+    {
+      try
+      {
+        activities.checkJobStillActive();
+        return 1000L;
+      }
+      catch (ServiceInterruption e)
+      {
+        serviceInterruption = e;
+        throw new BreakException("Break requested: "+e.getMessage(),e);
+      }
+      catch (ManifoldCFException e)
+      {
+        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+          throw new InterruptedException("Interrupted: "+e.getMessage());
+        mcfException = e;
+        throw new BreakException("Error during break check: "+e.getMessage(),e);
+      }
+    }
+    
+    public void rethrowExceptions()
+      throws ManifoldCFException, ServiceInterruption
+    {
+      if (serviceInterruption != null)
+        throw serviceInterruption;
+      if (mcfException != null)
+        throw mcfException;
+    }
+  }
+  
 }
