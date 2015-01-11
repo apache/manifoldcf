@@ -35,6 +35,14 @@ public interface IFetchThrottler
   */
   public boolean obtainFetchDocumentPermission()
     throws InterruptedException;
+
+  /** Get permission to fetch a document.  This grants permission to start
+  * fetching a single document, within the connection that has already been
+  * granted permission that created this object.
+  *@return false if the throttler is being shut down.
+  */
+  public boolean obtainFetchDocumentPermission(IBreakCheck breakCheck)
+    throws InterruptedException, BreakException;
   
   /** Open a fetch stream.  When done (or aborting), call
   * IStreamThrottler.closeStream() to note the completion of the document

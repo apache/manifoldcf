@@ -123,8 +123,8 @@ public class ConnectionBin
   * subsequent call to noteConnectionCreation() will be needed to confirm the reservation, or clearReservation() to
   * release the reservation.
   */
-  public synchronized int waitConnectionAvailable(AtomicInteger poolCount)
-    throws InterruptedException
+  public synchronized int waitConnectionAvailable(AtomicInteger poolCount, IBreakCheck breakCheck)
+    throws InterruptedException, BreakException
   {
     // Reserved connections keep a slot available which can't be used by anyone else.
     // Connection bins are always sorted so that deadlocks can't occur.
@@ -150,7 +150,16 @@ public class ConnectionBin
         return IConnectionThrottler.CONNECTION_FROM_CREATION;
       }
       // Wait for a connection to free up.  Note that it is up to the caller to free stuff up.
-      wait();
+      if (breakCheck == null)
+      {
+        wait();
+      }
+      else
+      {
+        long amt = breakCheck.abortCheck();
+        wait(amt);
+      }
+      // Back around
     }
   }
   
