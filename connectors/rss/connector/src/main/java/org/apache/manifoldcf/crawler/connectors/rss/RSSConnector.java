@@ -969,7 +969,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               proxyPort,
               proxyAuthDomain,
               proxyAuthUsername,
-              proxyAuthPassword);
+              proxyAuthPassword,
+              activities);
             try
             {
               // Begin the fetch
