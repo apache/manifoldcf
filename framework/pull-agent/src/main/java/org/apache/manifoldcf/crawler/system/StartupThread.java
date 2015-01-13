@@ -139,8 +139,6 @@ public class StartupThread extends Thread
                     model,jobType == IJobDescription.TYPE_CONTINUOUS,lastSeedingVersion == null,
                     requestMinimum);
                   
-                  ManifoldCF.resetAllDocumentPriorities(threadContext,processID);
-
                   if (Logging.threads.isDebugEnabled())
                     Logging.threads.debug("Prepared job "+jobID.toString()+" for execution.");
 
