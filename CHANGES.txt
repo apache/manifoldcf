@@ -3,6 +3,12 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1122: Don't reprioritize documents on job start/resume.
+For jobs which share bins with other jobs, this may mean that no
+documents will be processed until the entire current queue of the
+other job is completed, but this is deemed to be a rare situation.
+(Karl Wright)
+
 CONNECTORS-1139: Add support for interruptible throttlers.
 (Karl Wright)
 
