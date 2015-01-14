@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1141: Increase session timeout for combined UI to
+30 minutes.
+(Karl Wright)
+
 CONNECTORS-1122: Don't reprioritize documents on job start/resume.
 For jobs which share bins with other jobs, this may mean that no
 documents will be processed until the entire current queue of the
