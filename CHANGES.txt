@@ -4,6 +4,9 @@ $Id$
 
 ======================= Release 2.0.1 =====================
 
+CONNECTORS-1138: Loss of all metadata fields but one on pipeline
+bifurcation.
+(Salih Sen, Karl Wright)
 
 ======================= Release 2.0 =====================
 
