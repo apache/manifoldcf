@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1145: File locking hangs when saving output connection.
+(Andreas Baumann, Michael Wilken, Karl Wright)
+
 CONNECTORS-1140: Improve Japanese documentation.
 (KOIZUMI Satoru)
 
