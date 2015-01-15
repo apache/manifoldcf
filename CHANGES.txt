@@ -2,6 +2,9 @@ ManifoldCF Change Log
 $Id$
 
 
+======================= Release 2.0.1 =====================
+
+
 ======================= Release 2.0 =====================
 
 CONNECTORS-1128: Job shows no activity when restarting after
