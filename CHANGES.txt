@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.9-dev =====================
 
+CONNECTORS-1146: Improve Japanese concepts document.
+(KOIZUMI Satoru)
+
 CONNECTORS-1145: File locking hangs when saving output connection.
 (Andreas Baumann, Michael Wilken, Karl Wright)
 
