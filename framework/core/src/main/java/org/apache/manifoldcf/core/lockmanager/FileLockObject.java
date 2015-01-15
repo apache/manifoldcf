@@ -120,13 +120,14 @@ public class FileLockObject extends LockObject
       try
       {
         int status = readFile();
-        if (status >= STATUS_WRITELOCKED)
+        if (status == STATUS_WRITELOCKED || status > 0)
         {
           throw new LockException(LOCKEDANOTHERJVM);
         }
         if (status == 0)
           status = STATUS_WRITELOCKED;
-        writeFile(status-1);
+        status--;
+        writeFile(status);
       }
       finally
       {
