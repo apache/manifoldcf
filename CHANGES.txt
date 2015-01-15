@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1140: Improve Japanese documentation.
+(KOIZUMI Satoru)
+
 CONNECTORS-1141: Increase session timeout for combined UI to
 30 minutes.
 (Karl Wright)
