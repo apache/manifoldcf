@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1148: Update Japanese included-connectors document.
+(KOIZUMI Satoru)
+
 CONNECTORS-1146: Improve Japanese concepts document.
 (KOIZUMI Satoru)
 
