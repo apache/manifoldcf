@@ -69,7 +69,7 @@ public class ConnectionChangeTester
     IJobManager jobManager = JobManagerFactory.make(tc);
     IJobDescription job = jobManager.createJob();
     job.setDescription("Test Job");
-    job.setConnectionName("InterruptionTest Connection");
+    job.setConnectionName("ConnectionChangeTest Connection");
     job.addPipelineStage(-1,true,"Null Connection","");
     //job.setOutputConnectionName("Null Connection");
     job.setType(job.TYPE_SPECIFIED);
@@ -92,7 +92,7 @@ public class ConnectionChangeTester
     // Wait for the job to become inactive.  The time should not exceed 10 seconds for the actual crawl.
     instance.waitJobInactiveNative(jobManager,job.getID(),30000L);
     // The document will be skipped in the end.
-    if (jobManager.getStatus(job.getID()).getDocumentsProcessed() != 9)
+    if (jobManager.getStatus(job.getID()).getDocumentsProcessed() != 10)
       throw new Exception("Expected 10 documents, saw "+jobManager.getStatus(job.getID()).getDocumentsProcessed());
     
     // Now, delete the job.
