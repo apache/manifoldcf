@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1149: Minor typos in English documentation.
+(KOIZUMI Satoru)
+
 CONNECTORS-1148: Update Japanese included-connectors document.
 (KOIZUMI Satoru)
 
