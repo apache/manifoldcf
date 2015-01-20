@@ -2099,7 +2099,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <br/><br/>
               <figure src="images/en_US/googledrive-repository-connection-configuration.PNG" alt="googledrive Repository Connection, configuration parameters" width="80%"/>
               <br/><br/>
-              <p>As we can see there are 3 pieces of information which are needed to create a succesful connection. The Client ID and Client Secret given by
+              <p>As we can see there are 3 pieces of information which are needed to create a successful connection. The Client ID and Client Secret given by
                 Google Drive when you register your application for a development license. This is typically done through
                 the <a href="https://code.google.com/apis/console/b/0/">Google APIs Console</a>.</p>
               <br/><br/>
@@ -2109,7 +2109,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <br/><br/>
               <figure src="images/en_US/googledrive-repository-setup-2.PNG" alt="googledrive enable drive api" width="80%"/>
               <br/><br/>
-              <p>Then going to the API Access link on the righthand side, we need to select create an OAuth 2.0 client ID:</p>
+              <p>Then going to the API Access link on the right side, we need to select create an OAuth 2.0 client ID:</p>
               <br/><br/>
               <figure src="images/en_US/googledrive-repository-setup-3.PNG" alt="googledrive create oauth client" width="80%"/>
               <br/><br/>
@@ -2123,7 +2123,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <figure src="images/en_US/googledrive-repository-setup-5.PNG" alt="googledrive client id and secret" width="80%"/>
               <br/><br/>
               <p>Now each user must confirm their acceptance of allowing your application to access their google drive. This is done through a run-of-the-mill OAUTH
-                approach, but needs to be done before hand. Once the steps are completed, a long-life refresh token is presented, which is then used by the connector.
+                approach, but needs to be done beforehand. Once the steps are completed, a long-life refresh token is presented, which is then used by the connector.
                 For completeness, we present the needed steps below since they require some manual work.</p>
               <br/><br/>
               <ol>
