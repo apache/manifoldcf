@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.9-dev =====================
 
+CONNECTORS-1150: Go to Tika 1.7
+(Karl Wright)
+
 CONNECTORS-1149: Minor typos in English documentation.
 (KOIZUMI Satoru)
 
