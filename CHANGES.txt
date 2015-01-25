@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 2.0.1 =====================
 
+CONNECTORS-1151: FileNet connector completely broken, due to
+MCF 1.8 reorganization.
+(Guy Sperry, Karl Wright)
+
 CONNECTORS-1145: File locking hangs when saving output connection.
 (Andreas Baumann, Michael Wilken, Karl Wright)
 
