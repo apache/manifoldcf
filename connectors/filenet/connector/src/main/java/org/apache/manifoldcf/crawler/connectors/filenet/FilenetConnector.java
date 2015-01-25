@@ -949,21 +949,30 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("Filenet: Getting version for identifier '"+documentIdentifier+"'");
 
-      // Calculate the version id and the element number
-      String versionString;
-      String[] aclValues = null;
-      String[] denyAclValues = null;
-      String docClass = null;
-      String[] metadataFieldNames = null;
-      String[] metadataFieldValues = null;
       
       int cIndex = documentIdentifier.indexOf(",");
       if (cIndex != -1)
       {
         String vId = documentIdentifier.substring(0,cIndex);
+        int elementNumber;
+        try
+        {
+          elementNumber = Integer.parseInt(documentIdentifier.substring(cIndex+1));
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException("Bad number in identifier: "+documentIdentifier,e);
+        }
+
+        // Calculate the version id and the element number
+        String versionString;
+        String[] aclValues = null;
+        String[] denyAclValues = null;
+        String docClass = null;
+        String[] metadataFieldNames = null;
+        String[] metadataFieldValues = null;
 
         FileInfo fileInfo;
-        Integer count;
         try
         {
           fileInfo = doGetDocumentInformation(vId, dSpec.getMetadataFields());
@@ -971,15 +980,6 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
           {
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("FileNet: Skipping document '"+documentIdentifier+"' because not a current document");
-            activities.deleteDocument(documentIdentifier);
-            continue;
-          }
-          
-          count = doGetDocumentContentCount(documentIdentifier);
-          if (count == null)
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("FileNet: Removing version '"+documentIdentifier+"' because it seems to no longer exist");
             activities.deleteDocument(documentIdentifier);
             continue;
           }
@@ -1114,7 +1114,194 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         pack(versionBuffer,docURIPrefix,'+');
 
         versionString = versionBuffer.toString();
-            
+        
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("FileNet: Document identifier '"+documentIdentifier+"' is a document attachment");
+
+        String errorCode = null;
+        String errorDesc = null;
+        long startTime = System.currentTimeMillis();
+        Long fileLengthLong = null;
+        
+        try
+        {
+          String uri = convertToURI(docURIPrefix,vId,elementNumber,docClass);
+          if (!activities.checkURLIndexable(uri))
+          {
+            errorCode = activities.EXCLUDED_URL;
+            errorDesc = "Excluded because of url ('"+uri+"')";
+            activities.noDocument(documentIdentifier,versionString);
+            continue;
+          }
+        
+          File objFileTemp = null;
+          try
+          {
+            objFileTemp = File.createTempFile("_mc_fln_", null);
+          }
+          catch (IOException e)
+          {
+            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+            errorDesc = e.getMessage();
+            handleIOException(e,documentIdentifier,"creating temporary file");
+          }
+          try
+          {
+            try
+            {
+              doGetDocumentContents(vId,elementNumber,objFileTemp.getCanonicalPath());
+            }
+            catch (IOException e)
+            {
+              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = e.getMessage();
+              handleIOException(e,documentIdentifier,"reading document");
+            }
+            catch (FilenetException e)
+            {
+              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = e.getMessage();
+              // Base our treatment on the kind of error it is.
+              long currentTime = System.currentTimeMillis();
+              if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
+              {
+                throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
+              }
+              else if (e.getType() == FilenetException.TYPE_NOTALLOWED)
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("FileNet: Removing file '"+documentIdentifier+"' because: "+e.getMessage(),e);
+                activities.noDocument(documentIdentifier,versionString);
+                continue;
+              }
+              else
+              {
+                throw new ManifoldCFException(e.getMessage(),e);
+              }
+            }
+
+            // Document fetch completed
+            long fileLength = objFileTemp.length();
+            if (!activities.checkLengthIndexable(fileLength))
+            {
+              errorCode = activities.EXCLUDED_LENGTH;
+              errorDesc = "Excluded document because of length ("+fileLength+")";
+              activities.noDocument(documentIdentifier,versionString);
+              continue;
+            }
+
+            RepositoryDocument rd = new RepositoryDocument();
+            // Apply metadata
+            for (int k = 0; k < metadataFieldNames.length; k++)
+            {
+              String metadataName = metadataFieldNames[k];
+              String metadataValue = metadataFieldValues[k];
+              rd.addField(metadataName,metadataValue);
+            }
+
+            // Apply acls
+            if (aclValues != null)
+            {
+              rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclValues);
+            }
+            if (denyAclValues != null)
+            {
+              rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclValues);
+            }
+
+            InputStream is = null;
+            try
+            {
+              is = new FileInputStream(objFileTemp);
+            }
+            catch (IOException e)
+            {
+              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = e.getMessage();
+              handleIOException(e,documentIdentifier,"Opening temporary file");
+            }
+            try
+            {
+              rd.setBinary(is, fileLength);
+
+              try
+              {
+                // Ingest
+                activities.ingestDocumentWithException(documentIdentifier,versionString,uri,rd);
+                errorCode = "OK";
+                fileLengthLong = new Long(fileLength);
+              }
+              catch (IOException e)
+              {
+                errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+                errorDesc = e.getMessage();
+                handleIOException(e,documentIdentifier,"ingesting document");
+              }
+            }
+            finally
+            {
+              try
+              {
+                is.close();
+              }
+              catch (IOException e)
+              {
+                errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+                errorDesc = e.getMessage();
+                handleIOException(e,documentIdentifier,"closing input stream");
+              }
+            }
+          }
+          finally
+          {
+            // Delete temp file
+            objFileTemp.delete();
+          }
+        }
+        catch (ManifoldCFException e)
+        {
+          if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+            errorCode = null;
+          throw e;
+        }
+        finally
+        {
+          if (errorCode != null)
+            activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,
+              fileLengthLong,documentIdentifier,errorCode,errorDesc,null);
+        }
+      }
+      else
+      {
+        Integer count;
+        try
+        {
+          count = doGetDocumentContentCount(documentIdentifier);
+          if (count == null)
+          {
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("FileNet: Removing version '"+documentIdentifier+"' because it seems to no longer exist");
+            activities.deleteDocument(documentIdentifier);
+            continue;
+          }
+        }
+        catch (FilenetException e)
+        {
+          // Base our treatment on the kind of error it is.
+          long currentTime = System.currentTimeMillis();
+          if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
+            throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
+          else if (e.getType() == FilenetException.TYPE_NOTALLOWED)
+          {
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("FileNet: Skipping file '"+documentIdentifier+"' because: "+e.getMessage(),e);
+            activities.deleteDocument(documentIdentifier);
+            continue;
+          }
+          else
+            throw new ManifoldCFException(e.getMessage(),e);
+        }
+
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("FileNet: There are "+count.toString()+" content values for '"+documentIdentifier+"'");
 
@@ -1128,178 +1315,9 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         }
         
         // No more processing is necessary for document identifiers.
-        activities.noDocument(documentIdentifier,versionString);
+        activities.noDocument(documentIdentifier,"");
         continue;
-      }
-      
-      // It's a version identifier.
-      String vId = documentIdentifier.substring(0,cIndex);
-      int elementNumber;
-      try
-      {
-        elementNumber = Integer.parseInt(documentIdentifier.substring(cIndex+1));
-      }
-      catch (NumberFormatException e)
-      {
-        throw new ManifoldCFException("Bad number in identifier: "+documentIdentifier,e);
-      }
 
-      versionString = "";
-      
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("FileNet: Document identifier '"+documentIdentifier+"' is a document attachment");
-
-      String errorCode = null;
-      String errorDesc = null;
-      long startTime = System.currentTimeMillis();
-      Long fileLengthLong = null;
-      
-      try
-      {
-        String uri = convertToURI(docURIPrefix,vId,elementNumber,docClass);
-        if (!activities.checkURLIndexable(uri))
-        {
-          errorCode = activities.EXCLUDED_URL;
-          errorDesc = "Excluded because of url ('"+uri+"')";
-          activities.noDocument(documentIdentifier,versionString);
-          continue;
-        }
-      
-        File objFileTemp = null;
-        try
-        {
-          objFileTemp = File.createTempFile("_mc_fln_", null);
-        }
-        catch (IOException e)
-        {
-          errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-          errorDesc = e.getMessage();
-          handleIOException(e,documentIdentifier,"creating temporary file");
-        }
-        try
-        {
-          try
-          {
-            doGetDocumentContents(vId,elementNumber,objFileTemp.getCanonicalPath());
-          }
-          catch (IOException e)
-          {
-            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-            errorDesc = e.getMessage();
-            handleIOException(e,documentIdentifier,"reading document");
-          }
-          catch (FilenetException e)
-          {
-            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-            errorDesc = e.getMessage();
-            // Base our treatment on the kind of error it is.
-            long currentTime = System.currentTimeMillis();
-            if (e.getType() == FilenetException.TYPE_SERVICEINTERRUPTION)
-            {
-              throw new ServiceInterruption(e.getMessage(),e,currentTime+300000L,currentTime+12*60*60000L,-1,true);
-            }
-            else if (e.getType() == FilenetException.TYPE_NOTALLOWED)
-            {
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("FileNet: Removing file '"+documentIdentifier+"' because: "+e.getMessage(),e);
-              activities.noDocument(documentIdentifier,versionString);
-              continue;
-            }
-            else
-            {
-              throw new ManifoldCFException(e.getMessage(),e);
-            }
-          }
-
-          // Document fetch completed
-          long fileLength = objFileTemp.length();
-          if (!activities.checkLengthIndexable(fileLength))
-          {
-            errorCode = activities.EXCLUDED_LENGTH;
-            errorDesc = "Excluded document because of length ("+fileLength+")";
-            activities.noDocument(documentIdentifier,versionString);
-            continue;
-          }
-
-          RepositoryDocument rd = new RepositoryDocument();
-          // Apply metadata
-          for (int j = 0; j < metadataFieldNames.length; j++)
-          {
-            String metadataName = metadataFieldNames[j];
-            String metadataValue = metadataFieldValues[j];
-            rd.addField(metadataName,metadataValue);
-          }
-
-          // Apply acls
-          if (aclValues != null)
-          {
-            rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,aclValues);
-          }
-          if (denyAclValues != null)
-          {
-            rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,denyAclValues);
-          }
-
-          InputStream is = null;
-          try
-          {
-            is = new FileInputStream(objFileTemp);
-          }
-          catch (IOException e)
-          {
-            errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-            errorDesc = e.getMessage();
-            handleIOException(e,documentIdentifier,"Opening temporary file");
-          }
-          try
-          {
-            rd.setBinary(is, fileLength);
-
-            try
-            {
-              // Ingest
-              activities.ingestDocumentWithException(documentIdentifier,versionString,uri,rd);
-              errorCode = "OK";
-              fileLengthLong = new Long(fileLength);
-            }
-            catch (IOException e)
-            {
-              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-              errorDesc = e.getMessage();
-              handleIOException(e,documentIdentifier,"ingesting document");
-            }
-          }
-          finally
-          {
-            try
-            {
-              is.close();
-            }
-            catch (IOException e)
-            {
-              errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-              errorDesc = e.getMessage();
-              handleIOException(e,documentIdentifier,"closing input stream");
-            }
-          }
-        }
-        finally
-        {
-          // Delete temp file
-          objFileTemp.delete();
-        }
-      }
-      catch (ManifoldCFException e)
-      {
-        if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-          errorCode = null;
-        throw e;
-      }
-      finally
-      {
-        if (errorCode != null)
-          activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,
-            fileLengthLong,documentIdentifier,errorCode,errorDesc,null);
       }
     }
   }
