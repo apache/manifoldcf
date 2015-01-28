@@ -2747,7 +2747,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         if (needToReindex == false)
         {
           needToReindex = (!oldDocumentVersion.equals(newDocumentVersion) ||
-            !oldOutputVersion.equals(fullSpec.getStageDescriptionString(outputStage)) ||
+            !oldOutputVersion.equals(fullSpec.getStageDescriptionString(outputStage).getVersionString()) ||
             !oldAuthorityName.equals((newAuthorityNameString==null)?"":newAuthorityNameString));
         }
         if (needToReindex == false)
