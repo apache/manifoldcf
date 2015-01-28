@@ -27,11 +27,11 @@
           <title>セキュリティアーキテクチャ図</title>
           <p>以下はManifoldCFのセキュリティアーキテクチャ図です：</p>
           <br/><br/>
-          <figure src="images/ja_JP/SecurityArchitecture.png" alt="ManifoldCF Security Architecture" width="80%"/>
+          <figure src="images/ja_JP/SecurityArchitecture.png" alt="ManifoldCFセキュリティアーキテクチャ" width="80%"/>
           <br/><br/>
           <p>Apacheを使って認証を行う場合は、以下のようなモデルになります：</p>
           <br/><br/>
-          <figure src="images/ja_JP/LCFApacheArchitecture.png" alt="ManifoldCF Security Architecture, with Apache" width="80%"/>
+          <figure src="images/ja_JP/LCFApacheArchitecture.png" alt="ManifoldCFセキュリティアーキテクチャ、Apacheを使う場合" width="80%"/>
           <br/><br/>
     </section>
 
@@ -39,20 +39,20 @@
           <title>プロセスアーキテクチャ図</title>
           <p>以下はManifoldCFのプロセスアーキテクチャ図です：</p>
           <br/><br/>
-          <figure src="images/ja_JP/MCFProcessArchitecture.png" alt="ManifoldCF Process Architecture" width="80%"/>
+          <figure src="images/ja_JP/MCFProcessArchitecture.png" alt="ManifoldCFプロセスアーキテクチャ" width="80%"/>
           <br/><br/>
     </section>
 
     <section id="howtowriteconnectors">
-	<title>コネクションの作成</title>
-	<p>コネクタを作成するとよりManifoldCFプロジェクトのことを理解することができます。また、成果物をプロジェクトに貢献する事もできます。
+	<title>コネクタの作成</title>
+	<p>コネクタを作成するとManifoldCFプロジェクトのことをよりよく理解できます。また、成果物をプロジェクトに貢献することもできます。やり方は以下のリンクをたどって読んでください。
 	</p> 
 	<ul>
-	    <li><a href="writing-output-connectors.html">出力コネクションの作成</a></li>
-	    <li><a href="writing-transformation-connectors.html">How to write a transformation connector</a></li>
-	    <li><a href="writing-mapping-connectors.html">How to write a user mapping connector</a></li>
-	    <li><a href="writing-authority-connectors.html">権限コネクションの作成</a></li>
-	    <li><a href="writing-repository-connectors.html">リポジトリコネクションの作成</a></li>
+	    <li><a href="writing-output-connectors.html">出力コネクタの作成</a></li>
+	    <li><a href="writing-transformation-connectors.html">変換コネクタの作成</a></li>
+	    <li><a href="writing-mapping-connectors.html">ユーザーマッピングコネクタの作成</a></li>
+	    <li><a href="writing-authority-connectors.html">権限コネクタの作成</a></li>
+	    <li><a href="writing-repository-connectors.html">リポジトリコネクタの作成</a></li>
 	</ul>
     </section>
 
