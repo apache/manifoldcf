@@ -74,6 +74,14 @@ public class Factory
       return null;
     }
   }
+
+  public static class Group
+  {
+    public static com.filenet.api.security.Group fetchInstance(com.filenet.api.core.Connection conn, String gname, PropertyFilter filter)
+    {
+      return null;
+    }
+  }
   
   public static class ClassDescription
   {
