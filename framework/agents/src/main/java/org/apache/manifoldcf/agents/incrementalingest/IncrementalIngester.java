@@ -2781,6 +2781,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         String oldParameterVersion = fullSpec.getOutputParameterVersionString(i);
         String oldOutputVersion = fullSpec.getOutputVersionString(i);
         String oldTransformationVersion = fullSpec.getOutputTransformationVersionString(i);
+        // Backwards compatibility hack: If the oldTransformationVersion is empty, use "0+0!" as the value.
+        // That's what a job with no transformation connections would have as a transformation version string today.
+        if (oldTransformationVersion.length() == 0)
+          oldTransformationVersion = "0+0!";
         String oldAuthorityName = fullSpec.getAuthorityNameString(i);
 
         // Compute the transformation version string.  Must always be computed if we're going to reindex, since we save it.
