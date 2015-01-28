@@ -18,13 +18,9 @@
 */
 package com.filenet.api.security;
 
-import com.filenet.api.core.*;
-import com.filenet.api.constants.SecurityPrincipalType;
-
 /** Stub interface to allow the connector to build fully.
 */
-public interface Permission extends EngineObject, DependentObject
+public interface Group extends SecurityPrincipal
 {
-  public String get_GranteeName();
-  public SecurityPrincipalType get_GranteeType();
+  public String get_Id();
 }
