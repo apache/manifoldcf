@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 2.0.1 =====================
 
+CONNECTORS-1153: Broken authority name comparison is preventing
+incremental when no authority is used.
+(Aeham Abushwashi, Karl Wright)
+
 CONNECTORS-1151: FileNet connector completely broken, due to
 MCF 1.8 reorganization.
 (Guy Sperry, Karl Wright)
