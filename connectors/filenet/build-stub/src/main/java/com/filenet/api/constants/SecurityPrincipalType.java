@@ -16,15 +16,16 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.filenet.api.security;
+package com.filenet.api.constants;
 
-import com.filenet.api.core.*;
-import com.filenet.api.constants.SecurityPrincipalType;
-
-/** Stub interface to allow the connector to build fully.
+/** Stub class to allow the connector to build fully.
 */
-public interface Permission extends EngineObject, DependentObject
+public class SecurityPrincipalType implements java.io.Serializable
 {
-  public String get_GranteeName();
-  public SecurityPrincipalType get_GranteeType();
+  public static final int USER_AS_INT = 2000;
+  
+  public int getValue()
+  {
+    return 0;
+  }
 }

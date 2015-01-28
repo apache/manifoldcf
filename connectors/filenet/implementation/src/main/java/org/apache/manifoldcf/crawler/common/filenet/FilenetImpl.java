@@ -434,14 +434,25 @@ public class FilenetImpl extends UnicastRemoteObject implements IFilenet
           if (!gname.equals("#AUTHENTICATED-USERS"))
           {
             //System.out.println("Getting user "+gname);
-            User usr = Factory.User.fetchInstance(conn, gname, null);
-            if (usr != null)
-            {
-              // System.out.println("Docid "+docId+" view sid is "+usr.get_Id());
-              if (atval == AccessType.ALLOW_AS_INT)
-                rval.addAclValue(usr.get_Id());
-              else if (atval == AccessType.DENY_AS_INT)
-                rval.addDenyAclValue(usr.get_Id());
+            SecurityPrincipalType gtype = ap.get_GranteeType();
+            if (gtype.getValue() == SecurityPrincipalType.USER_AS_INT) {
+              User usr = Factory.User.fetchInstance(conn, gname, null);
+              if (usr != null) {
+                String sid = usr.get_Id();
+                if (atval == AccessType.ALLOW_AS_INT)
+                  rval.addAclValue(sid);
+                else if (atval == AccessType.DENY_AS_INT)
+                  rval.addDenyAclValue(sid);
+              }
+            } else {
+              Group grp = Factory.Group.fetchInstance(conn, gname, null);
+              if (grp != null) {
+                String sid = grp.get_Id();
+                if (atval == AccessType.ALLOW_AS_INT)
+                  rval.addAclValue(sid);
+                else if (atval == AccessType.DENY_AS_INT)
+                  rval.addDenyAclValue(sid);
+              }
             }
           }
           else
