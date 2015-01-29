@@ -959,7 +959,7 @@ public class ThrottledFetcher
     {
       if (statusCode > 0)
       {
-        throwable = new ManifoldCFException("Interrupted: "+e.getMessage(),e);
+        throwable = new ManifoldCFException("Fetch interrupted: "+e.getMessage(),e);
         statusCode = FETCH_INTERRUPTED;
       }
     }
@@ -1079,8 +1079,8 @@ public class ThrottledFetcher
           currentTime + 720L * 60000L,-1,false);
       }
       long currentTime = System.currentTimeMillis();
-      Logging.connectors.debug("Web: IO exception "+activity+" for '"+myUrl+"', retrying");
-      throw new ServiceInterruption("IO exception "+activity+": "+e.getMessage(),e,currentTime+TIME_5MIN,-1L,2,false);
+      Logging.connectors.debug("Web: IO exception ("+e.getClass().getName()+")"+activity+" for '"+myUrl+"', retrying",e);
+      throw new ServiceInterruption("IO exception ("+e.getClass().getName()+")"+activity+": "+e.getMessage(),e,currentTime+TIME_5MIN,-1L,2,false);
     }
 
   }
