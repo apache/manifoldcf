@@ -579,7 +579,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       // For backwards compatibility to versions prior to 1.7
       if (oldTransformationVersion.length() == 0)
         oldTransformationVersion = "0+0!";
-      if (oldTransformationVersion.equals(newTransformationVersion))
+      if (!oldTransformationVersion.equals(newTransformationVersion))
         return true;
     }
     // Everything matches, so no reindexing is needed.
