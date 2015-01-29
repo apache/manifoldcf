@@ -575,7 +575,11 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       
       // Everything matches so far.  Next step is to compute a transformation path an corresponding version string.
       String newTransformationVersion = computePackedTransformationVersion(pipelineSpecificationWithVersions,stage);
-      if (!pipelineSpecificationWithVersions.getOutputTransformationVersionString(i).equals(newTransformationVersion))
+      String oldTransformationVersion = pipelineSpecificationWithVersions.getOutputTransformationVersionString(i);
+      // For backwards compatibility to versions prior to 1.7
+      if (oldTransformationVersion.length() == 0)
+        oldTransformationVersion = "0+0!";
+      if (oldTransformationVersion.equals(newTransformationVersion))
         return true;
     }
     // Everything matches, so no reindexing is needed.
