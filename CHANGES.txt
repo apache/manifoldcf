@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1154: Changes to the flow through the web connector's
+deflate/unzip logic, designed to prevent gzip headers from being read
+if the stream's contents are not read.
+(Li Minhui, Karl Wright)
+
 CONNECTORS-1153: Broken authority name comparison is preventing
 incremental when no authority is used.
 (Aeham Abushwashi, Karl Wright)
