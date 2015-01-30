@@ -904,7 +904,12 @@ public class ThrottledFetcher
         throw new ManifoldCFException("Attempt to get an input stream when no method thread");
       try
       {
-        return methodThread.getSafeInputStream();
+        InputStream bodyStream = methodThread.getSafeInputStream();
+        if (methodThread.isGZipStream())
+          bodyStream = new GZIPInputStream(bodyStream);
+        else if (methodThread.isDeflateStream())
+          bodyStream = new DeflateInputStream(bodyStream);
+        return bodyStream;
       }
       catch (InterruptedException e)
       {
@@ -1374,6 +1379,8 @@ public class ThrottledFetcher
     protected boolean streamCreated = false;
     protected Throwable streamException = null;
     protected boolean abortThread = false;
+    protected boolean gzip = false;
+    protected boolean deflate = false;
 
     protected Throwable shutdownException = null;
 
@@ -1458,8 +1465,6 @@ public class ThrottledFetcher
               {
                 try
                 {
-                  boolean gzip = false;
-                  boolean deflate = false;
                   Header ceheader = response.getEntity().getContentEncoding();
                   if (ceheader != null)
                   {
@@ -1484,10 +1489,6 @@ public class ThrottledFetcher
                   if (bodyStream != null)
                   {
                     bodyStream = new ThrottledInputstream(fetchThrottler.createFetchStream(),theConnection,bodyStream);
-                    if (gzip)
-                      bodyStream = new GZIPInputStream(bodyStream);
-                    else if (deflate)
-                      bodyStream = new DeflateInputStream(bodyStream);
                     threadStream = new XThreadInputStream(bodyStream);
                   }
                   streamCreated = true;
@@ -1645,6 +1646,46 @@ public class ThrottledFetcher
         }
       }
     }
+
+    public boolean isGZipStream()
+      throws InterruptedException, IOException, HttpException
+    {
+      // Must wait until stream is created, or until we note an exception was thrown.
+      while (true)
+      {
+        synchronized (this)
+        {
+          if (responseException != null)
+            throw new IllegalStateException("Check for response before getting stream");
+          if (cookieException != null)
+            throw new IllegalStateException("Check for cookies before getting stream");
+          checkException(streamException);
+          if (streamCreated)
+            return gzip;
+          wait();
+        }
+      }
+    }    
+
+    public boolean isDeflateStream()
+      throws InterruptedException, IOException, HttpException
+    {
+      // Must wait until stream is created, or until we note an exception was thrown.
+      while (true)
+      {
+        synchronized (this)
+        {
+          if (responseException != null)
+            throw new IllegalStateException("Check for response before getting stream");
+          if (cookieException != null)
+            throw new IllegalStateException("Check for cookies before getting stream");
+          checkException(streamException);
+          if (streamCreated)
+            return deflate;
+          wait();
+        }
+      }
+    }    
     
     public InputStream getSafeInputStream()
       throws InterruptedException, IOException, HttpException
