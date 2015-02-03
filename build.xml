@@ -161,10 +161,10 @@
 
     <target name="get-releases-doc" depends="install-trunk-release">
         <antcall target="install-release">
-            <param name="release-version" value="2.0"/>
+            <param name="release-version" value="2.0.1"/>
         </antcall>
         <antcall target="install-release">
-            <param name="release-version" value="1.8"/>
+            <param name="release-version" value="1.8.1"/>
         </antcall>
         <antcall target="install-legacy-archive">
             <param name="release-version" value="1.7.2"/>
