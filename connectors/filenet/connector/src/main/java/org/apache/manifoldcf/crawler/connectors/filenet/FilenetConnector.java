@@ -3181,8 +3181,8 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
   */
   protected static String convertToURI(String urlBase, String documentIdentifier, int elementNumber, String documentClass)
   {
-    // Will this work for sub-types of documents too?  ask - MHL
-    return  urlBase  +  "&id=" + documentIdentifier + "&element="+Integer.toString(elementNumber)+"&objectType="+documentClass;
+    // objectType is the parent object type, which is why Document is correct
+    return  urlBase  +  "&id=" + documentIdentifier + "&element="+Integer.toString(elementNumber)+"&objectType=Document";
   }
 
   protected class CheckConnectionThread extends Thread
