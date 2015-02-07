@@ -142,6 +142,8 @@ public class StartDeleteThread extends Thread
                 }
                 catch (ManifoldCFException e)
                 {
+                  if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                    throw e;
                   exception = e;
                 }
               }

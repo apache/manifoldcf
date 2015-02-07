@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1156: Difficulty shutting down agents process after
+a while executing.
+(Adrian Conlon, Karl Wright)
+
 CONNECTORS-1157: FileNet connector URI is incorrect for document
 subtypes.
 (Guy Sperry)
