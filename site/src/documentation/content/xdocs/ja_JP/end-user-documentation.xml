@@ -549,7 +549,27 @@
             </section>
             
         </section>
-        
+
+        <section id="mappingconnectiontypes">
+            <title>ユーザーマッピングコネクションタイプ</title>
+            
+            <section id="regexpmapper">
+                <title>正規表現ユーザーマッピングコネクション</title>
+                <p>正規表現ユーザーマッピングコネクションタイプは、あらゆる種類のユーザー名の機械的な変換に大変便利です。例えば、Active Directoryのユーザー名の標準的な"user@domain"形式からLiveLinkの"domain\user"に変換するように簡単に設定できます。多くのリポジトリでそのような機械的な変換が確立されていますので、正規表現ユーザーマッピングコネクションタイプだけでたいていの用は足ります。</p>
+                <br/>
+                <p>正規表現ユーザーマッピングコネクションタイプを選択すると「ユーザーマッピング」タブが表示されます:</p>
+                <br/><br/>
+                <figure src="images/ja_JP/regexp-mapping-user-mapping_ja_JP.PNG" alt="正規表現ユーザーマッピング、ユーザーマッピングタブ" width="80%"/>
+                <br/><br/>
+                <p>マッピングは一致する正規表現と置換文字列で構成されます。一致する正規表現は関心のある部分を括弧(「(」と「)」)で括った正規表現のことです。括弧で括られた部分は正規表現の言葉で「グループ」と呼ばれます。置換文字列は固定文字と一致するグループの参照(変更されているかもしれません)から構成されます。例えば、「$(1)」は1番目に一致したグループを参照し、「$(1l)」は小文字に変換された1番目に一致するグループを参照します。同様に、「$(1u)」は同じ文字を参照しますが、大文字に変換されます。</p>
+                <p>例えば、一致正規表現<code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code>と置換文字列<code>$(2)\$(1l)</code>はActive Directoryユーザー名<code>MyUserName@subdomain.domain.com</code>をユーザー名<code>subdomain\myusername</code>に変換します。</p>
+                <p>入力後に「保存」ボタンを押すと、次のようなコネクションの概要と状態のページが表示されます:</p>
+                <br/><br/>
+                <figure src="images/ja_JP/regexp-mapping-status_ja_JP.PNG" alt="正規表現ユーザーマッピング状態" width="80%"/>
+                <br/><br/>
+            </section>
+        </section>
+
         <section id="authorityconnectiontypes">
             <title>権限コネクションタイプ</title>
             
