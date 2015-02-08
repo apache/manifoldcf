@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.9-dev =====================
 
+CONNECTORS-1159: UI broken in LiveLink connector.
+(Kishore Kumar)
+
 CONNECTORS-1156: Difficulty shutting down agents process after
 a while executing.
 (Adrian Conlon, Karl Wright)
