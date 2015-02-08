@@ -3262,7 +3262,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       String op = variableContext.getParameter(seqPrefix+"pathop");
       if (op != null && op.equals("Add"))
       {
-        String path = variableContext.getParameter("specpath");
+        String path = variableContext.getParameter(seqPrefix+"specpath");
         SpecificationNode node = new SpecificationNode("startpoint");
         node.setAttribute("path",path);
         ds.addChild(ds.getChildCount(),node);
