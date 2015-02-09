@@ -1122,7 +1122,24 @@ curl -XGET http://localhost:9200/index/_mapping
             <section id="alfrescowebscriptauthority">
                 <title>Alfresco Webscript Authority Connection</title>
                 <p>The Alfresco Webscript authority connection type helps secure documents indexed using the Alfresco Webscript repository connection type.</p>
-                <p>RAFA: Please fill out</p>
+                <p>Independently of how the permissions schema is finally configured within the Alfresco instance, the Alfresco Webscript Autorithy service can retrieve the ACLs tokens associated to the users
+                  at request time. The connector is based on a single, secured service that directly enquires the Alfresco instance for the users permissions at all levels. The permissions tokens returned will be
+                  consistent with the Alfresco permissions model, therefore this Authority Connector makes sense to work only with the Alfresco Webscript Repository Connector and not any other connector</p>
+                <p>IMPORTANT: in order to put available the required services within Alfresco, it is necessary FIRST to install and deploy within the Alfresco instance the 
+                  following <a href="https://github.com/maoo/alfresco-indexer">Alfresco Webscript</a> </p>. Please follow the instructions in the README file.
+                <p>The Alfresco Webscript Authority Connection has a single configuration tab in the authority connection editing screen called "Server" where one needs to configure the Alfresco's services endpoint:</p>
+                <br/><br/>
+                <figure src="images/en_US/alfresco-authority.PNG" alt="Alfresco Server Endpoint Configuration" width="80%"/>
+                <br/><br/>
+                <p>As you can see, the Alfresco endpoint settings are quite simple and almost self-explicative:</p>
+                <ul>
+                  <li><strong>Protocol:</strong> HTTP or HTTPS depending on your instance</li>
+                  <li><strong>HostName:</strong> IP or domain where the Alfresco instance is hosted in your network</li>
+                  <li><strong>Port:</strong> port where the Alfresco instance has been deployed</li>
+                  <li><strong>Context:</strong> URL path where the webscript services has been deployed (/alfresco/service by default) after installed the WebScript</li>
+                  <li><strong>User:</strong> user ID used for performing the authored request to Alfresco. The user MUST have enough privileges for consulting any other user permissions, therefore admin user used to be a good idea</li>
+                  <li><strong>Password:</strong> password of the above user in Alfresco</li>
+                </ul>
             </section>
             
             <section id="cmisauthority">
@@ -1533,8 +1550,40 @@ curl -XGET http://localhost:9200/index/_mapping
               <title>Alfresco Webscript Repository Connection</title>
               <p>The Alfresco Webscript Repository connection type allows you to index content from an Alfresco repository.  It also supports document
                     security, in conjunction with the Alfresco Webscript Authority connection Type.</p>
-              <p>This connector is compatible with any Alfresco version (???).  RAFA: Please fill this out.</p>
-
+              <p>The current connector relies on a set of services that have been developed on top of Alfresco for easing content and metadata retrieving from an Alfresco instance. These services will be available within an Alfresco
+              instance after installing the following artifact: <a href="https://github.com/maoo/alfresco-indexer">Alfresco Indexer</a>. Please, make sure that you, FIRST, install and deploy within the desired Alfresco instance the AMP generated after building the Alfresco Indexer project before trying to index content from ManifoldCF.</p>
+              <p>By default each Alfresco Webscript Connection manages a single Alfresco repository, this means that if you have multiple Alfresco repositories that you want to manage, you need to create a specific connection for each one.</p>
+              <p>The Alfresco Webscript Repository connector has a single configuration tab in the repository connection editing screen called "Server" where one needs to configure the Alfresco's services endpoint:</p>
+              <br/><br/>
+                <figure src="images/en_US/alfresco-connector.PNG" alt="Alfresco Server Endpoint Configuration" width="80%"/>
+                <br/><br/>
+                <p>As you can see, the Alfresco endpoint settings are quite simple and almost self-explicative:</p>
+                <ul>
+                  <li><strong>Protocol:</strong> HTTP or HTTPS depending on your instance</li>
+                  <li><strong>HostName:</strong> IP or domain where the Alfresco instance is hosted in your network</li>
+                  <li><strong>Port:</strong> port where the Alfresco instance has been deployed</li>
+                  <li><strong>Context:</strong> URL path where the webscript services has been deployed (/alfresco/service by default) after installed the WebScript</li>
+                  <li><strong>Store Protocol: Alfresco's store protocol to be used (workspace/archive)</strong> </li>
+                  <li><strong>StoreID:</strong> store's name</li>
+                  <li><strong>User:</strong> user ID used for performing the authored requests to Alfresco. The user MUST have enough privileges for all the request, therefore admin user used to be a good idea</li>
+                  <li><strong>Password:</strong> password of the above user in Alfresco</li>
+                </ul>
+                <p>After you click the "Save" button, you will see a connection summary screen, which might look something like this:</p>
+                <br/><br/>
+                <figure src="images/en_US/alfresco-connector-save.png" alt="Alfresco Webscript Repository Connection saving" width="80%"/>
+                <br/><br/>
+                <p>When you configure a job to use the Alfresco Webscript repository connection an additional tab is presented. This is the "Filtering Configuration" tab:</p>
+                <br/><br/>
+                <figure src="images/en_US/alfresco-connector-job.png" alt="Alfresco Content Filtering" width="80%"/>
+                <br/><br/>
+                <p>The Filtering Configuration tab allows you to fully customize the crawling job on Alfresco by defining which kind of content do you want to index from your Alfresco repository.
+                  The configuration tab consist on a list of filters that can be combined for indexing only certain documents or certain parts of the repository:</p>
+                <ul>
+                  <li><strong>Site Filtering:</strong> List of sites to be crawled. Only documents belonging to these sites will be indexed</li>
+                  <li><strong>MimeType Filtering:</strong> Allow to filter documents by mimetype in Alfresco</li>
+                  <li><strong>Aspect Filtering:</strong> index only those documents associated to the configured aspects</li>
+                  <li><strong>Metadata Filtering:</strong> index only those documents that at least have the specified value for one of the configured metadata field</li>
+                </ul>
             </section>
             
             <section id="cmisrepository">
