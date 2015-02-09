@@ -1129,7 +1129,7 @@ curl -XGET http://localhost:9200/index/_mapping
                   following <a href="https://github.com/maoo/alfresco-indexer">Alfresco Webscript</a> </p>. Please follow the instructions in the README file.
                 <p>The Alfresco Webscript Authority Connection has a single configuration tab in the authority connection editing screen called "Server" where one needs to configure the Alfresco's services endpoint:</p>
                 <br/><br/>
-                <figure src="images/en_US/alfresco-authority.PNG" alt="Alfresco Server Endpoint Configuration" width="80%"/>
+                <figure src="images/en_US/alfresco-authority.png" alt="Alfresco Server Endpoint Configuration" width="80%"/>
                 <br/><br/>
                 <p>As you can see, the Alfresco endpoint settings are quite simple and almost self-explicative:</p>
                 <ul>
@@ -1555,7 +1555,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <p>By default each Alfresco Webscript Connection manages a single Alfresco repository, this means that if you have multiple Alfresco repositories that you want to manage, you need to create a specific connection for each one.</p>
               <p>The Alfresco Webscript Repository connector has a single configuration tab in the repository connection editing screen called "Server" where one needs to configure the Alfresco's services endpoint:</p>
               <br/><br/>
-                <figure src="images/en_US/alfresco-connector.PNG" alt="Alfresco Server Endpoint Configuration" width="80%"/>
+                <figure src="images/en_US/alfresco-connector.png" alt="Alfresco Server Endpoint Configuration" width="80%"/>
                 <br/><br/>
                 <p>As you can see, the Alfresco endpoint settings are quite simple and almost self-explicative:</p>
                 <ul>
