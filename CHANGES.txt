@@ -2,6 +2,9 @@ ManifoldCF Change Log
 $Id$
 
 
+======================= Release 2.0.2 =====================
+
+
 ======================= Release 2.0.1 =====================
 
 CONNECTORS-1153: Broken authority name comparison is preventing
