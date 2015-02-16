@@ -4,6 +4,8 @@ $Id$
 
 ======================= Release 1.8.2 =====================
 
+CONNECTORS-1159: UI broken in LiveLink connector.
+(Kishore Kumar)
 
 ======================= Release 1.8.1 =====================
 
