@@ -620,6 +620,9 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     java.sql.SQLException sqlException = (java.sql.SQLException)e;
     String message = sqlException.getMessage();
     String sqlState = sqlException.getSQLState();
+    // If connection is closed, presume we are shutting down
+    if (sqlState != null && sqlState.equals("08003"))
+      return new ManifoldCFException(message,e,ManifoldCFException.INTERRUPTED);
     // Could not serialize
     if (sqlState != null && sqlState.equals("40001"))
       return new ManifoldCFException(message,e,ManifoldCFException.DATABASE_TRANSACTION_ABORT);

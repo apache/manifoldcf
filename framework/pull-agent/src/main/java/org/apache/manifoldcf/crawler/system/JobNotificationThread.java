@@ -241,6 +241,8 @@ public class JobNotificationThread extends Thread
                 }
                 catch (ManifoldCFException e)
                 {
+                  if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                    throw e;
                   exception = e;
                 }
               }
@@ -423,6 +425,8 @@ public class JobNotificationThread extends Thread
                 }
                 catch (ManifoldCFException e)
                 {
+                  if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+                    throw e;
                   exception = e;
                 }
               }

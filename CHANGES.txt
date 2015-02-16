@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 2.0.2 =====================
 
+CONNECTORS-1156: Difficulty shutting down agents process after
+a while executing.
+(Adrian Conlon, Karl Wright)
+
 CONNECTORS-1159: UI broken in LiveLink connector.
 (Kishore Kumar)
 
