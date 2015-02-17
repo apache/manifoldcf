@@ -61,7 +61,7 @@
 	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listtransformations.ListOfTransformationConnections")%></p>
 	<form class="standardform" name="listconnections" action="execute.jsp" method="POST">
 		<input type="hidden" name="op" value="Continue"/>
-		<input type="hidden" name="type" value="transformattion"/>
+		<input type="hidden" name="type" value="transformation"/>
 		<input type="hidden" name="connname" value=""/>
 
 <%
