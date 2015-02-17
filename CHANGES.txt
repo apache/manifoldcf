@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 2.0.2 =====================
 
+CONNECTORS-1166: Delete link doesn't work on listtransformations
+UI page.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-1157: FileNet connector URI is incorrect for document
 subtypes.
 (Guy Sperry)
