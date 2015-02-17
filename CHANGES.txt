@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.9-dev =====================
 
+CONNECTORS-1166: Delete link doesn't work on listtransformations
+UI page.
+(Shinichiro Abe, Karl Wright)
+
 CONNECTORS-1159: UI broken in LiveLink connector.
 (Kishore Kumar)
 
