@@ -1198,6 +1198,33 @@
 
             <section id="filenetrepository">
                 <title>IBM FileNet P8リポジトリコネクション</title>
+                <p>IBM FileNet P8コネクションタイプは、FileNet P8サーバーインスタンスのコンテンツから索引を作成する場合に利用します。1つのコネクションからそのサーバにあるファイルすべてを取得できます。複数のサーバーをサポートするには複数のコネクションが必要です。</p>
+                <p>このコネクションタイプはActive Directory権限コネクションを使ってコンテンツの権限を管理します。まだActive Directory権限コネクションを作成しておらず、コンテンツの権限を管理したいのであれば、「Active Directory権限コネクション」の節の指示に従ってください。</p>
+                <p>FileNetを選択すると次の独自のタブが表示されます: 「サーバ」、「オブジェクトストア」、「ドキュメントURL」、「認証」。「サーバ」タブでは接続するFileNet P8の指定が、「オブジェクトストア」タブでは希望するFileNetオブジェクトストアの指定ができます。 「ドキュメントURL」タブでは索引を作成するコンテンツの各URLのパラメータを、「認証」タブではFileNetオブジェクトストアへのアクセスに使う認証情報を指定します。</p>
+                <p>「サーバ」タブを選択すると次のようなページが表示されます:</p>
+                <br/><br/>
+                <figure src="images/ja_JP/filenet-configure-server_ja_JP.PNG" alt="FileNetコネクション、サーバタブ" width="80%"/>
+                <br/><br/>
+                <p>適切なプロトコルを選択し、サーバ名、ポート、サービスを指定してください。</p>
+                <p>「オブジェクトストア」タブを選択すると次のようなページが表示されます:</p>
+                <figure src="images/ja_JP/filenet-configure-objectstore_ja_JP.PNG" alt="FileNetコネクション、オブジェクトストアタブ" width="80%"/>
+                <br/><br/>
+                <p>接続するFileNetドメイン名とドメイン内のFileNetオブジェクトストア名を入力してください。</p>
+                <br/><br/>
+                <p>「ドキュメントURL」を選択すると次のようなページが表示されます:</p>
+                <br/><br/>
+                <figure src="images/ja_JP/filenet-configure-documenturl_ja_JP.PNG" alt="FileNetコネクション、ドキュメントURLタブ" width="80%"/>
+                <br/><br/>
+                <p>このタブでは索引を作成するコンテンツをどのようにロードするかの基盤となるURLを指定できます。プロトコルを選択してください。ホスト名を入力してください。ポートを入力してください。そして、URLを入力してください。</p>
+                <p>「認証」タブを選択すると次のようなページが表示されます:</p>
+                <br/><br/>
+                <figure src="images/ja_JP/filenet-configure-credentials_ja_JP.PNG" alt="FileNetコネクション、認証タブ" width="80%"/>
+                <br/><br/>
+                <p>FileNetリポジトリに対してFileNetコネクションタイプアクセスできるようにFileNetユーザーIDとパスワードを入力してください。</p>
+                <p>コネクション情報の入力が終わったら、「保存」ボタンを押してください。次のようなページが表示されます:</p>
+                <br/><br/>
+                <figure src="images/ja_JP/filenet-status_ja_JP.PNG" alt="FileNetコネクション状態" width="80%"/>
+                <br/><br/>
             </section>
             
             <section id="documentumrepository">
