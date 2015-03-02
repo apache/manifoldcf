@@ -93,6 +93,21 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 {
   public static final String _rcsid = "@(#)$Id: LivelinkConnector.java 996524 2010-09-13 13:38:01Z kwright $";
 
+  //Forward to the javascript to check the configuration parameters.
+  private static final String EDIT_CONFIG_JOB_HEADER_FORWARD = "editConfiguration_Job_Header.js";
+  private static final String EDIT_CONFIG_REPO_HEADER_FORWARD = "editConfiguration_Repo_Header.js";
+
+  //Forward to the HTML template to edit the configuration parameters.
+  private static final String EDIT_CONFIG_JOB_BODY_FORWARD = "editConfiguration_Job_Body.html";
+  private static final String EDIT_CONFIG_REPO_BODY_FORWARD = "editConfiguration_Repo_Body.html";
+
+  //Forward to the HTML template to view the configuration parameters.
+  private static final String VIEW_CONFIG_JOB_BODY_FORWARD = "viewConfiguration_Job.html";
+  private static final String VIEW_CONFIG_REPO_BODY_FORWARD = "viewConfiguration_Repo.html";
+
+  //Tab name parameter for managing the view of the Web UI.
+  private static final String TAB_NAME_PARAM = "TabName";
+
   // Activities we will report on
   private final static String ACTIVITY_SEED = "find documents";
   private final static String ACTIVITY_FETCH = "fetch document";
@@ -1528,138 +1543,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.Server"));
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.DocumentAccess"));
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.DocumentView"));
-    out.print(
-"<script type=\"text/javascript\">\n"+
-"<!--\n"+
-"function ServerDeleteCertificate(aliasName)\n"+
-"{\n"+
-"  editconnection.serverkeystorealias.value = aliasName;\n"+
-"  editconnection.serverconfigop.value = \"Delete\";\n"+
-"  postForm();\n"+
-"}\n"+
-"\n"+
-"function ServerAddCertificate()\n"+
-"{\n"+
-"  if (editconnection.servercertificate.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.ChooseACertificateFile")+"\");\n"+
-"    editconnection.servercertificate.focus();\n"+
-"  }\n"+
-"  else\n"+
-"  {\n"+
-"    editconnection.serverconfigop.value = \"Add\";\n"+
-"    postForm();\n"+
-"  }\n"+
-"}\n"+
-"\n"+
-"function IngestDeleteCertificate(aliasName)\n"+
-"{\n"+
-"  editconnection.ingestkeystorealias.value = aliasName;\n"+
-"  editconnection.ingestconfigop.value = \"Delete\";\n"+
-"  postForm();\n"+
-"}\n"+
-"\n"+
-"function IngestAddCertificate()\n"+
-"{\n"+
-"  if (editconnection.ingestcertificate.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.ChooseACertificateFile")+"\");\n"+
-"    editconnection.ingestcertificate.focus();\n"+
-"  }\n"+
-"  else\n"+
-"  {\n"+
-"    editconnection.ingestconfigop.value = \"Add\";\n"+
-"    postForm();\n"+
-"  }\n"+
-"}\n"+
-"\n"+
-"function checkConfig()\n"+
-"{\n"+
-"  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.AValidNumberIsRequired")+"\");\n"+
-"    editconnection.serverport.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.ingestport.value != \"\" && !isInteger(editconnection.ingestport.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.AValidNumberOrBlankIsRequired")+"\");\n"+
-"    editconnection.ingestport.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.viewport.value != \"\" && !isInteger(editconnection.viewport.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.AValidNumberOrBlankIsRequired")+"\");\n"+
-"    editconnection.viewport.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function checkConfigForSave()\n"+
-"{\n"+
-"  if (editconnection.servername.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.EnterALivelinkServerName")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
-"    editconnection.servername.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.serverport.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.AServerPortNumberIsRequired")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
-"    editconnection.serverport.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.serverhttpcgipath.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.EnterTheServerCgiPathToLivelink")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
-"    editconnection.serverhttpcgipath.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.serverhttpcgipath.value.substring(0,1) != \"/\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TheServerCgiPathMustBeginWithACharacter")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
-"    editconnection.serverhttpcgipath.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.viewprotocol.value == \"\" && editconnection.ingestprotocol.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAViewProtocol")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentView") + "\");\n"+
-"    editconnection.viewprotocol.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.viewcgipath.value == \"\" && editconnection.ingestcgipath.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.EnterTheViewCgiPathToLivelink")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentView") + "\");\n"+
-"    editconnection.viewcgipath.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.ingestcgipath.value != \"\" && editconnection.ingestcgipath.value.substring(0,1) != \"/\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TheIngestCgiPathMustBeBlankOrBeginWithACharacter")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentAccess") + "\");\n"+
-"    editconnection.ingestcgipath.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.viewcgipath.value != \"\" && editconnection.viewcgipath.value.substring(0,1) != \"/\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TheViewCgiPathMustBeBlankOrBeginWithACharacter")+"\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.DocumentView") + "\");\n"+
-"    editconnection.viewcgipath.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"//-->\n"+
-"</script>\n"
-    );
+
+    Map<String, String> paramMap = new HashMap<>();
+
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIG_REPO_HEADER_FORWARD, paramMap, true);
   }
   
   /** Output the configuration body section.
@@ -1675,288 +1562,119 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
-  {
-    
+  {    
+    Map<String, Object> paramMap = new HashMap<>();
+    paramMap.put(TAB_NAME_PARAM,tabName);
+
     // LAPI parameters
     String serverProtocol = parameters.getParameter(LiveLinkParameters.serverProtocol);
     if (serverProtocol == null)
       serverProtocol = "internal";
+    paramMap.put("serverProtocol",serverProtocol);
     String serverName = parameters.getParameter(LiveLinkParameters.serverName);
     if (serverName == null)
       serverName = "localhost";
+    paramMap.put("serverName",serverName);
     String serverPort = parameters.getParameter(LiveLinkParameters.serverPort);
     if (serverPort == null)
       serverPort = "2099";
+    paramMap.put("serverPort",serverPort);
     String serverUserName = parameters.getParameter(LiveLinkParameters.serverUsername);
-    if (serverUserName == null)
-      serverUserName = "";
+    paramMap.put("serverUserName",serverUserName);
     String serverPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverPassword);
-    if (serverPassword == null)
-      serverPassword = "";
-    else
+    if (serverPassword != null)
       serverPassword = out.mapPasswordToKey(serverPassword);
+    paramMap.put("serverPassword",serverPassword);
     String serverHTTPCgiPath = parameters.getParameter(LiveLinkParameters.serverHTTPCgiPath);
     if (serverHTTPCgiPath == null)
       serverHTTPCgiPath = "/livelink/livelink.exe";
+    paramMap.put("serverHTTPCgiPath",serverHTTPCgiPath);
     String serverHTTPNTLMDomain = parameters.getParameter(LiveLinkParameters.serverHTTPNTLMDomain);
-    if (serverHTTPNTLMDomain == null)
-      serverHTTPNTLMDomain = "";
+    paramMap.put("serverHTTPNTLMDomain",serverHTTPNTLMDomain);
     String serverHTTPNTLMUserName = parameters.getParameter(LiveLinkParameters.serverHTTPNTLMUsername);
-    if (serverHTTPNTLMUserName == null)
-      serverHTTPNTLMUserName = "";
+    paramMap.put("serverHTTPNTLMUserName",serverHTTPNTLMUserName);
     String serverHTTPNTLMPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
-    if (serverHTTPNTLMPassword == null)
-      serverHTTPNTLMPassword = "";
-    else
+    if (serverHTTPNTLMPassword != null)
       serverHTTPNTLMPassword = out.mapPasswordToKey(serverHTTPNTLMPassword);
+    paramMap.put("serverHTTPNTLMPassword",serverHTTPNTLMPassword);
     String serverHTTPSKeystore = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
     IKeystoreManager localServerHTTPSKeystore;
     if (serverHTTPSKeystore == null)
       localServerHTTPSKeystore = KeystoreManagerFactory.make("");
     else
       localServerHTTPSKeystore = KeystoreManagerFactory.make("",serverHTTPSKeystore);
+    paramMap.put("serverHTTPSKeystore",serverHTTPSKeystore);
 
     // Document access parameters
     String ingestProtocol = parameters.getParameter(LiveLinkParameters.ingestProtocol);
-    if (ingestProtocol == null)
-      ingestProtocol = "";
+    paramMap.put("ingestProtocol",ingestProtocol);
     String ingestPort = parameters.getParameter(LiveLinkParameters.ingestPort);
-    if (ingestPort == null)
-      ingestPort = "";
+    paramMap.put("ingestPort",ingestPort);
     String ingestCgiPath = parameters.getParameter(LiveLinkParameters.ingestCgiPath);
-    if (ingestCgiPath == null)
-      ingestCgiPath = "";
+    paramMap.put("ingestCgiPath",ingestCgiPath);
     String ingestNtlmUsername = parameters.getParameter(LiveLinkParameters.ingestNtlmUsername);
-    if (ingestNtlmUsername == null)
-      ingestNtlmUsername = "";
+    paramMap.put("ingestNtlmUsername",ingestNtlmUsername);
     String ingestNtlmPassword = parameters.getObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword);
-    if (ingestNtlmPassword == null)
-      ingestNtlmPassword = "";
-    else
+    if (ingestNtlmPassword != null)
       ingestNtlmPassword = out.mapPasswordToKey(ingestNtlmPassword);
+    paramMap.put("ingestNtlmPassword",ingestNtlmPassword);
     String ingestNtlmDomain = parameters.getParameter(LiveLinkParameters.ingestNtlmDomain);
-    if (ingestNtlmDomain == null)
-      ingestNtlmDomain = "";
+    paramMap.put("ingestNtlmDomain",ingestNtlmDomain);
     String ingestKeystore = parameters.getParameter(LiveLinkParameters.ingestKeystore);
     IKeystoreManager localIngestKeystore;
     if (ingestKeystore == null)
       localIngestKeystore = KeystoreManagerFactory.make("");
     else
       localIngestKeystore = KeystoreManagerFactory.make("",ingestKeystore);
-    
+    paramMap.put("localIngestKeystore",ingestKeystore);
+
     // Document view parameters
     String viewProtocol = parameters.getParameter(LiveLinkParameters.viewProtocol);
     if (viewProtocol == null)
       viewProtocol = "http";
+    paramMap.put("viewProtocol",viewProtocol);
     String viewServerName = parameters.getParameter(LiveLinkParameters.viewServerName);
-    if (viewServerName == null)
-      viewServerName = "";
+    paramMap.put("viewServerName",viewServerName);
     String viewPort = parameters.getParameter(LiveLinkParameters.viewPort);
-    if (viewPort == null)
-      viewPort = "";
+    paramMap.put("viewPort",viewPort);
     String viewCgiPath = parameters.getParameter(LiveLinkParameters.viewCgiPath);
     if (viewCgiPath == null)
       viewCgiPath = "/livelink/livelink.exe";
+    paramMap.put("viewCgiPath",viewCgiPath);
 
-    // The "Server" tab
-    // Always pass the whole keystore as a hidden.
-    out.print(
-"<input name=\"serverconfigop\" type=\"hidden\" value=\"Continue\"/>\n"
-    );
-    if (serverHTTPSKeystore != null)
-    {
-      out.print(
-"<input type=\"hidden\" name=\"serverhttpskeystoredata\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPSKeystore)+"\"/>\n"
-      );
-    }
     if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Server")))
     {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.ServerProtocol")+"</td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\"serverprotocol\" size=\"2\">\n"+
-"        <option value=\"internal\" "+((serverProtocol.equals("internal"))?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"LivelinkConnector.internal")+"</option>\n"+
-"        <option value=\"http\" "+((serverProtocol.equals("http"))?"selected=\"selected\"":"")+">http</option>\n"+
-"        <option value=\"https\" "+((serverProtocol.equals("https"))?"selected=\"selected\"":"")+">https</option>\n"+
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerName")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"servername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerPort")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverport\" value=\""+serverPort+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerUserName")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerPassword")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPCGIPath")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverhttpcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPCgiPath)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMDomain")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfNTLMAuthDesired")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"32\" name=\"serverhttpntlmdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMDomain)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMUserName")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"32\" name=\"serverhttpntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMUserName)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMPassword")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"password\" size=\"32\" name=\"serverhttpntlmpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMPassword)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-      );
-      out.print(
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerSSLCertificateList")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\"serverkeystorealias\" value=\"\"/>\n"+
-"      <table class=\"displaytable\">\n"
-      );
+      Boolean hasServerCertificates = false;
       // List the individual certificates in the store, with a delete button for each
       String[] contents = localServerHTTPSKeystore.getContents();
-      if (contents.length == 0)
+      if (contents.length > 0)
       {
-        out.print(
-"        <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.NoCertificatesPresent")+"</nobr></td></tr>\n"
-        );
-      }
-      else
-      {
+        hasServerCertificates = true;
         int i = 0;
+        Map<String,String> serverCertificatesMap = new HashMap<>();
         while (i < contents.length)
         {
           String alias = contents[i];
           String description = localServerHTTPSKeystore.getDescription(alias);
           if (description.length() > 128)
             description = description.substring(0,125) + "...";
-          out.print(
-"        <tr>\n"+
-"          <td class=\"value\"><input type=\"button\" onclick='Javascript:ServerDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\""+Messages.getAttributeString(locale,"LivelinkConnector.Delete")+"\"/></td>\n"+
-"          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
-"        </tr>\n"
-          );
+          serverCertificatesMap.put(alias, description);
           i++;
         }
+        paramMap.put("serverCertificatesMap", serverCertificatesMap);
       }
-      out.print(
-"      </table>\n"+
-"      <input type=\"button\" onclick='Javascript:ServerAddCertificate()' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCert")+"\" value=\""+Messages.getAttributeString(locale,"LivelinkConnector.Add")+"\"/>&nbsp;\n"+
-"      "+Messages.getBodyString(locale,"LivelinkConnector.Certificate")+"<input name=\"servercertificate\" size=\"50\" type=\"file\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"
-      );
-      out.print(
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for Server tab
-      out.print(
-"<input type=\"hidden\" name=\"serverprotocol\" value=\""+serverProtocol+"\"/>\n"+
-"<input type=\"hidden\" name=\"servername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverport\" value=\""+serverPort+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverhttpcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPCgiPath)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverhttpntlmdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMDomain)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverhttpntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMUserName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverhttpntlmpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMPassword)+"\"/>\n"
-      );
+      paramMap.put("hasServerCertificates", hasServerCertificates);
     }
 
     // The "Document Access" tab
-    // Always pass the whole keystore as a hidden.
-    out.print(
-"<input name=\"ingestconfigop\" type=\"hidden\" value=\"Continue\"/>\n"
-    );
-    if (ingestKeystore != null)
-    {
-      out.print(
-"<input type=\"hidden\" name=\"ingestkeystoredata\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ingestKeystore)+"\"/>\n"
-      );
-    }
     if (tabName.equals(Messages.getString(locale,"LivelinkConnector.DocumentAccess")))
     {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchProtocol")+"</td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\"ingestprotocol\" size=\"3\">\n"+
-"        <option value=\"\" "+((ingestProtocol.equals(""))?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"LivelinkConnector.UseLAPI")+"</option>\n"+
-"        <option value=\"http\" "+((ingestProtocol.equals("http"))?"selected=\"selected\"":"")+">http</option>\n"+
-"        <option value=\"https\" "+((ingestProtocol.equals("https"))?"selected=\"selected\"":"")+">https</option>\n"+
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchPort")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"ingestport\" value=\""+ingestPort+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchCGIPath")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"ingestcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ingestCgiPath)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchNTLMDomain")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfNTLMAuthDesired")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"32\" name=\"ingestntlmdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ingestNtlmDomain)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchNTLMUserName")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfDifferentFromServerUserName")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"32\" name=\"ingestntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ingestNtlmUsername)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchNTLMPassword")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfDifferentFromServerPassword")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"password\" size=\"32\" name=\"ingestntlmpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ingestNtlmPassword)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-      );
-      out.print(
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentFetchSSLCertificateList")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\"ingestkeystorealias\" value=\"\"/>\n"+
-"      <table class=\"displaytable\">\n"
-      );
-      // List the individual certificates in the store, with a delete button for each
+      Boolean hasIngestCertificates = false;
       String[] contents = localIngestKeystore.getContents();
-      if (contents.length == 0)
+      if (contents.length > 0)
       {
-        out.print(
-"        <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.NoCertificatesPresent")+"</nobr></td></tr>\n"
-        );
-      }
-      else
-      {
+        hasIngestCertificates = true;
+        Map<String,String> ingestCertificatesMap = new HashMap<>();
         int i = 0;
         while (i < contents.length)
         {
@@ -1964,80 +1682,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           String description = localIngestKeystore.getDescription(alias);
           if (description.length() > 128)
             description = description.substring(0,125) + "...";
-          out.print(
-"        <tr>\n"+
-"          <td class=\"value\"><input type=\"button\" onclick='Javascript:IngestDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\""+Messages.getAttributeString(locale,"LivelinkConnector.Delete")+"\"/></td>\n"+
-"          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
-"        </tr>\n"
-          );
+          ingestCertificatesMap.put(alias,description);
           i++;
         }
+        paramMap.put("ingestCertificatesMap", ingestCertificatesMap);
       }
-      out.print(
-"      </table>\n"+
-"      <input type=\"button\" onclick='Javascript:IngestAddCertificate()' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCert")+"\" value=\""+Messages.getAttributeString(locale,"LivelinkConnector.Add")+"\"/>&nbsp;\n"+
-"      "+Messages.getBodyString(locale,"LivelinkConnector.Certificate")+"<input name=\"ingestcertificate\" size=\"50\" type=\"file\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"
-      );
-      out.print(
-"</table>\n"
-      );
+      paramMap.put("hasIngestCertificates", hasIngestCertificates);
     }
-    else
-    {
-      // Hiddens for Document Access tab
-      out.print(
-"<input type=\"hidden\" name=\"ingestprotocol\" value=\""+ingestProtocol+"\"/>\n"+
-"<input type=\"hidden\" name=\"ingestport\" value=\""+ingestPort+"\"/>\n"+
-"<input type=\"hidden\" name=\"ingestcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ingestCgiPath)+"\"/>\n"+
-"<input type=\"hidden\" name=\"ingestntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ingestNtlmUsername)+"\"/>\n"+
-"<input type=\"hidden\" name=\"ingestntlmpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ingestNtlmPassword)+"\"/>\n"+
-"<input type=\"hidden\" name=\"ingestntlmdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(ingestNtlmDomain)+"\"/>\n"
-      );
-  }
 
-    // Document View tab
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.DocumentView")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.DocumentViewProtocol")+"</td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\"viewprotocol\" size=\"3\">\n"+
-"        <option value=\"\" "+((viewProtocol.equals(""))?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"LivelinkConnector.SameAsFetchProtocol")+"</option>\n"+
-"        <option value=\"http\" "+((viewProtocol.equals("http"))?"selected=\"selected\"":"")+">http</option>\n"+
-"        <option value=\"https\" "+((viewProtocol.equals("https"))?"selected=\"selected\"":"")+">https</option>\n"+
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentViewServerName")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.BlankSameAsFetchServer")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"viewservername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(viewServerName)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentViewPort")+"</nobr><br/><nobr>(blank = same as fetch port)</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"viewport\" value=\""+viewPort+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.DocumentViewCGIPath")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.BlankSameAsFetchServer")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"viewcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(viewCgiPath)+"\"/></td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for Document View tab
-      out.print(
-"<input type=\"hidden\" name=\"viewprotocol\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(viewProtocol)+"\"/>\n"+
-"<input type=\"hidden\" name=\"viewservername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(viewServerName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"viewport\" value=\""+viewPort+"\"/>\n"+
-"<input type=\"hidden\" name=\"viewcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(viewCgiPath)+"\"/>\n"
-      );
-    }
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIG_REPO_BODY_FORWARD, paramMap);    
   }
   
   /** Process a configuration post.
@@ -2248,12 +1901,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
-    out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.Parameters")+"</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"3\">\n"
-    );
+    Map<String, Object> paramMap = new HashMap<>();
+    Map<String,String> configMap = new HashMap<>();
+
     Iterator iter = parameters.listParameters();
     while (iter.hasNext())
     {
@@ -2261,30 +1911,22 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       String value = parameters.getParameter(param);
       if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
       {
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
-        );
+        configMap.put(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param),"********");
       }
       else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore") ||
-        param.length() > "truststore".length() && param.substring(param.length()-"truststore".length()).equalsIgnoreCase("truststore"))
+              param.length() > "truststore".length() && param.substring(param.length()-"truststore".length()).equalsIgnoreCase("truststore"))
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=&lt;"+Integer.toString(kmanager.getContents().length)+Messages.getBodyString(locale,"LivelinkConnector.certificates")+"&gt;</nobr><br/>\n"
-        );
+        configMap.put(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param),"=&lt;"+Integer.toString(kmanager.getContents().length)+Messages.getBodyString(locale,"LivelinkConnector.certificates")+"&gt;");
       }
       else
       {
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
-        );
+        configMap.put(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param), org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value));
       }
     }
-    out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-    );
+
+    paramMap.put("configMap",configMap);
+    Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIG_REPO_BODY_FORWARD, paramMap);
   }
   
   /** Output the specification header section.
@@ -2308,115 +1950,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.Security"));
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.Metadata"));
     
-    String seqPrefix = "s"+connectionSequenceNumber+"_";
+    String seqPrefixParam = "s" + connectionSequenceNumber + "_";
 
-    out.print(
-"<script type=\"text/javascript\">\n"+
-"<!--\n"+
-"\n"+
-"function "+seqPrefix+"SpecOp(n, opValue, anchorvalue)\n"+
-"{\n"+
-"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
-"  postFormSetAnchor(anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"SpecAddToPath(anchorvalue)\n"+
-"{\n"+
-"  if (editjob."+seqPrefix+"pathaddon.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAFolderFirst")+"\");\n"+
-"    editjob."+seqPrefix+"pathaddon.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"pathop\",\"AddToPath\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"SpecAddFilespec(anchorvalue)\n"+
-"{\n"+
-"  if (editjob."+seqPrefix+"specfile.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TypeInAFileSpecification")+"\");\n"+
-"    editjob."+seqPrefix+"specfile.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"fileop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"SpecAddToken(anchorvalue)\n"+
-"{\n"+
-"  if (editjob."+seqPrefix+"spectoken.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.TypeInAnAccessToken")+"\");\n"+
-"    editjob."+seqPrefix+"spectoken.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"accessop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"SpecAddToMetadata(anchorvalue)\n"+
-"{\n"+
-"  if (editjob."+seqPrefix+"metadataaddon.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAFolderFirst")+"\");\n"+
-"    editjob."+seqPrefix+"metadataaddon.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"metadataop\",\"AddToPath\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"SpecSetWorkspace(anchorvalue)\n"+
-"{\n"+
-"  if (editjob."+seqPrefix+"metadataaddon.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAWorkspaceFirst")+"\");\n"+
-"    editjob."+seqPrefix+"metadataaddon.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"metadataop\",\"SetWorkspace\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"SpecAddCategory(anchorvalue)\n"+
-"{\n"+
-"  if (editjob."+seqPrefix+"categoryaddon.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectACategoryFirst")+"\");\n"+
-"    editjob."+seqPrefix+"categoryaddon.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"metadataop\",\"AddCategory\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"SpecAddMetadata(anchorvalue)\n"+
-"{\n"+
-"  if (editjob."+seqPrefix+"attributeselect.value == \"\" && editjob."+seqPrefix+"attributeall.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.SelectAtLeastOneAttributeFirst")+"\");\n"+
-"    editjob."+seqPrefix+"attributeselect.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"metadataop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"SpecAddMapping(anchorvalue)\n"+
-"{\n"+
-"  if (editjob."+seqPrefix+"specmatch.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.MatchStringCannotBeEmpty")+"\");\n"+
-"    editjob."+seqPrefix+"specmatch.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  if (!isRegularExpression(editjob."+seqPrefix+"specmatch.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.MatchStringMustBeValidRegularExpression")+"\");\n"+
-"    editjob."+seqPrefix+"specmatch.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"specmappingop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"//-->\n"+
-"</script>\n"
-    );
+    Map<String, String> paramMap = new HashMap<String, String>();  
+    paramMap.put("seqPrefix", seqPrefixParam);
+
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIG_JOB_HEADER_FORWARD, paramMap, true);
   }
   
   /** Output the specification body section.
@@ -3716,10 +3255,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
-    out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr>\n"
-    );
+    Map<String, Object> paramMap = new HashMap<>();
+
     int i = 0;
     boolean userWorkspaces = false;
     while (i < ds.getChildCount())
@@ -3733,21 +3270,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    out.print(
-"    <td class=\"description\"/>\n"+
-"      <nobr>"+Messages.getBodyString(locale,"LivelinkConnector.CrawlUserWorkspaces")+"</nobr>\n"+
-"    </td>\n"+
-"    <td class=\"value\"/>\n"+
-"      "+(userWorkspaces?Messages.getBodyString(locale,"LivelinkConnector.Yes"):Messages.getBodyString(locale,"LivelinkConnector.No"))+"\n"+
-"    </td>\n"+
-"  </tr>"
-    );
-    out.print(
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
-    out.print(
-"  <tr>"
-    );
+    paramMap.put("userWorkspaces",userWorkspaces);
+    List<String> paths = new ArrayList<>();
 
     i = 0;
     boolean seenAny = false;
@@ -3758,35 +3282,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         if (seenAny == false)
         {
-          out.print(
-"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.Roots")+"</td>\n"+
-"    <td class=\"value\">\n"
-          );
           seenAny = true;
         }
-        out.print(
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path"))+"<br/>\n"
-        );
+        paths.add(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path")));
       }
     }
 
-    if (seenAny)
-    {
-      out.print(
-"    </td>\n"+
-"  </tr>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"  <tr><td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoStartPointsSpecified")+"</td></tr>\n"
-      );
-    }
-    out.print(
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
+    paramMap.put("hasPath",seenAny);
+    paramMap.put("paths",paths);
 
+    List<String> fileSpecs = new ArrayList<>();
     seenAny = false;
     // Go through looking for include or exclude file specs
     i = 0;
@@ -3797,37 +3302,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         if (seenAny == false)
         {
-          out.print(
-"  <tr><td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.FileSpecs")+"</td>\n"+
-"    <td class=\"value\">\n"
-          );
           seenAny = true;
         }
         String filespec = sn.getAttributeValue("filespec");
-        out.print(
-"      "+(sn.getType().equals("include")?"Include file:":"")+"\n"+
-"      "+(sn.getType().equals("exclude")?"Exclude file:":"")+"\n"+
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filespec)+"<br/>\n"
-        );
+        fileSpecs.add((sn.getType().equals("include")?"Include file: ":"") + (sn.getType().equals("exclude")?"Exclude file: ":"") + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filespec));
       }
     }
 
-    if (seenAny)
-    {
-      out.print(
-"    </td>\n"+
-"  </tr>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"  <tr><td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoFileSpecsSpecified")+"</td></tr>\n"
-      );
-    }
-    out.print(
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
+    paramMap.put("hasFileSpecs",seenAny);
+    paramMap.put("fileSpecs",fileSpecs);
+
     // Find whether security is on or off
     i = 0;
     boolean securityOn = true;
@@ -3843,15 +3327,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           securityOn = true;
       }
     }
-    out.print(
-"  <tr>\n"+
-"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.SecurityColon")+"</td>\n"+
-"    <td class=\"value\">"+(securityOn?Messages.getBodyString(locale,"LivelinkConnector.Enabled2"):Messages.getBodyString(locale,"LivelinkConnector.Disabled"))+"</td>\n"+
-"  </tr>\n"+
-"\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
+
+    paramMap.put("securityOn",securityOn);
+
     // Go through looking for access tokens
+    List<String> accessTokens = new ArrayList<>();
     seenAny = false;
     i = 0;
     while (i < ds.getChildCount())
@@ -3861,37 +3341,18 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         if (seenAny == false)
         {
-          out.print(
-"  <tr><td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.AccessTokens")+"</td>\n"+
-"    <td class=\"value\">\n"
-          );
           seenAny = true;
         }
         String token = sn.getAttributeValue("token");
-        out.print(
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(token)+"<br/>\n"
-        );
+        accessTokens.add(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(token));
       }
     }
 
-    if (seenAny)
-    {
-      out.print(
-"    </td>\n"+
-"  </tr>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"  <tr><td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"LivelinkConnector.NoAccessTokensSpecified") + "</td></tr>\n"
-      );
-    }
-    out.print(
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
+    paramMap.put("hasAccessTokens",seenAny);
+    paramMap.put("accessTokens",accessTokens);
+
     i = 0;
-    String allMetadata = Messages.getBodyString(locale,"LivelinkConnector.OnlySpecifiedMetadataWillBeIngested");
+    Boolean allMetadata = false;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
@@ -3900,18 +3361,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         String value = sn.getAttributeValue("all");
         if (value != null && value.equals("true"))
         {
-          allMetadata=Messages.getBodyString(locale,"LivelinkConnector.AllDocumentMetadataWillBeIngested");
+          allMetadata=true;
         }
       }
     }
-    out.print(
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.MetadataSpecification")+"</nobr></td>\n"+
-"    <td class=\"value\"><nobr>"+allMetadata+"</nobr></td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
+
+    paramMap.put("allMetadata",allMetadata);
+
     // Go through looking for metadata spec
+    List<String> metadata = new ArrayList<>();
     seenAny = false;
     i = 0;
     while (i < ds.getChildCount())
@@ -3921,37 +3379,18 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         if (seenAny == false)
         {
-          out.print(
-"  <tr><td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SpecificMetadata")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"
-          );
           seenAny = true;
         }
         String category = sn.getAttributeValue("category");
         String attribute = sn.getAttributeValue("attribute");
         String isAll = sn.getAttributeValue("all");
-        out.print(
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(category)+":"+((isAll!=null&&isAll.equals("true"))?"(All metadata attributes)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(attribute))+"<br/>\n"
-        );
+        metadata.add(category+":"+((isAll!=null&&isAll.equals("true"))?"(All metadata attributes)":attribute));
       }
     }
 
-    if (seenAny)
-    {
-      out.print(
-"    </td>\n"+
-"  </tr>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"  <tr><td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoMetadataSpecified")+"</td></tr>\n"
-      );
-    }
-    out.print(
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
+    paramMap.put("hasMetadata",seenAny);
+    paramMap.put("metadata",metadata);
+
     // Find the path-name metadata attribute name
     i = 0;
     String pathNameAttribute = "";
@@ -3966,34 +3405,19 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           pathSeparator = sn.getAttributeValue("separator");
       }
     }
+
+    Boolean hasPathNameAttribute = false;
     if (pathNameAttribute.length() > 0)
     {
-      out.print(
-"  <tr>\n"+
-"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.PathNameMetadataAttribute")+"</td>\n"+
-"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathNameAttribute)+"</td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.PathSeparatorString")+"</td>\n"+
-"    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathSeparator)+"</td>\n"+
-"  </tr>\n"
-      );
+      hasPathNameAttribute = true;
+      paramMap.put("pathNameAttribute",pathNameAttribute);
+      paramMap.put("pathSeparator",pathSeparator);
     }
-    else
-    {
-      out.print(
-"  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoPathNameMetadataAttributeSpecified")+"</td>\n"+
-"  </tr>\n"
-      );
-    }
-    out.print(
-"\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"\n"+
-"  <tr>\n"
-    );
+
+    paramMap.put("hasPathNameAttribute",hasPathNameAttribute);
+
     // Find the path-value mapping data
+    Boolean hasPathValueMapping = false;
     i = 0;
     MatchMap matchMap = new MatchMap();
     while (i < ds.getChildCount())
@@ -4006,42 +3430,23 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         matchMap.appendMatchPair(pathMatch,pathReplace);
       }
     }
+
     if (matchMap.getMatchCount() > 0)
     {
-      out.print(
-"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.PathValueMapping")+"</td>\n"+
-"    <td class=\"value\">\n"+
-"      <table class=\"displaytable\">\n"
-      );
+      hasPathValueMapping = true;
+      Map<String,String> matchReplaceMap = new HashMap<>();
       i = 0;
       while (i < matchMap.getMatchCount())
       {
-        String matchString = matchMap.getMatchString(i);
-        String replaceString = matchMap.getReplaceString(i);
-        out.print(
-"        <tr>\n"+
-"          <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"</td>\n"+
-"          <td class=\"value\">--></td>\n"+
-"          <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"</td>\n"+
-"        </tr>\n"
-        );
+        matchReplaceMap.put(matchMap.getMatchString(i),matchMap.getReplaceString(i));
         i++;
       }
-      out.print(
-"      </table>\n"+
-"    </td>\n"
-      );
+      paramMap.put("matchReplaceMap",matchReplaceMap);
     }
-    else
-    {
-      out.print(
-"    <td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoMappingsSpecified")+"</td>\n"
-      );
-    }
-    out.print(
-"  </tr>\n"+
-"</table>\n"
-    );
+
+    paramMap.put("hasPathValueMapping",hasPathValueMapping);
+
+    Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIG_JOB_BODY_FORWARD, paramMap);
   }
 
   // The following public methods are NOT part of the interface.  They are here so that the UI can present information

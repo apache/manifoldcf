@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1160: Update Livelink Connector HTML String to Velocity Template
+(Kishore Kumar)
+
 CONNECTORS-1166: Delete link doesn't work on listtransformations
 UI page.
 (Shinichiro Abe, Karl Wright)
