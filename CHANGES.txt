@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1171: Fix SharePoint connector path mapping UI.
+(Frank Brendel, Karl Wright)
+
 CONNECTORS-1166: Delete link doesn't work on listtransformations
 UI page.
 (Shinichiro Abe, Karl Wright)
