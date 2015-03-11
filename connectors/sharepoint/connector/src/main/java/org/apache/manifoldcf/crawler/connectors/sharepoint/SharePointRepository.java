@@ -3559,7 +3559,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       {
         String match = variableContext.getParameter(seqPrefix+"specmatch");
         String replace = variableContext.getParameter(seqPrefix+"specreplace");
-        SpecificationNode node = new SpecificationNode(seqPrefix+"pathmap");
+        SpecificationNode node = new SpecificationNode("pathmap");
         node.setAttribute("match",match);
         node.setAttribute("replace",replace);
         ds.addChild(ds.getChildCount(),node);
