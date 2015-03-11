@@ -270,6 +270,7 @@
         <tr>
           <td class="description">
             <a name="s${SeqNum}_mapping_$mapcounter">
+              <input type="hidden" name="s${SeqNum}_specmappingcount" value="$mapcounter"/>
               <input type="button" onClick='Javascript:s${SeqNum}_SpecAddMapping("s${SeqNum}_mapping_$mapcounterplusone")' alt="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.AddToMappings'))" value="$Encoder.attributeEscape($ResourceBundle.getString('SharePointRepository.AddPathMapping'))"/>
             </a>
           </td>
