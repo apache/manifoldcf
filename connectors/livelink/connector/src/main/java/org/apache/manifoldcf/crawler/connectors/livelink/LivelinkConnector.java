@@ -94,16 +94,22 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   public static final String _rcsid = "@(#)$Id: LivelinkConnector.java 996524 2010-09-13 13:38:01Z kwright $";
 
   //Forward to the javascript to check the configuration parameters.
-  private static final String EDIT_CONFIG_JOB_HEADER_FORWARD = "editConfiguration_Job_Header.js";
-  private static final String EDIT_CONFIG_REPO_HEADER_FORWARD = "editConfiguration_Repo_Header.js";
+  private static final String EDIT_SPECIFICATION_JS = "editSpecification.js";
+  private static final String EDIT_CONFIGURATION_JS = "editConfiguration.js";
 
   //Forward to the HTML template to edit the configuration parameters.
-  private static final String EDIT_CONFIG_JOB_BODY_FORWARD = "editConfiguration_Job_Body.html";
-  private static final String EDIT_CONFIG_REPO_BODY_FORWARD = "editConfiguration_Repo_Body.html";
+  private static final String EDIT_SPECIFICATION_PATHS_HTML = "editSpecification_Paths.html";
+  private static final String EDIT_SPECIFICATION_FILTERS_HTML = "editSpecification_Filters.html";
+  private static final String EDIT_SPECIFICATION_SECURITY_HTML = "editSpecification_Security.html";
+  private static final String EDIT_SPECIFICATION_METADATA_HTML = "editSpecification_Metadata.html";
+
+  private static final String EDIT_CONFIGURATION_SERVER_HTML = "editConfiguration_Server.html";
+  private static final String EDIT_CONFIGURATION_ACCESS_HTML = "editConfiguration_Access.html";
+  private static final String EDIT_CONFIGURATION_VIEW_HTML = "editConfiguration_View.html";
 
   //Forward to the HTML template to view the configuration parameters.
-  private static final String VIEW_CONFIG_JOB_BODY_FORWARD = "viewConfiguration_Job.html";
-  private static final String VIEW_CONFIG_REPO_BODY_FORWARD = "viewConfiguration_Repo.html";
+  private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
+  private static final String VIEW_CONFIGURATION_HTML = "viewConfiguration.html";
 
   //Tab name parameter for managing the view of the Web UI.
   private static final String TAB_NAME_PARAM = "TabName";
@@ -1543,10 +1549,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.Server"));
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.DocumentAccess"));
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.DocumentView"));
-
-    Map<String, String> paramMap = new HashMap<>();
-
-    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIG_REPO_HEADER_FORWARD, paramMap, true);
+    
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_JS, null, true);
   }
   
   /** Output the configuration body section.
@@ -1563,95 +1567,71 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {    
-    Map<String, Object> paramMap = new HashMap<>();
-    paramMap.put(TAB_NAME_PARAM,tabName);
+    Map<String, Object> velocityContext = new HashMap<>();
+    velocityContext.put(TAB_NAME_PARAM,tabName);
 
+    fillInServerTab(velocityContext, out, parameters);
+    fillInDocumentAccessTab(velocityContext, out, parameters);
+    fillInDocumentViewTab(velocityContext, out, parameters);
+
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_SERVER_HTML, velocityContext);
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_ACCESS_HTML, velocityContext);
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_VIEW_HTML, velocityContext);
+  }
+
+  /** Fill in Server tab */
+  protected static void fillInServerTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
     // LAPI parameters
     String serverProtocol = parameters.getParameter(LiveLinkParameters.serverProtocol);
     if (serverProtocol == null)
       serverProtocol = "internal";
-    paramMap.put("serverProtocol",serverProtocol);
     String serverName = parameters.getParameter(LiveLinkParameters.serverName);
     if (serverName == null)
       serverName = "localhost";
-    paramMap.put("serverName",serverName);
     String serverPort = parameters.getParameter(LiveLinkParameters.serverPort);
     if (serverPort == null)
       serverPort = "2099";
-    paramMap.put("serverPort",serverPort);
     String serverUserName = parameters.getParameter(LiveLinkParameters.serverUsername);
-    paramMap.put("serverUserName",serverUserName);
+    if(serverUserName == null)
+      serverUserName = "";
     String serverPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverPassword);
-    if (serverPassword != null)
+    if (serverPassword == null)
+      serverPassword = "";
+    else
       serverPassword = out.mapPasswordToKey(serverPassword);
-    paramMap.put("serverPassword",serverPassword);
     String serverHTTPCgiPath = parameters.getParameter(LiveLinkParameters.serverHTTPCgiPath);
     if (serverHTTPCgiPath == null)
       serverHTTPCgiPath = "/livelink/livelink.exe";
-    paramMap.put("serverHTTPCgiPath",serverHTTPCgiPath);
     String serverHTTPNTLMDomain = parameters.getParameter(LiveLinkParameters.serverHTTPNTLMDomain);
-    paramMap.put("serverHTTPNTLMDomain",serverHTTPNTLMDomain);
+    if(serverHTTPNTLMDomain == null)
+      serverHTTPNTLMDomain = "";
     String serverHTTPNTLMUserName = parameters.getParameter(LiveLinkParameters.serverHTTPNTLMUsername);
-    paramMap.put("serverHTTPNTLMUserName",serverHTTPNTLMUserName);
+    if(serverHTTPNTLMUserName == null)
+      serverHTTPNTLMUserName = "";
     String serverHTTPNTLMPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
-    if (serverHTTPNTLMPassword != null)
+    if (serverHTTPNTLMPassword == null)
+      serverHTTPNTLMPassword = "";
+    else
       serverHTTPNTLMPassword = out.mapPasswordToKey(serverHTTPNTLMPassword);
-    paramMap.put("serverHTTPNTLMPassword",serverHTTPNTLMPassword);
     String serverHTTPSKeystore = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
+
     IKeystoreManager localServerHTTPSKeystore;
-    if (serverHTTPSKeystore == null)
-      localServerHTTPSKeystore = KeystoreManagerFactory.make("");
-    else
-      localServerHTTPSKeystore = KeystoreManagerFactory.make("",serverHTTPSKeystore);
-    paramMap.put("serverHTTPSKeystore",serverHTTPSKeystore);
+    Map<String,String> serverCertificatesMap = null;
+    String message = null;
 
-    // Document access parameters
-    String ingestProtocol = parameters.getParameter(LiveLinkParameters.ingestProtocol);
-    paramMap.put("ingestProtocol",ingestProtocol);
-    String ingestPort = parameters.getParameter(LiveLinkParameters.ingestPort);
-    paramMap.put("ingestPort",ingestPort);
-    String ingestCgiPath = parameters.getParameter(LiveLinkParameters.ingestCgiPath);
-    paramMap.put("ingestCgiPath",ingestCgiPath);
-    String ingestNtlmUsername = parameters.getParameter(LiveLinkParameters.ingestNtlmUsername);
-    paramMap.put("ingestNtlmUsername",ingestNtlmUsername);
-    String ingestNtlmPassword = parameters.getObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword);
-    if (ingestNtlmPassword != null)
-      ingestNtlmPassword = out.mapPasswordToKey(ingestNtlmPassword);
-    paramMap.put("ingestNtlmPassword",ingestNtlmPassword);
-    String ingestNtlmDomain = parameters.getParameter(LiveLinkParameters.ingestNtlmDomain);
-    paramMap.put("ingestNtlmDomain",ingestNtlmDomain);
-    String ingestKeystore = parameters.getParameter(LiveLinkParameters.ingestKeystore);
-    IKeystoreManager localIngestKeystore;
-    if (ingestKeystore == null)
-      localIngestKeystore = KeystoreManagerFactory.make("");
-    else
-      localIngestKeystore = KeystoreManagerFactory.make("",ingestKeystore);
-    paramMap.put("localIngestKeystore",ingestKeystore);
+    try {
+      if (serverHTTPSKeystore == null)
+        localServerHTTPSKeystore = KeystoreManagerFactory.make("");
+      else
+        localServerHTTPSKeystore = KeystoreManagerFactory.make("",serverHTTPSKeystore);
 
-    // Document view parameters
-    String viewProtocol = parameters.getParameter(LiveLinkParameters.viewProtocol);
-    if (viewProtocol == null)
-      viewProtocol = "http";
-    paramMap.put("viewProtocol",viewProtocol);
-    String viewServerName = parameters.getParameter(LiveLinkParameters.viewServerName);
-    paramMap.put("viewServerName",viewServerName);
-    String viewPort = parameters.getParameter(LiveLinkParameters.viewPort);
-    paramMap.put("viewPort",viewPort);
-    String viewCgiPath = parameters.getParameter(LiveLinkParameters.viewCgiPath);
-    if (viewCgiPath == null)
-      viewCgiPath = "/livelink/livelink.exe";
-    paramMap.put("viewCgiPath",viewCgiPath);
-
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Server")))
-    {
-      Boolean hasServerCertificates = false;
       // List the individual certificates in the store, with a delete button for each
       String[] contents = localServerHTTPSKeystore.getContents();
       if (contents.length > 0)
       {
-        hasServerCertificates = true;
+        serverCertificatesMap = new HashMap<>();
         int i = 0;
-        Map<String,String> serverCertificatesMap = new HashMap<>();
         while (i < contents.length)
         {
           String alias = contents[i];
@@ -1661,20 +1641,69 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           serverCertificatesMap.put(alias, description);
           i++;
         }
-        paramMap.put("serverCertificatesMap", serverCertificatesMap);
       }
-      paramMap.put("hasServerCertificates", hasServerCertificates);
+    } catch (ManifoldCFException e) {
+      message = e.getMessage();
+      Logging.connectors.warn(e);
     }
 
-    // The "Document Access" tab
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.DocumentAccess")))
-    {
-      Boolean hasIngestCertificates = false;
+    velocityContext.put("SERVERPROTOCOL",serverProtocol);
+    velocityContext.put("SERVERNAME",serverName);
+    velocityContext.put("SERVERPORT",serverPort);
+    velocityContext.put("SERVERUSERNAME",serverUserName);
+    velocityContext.put("SERVERPASSWORD",serverPassword);
+    velocityContext.put("SERVERHTTPCGIPATH",serverHTTPCgiPath);
+    velocityContext.put("SERVERHTTPNTLMDOMAIN",serverHTTPNTLMDomain);
+    velocityContext.put("SERVERHTTPNTLMUSERNAME",serverHTTPNTLMUserName);
+    velocityContext.put("SERVERHTTPNTLMPASSWORD",serverHTTPNTLMPassword);
+    if(serverHTTPSKeystore != null)
+      velocityContext.put("SERVERHTTPSKEYSTORE",serverHTTPSKeystore);
+    if(serverCertificatesMap != null)
+    velocityContext.put("SERVERCERTIFICATESMAP", serverCertificatesMap);
+    if(message != null)
+      velocityContext.put("MESSAGE", message);
+  }
+
+  /** Fill in Document Access tab */
+  protected static void fillInDocumentAccessTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
+    // Document access parameters
+    String ingestProtocol = parameters.getParameter(LiveLinkParameters.ingestProtocol);
+    if(ingestProtocol == null)
+      ingestProtocol = "";
+    String ingestPort = parameters.getParameter(LiveLinkParameters.ingestPort);
+    if(ingestPort == null)
+      ingestPort = "";
+    String ingestCgiPath = parameters.getParameter(LiveLinkParameters.ingestCgiPath);
+    if(ingestCgiPath == null)
+      ingestCgiPath = "";
+    String ingestNtlmUsername = parameters.getParameter(LiveLinkParameters.ingestNtlmUsername);
+    if(ingestNtlmUsername == null)
+      ingestNtlmUsername = "";
+    String ingestNtlmPassword = parameters.getObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword);
+    if (ingestNtlmPassword == null)
+      ingestNtlmPassword = "";
+    else
+      ingestNtlmPassword = out.mapPasswordToKey(ingestNtlmPassword);
+    String ingestNtlmDomain = parameters.getParameter(LiveLinkParameters.ingestNtlmDomain);
+    if(ingestNtlmDomain == null)
+      ingestNtlmDomain = "";
+    String ingestKeystore = parameters.getParameter(LiveLinkParameters.ingestKeystore);
+
+    IKeystoreManager localIngestKeystore;
+    Map<String,String> ingestCertificatesMap = null;
+    String message = null;
+
+    try{
+      if (ingestKeystore == null)
+        localIngestKeystore = KeystoreManagerFactory.make("");
+      else
+        localIngestKeystore = KeystoreManagerFactory.make("",ingestKeystore);
+
       String[] contents = localIngestKeystore.getContents();
       if (contents.length > 0)
       {
-        hasIngestCertificates = true;
-        Map<String,String> ingestCertificatesMap = new HashMap<>();
+        ingestCertificatesMap = new HashMap<>();
         int i = 0;
         while (i < contents.length)
         {
@@ -1685,13 +1714,49 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           ingestCertificatesMap.put(alias,description);
           i++;
         }
-        paramMap.put("ingestCertificatesMap", ingestCertificatesMap);
       }
-      paramMap.put("hasIngestCertificates", hasIngestCertificates);
+
+    } catch (ManifoldCFException e) {
+      message = e.getMessage();
+      Logging.connectors.warn(e);
     }
 
-    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIG_REPO_BODY_FORWARD, paramMap);    
+    velocityContext.put("INGESTPROTOCOL",ingestProtocol);
+    velocityContext.put("INGESTPORT",ingestPort);
+    velocityContext.put("INGESTCGIPATH",ingestCgiPath);
+    velocityContext.put("INGESTNTLMUSERNAME",ingestNtlmUsername);
+    velocityContext.put("INGESTNTLMPASSWORD",ingestNtlmPassword);
+    velocityContext.put("INGESTNTLMDOMAIN",ingestNtlmDomain);
+    velocityContext.put("INGESTKEYSTORE",ingestKeystore);
+    if(ingestCertificatesMap != null)
+      velocityContext.put("INGESTCERTIFICATESMAP", ingestCertificatesMap);
+    if(message != null)
+      velocityContext.put("MESSAGE", message);
   }
+
+  /** Fill in Document View tab */
+  protected static void fillInDocumentViewTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
+    // Document view parameters
+    String viewProtocol = parameters.getParameter(LiveLinkParameters.viewProtocol);
+    if (viewProtocol == null)
+      viewProtocol = "http";
+
+    String viewServerName = parameters.getParameter(LiveLinkParameters.viewServerName);
+    if(viewServerName == null)
+      viewServerName = "";
+    String viewPort = parameters.getParameter(LiveLinkParameters.viewPort);
+    if(viewPort == null)
+      viewPort = "";
+    String viewCgiPath = parameters.getParameter(LiveLinkParameters.viewCgiPath);
+    if (viewCgiPath == null)
+      viewCgiPath = "/livelink/livelink.exe";
+
+    velocityContext.put("VIEWPROTOCOL",viewProtocol);
+    velocityContext.put("VIEWSERVERNAME",viewServerName);
+    velocityContext.put("VIEWPORT",viewPort);
+    velocityContext.put("VIEWCGIPATH",viewCgiPath);
+  }  
   
   /** Process a configuration post.
   * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
@@ -1925,8 +1990,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
     }
 
-    paramMap.put("configMap",configMap);
-    Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIG_REPO_BODY_FORWARD, paramMap);
+    paramMap.put("CONFIGMAP",configMap);
+    Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIGURATION_HTML, paramMap);
   }
   
   /** Output the specification header section.
@@ -1955,7 +2020,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     Map<String, String> paramMap = new HashMap<String, String>();  
     paramMap.put("seqPrefix", seqPrefixParam);
 
-    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIG_JOB_HEADER_FORWARD, paramMap, true);
+    Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_JS, paramMap, true);
   }
   
   /** Output the specification body section.
@@ -1977,14 +2042,35 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
-    String seqPrefix = "s"+connectionSequenceNumber+"_";
+    Map<String,Object> velocityContext = new HashMap<>();
+    velocityContext.put("TabName",tabName);
+    velocityContext.put("SeqNum", Integer.toString(connectionSequenceNumber));
+    velocityContext.put("SelectedNum", Integer.toString(actualSequenceNumber));
 
-    int i;
-    int k;
+    fillInPathsTab(velocityContext,out,ds);
+    fillInFiltersTab(velocityContext, out, ds);
+    fillInSecurityTab(velocityContext,out,ds);
+    fillInMetadataTab(velocityContext,out,ds);
 
-    // Paths tab
+    // Now, do the part of the tabs that requires context logic
+    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Paths")))
+      fillInTransientPathsInfo(velocityContext,connectionSequenceNumber);
+    else if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Metadata")))
+      fillInTransientMetadataInfo(velocityContext,connectionSequenceNumber);
+
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_PATHS_HTML,velocityContext);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_FILTERS_HTML,velocityContext);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_SECURITY_HTML,velocityContext);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_METADATA_HTML,velocityContext);
+  }
+
+  /** Fill in paths tab */
+  protected static void fillInPathsTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
     boolean userWorkspaces = false;
-    i = 0;
+    List<String> paths = new ArrayList<>();
+
+    int i = 0;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
@@ -1994,734 +2080,245 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (value != null && value.equals("true"))
           userWorkspaces = true;
       }
+      else if (sn.getType().equals("startpoint"))
+      {
+        paths.add(sn.getAttributeValue("path"));
+      }
     }
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Paths")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <nobr>"+Messages.getBodyString(locale,"LivelinkConnector.CrawlUserWorkspaces")+"</nobr>\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"checkbox\" name=\""+seqPrefix+"userworkspace\" value=\"true\""+(userWorkspaces?" checked=\"true\"":"")+"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"userworkspace_present\" value=\"true\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-      );
-      // Now, loop through paths
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("startpoint"))
-        {
-          String pathDescription = "_"+Integer.toString(k);
-          String pathOpName = seqPrefix+"pathop"+pathDescription;
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+pathOpName+"\" value=\"\"/>\n"+
-"      <a name=\""+seqPrefix+"path_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+pathOpName+"\",\"Delete\",\""+seqPrefix+"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeletePath")+Integer.toString(k)+"\"/>\n"+
-"      </a>\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      "+((sn.getAttributeValue("path").length() == 0)?"(root)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path")))+"\n"+
-"    </td>\n"+
-"  </tr>\n"
-          );
-          k++;
-        }
-      }
-      if (k == 0)
-      {
-        out.print(
-"  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoStartingPointsDefined")+"</td>\n"+
-"  </tr>\n"
-        );
-      }
-      out.print(
-"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"
-      );
-  
-      String pathSoFar = (String)currentContext.get(seqPrefix+"specpath");
-      if (pathSoFar == null)
+
+    velocityContext.put("USERWORKSPACES",userWorkspaces);
+    velocityContext.put("PATHS",paths);
+  }
+
+  /** Fill in the transient portion of the Paths tab */
+  protected void fillInTransientPathsInfo(Map<String,Object> velocityContext, int connectionSequenceNumber)
+  {
+    String message = null;
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    String pathSoFar = (String)currentContext.get(seqPrefix+"specpath");
+    if (pathSoFar == null)
       pathSoFar = "";
 
-      // Grab next folder/project list
-      try
+    String[] childList = null;
+    // Grab next folder/project list
+    try
+    {
+      childList = getChildFolderNames(pathSoFar);
+      if (childList == null)
       {
-        String[] childList;
-        childList = getChildFolderNames(pathSoFar);
+        // Illegal path - set it back
+        pathSoFar = "";
+        childList = getChildFolderNames("");
         if (childList == null)
-        {
-          // Illegal path - set it back
-          pathSoFar = "";
-          childList = getChildFolderNames("");
-          if (childList == null)
-            throw new ManifoldCFException("Can't find any children for root folder");
-        }
-        out.print(
-"      <input type=\"hidden\" name=\""+seqPrefix+"specpath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathSoFar)+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"pathop\" value=\"\"/>\n"+
-"      <a name=\""+seqPrefix+"path_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"pathop\",\"Add\",\""+seqPrefix+"path_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddPath")+"\"/>\n"+
-"      </a>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      "+((pathSoFar.length()==0)?"(root)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pathSoFar))+"\n"
-        );
-        if (pathSoFar.length() > 0)
-        {
-          out.print(
-"      <input type=\"button\" value=\"-\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"pathop\",\"Up\",\""+seqPrefix+"path_"+Integer.toString(k)+"\")' alt=\"Back up path\"/>\n"
-          );
-        }
-        if (childList.length > 0)
-        {
-          out.print(
-"      <input type=\"button\" value=\"+\" onClick='Javascript:"+seqPrefix+"SpecAddToPath(\""+seqPrefix+"path_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToPath")+"\"/>&nbsp;\n"+
-"      <select multiple=\"false\" name=\""+seqPrefix+"pathaddon\" size=\"2\">\n"+
-"        <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickAFolder")+"</option>\n"
-          );
-          int j = 0;
-          while (j < childList.length)
-          {
-            out.print(
-"        <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList[j])+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childList[j])+"</option>\n"
-            );
-            j++;
-          }
-          out.print(
-"      </select>\n"
-          );
-        }
+          throw new ManifoldCFException("Can't find any children for root folder");
       }
-      catch (ServiceInterruption e)
-      {
-        //e.printStackTrace();
-        out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
-      }
-      catch (ManifoldCFException e)
-      {
-        //e.printStackTrace();
-        out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
-      }
-      out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
     }
-    else
+    catch (ServiceInterruption e)
     {
-      // Now, loop through paths
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("startpoint"))
-        {
-          String pathDescription = "_"+Integer.toString(k);
-          out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"specpath"+pathDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sn.getAttributeValue("path"))+"\"/>\n"
-          );
-          k++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"pathcount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"userworkspace\" value=\""+(userWorkspaces?"true":"false")+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"userworkspace_present\" value=\"true\"/>\n"
-      );
+      //e.printStackTrace();
+      message = e.getMessage();
+    }
+    catch (ManifoldCFException e)
+    {
+      //e.printStackTrace();
+      message = e.getMessage();
     }
 
-    // Filter tab
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Filters")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-      );
-      // Next, go through include/exclude filespecs
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("include") || sn.getType().equals("exclude"))
-        {
-          String fileSpecDescription = "_"+Integer.toString(k);
-          String fileOpName = seqPrefix+"fileop"+fileSpecDescription;
-          String filespec = sn.getAttributeValue("filespec");
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"specfiletype"+fileSpecDescription+"\" value=\""+sn.getType()+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+fileOpName+"\" value=\"\"/>\n"+
-"      <a name=\""+seqPrefix+"filespec_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+fileOpName+"\",\"Delete\",\""+seqPrefix+"filespec_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteFilespec")+Integer.toString(k)+"\"/>\n"+
-"      </a>\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      "+(sn.getType().equals("include")?"Include:":"")+"\n"+
-"      "+(sn.getType().equals("exclude")?"Exclude:":"")+"\n"+
-"      &nbsp;<input type=\"hidden\" name=\""+seqPrefix+"specfile"+fileSpecDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"+
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filespec)+"\n"+
-"    </td>\n"+
-"  </tr>\n"
-          );
-          k++;
-        }
-      }
-      if (k == 0)
-      {
-        out.print(
-"  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">"+Messages.getBodyString(locale,"LivelinkConnector.NoIncludeExcludeFilesDefined")+"</td>\n"+
-"  </tr>\n"
-        );
-      }
-      out.print(
-"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"filecount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"fileop\" value=\"\"/>\n"+
-"      <a name=\""+seqPrefix+"filespec_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:"+seqPrefix+"SpecAddFilespec(\""+seqPrefix+"filespec_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddFileSpecification")+"\"/>\n"+
-"      </a>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\""+seqPrefix+"specfiletype\" size=\"1\">\n"+
-"        <option value=\"include\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.Include")+"</option>\n"+
-"        <option value=\"exclude\">"+Messages.getBodyString(locale,"LivelinkConnector.Exclude")+"</option>\n"+
-"      </select>&nbsp;\n"+
-"      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"specfile\" value=\"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Next, go through include/exclude filespecs
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("include") || sn.getType().equals("exclude"))
-        {
-          String fileSpecDescription = "_"+Integer.toString(k);
-          String filespec = sn.getAttributeValue("filespec");
-          out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"specfiletype"+fileSpecDescription+"\" value=\""+sn.getType()+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"specfile"+fileSpecDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(filespec)+"\"/>\n"
-          );
-          k++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"filecount\" value=\""+Integer.toString(k)+"\"/>\n"
-      );
-    }
+    velocityContext.put("PATHSOFAR",pathSoFar);
+    if (message != null)
+      velocityContext.put("MESSAGE",message);
+    if (childList != null)
+      velocityContext.put("CHILDLIST",childList);
+  }
 
+  /** Fill in filters tab */
+  protected static void fillInFiltersTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+    List<Pair<String,String>> fileSpecs = new ArrayList<>();
 
-    // Security tab
-    // Find whether security is on or off
+    int i = 0;
+    // Next, go through include/exclude filespecs
     i = 0;
-    boolean securityOn = true;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals("include") || sn.getType().equals("exclude"))
+      {
+        fileSpecs.add(new Pair<>(sn.getType(),sn.getAttributeValue("filespec")));
+      }
+    }
+
+    velocityContext.put("FILESPECS",fileSpecs);
+  }
+
+  /** Fill in security tab */
+  protected static void fillInSecurityTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+    // Security tab
+    String security = "on";
+    List<String> accessTokens = new ArrayList<String>();
+    for (int i = 0; i < ds.getChildCount(); i++)
+    {
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals("security"))
       {
-        String securityValue = sn.getAttributeValue("value");
-        if (securityValue.equals("off"))
-          securityOn = false;
-        else if (securityValue.equals("on"))
-          securityOn = true;
+        security = sn.getAttributeValue("value");
+      }
+      else if (sn.getType().equals("access"))
+      {
+        String token = sn.getAttributeValue("token");
+        accessTokens.add(token);
       }
     }
 
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Security")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SecurityColon")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"on\" "+(securityOn?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"LivelinkConnector.Enabled")+"\n"+
-"      <input type=\"radio\" name=\""+seqPrefix+"specsecurity\" value=\"off\" "+((securityOn==false)?"checked=\"true\"":"")+" />"+Messages.getBodyString(locale,"LivelinkConnector.Disabled")+"\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-      );
-      // Go through forced ACL
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("access"))
-        {
-          String accessDescription = "_"+Integer.toString(k);
-          String accessOpName = seqPrefix+"accessop"+accessDescription;
-          String token = sn.getAttributeValue("token");
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"+
-"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+accessOpName+"\",\"Delete\",\""+seqPrefix+"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
-"      </a>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(token)+"\n"+
-"    </td>\n"+
-"  </tr>\n"
-          );
-          k++;
-        }
-      }
-      if (k == 0)
-      {
-        out.print(
-"  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"LivelinkConnector.NoAccessTokensPresent") + "</td>\n"+
-"  </tr>\n"
-        );
-      }
-      out.print(
-"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"accessop\" value=\"\"/>\n"+
-"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Add\" onClick='Javascript:"+seqPrefix+"SpecAddToken(\""+seqPrefix+"token_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddAccessToken")+"\"/>\n"+
-"      </a>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"spectoken\" value=\"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"specsecurity\" value=\""+(securityOn?"on":"off")+"\"/>\n"
-      );
-      // Finally, go through forced ACL
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("access"))
-        {
-          String accessDescription = "_"+Integer.toString(k);
-          String token = sn.getAttributeValue("token");
-          out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
-          );
-          k++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
-      );
-    }
+    velocityContext.put("SECURITY",security);
+    velocityContext.put("ACCESSTOKENS",accessTokens);
+  }
 
-
-    // Metadata tab
-
-    // Find the path-value metadata attribute name
-    i = 0;
+  /** Fill in Metadata tab */
+  protected static void fillInMetadataTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+    boolean ingestAllMetadata = false;
     String pathNameAttribute = "";
     String pathNameSeparator = "/";
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("pathnameattribute"))
-      {
-        pathNameAttribute = sn.getAttributeValue("value");
-        if (sn.getAttributeValue("separator") != null)
-          pathNameSeparator = sn.getAttributeValue("separator");
-      }
-    }
+    Map<String,String> matchMap = new HashMap<>();
+    //We are actually trying to create a Triple<L,M,R> by using Pair<L,R> where R is Pair<L,R>
+    List<Pair<String,Pair<String,String>>> metadataList = new ArrayList<>();
 
-    // Find the path-value mapping data
-    i = 0;
-    MatchMap matchMap = new MatchMap();
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("pathmap"))
-      {
-        String pathMatch = sn.getAttributeValue("match");
-        String pathReplace = sn.getAttributeValue("replace");
-        matchMap.appendMatchPair(pathMatch,pathReplace);
-      }
-    }
-
-
-    i = 0;
-    String ingestAllMetadata = "false";
+    int i = 0;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
       if (sn.getType().equals("allmetadata"))
       {
-        ingestAllMetadata = sn.getAttributeValue("all");
-        if (ingestAllMetadata == null)
-          ingestAllMetadata = "false";
+        String value = sn.getAttributeValue("all");
+        if (value != null && value.equals("true"))
+          ingestAllMetadata = true;
+      }
+      // Find the path-value metadata attribute name
+      else if (sn.getType().equals("pathnameattribute"))
+      {
+        pathNameAttribute = sn.getAttributeValue("value");
+        if (sn.getAttributeValue("separator") != null)
+          pathNameSeparator = sn.getAttributeValue("separator");
+      }
+      // Find the path-value mapping data
+      else if (sn.getType().equals("pathmap"))
+      {
+        String pathMatch = sn.getAttributeValue("match");
+        String pathReplace = sn.getAttributeValue("replace");
+        matchMap.put(pathMatch, pathReplace);
+      }
+      // Go through the selected metadata attributes
+      else if (sn.getType().equals("metadata"))
+      {
+        String categoryPath = sn.getAttributeValue("category");
+        String isAll = sn.getAttributeValue("all");
+        if (isAll == null)
+          isAll = "false";
+        String attributeName = sn.getAttributeValue("attribute");
+        if (attributeName == null)
+          attributeName = "";
+        metadataList.add(new Pair<>(categoryPath,new Pair<>(isAll,attributeName)));
       }
     }
 
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Metadata")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"specmappingop\" value=\"\"/>\n"+
-"\n"+
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.IngestALLMetadata")+"</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"3\">\n"+
-"      <nobr><input type=\"radio\" name=\""+seqPrefix+"specallmetadata\" value=\"true\" "+(ingestAllMetadata.equals("true")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"LivelinkConnector.Yes")+"</nobr>&nbsp;\n"+
-"      <nobr><input type=\"radio\" name=\""+seqPrefix+"specallmetadata\" value=\"false\" "+(ingestAllMetadata.equals("false")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"LivelinkConnector.No")+"</nobr>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
-      );
-      // Go through the selected metadata attributes
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("metadata"))
-        {
-          String accessDescription = "_"+Integer.toString(k);
-          String accessOpName = seqPrefix+"metadataop"+accessDescription;
-          String categoryPath = sn.getAttributeValue("category");
-          String isAll = sn.getAttributeValue("all");
-          if (isAll == null)
-            isAll = "false";
-          String attributeName = sn.getAttributeValue("attribute");
-          if (attributeName == null)
-            attributeName = "";
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\">\n"+
-"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"speccategory"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(categoryPath)+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"specattributeall"+accessDescription+"\" value=\""+isAll+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"specattribute"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attributeName)+"\"/>\n"+
-"      <a name=\""+seqPrefix+"metadata_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"Delete\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+accessOpName+"\",\"Delete\",\""+seqPrefix+"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteMetadata")+Integer.toString(k)+"\"/>\n"+
-"      </a>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\" colspan=\"3\">\n"+
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(categoryPath)+":"+((isAll!=null&&isAll.equals("true"))?"(All metadata attributes)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(attributeName))+"\n"+
-"    </td>\n"+
-"  </tr>\n"
-          );
-          k++;
-        }
-      }
-      if (k == 0)
-      {
-        out.print(
-"  <tr>\n"+
-"    <td class=\"message\" colspan=\"4\">"+Messages.getBodyString(locale,"LivelinkConnector.NoMetadataSpecified")+"</td>\n"+
-"  </tr>\n"
-        );
-      }
-      out.print(
-"  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\">\n"+
-"      <a name=\""+seqPrefix+"metadata_"+Integer.toString(k)+"\"></a>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"
-      );
-      String categorySoFar = (String)currentContext.get(seqPrefix+"speccategory");
-      if (categorySoFar == null)
-      categorySoFar = "";
-      // Grab next folder/project list, and the appropriate category list
-      try
-      {
-        String[] childList = null;
-        String[] workspaceList = null;
-        String[] categoryList = null;
-        String[] attributeList = null;
-        if (categorySoFar.length() == 0)
-        {
-          workspaceList = getWorkspaceNames();
-        }
-        else
-        {
-          attributeList = getCategoryAttributes(categorySoFar);
-          if (attributeList == null)
-          {
-            childList = getChildFolderNames(categorySoFar);
-            if (childList == null)
-            {
-              // Illegal path - set it back
-              categorySoFar = "";
-              childList = getChildFolderNames("");
-              if (childList == null)
-                throw new ManifoldCFException("Can't find any children for root folder");
-            }
-            categoryList = getChildCategoryNames(categorySoFar);
-            if (categoryList == null)
-              throw new ManifoldCFException("Can't find any categories for root folder folder");
-          }
-        }
-        out.print(
-"      <input type=\"hidden\" name=\""+seqPrefix+"speccategory\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(categorySoFar)+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"metadataop\" value=\"\"/>\n"
-        );
-        if (attributeList != null)
-        {
-          // We have a valid category!
-          out.print(
-"      <input type=\"button\" value=\"Add\" onClick='Javascript:"+seqPrefix+"SpecAddMetadata(\""+seqPrefix+"metadata_"+Integer.toString(k+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddMetadataItem")+"\"/>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\" colspan=\"3\">\n"+
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(categorySoFar)+":<input type=\"button\" value=\"-\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"metadataop\",\"Up\",\""+seqPrefix+"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.BackUpMetadataPath")+"\"/>&nbsp;\n"+
-"      <table class=\"displaytable\">\n"+
-"        <tr>\n"+
-"          <td class=\"value\">\n"+
-"            <input type=\"checkbox\" name=\""+seqPrefix+"attributeall\" value=\"true\"/>"+Messages.getBodyString(locale,"LivelinkConnector.AllAttributesInThisCategory")+"<br/>\n"+
-"            <select multiple=\"true\" name=\""+seqPrefix+"attributeselect\" size=\"2\">\n"+
-"              <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickAttributes")+"</option>\n"
-          );
-          int l = 0;
-          while (l < attributeList.length)
-          {
-            String attributeName = attributeList[l++];
-            out.print(
-"              <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attributeName)+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(attributeName)+"</option>\n"
-            );
-          }
-          out.print(
-"            </select>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"      </table>\n"
-          );
-        }
-        else if (workspaceList != null)
-        {
-          out.print(
-"    </td>\n"+
-"    <td class=\"value\" colspan=\"3\">\n"+
-"      <input type=\"button\" value=\"+\" onClick='Javascript:"+seqPrefix+"SpecSetWorkspace(\""+seqPrefix+"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToMetadataPath")+"\"/>&nbsp;\n"+
-"      <select multiple=\"false\" name=\""+seqPrefix+"metadataaddon\" size=\"2\">\n"+
-"        <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickWorkspace")+"</option>\n"
-          );
-          int j = 0;
-          while (j < workspaceList.length)
-          {
-            out.print(
-"        <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(workspaceList[j])+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(workspaceList[j])+"</option>\n"
-            );
-            j++;
-          }
-          out.print(
-"      </select>\n"
-          );
-        }
-        else
-        {
-          out.print(
-"    </td>\n"+
-"    <td class=\"value\" colspan=\"3\">\n"+
-"      "+((categorySoFar.length()==0)?"(root)":org.apache.manifoldcf.ui.util.Encoder.bodyEscape(categorySoFar))+"&nbsp;\n"
-          );
-          if (categorySoFar.length() > 0)
-          {
-            out.print(
-"      <input type=\"button\" value=\"-\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"metadataop\",\"Up\",\""+seqPrefix+"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.BackUpMetadataPath")+"\"/>&nbsp;\n"
-            );
-          }
-          if (childList.length > 0)
-          {
-            out.print(
-"      <input type=\"button\" value=\"+\" onClick='Javascript:"+seqPrefix+"SpecAddToMetadata(\""+seqPrefix+"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToMetadataPath")+"\"/>&nbsp;\n"+
-"      <select multiple=\"false\" name=\""+seqPrefix+"metadataaddon\" size=\"2\">\n"+
-"        <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickAFolder")+"</option>\n"
-            );
-            int j = 0;
-            while (j < childList.length)
-            {
-              out.print(
-"        <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(childList[j])+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(childList[j])+"</option>\n"
-              );
-              j++;
-            }
-            out.print(
-"      </select>\n"
-            );
-          }
-          if (categoryList.length > 0)
-          {
-            out.print(
-"      <input type=\"button\" value=\"+\" onClick='Javascript:"+seqPrefix+"SpecAddCategory(\""+seqPrefix+"metadata_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCategory")+"\"/>&nbsp;\n"+
-"      <select multiple=\"false\" name=\""+seqPrefix+"categoryaddon\" size=\"2\">\n"+
-"        <option value=\"\" selected=\"selected\">"+Messages.getBodyString(locale,"LivelinkConnector.PickACategory")+"</option>\n"
-            );
-            int j = 0;
-            while (j < categoryList.length)
-            {
-              out.print(
-"        <option value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(categoryList[j])+"\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(categoryList[j])+"</option>\n"
-              );
-              j++;
-            }
-            out.print(
-"      </select>\n"
-            );
-          }
-        }
-      }
-      catch (ServiceInterruption e)
-      {
-        //e.printStackTrace();
-        out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
-      }
-      catch (ManifoldCFException e)
-      {
-        //e.printStackTrace();
-        out.println(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage()));
-      }
-      out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.PathAttributeName")+"</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <input type=\"text\" name=\""+seqPrefix+"specpathnameattribute\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
-"    </td>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.PathSeparatorString")+"</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <input type=\"text\" name=\""+seqPrefix+"specpathnameseparator\" size=\"20\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameSeparator)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
-      );
-      i = 0;
-      while (i < matchMap.getMatchCount())
-      {
-        String matchString = matchMap.getMatchString(i);
-        String replaceString = matchMap.getReplaceString(i);
-        out.print(
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"specmappingop_"+Integer.toString(i)+"\" value=\"\"/>\n"+
-"      <a name=\""+seqPrefix+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+seqPrefix+"specmappingop_"+Integer.toString(i)+"\",\"Delete\",\""+seqPrefix+"mapping_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteMapping")+Integer.toString(i)+"\" value=\"Delete\"/>\n"+
-"      </a>\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(matchString)+"\n"+
-"    </td>\n"+
-"    <td class=\"value\">==></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(replaceString)+"\n"+
-"    </td>\n"+
-"  </tr>\n"
-        );
-        i++;
-      }
-      if (i == 0)
-      {
-        out.print(
-"  <tr><td colspan=\"4\" class=\"message\">"+Messages.getBodyString(locale,"LivelinkConnector.NoMappingsSpecified")+"</td></tr>\n"
-        );
-      }
-      out.print(
-"  <tr><td class=\"lightseparator\" colspan=\"4\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <a name=\""+seqPrefix+"mapping_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" onClick='Javascript:"+seqPrefix+"SpecAddMapping(\""+seqPrefix+"mapping_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddToMappings")+"\" value=\"Add\"/>\n"+
-"      </a>\n"+
-"    </td>\n"+
-"    <td class=\"value\">Match regexp:&nbsp;<input type=\"text\" name=\""+seqPrefix+"specmatch\" size=\"32\" value=\"\"/></td>\n"+
-"    <td class=\"value\">==></td>\n"+
-"    <td class=\"value\">Replace string:&nbsp;<input type=\"text\" name=\""+seqPrefix+"specreplace\" size=\"32\" value=\"\"/></td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"specallmetadata\" value=\""+ingestAllMetadata+"\"/>\n"
-      );
-      // Go through the selected metadata attributes
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("metadata"))
-        {
-          String accessDescription = "_"+Integer.toString(k);
-          String categoryPath = sn.getAttributeValue("category");
-          String isAll = sn.getAttributeValue("all");
-          if (isAll == null)
-            isAll = "false";
-          String attributeName = sn.getAttributeValue("attribute");
-          if (attributeName == null)
-            attributeName = "";
-          out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"speccategory"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(categoryPath)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"specattributeall"+accessDescription+"\" value=\""+isAll+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"specattribute"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attributeName)+"\"/>\n"
-          );
-          k++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"metadatacount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"specpathnameattribute\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameAttribute)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"specpathnameseparator\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pathNameSeparator)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"specmappingcount\" value=\""+Integer.toString(matchMap.getMatchCount())+"\"/>\n"
-      );
-      i = 0;
-      while (i < matchMap.getMatchCount())
-      {
-        String matchString = matchMap.getMatchString(i);
-        String replaceString = matchMap.getReplaceString(i);
-        out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"specmatch_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(matchString)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"specreplace_"+Integer.toString(i)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(replaceString)+"\"/>\n"
-        );
-        i++;
-      }
-    }
+
+    velocityContext.put("INGESTALLMETADATA",ingestAllMetadata);
+    velocityContext.put("PATHNAMEATTRIBUTE",pathNameAttribute);
+    velocityContext.put("PATHNAMESEPARATOR",pathNameSeparator);
+    velocityContext.put("MATCHMAP",matchMap);
+    velocityContext.put("METADATA",metadataList);
   }
+
+  /** Fill in the transient portion of the Metadata tab */
+  protected void fillInTransientMetadataInfo(Map<String,Object> velocityContext, int connectionSequenceNumber)
+  {
+    String message = null;
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    String categorySoFar = (String)currentContext.get(seqPrefix+"speccategory");
+    if (categorySoFar == null)
+      categorySoFar = "";
+
+    String[] childList = null;
+    String[] workspaceList = null;
+    String[] categoryList = null;
+    String[] attributeList = null;
+
+    // Grab next folder/project list, and the appropriate category list
+    try
+    {
+      if (categorySoFar.length() == 0)
+      {
+        workspaceList = getWorkspaceNames();
+      }
+      else
+      {
+        attributeList = getCategoryAttributes(categorySoFar);
+        if (attributeList == null)
+        {
+          childList = getChildFolderNames(categorySoFar);
+          if (childList == null)
+          {
+            // Illegal path - set it back
+            categorySoFar = "";
+            childList = getChildFolderNames("");
+            if (childList == null)
+              throw new ManifoldCFException("Can't find any children for root folder");
+          }
+          categoryList = getChildCategoryNames(categorySoFar);
+          if (categoryList == null)
+            throw new ManifoldCFException("Can't find any categories for root folder folder");
+        }
+      }
+
+    }
+    catch (ServiceInterruption e)
+    {
+      //e.printStackTrace();
+      message = e.getMessage();
+    }
+    catch (ManifoldCFException e)
+    {
+      //e.printStackTrace();
+      message = e.getMessage();
+    }
+
+    velocityContext.put("CATEGORYSOFAR",categorySoFar);
+    if (message != null)
+      velocityContext.put("MESSAGE",message);
+    if (childList != null)
+      velocityContext.put("CHILDLIST",childList);
+    if (workspaceList != null)
+      velocityContext.put("WORKSPACELIST",workspaceList);
+    if (categoryList != null)
+      velocityContext.put("CATEGORYLIST",categoryList);
+    if (attributeList != null)
+      velocityContext.put("ATTRIBUTELIST",attributeList);
+  }
+
+  /**
+   * A class to store a pair structure, where none of the properties can behave as a key.
+   * @param <L> value to store in left.
+   * @param <R> value to store in right.
+   */
+  public static final class Pair<L,R> {
+    private final L left;
+    private final R right;
+    public Pair(L left, R right){
+      this.left = left;
+      this.right = right;
+    }
+    public L getLeft(){ return left; }
+    public R getRight(){ return right; }
+
+    @Override
+    public String toString() {
+      return left + "=" + right;
+    }
+  }  
   
   /** Process a specification post.
   * This method is called at the start of job's edit or view page, whenever there is a possibility that form
@@ -3255,198 +2852,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
-    Map<String, Object> paramMap = new HashMap<>();
+    Map<String,Object> velocityContext = new HashMap<>();
 
-    int i = 0;
-    boolean userWorkspaces = false;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("userworkspace"))
-      {
-        String value = sn.getAttributeValue("value");
-        if (value != null && value.equals("true"))
-          userWorkspaces = true;
-      }
-    }
+    fillInPathsTab(velocityContext,out,ds);
+    fillInFiltersTab(velocityContext, out, ds);
+    fillInSecurityTab(velocityContext,out,ds);
+    fillInMetadataTab(velocityContext,out,ds);
 
-    paramMap.put("userWorkspaces",userWorkspaces);
-    List<String> paths = new ArrayList<>();
-
-    i = 0;
-    boolean seenAny = false;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("startpoint"))
-      {
-        if (seenAny == false)
-        {
-          seenAny = true;
-        }
-        paths.add(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("path")));
-      }
-    }
-
-    paramMap.put("hasPath",seenAny);
-    paramMap.put("paths",paths);
-
-    List<String> fileSpecs = new ArrayList<>();
-    seenAny = false;
-    // Go through looking for include or exclude file specs
-    i = 0;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("include") || sn.getType().equals("exclude"))
-      {
-        if (seenAny == false)
-        {
-          seenAny = true;
-        }
-        String filespec = sn.getAttributeValue("filespec");
-        fileSpecs.add((sn.getType().equals("include")?"Include file: ":"") + (sn.getType().equals("exclude")?"Exclude file: ":"") + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(filespec));
-      }
-    }
-
-    paramMap.put("hasFileSpecs",seenAny);
-    paramMap.put("fileSpecs",fileSpecs);
-
-    // Find whether security is on or off
-    i = 0;
-    boolean securityOn = true;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("security"))
-      {
-        String securityValue = sn.getAttributeValue("value");
-        if (securityValue.equals("off"))
-          securityOn = false;
-        else if (securityValue.equals("on"))
-          securityOn = true;
-      }
-    }
-
-    paramMap.put("securityOn",securityOn);
-
-    // Go through looking for access tokens
-    List<String> accessTokens = new ArrayList<>();
-    seenAny = false;
-    i = 0;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("access"))
-      {
-        if (seenAny == false)
-        {
-          seenAny = true;
-        }
-        String token = sn.getAttributeValue("token");
-        accessTokens.add(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(token));
-      }
-    }
-
-    paramMap.put("hasAccessTokens",seenAny);
-    paramMap.put("accessTokens",accessTokens);
-
-    i = 0;
-    Boolean allMetadata = false;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("allmetadata"))
-      {
-        String value = sn.getAttributeValue("all");
-        if (value != null && value.equals("true"))
-        {
-          allMetadata=true;
-        }
-      }
-    }
-
-    paramMap.put("allMetadata",allMetadata);
-
-    // Go through looking for metadata spec
-    List<String> metadata = new ArrayList<>();
-    seenAny = false;
-    i = 0;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("metadata"))
-      {
-        if (seenAny == false)
-        {
-          seenAny = true;
-        }
-        String category = sn.getAttributeValue("category");
-        String attribute = sn.getAttributeValue("attribute");
-        String isAll = sn.getAttributeValue("all");
-        metadata.add(category+":"+((isAll!=null&&isAll.equals("true"))?"(All metadata attributes)":attribute));
-      }
-    }
-
-    paramMap.put("hasMetadata",seenAny);
-    paramMap.put("metadata",metadata);
-
-    // Find the path-name metadata attribute name
-    i = 0;
-    String pathNameAttribute = "";
-    String pathSeparator = "/";
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("pathnameattribute"))
-      {
-        pathNameAttribute = sn.getAttributeValue("value");
-        if (sn.getAttributeValue("separator") != null)
-          pathSeparator = sn.getAttributeValue("separator");
-      }
-    }
-
-    Boolean hasPathNameAttribute = false;
-    if (pathNameAttribute.length() > 0)
-    {
-      hasPathNameAttribute = true;
-      paramMap.put("pathNameAttribute",pathNameAttribute);
-      paramMap.put("pathSeparator",pathSeparator);
-    }
-
-    paramMap.put("hasPathNameAttribute",hasPathNameAttribute);
-
-    // Find the path-value mapping data
-    Boolean hasPathValueMapping = false;
-    i = 0;
-    MatchMap matchMap = new MatchMap();
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("pathmap"))
-      {
-        String pathMatch = sn.getAttributeValue("match");
-        String pathReplace = sn.getAttributeValue("replace");
-        matchMap.appendMatchPair(pathMatch,pathReplace);
-      }
-    }
-
-    if (matchMap.getMatchCount() > 0)
-    {
-      hasPathValueMapping = true;
-      Map<String,String> matchReplaceMap = new HashMap<>();
-      i = 0;
-      while (i < matchMap.getMatchCount())
-      {
-        matchReplaceMap.put(matchMap.getMatchString(i),matchMap.getReplaceString(i));
-        i++;
-      }
-      paramMap.put("matchReplaceMap",matchReplaceMap);
-    }
-
-    paramMap.put("hasPathValueMapping",hasPathValueMapping);
-
-    Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIG_JOB_BODY_FORWARD, paramMap);
+    Messages.outputResourceWithVelocity(out, locale, VIEW_SPECIFICATION_HTML, velocityContext);
   }
 
   // The following public methods are NOT part of the interface.  They are here so that the UI can present information
@@ -7159,8 +6572,5 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
 
   }
-
-
+  
 }
-
-
