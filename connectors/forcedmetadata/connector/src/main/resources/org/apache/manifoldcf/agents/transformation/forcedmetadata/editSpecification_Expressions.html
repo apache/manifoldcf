@@ -132,8 +132,8 @@
   #end
 <input type="hidden" name="s${SEQNUM}_expression_count" value="${paramcounter}"/>
 <input type="hidden" name="s${SEQNUM}_keepallmetadata_present" value="true"/>
-<input type="hidden" name="s${SEQNUM}_keepallmetadata" value="$Encoder.bodyEscape($FILTEREMPTY)"/>
+<input type="hidden" name="s${SEQNUM}_keepallmetadata" value="$Encoder.attributeEscape($KEEPALLMETADATA)"/>
 <input type="hidden" name="s${SEQNUM}_filterempty_present" value="true"/>
-<input type="hidden" name="s${SEQNUM}_filterempty" value="$Encoder.bodyEscape($FILTEREMPTY)"/>
+<input type="hidden" name="s${SEQNUM}_filterempty" value="$Encoder.attributeEscape($FILTEREMPTY)"/>
 
 #end
