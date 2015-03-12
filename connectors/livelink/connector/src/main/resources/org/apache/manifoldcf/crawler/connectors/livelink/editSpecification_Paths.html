@@ -1,0 +1,121 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TabName == $ResourceBundle.getString('LivelinkConnector.Paths') && ${SeqNum} == ${SelectedNum})
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.CrawlUserWorkspaces'))</nobr>
+    </td>
+    <td class="value">
+  #if($USERWORKSPACES)
+        <input type="checkbox" name="s${SeqNum}_userworkspace" value="true" checked="true"/>
+  #else
+        <input type="checkbox" name="s${SeqNum}_userworkspace" value="true"/>
+  #end
+      <input type="hidden" name="s${SeqNum}_userworkspace_present" value="true"/>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
+  #set($pathcounter = 0)
+  #foreach($path in $PATHS)
+  <tr>
+    <td class="description">
+      <input type="hidden" name="s${SeqNum}_specpath_${pathcounter}" value="$Encoder.attributeEscape($path)"/>
+      <input type="hidden" name="s${SeqNum}_pathop_${pathcounter}" value=""/>
+      <a name="s${SeqNum}_path_${pathcounter}">
+        <input type="button" value="Delete"
+               onClick="Javascript:s${SeqNum}_SpecOp('s${SeqNum}_pathop_${pathcounter}','Delete','s${SeqNum}_path_${pathcounter}')"
+               alt="$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DeletePath'))${pathcounter}"/>
+      </a>
+    </td>
+    <td class="value">
+    #if($path && $path.length() > 0)
+      $Encoder.bodyEscape($path)
+    #else
+      (root)
+    #end
+    </td>
+  </tr>
+    #set($pathcounter = $pathcounter + 1)
+  #end
+
+  #if($pathcounter == 0)
+  <tr>
+    <td class="message" colspan="2">
+      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoStartingPointsDefined'))
+    </td>
+  </tr>
+  #end
+
+  <tr><td class="lightseparator" colspan="2"><hr/></td></tr>
+
+  <tr>
+  #if($MESSAGE)
+    <td class="message" colspan="2">$Encoder.bodyEscape($MESSAGE)</td>
+  #else
+    <td class="description">
+      <input type="hidden" name="s${SeqNum}_pathcount" value="${pathcounter}"/>
+      <input type="hidden" name="s${SeqNum}_specpath" value="$Encoder.attributeEscape($PATHSOFAR)"/>
+      <input type="hidden" name="s${SeqNum}_pathop" value=""/>
+      <a name="s${SeqNum}_path_${pathcounter}">
+        #set($anchorSuffix = $pathcounter+1)
+        <input type="button" value="Add"
+               onClick="Javascript:s${SeqNum}_SpecOp('s${SeqNum}_pathop','Add','s${SeqNum}_path_${anchorSuffix}')"
+              alt="$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.AddPath'))"/>
+      </a>
+    </td>
+    <td class="value">
+    #if($PATHSOFAR && $PATHSOFAR.length() > 0)
+      $Encoder.bodyEscape($PATHSOFAR)
+      <input type="button" value="-"
+        onClick="Javascript:s${SeqNum}_SpecOp('s${SeqNum}_pathop','Up','s${SeqNum}_path_${pathcounter}')"
+        alt="Back up path"/>
+    #else
+        (root)
+    #end
+    #if($CHILDLIST && $CHILDLIST.size() > 0)
+      <input type="button" value="+"
+             onClick="Javascript:s${SeqNum}_SpecAddToPath('s${SeqNum}_path_${pathcounter}')"
+             alt="$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.AddPath'))"/>
+      <select name="s${SeqNum}_pathaddon">
+        <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PickAFolder'))</option>
+        #foreach($child in $CHILDLIST)
+          <option value="$Encoder.attributeEscape($child)">$Encoder.bodyEscape($child)</option>
+        #end
+      </select>
+    #end
+    </td>
+  #end
+  </tr>
+</table>
+#else
+  #set($pathcounter = 0)
+  #foreach($path in $PATHS)
+  <input type="hidden" name="s${SeqNum}_specpath_${pathcounter}" value="$Encoder.attributeEscape($path)"/>
+    #set($pathcounter = $pathcounter + 1)
+  #end
+  <input type="hidden" name="s${SeqNum}_pathcount" value="$pathcounter"/>
+  #if($USERWORKSPACES)
+  <input type="hidden" name="s${SeqNum}_userworkspace" value="true"/>
+  #else
+  <input type="hidden" name="s${SeqNum}_userworkspace" value="false"/>
+  #end
+  <input type="hidden" name="s${SeqNum}_userworkspace_present" value="true"/>
+#end

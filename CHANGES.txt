@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1160: Update Livelink Connector HTML String to Velocity Template
+(Kishore Kumar)
+
 CONNECTORS-1172: Fix metadata adjuster 'keep all metadata' switch
 UI.
 (Frank Brendel, Karl Wright)

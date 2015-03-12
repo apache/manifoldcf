@@ -49,6 +49,16 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 {
   public static final String _rcsid = "@(#)$Id: LivelinkAuthority.java 988245 2010-08-23 18:39:35Z kwright $";
 
+  //Forward to the javascript to check the configuration parameters.
+  private static final String EDIT_CONFIGURATION_JS = "editConfiguration.js";
+
+  //Forward to the HTML template to edit the configuration parameters.
+  private static final String EDIT_CONFIGURATION_SERVER_HTML = "editConfiguration_Server.html";
+  private static final String EDIT_CONFIGURATION_CACHE_HTML = "editConfiguration_Cache.html";
+
+  //Forward to the HTML template to view the configuration parameters.
+  private static final String VIEW_CONFIGURATION_HTML = "viewConfiguration.html";
+
   // Signal that we have set up connection parameters properly
   private boolean hasSessionParameters = false;
   // Signal that we have set up a connection properly
@@ -572,91 +582,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.Server"));
     tabsArray.add(Messages.getString(locale,"LivelinkConnector.Cache"));
 
-    out.print(
-"<script type=\"text/javascript\">\n"+
-"<!--\n"+
-"function ServerDeleteCertificate(aliasName)\n"+
-"{\n"+
-"  editconnection.serverkeystorealias.value = aliasName;\n"+
-"  editconnection.serverconfigop.value = \"Delete\";\n"+
-"  postForm();\n"+
-"}\n"+
-"\n"+
-"function ServerAddCertificate()\n"+
-"{\n"+
-"  if (editconnection.servercertificate.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"LivelinkConnector.ChooseACertificateFile")+"\");\n"+
-"    editconnection.servercertificate.focus();\n"+
-"  }\n"+
-"  else\n"+
-"  {\n"+
-"    editconnection.serverconfigop.value = \"Add\";\n"+
-"    postForm();\n"+
-"  }\n"+
-"}\n"+
-"\n"+
-"function checkConfig()\n"+
-"{\n"+
-"  if (editconnection.serverport.value != \"\" && !isInteger(editconnection.serverport.value))\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.AValidNumberIsRequired") + "\");\n"+
-"    editconnection.serverport.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function checkConfigForSave()\n"+
-"{\n"+
-"  if (editconnection.servername.value == \"\")\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.EnterALivelinkServerName") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
-"    editconnection.servername.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.serverport.value == \"\")\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.AServerPortNumberIsRequired") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Server") + "\");\n"+
-"    editconnection.serverport.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.cachelifetime.value == \"\")\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.CacheLifetimeCannotBeNull") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Cache") + "\");\n"+
-"    editconnection.cachelifetime.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.cachelifetime.value != \"\" && !isInteger(editconnection.cachelifetime.value))\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.CacheLifetimeMustBeAnInteger") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Cache") + "\");\n"+
-"    editconnection.cachelifetime.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.cachelrusize.value == \"\")\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.CacheLRUSizeCannotBeNull") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Cache") + "\");\n"+
-"    editconnection.cachelrusize.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if (editconnection.cachelrusize.value != \"\" && !isInteger(editconnection.cachelrusize.value))\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.CacheLRUSizeMustBeAnInteger") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"LivelinkConnector.Cache") + "\");\n"+
-"    editconnection.cachelrusize.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"//-->\n"+
-"</script>\n"
-    );
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_JS, null, true);  
   }
   
   /** Output the configuration body section.
@@ -672,6 +598,19 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
+  {        
+    Map<String, Object> velocityContext = new HashMap<>();
+    velocityContext.put("TabName",tabName);
+
+    fillInServerTab(velocityContext, out, parameters);
+    fillInCacheTab(velocityContext, out, parameters);
+
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_SERVER_HTML, velocityContext);
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_CACHE_HTML, velocityContext);
+  }
+
+  /** Fill in Server tab */
+  protected static void fillInServerTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
   {
     // LAPI parameters
     String serverProtocol = parameters.getParameter(LiveLinkParameters.serverProtocol);
@@ -706,104 +645,22 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     else
       serverHTTPNTLMPassword = out.mapPasswordToKey(serverHTTPNTLMPassword);
     String serverHTTPSKeystore = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
+
     IKeystoreManager localServerHTTPSKeystore;
-    if (serverHTTPSKeystore == null)
-      localServerHTTPSKeystore = KeystoreManagerFactory.make("");
-    else
-      localServerHTTPSKeystore = KeystoreManagerFactory.make("",serverHTTPSKeystore);
+    Map<String,String> serverCertificatesMap = null;
+    String message = null;
 
-    // Cache parameters
-    String cacheLifetime = parameters.getParameter(LiveLinkParameters.cacheLifetime);
-    if (cacheLifetime == null)
-      cacheLifetime = "1";
-    String cacheLRUsize = parameters.getParameter(LiveLinkParameters.cacheLRUSize);
-    if (cacheLRUsize == null)
-      cacheLRUsize = "1000";    
+    try {
+      if (serverHTTPSKeystore == null)
+        localServerHTTPSKeystore = KeystoreManagerFactory.make("");
+      else
+        localServerHTTPSKeystore = KeystoreManagerFactory.make("",serverHTTPSKeystore);
 
-    // The "Server" tab
-    // Always pass the whole keystore as a hidden.
-    out.print(
-"<input name=\"serverconfigop\" type=\"hidden\" value=\"Continue\"/>\n"
-    );
-    if (serverHTTPSKeystore != null)
-    {
-      out.print(
-"<input type=\"hidden\" name=\"serverhttpskeystoredata\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPSKeystore)+"\"/>\n"
-      );
-    }
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Server")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">"+Messages.getBodyString(locale,"LivelinkConnector.ServerProtocol")+"</td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\"serverprotocol\" size=\"2\">\n"+
-"        <option value=\"internal\" "+((serverProtocol.equals("internal"))?"selected=\"selected\"":"")+">"+Messages.getBodyString(locale,"LivelinkConnector.internal")+"</option>\n"+
-"        <option value=\"http\" "+((serverProtocol.equals("http"))?"selected=\"selected\"":"")+">http</option>\n"+
-"        <option value=\"https\" "+((serverProtocol.equals("https"))?"selected=\"selected\"":"")+">https</option>\n"+
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerName")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"64\" name=\"servername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerPort")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"serverport\" value=\""+serverPort+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerUserName")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerPassword")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"password\" size=\"32\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPCGIPath")+"</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"serverhttpcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPCgiPath)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMDomain")+"</nobr><br/><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.SetIfNTLMAuthDesired")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"32\" name=\"serverhttpntlmdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMDomain)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMUserName")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"32\" name=\"serverhttpntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMUserName)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerHTTPNTLMPassword")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"password\" size=\"32\" name=\"serverhttpntlmpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMPassword)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-      );
-      out.print(
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.ServerSSLCertificateList")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"hidden\" name=\"serverkeystorealias\" value=\"\"/>\n"+
-"      <table class=\"displaytable\">\n"
-      );
       // List the individual certificates in the store, with a delete button for each
       String[] contents = localServerHTTPSKeystore.getContents();
-      if (contents.length == 0)
+      if (contents.length > 0)
       {
-        out.print(
-"        <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getBodyString(locale,"LivelinkConnector.NoCertificatesPresent")+"</nobr></td></tr>\n"
-        );
-      }
-      else
-      {
+        serverCertificatesMap = new HashMap<>();
         int i = 0;
         while (i < contents.length)
         {
@@ -811,69 +668,45 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
           String description = localServerHTTPSKeystore.getDescription(alias);
           if (description.length() > 128)
             description = description.substring(0,125) + "...";
-          out.print(
-"        <tr>\n"+
-"          <td class=\"value\"><input type=\"button\" onclick='Javascript:ServerDeleteCertificate(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(alias)+"\")' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.DeleteCert")+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(alias)+"\" value=\""+Messages.getAttributeString(locale,"LivelinkConnector.Delete")+"\"/></td>\n"+
-"          <td>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)+"</td>\n"+
-"        </tr>\n"
-          );
+          serverCertificatesMap.put(alias, description);
           i++;
         }
       }
-      out.print(
-"      </table>\n"+
-"      <input type=\"button\" onclick='Javascript:ServerAddCertificate()' alt=\""+Messages.getAttributeString(locale,"LivelinkConnector.AddCert")+"\" value=\""+Messages.getAttributeString(locale,"LivelinkConnector.Add")+"\"/>&nbsp;\n"+
-"      "+Messages.getBodyString(locale,"LivelinkConnector.Certificate")+"<input name=\"servercertificate\" size=\"50\" type=\"file\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"
-      );
-      out.print(
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for Server tab
-      out.print(
-"<input type=\"hidden\" name=\"serverprotocol\" value=\""+serverProtocol+"\"/>\n"+
-"<input type=\"hidden\" name=\"servername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverport\" value=\""+serverPort+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverUserName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverPassword)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverhttpcgipath\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPCgiPath)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverhttpntlmdomain\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMDomain)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverhttpntlmusername\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMUserName)+"\"/>\n"+
-"<input type=\"hidden\" name=\"serverhttpntlmpassword\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(serverHTTPNTLMPassword)+"\"/>\n"
-      );
+    } catch (ManifoldCFException e) {
+      message = e.getMessage();
+      org.apache.manifoldcf.crawler.system.Logging.connectors.warn(e);
     }
 
-    // "Cache" tab
-    if(tabName.equals(Messages.getString(locale,"LivelinkConnector.Cache")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.CacheLifetime") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelifetime\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime) + "\"/> " + Messages.getBodyString(locale,"LivelinkConnector.minutes") + "</td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.CacheLRUSize") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"cachelrusize\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize) + "\"/></td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for "Cache" tab
-      out.print(
-"<input type=\"hidden\" name=\"cachelifetime\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLifetime) + "\"/>\n"+
-"<input type=\"hidden\" name=\"cachelrusize\" value=\"" + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(cacheLRUsize) + "\"/>\n"
-      );
-    }
-
+    velocityContext.put("SERVERPROTOCOL",serverProtocol);
+    velocityContext.put("SERVERNAME",serverName);
+    velocityContext.put("SERVERPORT",serverPort);
+    velocityContext.put("SERVERUSERNAME",serverUserName);
+    velocityContext.put("SERVERPASSWORD",serverPassword);
+    velocityContext.put("SERVERHTTPCGIPATH",serverHTTPCgiPath);
+    velocityContext.put("SERVERHTTPNTLMDOMAIN",serverHTTPNTLMDomain);
+    velocityContext.put("SERVERHTTPNTLMUSERNAME",serverHTTPNTLMUserName);
+    velocityContext.put("SERVERHTTPNTLMPASSWORD",serverHTTPNTLMPassword);
+    if(serverHTTPSKeystore != null)
+      velocityContext.put("SERVERHTTPSKEYSTORE",serverHTTPSKeystore);
+    if(serverCertificatesMap != null)
+      velocityContext.put("SERVERCERTIFICATESMAP", serverCertificatesMap);
+    if(message != null)
+      velocityContext.put("MESSAGE", message);
   }
+
+  /** Fill in Cache tab */
+  private void fillInCacheTab(Map<String, Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
+    String cacheLifetime = parameters.getParameter(LiveLinkParameters.cacheLifetime);
+    if (cacheLifetime == null)
+      cacheLifetime = "1";
+    String cacheLRUsize = parameters.getParameter(LiveLinkParameters.cacheLRUSize);
+    if (cacheLRUsize == null)
+      cacheLRUsize = "1000";
+
+    velocityContext.put("CACHELIFETIME",cacheLifetime);
+    velocityContext.put("CACHELRUSIZE",cacheLRUsize);
+  }  
   
   /** Process a configuration post.
   * This method is called at the start of the authority connector's configuration page, whenever there is a possibility that form data for a connection has been
@@ -999,12 +832,9 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
-    out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"LivelinkConnector.Parameters") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"3\">\n"
-    );
+    Map<String, Object> paramMap = new HashMap<>();
+    Map<String,String> configMap = new HashMap<>();
+
     Iterator iter = parameters.listParameters();
     while (iter.hasNext())
     {
@@ -1012,30 +842,22 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       String value = parameters.getParameter(param);
       if (param.length() >= "password".length() && param.substring(param.length()-"password".length()).equalsIgnoreCase("password"))
       {
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=********</nobr><br/>\n"
-        );
+        configMap.put(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param),"********");
       }
       else if (param.length() >="keystore".length() && param.substring(param.length()-"keystore".length()).equalsIgnoreCase("keystore") ||
         param.length() > "truststore".length() && param.substring(param.length()-"truststore".length()).equalsIgnoreCase("truststore"))
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"=&lt;"+Integer.toString(kmanager.getContents().length)+" certificate(s)&gt;</nobr><br/>\n"
-        );
+        configMap.put(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param),"=&lt;"+Integer.toString(kmanager.getContents().length)+Messages.getBodyString(locale,"LivelinkConnector.certificates")+"&gt;");
       }
       else
       {
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param)+"="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+"</nobr><br/>\n"
-        );
+        configMap.put(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param), org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value));
       }
     }
-    out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-    );
+
+    paramMap.put("CONFIGMAP",configMap);
+    Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIGURATION_HTML, paramMap);    
   }
 
   /** Interpret runtimeexception to search for livelink API errors.  Throws an appropriately reinterpreted exception, or
