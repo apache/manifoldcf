@@ -467,7 +467,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
       while (i < os.getChildCount())
       {
         SpecificationNode node = os.getChild(i);
-        if (node.getType().equals(NODE_KEEPMETADATA))
+        if (node.getType().equals(NODE_FILTEREMPTY))
           os.removeChild(i);
         else
           i++;
