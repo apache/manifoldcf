@@ -60,14 +60,13 @@ public class SearchBloxDocument {
 		ADD_UPDATE, DELETE, STATUS, CREATE, CLEAR
 	}
     static final List<String> xmlElements= Lists.newArrayList("searchblox","document","url","title","keywords","content","description","lastmodified","size",
-            "alpha","contenttype","category","meta","acl","uid");
+            "alpha","contenttype","category","meta","uid");
 
 	static final String COLNAME_ATTRIBUTE = "colname";
 	static final String APIKEY_ATTRIBUTE = "apikey";
 	static final String NAME_ATTRIBUTE = "name";
-	static final String LOCATION_ATTRIBUTE = "location";
+	static final String UID_ATTRIBUTE = "uid";
 	static final String BOOST_ATTRIBUTE = "boost";
-	static final String ACL_TYPE_ATTRIBUTE = "boost";
 
 	private Multimap<String, Object> data_fields = HashMultimap.create();
 
@@ -151,21 +150,20 @@ public class SearchBloxDocument {
 								+ name, e);
 			}
 		}
-		data_fields.put(xmlElements.get(12), metadata);
 
-		// ACLS
-		Multimap<String, String> acls = HashMultimap.create();
+		// ACLS must be stored as metadata, as Searchblox use that construct to index custom named fields
+        //the approach has been implemented and tested live
 		Iterator<String> aclTypes = rd.securityTypesIterator();
 		while (aclTypes.hasNext()) {
 			String aclType = aclTypes.next();
-			String[] tokens = rd.getSecurityACL(aclType);
-			for (String token : tokens)
-				acls.put(aclType, token);
-			tokens = rd.getSecurityDenyACL(aclType);
-			for (String token : tokens)
-				acls.put(aclType, token);
+			String[] allow_tokens = rd.getSecurityACL(aclType);
+			for (String token : allow_tokens)
+				metadata.put(aclType+"_allow", token);
+            String[] deny_tokens = rd.getSecurityDenyACL(aclType);
+            for (String token : deny_tokens)
+                metadata.put(aclType+"_deny", token);
 		}
-		data_fields.put(xmlElements.get(13), acls);
+        data_fields.put(xmlElements.get(12), metadata);
 	}
 
     /**
@@ -208,26 +206,20 @@ public class SearchBloxDocument {
 			throw new SearchBloxException(
 					"The Collection Name of the SearchBlox Server CAN'T be NULL");
 		document.setAttribute(COLNAME_ATTRIBUTE, colName);
+        if(action == DocumentAction.DELETE)
+            document.setAttribute(UID_ATTRIBUTE,uid);
 		root.appendChild(document);
 
-        // Uid
-        if (uid != null && !uid.isEmpty()) {
-            Element uidElement = doc.createElement(xmlElements.get(14));
-            uidElement.setTextContent(uid);
-            document.appendChild(uidElement);
-        }
-
 		if (action == DocumentAction.ADD_UPDATE) {
-			// Location
-			Collection<Object> location = data_fields.get(LOCATION_ATTRIBUTE);
-			if (location != null && !location.isEmpty()) {
-				document.setAttribute(LOCATION_ATTRIBUTE, (String) location.iterator().next());
-			}else{
-				document.setAttribute(LOCATION_ATTRIBUTE, "");
-			}
-				
+            // Uid
+            if (uid != null && !uid.isEmpty()) {
+                Element uidElement = doc.createElement(xmlElements.get(13));
+                uidElement.setTextContent(uid);
+                document.appendChild(uidElement);
+            }
+
             for(String element:xmlElements){
-                if (!element.equals(xmlElements.get(12)) && !element.equals(xmlElements.get(13)) ) {
+                if (!element.equals(xmlElements.get(12))) {
                     Collection<Object> values = data_fields.get(element);
                     if (values!=null && values.size()>0) {
                         Object next = values.iterator()
@@ -252,12 +244,10 @@ public class SearchBloxDocument {
                 }
             }
 
-
 			// Metadata
             Collection<Object> metadataSet = data_fields
                     .get(xmlElements.get(12));
             if(metadataSet!=null && metadataSet.size()>0){
-            @SuppressWarnings("unchecked")
 			Multimap<String, String> metadata = (Multimap<String, String>) metadataSet.iterator().next();
 			if (metadata != null && !metadata.isEmpty()) {
 				for (String name : metadata.keySet())
@@ -266,22 +256,6 @@ public class SearchBloxDocument {
 						metaElement.setAttribute(NAME_ATTRIBUTE, name);
 						metaElement.setTextContent(value);
 						document.appendChild(metaElement);
-					}
-			}  }
-
-			// ACL
-            Collection<Object> aclSet = data_fields
-                    .get(xmlElements.get(13));
-            if(aclSet!=null &&aclSet.size()>0){
-            @SuppressWarnings("unchecked")
-			Multimap<String, String> acls = (Multimap<String, String>) aclSet.iterator().next();
-			if (acls != null && !acls.isEmpty()) {
-				for (String type : acls.keySet())
-					for (String value : acls.get(type)) {
-						Element aclElement = doc.createElement(xmlElements.get(13));
-						aclElement.setAttribute(ACL_TYPE_ATTRIBUTE, type);
-						aclElement.setTextContent(value);
-						document.appendChild(aclElement);
 					}
 			}  }
 		}
