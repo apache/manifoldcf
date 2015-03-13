@@ -97,7 +97,6 @@ public class SearchBloxDocument {
 		this.uid = documentURI;
 		this.colName = args.get(SEARCHBLOX_COLLECTION).get(0);
 
-		data_fields.put(xmlElements.get(8), "" + rd.getBinaryLength());
 		Date date = rd.getModifiedDate();
 		if(date!=null){
 			data_fields.put(xmlElements.get(7),
@@ -120,6 +119,9 @@ public class SearchBloxDocument {
 
 		// Content Type
 		data_fields.put(xmlElements.get(10), rd.getMimeType());
+		
+		// Size
+		data_fields.put(xmlElements.get(8), "" + rd.getBinaryLength());
 
 		// Boosting
 		for(String boostId:args.keySet()){
@@ -139,7 +141,12 @@ public class SearchBloxDocument {
 				String[] values = rd.getFieldAsStrings(name);
 				for (String value : values) {
 					String key = name.toLowerCase();
-					if (xmlElements.contains(key)) {
+					int indexOf = xmlElements.indexOf(key); 
+					if (indexOf != -1 && 
+							indexOf != 0 &&
+							indexOf != 5 &&
+							indexOf != 7 && 
+							indexOf != 8) {
 						data_fields.put(key, value);
 					} else
 						metadata.put(name, value);
