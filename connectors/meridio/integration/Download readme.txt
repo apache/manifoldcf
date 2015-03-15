@@ -29,7 +29,7 @@ time as we can obtain the source files or redevelop them.  You may obtain
 the plugin and its applicable licenses by checking out a URL using
 Subversion (svn), as follows:
 
-svn co http://manifoldcf-meridio-plugin.googlecode.com/svn/trunk manifoldcf-meridio-plugin
+svn co https://github.com/DaddyWri/manifoldcf-meridio-plugin.git/trunk manifoldcf-meridio-plugin
 
 License and building instructions are to be found in this package, and installation instructions
 can be found right here in the file "Installation readme.txt".
