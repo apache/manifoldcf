@@ -19,6 +19,8 @@ package org.apache.manifoldcf.agents.output.searchblox;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -29,9 +31,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument.IndexingFormat;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.xerces.parsers.DOMParser;
 import org.jboss.resteasy.plugins.providers.StringTextStar;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -58,6 +63,8 @@ public class SearchBloxClient {
     private static final String CLEAR_PATH = "clear";
 
     private static final String STATUS_NODE = "statuscode";
+    
+    private static final Pattern status_pattern = Pattern.compile("^status code\\s:\\s([0-9]+)$");
 
     public static enum ResponseCode {
         DOCUMENT_INDEXED(100),
@@ -168,16 +175,21 @@ public class SearchBloxClient {
 
         WebTarget target = client.target(uri.build());
         Builder httpRequest = target.request();
-        httpRequest.accept(MediaType.TEXT_XML_TYPE);
+        if (iFormat == SearchBloxDocument.IndexingFormat.JSON) {
+        	httpRequest.accept(MediaType.APPLICATION_JSON_TYPE);
+        }else{
+        	httpRequest.accept(MediaType.APPLICATION_XML_TYPE);
+        }
+        
 
         document.apiKey = this.apikey;
         
         String body = document.toString(iFormat, action);
-        Logging.connectors.debug("XML Document for document: " + document.uid +":" + body);
+        Logging.connectors.debug("Document for document: " + document.uid +":" + body);
         MediaType type = MediaType.TEXT_PLAIN_TYPE;
-//        if (iFormat == SearchBloxDocument.IndexingFormat.JSON) {
-//            type = MediaType.APPLICATION_JSON_TYPE;
-//        }
+        if (iFormat == SearchBloxDocument.IndexingFormat.JSON) {
+            type = MediaType.APPLICATION_JSON_TYPE;
+        }
 
         
         Entity<String> entity = Entity.entity(body, type);
@@ -191,23 +203,45 @@ public class SearchBloxClient {
             return ResponseCode.SERVER_UNREACHABLE;
         }
         
-        String xmlResponse = response.readEntity(String.class);
-        DOMParser parser = new DOMParser();
-        try {
-            parser.parse(new InputSource(new StringReader(xmlResponse)));
-        } catch (SAXException | IOException e) {
-            Logging.connectors.error("[Response parsing] Dom parsing error", e);
-            throw new SearchBloxException(e);
+        String rawResponse = response.readEntity(String.class);
+        if(iFormat == IndexingFormat.XML){
+        	DOMParser parser = new DOMParser();
+        	try {
+        		parser.parse(new InputSource(new StringReader(rawResponse)));
+        	} catch (SAXException | IOException e) {
+        		Logging.connectors.error("[Response parsing] Dom parsing error", e);
+        		throw new SearchBloxException(e);
+        	}
+        	Document doc = parser.getDocument();
+        	NodeList nodeList = doc.getElementsByTagName(STATUS_NODE);
+        	if (nodeList == null || nodeList.getLength() == 0) {
+        		String message = "[Response Parsing] Status code not found";
+        		Logging.connectors.error(message);
+        		throw new SearchBloxException(message);
+        	}
+        	String codeStr = nodeList.item(0).getTextContent();
+        	int statusCode = Integer.parseInt(codeStr);
+        	return ResponseCode.getCodeFromValue(statusCode);
+        }else{
+//        	try {
+//				JSONObject json = new JSONObject(rawResponse);
+//				String codeStr = json.getString(STATUS_NODE);
+        		Matcher matcher = status_pattern.matcher(rawResponse);
+        		String codeStr = null;
+        		if(matcher.find())
+        			codeStr = matcher.group();
+        		if(codeStr == null){
+        			String message = "[Response parsing] Resoponse code parsing error";
+        			Logging.connectors.error(message);
+            		throw new SearchBloxException(message);
+        		}
+        			
+				int statusCode = Integer.parseInt(codeStr);
+	        	return ResponseCode.getCodeFromValue(statusCode);
+//			} catch (JSONException e) {
+//				Logging.connectors.error("[Response parsing] Response JSON parsing error", e);
+//        		throw new SearchBloxException(e);
+//			}
         }
-        Document doc = parser.getDocument();
-        NodeList nodeList = doc.getElementsByTagName(STATUS_NODE);
-        if (nodeList == null || nodeList.getLength() == 0) {
-        	String message = "[Response Parsing] Status code not found";
-        	Logging.connectors.error(message);
-            throw new SearchBloxException(message);
-        }
-        String codeStr = nodeList.item(0).getTextContent();
-        int statusCode = Integer.parseInt(codeStr);
-        return ResponseCode.getCodeFromValue(statusCode);
     }
 }
