@@ -26,7 +26,7 @@
     <p>All the books about the ManifoldCF project.</p>
     <ul>
       <li><a href="http://www.manning.com/wright/" target="_blank">ManifoldCF in Action, edition 1, written by Karl Wright, available from Manning</a></li>
-      <li><a href="https://github.com/DaddyWri/manifoldcfinaction.git/trunk/pdfs/" target="_blank">Updated ManifoldCF in Action chapters, revised PDFs</a></li>
+      <li><a href="https://github.com/DaddyWri/manifoldcfinaction.git/master/pdfs/" target="_blank">Updated ManifoldCF in Action chapters, revised PDFs</a></li>
     </ul>
   </section>
   <section id="presentations"><title>ManifoldCF Presentations</title>
