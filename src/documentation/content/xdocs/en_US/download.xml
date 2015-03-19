@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
           "http://forrest.apache.org/dtd/document-v20.dtd">
@@ -35,7 +35,7 @@
     </section>
 
     <section>
-      <title>ManifoldCF</title>
+      <title>ManifoldCF™</title>
       
       <section>
         <title>Latest 2.x release (Apache ManifoldCF 2.0.2 2015 Mar 02)</title>
