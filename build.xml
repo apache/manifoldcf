@@ -1584,21 +1584,27 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </copy>
     </target>
 
-    <target name="download-solr-plugins">
+	<target name="download-solr-plugins">
         <mkdir dir="lib/solr-3.x"/>
         <mkdir dir="build/download"/>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.0/apache-manifoldcf-solr-3.x-plugin-2.0-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip"/>
+        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.1/apache-manifoldcf-solr-3.x-plugin-2.1-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin"/>
         <copy todir="lib/solr-3.x">
-            <fileset dir="build/download/apache-manifoldcf-solr-3.x-plugin-bin/apache-manifoldcf-solr-3.x-plugin-2.0"/>
+            <fileset dir="build/download/apache-manifoldcf-solr-3.x-plugin-bin/apache-manifoldcf-solr-3.x-plugin-2.1"/>
         </copy>
         <mkdir dir="lib/solr-4.x"/>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.0/apache-manifoldcf-solr-4.x-plugin-2.0-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip"/>
+        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.1/apache-manifoldcf-solr-4.x-plugin-2.1-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin"/>
         <copy todir="lib/solr-4.x">
-            <fileset dir="build/download/apache-manifoldcf-solr-4.x-plugin-bin/apache-manifoldcf-solr-4.x-plugin-2.0"/>
+            <fileset dir="build/download/apache-manifoldcf-solr-4.x-plugin-bin/apache-manifoldcf-solr-4.x-plugin-2.1"/>
+        </copy>
+        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-5.x-plugin-2.1/apache-manifoldcf-solr-5.x-plugin-2.1-bin.zip" dest="build/download/apache-manifoldcf-solr-5.x-plugin-bin.zip"/>
+        <unzip src="build/download/apache-manifoldcf-solr-5.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-5.x-plugin-bin"/>
+        <copy todir="lib/solr-5.x">
+            <fileset dir="build/download/apache-manifoldcf-solr-5.x-plugin-bin/apache-manifoldcf-solr-5.x-plugin-2.1"/>
         </copy>
     </target>
+
 
     <target name="download-hadoop" depends="download-guava">
         <mkdir dir="lib"/>
