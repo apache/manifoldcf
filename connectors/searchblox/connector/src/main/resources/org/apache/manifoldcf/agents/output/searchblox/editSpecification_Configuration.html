@@ -67,17 +67,6 @@
       <input type="text" name="s${SEQNUM}_collection" value="$Encoder.attributeEscape($COLLECTION)" />
     </td>
   </tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('SearchBloxConnector.IndexFormat'))</nobr></td>
-    <td class="value">
-      <select name="s${SEQNUM}_indexformat">
-  
-        <option value="JSON" #if($INDEXFORMAT == 'JSON') selected="true" #end>$Encoder.bodyEscape($ResourceBundle.getString('SearchBloxConnector.JSON'))</option>
- 
-        <option value="XML" #if($INDEXFORMAT == 'XML') selected="true" #end>$Encoder.bodyEscape($ResourceBundle.getString('SearchBloxConnector.XML'))</option>
- 	  </select>
-    </td>
-  </tr>
   
 </table>
       
@@ -91,6 +80,5 @@
 <input type="hidden" name="s${SEQNUM}_timeoutconnection" value="${TIMEOUTCONNECTION}"/>
 <input type="hidden" name="s${SEQNUM}_timeoutsocket" value="${TIMEOUTSOCKET}"/>
 <input type="hidden" name="s${SEQNUM}_collection" value="${COLLECTION}"/>
-<input type="hidden" name="s${SEQNUM}_indexformat" value="${INDEXFORMAT}"/>
 
 #end
