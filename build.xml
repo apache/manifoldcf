@@ -125,6 +125,9 @@
     <property name="commons-httpclient.version" value="3.1"/>
     <property name="jackson-databind.version" value="2.1.3"/>
     <property name="jackson-annotations.version" value="2.1.2"/>
+    <property name="resteasy.client.version" value="3.0.8.Final"/>
+    <property name="jsoup.version" value="1.8.1"/>
+
 
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
@@ -742,6 +745,42 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             </fileset>
           </classpath>
         </java>
+    </target>
+
+    <target name="download-resteasy">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/jboss/resteasy"/>
+            <param name="artifact-version" value="${resteasy.client.version}"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="resteasy-jaxrs"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/jboss/resteasy"/>
+            <param name="artifact-version" value="${resteasy.client.version}"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="resteasy-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/jboss/resteasy"/>
+            <param name="artifact-version" value="${resteasy.client.version}"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="jaxrs-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+        
+    <target name="download-jsoup">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/jsoup"/>
+            <param name="artifact-version" value="${jsoup.version}"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="jsoup"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
 
     <target name="download-alfresco-webscript-plugin">
@@ -1566,6 +1605,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </copy>
     </target>
 
+
     <target name="download-hadoop" depends="download-guava">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
@@ -1904,7 +1944,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 	
-    <target name="make-core-deps" depends="download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf,download-tika,download-jackson">
+    <target name="make-core-deps" depends="download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
