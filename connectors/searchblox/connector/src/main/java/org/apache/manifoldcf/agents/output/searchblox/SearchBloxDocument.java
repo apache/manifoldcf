@@ -16,24 +16,9 @@
  */
 package org.apache.manifoldcf.agents.output.searchblox;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
@@ -45,9 +30,18 @@ import org.jsoup.Jsoup;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * "Package" class modeling a SearchBox document as a POJO
@@ -150,11 +144,11 @@ public class SearchBloxDocument {
 				String[] values = rd.getFieldAsStrings(name);
 				for (String value : values) {
 					String key = name.toLowerCase();
-					int indexOf = xmlElements.indexOf(key); 
-					if (indexOf != -1 && 
+					int indexOf = xmlElements.indexOf(key);
+					if(indexOf != 5)
+                    if (indexOf != -1 &&
 							indexOf != 0 &&
-							indexOf != 5 &&
-							indexOf != 7 && 
+							indexOf != 7 &&
 							indexOf != 8) {
 						data_fields.put(key, value);
 					} else
@@ -235,12 +229,6 @@ public class SearchBloxDocument {
 									document.put(element, StringUtils.join(values, ','));
 								else
 									document.put(element, value);
-//								Collection<Object> boostElement = data_fields
-//										.get(element + "_boost");
-//								if(boostElement!=null && boostElement.size()>0){
-//									String value_boost = (String) boostElement.iterator()
-//											.next();
-//									eValue.setAttribute(BOOST_ATTRIBUTE, "" + value_boost);
 //								}
 								
 							}

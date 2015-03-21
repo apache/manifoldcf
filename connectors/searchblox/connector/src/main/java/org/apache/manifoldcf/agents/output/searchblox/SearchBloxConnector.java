@@ -187,7 +187,8 @@ public class SearchBloxConnector extends BaseOutputConnector {
 	public String check() throws ManifoldCFException {
 		getSession(null, null);
 		try {
-			if (client.ping()) {
+			String format = getConfiguration().getParameter(SEARCHBLOX_INDEXING_FORMAT);
+			if (client.ping(format)) {
 				return super.check();
 			} else {
 				return "Connection Not Working!. Check SearchBlox Server is up and the configuration is correct.";
@@ -312,7 +313,7 @@ public class SearchBloxConnector extends BaseOutputConnector {
 
 		SearchBloxDocument sbDoc = new SearchBloxDocument(this.apiKey,
 				documentURI, document, sp.getArgs());
-		String format = args.get(SEARCHBLOX_INDEXING_FORMAT).get(0);
+		String format = this.getConfiguration().getParameter(SEARCHBLOX_INDEXING_FORMAT);
 		long startTime = System.currentTimeMillis();
 		try {
 			ResponseCode code = client.addUpdateDocument(sbDoc, format);
@@ -476,6 +477,10 @@ public class SearchBloxConnector extends BaseOutputConnector {
 		}
 		map.put(SEARCHBLOX_ENDPOINT,
 				endpoint);
+		
+		String indexFormat = configParams.getParameter(SEARCHBLOX_INDEXING_FORMAT);
+		indexFormat = indexFormat == null ? IndexingFormat.JSON.name() : indexFormat;
+		map.put(SEARCHBLOX_INDEXING_FORMAT, indexFormat);
 		return map;
 	}
 
@@ -517,6 +522,10 @@ public class SearchBloxConnector extends BaseOutputConnector {
 		String endpoint = variableContext.getParameter(SEARCHBLOX_ENDPOINT);
 		if (endpoint != null)
 			parameters.setParameter(SEARCHBLOX_ENDPOINT, endpoint);
+		
+		String indexformat = variableContext.getParameter(SEARCHBLOX_INDEXING_FORMAT);
+		if (indexformat != null)
+			parameters.setParameter(SEARCHBLOX_INDEXING_FORMAT, indexformat);
 
 		return null;
 	}
@@ -600,14 +609,6 @@ public class SearchBloxConnector extends BaseOutputConnector {
 				if (collection == null)
 					collection = DEFAULT_COLLECTION;
 				
-				String indexFormat = sn
-						.getAttributeValue(SearchBloxConfig.ATTRIBUTE_INDEX_FORMAT);
-				IndexingFormat format = IndexingFormat.valueOf(indexFormat.toUpperCase());
-				if (format == null)
-					indexFormat = IndexingFormat.XML.name();
-				else
-					indexFormat = format.name();
-
 				paramMap.put(SearchBloxConfig.ATTRIBUTE_TITLEBOOST.toUpperCase(),
 						titleBoost);
 				paramMap.put(SearchBloxConfig.ATTRIBUTE_CONTENTBOOST.toUpperCase(),
@@ -623,9 +624,6 @@ public class SearchBloxConnector extends BaseOutputConnector {
 				paramMap.put(
 						SearchBloxConfig.ATTRIBUTE_TIMEOUT_SOCKET.toUpperCase(),
 						timeoutSocket);
-				paramMap.put(
-						SearchBloxConfig.ATTRIBUTE_INDEX_FORMAT.toUpperCase(),
-						indexFormat);
 				paramMap.put(SearchBloxConfig.ATTRIBUTE_COLLECTION_NAME
 						.toUpperCase(), collection);
 
@@ -831,16 +829,14 @@ public class SearchBloxConnector extends BaseOutputConnector {
 	          String poolSize = node.getAttributeValue(SearchBloxConfig.ATTRIBUTE_POOLSIZE);
 	          String connectTimeout = node.getAttributeValue(SearchBloxConfig.ATTRIBUTE_TIMEOUT_CONNECTION);
 	          String socketTimeout = node.getAttributeValue(SearchBloxConfig.ATTRIBUTE_TIMEOUT_SOCKET);
-	          String indexingFormat = node.getAttributeValue(SearchBloxConfig.ATTRIBUTE_INDEX_FORMAT);
 	          args.put(SearchBloxConfig.ATTRIBUTE_TITLEBOOST, titleBoost);
 	          args.put(SearchBloxConfig.ATTRIBUTE_CONTENTBOOST, contentBoost);
 	          args.put(SearchBloxConfig.ATTRIBUTE_KEYWORDSBOOST, keywordsBoost);
-	          args.put(SearchBloxConfig.ATTRIBUTE_COLLECTION_NAME, descriptionBoost);
+	          args.put(SearchBloxConfig.ATTRIBUTE_DESCRIPTIONBOOST, descriptionBoost);
 	          args.put(SearchBloxDocument.SEARCHBLOX_COLLECTION, collection);
 	          args.put(SearchBloxConfig.ATTRIBUTE_POOLSIZE, poolSize);
 	          args.put(SearchBloxConfig.ATTRIBUTE_TIMEOUT_CONNECTION, connectTimeout);
 	          args.put(SearchBloxConfig.ATTRIBUTE_TIMEOUT_SOCKET, socketTimeout);
-	          args.put(SearchBloxConfig.ATTRIBUTE_INDEX_FORMAT, indexingFormat);
 	          
 	        }
 	      }

@@ -35,8 +35,6 @@ import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument.Indexin
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.xerces.parsers.DOMParser;
 import org.jboss.resteasy.plugins.providers.StringTextStar;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -50,7 +48,7 @@ import org.xml.sax.SAXException;
 public class SearchBloxClient {
 
     // TODO All this might need to be included in a configuration file
-    public static final String DEFAULT_ENDPOINT = "http://localhost:8080/searchblox/api/rest";
+    public static final String DEFAULT_ENDPOINT = "http://localhost:8080/searchblox/rest/v1/api";
 
     private static final String ADD_PATH = "add";
 
@@ -64,18 +62,18 @@ public class SearchBloxClient {
 
     private static final String STATUS_NODE = "statuscode";
     
-    private static final Pattern status_pattern = Pattern.compile("^status code\\s:\\s([0-9]+)$");
+    private static final Pattern status_pattern = Pattern.compile("^status code\\s?:\\s([0-9]+)$");
 
     public static enum ResponseCode {
         DOCUMENT_INDEXED(100),
         DOCUMENT_REJECTED(101),
-        DOCUMENT_DELETED(200),
-        DOCUMENT_NOT_EXIST(201),
+        DOCUMENT_DELETED(200, 2001),
+        DOCUMENT_NOT_EXIST(201, 2002),
         DOCUMENT_NOT_FOUND(301),
         COLLECTION_CLEARED(400),
         ERROR_CLEARING_COLLECTION(401),
         COLLECTION_CREATED(900),
-        INVALID_COLLECTION_NAME(500),
+        INVALID_COLLECTION_NAME(500, 501),
         INVALID_REQUEST(501),
         INVALID_DOCUMENT_LOCATION(502),
         NOT_CUSTOM_COLLECTION(503),
@@ -84,9 +82,15 @@ public class SearchBloxClient {
         SERVER_UNREACHABLE(700);
 
         private int code;
-
+        private int jsonCode;
+        
         ResponseCode(int code) {
             this.code = code;
+        }
+        
+        ResponseCode(int code, int jsonCode) {
+            this.code = code;
+            this.jsonCode = jsonCode;
         }
         
         static ResponseCode getCodeFromValue(int value){
@@ -96,11 +100,23 @@ public class SearchBloxClient {
         	return null;
         }
         
+        static ResponseCode getCodeFromValue(int value, boolean json){
+        	for(ResponseCode e:ResponseCode.values())
+        		if((json && value == e.jsonCode) || (value == e.code)) {
+        			return e;
+        		}
+        	return null;
+        }
+        
         int getCode(){
         	return code;
         }
+        
+        int getJsonCode() {
+        	return jsonCode;
+        }
     }
-
+    
 
     private String apikey;
     private Client client;
@@ -128,26 +144,26 @@ public class SearchBloxClient {
         return post(document, format, SearchBloxDocument.DocumentAction.DELETE);
     }
 
-    public ResponseCode createCollection(String colname)
+    public ResponseCode createCollection(String colname, String format)
             throws SearchBloxException {
         SearchBloxDocument document = new SearchBloxDocument(apikey);
         document.colName = colname;
-        return post(document, SearchBloxDocument.IndexingFormat.XML.name(), SearchBloxDocument.DocumentAction.CREATE);
+        return post(document, format, SearchBloxDocument.DocumentAction.CREATE);
     }
 
-    public ResponseCode clearCollection(String colname)
+    public ResponseCode clearCollection(String colname, String format)
             throws SearchBloxException {
         SearchBloxDocument document = new SearchBloxDocument(apikey);
         document.colName = colname;
-        return post(document, SearchBloxDocument.IndexingFormat.XML.name(), SearchBloxDocument.DocumentAction.CLEAR);
+        return post(document, format, SearchBloxDocument.DocumentAction.CLEAR);
     }
 
-    public boolean ping()
+    public boolean ping(String format)
             throws SearchBloxException {
         SearchBloxDocument document = new SearchBloxDocument(apikey);
         document.colName = UUID.randomUUID().toString();
         document.uid = UUID.randomUUID().toString();
-        ResponseCode result = post(document, SearchBloxDocument.IndexingFormat.XML.name(), SearchBloxDocument.DocumentAction.STATUS);
+        ResponseCode result = post(document, format, SearchBloxDocument.DocumentAction.STATUS);
         return result == ResponseCode.INVALID_COLLECTION_NAME;
     }
 
@@ -155,10 +171,15 @@ public class SearchBloxClient {
             throws SearchBloxException {
         
     	SearchBloxDocument.IndexingFormat iFormat = SearchBloxDocument.IndexingFormat.valueOf(format.toUpperCase());
-        if (iFormat == null) {
+    	
+    	if (iFormat == null) {
             Logging.connectors.error("[Post request] Format not recognized " +format);
             throw new SearchBloxException("Unknown Serialization Format " + format);
         }
+    	
+    	boolean isJson = iFormat.equals(SearchBloxDocument.IndexingFormat.JSON);
+    	
+        
 
         UriBuilder uri = uriBuilder.clone();
         if (action == SearchBloxDocument.DocumentAction.ADD_UPDATE) {
@@ -221,7 +242,7 @@ public class SearchBloxClient {
         	}
         	String codeStr = nodeList.item(0).getTextContent();
         	int statusCode = Integer.parseInt(codeStr);
-        	return ResponseCode.getCodeFromValue(statusCode);
+        	return ResponseCode.getCodeFromValue(statusCode, isJson);
         }else{
 //        	try {
 //				JSONObject json = new JSONObject(rawResponse);
@@ -229,15 +250,15 @@ public class SearchBloxClient {
         		Matcher matcher = status_pattern.matcher(rawResponse);
         		String codeStr = null;
         		if(matcher.find())
-        			codeStr = matcher.group();
+        			codeStr = matcher.group(1);
         		if(codeStr == null){
-        			String message = "[Response parsing] Resoponse code parsing error";
+        			String message = "[Response parsing] Response code parsing error";
         			Logging.connectors.error(message);
             		throw new SearchBloxException(message);
         		}
         			
 				int statusCode = Integer.parseInt(codeStr);
-	        	return ResponseCode.getCodeFromValue(statusCode);
+	        	return ResponseCode.getCodeFromValue(statusCode, isJson);
 //			} catch (JSONException e) {
 //				Logging.connectors.error("[Response parsing] Response JSON parsing error", e);
 //        		throw new SearchBloxException(e);
