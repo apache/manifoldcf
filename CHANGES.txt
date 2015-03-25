@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1175: Documentum connector needs to set file name.
+(Dmitry Bardin, Karl Wright)
+
 CONNECTORS-1160: Update Livelink Connector HTML String to Velocity Template
 (Kishore Kumar)
 
