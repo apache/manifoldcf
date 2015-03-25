@@ -1517,6 +1517,9 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
             }
           }
 
+          if (objName != null)
+            rval.setFileName(objName);
+          
           // Add the path metadata item into the mix, if enabled
           String pathAttributeName = sDesc.getPathAttributeName();
           if (pathAttributeName != null && pathAttributeName.length() > 0)
