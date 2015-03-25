@@ -100,7 +100,7 @@
 
             <section id="groups">
                 <title>権限グループの定義</title>
-                <p>左側メニューから「権限グループ一覧」を選択すると、権限グループ一覧が表示されます。権限グループとは、リポジトリの取得対象ドキュメントに対し協調してセキュリティを提供するための権限集合です。例えば、クレームベース認証のSharePoint 2010 repositoryに含まれるドキュメントはSharePoint自身、Active Directory、その他により認証されます。従って、このようなSharePointリポジトリのドキュメントはSharePointネイティブ権限、SharePoint Active Directory権限、その他SharePointクレームベース権限をメンバーとする権限グループを参照する必要があります。ただしほとんどの場合、一つの権限のみで構成された権限グループでもリポジトリのセキュリティ保護は十分です。</p>
+                <p>左側メニューから「権限グループ一覧」を選択すると、権限グループ一覧が表示されます。権限グループとは、リポジトリの取得対象ドキュメントに対し協調してセキュリティを提供するための権限集合です。例えば、クレームベース認証のSharePoint 2010 repositoryに含まれるドキュメントはSharePoint自身、Active Directory(アクティブディレクトリ)、その他により認証されます。従って、このようなSharePointリポジトリのドキュメントはSharePointネイティブ権限、SharePoint Active Directory権限、その他SharePointクレームベース権限をメンバーとする権限グループを参照する必要があります。ただしほとんどの場合、一つの権限のみで構成された権限グループでもリポジトリのセキュリティ保護は十分です。</p>
                 <p>権限コネクションを定義する際に権限グループを選択する必要があるため、権限コネクションを定義する<b>前</b>に権限グループを定義してください。権限グループが未定義の場合、権限コネクションを作成できません。権限コネクションを定義する際に間違った権限グループを選択した場合、後で修正することは可能です。</p>
                 <p>任意のリポジトリコネクションを作成する前に、権限グループを作成しておくことをおすすめします。その理由は、リポジトリコネクションもセキュアなドキュメントのために逆に権限グループを参照する場合があるからです。後でリポジトリコネクションと権限グループの関係を変更することも可能ですが、次回関連ジョブ実行時にたくさんのドキュメントが再インデックシングされる場合があります。</p>
                 <p>権限グループを定義するには、右側メニューから「権限グループ一覧」を選択してください。選択すると次のようなページが表示されます：</p>
@@ -196,7 +196,7 @@
 
             <section id="authorities">
                 <title>権限コネクションの定義</title>
-                <p>左側メニューから「権限一覧」を選択すると、権限コネクション一覧が表示されます。権限コネクションとは、特定のセキュリティ環境をもつシステムへ接続するためのコネクションです。例えば、アクティブディレクトリで管理されているファイルを参照する場合は、アクティブディレクトリ権限コネクションを定義します。</p>
+                <p>左側メニューから「権限一覧」を選択すると、権限コネクション一覧が表示されます。権限コネクションとは、特定のセキュリティ環境をもつシステムへ接続するためのコネクションです。例えば、Active Directoryで管理されているファイルを参照する場合は、Active Directory権限コネクションを定義します。</p>
                 <p>一般公開されているコンテンツのみをクロールする場合は、権限コネクションを定義する必要はありません。例えばインターネット上で認証なしでだれでも閲覧できるwebページ, RSS, Wikiをクロールする場合は不要です。反対に、社内で利用されている多くのコンテンツを検索する場合はユーザ認証が必要な場合が多いため、権限コネクションを定義する必要があります。</p>
                 <p>リポジトリコネクションを定義する<b>前</b>に権限コネクションを定義してください。後でリポジトリコネクションと権限コネクションの関係を変更することも可能ですが、変更した場合はコンテンツを再クロールする必要があるかもしれません。</p>
                 <p>権限コネクションを定義するには、右側メニューから「権限一覧」を選択してください。選択すると次のようなページが表示されます：</p>
@@ -569,24 +569,25 @@
             <title>権限コネクションタイプ</title>
             
             <section id="adauthority">
-                <title>アクティブディレクトリ権限コネクション</title>
-                <p>アクティブディレクトリ権限コネクションは、MS Windows共有ディレクトリ、MS SharePoint、IBM FileNetリポジトリのファイル権限を有効に利用する場合に使います。アクティブディレクトリ権限コネクションタイプを利用する場合は、Windowsドメインコントローラにログインして他ユーザIDとグループ関係を参照できる認証情報を設定する必要があります。まだ以下のような場合では利用制限がありますが、一般的なWindowsセキュリティアーキテクチャを利用する場合に使うことができます：</p>
+                <title>Active Directory権限コネクション</title>
+                <p>Active Directory権限コネクションは、MS Windows共有ディレクトリ、(ActiveDirectoryモードでの)MS SharePoint、IBM FileNetリポジトリのファイル権限を有効に利用する場合に使います。Active Directory権限コネクションタイプを利用する場合は、Windowsドメインコントローラにログインして他ユーザIDとグループ関係を参照できる認証情報を設定する必要があります。</p>まだ以下のような場合では利用制限がありますが、一般的なWindowsセキュリティアーキテクチャを利用する場合に使うことができます：
                 <br/>
-                <ul>
-                    <li>子コメントがある場合</li>
-                    <li>リクエスト／秒が多い場合</li>
-                </ul>
-                <br/>
-                <p>アクティブディレクトリ権限コネクションを選択すると「ドメインコントローラ」タブが表示されます：</p>
+                <p>Active Directory権限コネクションタイプは編集画面に独自タブが2つあります。「ドメインコントローラ」と「キャッシュ」です。「ドメインコントローラ」タブを選択すると次のようなページが表示されます:</p>
                 <br/><br/>
-                <figure src="images/ja_JP/ad-configure-dc_ja_JP.PNG" alt="AD Configuration, Domain Controller tab" width="80%"/>
+                <figure src="images/ja_JP/ad-configure-dc_ja_JP.PNG" alt="AD設定、ドメインコントローラタブ" width="80%"/>
                 <br/><br/>
-                <p>必要な項目を入力してください。普通は「管理者ユーザ名」にはドメインを入力する必要はありませんが、ドメインコントローラの構成によっては「ユーザ名@ドメイン」形式で記入する必要があります。</p>
+                <p>見ての通り、Active Directory権限では、異なってはいるがおそらく関連するドメインコントローラに対して複数のコネクションを設定できます。どのドメインコントローラにアクセスするかは、設定されたドメインコントローラの一覧を上から下まで見て、指定されたドメインサフィックスフィールドが最初に一致するものを選びます。ドメインサフィックスを空にすると<strong>すべての</strong>ユーザに一致すること注意してください。</p>
+                <p>一覧の最後にドメインコントローラを追加するには、必要な項目を入力してください。普通は「管理者ユーザ名」にはドメインを入力する必要はありませんが、ドメインコントローラの構成によっては「ユーザ名@ドメイン」形式で記入する必要があります。入力し終わったら「最後に追加する」ボタンを押して、一覧の最後にドメインコントローラを追加してください。後で、他のドメインコントローラが一覧にあれば、適切な所にある別のボタンを押してドメインコントローラを好きな所に挿入できます。</p>
+                <p>Active Directory権限コネクションタイプには個々のユーザの応答のキャッシュを制御するための「キャッシュ」タブもあります。</p>
+                <br/><br/>
+                <figure src="images/ja_JP/ad-configure-cache_ja_JP.PNG" alt="AD設定、キャッシュタブ" width="80%"/>
+                <br/><br/>
+                <p>ここではどれだけ多くの個々のユーザをどのくらい長くキャッシュするかを制御できます</p>
                 <p>入力した後に「保存」ボタンを押下すると、次のような設定概要と状態ページが表示されます：</p>
                 <br/><br/>
-                <figure src="images/ja_JP/ad-status_ja_JP.PNG" alt="AD Status" width="80%"/>
+                <figure src="images/ja_JP/ad-status_ja_JP.PNG" alt="AD状態" width="80%"/>
                 <br/><br/>
-                <p>画面ではアクティブディレクトリと接続できないため、エラーメッセージが表示されています。</p>
+                <p>画面ではActive Directoryと接続できないため、"Connection working"の代わりにエラーメッセージが表示されています。</p>
             </section>
             
             <section id="ldapauthority">
@@ -608,7 +609,7 @@
             <section id="livelinkauthority">
                 <title>OpenText LiveLink権限コネクション</title>
                 <p>LiveLink権限コネクションは、LiveLinkリポジトリからコンテンツを取得する場合のセキュリティを指定する場合に利用します。</p>
-                <p>利用する場合はLiveLinkサーバ、ユーザのACLを取得できるユーザ認証情報を指定する必要があります。LiveLinkは独自でユーザ管理を行います。マッピングルールを定義又は正規表現を利用してアクティブディレクトリとLiveLinkユーザと対応付けることもできます。</p>
+                <p>利用する場合はLiveLinkサーバ、ユーザのACLを取得できるユーザ認証情報を指定する必要があります。LiveLinkは独自でユーザ管理を行います。マッピングルールを定義又は正規表現を利用してActive DirectoryとLiveLinkユーザと対応付けることもできます。</p>
                 <p>LiveLink権限コネクションを選択すると２つのタブが表示されます：「サーバ」タブと「ユーザマップ」タブ。</p>
                 <p>「サーバ」タグを選択すると以下のようなページが表示されます：</p>
                 <br/><br/>
@@ -619,8 +620,8 @@
                 <br/><br/>
                 <figure src="images/ja_JP/livelink-authority-user-mapping_ja_JP.PNG" alt="LiveLink Authority, User Mapping tab" width="80%"/>
                 <br/><br/>
-                <p>「ユーザマップ」タブから、ユーザ名及びドメイン（通常はアクティブディレクトリから）からの情報をLiveLinkに対応付けることができます。対応は正規表現で定義します。変換元と値は括弧（「(」と「)」）で囲みます。括弧に囲まれた部分を「グループ」と言います。置き換え文字列は、固定文字と置き換えグループから構成されます。例えば、「$(1)」は最初に一致したグループを示し、「$(1l)」は最初に一致した小文字のグループを示します。同じように「$(1u)」は大文字にマップしたグループを示します。</p>
-                <p>例えば、一致条件<code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code>と置き換え文字列<code>$(2)\$(1l)</code>はアクティブディレクトリユーザ名を<code>MyUserName@subdomain.domain.com</code>をLiveLinkユーザ名<code>subdomain\myusername</code>に対応付けます。</p>
+                <p>「ユーザマップ」タブから、ユーザ名及びドメイン（通常はActive Directoryから）からの情報をLiveLinkに対応付けることができます。対応は正規表現で定義します。変換元と値は括弧（「(」と「)」）で囲みます。括弧に囲まれた部分を「グループ」と言います。置き換え文字列は、固定文字と置き換えグループから構成されます。例えば、「$(1)」は最初に一致したグループを示し、「$(1l)」は最初に一致した小文字のグループを示します。同じように「$(1u)」は大文字にマップしたグループを示します。</p>
+                <p>例えば、一致条件<code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code>と置き換え文字列<code>$(2)\$(1l)</code>はActive Directoryユーザ名を<code>MyUserName@subdomain.domain.com</code>をLiveLinkユーザ名<code>subdomain\myusername</code>に対応付けます。</p>
                 <p>対応情報を入力した後に「保存」ボタンを押下すると、次のような概要及び状態情報が表示されます：</p>
                 <br/><br/>
                 <figure src="images/ja_JP/livelink-authority-status_ja_JP.PNG" alt="LiveLink Authority Status" width="80%"/>
@@ -638,12 +639,12 @@
                 <br/><br/>
                 <figure src="images/ja_JP/documentum-authority-docbase_ja_JP.PNG" alt="Documentum Authority, Docbase tab" width="80%"/>
                 <br/><br/>
-                <p>コンテンツサーバdocbase名と認証情報を入力してください。コンテンツサーバでアクティブディレクトリが有効に設定されていない場合は、項目「ドメイン」は空白にしてください。</p>
+                <p>コンテンツサーバdocbase名と認証情報を入力してください。コンテンツサーバでActive Directoryが有効に設定されていない場合は、項目「ドメイン」は空白にしてください。</p>
                 <p>「ユーザマップ」タブを選択すると次のようなページが表示されます：</p>
                 <br/><br/>
                 <figure src="images/ja_JP/documentum-authority-user-mapping_ja_JP.PNG" alt="Documentum Authority, User Mapping tab" width="80%"/>
                 <br/><br/>
-                <p>入力するユーザ名とコンテンツサーバユーザ名を対応付ける場合に大文字／小文字を区別するかを指定します。その他の対応は未対応です。多くの場合は、Documentumインスタンスはアクティブディレクトリと連動して、Documentumユーザ名はアクティブディレクトリのユーザ名と同じ、又はアクティブディレクトリユーザ名はただ小文字にされています。詳細に付いては、Documentumシステム管理者ガイドを参照してください。</p>
+                <p>入力するユーザ名とコンテンツサーバユーザ名を対応付ける場合に大文字／小文字を区別するかを指定します。その他の対応は未対応です。多くの場合は、DocumentumインスタンスはActive Directoryと連動して、Documentumユーザ名はActive Directoryのユーザ名と同じ、又はActive Directoryユーザ名はただ小文字にされています。詳細に付いては、Documentumシステム管理者ガイドを参照してください。</p>
                 <p>「システムACL」タブを選択すると次のようなページが表示されます：</p>
                 <br/><br/>
                 <figure src="images/ja_JP/documentum-authority-system-acls_ja_JP.PNG" alt="Documentum Authority, System ACLs tab" width="80%"/>
@@ -669,9 +670,9 @@
                 <br/><br/>
                 <figure src="images/ja_JP/memex-authority-user-mapping_ja_JP.PNG" alt="Memex Authority, User Mapping tab" width="80%"/>
                 <br/><br/>
-                <p>「ユーザマップ」タブから、ユーザ名及びドメイン（通常はアクティブディレクトリから）からの情報をMemexに対応付けることができます。対応は正規表現で定義します
+                <p>「ユーザマップ」タブから、ユーザ名及びドメイン（通常はActive Directoryから）からの情報をMemexに対応付けることができます。対応は正規表現で定義します
 変換元と値は括弧（「(」と「)」）で囲みます。括弧に囲まれた部分を「グループ」と言います。置き換え文字列は、固定文字と置き換えグループから構成されます。例えば、「$(1)」は最初に一致したグループを示し、「$(1l)」は最初に一致した小文字のグループを示します。同じように「$(1u)」は大文字にマップしたグループを示します。</p>
-                <p>例えば、一致条件<code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code>と置き換え文字列<code>$(2)\$(1l)</code>はアクティブディレクトリユーザ名を<code>MyUserName@subdomain.domain.com</code>をMemexユーザ名<code>subdomain\myusername</code>に対応付けます</p>
+                <p>例えば、一致条件<code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code>と置き換え文字列<code>$(2)\$(1l)</code>はActive Directoryユーザ名を<code>MyUserName@subdomain.domain.com</code>をMemexユーザ名<code>subdomain\myusername</code>に対応付けます</p>
                 <p>対応情報を入力した後に「保存」ボタンを押下すると、次のような概要及び状態情報が表示されます</p>
                 <br/><br/>
                 <figure src="images/ja_JP/memex-authority-status_ja_JP.PNG" alt="Memex Authority Status" width="80%"/>
@@ -740,9 +741,9 @@
               <br/><br/>
               <figure src="images/ja_JP/cmis-authority-connection-configuration-usermapping_ja_JP.PNG" alt="CMIS Authority, User Mapping configuration" width="80%"/>
               <br/><br/>
-              <p>「ユーザマップ」タブから、ユーザ名及びドメイン（通常はアクティブディレクトリから）からの情報をCMISに対応付けることができます。対応は正規表現で定義します。
+              <p>「ユーザマップ」タブから、ユーザ名及びドメイン（通常はActive Directoryから）からの情報をCMISに対応付けることができます。対応は正規表現で定義します。
 変換元と値は括弧（「(」と「)」）で囲みます。括弧に囲まれた部分を「グループ」と言います。置き換え文字列は、固定文字と置き換えグループから構成されます。例えば、「$(1)」は最初に一致したグループを示し、「$(1l)」は最初に一致した小文字のグループを示します。同じように「$(1u)」は大文字にマップしたグループを示します。</p>
-                <p>例えば、一致条件<code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code>と置き換え文字列<code>$(2)\$(1l)</code>はアクティブディレクトリユーザ名を<code>MyUserName@subdomain.domain.com</code>をCMISユーザ名<code>subdomain\myusername</code>に対応付けます。</p>
+                <p>例えば、一致条件<code>^(.*)\@([A-Z|a-z|0-9|_|-]*)\.(.*)$</code>と置き換え文字列<code>$(2)\$(1l)</code>はActive Directoryユーザ名を<code>MyUserName@subdomain.domain.com</code>をCMISユーザ名<code>subdomain\myusername</code>に対応付けます。</p>
               <p>対応情報を入力した後に「保存」ボタンを押下すると、次のような概要及び状態情報が表示されます：</p>
               <br/><br/>
               <figure src="images/ja_JP/cmis-authority-connection-configuration-save_ja_JP.PNG" alt="CMIS Authority, saving configuration" width="80%"/>
@@ -1030,7 +1031,7 @@
                 <title>Windows Share/DFSリポジトリコネクション</title>
                 <p>Windows共有コネクションタイプは、Windowsの共有フォルダにあるコンテンツを索引する場合に使います。Windows以外のOSのシステムからも利用することができます。Sambaや第三者のNASサーバにも対応しています。</p>
                 <p>DFSノードと参照はすべて対応しています。ただし、参照するサーバ名はManifoldCFがインスールされたサーバが利用しているDNSから参照できることを前提とします。Windows共有コネクションは、コンテンツ毎に索引IDを作成します。索引IDは「file:」IRI又は「http:」URIです。柔軟なデプロイ環境が可能ですが、設定に少し時間が必要になります。特にファイルIRIを利用する場合は、システムの検索コンポーネントが正しく対応しているのか確認してください。Internet ExplorerのようなWebブラウザからWindowsファイルシステムのコンテンツを閲覧する場合は、<code>\\servername\sharename\dir1\filename.txt</code>のようなアドレスを<code>file://///servername/sharename/dir1/filename.txt</code>のようなIRIに変換します。簡単のようですが空白、「#」、英数以外の文字がファイル名に含まれている場合は複雑になります。Internet Explorerのバージョンによって異なる方法で処理するため、一つの方法でWindows共有ファイルパスをIRIに変換することはできません。代わりにコネクションは標準正規化アドレスを利用して、システムが索引結果をWebブラウザ及びクライアントに正しい方法で変換することを期待します。</p>
-                <p>権限付きでWindows共有リポジトリコネクションでコンテンツをクロールする場合は、事前にアクティブディレクトリ権限コネクタを作成してください。</p>
+                <p>権限付きでWindows共有リポジトリコネクションでコンテンツをクロールする場合は、事前にActive Directory権限コネクタを作成してください。</p>
                 <p>Windows共有コネクションはリポジトリコネクション編集ページで１つの固有タブがあります：「サーバ」タブ。「サーバ」タブを選択すると次のようなページが表示されます：</p>
                 <br/><br/>
                 <figure src="images/ja_JP/jcifs-configure-server_ja_JP.PNG" alt="Windows Share Connection, Server tab" width="80%"/>
@@ -1227,7 +1228,7 @@
                 <br/><br/>
                 <figure src="images/ja_JP/documentum-docbase_ja_JP.PNG" alt="Documentum Connection, Docbase tab" width="80%"/>
                 <br/><br/>
-                <p>コンテンツサーバDocbaseインスタンス名と認証情報を入力してください。コンテンツサーバインスタンスがアクティブディレクトリと統合されていない場合は、「ドメイン」を空白にしてください。</p>
+                <p>コンテンツサーバDocbaseインスタンス名と認証情報を入力してください。コンテンツサーバインスタンスがActive Directoryと統合されていない場合は、「ドメイン」を空白にしてください。</p>
                 <p>「Webtop」タブを選択すると次のようなページが表示されます；</p>
                 <br/><br/>
                 <figure src="images/ja_JP/documentum-webtop_ja_JP.PNG" alt="Documentum Connection, Docbase tab" width="80%"/>
@@ -1300,7 +1301,7 @@
                 <br/><br/>
                 <figure src="images/ja_JP/livelink-connection-document-access_ja_JP.PNG" alt="LiveLink Connection, Document Access tab" width="80%"/>
                 <br/><br/>
-                <p>サーバ名は「サーバ」タブに入力した値と同じと想定されます。プロトコルを選択してください。LiveLinkサーバはHTTPデフォルト以外のポート番号を利用している場合はポート番号を入力してください。LiveLinkサーバがNTLM認証を利用している場合は、アクティブディレクトリのユーザ名、パスワードとドメイン名を入力してください。LiveLinkサーバがHTTPSを利用している場合は、「追加」ボタンを押下して証明書をアップロードしてください。（サーバの証明書を使うこともできますが、サーバの証明書は変わる可能性がありますので注意してください。）</p>
+                <p>サーバ名は「サーバ」タブに入力した値と同じと想定されます。プロトコルを選択してください。LiveLinkサーバはHTTPデフォルト以外のポート番号を利用している場合はポート番号を入力してください。LiveLinkサーバがNTLM認証を利用している場合は、Active Directoryのユーザ名、パスワードとドメイン名を入力してください。LiveLinkサーバがHTTPSを利用している場合は、「追加」ボタンを押下して証明書をアップロードしてください。（サーバの証明書を使うこともできますが、サーバの証明書は変わる可能性がありますので注意してください。）</p>
                 <p>「ドキュメント表示」タブを選択すると次のようなページが表示されます：</p>
                 <br/><br/>
                 <figure src="images/ja_JP/livelink-connection-document-view_ja_JP.PNG" alt="LiveLink Connection, Document Viewtab" width="80%"/>
@@ -1412,7 +1413,7 @@
                 <p>Microsoft SharePointコネクションタイプは、Microsoft SharePointサイトのコンテンツの索引を作成します。SharePointサーバに複数のサイトを構築することができます。SharePointには関連しているサイト（例えばサブサイトの場合）と単独なサイトがあります。</p>
                 <p>SharePointコネクションタイプは１つのSharePointリポジトリコネクションからルートサイトの明示的なサブサイトを介してすべてのSharePointサイトをアクセスできるように設計されています。大きなSharePointサイトの場合はこのような１つのコネクションから<b>すべて</b>のSharePointサイトをアクセスできるようにする要求が高いです。ただし現バージョンのManifoldCFでは未対応です。</p>
                 <p>SharePointはサイト、サブサイト、ライブラリ、ファイルをアドレスにweb URIを利用します。そのため、SharePointコネクションタイプを調べる一番よい方法はwebブラウザからクロールしたいサイトのルートからページを開いていき、URLを記録することです。</p>
-                <p>多くの場合は、SharePointコネクションで処理されるコンテンツのセキュリティはアクティブディレクトリで管理されています。アクティブディレクトリ権限を作成していない場合は、「アクティブディレクトリ権限コネクション」を参照してください。</p>
+                <p>多くの場合は、SharePointコネクションで処理されるコンテンツのセキュリティはActive Directoryで管理されています。Active Directory権限を作成していない場合は、「Active Directory権限コネクション」を参照してください。</p>
                 <p>リポジトリコネクション編集からSharePointコネクションを選択すると「サーバ」タブが表示します。「サーバ」タブを選択すると次のようなページが表示されます：</p>
                 <br/><br/>
                 <figure src="images/ja_JP/sharepoint-configure-server_ja_JP.PNG" alt="SharePoint Connection, Server tab" width="80%"/>
