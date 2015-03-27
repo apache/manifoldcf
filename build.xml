@@ -82,7 +82,8 @@
     <property name="velocity.version" value="1.7"/>
     <property name="wss4j.version" value="1.5.12"/>
     <property name="xmlgraphics-commons.version" value="1.4"/>
-    <property name="wstx-asl.version" value="3.2.9"/>
+    <property name="woodstox-core-asl.version" value="4.4.1"/>
+    <property name="stax2-api.version" value="3.1.4"/>
     <property name="xmlsec.version" value="1.4.0"/>
     <property name="xml-apis.version" value="1.4.01"/>
     <property name="jstl.version" value="1.2"/>
@@ -1426,16 +1427,22 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
-    <target name="download-wstx-asl">
+    <target name="download-woodstox">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/codehaus/woodstox"/>
-            <param name="artifact-version" value="${wstx-asl.version}"/>
-            <param name="artifact-name" value="wstx-asl"/>
+            <param name="artifact-version" value="${woodstox-core-asl.version}"/>
+            <param name="artifact-name" value="woodstox-core-asl"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/codehaus/woodstox"/>
+            <param name="artifact-version" value="${stax2-api.version}"/>
+            <param name="artifact-name" value="stax2-api"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
-    
+
     <target name="download-xmlsec">
         <!-- Alfresco dependency, so resolve it from alfresco svn -->
         <mkdir dir="lib"/>
@@ -1664,7 +1671,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/solr"/>
-            <param name="artifact-version" value="4.10.3"/>
+            <param name="artifact-version" value="5.0.0"/>
             <param name="artifact-name" value="solr-solrj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1944,7 +1951,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 	
-    <target name="make-core-deps" depends="download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-wstx-asl,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf,download-tika,download-jackson">
+    <target name="make-core-deps" depends="download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
