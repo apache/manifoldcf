@@ -50,7 +50,7 @@
     <property name="commons-discovery.version" value="0.5"/>
     <property name="commons-el.version" value="1.0"/>
     <property name="commons-fileupload.version" value="1.2.2"/>
-    <property name="commons-io.version" value="2.1"/>
+    <property name="commons-io.version" value="2.4"/>
     <property name="commons-lang.version" value="2.6"/>
     <property name="commons-logging.version" value="1.1.3"/>
     <property name="commons-configuration.version" value="1.6"/>
@@ -1727,7 +1727,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/noggit"/>
-            <param name="artifact-version" value="0.5"/>
+            <param name="artifact-version" value="0.6"/>
             <param name="artifact-name" value="noggit"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
