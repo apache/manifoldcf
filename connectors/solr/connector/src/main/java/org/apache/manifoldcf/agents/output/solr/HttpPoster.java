@@ -42,9 +42,9 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 
 import org.apache.manifoldcf.core.util.URLEncoder;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.CloudSolrServer;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
@@ -82,7 +82,7 @@ public class HttpPoster
 
   // Solrj connection-associated objects
   protected PoolingHttpClientConnectionManager connectionManager = null;
-  protected SolrServer solrServer = null;
+  protected SolrClient solrServer = null;
   
   // Action URI pieces
   private final String postUpdateAction;
@@ -156,7 +156,7 @@ public class HttpPoster
     
     try
     {
-      CloudSolrServer cloudSolrServer = new CloudSolrServer(zookeeperHosts, new ModifiedLBHttpSolrServer(HttpClientUtil.createClient(null)));
+      CloudSolrClient cloudSolrServer = new CloudSolrClient(zookeeperHosts, new ModifiedLBHttpSolrClient(HttpClientUtil.createClient(null)));
       cloudSolrServer.setZkClientTimeout(zkClientTimeout);
       cloudSolrServer.setZkConnectTimeout(zkConnectTimeout);
       cloudSolrServer.setDefaultCollection(collection);
@@ -269,7 +269,7 @@ public class HttpPoster
 
 
     String httpSolrServerUrl = protocol + "://" + server + ":" + port + location;
-    solrServer = new ModifiedHttpSolrServer(httpSolrServerUrl, localClient, new XMLResponseParser());
+    solrServer = new ModifiedHttpSolrClient(httpSolrServerUrl, localClient, new XMLResponseParser());
   }
 
   /** Shut down the poster.
@@ -1617,7 +1617,7 @@ public class HttpPoster
     }
 
     @Override
-    public SolrPingResponse process( SolrServer server ) throws SolrServerException, IOException 
+    public SolrPingResponse process( SolrClient server ) throws SolrServerException, IOException 
     {
       long startTime = System.currentTimeMillis();
       SolrPingResponse res = new SolrPingResponse();

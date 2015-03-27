@@ -63,7 +63,7 @@
     <httpcomponent.httpclient.version>4.3.6</httpcomponent.httpclient.version>
     <httpcomponent.httpcore.version>4.3.3</httpcomponent.httpcore.version>
     <httpcomponent.httpmime.version>4.3.6</httpcomponent.httpmime.version>
-    <solr.version>4.10.3</solr.version>
+    <solr.version>5.0.0</solr.version>
     <noggit.version>0.6</noggit.version>
     <commons-el.version>1.0</commons-el.version>
     <commons-lang.version>2.6</commons-lang.version>

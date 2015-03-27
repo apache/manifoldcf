@@ -16,8 +16,8 @@
  */
 package org.apache.manifoldcf.agents.output.solr;
 
-import org.apache.solr.client.solrj.impl.LBHttpSolrServer;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.BinaryResponseParser;
 import org.apache.solr.client.solrj.request.RequestWriter;
 import org.apache.solr.client.solrj.*;
@@ -29,23 +29,23 @@ import java.util.Set;
 * SolrJ LBHttpSolrServer class.  This is so it instantiates our modified
 * HttpSolrServer class, so that multipart forms work.
 */
-public class ModifiedLBHttpSolrServer extends LBHttpSolrServer
+public class ModifiedLBHttpSolrClient extends LBHttpSolrClient
 {
   private final HttpClient httpClient;
   private final ResponseParser parser;
   
-  public ModifiedLBHttpSolrServer(String... solrServerUrls) throws MalformedURLException {
+  public ModifiedLBHttpSolrClient(String... solrServerUrls) throws MalformedURLException {
     this(null, solrServerUrls);
   }
   
   /** The provided httpClient should use a multi-threaded connection manager */ 
-  public ModifiedLBHttpSolrServer(HttpClient httpClient, String... solrServerUrl)
+  public ModifiedLBHttpSolrClient(HttpClient httpClient, String... solrServerUrl)
           throws MalformedURLException {
     this(httpClient, new BinaryResponseParser(), solrServerUrl);
   }
 
   /** The provided httpClient should use a multi-threaded connection manager */  
-  public ModifiedLBHttpSolrServer(HttpClient httpClient, ResponseParser parser, String... solrServerUrl)
+  public ModifiedLBHttpSolrClient(HttpClient httpClient, ResponseParser parser, String... solrServerUrl)
           throws MalformedURLException {
     super(httpClient, parser, solrServerUrl);
     this.httpClient = httpClient;
@@ -53,17 +53,15 @@ public class ModifiedLBHttpSolrServer extends LBHttpSolrServer
   }
   
   @Override
-  protected HttpSolrServer makeServer(String server) {
-    HttpSolrServer s = new ModifiedHttpSolrServer(server, httpClient, parser);
-    RequestWriter r = getRequestWriter();
-    Set<String> qp = getQueryParams();
-    if (r != null) {
-      s.setRequestWriter(r);
+  protected HttpSolrClient makeSolrClient(String server) {
+    HttpSolrClient client = new ModifiedHttpSolrClient(server, httpClient, parser);
+    if (getRequestWriter() != null) {
+      client.setRequestWriter(getRequestWriter());
     }
-    if (qp != null) {
-      s.setQueryParams(qp);
+    if (getQueryParams() != null) {
+      client.setQueryParams(getQueryParams());
     }
-    return s;
+    return client;
   }
 
 }
