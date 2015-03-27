@@ -220,11 +220,28 @@
         <groupId>org.apache.tika</groupId>
         <artifactId>tika-core</artifactId>
         <version>${tika.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>jhighlight</artifactId>
+            <groupId>com.uwyn</groupId>
+          </exclusion>
+        </exclusions>
     </dependency>
     <dependency>
         <groupId>org.apache.tika</groupId>
         <artifactId>tika-parsers</artifactId>
         <version>${tika.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>jhighlight</artifactId>
+            <groupId>com.uwyn</groupId>
+          </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>org.codelibs</groupId>
+        <artifactId>jhighlight</artifactId>
+        <version>${jhighlight.version}</version>
     </dependency>
     <dependency>
         <groupId>de.l3s.boilerpipe</groupId>
