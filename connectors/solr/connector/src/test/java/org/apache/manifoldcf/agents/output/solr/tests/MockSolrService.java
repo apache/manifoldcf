@@ -107,7 +107,7 @@ public class MockSolrService
       throws IOException
     {
       res.setStatus(HttpServletResponse.SC_OK);
-      res.setContentType("text/xml; charset=utf-8");
+      res.setContentType("application/xml; charset=utf-8");
       res.getWriter().printf("<solr>\n");
       res.getWriter().printf("</solr>\n");
       res.getWriter().flush();
@@ -117,7 +117,7 @@ public class MockSolrService
       throws IOException
     {
       res.setStatus(HttpServletResponse.SC_OK);
-      res.setContentType("text/xml; charset=utf-8");
+      res.setContentType("application/xml; charset=utf-8");
       res.getWriter().printf("<result>\n");
       res.getWriter().printf("  <doc name=\"something\"/>\n");
       res.getWriter().printf("</result>\n");
@@ -128,7 +128,7 @@ public class MockSolrService
       throws IOException
     {
       res.setStatus(HttpServletResponse.SC_OK);
-      res.setContentType("text/xml; charset=utf-8");
+      res.setContentType("application/xml; charset=utf-8");
       res.getWriter().printf("<result>\n");
       res.getWriter().printf("  <doc name=\"something\"/>\n");
       res.getWriter().printf("</result>\n");

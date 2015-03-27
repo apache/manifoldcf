@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.9-dev =====================
 
+CONNECTORS-1176: Update SolrJ version.
+(Karl Wright)
+
 CONNECTORS-1175: Documentum connector needs to set file name.
 (Dmitry Bardin, Karl Wright)
 
