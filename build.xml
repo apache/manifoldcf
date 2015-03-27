@@ -105,7 +105,7 @@
     <property name="vorbis.version" value="0.6"/>
     <property name="metadata-extractor.version" value="2.6.2"/>
     <property name="aspectjrt.version" value="1.8.0"/>
-    <property name="jhighlight.version" value="1.0"/>
+    <property name="jhighlight.version" value="1.0.2"/>
     <property name="xmlbeans.version" value="2.6.0"/>
     <property name="bc.version" value="1.45"/>
     <property name="tukaani.version" value="1.5"/>
@@ -1746,7 +1746,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="com/uwyn"/>
+            <param name="project-path" value="org/codelibs"/>
             <param name="artifact-name" value="jhighlight"/>
             <param name="artifact-version" value="${jhighlight.version}"/>
             <param name="artifact-type" value="jar"/>
