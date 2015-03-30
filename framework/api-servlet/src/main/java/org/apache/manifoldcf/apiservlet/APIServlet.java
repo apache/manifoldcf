@@ -24,6 +24,9 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.core.util.URLDecoder;
+
+import org.apache.manifoldcf.ui.beans.AdminProfile;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -74,6 +77,22 @@ public class APIServlet extends HttpServlet
         return;
       }
 
+      // Verify session
+      Object x = request.getSession().getAttribute("adminprofile");
+      if (x == null || !(x instanceof AdminProfile))
+      {
+        // Not logged in
+        response.sendError(response.SC_UNAUTHORIZED);
+        return;
+      }
+      AdminProfile ap = (AdminProfile)x;
+      if (!ap.getLoggedOn())
+      {
+        // Login exists but failed
+        response.sendError(response.SC_FORBIDDEN);
+        return;
+      }
+      
       // Perform the get
       executeRead(tc,response,pathInfo,queryString);
     }
@@ -101,6 +120,22 @@ public class APIServlet extends HttpServlet
       if (pathInfo == null)
       {
         response.sendError(response.SC_BAD_REQUEST,"No path info found");
+        return;
+      }
+
+      // Verify session
+      Object x = request.getSession().getAttribute("adminprofile");
+      if (x == null || !(x instanceof AdminProfile))
+      {
+        // Not logged in
+        response.sendError(response.SC_UNAUTHORIZED);
+        return;
+      }
+      AdminProfile ap = (AdminProfile)x;
+      if (!ap.getLoggedOn())
+      {
+        // Login exists but failed
+        response.sendError(response.SC_FORBIDDEN);
         return;
       }
 
@@ -144,6 +179,46 @@ public class APIServlet extends HttpServlet
         return;
       }
 
+      // Check for login
+      if (pathInfo.equals("LOGIN"))
+      {
+        // Pick up user and password post parameters
+        String userID = request.getParameter("userID");
+        String password = request.getParameter("password");
+        if (userID == null)
+          userID = "";
+        if (password == null)
+          password = "";
+        
+        AdminProfile ap = new AdminProfile();
+        request.getSession().setAttribute("adminprofile",ap);
+        ap.login(tc,userID,password);
+        if (!ap.getLoggedOn())
+        {
+          response.sendError(response.SC_UNAUTHORIZED);
+          return;
+        }
+        else
+        {
+          return;
+        }
+      }
+
+      // Verify session
+      Object x = request.getSession().getAttribute("adminprofile");
+      if (x == null || !(x instanceof AdminProfile))
+      {
+        response.sendError(response.SC_UNAUTHORIZED);
+        return;
+      }
+      AdminProfile ap = (AdminProfile)x;
+      if (!ap.getLoggedOn())
+      {
+        // Login exists but failed
+        response.sendError(response.SC_FORBIDDEN);
+        return;
+      }
+
       // Get the content being posted
       InputStream content = request.getInputStream();
       try
@@ -181,6 +256,22 @@ public class APIServlet extends HttpServlet
       if (pathInfo == null)
       {
         response.sendError(response.SC_BAD_REQUEST,"No path info found");
+        return;
+      }
+
+      // Verify session
+      Object x = request.getSession().getAttribute("adminprofile");
+      if (x == null || !(x instanceof AdminProfile))
+      {
+        // Not logged in
+        response.sendError(response.SC_UNAUTHORIZED);
+        return;
+      }
+      AdminProfile ap = (AdminProfile)x;
+      if (!ap.getLoggedOn())
+      {
+        // Login exists but failed
+        response.sendError(response.SC_FORBIDDEN);
         return;
       }
 
