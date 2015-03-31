@@ -197,6 +197,19 @@ public class ManifoldCFInstance
   
   // These methods allow communication with the ManifoldCF api webapp, via the locally-instantiated jetty
   
+  public void loginAPI(String userID, String password)
+    throws Exception
+  {
+    Configuration requestObject = new Configuration();
+    ConfigurationNode cn = new ConfigurationNode("userID");
+    cn.setValue(userID);
+    requestObject.addChild(requestObject.getChildCount(),cn);
+    cn = new ConfigurationNode("password");
+    cn.setValue(password);
+    requestObject.addChild(requestObject.getChildCount(),cn);
+    performAPIPostOperationViaNodes("LOGIN",200,requestObject);
+  }
+  
   public void startJobAPI(String jobIDString)
     throws Exception
   {
