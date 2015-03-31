@@ -25,7 +25,7 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.core.util.URLDecoder;
 
-import org.apache.manifoldcf.ui.beans.AdminProfile;
+import org.apache.manifoldcf.ui.beans.APIProfile;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -78,14 +78,14 @@ public class APIServlet extends HttpServlet
       }
 
       // Verify session
-      Object x = request.getSession().getAttribute("adminprofile");
-      if (x == null || !(x instanceof AdminProfile))
+      Object x = request.getSession().getAttribute("apiprofile");
+      if (x == null || !(x instanceof APIProfile))
       {
         // Not logged in
         response.sendError(response.SC_UNAUTHORIZED);
         return;
       }
-      AdminProfile ap = (AdminProfile)x;
+      APIProfile ap = (APIProfile)x;
       if (!ap.getLoggedOn())
       {
         // Login exists but failed
@@ -124,14 +124,14 @@ public class APIServlet extends HttpServlet
       }
 
       // Verify session
-      Object x = request.getSession().getAttribute("adminprofile");
-      if (x == null || !(x instanceof AdminProfile))
+      Object x = request.getSession().getAttribute("apiprofile");
+      if (x == null || !(x instanceof APIProfile))
       {
         // Not logged in
         response.sendError(response.SC_UNAUTHORIZED);
         return;
       }
-      AdminProfile ap = (AdminProfile)x;
+      APIProfile ap = (APIProfile)x;
       if (!ap.getLoggedOn())
       {
         // Login exists but failed
@@ -190,8 +190,8 @@ public class APIServlet extends HttpServlet
         if (password == null)
           password = "";
         
-        AdminProfile ap = new AdminProfile();
-        request.getSession().setAttribute("adminprofile",ap);
+        APIProfile ap = new APIProfile();
+        request.getSession().setAttribute("apiprofile",ap);
         ap.login(tc,userID,password);
         if (!ap.getLoggedOn())
         {
@@ -205,13 +205,13 @@ public class APIServlet extends HttpServlet
       }
 
       // Verify session
-      Object x = request.getSession().getAttribute("adminprofile");
-      if (x == null || !(x instanceof AdminProfile))
+      Object x = request.getSession().getAttribute("apiprofile");
+      if (x == null || !(x instanceof APIProfile))
       {
         response.sendError(response.SC_UNAUTHORIZED);
         return;
       }
-      AdminProfile ap = (AdminProfile)x;
+      APIProfile ap = (APIProfile)x;
       if (!ap.getLoggedOn())
       {
         // Login exists but failed
@@ -260,14 +260,14 @@ public class APIServlet extends HttpServlet
       }
 
       // Verify session
-      Object x = request.getSession().getAttribute("adminprofile");
-      if (x == null || !(x instanceof AdminProfile))
+      Object x = request.getSession().getAttribute("apiprofile");
+      if (x == null || !(x instanceof APIProfile))
       {
         // Not logged in
         response.sendError(response.SC_UNAUTHORIZED);
         return;
       }
-      AdminProfile ap = (AdminProfile)x;
+      APIProfile ap = (APIProfile)x;
       if (!ap.getLoggedOn())
       {
         // Login exists but failed
