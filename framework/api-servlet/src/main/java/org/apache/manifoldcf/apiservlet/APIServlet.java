@@ -493,6 +493,22 @@ public class APIServlet extends HttpServlet
       }
       else
       {
+        String loutputText = "{}";
+        byte[] lresponseValue = loutputText.getBytes(StandardCharsets.UTF_8);
+
+        // Set response mime type
+        response.setContentType("text/plain; charset=utf-8");
+        response.setIntHeader("Content-Length", (int)lresponseValue.length);
+        ServletOutputStream out = response.getOutputStream();
+        try
+        {
+          out.write(lresponseValue,0,lresponseValue.length);
+          out.flush();
+        }
+        finally
+        {
+          out.close();
+        }
         return;
       }
     }
