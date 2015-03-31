@@ -56,6 +56,20 @@ public class APIServlet extends HttpServlet
     super.destroy();
   }
 
+  protected APIProfile getAPISession(IThreadContext tc, HttpServletRequest request)
+  {
+    Object x = request.getSession().getAttribute("apiprofile");
+    if (x == null || !(x instanceof APIProfile))
+    {
+      // Basic login
+      APIProfile ap = new APIProfile();
+      request.getSession().setAttribute("apiprofile",ap);
+      ap.login(tc,"","");
+      return ap;
+    }
+    return (APIProfile)x;
+  }
+  
   /** The get method.
   */
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -78,18 +92,11 @@ public class APIServlet extends HttpServlet
       }
 
       // Verify session
-      Object x = request.getSession().getAttribute("apiprofile");
-      if (x == null || !(x instanceof APIProfile))
-      {
-        // Not logged in
-        response.sendError(response.SC_UNAUTHORIZED);
-        return;
-      }
-      APIProfile ap = (APIProfile)x;
+      APIProfile ap = getAPISession(tc,request);
       if (!ap.getLoggedOn())
       {
         // Login exists but failed
-        response.sendError(response.SC_FORBIDDEN);
+        response.sendError(response.SC_UNAUTHORIZED);
         return;
       }
       
@@ -124,18 +131,11 @@ public class APIServlet extends HttpServlet
       }
 
       // Verify session
-      Object x = request.getSession().getAttribute("apiprofile");
-      if (x == null || !(x instanceof APIProfile))
-      {
-        // Not logged in
-        response.sendError(response.SC_UNAUTHORIZED);
-        return;
-      }
-      APIProfile ap = (APIProfile)x;
+      APIProfile ap = getAPISession(tc,request);
       if (!ap.getLoggedOn())
       {
         // Login exists but failed
-        response.sendError(response.SC_FORBIDDEN);
+        response.sendError(response.SC_UNAUTHORIZED);
         return;
       }
 
@@ -190,8 +190,7 @@ public class APIServlet extends HttpServlet
         if (password == null)
           password = "";
         
-        APIProfile ap = new APIProfile();
-        request.getSession().setAttribute("apiprofile",ap);
+        APIProfile ap = getAPISession(tc,request);
         ap.login(tc,userID,password);
         if (!ap.getLoggedOn())
         {
@@ -205,13 +204,7 @@ public class APIServlet extends HttpServlet
       }
 
       // Verify session
-      Object x = request.getSession().getAttribute("apiprofile");
-      if (x == null || !(x instanceof APIProfile))
-      {
-        response.sendError(response.SC_UNAUTHORIZED);
-        return;
-      }
-      APIProfile ap = (APIProfile)x;
+      APIProfile ap = getAPISession(tc,request);
       if (!ap.getLoggedOn())
       {
         // Login exists but failed
@@ -260,14 +253,7 @@ public class APIServlet extends HttpServlet
       }
 
       // Verify session
-      Object x = request.getSession().getAttribute("apiprofile");
-      if (x == null || !(x instanceof APIProfile))
-      {
-        // Not logged in
-        response.sendError(response.SC_UNAUTHORIZED);
-        return;
-      }
-      APIProfile ap = (APIProfile)x;
+      APIProfile ap = getAPISession(tc,request);
       if (!ap.getLoggedOn())
       {
         // Login exists but failed
