@@ -41,13 +41,16 @@ public class VariableConfiguration extends VariableBase
     throws ScriptException
   {
     configuration = new Configuration();
-    try
+    if (json != null && json.length() > 0)
     {
-      configuration.fromJSON(json);
-    }
-    catch (ManifoldCFException e)
-    {
-      throw new ScriptException(e.getMessage(),e);
+      try
+      {
+        configuration.fromJSON(json);
+      }
+      catch (ManifoldCFException e)
+      {
+        throw new ScriptException("Invalid json: '"+json+"': "+e.getMessage(),e);
+      }
     }
   }
   
