@@ -49,8 +49,7 @@ public class VariableConfiguration extends VariableBase
       }
       catch (ManifoldCFException e)
       {
-        System.out.println("'"+json+"'");
-        throw new ScriptException(e.getMessage(),e);
+        throw new ScriptException("Invalid json: '"+json+"': "+e.getMessage(),e);
       }
     }
   }
