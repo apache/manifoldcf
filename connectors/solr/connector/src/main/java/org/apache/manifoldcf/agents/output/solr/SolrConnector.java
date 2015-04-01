@@ -98,6 +98,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   
   /** Whether or not to commit */
   protected boolean doCommits = false;
+
+  /** Collection name (non-empty only if SolrCloud) */
+  protected String collectionName = null;
   
   /** Idle connection expiration interval */
   protected final static long EXPIRATION_INTERVAL = 300000L;
@@ -188,6 +191,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     contentAttributeName = null;
     useExtractUpdateHandler = true;
     useUrlEncoding = true;
+    collectionName = null;
     super.disconnect();
   }
 
@@ -349,6 +353,8 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         if (connectTimeoutString == null)
           connectTimeoutString = "60";
         
+        collectionName = null;
+        
         try
         {
           int socketTimeout = Integer.parseInt(socketTimeoutString) * 1000;
@@ -395,6 +401,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         String collection = params.getParameter(SolrConfig.PARAM_COLLECTION);
         if (collection == null)
           collection = "collection1";
+        collectionName = collection;
 
         // Pick up timeouts
         String zkClientTimeoutString = params.getParameter(SolrConfig.PARAM_ZOOKEEPER_CLIENT_TIMEOUT);
@@ -2838,6 +2845,14 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       else
         sb.append('-');
 
+      if (collectionName != null)
+      {
+        sb.append('+');
+        pack(sb,collectionName,'+');
+      }
+      else
+        sb.append('-');
+      
       return sb.toString();
     }
     
