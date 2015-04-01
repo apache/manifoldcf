@@ -63,7 +63,9 @@ public class APISanityTester
     ConfigurationNode child;
     Configuration requestObject;
     Configuration result;
-      
+
+    instance.loginAPI("","");
+    
     connectionObject = new ConfigurationNode("repositoryconnection");
     
     child = new ConfigurationNode("name");

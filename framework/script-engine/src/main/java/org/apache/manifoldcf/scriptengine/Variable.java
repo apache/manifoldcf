@@ -52,6 +52,8 @@ public interface Variable
   public static String ATTRIBUTE_NOTFOUNDSTATUS = "__NOTFOUND__";
   /** CREATED status attribute */
   public static String ATTRIBUTE_CREATEDSTATUS = "__CREATED__";
+  /** UNAUTHORIZED status attribute */
+  public static String ATTRIBUTE_UNAUTHORIZEDSTATUS = "__UNAUTHORIZED__";
   
   /** Check if the variable has a string value */
   public boolean hasStringValue()
