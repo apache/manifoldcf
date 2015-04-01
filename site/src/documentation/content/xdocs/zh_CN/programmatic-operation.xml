@@ -48,8 +48,8 @@
           <p>http[s]://<em>&lt;server_and_port&gt;</em>/mcf-api-service/json/<em>&lt;resource&gt;</em></p>
           <p></p>
           <p>The servlet ignores request data, except when the PUT or POST verb is used.  In that case, the request data is presumed to be a JSON object.  The servlet
-            responds either with an error response code (either 400 or 500) with an appropriate explanatory message, or with a 200 (OK), 201 (CREATED), or
-            404 (NOT FOUND) response code along with a response JSON object.</p>
+            responds either with an error response code (either 400 or 500) with an appropriate explanatory message, or with a 200 (OK), 201 (CREATED), 
+            401 (UNAUTHORIZED), or 404 (NOT FOUND) response code along with a response JSON object.</p>
           <p></p>
         </section>
         <section>
@@ -79,6 +79,7 @@
           <p></p>
           <table>
             <tr><th>Resource</th><th>Verb</th><th>What it does</th><th>Input format/query args</th><th>Output format</th></tr>
+            <tr><td>LOGIN</td><td>POST</td><td>Log in the specified user</td><td>{"userID":<em>&lt;user_name&gt;</em>, "password":<em>&lt;password&gt;</em>}</td><td>{}</td></tr>
             <tr><td>authorizationdomains</td><td>GET</td><td>List all registered authorization domains</td><td>N/A</td><td>{"authorizationdomain":[<em>&lt;list_of_authorization_domain_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>outputconnectors</td><td>GET</td><td>List all registered output connectors</td><td>N/A</td><td>{"outputconnector":[<em>&lt;list_of_output_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
             <tr><td>transformationconnectors</td><td>GET</td><td>List all registered transformation connectors</td><td>N/A</td><td>{"transformationconnector":[<em>&lt;list_of_transformation_connector_objects&gt;</em>]} <strong>OR</strong> {"error":<em>&lt;error_text&gt;</em>}</td></tr>
