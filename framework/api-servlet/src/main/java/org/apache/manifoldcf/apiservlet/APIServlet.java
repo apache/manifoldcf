@@ -222,6 +222,34 @@ public class APIServlet extends HttpServlet
   }
 
   // Protected methods
+
+  protected static void sendUnauthorizedResponse(HttpServletResponse response)
+    throws IOException
+  {
+    response.setStatus(response.SC_UNAUTHORIZED);
+    sendNullJSON(response);
+  }
+  
+  protected static void sendNullJSON(HttpServletResponse response)
+    throws IOException
+  {
+    String loutputText = "{}";
+    byte[] lresponseValue = loutputText.getBytes(StandardCharsets.UTF_8);
+
+    // Set response mime type
+    response.setContentType("text/plain; charset=utf-8");
+    response.setIntHeader("Content-Length", (int)lresponseValue.length);
+    ServletOutputStream out = response.getOutputStream();
+    try
+    {
+      out.write(lresponseValue,0,lresponseValue.length);
+      out.flush();
+    }
+    finally
+    {
+      out.close();
+    }
+  }
   
   /** Perform a general "read" operation.
   */
@@ -231,7 +259,7 @@ public class APIServlet extends HttpServlet
     if (!ap.getLoggedOn())
     {
       // Login failed
-      response.sendError(response.SC_UNAUTHORIZED);
+      sendUnauthorizedResponse(response);
       return;
     }
 
@@ -318,7 +346,7 @@ public class APIServlet extends HttpServlet
     if (!ap.getLoggedOn())
     {
       // Login failed
-      response.sendError(response.SC_UNAUTHORIZED);
+      sendUnauthorizedResponse(response);
       return;
     }
 
@@ -488,27 +516,12 @@ public class APIServlet extends HttpServlet
       ap.login(tc,userID,password);
       if (!ap.getLoggedOn())
       {
-        response.sendError(response.SC_UNAUTHORIZED);
+        sendUnauthorizedResponse(response);
         return;
       }
       else
       {
-        String loutputText = "{}";
-        byte[] lresponseValue = loutputText.getBytes(StandardCharsets.UTF_8);
-
-        // Set response mime type
-        response.setContentType("text/plain; charset=utf-8");
-        response.setIntHeader("Content-Length", (int)lresponseValue.length);
-        ServletOutputStream out = response.getOutputStream();
-        try
-        {
-          out.write(lresponseValue,0,lresponseValue.length);
-          out.flush();
-        }
-        finally
-        {
-          out.close();
-        }
+        sendNullJSON(response);
         return;
       }
     }
@@ -516,7 +529,7 @@ public class APIServlet extends HttpServlet
     if (!ap.getLoggedOn())
     {
       // Login failed
-      response.sendError(response.SC_UNAUTHORIZED);
+      sendUnauthorizedResponse(response);
       return;
     }
 
@@ -617,7 +630,7 @@ public class APIServlet extends HttpServlet
     if (!ap.getLoggedOn())
     {
       // Login failed
-      response.sendError(response.SC_UNAUTHORIZED);
+      sendUnauthorizedResponse(response);
       return;
     }
 
