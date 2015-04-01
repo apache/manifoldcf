@@ -1040,6 +1040,9 @@ start[.bat|.sh]
             <tr><td>org.apache.manifoldcf.login.name</td><td>No</td><td>Crawler UI login user ID (defaults to "admin")</td></tr>
             <tr><td>org.apache.manifoldcf.login.password</td><td>No</td><td>Crawler UI login user password (defaults to "admin")</td></tr>
             <tr><td>org.apache.manifoldcf.login.password.obfuscated</td><td>No</td><td>Obfuscated crawler UI login user password (defaults to "admin")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.apiname</td><td>No</td><td>API login user ID (defaults to "")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.apipassword</td><td>No</td><td>API login user password (defaults to "")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.apipassword.obfuscated</td><td>No</td><td>Obfuscated API login user password (defaults to "")</td></tr>
             <tr><td>org.apache.manifoldcf.crawleruiwarpath</td><td>Yes, for Jetty</td><td>Location of Crawler UI war</td></tr>
             <tr><td>org.apache.manifoldcf.authorityservicewarpath</td><td>Yes, for Jetty</td><td>Location of Authority Service war</td></tr>
             <tr><td>org.apache.manifoldcf.apiservicewarpath</td><td>Yes, for Jetty</td><td>Location of API Service war</td></tr>
