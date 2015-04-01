@@ -92,14 +92,17 @@ POST result = {
     << "recrawl_interval" : "86400000" :  :  >>,
     << "run_mode" : "scan once" :  :  >>,
     << "hopcount_mode" : "never delete" :  :  >>,
-    << "output_specification" : "" :  :  >>,
     << "description" : fileCrawlJobName :  :  >>,
+    << "repository_connection" : "File System" :  :  >>,
     << "document_specification" : "" :  :
       << "startpoint" : "" : "path"=fileCrawlPath : 
         << "include" : "" : "match"="*", "type"="file" :  >>,
         << "include" : "" : "match"="*", "type"="directory" :  >> >> >>,
-    << "output_connection" : "Null Output" :  :  >>,
-    << "repository_connection" : "File System" :  :  >>,
+    << "pipelinestage" : "" :  :
+      << "stage_id" : 0 :  :  >>,
+      << "stage_isoutput": "true" :  :  >>,
+      << "stage_specification" : "" :  :  >>,
+      << "stage_connectionname" : "Null Output" :  :  >> >>,
     << "priority" : "5" :  :  >>,
     << "expiration_interval" : "infinite" :  :  >> >> }
   to baseurl + "jobs";
