@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.9-dev =====================
 
+CONNECTORS-1177: Add session-based security for API.
+(Jan van Haarst, Karl Wright)
+
 CONNECTORS-1176: Update SolrJ version.
 (Karl Wright)
 

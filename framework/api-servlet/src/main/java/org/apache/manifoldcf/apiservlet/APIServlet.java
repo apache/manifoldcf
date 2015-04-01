@@ -24,6 +24,9 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.core.util.URLDecoder;
+
+import org.apache.manifoldcf.ui.beans.APIProfile;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -53,6 +56,20 @@ public class APIServlet extends HttpServlet
     super.destroy();
   }
 
+  protected APIProfile getAPISession(IThreadContext tc, HttpServletRequest request)
+  {
+    Object x = request.getSession().getAttribute("apiprofile");
+    if (x == null || !(x instanceof APIProfile))
+    {
+      // Basic login
+      APIProfile ap = new APIProfile();
+      request.getSession().setAttribute("apiprofile",ap);
+      ap.login(tc,"","");
+      return ap;
+    }
+    return (APIProfile)x;
+  }
+  
   /** The get method.
   */
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -74,8 +91,10 @@ public class APIServlet extends HttpServlet
         return;
       }
 
+      // Verify session
+      APIProfile ap = getAPISession(tc,request);
       // Perform the get
-      executeRead(tc,response,pathInfo,queryString);
+      executeRead(tc,response,pathInfo,queryString,ap);
     }
     catch (ManifoldCFException e)
     {
@@ -104,12 +123,14 @@ public class APIServlet extends HttpServlet
         return;
       }
 
+      // Verify session
+      APIProfile ap = getAPISession(tc,request);
       // Get the content being 'put'
       InputStream content = request.getInputStream();
       try
       {
 	// Do the put.
-	executeWrite(tc,response,pathInfo,content);
+	executeWrite(tc,response,pathInfo,content,ap);
       }
       finally
       {
@@ -144,12 +165,14 @@ public class APIServlet extends HttpServlet
         return;
       }
 
+      // Verify session
+      APIProfile ap = getAPISession(tc,request);
       // Get the content being posted
       InputStream content = request.getInputStream();
       try
       {
 	// Do the put.
-	executePost(tc,response,pathInfo,content);
+	executePost(tc,response,pathInfo,content,ap);
       }
       finally
       {
@@ -184,8 +207,10 @@ public class APIServlet extends HttpServlet
         return;
       }
 
+      // Verify session
+      APIProfile ap = getAPISession(tc,request);
       // Perform the deletion
-      executeDelete(tc,response,pathInfo);
+      executeDelete(tc,response,pathInfo,ap);
       
     }
     catch (ManifoldCFException e)
@@ -197,12 +222,47 @@ public class APIServlet extends HttpServlet
   }
 
   // Protected methods
+
+  protected static void sendUnauthorizedResponse(HttpServletResponse response)
+    throws IOException
+  {
+    response.setStatus(response.SC_UNAUTHORIZED);
+    sendNullJSON(response);
+  }
+  
+  protected static void sendNullJSON(HttpServletResponse response)
+    throws IOException
+  {
+    String loutputText = "{}";
+    byte[] lresponseValue = loutputText.getBytes(StandardCharsets.UTF_8);
+
+    // Set response mime type
+    response.setContentType("text/plain; charset=utf-8");
+    response.setIntHeader("Content-Length", (int)lresponseValue.length);
+    ServletOutputStream out = response.getOutputStream();
+    try
+    {
+      out.write(lresponseValue,0,lresponseValue.length);
+      out.flush();
+    }
+    finally
+    {
+      out.close();
+    }
+  }
   
   /** Perform a general "read" operation.
   */
-  protected static void executeRead(IThreadContext tc, HttpServletResponse response, String pathInfo, String queryString)
+  protected static void executeRead(IThreadContext tc, HttpServletResponse response, String pathInfo, String queryString, APIProfile ap)
     throws ManifoldCFException, IOException
   {
+    if (!ap.getLoggedOn())
+    {
+      // Login failed
+      sendUnauthorizedResponse(response);
+      return;
+    }
+
     // Strip off leading "/"
     if (pathInfo.startsWith("/"))
       pathInfo = pathInfo.substring(1);
@@ -280,9 +340,16 @@ public class APIServlet extends HttpServlet
   
   /** Perform a general "write" operation.
   */
-  protected static void executeWrite(IThreadContext tc, HttpServletResponse response, String pathInfo, InputStream data)
+  protected static void executeWrite(IThreadContext tc, HttpServletResponse response, String pathInfo, InputStream data, APIProfile ap)
     throws ManifoldCFException, IOException
   {
+    if (!ap.getLoggedOn())
+    {
+      // Login failed
+      sendUnauthorizedResponse(response);
+      return;
+    }
+
     // Strip off leading "/"
     if (pathInfo.startsWith("/"))
       pathInfo = pathInfo.substring(1);
@@ -394,7 +461,7 @@ public class APIServlet extends HttpServlet
 
   /** Perform a general "post" operation.
   */
-  protected static void executePost(IThreadContext tc, HttpServletResponse response, String pathInfo, InputStream data)
+  protected static void executePost(IThreadContext tc, HttpServletResponse response, String pathInfo, InputStream data, APIProfile ap)
     throws ManifoldCFException, IOException
   {
     // Strip off leading "/"
@@ -413,6 +480,57 @@ public class APIServlet extends HttpServlet
     {
       protocol = pathInfo.substring(0,index);
       command = pathInfo.substring(index+1);
+    }
+
+    // Security check.  If the protocol is JSON and the command is LOGIN, we do the login now.  But to
+    // prevent denial of service attacks, we don't accept more than a limited amount of login JSON.
+    if (protocol.equals("json") && command.equals("LOGIN")) {
+      // Do the login!
+      // Parse the json login packet
+      char[] lbuffer = new char[65536];
+      StringBuilder lsb = new StringBuilder();
+      Reader lr = new InputStreamReader(data,StandardCharsets.UTF_8);
+      while (true)
+      {
+        int amt = lr.read(lbuffer);
+        if (amt == -1)
+          break;
+        if (lsb.length() + amt > 65536)
+          break;
+        lsb.append(lbuffer,0,amt);
+      }
+      
+      Configuration loginInput = new Configuration();
+      loginInput.fromJSON(lsb.toString());
+
+      String userID = "";
+      String password = "";
+      for (int i = 0; i < loginInput.getChildCount(); i++)
+      {
+        ConfigurationNode cn = loginInput.findChild(i);
+        if (cn.getType().equals("userID"))
+          userID = cn.getValue();
+        else if (cn.getType().equals("password"))
+          password = cn.getValue();
+      }
+      ap.login(tc,userID,password);
+      if (!ap.getLoggedOn())
+      {
+        sendUnauthorizedResponse(response);
+        return;
+      }
+      else
+      {
+        sendNullJSON(response);
+        return;
+      }
+    }
+
+    if (!ap.getLoggedOn())
+    {
+      // Login failed
+      sendUnauthorizedResponse(response);
+      return;
     }
 
     // We presume the data is utf-8
@@ -448,6 +566,7 @@ public class APIServlet extends HttpServlet
     }
     
     // Execute the request.
+
     
     Configuration output = new Configuration();
     int writeResult = ManifoldCF.executePostCommand(tc,output,command,input);
@@ -505,9 +624,16 @@ public class APIServlet extends HttpServlet
   
   /** Perform a general "delete" operation.
   */
-  protected static void executeDelete(IThreadContext tc, HttpServletResponse response, String pathInfo)
+  protected static void executeDelete(IThreadContext tc, HttpServletResponse response, String pathInfo, APIProfile ap)
     throws ManifoldCFException, IOException
   {
+    if (!ap.getLoggedOn())
+    {
+      // Login failed
+      sendUnauthorizedResponse(response);
+      return;
+    }
+
     // Strip off leading "/"
     if (pathInfo.startsWith("/"))
       pathInfo = pathInfo.substring(1);

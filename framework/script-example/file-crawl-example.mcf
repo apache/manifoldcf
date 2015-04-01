@@ -17,14 +17,22 @@
 # Argument: the base path of the API service, e.g. "http://localhost:8345/mcf-api-service".
 
 # Decode the argument, if any
-if __args__.__size__ > 2 || __args__.__size__ < 1 then
-  error "Usage: file-crawl-example <file_path> [<url_path>]";
+if __args__.__size__ > 4 || __args__.__size__ < 1 || __args__.__size__ == 3 then
+  error "Usage: file-crawl-example <file_path> [ <url_path> [ <user_name> <password> ] ]";
 ;
 if __args__.__size__ == 1 then
   set basepath = "http://localhost:8345/mcf-api-service";
 else
   set basepath = __args__[1];
 ;
+if __args__.__size__ == 4 then
+  set username = __args__[2];
+  set password = __args__[3];
+else
+  set username = "";
+  set password = "";
+;
+
 set baseurl = (new url basepath) + "json";
 
 # Define all the connection names, job names, etc.
@@ -34,6 +42,17 @@ set repositoryConnectionName = "File System";
 set repositoryConnectionDescription = "File System Connection";
 set fileCrawlPath = __args__[0];
 set fileCrawlJobName = "File system crawl of "+fileCrawlPath;
+
+# First, login
+POST result = {
+  << "userID" : username :  :  >>,
+  << "password" : password : : >> }
+  to baseurl + "LOGIN";
+if result.__OK__ then
+  print "Login successful";
+else
+  error "Login failed";
+;
 
 # Now, create the null output connection, unless it's already there.
 PUT result = {
@@ -73,14 +92,17 @@ POST result = {
     << "recrawl_interval" : "86400000" :  :  >>,
     << "run_mode" : "scan once" :  :  >>,
     << "hopcount_mode" : "never delete" :  :  >>,
-    << "output_specification" : "" :  :  >>,
     << "description" : fileCrawlJobName :  :  >>,
+    << "repository_connection" : "File System" :  :  >>,
     << "document_specification" : "" :  :
       << "startpoint" : "" : "path"=fileCrawlPath : 
         << "include" : "" : "match"="*", "type"="file" :  >>,
         << "include" : "" : "match"="*", "type"="directory" :  >> >> >>,
-    << "output_connection" : "Null Output" :  :  >>,
-    << "repository_connection" : "File System" :  :  >>,
+    << "pipelinestage" : "" :  :
+      << "stage_id" : 0 :  :  >>,
+      << "stage_isoutput": "true" :  :  >>,
+      << "stage_specification" : "" :  :  >>,
+      << "stage_connectionname" : "Null Output" :  :  >> >>,
     << "priority" : "5" :  :  >>,
     << "expiration_interval" : "infinite" :  :  >> >> }
   to baseurl + "jobs";

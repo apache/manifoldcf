@@ -89,6 +89,8 @@ public class ManifoldCF
   // Local member variables
   protected static String loginUserName = null;
   protected static String loginPassword = null;
+  protected static String apiLoginUserName = null;
+  protected static String apiLoginPassword = null;
   protected static String masterDatabaseName = null;
   protected static String masterDatabaseUsername = null;
   protected static String masterDatabasePassword = null;
@@ -112,7 +114,12 @@ public class ManifoldCF
   public static final String loginUserNameProperty = "org.apache.manifoldcf.login.name";
   /** UI login password */
   public static final String loginPasswordProperty = "org.apache.manifoldcf.login.password";
-  
+
+  /** API login user name */
+  public static final String apiLoginUserNameProperty = "org.apache.manifoldcf.apilogin.name";
+  /** API login password */
+  public static final String apiLoginPasswordProperty = "org.apache.manifoldcf.apilogin.password";
+
   // Database access properties
   /** Database name property */
   public static final String masterDatabaseNameProperty = "org.apache.manifoldcf.database.name";
@@ -171,6 +178,8 @@ public class ManifoldCF
         processID = null;
         loginUserName = null;
         loginPassword = null;
+        apiLoginUserName = null;
+        apiLoginPassword = null;
         masterDatabaseName = null;
         masterDatabaseUsername = null;
         masterDatabasePassword = null;
@@ -263,6 +272,9 @@ public class ManifoldCF
 
           loginUserName = LockManagerFactory.getStringProperty(threadContext,loginUserNameProperty,"admin");
           loginPassword = LockManagerFactory.getPossiblyObfuscatedStringProperty(threadContext,loginPasswordProperty,"admin");
+
+          apiLoginUserName = LockManagerFactory.getStringProperty(threadContext,apiLoginUserNameProperty,"");
+          apiLoginPassword = LockManagerFactory.getPossiblyObfuscatedStringProperty(threadContext,apiLoginPasswordProperty,"");
 
           masterDatabaseName = LockManagerFactory.getStringProperty(threadContext,masterDatabaseNameProperty,"dbname");
           masterDatabaseUsername = LockManagerFactory.getStringProperty(threadContext,masterDatabaseUsernameProperty,"manifoldcf");
@@ -635,6 +647,25 @@ public class ManifoldCF
     {
       throw new ManifoldCFException("Couldn't encrypt: "+e.getMessage(),e,ManifoldCFException.GENERAL_ERROR);
     }
+  }
+
+  /** Verify API login.
+  */
+  public static boolean verifyAPILogin(IThreadContext threadContext, String userID, String userPassword)
+    throws ManifoldCFException
+  {
+    if (userID != null && userPassword != null)
+    {
+      /*
+      IDBInterface database = DBInterfaceFactory.make(threadContext,
+        ManifoldCF.getMasterDatabaseName(),
+        ManifoldCF.getMasterDatabaseUsername(),
+        ManifoldCF.getMasterDatabasePassword());
+      */
+      // MHL to use a database table, when we get that sophisticated
+      return userID.equals(apiLoginUserName) &&  userPassword.equals(apiLoginPassword);
+    }
+    return false;
   }
 
   /** Verify login.
