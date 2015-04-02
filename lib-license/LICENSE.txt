@@ -389,6 +389,12 @@ jetty-jsp-jdt.jar, and jetty-schemas.jar.
 License: Dual Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt) and EPL (http://www.eclipse.org/legal/epl-v10.html)
 Distributed under terms of Apache 2 license.
 
+This product includes a resteasy-client.jar and a resteasy-jaxrs.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a jsoup.jar.
+License: MIT license (http://opensource.org/licenses/MIT)
+
 This product may include pdf files that embed IPA-licensed fonts.
 License: IPA Font License Agreement v1.0 (http://ossipedia.ipa.go.jp/ipafont/index.html#LicenseEng)
 
