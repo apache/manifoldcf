@@ -1099,17 +1099,6 @@
 
             </section>
 
-            <section id="wikirepository">
-                <title>Wikiリポジトリコネクション</title>
-                <p>Wikiリポジトリコネクションタイプは、Wiki及びMediaWikiサイトのコンテンツから索引を作成します。WikiリポジトリコネクションタイプはWiki APIを介してコンテンツを取得します。一般公開されている内容のみから索引を作成するため、認証設定はありません。</p>
-                <p>リポジトリ編集ページで、Wikiコネクションを選択すると、「サーバ」タブが表示されます。「サーバ」タブを選択すると次のようなページが表示されます：</p>
-                <br/><br/>
-                <figure src="images/ja_JP/wiki-configure-server_ja_JP.PNG" alt="Wiki Connection, Server tab" width="80%"/>
-                <br/><br/>
-                <p>プロトコルは「プロトコル」ドロップダウンリストから選択してください。現バージョンは「http」プロトコルのみに対応しています。サーバ名を項目「サーバ名」に入力して、ポート番号を項目「ポート」にください。最後に、WikiのURIを項目「パス名」に入力してください。URIの先頭は文字「/」にしてください。</p>
-                <p>ジョブのリポジトリコネクションにはWikiタイプ固有のタブは現バージョンにはありません。</p>
-            </section>
-            
             <section id="jdbcrepository">
                 <title>汎用データベースリポジトリコネクション</title>
                 <p>汎用データベースコネクションタイプは次のデータベースのテーブルの内容から索引を作成します：</p>
@@ -1511,6 +1500,19 @@
               <figure src="images/ja_JP/cmis-repository-connection-job-save_ja_JP.PNG" alt="CMIS Repository Connection, saving job" width="80%"/>
               <br/><br/>
             </section>
+
+            <section id="wikirepository">
+                <title>Wikiリポジトリコネクション</title>
+                <p>Wikiリポジトリコネクションタイプは、Wiki及びMediaWikiサイトのコンテンツから索引を作成します。WikiリポジトリコネクションタイプはWiki APIを介してコンテンツを取得します。一般公開されている内容のみから索引を作成するため、認証設定はありません。</p>
+                <p>このコネクションタイプでは、ジョブごとに手入力されたアクセストークン以外のいかなる種類の文書セキュリティもサポートされていません。</p>
+                <p>リポジトリ編集ページで、Wikiコネクションを選択すると、「サーバ」タブが表示されます。「サーバ」タブを選択すると次のようなページが表示されます：</p>
+                <br/><br/>
+                <figure src="images/ja_JP/wiki-configure-server_ja_JP.PNG" alt="Wikiコネクション、サーバタブ" width="80%"/>
+                <br/><br/>
+                <p>プロトコルは「プロトコル」ドロップダウンリストから選択してください。現バージョンは「http」プロトコルのみに対応しています。サーバ名を項目「サーバ名」に、ポート番号を項目「ポート」に入力してください。最後に、WikiのURLのパス部分を項目「パス名」に入力してください。URLのパス部分の先頭は文字「/」にしてください。</p>
+                <p>ジョブのリポジトリコネクションにはWikiタイプ固有のタブは現バージョンにはありません。</p>
+            </section>
+            
             
         </section>
 
