@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.9-dev =====================
 
+CONNECTORS-1183: Fix for GridFS connector broken UI server tab.
+(Kishore Kumar)
+
 CONNECTORS-1179: Include the collection name as part of the Solr
 version string.
 (Kamil Żyta, Karl Wright)
