@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1173: Option to change View URL for Livelink Connector
+(Kishore Kumar)
+
 CONNECTORS-1179: Include the collection name as part of the Solr
 version string.
 (Kamil Żyta, Karl Wright)
