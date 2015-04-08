@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1183: Fix for GridFS connector broken UI server tab.
+(Kishore Kumar)
+
 CONNECTORS-1173: Option to change View URL for Livelink Connector
 (Kishore Kumar)
 
