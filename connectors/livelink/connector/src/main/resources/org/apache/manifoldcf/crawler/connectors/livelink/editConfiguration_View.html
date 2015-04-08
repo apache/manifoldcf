@@ -20,7 +20,7 @@ limitations under the License.
   <tr>
     <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewProtocol'))</td>
     <td class="value">
-      <select name="viewprotocol" size="3">
+      <select name="viewprotocol">
         <option value=""      #if($VIEWPROTOCOL == '')      selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.SameAsFetchProtocol'))</option>
         <option value="http"  #if($VIEWPROTOCOL == 'http')  selected="selected" #{else} "" #end >http</option>
         <option value="https" #if($VIEWPROTOCOL == 'https') selected="selected" #{else} "" #end >https</option>
@@ -58,10 +58,23 @@ limitations under the License.
       <input type="text" size="32" name="viewcgipath" value="$Encoder.attributeEscape($VIEWCGIPATH)"/>
     </td>
   </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewAction'))</nobr>
+    </td>
+    <td class="value">
+      <select name="viewaction">
+        <option value="download"  #if($VIEWACTION == 'download')  selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewActionDownload'))</option>
+        <option value="open"      #if($VIEWACTION == 'open')      selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewActionOpen'))</option>
+        <option value="overview"  #if($VIEWACTION == 'overview')  selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewActionOverview'))</option>
+      </select>
+    </td>
+  </tr>
 </table>
 #else
 <input type="hidden" name="viewprotocol"    value="$!VIEWPROTOCOL"/>
 <input type="hidden" name="viewservername"  value="$!VIEWSERVERNAME"/>
 <input type="hidden" name="viewport"        value="$!VIEWPORT"/>
 <input type="hidden" name="viewcgipath"     value="$Encoder.attributeEscape($VIEWCGIPATH)"/>
+<input type="hidden" name="viewaction"        value="$!VIEWACTION"/>
 #end

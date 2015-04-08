@@ -179,6 +179,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   private String viewServerName = null;
   private String viewPort = null;
   private String viewCgiPath = null;
+  private String viewAction = null;
 
   private String ingestNtlmDomain = null;
   private String ingestNtlmUsername = null;
@@ -366,6 +367,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       viewServerName = params.getParameter(LiveLinkParameters.viewServerName);
       viewPort = params.getParameter(LiveLinkParameters.viewPort);
       viewCgiPath = params.getParameter(LiveLinkParameters.viewCgiPath);
+      viewAction = params.getParameter(LiveLinkParameters.viewAction);
 
       ingestNtlmDomain = params.getParameter(LiveLinkParameters.ingestNtlmDomain);
       ingestNtlmUsername = params.getParameter(LiveLinkParameters.ingestNtlmUsername);
@@ -841,11 +843,28 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     // The document identifier is the string form of the object ID for this connector.
     if (!documentIdentifier.startsWith("D"))
       return null;
+    String objectID = null;
     int colonPosition = documentIdentifier.indexOf(":",1);
     if (colonPosition == -1)
-      return viewBasePath+"?func=ll&objID="+documentIdentifier.substring(1)+"&objAction=download";
+      objectID = documentIdentifier.substring(1);
     else
-      return viewBasePath+"?func=ll&objID="+documentIdentifier.substring(colonPosition+1)+"&objAction=download";
+      objectID = documentIdentifier.substring(colonPosition+1);
+    String viewURL = null;
+    switch(viewAction)
+    {
+      case "download":
+        viewURL =  viewBasePath+"?func=ll&objAction=download&objID=" + objectID;
+      break;
+      case "open":
+        viewURL = viewBasePath+"/open/" + objectID;
+      break;
+      case "overview":
+        viewURL = viewBasePath+"?func=ll&objAction=overview&objID=" + objectID;
+      break;
+      default:
+        viewURL = viewBasePath+"?func=ll&objAction=download&objID=" + objectID;
+    }
+    return viewURL;
   }
 
   /** Request arbitrary connector information.
@@ -1751,11 +1770,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String viewCgiPath = parameters.getParameter(LiveLinkParameters.viewCgiPath);
     if (viewCgiPath == null)
       viewCgiPath = "/livelink/livelink.exe";
+    String viewAction = parameters.getParameter(LiveLinkParameters.viewAction);
+    if (viewAction == null)
+      viewAction = "download";
 
     velocityContext.put("VIEWPROTOCOL",viewProtocol);
     velocityContext.put("VIEWSERVERNAME",viewServerName);
     velocityContext.put("VIEWPORT",viewPort);
     velocityContext.put("VIEWCGIPATH",viewCgiPath);
+    velocityContext.put("VIEWACTION",viewAction);
   }  
   
   /** Process a configuration post.
@@ -1785,6 +1808,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String viewCgiPath = variableContext.getParameter("viewcgipath");
     if (viewCgiPath != null)
       parameters.setParameter(LiveLinkParameters.viewCgiPath,viewCgiPath);
+    String viewAction = variableContext.getParameter("viewaction");
+    if (viewAction != null)
+      parameters.setParameter(LiveLinkParameters.viewAction,viewAction);
     
     // Server parameters
     String serverProtocol = variableContext.getParameter("serverprotocol");

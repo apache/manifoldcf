@@ -49,6 +49,8 @@ public class LiveLinkParameters
   public final static String viewPort = "View port";
   /** View CGI path (path to use for viewing) */
   public final static String viewCgiPath = "View CGI path";
+  /** Document View Action**/
+  public final static String viewAction = "View Action";
   
   // These parameters are for LAPI
   /** Connection options; choices are "internal", "http", "https" */
