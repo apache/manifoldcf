@@ -34,7 +34,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -134,10 +133,6 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
      * GridFS server tab name.
      */
     private static final String GRIDFS_SERVER_TAB_RESOURCE = "GridFSConnector.Server";
-    /**
-     * GridFS credentials tab name.
-     */
-    private static final String GRIDFS_CREDENTIALS_TAB_RESOURCE = "GridFSConnector.Credentials";
 
     /**
      * Tab name parameter for managing the view of the Web UI.
@@ -220,19 +215,19 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
             getSession();
             if (session != null) {
                 Mongo currentMongoSession = session.getMongo();
-                DBTCPConnector currentTCPConnection = currentMongoSession.getConnector();
-                boolean status = currentTCPConnection.isOpen();
-                if (status) {
-                    session.getMongo().close();
-                    session = null;
-                    return super.check();
-                } else {
-                    session = null;
-                }
+                currentMongoSession.getConnector()
+                        .getDBPortPool(currentMongoSession.getAddress())
+                        .get()
+                        .ensureOpen();
+                session.getMongo().close();
+                session = null;
+                return super.check();
             }
             return "Not connected.";
         } catch (ManifoldCFException e) {
             return e.getMessage();
+        } catch (IOException ex) {
+            return ex.getMessage();
         }
     }
 
@@ -246,7 +241,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
     public void disconnect() throws ManifoldCFException {
         if (session != null) {
             try {
-                session.getMongo().getConnector().close();
+                session.getMongo().close();
             } catch (Exception e) {
                 Logging.connectors.error("GridFS: Error when trying to disconnect: " + e.getMessage());
                 throw new ManifoldCFException("GridFS: Error when trying to disconnect: " + e.getMessage(), e);
@@ -280,7 +275,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
         long currentTime = System.currentTimeMillis();
         if (currentTime >= lastSessionFetch + SESSION_EXPIRATION_MILLISECONDS) {
             if (session != null) {
-                session.getMongo().getConnector().close();
+                session.getMongo().close();
                 session = null;
             }
             lastSessionFetch = -1L;
@@ -326,22 +321,22 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
 
     /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
     * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
-    *
+     *
     * This method can choose to find repository changes that happen only during the specified time interval.
     * The seeds recorded by this method will be viewed by the framework based on what the
     * getConnectorModel() method returns.
-    *
+     *
     * It is not a big problem if the connector chooses to create more seeds than are
     * strictly necessary; it is merely a question of overall work required.
-    *
+     *
     * The end time and seeding version string passed to this method may be interpreted for greatest efficiency.
     * For continuous crawling jobs, this method will
     * be called once, when the job starts, and at various periodic intervals as the job executes.
-    *
+     *
     * When a job's specification is changed, the framework automatically resets the seeding version string to null.  The
     * seeding version string may also be set to null on each job run, depending on the connector model returned by
     * getConnectorModel().
-    *
+     *
     * Note that it is always ok to send MORE documents rather than less to this method.
     * The connector will be connected before this method can be called.
     *@param activities is the interface this method should use to perform whatever framework actions are desired.
@@ -350,11 +345,11 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
     *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
     *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
     *@return an updated seeding version string, to be stored with the job.
-    */
+     */
     @Override
     public String addSeedDocuments(ISeedingActivity activities, Specification spec,
-        String lastSeedVersion, long seedTime, int jobMode)
-        throws ManifoldCFException, ServiceInterruption {
+            String lastSeedVersion, long seedTime, int jobMode)
+            throws ManifoldCFException, ServiceInterruption {
         getSession();
         DBCollection fsFiles = session.getCollection(
                 bucket + GridFSConstants.COLLECTION_SEPERATOR + GridFSConstants.FILES_COLLECTION_NAME
@@ -383,11 +378,11 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
     * and ingest documents.
     *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
     *@param usesDefaultAuthority will be true only if the authority in use for these documents is the default one.
-    */
+     */
     @Override
     public void processDocuments(String[] documentIdentifiers, IExistingVersions statuses, Specification spec,
-      IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
-      throws ManifoldCFException, ServiceInterruption {
+            IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
+            throws ManifoldCFException, ServiceInterruption {
 
         for (String documentIdentifier : documentIdentifiers) {
 
@@ -409,7 +404,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                         : StringUtils.EMPTY;
             }
 
-            if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString)) {
+            if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier, versionString)) {
                 long startTime = System.currentTimeMillis();
                 String errorCode = null;
                 String errorDesc = null;
@@ -533,7 +528,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                                     handleIOException(e);
                                 }
                             }
-                            gfs.getDB().getMongo().getConnector().close();
+                            gfs.getDB().getMongo().close();
                             session = null;
                             errorCode = "OK";
                         } else {
@@ -564,7 +559,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
             throw new ManifoldCFException(e.getMessage(), e);
         }
     }
-    
+
     /**
      * Output the configuration header section. This method is called in the
      * head section of the connector's configuration page. Its purpose is to add
@@ -584,7 +579,6 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
     @Override
     public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray) throws ManifoldCFException, IOException {
         tabsArray.add(Messages.getString(locale, GRIDFS_SERVER_TAB_RESOURCE));
-        tabsArray.add(Messages.getString(locale, GRIDFS_CREDENTIALS_TAB_RESOURCE));
         Map<String, String> paramMap = new HashMap<String, String>();
 
         fillInServerParameters(paramMap, out, parameters);
