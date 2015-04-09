@@ -33,13 +33,18 @@ function checkConfigForSave()
     return false;
   } 
   
-  if (!isInteger(editconnection.port.value))
+  if(editconnection.port.value !== "") 
   {
-      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('GridFSConnector.PortValueMustBeAValidNumber'))");
-      SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('GridFSConnector.Server'))");
-      editconnection.socketTimeout.focus();
-      return false;
+    if (!isInteger(editconnection.port.value))
+    {
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('GridFSConnector.PortValueMustBeAValidNumber'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('GridFSConnector.Server'))");
+        editconnection.socketTimeout.focus();
+        return false;
+    }
   }
+  
+  
   return true;
 }
 // -->
