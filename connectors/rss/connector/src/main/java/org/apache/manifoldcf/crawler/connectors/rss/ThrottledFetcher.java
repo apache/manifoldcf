@@ -39,7 +39,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -260,16 +260,22 @@ public class ThrottledFetcher
       // Create the https scheme for this connection
       javax.net.ssl.SSLSocketFactory httpsSocketFactory = KeystoreManagerFactory.getTrustingSecureSocketFactory();;
       SSLConnectionSocketFactory myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeoutMilliseconds),
-        SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+        NoopHostnameVerifier.INSTANCE);
 
-      connectionManager = new PoolingHttpClientConnectionManager();
+      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager();
+      poolingConnectionManager.setDefaultMaxPerRoute(1);
+      poolingConnectionManager.setValidateAfterInactivity(60000);
+      poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+        .setTcpNoDelay(true)
+        .setSoTimeout(connectionTimeoutMilliseconds)
+        .build());
+      connectionManager = poolingConnectionManager;
 
       CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
       RequestConfig.Builder requestBuilder = RequestConfig.custom()
           .setCircularRedirectsAllowed(true)
           .setSocketTimeout(connectionTimeoutMilliseconds)
-          .setStaleConnectionCheckEnabled(true)
           .setExpectContinueEnabled(true)
           .setConnectTimeout(connectionTimeoutMilliseconds)
           .setConnectionRequestTimeout(connectionTimeoutMilliseconds);
@@ -301,10 +307,6 @@ public class ThrottledFetcher
         .setMaxConnTotal(1)
         .disableAutomaticRetries()
         .setDefaultRequestConfig(requestBuilder.build())
-        .setDefaultSocketConfig(SocketConfig.custom()
-          .setTcpNoDelay(true)
-          .setSoTimeout(connectionTimeoutMilliseconds)
-          .build())
         .setDefaultCredentialsProvider(credentialsProvider)
         .setSSLSocketFactory(myFactory)
         .setRequestExecutor(new HttpRequestExecutor(connectionTimeoutMilliseconds))
