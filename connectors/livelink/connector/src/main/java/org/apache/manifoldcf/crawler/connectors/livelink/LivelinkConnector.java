@@ -48,7 +48,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.NameValuePair;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -497,8 +500,23 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       int socketTimeout = 900000;
       int connectionTimeout = 300000;
 
+      // Set up ingest ssl if indicated
+      SSLConnectionSocketFactory myFactory = null;
+      if (ingestKeystoreManager != null)
+      {
+        myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(ingestKeystoreManager.getSecureSocketFactory(), connectionTimeout),
+          NoopHostnameVerifier.INSTANCE);
+      }
+      else
+      {
+        myFactory = SSLConnectionSocketFactory.getSocketFactory();
+      }
+
       // Set up connection manager
-      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager();
+      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+        .register("https", myFactory)
+        .build());
       poolingConnectionManager.setDefaultMaxPerRoute(1);
       poolingConnectionManager.setValidateAfterInactivity(60000);
       poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
@@ -508,14 +526,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       connectionManager = poolingConnectionManager;
       
       CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-
-      // Set up ingest ssl if indicated
-      SSLConnectionSocketFactory myFactory = null;
-      if (ingestKeystoreManager != null)
-      {
-        myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(ingestKeystoreManager.getSecureSocketFactory(), connectionTimeout),
-          NoopHostnameVerifier.INSTANCE);
-      }
 
       // Set up authentication to use
       if (ingestNtlmDomain != null)
@@ -538,9 +548,6 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
         .setRedirectStrategy(new DefaultRedirectStrategy());
 
-      if (myFactory != null)
-        builder.setSSLSocketFactory(myFactory);
-      
       httpClient = builder.build();
 
       // System.out.println("Connection server object = "+llServer.toString());
