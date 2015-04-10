@@ -16,57 +16,49 @@
 */
 package org.apache.manifoldcf.crawler.connectors.sharedrive;
 
-import org.apache.manifoldcf.core.util.URLEncoder;
-import org.apache.manifoldcf.crawler.system.ManifoldCF;
-import java.io.FileOutputStream;
-import java.io.FileInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Date;
-
 import jcifs.smb.ACE;
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileFilter;
-
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
-import org.apache.manifoldcf.core.interfaces.IThreadContext;
-import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
-import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
-import org.apache.manifoldcf.core.interfaces.IPostParameters;
-import org.apache.manifoldcf.core.interfaces.ConfigParams;
-import org.apache.manifoldcf.core.interfaces.Specification;
-import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.connectorcommon.extmimemap.ExtensionMimeMap;
 import org.apache.manifoldcf.connectorcommon.interfaces.IKeystoreManager;
 import org.apache.manifoldcf.connectorcommon.interfaces.KeystoreManagerFactory;
+import org.apache.manifoldcf.core.common.DateParser;
+import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.Configuration;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
+import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
+import org.apache.manifoldcf.core.interfaces.IPostParameters;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
-import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
-import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.Specification;
+import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+import org.apache.manifoldcf.core.util.URLEncoder;
 import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.interfaces.IFingerprintActivity;
-import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
+import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
-import org.apache.manifoldcf.connectorcommon.extmimemap.ExtensionMimeMap;
-import org.apache.manifoldcf.core.common.DateParser;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
 
 /** This is the "repository connector" for a smb/cifs shared drive file system.  It's a relative of the share crawler, and should have
 * comparable basic functionality.
@@ -453,7 +445,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   *@param activities is the interface this method should use to perform whatever framework actions are desired.
   *@param spec is a document specification (that comes from the job).
   *@param seedTime is the end of the time range of documents to consider, exclusive.
-  *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
+  *@param lastSeedVersion is the last seeding version string for this job, or null if the job has no previous seeding version string.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@return an updated seeding version string, to be stored with the job.
   */
@@ -700,8 +692,12 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       catch (jcifs.smb.SmbAuthException e)
       {
         Logging.connectors.warn("JCIFS: Authorization exception reading version information for "+documentIdentifier+" - skipping");
-        activities.deleteDocument(documentIdentifier);
-        continue;
+        if(e.getMessage().equals("Logon failure: unknown user name or bad password."))
+            throw new ManifoldCFException( "SmbAuthException thrown: " + e.getMessage(), e );
+        else {
+            activities.deleteDocument(documentIdentifier );
+            continue;
+          }
       }
       catch (MalformedURLException mue)
       {
@@ -987,9 +983,12 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             Logging.connectors.warn("JCIFS: Authorization exception reading document/directory "+documentIdentifier+" - skipping");
             errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
             errorDesc = "Authorization: "+e.getMessage();
-            // We call the delete even if it's a directory; this is harmless.
-            activities.noDocument(documentIdentifier, versionString);
-            continue;
+              if(e.getMessage().equals("Logon failure: unknown user name or bad password."))
+                  throw new ManifoldCFException( "SmbAuthException thrown: " + e.getMessage(), e );
+              else {
+                  activities.noDocument(documentIdentifier, versionString);
+                  continue;
+              }
           }
           catch (SmbException se)
           {
