@@ -56,7 +56,7 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -255,15 +255,22 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       int connectionTimeout = 60000;
       int socketTimeout = 900000;
 
-      connectionManager = new PoolingHttpClientConnectionManager();
-
+      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager();
+      poolingConnectionManager.setDefaultMaxPerRoute(1);
+      poolingConnectionManager.setValidateAfterInactivity(60000);
+      poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+        .setTcpNoDelay(true)
+        .setSoTimeout(socketTimeout)
+        .build());
+      connectionManager = poolingConnectionManager;
+      
       CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
       SSLConnectionSocketFactory myFactory = null;
       if (keystoreData != null)
       {
         keystoreManager = KeystoreManagerFactory.make("",keystoreData);
-        myFactory = new SSLConnectionSocketFactory(keystoreManager.getSecureSocketFactory(), new BrowserCompatHostnameVerifier());
+        myFactory = new SSLConnectionSocketFactory(keystoreManager.getSecureSocketFactory(), new DefaultHostnameVerifier());
       }
 
       if (strippedUserName != null)
@@ -276,7 +283,6 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
       RequestConfig.Builder requestBuilder = RequestConfig.custom()
           .setCircularRedirectsAllowed(true)
           .setSocketTimeout(socketTimeout)
-          .setStaleConnectionCheckEnabled(true)
           .setExpectContinueEnabled(false)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout);
@@ -305,13 +311,8 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
 
       HttpClientBuilder builder = HttpClients.custom()
         .setConnectionManager(connectionManager)
-        .setMaxConnTotal(1)
         .disableAutomaticRetries()
         .setDefaultRequestConfig(requestBuilder.build())
-        .setDefaultSocketConfig(SocketConfig.custom()
-          .setTcpNoDelay(true)
-          .setSoTimeout(socketTimeout)
-          .build())
         .setDefaultCredentialsProvider(credentialsProvider);
       if (myFactory != null)
         builder.setSSLSocketFactory(myFactory);

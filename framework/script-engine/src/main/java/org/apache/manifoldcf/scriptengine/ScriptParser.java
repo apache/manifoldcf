@@ -1221,14 +1221,20 @@ public class ScriptParser
         int socketTimeout = 900000;
         int connectionTimeout = 300000;
 
-        connectionManager = new PoolingHttpClientConnectionManager();
+        PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager();
+        poolingConnectionManager.setDefaultMaxPerRoute(1);
+        poolingConnectionManager.setValidateAfterInactivity(60000);
+        poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+          .setTcpNoDelay(true)
+          .setSoTimeout(socketTimeout)
+          .build());
+        connectionManager = poolingConnectionManager;
         
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
         RequestConfig.Builder requestBuilder = RequestConfig.custom()
           .setCircularRedirectsAllowed(true)
           .setSocketTimeout(socketTimeout)
-          .setStaleConnectionCheckEnabled(false)
           .setExpectContinueEnabled(true)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout);
@@ -1238,10 +1244,6 @@ public class ScriptParser
           .setMaxConnTotal(1)
           .disableAutomaticRetries()
           .setDefaultRequestConfig(requestBuilder.build())
-          .setDefaultSocketConfig(SocketConfig.custom()
-            .setTcpNoDelay(true)
-            .setSoTimeout(socketTimeout)
-            .build())
           .setDefaultCredentialsProvider(credentialsProvider)
           //.setSSLSocketFactory(myFactory)
           .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
