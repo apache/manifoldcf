@@ -49,7 +49,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.NameValuePair;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -498,8 +498,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       int connectionTimeout = 300000;
 
       // Set up connection manager
-      connectionManager = new PoolingHttpClientConnectionManager();
-
+      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager();
+      poolingConnectionManager.setDefaultMaxPerRoute(1);
+      poolingConnectionManager.setValidateAfterInactivity(60000);
+      poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+        .setTcpNoDelay(true)
+        .setSoTimeout(socketTimeout)
+        .build());
+      connectionManager = poolingConnectionManager;
+      
       CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
       // Set up ingest ssl if indicated
@@ -507,7 +514,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (ingestKeystoreManager != null)
       {
         myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(ingestKeystoreManager.getSecureSocketFactory(), connectionTimeout),
-          new BrowserCompatHostnameVerifier());
+          NoopHostnameVerifier.INSTANCE);
       }
 
       // Set up authentication to use
@@ -519,19 +526,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
       HttpClientBuilder builder = HttpClients.custom()
         .setConnectionManager(connectionManager)
-        .setMaxConnTotal(1)
         .disableAutomaticRetries()
         .setDefaultRequestConfig(RequestConfig.custom()
           .setCircularRedirectsAllowed(true)
           .setSocketTimeout(socketTimeout)
-          .setStaleConnectionCheckEnabled(true)
           .setExpectContinueEnabled(true)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout)
-          .build())
-        .setDefaultSocketConfig(SocketConfig.custom()
-          .setTcpNoDelay(true)
-          .setSoTimeout(socketTimeout)
           .build())
         .setDefaultCredentialsProvider(credentialsProvider)
         .setRequestExecutor(new HttpRequestExecutor(socketTimeout))

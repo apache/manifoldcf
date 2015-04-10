@@ -257,9 +257,32 @@ public class MeridioWrapper
     int socketTimeout = 900000;
     int connectionTimeout = 300000;
 
-    dmwsConnectionManager = new PoolingHttpClientConnectionManager();
-    rmwsConnectionManager = new PoolingHttpClientConnectionManager();
-    mcwsConnectionManager = new PoolingHttpClientConnectionManager();
+    PoolingHttpClientConnectionManager poolingDmwsConnectionManager = new PoolingHttpClientConnectionManager();
+    poolingDmwsConnectionManager.setDefaultMaxPerRoute(1);
+    poolingDmwsConnectionManager.setValidateAfterInactivity(60000);
+    poolingDmwsConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+      .setTcpNoDelay(true)
+      .setSoTimeout(socketTimeout)
+      .build());
+    dmwsConnectionManager = poolingDmwsConnectionManager;
+    
+    PoolingHttpClientConnectionManager poolingRmwsConnectionManager = new PoolingHttpClientConnectionManager();
+    poolingRmwsConnectionManager.setDefaultMaxPerRoute(1);
+    poolingRmwsConnectionManager.setValidateAfterInactivity(60000);
+    poolingRmwsConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+      .setTcpNoDelay(true)
+      .setSoTimeout(socketTimeout)
+      .build());
+    rmwsConnectionManager = poolingRmwsConnectionManager;
+    
+    PoolingHttpClientConnectionManager poolingMcwsConnectionManager = new PoolingHttpClientConnectionManager();
+    poolingMcwsConnectionManager.setDefaultMaxPerRoute(1);
+    poolingMcwsConnectionManager.setValidateAfterInactivity(60000);
+    poolingMcwsConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+      .setTcpNoDelay(true)
+      .setSoTimeout(socketTimeout)
+      .build());
+    mcwsConnectionManager = poolingMcwsConnectionManager;
 
     // Initialize the three httpclient objects
 
@@ -269,14 +292,12 @@ public class MeridioWrapper
     RequestConfig.Builder dmwsRequestBuilder = RequestConfig.custom()
       .setCircularRedirectsAllowed(true)
       .setSocketTimeout(socketTimeout)
-      .setStaleConnectionCheckEnabled(true)
       .setExpectContinueEnabled(false)
       .setConnectTimeout(connectionTimeout)
       .setConnectionRequestTimeout(socketTimeout);
     RequestConfig.Builder rmwsRequestBuilder = RequestConfig.custom()
       .setCircularRedirectsAllowed(true)
       .setSocketTimeout(socketTimeout)
-      .setStaleConnectionCheckEnabled(true)
       .setExpectContinueEnabled(true)
       .setConnectTimeout(connectionTimeout)
       .setConnectionRequestTimeout(socketTimeout);
@@ -326,13 +347,8 @@ public class MeridioWrapper
 
     dmwsHttpClient = HttpClients.custom()
       .setConnectionManager(dmwsConnectionManager)
-      .setMaxConnTotal(1)
       .disableAutomaticRetries()
       .setDefaultRequestConfig(dmwsRequestBuilder.build())
-      .setDefaultSocketConfig(SocketConfig.custom()
-        .setTcpNoDelay(true)
-        .setSoTimeout(socketTimeout)
-        .build())
       .setDefaultCredentialsProvider(dmwsCredentialsProvider)
       .setSSLSocketFactory(myFactory)
       .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
@@ -341,13 +357,8 @@ public class MeridioWrapper
     
     rmwsHttpClient = HttpClients.custom()
       .setConnectionManager(rmwsConnectionManager)
-      .setMaxConnTotal(1)
       .disableAutomaticRetries()
       .setDefaultRequestConfig(rmwsRequestBuilder.build())
-      .setDefaultSocketConfig(SocketConfig.custom()
-        .setTcpNoDelay(true)
-        .setSoTimeout(socketTimeout)
-        .build())
       .setDefaultCredentialsProvider(rmwsCredentialsProvider)
       .setSSLSocketFactory(myFactory)
       .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
@@ -361,7 +372,6 @@ public class MeridioWrapper
       RequestConfig.Builder mcwsRequestBuilder = RequestConfig.custom()
         .setCircularRedirectsAllowed(true)
         .setSocketTimeout(socketTimeout)
-        .setStaleConnectionCheckEnabled(true)
         .setExpectContinueEnabled(true)
         .setConnectTimeout(connectionTimeout)
         .setConnectionRequestTimeout(socketTimeout);
@@ -391,13 +401,8 @@ public class MeridioWrapper
       
       mcwsHttpClient = HttpClients.custom()
         .setConnectionManager(mcwsConnectionManager)
-        .setMaxConnTotal(1)
         .disableAutomaticRetries()
         .setDefaultRequestConfig(mcwsRequestBuilder.build())
-        .setDefaultSocketConfig(SocketConfig.custom()
-          .setTcpNoDelay(true)
-          .setSoTimeout(socketTimeout)
-          .build())
         .setDefaultCredentialsProvider(mcwsCredentialsProvider)
         .setSSLSocketFactory(myFactory)
         .setRequestExecutor(new HttpRequestExecutor(socketTimeout))

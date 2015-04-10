@@ -123,20 +123,24 @@ public class ElasticSearchConnector extends BaseOutputConnector
   {
     if (client == null)
     {
-      connectionManager = new PoolingHttpClientConnectionManager();
-      
       int socketTimeout = 900000;
       int connectionTimeout = 60000;
       
       // Set up connection manager
-      connectionManager = new PoolingHttpClientConnectionManager();
+      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager();
+      poolingConnectionManager.setDefaultMaxPerRoute(1);
+      poolingConnectionManager.setValidateAfterInactivity(60000);
+      poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+        .setTcpNoDelay(true)
+        .setSoTimeout(socketTimeout)
+        .build());
+      connectionManager = poolingConnectionManager;
 
       CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
       RequestConfig.Builder requestBuilder = RequestConfig.custom()
           .setCircularRedirectsAllowed(true)
           .setSocketTimeout(socketTimeout)
-          .setStaleConnectionCheckEnabled(true)
           .setExpectContinueEnabled(true)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout);
@@ -146,10 +150,6 @@ public class ElasticSearchConnector extends BaseOutputConnector
         .setMaxConnTotal(1)
         .disableAutomaticRetries()
         .setDefaultRequestConfig(requestBuilder.build())
-        .setDefaultSocketConfig(SocketConfig.custom()
-          //.setTcpNoDelay(true)
-          .setSoTimeout(socketTimeout)
-          .build())
         .setDefaultCredentialsProvider(credentialsProvider)
         .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
         .build();

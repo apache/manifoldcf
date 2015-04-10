@@ -48,7 +48,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.NameValuePair;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -68,9 +68,16 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.cookie.Cookie;
+import org.apache.http.impl.cookie.DefaultCookieSpec;
+import org.apache.http.impl.cookie.LaxBrowserCompatSpec;
+import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.http.impl.cookie.BasicPathHandler;
-import org.apache.http.impl.cookie.BrowserCompatSpec;
+import org.apache.http.impl.cookie.LaxMaxAgeHandler;
+import org.apache.http.impl.cookie.BasicDomainHandler;
+import org.apache.http.impl.cookie.BasicSecureHandler;
+import org.apache.http.impl.cookie.LaxExpiresHandler;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.client.CookieStore;
 import org.apache.http.protocol.HttpContext;
@@ -78,15 +85,9 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.cookie.CookieIdentityComparator;
 import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.Registry;
 import org.apache.http.client.config.CookieSpecs;
-import org.apache.http.impl.cookie.BestMatchSpecFactory;
-import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
-import org.apache.http.impl.cookie.RFC2965SpecFactory;
-import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
-import org.apache.http.impl.cookie.IgnoreSpecFactory;
 
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -146,11 +147,7 @@ public class ThrottledFetcher
 
   private static final Registry<CookieSpecProvider> cookieSpecRegistry =
     RegistryBuilder.<CookieSpecProvider>create()
-      .register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
-      .register(CookieSpecs.STANDARD, new RFC2965SpecFactory())
-      .register(CookieSpecs.BROWSER_COMPATIBILITY, new LaxBrowserCompatSpecFactory())
-      .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
-      .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory())
+      .register(CookieSpecs.STANDARD, new LaxBrowserCompatSpecProvider())
       .build();
 
   /** Constructor.  Private since we never instantiate.
@@ -182,6 +179,7 @@ public class ThrottledFetcher
     IThrottleSpec throttleDescription, String[] binNames,
     int connectionLimit,
     String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
+    int socketTimeoutMilliseconds, int connectionTimeoutMilliseconds,
     IAbortActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -207,7 +205,8 @@ public class ThrottledFetcher
 
     // Construct a connection pool key
     ConnectionPoolKey poolKey = new ConnectionPoolKey(protocol,server,port,authentication,
-      trustStoreString,proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+      trustStoreString,proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword,
+      socketTimeoutMilliseconds,connectionTimeoutMilliseconds);
     
     ConnectionPool p;
     synchronized (connectionPools)
@@ -219,7 +218,8 @@ public class ThrottledFetcher
         IConnectionThrottler connectionThrottler =
           throttleGroups.obtainConnectionThrottler(webThrottleGroupType,throttleGroupName,binNames);
         p = new ConnectionPool(connectionThrottler,protocol,server,port,authentication,baseFactory,
-          proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+          proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword,
+          socketTimeoutMilliseconds,connectionTimeoutMilliseconds);
         connectionPools.put(poolKey,p);
       }
     }
@@ -293,6 +293,10 @@ public class ThrottledFetcher
     protected final String proxyAuthPassword;
     /** Https protocol */
     protected final javax.net.ssl.SSLSocketFactory httpsSocketFactory;
+    /** Socket timeout milliseconds */
+    protected final int socketTimeoutMilliseconds;
+    /** Connection timeout milliseconds */
+    protected final int connectionTimeoutMilliseconds;
 
     /** The thread that is actually doing the work */
     protected ExecuteMethodThread methodThread = null;
@@ -307,7 +311,8 @@ public class ThrottledFetcher
     public ThrottledConnection(ConnectionPool myPool, IFetchThrottler fetchThrottler,
       String protocol, String server, int port, PageCredentials authentication,
       javax.net.ssl.SSLSocketFactory httpsSocketFactory,
-      String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
+      String proxyHost, int proxyPort, String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
+      int socketTimeoutMilliseconds, int connectionTimeoutMilliseconds)
     {
       this.myPool = myPool;
       this.fetchThrottler = fetchThrottler;
@@ -321,6 +326,8 @@ public class ThrottledFetcher
       this.port = port;
       this.authentication = authentication;
       this.httpsSocketFactory = httpsSocketFactory;
+      this.socketTimeoutMilliseconds = socketTimeoutMilliseconds;
+      this.connectionTimeoutMilliseconds = connectionTimeoutMilliseconds;
     }
 
     /** Set the abort checker.  This must be done before the connection is actually used.
@@ -401,21 +408,20 @@ public class ThrottledFetcher
     * @param urlPath is the path part of the url, e.g. "/robots.txt"
     * @param userAgent is the value of the userAgent header to use.
     * @param from is the value of the from header to use.
-    * @param connectionTimeoutMilliseconds is the maximum number of milliseconds to wait on socket connect.
     * @param redirectOK should be set to true if you want redirects to be automatically followed.
     * @param host is the value to use as the "Host" header, or null to use the default.
     * @param formData describes additional form arguments and how to fetch the page.
     * @param loginCookies describes the cookies that should be in effect for this page fetch.
     */
     @Override
-    public void executeFetch(String urlPath, String userAgent, String from, int connectionTimeoutMilliseconds,
-      int socketTimeoutMilliseconds, boolean redirectOK, String host, FormData formData,
+    public void executeFetch(String urlPath, String userAgent, String from,
+      boolean redirectOK, String host, FormData formData,
       LoginCookies loginCookies)
       throws ManifoldCFException, ServiceInterruption
     {
       // Set up scheme
       SSLConnectionSocketFactory myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeoutMilliseconds),
-        SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+        NoopHostnameVerifier.INSTANCE);
 
       int hostPort;
       String displayedPort;
@@ -461,7 +467,14 @@ public class ThrottledFetcher
       
       if (connManager == null)
       {
-        connManager = new PoolingHttpClientConnectionManager();
+        PoolingHttpClientConnectionManager poolingConnManager = new PoolingHttpClientConnectionManager();
+        poolingConnManager.setDefaultMaxPerRoute(1);
+        poolingConnManager.setValidateAfterInactivity(60000);
+        poolingConnManager.setDefaultSocketConfig(SocketConfig.custom()
+          .setTcpNoDelay(true)
+          .setSoTimeout(socketTimeoutMilliseconds)
+          .build());
+        connManager = poolingConnManager;
       }
       
       long startTime = 0L;
@@ -485,11 +498,10 @@ public class ThrottledFetcher
       RequestConfig.Builder requestBuilder = RequestConfig.custom()
         .setCircularRedirectsAllowed(true)
         .setSocketTimeout(socketTimeoutMilliseconds)
-        .setStaleConnectionCheckEnabled(true)
         .setExpectContinueEnabled(true)
         .setConnectTimeout(connectionTimeoutMilliseconds)
         .setConnectionRequestTimeout(socketTimeoutMilliseconds)
-        .setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY)
+        .setCookieSpec(CookieSpecs.STANDARD)
         .setRedirectsEnabled(redirectOK);
 
       // If there's a proxy, set that too.
@@ -511,15 +523,8 @@ public class ThrottledFetcher
 
       httpClient = HttpClients.custom()
         .setConnectionManager(connManager)
-        .setMaxConnTotal(1)
-        .setMaxConnPerRoute(1)
         .disableAutomaticRetries()
-        .setDefaultCookieSpecRegistry(cookieSpecRegistry)
         .setDefaultRequestConfig(requestBuilder.build())
-        .setDefaultSocketConfig(SocketConfig.custom()
-          .setTcpNoDelay(true)
-          .setSoTimeout(socketTimeoutMilliseconds)
-          .build())
         .setDefaultCredentialsProvider(credentialsProvider)
         .setSSLSocketFactory(myFactory)
         .setRequestExecutor(new HttpRequestExecutor(socketTimeoutMilliseconds))
@@ -1311,34 +1316,13 @@ public class ThrottledFetcher
 
   /** Class to create a cookie spec.
   */
-  protected static class LaxBrowserCompatSpecFactory extends BrowserCompatSpecFactory
+  protected static class LaxBrowserCompatSpecProvider extends RFC6265CookieSpecProvider
   {
+    @Override
     public CookieSpec create(HttpContext context)
     {
       return new LaxBrowserCompatSpec();
     }
-  }
-  
-  /** Class to override browser compatibility to make it not check cookie paths.  See CONNECTORS-97.
-  */
-  protected static class LaxBrowserCompatSpec extends BrowserCompatSpec
-  {
-
-    public LaxBrowserCompatSpec()
-    {
-      super();
-      registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler()
-        {
-          @Override
-          public void validate(Cookie cookie, CookieOrigin origin) throws MalformedCookieException
-          {
-            // No validation
-          }
-              
-        }
-      );
-    }
-    
   }
 
   /** This thread does the actual socket communication with the server.
@@ -1858,11 +1842,14 @@ public class ThrottledFetcher
     protected final String proxyAuthDomain;
     protected final String proxyAuthUsername;
     protected final String proxyAuthPassword;
+    protected final int socketTimeoutMilliseconds;
+    protected final int connectionTimeoutMilliseconds;
     
     public ConnectionPoolKey(String protocol,
       String server, int port, PageCredentials authentication,
       String trustStoreString, String proxyHost, int proxyPort,
-      String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
+      String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
+      int socketTimeoutMilliseconds, int connectionTimeoutMilliseconds)
     {
       this.protocol = protocol;
       this.server = server;
@@ -1874,6 +1861,8 @@ public class ThrottledFetcher
       this.proxyAuthDomain = proxyAuthDomain;
       this.proxyAuthUsername = proxyAuthUsername;
       this.proxyAuthPassword = proxyAuthPassword;
+      this.socketTimeoutMilliseconds = socketTimeoutMilliseconds;
+      this.connectionTimeoutMilliseconds = connectionTimeoutMilliseconds;
     }
     
     public int hashCode()
@@ -1887,7 +1876,9 @@ public class ThrottledFetcher
         (proxyPort * 29) +
         ((proxyAuthDomain==null)?0:proxyAuthDomain.hashCode()) +
         ((proxyAuthUsername==null)?0:proxyAuthUsername.hashCode()) +
-        ((proxyAuthPassword==null)?0:proxyAuthPassword.hashCode());
+        ((proxyAuthPassword==null)?0:proxyAuthPassword.hashCode()) +
+        new Integer(socketTimeoutMilliseconds).hashCode() +
+        new Integer(connectionTimeoutMilliseconds).hashCode();
     }
     
     public boolean equals(Object o)
@@ -1960,7 +1951,8 @@ public class ThrottledFetcher
         if (!proxyAuthPassword.equals(other.proxyAuthPassword))
           return false;
       }
-      return true;
+      return socketTimeoutMilliseconds == other.socketTimeoutMilliseconds &&
+        connectionTimeoutMilliseconds == other.connectionTimeoutMilliseconds;
     }
   }
   
@@ -1983,6 +1975,8 @@ public class ThrottledFetcher
     protected final String proxyAuthDomain;
     protected final String proxyAuthUsername;
     protected final String proxyAuthPassword;
+    protected final int socketTimeoutMilliseconds;
+    protected final int connectionTimeoutMilliseconds;
 
     /** The actual pool of connections */
     protected final List<IThrottledConnection> connections = new ArrayList<IThrottledConnection>();
@@ -1992,7 +1986,8 @@ public class ThrottledFetcher
       String server, int port, PageCredentials authentication,
       javax.net.ssl.SSLSocketFactory baseFactory,
       String proxyHost, int proxyPort,
-      String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword)
+      String proxyAuthDomain, String proxyAuthUsername, String proxyAuthPassword,
+      int socketTimeoutMilliseconds, int connectionTimeoutMilliseconds)
     {
       this.connectionThrottler = connectionThrottler;
       
@@ -2006,6 +2001,8 @@ public class ThrottledFetcher
       this.proxyAuthDomain = proxyAuthDomain;
       this.proxyAuthUsername = proxyAuthUsername;
       this.proxyAuthPassword = proxyAuthPassword;
+      this.socketTimeoutMilliseconds = socketTimeoutMilliseconds;
+      this.connectionTimeoutMilliseconds = connectionTimeoutMilliseconds;
     }
     
     public IThrottledConnection grab(IAbortActivity activities)
@@ -2030,7 +2027,8 @@ public class ThrottledFetcher
           connection = new ThrottledConnection(this,connectionThrottler.getNewConnectionFetchThrottler(),
             protocol,server,port,authentication,baseFactory,
             proxyHost,proxyPort,
-            proxyAuthDomain,proxyAuthUsername,proxyAuthPassword);
+            proxyAuthDomain,proxyAuthUsername,proxyAuthPassword,
+            socketTimeoutMilliseconds,connectionTimeoutMilliseconds);
         }
         else
           throw new IllegalStateException("Unexpected return value from waitConnectionAvailable(): "+result);

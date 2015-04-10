@@ -23,6 +23,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpRequestExecutor;
@@ -217,40 +218,39 @@ public class HttpPoster
     // Initialize standard solr-j.
     // First, we need an HttpClient where basic auth is properly set up.
     connectionManager = new PoolingHttpClientConnectionManager();
-    connectionManager.setMaxTotal(1);
-
+    connectionManager.setDefaultMaxPerRoute(1);
+    connectionManager.setValidateAfterInactivity(60000);
+    connectionManager.setDefaultSocketConfig(SocketConfig.custom()
+      .setTcpNoDelay(true)
+      .setSoTimeout(socketTimeout)
+      .build());
+    
     SSLConnectionSocketFactory myFactory;
     if (keystoreManager != null)
     {
-      myFactory = new SSLConnectionSocketFactory(keystoreManager.getSecureSocketFactory(), SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+      myFactory = new SSLConnectionSocketFactory(keystoreManager.getSecureSocketFactory(), NoopHostnameVerifier.INSTANCE);
     }
     else
     {
       // Use the "trust everything" one
-      myFactory = new SSLConnectionSocketFactory(KeystoreManagerFactory.getTrustingSecureSocketFactory(),SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+      myFactory = new SSLConnectionSocketFactory(KeystoreManagerFactory.getTrustingSecureSocketFactory(),NoopHostnameVerifier.INSTANCE);
     }
 
     RequestConfig.Builder requestBuilder = RequestConfig.custom()
       .setCircularRedirectsAllowed(true)
       .setSocketTimeout(socketTimeout)
-      .setStaleConnectionCheckEnabled(true)
       .setExpectContinueEnabled(true)
       .setConnectTimeout(connectionTimeout)
       .setConnectionRequestTimeout(socketTimeout);
 
-      HttpClientBuilder clientBuilder = HttpClients.custom()
-        .setConnectionManager(connectionManager)
-        .setMaxConnTotal(1)
-        .disableAutomaticRetries()
-        .setDefaultRequestConfig(requestBuilder.build())
-        .setRedirectStrategy(new DefaultRedirectStrategy())
-        .setSSLSocketFactory(myFactory)
-        .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
-        .setDefaultSocketConfig(SocketConfig.custom()
-          .setTcpNoDelay(true)
-          .setSoTimeout(socketTimeout)
-          .build()
-        );
+    HttpClientBuilder clientBuilder = HttpClients.custom()
+      .setConnectionManager(connectionManager)
+      .setMaxConnTotal(1)
+      .disableAutomaticRetries()
+      .setDefaultRequestConfig(requestBuilder.build())
+      .setRedirectStrategy(new DefaultRedirectStrategy())
+      .setSSLSocketFactory(myFactory)
+      .setRequestExecutor(new HttpRequestExecutor(socketTimeout));
 
 
     if (userID != null && userID.length() > 0 && password != null)

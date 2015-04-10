@@ -113,28 +113,31 @@ public class OpenSearchServerConnector extends BaseOutputConnector
   {
     if (client == null)
     {
-      connectionManager = new PoolingHttpClientConnectionManager();
-
       final int executorTimeout = 300000;
       final int socketTimeout = 60000;
       final int connectionTimeout = 60000;
 
+      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager();
+      poolingConnectionManager.setDefaultMaxPerRoute(1);
+      poolingConnectionManager.setValidateAfterInactivity(60000);
+      poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+        .setTcpNoDelay(true)
+        .setSoTimeout(socketTimeout)
+        .build());
+      connectionManager = poolingConnectionManager;
+
       RequestConfig.Builder requestBuilder = RequestConfig.custom()
           .setCircularRedirectsAllowed(true).setSocketTimeout(socketTimeout)
-          .setStaleConnectionCheckEnabled(true).setExpectContinueEnabled(true)
+          .setExpectContinueEnabled(true)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout);
 
       HttpClientBuilder clientBuilder = HttpClients
           .custom()
           .setConnectionManager(connectionManager)
-          .setMaxConnTotal(1)
           .disableAutomaticRetries()
           .setDefaultRequestConfig(requestBuilder.build())
-          .setRequestExecutor(new HttpRequestExecutor(executorTimeout))
-          .setDefaultSocketConfig(
-              SocketConfig.custom().setTcpNoDelay(true)
-                  .setSoTimeout(socketTimeout).build());
+          .setRequestExecutor(new HttpRequestExecutor(executorTimeout));
 
       client = clientBuilder.build();
 
