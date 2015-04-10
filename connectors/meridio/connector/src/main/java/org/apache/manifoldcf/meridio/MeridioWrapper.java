@@ -81,7 +81,10 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.auth.AuthScope;
@@ -220,6 +223,10 @@ public class MeridioWrapper
     {
       myFactory = new SSLConnectionSocketFactory(mySSLFactory, new NoopHostnameVerifier());
     }
+    else
+    {
+      myFactory = SSLConnectionSocketFactory.getSocketFactory();
+    }
 
     // Set up the pool.
     // We have a choice: We can either have one httpclient instance, which gets reinitialized for every service
@@ -257,7 +264,10 @@ public class MeridioWrapper
     int socketTimeout = 900000;
     int connectionTimeout = 300000;
 
-    PoolingHttpClientConnectionManager poolingDmwsConnectionManager = new PoolingHttpClientConnectionManager();
+    PoolingHttpClientConnectionManager poolingDmwsConnectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+        .register("https", myFactory)
+        .build());
     poolingDmwsConnectionManager.setDefaultMaxPerRoute(1);
     poolingDmwsConnectionManager.setValidateAfterInactivity(60000);
     poolingDmwsConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
@@ -266,7 +276,10 @@ public class MeridioWrapper
       .build());
     dmwsConnectionManager = poolingDmwsConnectionManager;
     
-    PoolingHttpClientConnectionManager poolingRmwsConnectionManager = new PoolingHttpClientConnectionManager();
+    PoolingHttpClientConnectionManager poolingRmwsConnectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+        .register("https", myFactory)
+        .build());
     poolingRmwsConnectionManager.setDefaultMaxPerRoute(1);
     poolingRmwsConnectionManager.setValidateAfterInactivity(60000);
     poolingRmwsConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
@@ -275,7 +288,10 @@ public class MeridioWrapper
       .build());
     rmwsConnectionManager = poolingRmwsConnectionManager;
     
-    PoolingHttpClientConnectionManager poolingMcwsConnectionManager = new PoolingHttpClientConnectionManager();
+    PoolingHttpClientConnectionManager poolingMcwsConnectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+        .register("https", myFactory)
+        .build());
     poolingMcwsConnectionManager.setDefaultMaxPerRoute(1);
     poolingMcwsConnectionManager.setValidateAfterInactivity(60000);
     poolingMcwsConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
@@ -350,7 +366,6 @@ public class MeridioWrapper
       .disableAutomaticRetries()
       .setDefaultRequestConfig(dmwsRequestBuilder.build())
       .setDefaultCredentialsProvider(dmwsCredentialsProvider)
-      .setSSLSocketFactory(myFactory)
       .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
       .setRedirectStrategy(new DefaultRedirectStrategy())
       .build();
@@ -360,7 +375,6 @@ public class MeridioWrapper
       .disableAutomaticRetries()
       .setDefaultRequestConfig(rmwsRequestBuilder.build())
       .setDefaultCredentialsProvider(rmwsCredentialsProvider)
-      .setSSLSocketFactory(myFactory)
       .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
       .setRedirectStrategy(new DefaultRedirectStrategy())
       .build();
@@ -404,7 +418,6 @@ public class MeridioWrapper
         .disableAutomaticRetries()
         .setDefaultRequestConfig(mcwsRequestBuilder.build())
         .setDefaultCredentialsProvider(mcwsCredentialsProvider)
-        .setSSLSocketFactory(myFactory)
         .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
         .setRedirectStrategy(new DefaultRedirectStrategy())
         .build();

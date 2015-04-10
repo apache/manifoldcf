@@ -64,7 +64,10 @@ import org.apache.http.util.EntityUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.entity.ContentType;
 
@@ -231,7 +234,10 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         NoopHostnameVerifier.INSTANCE);
 
       // Set up connection manager
-      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager();
+      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+        .register("https", myFactory)
+        .build());
       poolingConnectionManager.setDefaultMaxPerRoute(1);
       poolingConnectionManager.setValidateAfterInactivity(60000);
       poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
