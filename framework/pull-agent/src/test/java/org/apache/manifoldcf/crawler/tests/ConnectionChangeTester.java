@@ -97,7 +97,7 @@ public class ConnectionChangeTester
     
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
-    instance.waitJobDeletedNative(jobManager,job.getID(),30000L);
+    instance.waitJobDeletedNative(jobManager,job.getID(),60000L);
 
     // Shut down instance2
     instance.stop();

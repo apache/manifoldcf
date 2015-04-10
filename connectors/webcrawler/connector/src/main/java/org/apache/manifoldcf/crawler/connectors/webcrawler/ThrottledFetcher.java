@@ -48,7 +48,10 @@ import org.apache.http.config.SocketConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.NameValuePair;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -468,7 +471,10 @@ public class ThrottledFetcher
       
       if (connManager == null)
       {
-        PoolingHttpClientConnectionManager poolingConnManager = new PoolingHttpClientConnectionManager();
+        PoolingHttpClientConnectionManager poolingConnManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+          .register("http", PlainConnectionSocketFactory.getSocketFactory())
+          .register("https", myFactory)
+          .build());
         poolingConnManager.setDefaultMaxPerRoute(1);
         poolingConnManager.setValidateAfterInactivity(60000);
         poolingConnManager.setDefaultSocketConfig(SocketConfig.custom()
@@ -527,10 +533,8 @@ public class ThrottledFetcher
         .disableAutomaticRetries()
         .setDefaultRequestConfig(requestBuilder.build())
         .setDefaultCredentialsProvider(credentialsProvider)
-        .setSSLSocketFactory(myFactory)
         .setRequestExecutor(new HttpRequestExecutor(socketTimeoutMilliseconds))
         .setRedirectStrategy(new DefaultRedirectStrategy())
-        // ??? need to add equivalent of setCookiePolicy(CookiePolicy.BROWSER_COMPATIBILITY)
         .build();
 
         /*

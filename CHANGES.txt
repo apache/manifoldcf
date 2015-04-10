@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.1-dev =====================
 
+CONNECTORS-1186: HttpClient 4.4 requires that you set the SSL socket
+factory at the connection manager level.
+(Karl Wright)
+
 CONNECTORS-1185: Fix HttpClient deprecation warnings, and make sure
 socket timeouts are actually honored in http connections.
 (Karl Wright)
