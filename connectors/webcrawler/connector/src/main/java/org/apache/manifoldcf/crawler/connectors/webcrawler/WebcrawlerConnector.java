@@ -856,6 +856,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             protocol,ipAddress,port,
             credential,trustStore,throttleDescription,binNames,connectionLimit,
             proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword,
+            socketTimeoutMilliseconds,connectionTimeoutMilliseconds,
             activities);
           try
           {
@@ -863,8 +864,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             try
             {
               // Execute the fetch!
-              connection.executeFetch(url.getFile(),userAgent,from,connectionTimeoutMilliseconds,
-                socketTimeoutMilliseconds,false,hostName,formData,lc);
+              connection.executeFetch(url.getFile(),userAgent,from,
+                false,hostName,formData,lc);
               int response = connection.getResponseCode();
 
               if (response == 200 || response == 302 || response == 301)
@@ -5345,13 +5346,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           protocol,hostIPAddress,port,credential,
           trustStore,throttleDescription,binNames,connectionLimit,
           proxyHost,proxyPort,proxyAuthDomain,proxyAuthUsername,proxyAuthPassword,
+          socketTimeoutMilliseconds,connectionTimeoutMilliseconds,
           versionActivities);
         try
         {
           connection.beginFetch(FETCH_ROBOTS);
           try
           {
-            connection.executeFetch("/robots.txt",userAgent,from,connectionTimeoutMilliseconds,socketTimeoutMilliseconds,true,hostName,null,null);
+            connection.executeFetch("/robots.txt",userAgent,from,true,hostName,null,null);
             long expirationTime = currentTime+1000*60*60*24;
             int code = connection.getResponseCode();
             if (code == 200)

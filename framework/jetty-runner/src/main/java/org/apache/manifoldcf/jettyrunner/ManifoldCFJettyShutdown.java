@@ -71,25 +71,26 @@ public class ManifoldCFJettyShutdown
       int socketTimeout = 900000;
       int connectionTimeout = 300000;
 
-      HttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager();
+      poolingConnectionManager.setDefaultMaxPerRoute(1);
+      poolingConnectionManager.setValidateAfterInactivity(60000);
+      poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+        .setTcpNoDelay(true)
+        .setSoTimeout(socketTimeout)
+        .build());
+      HttpClientConnectionManager connectionManager = poolingConnectionManager;
         
       RequestConfig.Builder requestBuilder = RequestConfig.custom()
         .setCircularRedirectsAllowed(true)
         .setSocketTimeout(socketTimeout)
-        .setStaleConnectionCheckEnabled(false)
         .setExpectContinueEnabled(true)
         .setConnectTimeout(connectionTimeout)
         .setConnectionRequestTimeout(socketTimeout);
 
       HttpClient httpClient = HttpClients.custom()
         .setConnectionManager(connectionManager)
-        .setMaxConnTotal(1)
         .disableAutomaticRetries()
         .setDefaultRequestConfig(requestBuilder.build())
-        .setDefaultSocketConfig(SocketConfig.custom()
-          .setTcpNoDelay(true)
-          .setSoTimeout(socketTimeout)
-          .build())
         .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
         .setRedirectStrategy(new DefaultRedirectStrategy())
         .build();
