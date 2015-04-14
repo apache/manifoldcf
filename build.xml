@@ -52,7 +52,7 @@
     <property name="commons-fileupload.version" value="1.2.2"/>
     <property name="commons-io.version" value="2.4"/>
     <property name="commons-lang.version" value="2.6"/>
-    <property name="commons-logging.version" value="1.1.3"/>
+    <property name="commons-logging.version" value="1.2"/>
     <property name="commons-configuration.version" value="1.6"/>
     <property name="commons-cli.version" value="1.2"/>
     <property name="slf4j.version" value="1.7.7"/>
@@ -1767,7 +1767,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/solr"/>
-            <param name="artifact-version" value="5.0.0"/>
+            <param name="artifact-version" value="5.1.0"/>
             <param name="artifact-name" value="solr-solrj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
