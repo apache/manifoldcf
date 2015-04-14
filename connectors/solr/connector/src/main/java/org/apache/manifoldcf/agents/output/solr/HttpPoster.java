@@ -53,9 +53,11 @@ import org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.common.util.ContentStreamBase;
+import org.apache.solr.client.solrj.SolrResponse;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.client.solrj.SolrRequest;
+import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.ContentStream;
 import org.apache.solr.common.SolrException;
@@ -1502,7 +1504,7 @@ public class HttpPoster
         // Do the operation!
         try
         {
-          SolrPingResponse response = new SolrPing(postStatusAction).process(solrServer);
+          SolrResponse response = new SolrPing(postStatusAction).process(solrServer);
         }
         catch (InterruptedIOException ioe)
         {
@@ -1597,14 +1599,17 @@ public class HttpPoster
   */
   protected static class SolrPing extends SolrRequest
   {
+    /** Request parameters. */
     private ModifiableSolrParams params;
     
-    public SolrPing()
-    {
-      super( METHOD.GET, "/admin/ping" );
+    /**
+     * Create a new SolrPing object.
+     */
+    public SolrPing() {
+      super(METHOD.GET, "/admin/ping");
       params = new ModifiableSolrParams();
     }
-
+    
     public SolrPing(String url)
     {
       super( METHOD.GET, url );
@@ -1617,19 +1622,60 @@ public class HttpPoster
     }
 
     @Override
-    public ModifiableSolrParams getParams() {
-      return params;
+    protected SolrPingResponse createResponse(SolrClient client) {
+      return new SolrPingResponse();
     }
 
     @Override
-    public SolrPingResponse process( SolrClient server ) throws SolrServerException, IOException 
-    {
-      long startTime = System.currentTimeMillis();
-      SolrPingResponse res = new SolrPingResponse();
-      res.setResponse( server.request( this ) );
-      res.setElapsedTime( System.currentTimeMillis()-startTime );
-      return res;
+    public ModifiableSolrParams getParams() {
+      return params;
     }
+    
+    /**
+     * Remove the action parameter from this request. This will result in the same
+     * behavior as {@code SolrPing#setActionPing()}. For Solr server version 4.0
+     * and later.
+     * 
+     * @return this
+     */
+    public SolrPing removeAction() {
+      params.remove(CommonParams.ACTION);
+      return this;
+    }
+    
+    /**
+     * Set the action parameter on this request to enable. This will delete the
+     * health-check file for the Solr core. For Solr server version 4.0 and later.
+     * 
+     * @return this
+     */
+    public SolrPing setActionDisable() {
+      params.set(CommonParams.ACTION, CommonParams.DISABLE);
+      return this;
+    }
+    
+    /**
+     * Set the action parameter on this request to enable. This will create the
+     * health-check file for the Solr core. For Solr server version 4.0 and later.
+     * 
+     * @return this
+     */
+    public SolrPing setActionEnable() {
+      params.set(CommonParams.ACTION, CommonParams.ENABLE);
+      return this;
+    }
+    
+    /**
+     * Set the action parameter on this request to ping. This is the same as not
+     * including the action at all. For Solr server version 4.0 and later.
+     * 
+     * @return this
+     */
+    public SolrPing setActionPing() {
+      params.set(CommonParams.ACTION, CommonParams.PING);
+      return this;
+    }
+
   }
 
   /** See CONNECTORS-956.  Make a safe lucene field name from a possibly
