@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= 2.2-dev =====================
+
+
 ======================= Release 2.1 =====================
 
 CONNECTORS-1187: Handle "File in Use" error properly in JCIFS connector.
