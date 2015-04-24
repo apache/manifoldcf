@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 1.9 =====================
 
+CONNECTORS-1190: Broken dependencies in solr connector maven build
+caused tests to fail under maven.
+(Piergiorgio Lucidi, Karl Wright)
+
 CONNECTORS-1187: Handle "File in Use" error properly in JCIFS connector.
 (Karl Wright)
 
