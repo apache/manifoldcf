@@ -3,6 +3,11 @@ $Id$
 
 ======================= Release 1.9 =====================
 
+CONNECTORS-1191: Unexpected job status 34, due to a race condition.
+Jobs shutting down and being aborted at the same time could wind up
+in a state where repeated exceptions would be thrown.
+(Arcadius Ahouansou, Karl Wright)
+
 CONNECTORS-1190: Broken dependencies in solr connector maven build
 caused tests to fail under maven.
 (Piergiorgio Lucidi, Karl Wright)
