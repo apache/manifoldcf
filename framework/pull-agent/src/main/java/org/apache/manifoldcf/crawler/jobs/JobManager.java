@@ -39,7 +39,6 @@ public class JobManager implements IJobManager
   protected static final String cleanStufferLock = "_CLEANSTUFFER_";
   protected static final String jobStopLock = "_JOBSTOP_";
   protected static final String jobResumeLock = "_JOBRESUME_";
-  protected static final String jobResetLock = "_JOBRESET_";
   protected static final String hopLock = "_HOPLOCK_";
 
   // Member variables
@@ -8386,7 +8385,9 @@ public class JobManager implements IJobManager
   {
     // Alternative to using a write lock here: Put this in a transaction, with a "FOR UPDATE" on the first query.
     // I think that still causes way too much locking, though, on some databases.
-    lockManager.enterWriteLock(jobResetLock);
+    // Note well: This MUST be the same lock as for finishStopJobs, since ABORTINGSHUTTINGDOWN is handled
+    // by one and SHUTTINGDOWN is handled by the other.  CONNECTORS-1191.
+    lockManager.enterWriteLock(jobStopLock);
     try
     {
       // Query for all jobs that fulfill the criteria
@@ -8464,7 +8465,7 @@ public class JobManager implements IJobManager
     }
     finally
     {
-      lockManager.leaveWriteLock(jobResetLock);
+      lockManager.leaveWriteLock(jobStopLock);
     }
   }
 
