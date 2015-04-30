@@ -67,4 +67,12 @@ public class LinkParseState extends MetaParseState
     return false;
   }
 
+  @Override
+  public void finishUp()
+    throws ManifoldCFException
+  {
+    handler.finishUp();
+    super.finishUp();
+  }
+  
 }
