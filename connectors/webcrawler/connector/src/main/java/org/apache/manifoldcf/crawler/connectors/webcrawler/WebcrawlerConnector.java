@@ -6418,6 +6418,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         noteDiscoveredLink(rawURL);
     }
 
+    @Override
+    public void finishUp()
+      throws ManifoldCFException
+    {
+    }
+
   }
 
   /** Class that describes XML handling */
