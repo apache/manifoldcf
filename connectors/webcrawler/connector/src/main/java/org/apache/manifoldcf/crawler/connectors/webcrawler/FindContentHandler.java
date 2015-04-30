@@ -60,10 +60,7 @@ public class FindContentHandler extends FindHandler implements IHTMLHandler
       contentBuffer.append(textCharacter);
     else
     {
-      String bufferContents = contentBuffer.toString();
-      contentBuffer.setLength(0);
-      if (contentPattern.matcher(bufferContents).find())
-        targetURI = "";
+      processBuffer();
     }
   }
 
@@ -123,5 +120,22 @@ public class FindContentHandler extends FindHandler implements IHTMLHandler
   {
   }
 
+  /** Finish up all processing.  Called ONLY if we haven't already aborted.
+  */
+  @Override
+  public void finishUp()
+    throws ManifoldCFException
+  {
+    if (targetURI == null)
+      processBuffer();
+  }
+
+  protected void processBuffer()
+  {
+    String bufferContents = contentBuffer.toString();
+    contentBuffer.setLength(0);
+    if (contentPattern.matcher(bufferContents).find())
+      targetURI = "";
+  }
 
 }
