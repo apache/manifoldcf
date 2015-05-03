@@ -751,8 +751,8 @@ if (maintenanceUnderway == false)
 				idBucketString = idBucketObject.toString();
 			    String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(Converter.asLong(row.getValue("starttime")));
 			    String endTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(Converter.asLong(row.getValue("endtime").toString()));
-			    long byteCount = Converter.asLong(row.getValue("bytecount"));
-			    double bandwidth = ((double)byteCount) * 1000.0 / intervalMilliseconds;
+			    double byteCount = Converter.asDouble(row.getValue("bytecount"));
+				double bandwidth = byteCount * 1000.0 / intervalMilliseconds;
 
 %>
 		    <tr <%="class=\""+((zz%2==0)?"evendatarow":"odddatarow")+"\""%>>
