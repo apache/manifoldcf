@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1195: Fix for NumberFormatException exception thrown in Maximum Bandwidth Report
+(Kishore Kumar)
+
 CONNECTORS-1192: Fix a problem with login-page detection based on
 content.  Last line was getting skipped, and infinite amounts of content
 could be buffered in memory.  Adopted a compromise that scans an
