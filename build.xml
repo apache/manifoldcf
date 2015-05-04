@@ -117,7 +117,7 @@
     <target name="install-archive" depends="download-archive">
         <mkdir dir="build/publish/release"/>
         <!-- unpack -->
-        <unzip src="build/releases/apache-manifoldcf-${release-version}/apache-manifoldcf-${release-version}-bin.zip" dest="build/releases/apache-manifoldcf-${release-version}-bin"/>
+        <unzip src="build/releases/apache-manifoldcf-${release-version}-bin.zip" dest="build/releases/apache-manifoldcf-${release-version}-bin"/>
         <!-- copy -->
         <mkdir dir="build/site/release"/>
         <copy todir="build/site/release/release-${release-version}">
