@@ -643,7 +643,7 @@ public class FileOutputConnector extends BaseOutputConnector {
     boolean endsWithSlash = false;
     if (uri.getScheme() != null) {
       path.append(uri.getScheme());
-      path.append("_");
+      path.append("/");
       endsWithSlash = true;
     }
 
@@ -656,7 +656,7 @@ public class FileOutputConnector extends BaseOutputConnector {
       }
       if (uri.getRawPath() != null) {
         if (uri.getRawPath().length() == 0) {
-          path.append("_");
+          path.append("/");
           endsWithSlash = true;
         } else if (uri.getRawPath().equals("/")) {
           path.append(uri.getRawPath());
@@ -664,7 +664,7 @@ public class FileOutputConnector extends BaseOutputConnector {
         } else {
           for (String name : uri.getRawPath().split("/")) {
             if (name.length() > 0) {
-              path.append("_");
+              path.append("/");
               path.append(convertWindowsString(name));
               endsWithSlash = false;
             }
@@ -672,7 +672,7 @@ public class FileOutputConnector extends BaseOutputConnector {
         }
       }
       if (uri.getRawQuery() != null) {
-        path.append("_");
+        path.append("/");
         path.append(convertWindowsString(uri.getRawQuery()));
         endsWithSlash = false;
       }
@@ -680,7 +680,7 @@ public class FileOutputConnector extends BaseOutputConnector {
       if (uri.getRawSchemeSpecificPart() != null) {
         for (String name : uri.getRawSchemeSpecificPart().split("/")) {
           if (name.length() > 0) {
-            path.append("_");
+            path.append("/");
             path.append(convertWindowsString(name));
             endsWithSlash = false;
           }
