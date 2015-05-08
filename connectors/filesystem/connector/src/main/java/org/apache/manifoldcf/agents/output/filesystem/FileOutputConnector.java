@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.InputStream;
 
+import org.apache.commons.lang.SystemUtils;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -643,17 +645,94 @@ public class FileOutputConnector extends BaseOutputConnector {
    */
   final private String documentURItoFilePath(String documentURI) throws URISyntaxException, NullPointerException {
     StringBuffer path = new StringBuffer();
-    URI uri = null;
-
-    uri = new URI(documentURI);
-
+    URI uri = new URI(documentURI);
+    if (SystemUtils.IS_OS_WINDOWS)
+      windowsFileName(path, uri);
+    else
+      unixFileName(path, uri);
+    return path.toString();
+  }
+  
+  final private void windowsFileName(final StringBuffer path, final URI uri) {
+    // Illegal characters: \ / : * ? " < > |
+    boolean endsWithSlash = false;
     if (uri.getScheme() != null) {
       path.append(uri.getScheme());
-      path.append("/");
+      path.append("_");
+      endsWithSlash = true;
     }
 
     if (uri.getHost() != null) {
       path.append(uri.getHost());
+      endsWithSlash = false;
+      if (uri.getPort() != -1) {
+        path.append("_");
+        path.append(uri.getPort());
+      }
+      if (uri.getRawPath() != null) {
+        if (uri.getRawPath().length() == 0) {
+          path.append("_");
+          endsWithSlash = true;
+        } else if (uri.getRawPath().equals("/")) {
+          path.append(uri.getRawPath());
+          endsWithSlash = false;
+        } else {
+          for (String name : uri.getRawPath().split("/")) {
+            if (name.length() > 0) {
+              path.append("_");
+              path.append(convertWindowsString(name));
+              endsWithSlash = false;
+            }
+          }
+        }
+      }
+      if (uri.getRawQuery() != null) {
+        path.append("_");
+        path.append(convertWindowsString(uri.getRawQuery()));
+        endsWithSlash = false;
+      }
+    } else {
+      if (uri.getRawSchemeSpecificPart() != null) {
+        for (String name : uri.getRawSchemeSpecificPart().split("/")) {
+          if (name.length() > 0) {
+            path.append("_");
+            path.append(convertWindowsString(name));
+            endsWithSlash = false;
+          }
+        }
+      }
+    }
+
+    if (endsWithSlash) {
+      path.append(".content");
+    }
+  }
+  
+  final private String convertWindowsString(final String input) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < input.length(); i++) {
+      char c = input.charAt(i);
+      // Handle filename disallowed special characters!
+      if (c == ':' || c == '/' || c == '\\' | c == '*' | c == '"' | c == '?' | c == '|' || c == '<' || c == '>') {
+        sb.append('_');
+      }
+      else
+        sb.append(c);
+    }
+    return sb.toString();
+  }
+
+  final private void unixFileName(final StringBuffer path, final URI uri) {
+    boolean endsWithSlash = false;
+    if (uri.getScheme() != null) {
+      path.append(uri.getScheme());
+      path.append("/");
+      endsWithSlash = true;
+    }
+
+    if (uri.getHost() != null) {
+      path.append(uri.getHost());
+      endsWithSlash = false;
       if (uri.getPort() != -1) {
         path.append(":");
         path.append(uri.getPort());
@@ -661,39 +740,43 @@ public class FileOutputConnector extends BaseOutputConnector {
       if (uri.getRawPath() != null) {
         if (uri.getRawPath().length() == 0) {
           path.append("/");
+          endsWithSlash = true;
         } else if (uri.getRawPath().equals("/")) {
           path.append(uri.getRawPath());
+          endsWithSlash = false;
         } else {
           for (String name : uri.getRawPath().split("/")) {
             if (name.length() > 0) {
               path.append("/");
-              path.append(convertString(name));
+              path.append(convertUnixString(name));
+              endsWithSlash = false;
             }
           }
         }
       }
       if (uri.getRawQuery() != null) {
         path.append("?");
-        path.append(convertString(uri.getRawQuery()));
+        path.append(convertUnixString(uri.getRawQuery()));
+        endsWithSlash = false;
       }
     } else {
       if (uri.getRawSchemeSpecificPart() != null) {
         for (String name : uri.getRawSchemeSpecificPart().split("/")) {
           if (name.length() > 0) {
             path.append("/");
-            path.append(convertString(name));
+            path.append(convertUnixString(name));
+            endsWithSlash = false;
           }
         }
       }
     }
 
-    if (path.toString().endsWith("/")) {
+    if (endsWithSlash) {
       path.append(".content");
     }
-    return path.toString();
   }
   
-  final private String convertString(final String input) {
+  final private String convertUnixString(final String input) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < input.length(); i++) {
       char c = input.charAt(i);
