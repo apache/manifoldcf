@@ -91,11 +91,14 @@ public class SearchBloxConnector extends BaseOutputConnector {
 	private static final long BUILDER_DEFAULT_SOCKET_TIMEOUT = 60;
 	private static final long BUILDER_DEFAULT_CONNECTION_TIMEOUT = 60;
 
-	private ResteasyClientBuilder restBuilder = null;
 	private SearchBloxClient client = null;
 	private String apiKey = null;
 	private String lastVersion = null;
 
+	private int poolSize = BUILDER_DEFAULT_POOL_SIZE;
+	private long socketTimeout = BUILDER_DEFAULT_SOCKET_TIMEOUT;
+	private long connectionTimeout = BUILDER_DEFAULT_CONNECTION_TIMEOUT;
+	
 	public SearchBloxConnector() {
 
 	}
@@ -118,7 +121,6 @@ public class SearchBloxConnector extends BaseOutputConnector {
 	public void disconnect() throws ManifoldCFException {
 		if (client != null) {
 			apiKey = null;
-			restBuilder = null;
 			client = null;
 		}
 		super.disconnect();
@@ -136,56 +138,22 @@ public class SearchBloxConnector extends BaseOutputConnector {
 				CREATION_ACTIVITY };
 	}
 
-	protected synchronized void getSession(Map<String, List<String>> args, String version) {
+	protected void getSession() {
 		if (client == null) {
 			String endpoint = params.getParameter(SEARCHBLOX_ENDPOINT);
 			this.apiKey = params.getParameter(SearchBloxDocument.API_KEY);
 			ResteasyClientBuilder builder = new ResteasyClientBuilder();
-			builder.connectionPoolSize(BUILDER_DEFAULT_POOL_SIZE);
-			builder.socketTimeout(BUILDER_DEFAULT_SOCKET_TIMEOUT,
-					TimeUnit.SECONDS);
-			builder.establishConnectionTimeout(
-					BUILDER_DEFAULT_CONNECTION_TIMEOUT, TimeUnit.SECONDS);
-			this.restBuilder = builder;
-			client = new SearchBloxClient(apiKey, this.restBuilder, endpoint);
+			builder.connectionPoolSize(poolSize);
+			builder.establishConnectionTimeout(connectionTimeout, TimeUnit.SECONDS);
+			builder.socketTimeout(socketTimeout, TimeUnit.SECONDS);
+			client = new SearchBloxClient(apiKey, builder, endpoint);
 		}
 		
-		if(args != null && !version.equals(lastVersion)){
-			
-			lastVersion = version;
-			
-			try{
-				int poolSize = 
-						Integer.parseInt(args.get(
-								SearchBloxConfig.ATTRIBUTE_POOLSIZE).get(0));
-				this.restBuilder.connectionPoolSize(poolSize);
-			}catch(NumberFormatException e){
-				Logging.connectors.error("Incorrect Argument Value for Client Pool Size", e);
-			}
-			
-			try{
-				int connectionTimeout = 
-						Integer.parseInt(args.get(
-								SearchBloxConfig.ATTRIBUTE_TIMEOUT_CONNECTION).get(0));
-				this.restBuilder.connectionPoolSize(connectionTimeout);
-			}catch(NumberFormatException e){
-				Logging.connectors.error("Incorrect Argument Value for Client Connection Timeout", e);
-			}
-			
-			try{
-				int socketTimeout = 
-						Integer.parseInt(args.get(
-								SearchBloxConfig.ATTRIBUTE_TIMEOUT_SOCKET).get(0));
-				this.restBuilder.connectionPoolSize(socketTimeout);
-			}catch(NumberFormatException e){
-				Logging.connectors.error("Incorrect Argument Value for Client Socket Timeout", e);
-			}
-		}
 	}
 
 	@Override
 	public String check() throws ManifoldCFException {
-		getSession(null, null);
+		getSession();
 		try {
 			String format = getConfiguration().getParameter(SEARCHBLOX_INDEXING_FORMAT);
 			if (client.ping(format)) {
@@ -309,10 +277,10 @@ public class SearchBloxConnector extends BaseOutputConnector {
 		SpecPacker sp = new SpecPacker(pipelineDescription.getSpecification());
 		Map<String, List<String>> args = sp.getArgs();
 		// Establish a session
-		getSession(args, pipelineDescription.getVersionString());
+		getSession();
 
 		SearchBloxDocument sbDoc = new SearchBloxDocument(this.apiKey,
-				documentURI, document, sp.getArgs());
+				documentURI, document, args);
 		String format = this.getConfiguration().getParameter(SEARCHBLOX_INDEXING_FORMAT);
 		long startTime = System.currentTimeMillis();
 		try {
@@ -372,7 +340,7 @@ public class SearchBloxConnector extends BaseOutputConnector {
 		SpecPacker packer = new SpecPacker(outputDescription);
 		Map<String, List<String>> args = packer.getArgs();
 		// Establish a session
-		getSession(args, packer.toPackedString());
+		getSession();
 		
 		SearchBloxDocument document = new SearchBloxDocument(this.apiKey);
 		document.uid = documentURI;
