@@ -3,8 +3,12 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1198: SearchBlox connector session management not
+working properly.
+(Timo Selvaraj, Rafa Haro, Karl Wright)
+
 CONNECTORS-1197: Add "windows" file mode to file system output connector.
-(Karl Wright
+(Karl Wright)
 
 CONNECTORS-1195: Fix for NumberFormatException exception thrown in Maximum Bandwidth Report
 (Kishore Kumar)
