@@ -86,23 +86,26 @@ public class SearchBloxConnector extends BaseOutputConnector {
 	
 	private static final String SEARCHBLOX_ENDPOINT = "endpoint";
 	private static final String SEARCHBLOX_INDEXING_FORMAT = "indexformat";
-
-	private static final int BUILDER_DEFAULT_POOL_SIZE = 5;
-	private static final long BUILDER_DEFAULT_SOCKET_TIMEOUT = 60;
-	private static final long BUILDER_DEFAULT_CONNECTION_TIMEOUT = 60;
+	private static final String SEARCHBLOX_SOCKET_TIMEOUT = "sockettimeout";
+	private static final String SEARCHBLOX_CONNECTION_TIMEOUT = "connectiontimeout";
+	
+	private static final String BUILDER_DEFAULT_SOCKET_TIMEOUT = "60";
+	private static final String BUILDER_DEFAULT_CONNECTION_TIMEOUT = "60";
 
 	private SearchBloxClient client = null;
 	private String apiKey = null;
-	private String lastVersion = null;
 
-	private int poolSize = BUILDER_DEFAULT_POOL_SIZE;
-	private long socketTimeout = BUILDER_DEFAULT_SOCKET_TIMEOUT;
-	private long connectionTimeout = BUILDER_DEFAULT_CONNECTION_TIMEOUT;
-	
 	public SearchBloxConnector() {
 
 	}
 
+	/** Connect.
+	*/
+	@Override
+	public void connect(ConfigParams configParams) {
+		super.connect(configParams);
+	}
+	
 	/**
 	 * This method is called to assess whether to count this connector instance
 	 * should actually be counted as being connected.
@@ -138,12 +141,31 @@ public class SearchBloxConnector extends BaseOutputConnector {
 				CREATION_ACTIVITY };
 	}
 
-	protected void getSession() {
+	protected void getSession()
+		throws ManifoldCFException {
 		if (client == null) {
-			String endpoint = params.getParameter(SEARCHBLOX_ENDPOINT);
+			String connectionTimeoutString = params.getParameter(SEARCHBLOX_CONNECTION_TIMEOUT);
+			if (connectionTimeoutString == null)
+				connectionTimeoutString = BUILDER_DEFAULT_CONNECTION_TIMEOUT;
+			long connectionTimeout;
+			try {
+				connectionTimeout = Integer.parseInt(connectionTimeoutString);
+			} catch (NumberFormatException e) {
+				throw new ManifoldCFException("Bad connection timeout: "+e.getMessage(),e);
+			}
+			String socketTimeoutString = params.getParameter(SEARCHBLOX_SOCKET_TIMEOUT);
+			if (socketTimeoutString == null)
+				socketTimeoutString = BUILDER_DEFAULT_SOCKET_TIMEOUT;
+			long socketTimeout;
+			try {
+				socketTimeout = Integer.parseInt(socketTimeoutString);
+			} catch (NumberFormatException e) {
+				throw new ManifoldCFException("Bad socket timeout: "+e.getMessage(),e);
+			}
+			final String endpoint = params.getParameter(SEARCHBLOX_ENDPOINT);
 			this.apiKey = params.getParameter(SearchBloxDocument.API_KEY);
 			ResteasyClientBuilder builder = new ResteasyClientBuilder();
-			builder.connectionPoolSize(poolSize);
+			builder.connectionPoolSize(1);
 			builder.establishConnectionTimeout(connectionTimeout, TimeUnit.SECONDS);
 			builder.socketTimeout(socketTimeout, TimeUnit.SECONDS);
 			client = new SearchBloxClient(apiKey, builder, endpoint);
@@ -417,7 +439,7 @@ public class SearchBloxConnector extends BaseOutputConnector {
 			String tabName) throws ManifoldCFException, IOException {
 		super.outputConfigurationBody(threadContext, out, locale, parameters,
 				tabName);
-		Map<String, String> config = this.getConfigParameters(parameters);
+		Map<String, String> config = getConfigParameters(parameters);
 		outputResource(EDIT_CONFIG_FORWARD_PARAMETERS, out, locale, config,
 				tabName, null, null);
 	}
@@ -431,24 +453,37 @@ public class SearchBloxConnector extends BaseOutputConnector {
 	final private Map<String, String> getConfigParameters(
 			ConfigParams configParams) {
 		Map<String, String> map = new HashMap<String, String>();
-		if (configParams == null)
-			configParams = getConfiguration();
 
 		String apiKey = configParams.getParameter(SearchBloxDocument.API_KEY);
-		if(apiKey == null || apiKey.isEmpty())
+		if(apiKey == null)
 			apiKey = DEFAULT_APIKEY;
 		map.put(SearchBloxDocument.API_KEY, apiKey);
 		
 		String endpoint = configParams.getParameter(SEARCHBLOX_ENDPOINT);
-		if(endpoint == null || endpoint.isEmpty()) {
+		if(endpoint == null) {
 			endpoint = SearchBloxClient.DEFAULT_ENDPOINT;
 		}
 		map.put(SEARCHBLOX_ENDPOINT,
 				endpoint);
 		
 		String indexFormat = configParams.getParameter(SEARCHBLOX_INDEXING_FORMAT);
-		indexFormat = indexFormat == null ? IndexingFormat.JSON.name() : indexFormat;
+		if (indexFormat == null) {
+			indexFormat = IndexingFormat.JSON.name();
+		}
 		map.put(SEARCHBLOX_INDEXING_FORMAT, indexFormat);
+		
+		String connectionTimeout = configParams.getParameter(SEARCHBLOX_CONNECTION_TIMEOUT);
+		if (connectionTimeout == null) {
+			connectionTimeout = BUILDER_DEFAULT_CONNECTION_TIMEOUT;
+		}
+		map.put(SEARCHBLOX_CONNECTION_TIMEOUT, connectionTimeout);
+		
+		String socketTimeout = configParams.getParameter(SEARCHBLOX_SOCKET_TIMEOUT);
+		if (socketTimeout == null) {
+			socketTimeout = BUILDER_DEFAULT_SOCKET_TIMEOUT;
+		}
+		map.put(SEARCHBLOX_SOCKET_TIMEOUT, socketTimeout);
+		
 		return map;
 	}
 
@@ -495,6 +530,14 @@ public class SearchBloxConnector extends BaseOutputConnector {
 		if (indexformat != null)
 			parameters.setParameter(SEARCHBLOX_INDEXING_FORMAT, indexformat);
 
+		String connectionTimeout = variableContext.getParameter(SEARCHBLOX_CONNECTION_TIMEOUT);
+		if (connectionTimeout != null)
+			parameters.setParameter(SEARCHBLOX_CONNECTION_TIMEOUT, connectionTimeout);
+		
+		String socketTimeout = variableContext.getParameter(SEARCHBLOX_SOCKET_TIMEOUT);
+		if (socketTimeout != null)
+			parameters.setParameter(SEARCHBLOX_SOCKET_TIMEOUT, socketTimeout);
+		
 		return null;
 	}
 
@@ -528,13 +571,13 @@ public class SearchBloxConnector extends BaseOutputConnector {
 				"SearchBloxConnector.Configuration"));
 
 		// Fill in the specification header map, using data from all tabs.
-		fillInConfigurationSpecificationMap(paramMap, os);
+		fillInSpecificationMap(paramMap, os);
 
 		Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_JS,
 				paramMap);
 	}
 
-	private void fillInConfigurationSpecificationMap(
+	private void fillInSpecificationMap(
 			Map<String, Object> paramMap, Specification os) {
 
 		for (int i = 0, len = os.getChildCount(); i < len; i++) {
@@ -557,20 +600,6 @@ public class SearchBloxConnector extends BaseOutputConnector {
 						.getAttributeValue(SearchBloxConfig.ATTRIBUTE_DESCRIPTIONBOOST);
 				if (descriptionBoost == null || descriptionBoost.isEmpty())
 					descriptionBoost = "0";
-				String poolSize = sn
-						.getAttributeValue(SearchBloxConfig.ATTRIBUTE_POOLSIZE);
-				if (poolSize == null || poolSize.isEmpty())
-					poolSize = String.valueOf(BUILDER_DEFAULT_POOL_SIZE);
-				String timeoutConnection = sn
-						.getAttributeValue(SearchBloxConfig.ATTRIBUTE_TIMEOUT_CONNECTION);
-				if (timeoutConnection == null || timeoutConnection.isEmpty())
-					timeoutConnection = String
-							.valueOf(BUILDER_DEFAULT_CONNECTION_TIMEOUT);
-				String timeoutSocket = sn
-						.getAttributeValue(SearchBloxConfig.ATTRIBUTE_TIMEOUT_SOCKET);
-				if (timeoutSocket == null || timeoutSocket.isEmpty())
-					timeoutSocket = String
-							.valueOf(BUILDER_DEFAULT_SOCKET_TIMEOUT);
 
 				String collection = sn
 						.getAttributeValue(SearchBloxConfig.ATTRIBUTE_COLLECTION_NAME);
@@ -585,13 +614,6 @@ public class SearchBloxConnector extends BaseOutputConnector {
 						keywordsBoost);
 				paramMap.put(SearchBloxConfig.ATTRIBUTE_DESCRIPTIONBOOST.toUpperCase(),
 						descriptionBoost);
-				paramMap.put(SearchBloxConfig.ATTRIBUTE_POOLSIZE.toUpperCase(),
-						poolSize);
-				paramMap.put(SearchBloxConfig.ATTRIBUTE_TIMEOUT_CONNECTION
-						.toUpperCase(), timeoutConnection);
-				paramMap.put(
-						SearchBloxConfig.ATTRIBUTE_TIMEOUT_SOCKET.toUpperCase(),
-						timeoutSocket);
 				paramMap.put(SearchBloxConfig.ATTRIBUTE_COLLECTION_NAME
 						.toUpperCase(), collection);
 
@@ -604,13 +626,6 @@ public class SearchBloxConnector extends BaseOutputConnector {
 		paramMap.put(SearchBloxConfig.ATTRIBUTE_CONTENTBOOST.toUpperCase(), 0);
 		paramMap.put(SearchBloxConfig.ATTRIBUTE_KEYWORDSBOOST.toUpperCase(), 0);
 		paramMap.put(SearchBloxConfig.ATTRIBUTE_DESCRIPTIONBOOST.toUpperCase(), 0);
-		paramMap.put(SearchBloxConfig.ATTRIBUTE_POOLSIZE.toUpperCase(),
-				BUILDER_DEFAULT_POOL_SIZE);
-		paramMap.put(
-				SearchBloxConfig.ATTRIBUTE_TIMEOUT_CONNECTION.toUpperCase(),
-				BUILDER_DEFAULT_CONNECTION_TIMEOUT);
-		paramMap.put(SearchBloxConfig.ATTRIBUTE_TIMEOUT_SOCKET.toUpperCase(),
-				BUILDER_DEFAULT_SOCKET_TIMEOUT);
 		paramMap.put(SearchBloxConfig.ATTRIBUTE_INDEX_FORMAT.toUpperCase(),
 				IndexingFormat.XML.name());
 		paramMap.put(SearchBloxConfig.ATTRIBUTE_COLLECTION_NAME.toUpperCase(),
@@ -642,7 +657,7 @@ public class SearchBloxConnector extends BaseOutputConnector {
 		paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
 
 		// Fill in the map with data from all tabs
-		fillInConfigurationSpecificationMap(paramMap, os);
+		fillInSpecificationMap(paramMap, os);
 
 		Messages.outputResourceWithVelocity(out, locale,
 				VIEW_SPECIFICATION_HTML, paramMap);
@@ -684,7 +699,7 @@ public class SearchBloxConnector extends BaseOutputConnector {
 		paramMap.put("SELECTEDNUM", Integer.toString(actualSequenceNumber));
 
 		// Fill in the field mapping tab data
-		fillInConfigurationSpecificationMap(paramMap, os);
+		fillInSpecificationMap(paramMap, os);
 
 		Messages.outputResourceWithVelocity(out, locale,
 				EDIT_SPECIFICATION_CONFIGURATION_HTML, paramMap);
@@ -724,12 +739,6 @@ public class SearchBloxConnector extends BaseOutputConnector {
 				+ SearchBloxConfig.ATTRIBUTE_KEYWORDSBOOST);
 		String descriptionBoost = variableContext.getParameter(seqPrefix
 				+ SearchBloxConfig.ATTRIBUTE_DESCRIPTIONBOOST);
-		String poolSize = variableContext.getParameter(seqPrefix
-				+ SearchBloxConfig.ATTRIBUTE_POOLSIZE);
-		String timeoutConnection = variableContext.getParameter(seqPrefix
-				+ SearchBloxConfig.ATTRIBUTE_TIMEOUT_CONNECTION);
-		String timeoutSocket = variableContext.getParameter(seqPrefix
-				+ SearchBloxConfig.ATTRIBUTE_TIMEOUT_SOCKET);
 		String collection = variableContext.getParameter(seqPrefix
 				+ SearchBloxConfig.ATTRIBUTE_COLLECTION_NAME);
 		String indexFormat = variableContext.getParameter(seqPrefix
@@ -751,11 +760,6 @@ public class SearchBloxConnector extends BaseOutputConnector {
 		node.setAttribute(SearchBloxConfig.ATTRIBUTE_CONTENTBOOST, contentBoost);
 		node.setAttribute(SearchBloxConfig.ATTRIBUTE_KEYWORDSBOOST, keywordsBoost);
 		node.setAttribute(SearchBloxConfig.ATTRIBUTE_DESCRIPTIONBOOST, descriptionBoost);
-		node.setAttribute(SearchBloxConfig.ATTRIBUTE_POOLSIZE, poolSize);
-		node.setAttribute(SearchBloxConfig.ATTRIBUTE_TIMEOUT_CONNECTION,
-				timeoutConnection);
-		node.setAttribute(SearchBloxConfig.ATTRIBUTE_TIMEOUT_SOCKET,
-				timeoutSocket);
 		node.setAttribute(SearchBloxConfig.ATTRIBUTE_COLLECTION_NAME,
 				collection);
 		node.setAttribute(SearchBloxConfig.ATTRIBUTE_INDEX_FORMAT, indexFormat);
@@ -766,7 +770,7 @@ public class SearchBloxConnector extends BaseOutputConnector {
 	}
 	
 
-	protected class SpecPacker {
+	protected static class SpecPacker {
 		/** Arguments, from configuration */
 	    private final Multimap<String, String> args = HashMultimap.create();
 	    
@@ -794,17 +798,11 @@ public class SearchBloxConnector extends BaseOutputConnector {
 	          String keywordsBoost = node.getAttributeValue(SearchBloxConfig.ATTRIBUTE_KEYWORDSBOOST);
 	          String descriptionBoost = node.getAttributeValue(SearchBloxConfig.ATTRIBUTE_DESCRIPTIONBOOST);
 	          String collection = node.getAttributeValue(SearchBloxConfig.ATTRIBUTE_COLLECTION_NAME);
-	          String poolSize = node.getAttributeValue(SearchBloxConfig.ATTRIBUTE_POOLSIZE);
-	          String connectTimeout = node.getAttributeValue(SearchBloxConfig.ATTRIBUTE_TIMEOUT_CONNECTION);
-	          String socketTimeout = node.getAttributeValue(SearchBloxConfig.ATTRIBUTE_TIMEOUT_SOCKET);
 	          args.put(SearchBloxConfig.ATTRIBUTE_TITLEBOOST, titleBoost);
 	          args.put(SearchBloxConfig.ATTRIBUTE_CONTENTBOOST, contentBoost);
 	          args.put(SearchBloxConfig.ATTRIBUTE_KEYWORDSBOOST, keywordsBoost);
 	          args.put(SearchBloxConfig.ATTRIBUTE_DESCRIPTIONBOOST, descriptionBoost);
 	          args.put(SearchBloxDocument.SEARCHBLOX_COLLECTION, collection);
-	          args.put(SearchBloxConfig.ATTRIBUTE_POOLSIZE, poolSize);
-	          args.put(SearchBloxConfig.ATTRIBUTE_TIMEOUT_CONNECTION, connectTimeout);
-	          args.put(SearchBloxConfig.ATTRIBUTE_TIMEOUT_SOCKET, socketTimeout);
 	          
 	        }
 	      }
