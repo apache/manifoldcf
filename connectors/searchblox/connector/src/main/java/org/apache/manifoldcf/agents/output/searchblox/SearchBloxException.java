@@ -21,19 +21,19 @@ package org.apache.manifoldcf.agents.output.searchblox;
  * @author Rafa Haro <rharo@apache.org>
  */
 public class SearchBloxException
-        extends Exception {
+    extends Exception {
 
-    private static final long serialVersionUID = -6792055510634993398L;
+  private static final long serialVersionUID = -6792055510634993398L;
 
-    public SearchBloxException(String reason, Throwable cause) {
-        super(reason, cause);
-    }
+  public SearchBloxException(String reason, Throwable cause) {
+    super(reason, cause);
+  }
 
-    public SearchBloxException(String reason) {
-        super(reason);
-    }
+  public SearchBloxException(String reason) {
+    super(reason);
+  }
 
-    public SearchBloxException(Throwable cause) {
-        super(cause);
-    }
+  public SearchBloxException(Throwable cause) {
+    super(cause);
+  }
 }
