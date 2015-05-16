@@ -52,8 +52,11 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.NameValuePair;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -179,6 +182,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   private String viewServerName = null;
   private String viewPort = null;
   private String viewCgiPath = null;
+  private String viewAction = null;
 
   private String ingestNtlmDomain = null;
   private String ingestNtlmUsername = null;
@@ -366,6 +370,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       viewServerName = params.getParameter(LiveLinkParameters.viewServerName);
       viewPort = params.getParameter(LiveLinkParameters.viewPort);
       viewCgiPath = params.getParameter(LiveLinkParameters.viewCgiPath);
+      viewAction = params.getParameter(LiveLinkParameters.viewAction);
 
       ingestNtlmDomain = params.getParameter(LiveLinkParameters.ingestNtlmDomain);
       ingestNtlmUsername = params.getParameter(LiveLinkParameters.ingestNtlmUsername);
@@ -522,18 +527,32 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       int socketTimeout = 900000;
       int connectionTimeout = 300000;
 
-      // Set up connection manager
-      connectionManager = new PoolingHttpClientConnectionManager();
-
-      CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-
       // Set up ingest ssl if indicated
       SSLConnectionSocketFactory myFactory = null;
       if (ingestKeystoreManager != null)
       {
         myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(ingestKeystoreManager.getSecureSocketFactory(), connectionTimeout),
-          new BrowserCompatHostnameVerifier());
+          NoopHostnameVerifier.INSTANCE);
       }
+      else
+      {
+        myFactory = SSLConnectionSocketFactory.getSocketFactory();
+      }
+
+      // Set up connection manager
+      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+        .register("https", myFactory)
+        .build());
+      poolingConnectionManager.setDefaultMaxPerRoute(1);
+      poolingConnectionManager.setValidateAfterInactivity(60000);
+      poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+        .setTcpNoDelay(true)
+        .setSoTimeout(socketTimeout)
+        .build());
+      connectionManager = poolingConnectionManager;
+      
+      CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
       // Set up authentication to use
       if (ingestNtlmDomain != null)
@@ -544,27 +563,18 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
       HttpClientBuilder builder = HttpClients.custom()
         .setConnectionManager(connectionManager)
-        .setMaxConnTotal(1)
         .disableAutomaticRetries()
         .setDefaultRequestConfig(RequestConfig.custom()
           .setCircularRedirectsAllowed(true)
           .setSocketTimeout(socketTimeout)
-          .setStaleConnectionCheckEnabled(true)
           .setExpectContinueEnabled(true)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout)
-          .build())
-        .setDefaultSocketConfig(SocketConfig.custom()
-          .setTcpNoDelay(true)
-          .setSoTimeout(socketTimeout)
           .build())
         .setDefaultCredentialsProvider(credentialsProvider)
         .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
         .setRedirectStrategy(new DefaultRedirectStrategy());
 
-      if (myFactory != null)
-        builder.setSSLSocketFactory(myFactory);
-      
       httpClient = builder.build();
 
       // System.out.println("Connection server object = "+llServer.toString());
@@ -841,11 +851,28 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     // The document identifier is the string form of the object ID for this connector.
     if (!documentIdentifier.startsWith("D"))
       return null;
+    String objectID = null;
     int colonPosition = documentIdentifier.indexOf(":",1);
     if (colonPosition == -1)
-      return viewBasePath+"?func=ll&objID="+documentIdentifier.substring(1)+"&objAction=download";
+      objectID = documentIdentifier.substring(1);
     else
-      return viewBasePath+"?func=ll&objID="+documentIdentifier.substring(colonPosition+1)+"&objAction=download";
+      objectID = documentIdentifier.substring(colonPosition+1);
+    String viewURL = null;
+    switch(viewAction)
+    {
+      case "download":
+        viewURL =  viewBasePath+"?func=ll&objAction=download&objID=" + objectID;
+      break;
+      case "open":
+        viewURL = viewBasePath+"/open/" + objectID;
+      break;
+      case "overview":
+        viewURL = viewBasePath+"?func=ll&objAction=overview&objID=" + objectID;
+      break;
+      default:
+        viewURL = viewBasePath+"?func=ll&objAction=download&objID=" + objectID;
+    }
+    return viewURL;
   }
 
   /** Request arbitrary connector information.
@@ -1751,11 +1778,15 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String viewCgiPath = parameters.getParameter(LiveLinkParameters.viewCgiPath);
     if (viewCgiPath == null)
       viewCgiPath = "/livelink/livelink.exe";
+    String viewAction = parameters.getParameter(LiveLinkParameters.viewAction);
+    if (viewAction == null)
+      viewAction = "download";
 
     velocityContext.put("VIEWPROTOCOL",viewProtocol);
     velocityContext.put("VIEWSERVERNAME",viewServerName);
     velocityContext.put("VIEWPORT",viewPort);
     velocityContext.put("VIEWCGIPATH",viewCgiPath);
+    velocityContext.put("VIEWACTION",viewAction);
   }  
   
   /** Process a configuration post.
@@ -1785,6 +1816,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String viewCgiPath = variableContext.getParameter("viewcgipath");
     if (viewCgiPath != null)
       parameters.setParameter(LiveLinkParameters.viewCgiPath,viewCgiPath);
+    String viewAction = variableContext.getParameter("viewaction");
+    if (viewAction != null)
+      parameters.setParameter(LiveLinkParameters.viewAction,viewAction);
     
     // Server parameters
     String serverProtocol = variableContext.getParameter("serverprotocol");

@@ -66,14 +66,13 @@ public interface IThrottledConnection
   * @param urlPath is the path part of the url, e.g. "/robots.txt"
   * @param userAgent is the value of the userAgent header to use.
   * @param from is the value of the from header to use.
-  * @param connectionTimeoutMilliseconds is the maximum number of milliseconds to wait on socket connect.
   * @param redirectOK should be set to true if you want redirects to be automatically followed.
   * @param host is the value to use as the "Host" header, or null to use the default.
   * @param formData describes additional form arguments and how to fetch the page.
   * @param loginCookies describes the cookies that should be in effect for this page fetch.
   */
-  public void executeFetch(String urlPath, String userAgent, String from, int connectionTimeoutMilliseconds,
-    int socketTimeoutMilliseconds, boolean redirectOK, String host, FormData formData,
+  public void executeFetch(String urlPath, String userAgent, String from,
+    boolean redirectOK, String host, FormData formData,
     LoginCookies loginCookies)
     throws ManifoldCFException, ServiceInterruption;
 

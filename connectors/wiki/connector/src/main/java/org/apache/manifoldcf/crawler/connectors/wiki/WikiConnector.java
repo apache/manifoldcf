@@ -64,7 +64,11 @@ import org.apache.http.util.EntityUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.entity.ContentType;
 
 import org.apache.http.conn.ConnectTimeoutException;
@@ -227,10 +231,20 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       javax.net.ssl.SSLSocketFactory httpsSocketFactory = KeystoreManagerFactory.getTrustingSecureSocketFactory();
       SSLConnectionSocketFactory myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeout),
-        SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+        NoopHostnameVerifier.INSTANCE);
 
       // Set up connection manager
-      connectionManager = new PoolingHttpClientConnectionManager();
+      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+        .register("https", myFactory)
+        .build());
+      poolingConnectionManager.setDefaultMaxPerRoute(1);
+      poolingConnectionManager.setValidateAfterInactivity(60000);
+      poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+        .setTcpNoDelay(true)
+        .setSoTimeout(socketTimeout)
+        .build());
+      connectionManager = poolingConnectionManager;
 
       CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
@@ -246,7 +260,6 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       RequestConfig.Builder requestBuilder = RequestConfig.custom()
           .setCircularRedirectsAllowed(true)
           .setSocketTimeout(socketTimeout)
-          .setStaleConnectionCheckEnabled(true)
           .setExpectContinueEnabled(true)
           .setConnectTimeout(connectionTimeout)
           .setConnectionRequestTimeout(socketTimeout);
@@ -289,13 +302,8 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       httpClient = HttpClients.custom()
         .setConnectionManager(connectionManager)
-        .setMaxConnTotal(1)
         .disableAutomaticRetries()
         .setDefaultRequestConfig(requestBuilder.build())
-        .setDefaultSocketConfig(SocketConfig.custom()
-          .setTcpNoDelay(true)
-          .setSoTimeout(socketTimeout)
-          .build())
         .setDefaultCredentialsProvider(credentialsProvider)
         .setSSLSocketFactory(myFactory)
         .setRequestExecutor(new HttpRequestExecutor(socketTimeout))

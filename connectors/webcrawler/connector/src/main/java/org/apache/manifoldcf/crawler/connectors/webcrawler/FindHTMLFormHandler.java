@@ -188,4 +188,10 @@ public class FindHTMLFormHandler extends FindHandler implements IHTMLHandler
   {
   }
 
+  @Override
+  public void finishUp()
+    throws ManifoldCFException
+  {
+  }
+
 }

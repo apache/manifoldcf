@@ -31,9 +31,9 @@
     
     <property name="hsqldb.version" value="2.3.2"/>
     <property name="jetty.version" value="9.2.3.v20140905"/>
-    <property name="httpclient.version" value="4.3.6"/>
-    <property name="httpmime.version" value="4.3.6"/>
-    <property name="httpcore.version" value="4.3.3"/>
+    <property name="httpclient.version" value="4.4.1"/>
+    <property name="httpmime.version" value="4.4"/>
+    <property name="httpcore.version" value="4.4.1"/>
     <property name="xerces.version" value="2.10.0"/>
     <property name="zookeeper.version" value="3.4.6"/>
     <property name="mongodb.version" value="2.11.3"/>
@@ -51,7 +51,7 @@
     <property name="commons-fileupload.version" value="1.2.2"/>
     <property name="commons-io.version" value="2.4"/>
     <property name="commons-lang.version" value="2.6"/>
-    <property name="commons-logging.version" value="1.1.3"/>
+    <property name="commons-logging.version" value="1.2"/>
     <property name="commons-configuration.version" value="1.6"/>
     <property name="commons-cli.version" value="1.2"/>
     <property name="slf4j.version" value="1.7.7"/>
@@ -473,7 +473,7 @@
     <target name="doc" depends="deliver-site-doc"/>
     
     <target name="set-version">
-      <property name="release-version" value="2.1-dev"/>
+      <property name="release-version" value="2.2-dev"/>
     </target>
     
     <target name="create-source-zip" depends="set-version">
@@ -1671,7 +1671,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/solr"/>
-            <param name="artifact-version" value="5.0.0"/>
+            <param name="artifact-version" value="5.1.0"/>
             <param name="artifact-name" value="solr-solrj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>

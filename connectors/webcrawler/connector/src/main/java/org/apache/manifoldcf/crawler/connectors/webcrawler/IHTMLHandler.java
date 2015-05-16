@@ -59,4 +59,9 @@ public interface IHTMLHandler extends IDiscoveredLinkHandler, IMetaTagHandler
   public void noteTextCharacter(char textCharacter)
     throws ManifoldCFException;
 
+  /** Done with the document.
+  */
+  public void finishUp()
+    throws ManifoldCFException;
+
 }
