@@ -1,7 +1,64 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.1-dev =====================
+======================= 2.2-dev =====================
+
+CONNECTORS-1199: SearchBlox connector formatting non-standard.
+(Karl Wright)
+
+CONNECTORS-1198: SearchBlox connector session management not
+working properly.
+(Timo Selvaraj, Rafa Haro, Karl Wright)
+
+CONNECTORS-1197: Add "windows" file mode to file system output connector.
+(Karl Wright)
+
+CONNECTORS-1195: Fix for NumberFormatException exception thrown in Maximum Bandwidth Report
+(Kishore Kumar)
+
+CONNECTORS-1192: Fix a problem with login-page detection based on
+content.  Last line was getting skipped, and infinite amounts of content
+could be buffered in memory.  Adopted a compromise that scans an
+overlapping window of minimum size 16K.
+(Karl Wright)
+
+======================= Release 2.1 =====================
+
+CONNECTORS-1191: Unexpected job status 34, due to a race condition.
+Jobs shutting down and being aborted at the same time could wind up
+in a state where repeated exceptions would be thrown.
+(Arcadius Ahouansou, Karl Wright)
+
+CONNECTORS-1190: Broken dependencies in solr connector maven build
+caused tests to fail under maven.
+(Piergiorgio Lucidi, Karl Wright)
+
+CONNECTORS-1187: Handle "File in Use" error properly in JCIFS connector.
+(Karl Wright)
+
+CONNECTORS-1186: HttpClient 4.4 requires that you set the SSL socket
+factory at the connection manager level.
+(Karl Wright)
+
+CONNECTORS-1185: Fix HttpClient deprecation warnings, and make sure
+socket timeouts are actually honored in http connections.
+(Karl Wright)
+
+CONNECTORS-1183: Fix for GridFS connector broken UI server tab.
+(Kishore Kumar)
+
+CONNECTORS-1173: Option to change View URL for Livelink Connector
+(Kishore Kumar)
+
+CONNECTORS-1179: Include the collection name as part of the Solr
+version string.
+(Kamil Żyta, Karl Wright)
+
+CONNECTORS-1178: Script example broken.
+(Karl Wright)
+
+CONNECTORS-1177: Add session-based security for API.
+(Jan van Haarst, Karl Wright)
 
 CONNECTORS-1176: Update SolrJ version.
 (Karl Wright)

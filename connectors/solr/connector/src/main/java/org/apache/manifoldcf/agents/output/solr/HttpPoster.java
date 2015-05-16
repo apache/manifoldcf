@@ -22,7 +22,11 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpRequestExecutor;
@@ -50,9 +54,11 @@ import org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.common.util.ContentStreamBase;
+import org.apache.solr.client.solrj.SolrResponse;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.client.solrj.SolrRequest;
+import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.ContentStream;
 import org.apache.solr.common.SolrException;
@@ -210,42 +216,43 @@ public class HttpPoster
     }
 
     // Initialize standard solr-j.
-    // First, we need an HttpClient where basic auth is properly set up.
-    connectionManager = new PoolingHttpClientConnectionManager();
-    connectionManager.setMaxTotal(1);
-
+    
     SSLConnectionSocketFactory myFactory;
     if (keystoreManager != null)
     {
-      myFactory = new SSLConnectionSocketFactory(keystoreManager.getSecureSocketFactory(), SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+      myFactory = new SSLConnectionSocketFactory(keystoreManager.getSecureSocketFactory(), NoopHostnameVerifier.INSTANCE);
     }
     else
     {
       // Use the "trust everything" one
-      myFactory = new SSLConnectionSocketFactory(KeystoreManagerFactory.getTrustingSecureSocketFactory(),SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+      myFactory = new SSLConnectionSocketFactory(KeystoreManagerFactory.getTrustingSecureSocketFactory(),NoopHostnameVerifier.INSTANCE);
     }
 
+    // First, we need an HttpClient where basic auth is properly set up.
+    connectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+      .register("http", PlainConnectionSocketFactory.getSocketFactory())
+      .register("https", myFactory)
+      .build());
+    connectionManager.setDefaultMaxPerRoute(1);
+    connectionManager.setValidateAfterInactivity(60000);
+    connectionManager.setDefaultSocketConfig(SocketConfig.custom()
+      .setTcpNoDelay(true)
+      .setSoTimeout(socketTimeout)
+      .build());
+    
     RequestConfig.Builder requestBuilder = RequestConfig.custom()
       .setCircularRedirectsAllowed(true)
       .setSocketTimeout(socketTimeout)
-      .setStaleConnectionCheckEnabled(true)
       .setExpectContinueEnabled(true)
       .setConnectTimeout(connectionTimeout)
       .setConnectionRequestTimeout(socketTimeout);
 
-      HttpClientBuilder clientBuilder = HttpClients.custom()
-        .setConnectionManager(connectionManager)
-        .setMaxConnTotal(1)
-        .disableAutomaticRetries()
-        .setDefaultRequestConfig(requestBuilder.build())
-        .setRedirectStrategy(new DefaultRedirectStrategy())
-        .setSSLSocketFactory(myFactory)
-        .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
-        .setDefaultSocketConfig(SocketConfig.custom()
-          .setTcpNoDelay(true)
-          .setSoTimeout(socketTimeout)
-          .build()
-        );
+    HttpClientBuilder clientBuilder = HttpClients.custom()
+      .setConnectionManager(connectionManager)
+      .disableAutomaticRetries()
+      .setDefaultRequestConfig(requestBuilder.build())
+      .setRedirectStrategy(new DefaultRedirectStrategy())
+      .setRequestExecutor(new HttpRequestExecutor(socketTimeout));
 
 
     if (userID != null && userID.length() > 0 && password != null)
@@ -1436,7 +1443,7 @@ public class HttpPoster
         // Do the operation!
         try
         {
-          SolrPingResponse response = new SolrPing(postStatusAction).process(solrServer);
+          SolrResponse response = new SolrPing(postStatusAction).process(solrServer);
         }
         catch (InterruptedIOException ioe)
         {
@@ -1531,14 +1538,17 @@ public class HttpPoster
   */
   protected static class SolrPing extends SolrRequest
   {
+    /** Request parameters. */
     private ModifiableSolrParams params;
     
-    public SolrPing()
-    {
-      super( METHOD.GET, "/admin/ping" );
+    /**
+     * Create a new SolrPing object.
+     */
+    public SolrPing() {
+      super(METHOD.GET, "/admin/ping");
       params = new ModifiableSolrParams();
     }
-
+    
     public SolrPing(String url)
     {
       super( METHOD.GET, url );
@@ -1551,19 +1561,60 @@ public class HttpPoster
     }
 
     @Override
-    public ModifiableSolrParams getParams() {
-      return params;
+    protected SolrPingResponse createResponse(SolrClient client) {
+      return new SolrPingResponse();
     }
 
     @Override
-    public SolrPingResponse process( SolrClient server ) throws SolrServerException, IOException 
-    {
-      long startTime = System.currentTimeMillis();
-      SolrPingResponse res = new SolrPingResponse();
-      res.setResponse( server.request( this ) );
-      res.setElapsedTime( System.currentTimeMillis()-startTime );
-      return res;
+    public ModifiableSolrParams getParams() {
+      return params;
     }
+    
+    /**
+     * Remove the action parameter from this request. This will result in the same
+     * behavior as {@code SolrPing#setActionPing()}. For Solr server version 4.0
+     * and later.
+     * 
+     * @return this
+     */
+    public SolrPing removeAction() {
+      params.remove(CommonParams.ACTION);
+      return this;
+    }
+    
+    /**
+     * Set the action parameter on this request to enable. This will delete the
+     * health-check file for the Solr core. For Solr server version 4.0 and later.
+     * 
+     * @return this
+     */
+    public SolrPing setActionDisable() {
+      params.set(CommonParams.ACTION, CommonParams.DISABLE);
+      return this;
+    }
+    
+    /**
+     * Set the action parameter on this request to enable. This will create the
+     * health-check file for the Solr core. For Solr server version 4.0 and later.
+     * 
+     * @return this
+     */
+    public SolrPing setActionEnable() {
+      params.set(CommonParams.ACTION, CommonParams.ENABLE);
+      return this;
+    }
+    
+    /**
+     * Set the action parameter on this request to ping. This is the same as not
+     * including the action at all. For Solr server version 4.0 and later.
+     * 
+     * @return this
+     */
+    public SolrPing setActionPing() {
+      params.set(CommonParams.ACTION, CommonParams.PING);
+      return this;
+    }
+
   }
 
   /** See CONNECTORS-956.  Make a safe lucene field name from a possibly

@@ -29,6 +29,9 @@ public class FindContentHandler extends FindHandler implements IHTMLHandler
   protected final Pattern contentPattern;
   protected final StringBuilder contentBuffer = new StringBuilder();
 
+  protected final static int MAX_LENGTH = 65536;
+  protected final static int OVERLAP_AMOUNT = 16384;
+  
   public FindContentHandler(String parentURI, Pattern contentPattern)
   {
     super(parentURI);
@@ -57,13 +60,26 @@ public class FindContentHandler extends FindHandler implements IHTMLHandler
       return;
     // Build characters up into lines, and apply the regexp against them
     if (textCharacter == '\t' || textCharacter >= ' ')
+    {
       contentBuffer.append(textCharacter);
+      // If too big, do the search and clear out the buffer, retaining some of it for overlap purposes
+      if (contentBuffer.length() >= MAX_LENGTH)
+      {
+        // Process what we have, and keep around what we need for
+        // continuity
+        String bufferContents = contentBuffer.toString();
+        contentBuffer.setLength(0);
+        if (contentPattern.matcher(bufferContents).find())
+          targetURI = "";
+        else
+        {
+          contentBuffer.append(bufferContents.substring(bufferContents.length() - OVERLAP_AMOUNT));
+        }
+      }
+    }
     else
     {
-      String bufferContents = contentBuffer.toString();
-      contentBuffer.setLength(0);
-      if (contentPattern.matcher(bufferContents).find())
-        targetURI = "";
+      processBuffer();
     }
   }
 
@@ -123,5 +139,22 @@ public class FindContentHandler extends FindHandler implements IHTMLHandler
   {
   }
 
+  /** Finish up all processing.  Called ONLY if we haven't already aborted.
+  */
+  @Override
+  public void finishUp()
+    throws ManifoldCFException
+  {
+    if (targetURI == null)
+      processBuffer();
+  }
+
+  protected void processBuffer()
+  {
+    String bufferContents = contentBuffer.toString();
+    contentBuffer.setLength(0);
+    if (contentPattern.matcher(bufferContents).find())
+      targetURI = "";
+  }
 
 }

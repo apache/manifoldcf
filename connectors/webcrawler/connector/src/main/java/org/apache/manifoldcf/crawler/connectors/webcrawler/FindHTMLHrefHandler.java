@@ -144,4 +144,10 @@ public class FindHTMLHrefHandler extends FindHandler implements IHTMLHandler
     noteDiscoveredLink(rawURL);
   }
 
+  @Override
+  public void finishUp()
+    throws ManifoldCFException
+  {
+  }
+
 }
