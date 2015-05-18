@@ -368,7 +368,7 @@ public class SearchBloxConnector extends BaseOutputConnector {
     document.uid = documentURI;
     // document.apiKey = args.get(API_KEY).get(0);
     document.colName = args.get(SearchBloxDocument.SEARCHBLOX_COLLECTION).get(0);
-    String format = args.get(SEARCHBLOX_INDEXING_FORMAT).get(0);
+    String format = this.getConfiguration().getParameter(SEARCHBLOX_INDEXING_FORMAT);
     long startTime = System.currentTimeMillis();
     try {
       ResponseCode code = client.deleteDocument(document, format);
