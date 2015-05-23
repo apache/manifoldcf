@@ -83,6 +83,13 @@ public class ConnectionPool
             throw new InterruptedException("Pool already closed");
           rval = freeConnections[--freePointer];
           freeConnections[freePointer] = null;
+          if (!rval.isValid(1)) {
+            // If the connection is invalid, drop it on the floor, and get a new one.
+            activeConnections--;
+            rval.close();
+            rval = null;
+            continue;
+          }
           break;
         }
         if (activeConnections == freeConnections.length)
