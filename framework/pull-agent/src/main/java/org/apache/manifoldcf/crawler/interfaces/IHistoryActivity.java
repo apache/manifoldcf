@@ -32,6 +32,8 @@ public interface IHistoryActivity
   public static final String EXCLUDED_LENGTH = IOutputHistoryActivity.EXCLUDED_LENGTH;
   public static final String EXCLUDED_MIMETYPE = IOutputHistoryActivity.EXCLUDED_MIMETYPE;
   public static final String EXCLUDED_DATE = IOutputHistoryActivity.EXCLUDED_DATE;
+  public static final String EXCLUDED_CONTENT = IOutputHistoryActivity.EXCLUDED_CONTENT;
+
   /**
    * Use this result code when you get URL value from repository and it is not valid.
    */

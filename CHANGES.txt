@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1193: Add ability to discard web content based on a 
+set of regular expressions.
+(Arcadius Ahouansou)
+
 CONNECTORS-1199: SearchBlox connector formatting non-standard.
 (Karl Wright)
 
