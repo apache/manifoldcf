@@ -137,6 +137,12 @@ public class WebcrawlerConfig
   * if any one matches, causes the URL to be excluded from indexing.  These
   * regexps are newline separated, and # starts a comment.  */
   public static final String NODE_EXCLUDESINDEX = "excludesindex";
+
+  /**
+   * Exclude any page containing specified regex in their body from index
+   */
+  public static final String NODE_EXCLUDESCONTENTINDEX = "excludescontentindex";
+
   /** Limit to seeds.  When value attribute is true, only seed domains will be permitted. */
   public static final String NODE_LIMITTOSEEDS = "limittoseeds";
   /** Canonicalization rule.  Attributes are regexp, description, reorder, 

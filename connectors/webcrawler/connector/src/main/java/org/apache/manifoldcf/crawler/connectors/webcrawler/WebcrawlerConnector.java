@@ -28,10 +28,6 @@ import org.apache.manifoldcf.ui.util.Encoder;
 import org.apache.manifoldcf.core.fuzzyml.*;
 
 import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.client.RedirectException;
-import org.apache.http.client.CircularRedirectException;
-import org.apache.http.NoHttpResponseException;
-import org.apache.http.HttpException;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -507,7 +503,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param activities is the interface this method should use to perform whatever framework actions are desired.
   *@param spec is a document specification (that comes from the job).
   *@param seedTime is the end of the time range of documents to consider, exclusive.
-  *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
+  *@param lastSeedVersion is the last seeding version string for this job, or null if the job has no previous seeding version string.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@return an updated seeding version string, to be stored with the job.
   */
@@ -1335,7 +1331,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         activities.noDocument(documentIdentifier,versionString);
         return;
       }
-      
+
       if (activities.checkURLIndexable(documentIdentifier) == false)
       {
         if (Logging.connectors.isDebugEnabled())
@@ -1387,7 +1383,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         activities.noDocument(documentIdentifier,versionString);
         return;
       }
-      
+
+      if(!filter.isDocumentContentIndexable(documentIdentifier)){
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Web: For document '"+documentIdentifier+"', not indexing because document content matched document content exclusion rule");
+        errorCode = activities.EXCLUDED_CONTENT;
+        errorDesc = "Rejected due to content exclusion rule";
+        activities.noDocument(documentIdentifier,versionString);
+        return;
+      }
       // Ingest the document
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("WEB: Decided to ingest '"+documentIdentifier+"'");
@@ -3895,6 +3899,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String exclusions = "";
     String inclusionsIndex = ".*\n";
     String exclusionsIndex = "";
+    String exclusionsContentIndex = "";
+    
     boolean includeMatching = true;
     Set<String> excludedHeaders = new HashSet<String>();
     
@@ -3944,6 +3950,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         exclusionsIndex = sn.getValue();
         if (exclusionsIndex == null)
           exclusionsIndex = "";
+      }
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESCONTENTINDEX))
+      {
+        exclusionsContentIndex = sn.getValue();
+        if (exclusionsContentIndex == null)
+        	exclusionsContentIndex = "";
       }
       else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
       {
@@ -4302,14 +4314,21 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "      <textarea rows=\"10\" cols=\"60\" name=\""+seqPrefix+"exclusionsindex\">"+Encoder.bodyEscape(exclusionsIndex)+"</textarea>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeContentFromIndex") + "</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"1\">\n"+
+"      <textarea rows=\"10\" cols=\"60\" name=\""+seqPrefix+"exclusionscontentindex\">"+Encoder.bodyEscape(exclusionsContentIndex)+"</textarea>\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
     else
     {
       out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"exclusions\" value=\""+Encoder.attributeEscape(exclusions)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"exclusionsindex\" value=\""+Encoder.attributeEscape(exclusionsIndex)+"\"/>\n"
+              "<input type=\"hidden\" name=\"" + seqPrefix + "exclusions\" value=\"" + Encoder.attributeEscape(exclusions) + "\"/>\n" +
+                      "<input type=\"hidden\" name=\"" + seqPrefix + "exclusionsindex\" value=\"" + Encoder.attributeEscape(exclusionsIndex) + "\"/>\n" +
+                      "<input type=\"hidden\" name=\"" + seqPrefix + "exclusionscontentindex\" value=\"" + Encoder.attributeEscape(exclusionsContentIndex) + "\"/>\n"
       );
     }
   
@@ -4756,6 +4775,26 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       ds.addChild(ds.getChildCount(),cn);
     }
 
+    // Get the content index exclusions
+    String exclusionsContentIndex = variableContext.getParameter(seqPrefix+"exclusionscontentindex");
+    if (exclusionsContentIndex != null)
+    {
+      // Delete existing content exclusions record first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESCONTENTINDEX))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode cn = new SpecificationNode(WebcrawlerConfig.NODE_EXCLUDESCONTENTINDEX);
+      cn.setValue(exclusionsContentIndex);
+      ds.addChild(ds.getChildCount(),cn);
+    }
+
     // Read the url specs
     String urlRegexpCount = variableContext.getParameter(seqPrefix+"urlregexpcount");
     if (urlRegexpCount != null && urlRegexpCount.length() > 0)
@@ -4962,6 +5001,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String exclusions = "";
     String inclusionsIndex = ".*\n";
     String exclusionsIndex = "";
+    String exclusionsContentIndex = "";
+
     boolean includeMatching = false;
     Set<String> excludedHeaders = new HashSet<String>();
     
@@ -4998,6 +5039,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         exclusionsIndex = sn.getValue();
         if (exclusionsIndex == null)
           exclusionsIndex = "";
+      }
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESCONTENTINDEX))
+      {
+        exclusionsContentIndex = sn.getValue();
+        if (exclusionsContentIndex == null)
+        	exclusionsContentIndex = "";
       }
       else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
       {
@@ -5343,6 +5390,48 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     try
     {
       java.io.Reader str = new java.io.StringReader(exclusionsIndex);
+      try
+      {
+        java.io.BufferedReader is = new java.io.BufferedReader(str);
+        try
+        {
+          while (true)
+          {
+            String nextString = is.readLine();
+            if (nextString == null)
+              break;
+            if (nextString.length() == 0)
+              continue;
+            out.print(
+"      <nobr>"+Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
+            );
+          }
+        }
+        finally
+        {
+          is.close();
+        }
+      }
+      finally
+      {
+        str.close();
+      }
+    }
+    catch (java.io.IOException e)
+    {
+      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeContentFromIndex") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"
+    );
+    try
+    {
+      java.io.Reader str = new java.io.StringReader(exclusionsContentIndex);
       try
       {
         java.io.BufferedReader is = new java.io.BufferedReader(str);
@@ -6197,7 +6286,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     handler.applyOverrides(lp);
     return handler.getTargetURI();
   }
-  
+
   /** Find HTML link URI, if present, making sure specified preference is matched. */
   protected String findHTMLLinkURI(String currentURI, LoginParameters lp)
     throws ManifoldCFException
@@ -8013,7 +8102,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   /** This class describes the url filtering information (for crawling and indexing) obtained from a digested DocumentSpecification.
   */
-  protected static class DocumentURLFilter
+  protected class DocumentURLFilter
   {
     /** The version string */
     protected String versionString;
@@ -8029,7 +8118,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     protected final List<Pattern> excludeIndexPatterns = new ArrayList<Pattern>();
     /** The hash map of seed hosts, to limit urls by, if non-null */
     protected Set<String> seedHosts = null;
-    
+
+    /**List of content exclusion pattern*/
+    protected final List<Pattern> excludeContentIndexPatterns = new ArrayList<Pattern>();
+
     /** Canonicalization policies */
     protected final CanonicalizationPolicies canonicalizationPolicies = new CanonicalizationPolicies();
 
@@ -8045,6 +8137,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       String excludes = "";
       String includesIndex = ".*";
       String excludesIndex = "";
+      String excludesContentIndex = "";
       String seeds = "";
       List<String> packList = new ArrayList<String>();
       String[] packStuff = new String[2];
@@ -8176,12 +8269,19 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             throw new ManifoldCFException("Canonicalization regular expression '"+urlRegexp+"' is illegal: "+e.getMessage(),e);
           }
         }
+        else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESCONTENTINDEX))
+        {
+          excludesContentIndex = sn.getValue();
+          if (excludesContentIndex == null)
+            excludesContentIndex = "";
+        }
       }
 
       // Note: format change since MCF 1.7 release
       StringBuilder versionBuffer = new StringBuilder();
       pack(versionBuffer,includesIndex,'+');
       pack(versionBuffer,excludesIndex,'+');
+      pack(versionBuffer,excludesContentIndex,'+');
       packList(versionBuffer,packList,'+');
       versionString = versionBuffer.toString();
       
@@ -8194,7 +8294,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       compileList(includeIndexPatterns,list);
       list = stringToArray(excludesIndex);
       compileList(excludeIndexPatterns,list);
-      
+      list = stringToArray(excludesContentIndex);
+      compileList(excludeContentIndexPatterns,list);
+
       if (limitToSeeds)
       {
         seedHosts = new HashSet<String>();
@@ -8363,6 +8465,30 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     public CanonicalizationPolicies getCanonicalizationPolicies()
     {
       return canonicalizationPolicies;
+    }
+
+    public boolean isDocumentContentIndexable(String documentIdentifier) throws ManifoldCFException {
+        String content = findSpecifiedContent(documentIdentifier, excludeContentIndexPatterns);
+        if (content != null) {
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("WEB: Url '" + documentIdentifier + "' is not indexable because content exclusion pattern was matched");
+
+          return false;
+      }
+      return true;
+    }
+
+    protected String findSpecifiedContent(String currentURI, List<Pattern> patterns) throws ManifoldCFException
+    {
+      if (excludeContentIndexPatterns.isEmpty()) {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("WEB: no content exclusion rule supplied... returning");
+        return null;
+      }
+
+      FindContentHandler handler = new FindContentHandler(currentURI, patterns);
+      handleHTML(currentURI, handler);
+      return handler.getTargetURI();
     }
 
   }
