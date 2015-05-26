@@ -35,6 +35,8 @@ public interface IOutputHistoryActivity
   public static final String EXCLUDED_LENGTH = "EXCLUDEDLENGTH";
   public static final String EXCLUDED_MIMETYPE = "EXCLUDEDMIMETYPE";
   public static final String EXCLUDED_DATE = "EXCLUDEDDATE";
+  public static final String EXCLUDED_CONTENT = "EXCLUDEDCONTENT";
+
   /**
    * Use this result code when security info is not recognized. 
    */
