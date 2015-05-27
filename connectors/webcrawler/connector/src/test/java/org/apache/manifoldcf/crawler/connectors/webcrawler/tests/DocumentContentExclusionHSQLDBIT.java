@@ -1,4 +1,4 @@
-package org.apache.manifoldcf.crawler.connectors.webcrawler;
+package org.apache.manifoldcf.crawler.connectors.webcrawler.tests;
 
 import org.apache.manifoldcf.agents.interfaces.IOutputConnection;
 import org.apache.manifoldcf.agents.interfaces.IOutputConnectionManager;
@@ -11,7 +11,7 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.ThreadContextFactory;
-import org.apache.manifoldcf.crawler.connectors.webcrawler.tests.BaseITHSQLDB;
+import org.apache.manifoldcf.crawler.connectors.webcrawler.WebcrawlerConfig;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -31,7 +31,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 
-public class DocumentContentExclusionIT extends BaseITHSQLDB {
+public class DocumentContentExclusionHSQLDBIT extends BaseITHSQLDB {
 
     private static final int MAX_DOC_COUNT = 3;
 
