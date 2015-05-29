@@ -56,6 +56,7 @@ public class RepositoryDocument
   protected Date createdDate = null;
   protected Date modifiedDate = null;
   protected Date indexingDate = null;
+  protected Long originalSize = null;
   
   /** Constructor.
   */
@@ -79,6 +80,7 @@ public class RepositoryDocument
     rval.createdDate = createdDate;
     rval.modifiedDate = modifiedDate;
     rval.indexingDate = indexingDate;
+    rval.originalSize = originalSize;
     for (String key : fields.keySet())
     {
       rval.fields.put(key,fields.get(key));
@@ -110,6 +112,23 @@ public class RepositoryDocument
     stringFields.clear();
     dateFields.clear();
     readerFields.clear();
+  }
+  
+  /** Set the document's original (repository) size.  Use null to indicate that the size is
+  * unknown.
+  *@param size is the size.
+  */
+  public void setOriginalSize(Long size)
+  {
+    originalSize = size;
+  }
+  
+  /** Get the document's original size.
+  *@return the original repository document size, or null if unknown.
+  */
+  public Long getOriginalSize()
+  {
+    return originalSize;
   }
   
   /** Set the document's created date.  Use null to indicate that the date is unknown.
