@@ -99,6 +99,7 @@ public class HttpPoster
   private final String allowAttributeName;
   private final String denyAttributeName;
   private final String idAttributeName;
+  private final String originalSizeAttributeName;
   private final String modifiedDateAttributeName;
   private final String createdDateAttributeName;
   private final String indexedDateAttributeName;
@@ -133,7 +134,7 @@ public class HttpPoster
     int zkClientTimeout, int zkConnectTimeout,
     String updatePath, String removePath, String statusPath,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
-    String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
+    String originalSizeAttributeName, String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
     String fileNameAttributeName, String mimeTypeAttributeName, String contentAttributeName,
     Long maxDocumentLength,
     String commitWithin, boolean useExtractUpdateHandler,
@@ -150,6 +151,7 @@ public class HttpPoster
     this.allowAttributeName = allowAttributeName;
     this.denyAttributeName = denyAttributeName;
     this.idAttributeName = idAttributeName;
+    this.originalSizeAttributeName = originalSizeAttributeName;
     this.modifiedDateAttributeName = modifiedDateAttributeName;
     this.createdDateAttributeName = createdDateAttributeName;
     this.indexedDateAttributeName = indexedDateAttributeName;
@@ -182,7 +184,7 @@ public class HttpPoster
     String updatePath, String removePath, String statusPath,
     String realm, String userID, String password,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
-    String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
+    String originalSizeAttributeName, String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
     String fileNameAttributeName, String mimeTypeAttributeName, String contentAttributeName,
     IKeystoreManager keystoreManager, Long maxDocumentLength,
     String commitWithin, boolean useExtractUpdateHandler,
@@ -199,6 +201,7 @@ public class HttpPoster
     this.allowAttributeName = allowAttributeName;
     this.denyAttributeName = denyAttributeName;
     this.idAttributeName = idAttributeName;
+    this.originalSizeAttributeName = originalSizeAttributeName;
     this.modifiedDateAttributeName = modifiedDateAttributeName;
     this.createdDateAttributeName = createdDateAttributeName;
     this.indexedDateAttributeName = indexedDateAttributeName;
@@ -1020,6 +1023,14 @@ public class HttpPoster
       }
       
       // Write the rest of the attributes
+      if ( originalSizeAttributeName != null )
+      {
+        Long size = document.getOriginalSize();
+        if ( size != null )
+        {
+          outputDoc.addField( originalSizeAttributeName, size.toString() );
+        }
+      }
       if ( modifiedDateAttributeName != null )
       {
         Date date = document.getModifiedDate();
@@ -1092,6 +1103,13 @@ public class HttpPoster
       // Write the id field
       writeField(out,LITERAL+idAttributeName,documentURI);
       // Write the rest of the attributes
+      if (originalSizeAttributeName != null)
+      {
+        Long size = document.getOriginalSize();
+        if (size != null)
+          // Write value
+          writeField(out,LITERAL+modifiedDateAttributeName,size.toString());
+      }
       if (modifiedDateAttributeName != null)
       {
         Date date = document.getModifiedDate();

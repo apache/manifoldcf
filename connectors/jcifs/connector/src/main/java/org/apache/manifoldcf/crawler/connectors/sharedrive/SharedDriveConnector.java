@@ -32,6 +32,7 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import java.io.*;
 import java.net.MalformedURLException;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -447,15 +448,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         }
       }
     }
-    catch (java.net.SocketTimeoutException e)
+    catch (MalformedURLException e)
     {
-      throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
+      throw new ManifoldCFException("Could not get a canonical path: "+e.getMessage(),e);
     }
-    catch (InterruptedIOException e)
-    {
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
-    catch (IOException e)
+    catch (UnknownHostException e)
     {
       throw new ManifoldCFException("Could not get a canonical path: "+e.getMessage(),e);
     }
@@ -546,116 +543,142 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       String[] documentDeny = null;
       boolean documentSecurityOn = false;
       
+      // Common info we really need to fetch only once
+      long fileLength = 0L;
+      long lastModified = 0L;
+      boolean fileExists = false;
+      boolean fileIsDirectory = false;
+      
       try
       {
         file = new SmbFile(documentIdentifier,pa);
+        fileExists = fileExists(file);
 
         // File has to exist AND have a non-null canonical path to be readable.  If the canonical path is
         // null, it means that the windows permissions are not right and directory/file is not readable!!!
         String newPath = getFileCanonicalPath(file);
         // We MUST check the specification here, otherwise a recrawl may not delete what it's supposed to!
-        if (fileExists(file) && newPath != null && checkInclude(file,newPath,spec,activities))
+        if (fileExists && newPath != null)
         {
-          if (fileIsDirectory(file))
+          fileIsDirectory = fileIsDirectory(file);
+          if (checkInclude(fileIsDirectory,newPath,spec))
           {
-            // Hmm, this is not correct; version string should be empty for windows directories, since
-            // they are not hierarchical in modified date propagation.
-            // It's a directory. The version ID will be the
-            // last modified date.
-            //long lastModified = fileLastModified(file);
-            //versionString = new Long(lastModified).toString();
-            versionString = "";
+            if (fileIsDirectory)
+            {
+              // Hmm, this is not correct; version string should be empty for windows directories, since
+              // they are not hierarchical in modified date propagation.
+              // It's a directory. The version ID will be the
+              // last modified date.
+              //long lastModified = fileLastModified(file);
+              //versionString = new Long(lastModified).toString();
+              versionString = "";
 
+            }
+            else
+            {
+              fileLength = fileLength(file);
+              if (checkIncludeFile(fileLength,newPath,spec,activities))
+              {
+                // It's a file of acceptable length.
+                // The ability to get ACLs, list files, and an inputstream under DFS all work now.
+                // The SmbFile for parentFolder acls.
+                SmbFile parentFolder = new SmbFile(file.getParent(),pa);
+
+                // Compute the security information
+                String[] modelArray = new String[0];
+                
+                List<String> allowList = new ArrayList<String>();
+                List<String> denyList = new ArrayList<String>();
+                shareSecurityOn = getFileShareSecuritySet(allowList, denyList, file, shareAcls);
+                shareAllow = allowList.toArray(modelArray);
+                shareDeny = denyList.toArray(modelArray);
+
+                allowList.clear();
+                denyList.clear();
+                parentSecurityOn = getFileSecuritySet(allowList, denyList, parentFolder, parentFolderAcls);
+                parentAllow = allowList.toArray(modelArray);
+                parentDeny = denyList.toArray(modelArray);
+
+                allowList.clear();
+                denyList.clear();
+                documentSecurityOn = getFileSecuritySet(allowList, denyList, file, acls);
+                documentAllow = allowList.toArray(modelArray);
+                documentDeny = denyList.toArray(modelArray);
+                
+                // This is stuff we need for computing the version string AND for indexing
+                lastModified = fileLastModified(file);
+                
+                // The format of this string changed on 11/8/2006 to be comformant with the standard way
+                // acls and metadata descriptions are being stuffed into the version string across connectors.
+
+                // The format of this string changed again on 7/3/2009 to permit the ingestion uri/iri to be included.
+                // This was to support filename/uri mapping functionality.
+
+                StringBuilder sb = new StringBuilder();
+
+                addSecuritySet(sb,shareSecurityOn,shareAllow,shareDeny);
+                addSecuritySet(sb,parentSecurityOn,parentAllow,parentDeny);
+                addSecuritySet(sb,documentSecurityOn,documentAllow,documentDeny);
+
+                // Include the path attribute name and value in the parseable area.
+                if (pathAttributeName != null)
+                {
+                  sb.append('+');
+                  pack(sb,pathAttributeName,'+');
+                  // Calculate path string; we'll include that wholesale in the version
+                  pathAttributeValue = documentIdentifier;
+                  // 3/13/2008
+                  // In looking at what comes into the path metadata attribute by default, and cogitating a bit, I've concluded that
+                  // the smb:// and the server/domain name at the start of the path are just plain old noise, and should be stripped.
+                  // This changes a behavior that has been around for a while, so there is a risk, but a quick back-and-forth with the
+                  // SE's leads me to believe that this is safe.
+
+                  if (pathAttributeValue.startsWith("smb://"))
+                  {
+                    int index = pathAttributeValue.indexOf("/","smb://".length());
+                    if (index == -1)
+                      index = pathAttributeValue.length();
+                    pathAttributeValue = pathAttributeValue.substring(index);
+                  }
+                  // Now, translate
+                  pathAttributeValue = matchMap.translate(pathAttributeValue);
+                  pack(sb,pathAttributeValue,'+');
+                }
+                else
+                  sb.append('-');
+
+                // Calculate the ingestion IRI/URI, and include that in the parseable area.
+                ingestionURI = convertToURI(documentIdentifier,fileMap,uriMap);
+                pack(sb,ingestionURI,'+');
+
+                // The stuff from here on down is non-parseable.
+                sb.append(new Long(lastModified).toString()).append(":")
+                  .append(new Long(fileLength).toString());
+                // Also include the specification-based answer for the question of whether fingerprinting is
+                // going to be done.  Although we may not consider this to truly be "version" information, the
+                // specification does affect whether anything is ingested or not, so it really is.  The alternative
+                // is to fingerprint right here, in the version part of the world, but that's got a performance
+                // downside, because it means that we'd have to suck over pretty much everything just to determine
+                // what we wanted to ingest.
+                boolean ifIndexable = wouldFileBeIncluded(newPath,spec,true);
+                boolean ifNotIndexable = wouldFileBeIncluded(newPath,spec,false);
+                if (ifIndexable == ifNotIndexable)
+                  sb.append("I");
+                else
+                  sb.append(ifIndexable?"Y":"N");
+                versionString = sb.toString();
+              }
+              else
+              {
+                activities.deleteDocument(documentIdentifier);
+                continue;
+              }
+            }
           }
           else
           {
-            // It's a file of acceptable length.
-            // The ability to get ACLs, list files, and an inputstream under DFS all work now.
-            // The SmbFile for parentFolder acls.
-            SmbFile parentFolder = new SmbFile(file.getParent(),pa);
-
-            // Compute the security information
-            String[] modelArray = new String[0];
-            
-            List<String> allowList = new ArrayList<String>();
-            List<String> denyList = new ArrayList<String>();
-            shareSecurityOn = getFileShareSecuritySet(allowList, denyList, file, shareAcls);
-            shareAllow = allowList.toArray(modelArray);
-            shareDeny = denyList.toArray(modelArray);
-
-            allowList.clear();
-            denyList.clear();
-            parentSecurityOn = getFileSecuritySet(allowList, denyList, parentFolder, parentFolderAcls);
-            parentAllow = allowList.toArray(modelArray);
-            parentDeny = denyList.toArray(modelArray);
-
-            allowList.clear();
-            denyList.clear();
-            documentSecurityOn = getFileSecuritySet(allowList, denyList, file, acls);
-            documentAllow = allowList.toArray(modelArray);
-            documentDeny = denyList.toArray(modelArray);
-            
-            // The format of this string changed on 11/8/2006 to be comformant with the standard way
-            // acls and metadata descriptions are being stuffed into the version string across connectors.
-
-            // The format of this string changed again on 7/3/2009 to permit the ingestion uri/iri to be included.
-            // This was to support filename/uri mapping functionality.
-
-            StringBuilder sb = new StringBuilder();
-
-            addSecuritySet(sb,shareSecurityOn,shareAllow,shareDeny);
-            addSecuritySet(sb,parentSecurityOn,parentAllow,parentDeny);
-            addSecuritySet(sb,documentSecurityOn,documentAllow,documentDeny);
-
-            // Include the path attribute name and value in the parseable area.
-            if (pathAttributeName != null)
-            {
-              sb.append('+');
-              pack(sb,pathAttributeName,'+');
-              // Calculate path string; we'll include that wholesale in the version
-              pathAttributeValue = documentIdentifier;
-              // 3/13/2008
-              // In looking at what comes into the path metadata attribute by default, and cogitating a bit, I've concluded that
-              // the smb:// and the server/domain name at the start of the path are just plain old noise, and should be stripped.
-              // This changes a behavior that has been around for a while, so there is a risk, but a quick back-and-forth with the
-              // SE's leads me to believe that this is safe.
-
-              if (pathAttributeValue.startsWith("smb://"))
-              {
-                int index = pathAttributeValue.indexOf("/","smb://".length());
-                if (index == -1)
-                  index = pathAttributeValue.length();
-                pathAttributeValue = pathAttributeValue.substring(index);
-              }
-              // Now, translate
-              pathAttributeValue = matchMap.translate(pathAttributeValue);
-              pack(sb,pathAttributeValue,'+');
-            }
-            else
-              sb.append('-');
-
-            // Calculate the ingestion IRI/URI, and include that in the parseable area.
-            ingestionURI = convertToURI(documentIdentifier,fileMap,uriMap);
-            pack(sb,ingestionURI,'+');
-
-            // The stuff from here on down is non-parseable.
-            // Get the file's modified date.
-            long lastModified = fileLastModified(file);
-            sb.append(new Long(lastModified).toString()).append(":")
-              .append(new Long(fileLength(file)).toString());
-            // Also include the specification-based answer for the question of whether fingerprinting is
-            // going to be done.  Although we may not consider this to truly be "version" information, the
-            // specification does affect whether anything is ingested or not, so it really is.  The alternative
-            // is to fingerprint right here, in the version part of the world, but that's got a performance
-            // downside, because it means that we'd have to suck over pretty much everything just to determine
-            // what we wanted to ingest.
-            boolean ifIndexable = wouldFileBeIncluded(newPath,spec,true);
-            boolean ifNotIndexable = wouldFileBeIncluded(newPath,spec,false);
-            if (ifIndexable == ifNotIndexable)
-              sb.append("I");
-            else
-              sb.append(ifIndexable?"Y":"N");
-            versionString = sb.toString();
+            activities.deleteDocument(documentIdentifier);
+            continue;
           }
         }
         else
@@ -717,9 +740,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           try
           {
 
-            if (fileExists(file))
+            if (fileExists)
             {
-              if (fileIsDirectory(file))
+              if (fileIsDirectory)
               {
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug("JCIFS: '"+documentIdentifier+"' is a directory");
@@ -756,8 +779,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                 {
                   String uri = ingestionURI;
                   String fileNameString = file.getName();
-                  Date lastModifiedDate = new Date(file.lastModified());
+                  Date lastModifiedDate = new Date(lastModified);
                   Date creationDate = new Date(file.createTime());
+                  Long originalLength = new Long(fileLength);
                   String contentType = mapExtensionToMimeType(fileNameString);
 
                   if (!activities.checkURLIndexable(uri))
@@ -796,6 +820,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                   String shareName = file.getShare();
 
                   rd.setFileName(fileNameString);
+                  rd.setOriginalSize(originalLength);
+                  
                   if (contentType != null)
                     rd.setMimeType(contentType);
                   rd.addField("lastModified", lastModifiedDate.toString());
@@ -857,7 +883,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
                       if (checkIngest(tempFile, newPath, spec, activities))
                       {
-                        long fileLength = tempFile.length();
+                        // Not needed; fetched earlier: long fileLength = tempFile.length();
                         if (!activities.checkLengthIndexable(fileLength))
                         {
                           Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept length ("+fileLength+")");
@@ -877,7 +903,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                             
                           activities.ingestDocumentWithException(documentIdentifier, versionString, uri, rd);
                           errorCode = "OK";
-                          fileLengthLong = new Long(tempFile.length());
+                          fileLengthLong = new Long(fileLength);
                         }
                         finally
                         {
@@ -906,7 +932,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                     if (Logging.connectors.isDebugEnabled())
                       Logging.connectors.debug("JCIFS: Local file data not needed for '"+documentIdentifier+"'");
 
-                    long fileLength = fileLength(file);
+                    // Not needed; fetched earlier: long fileLength = fileLength(file);
                     if (!activities.checkLengthIndexable(fileLength))
                     {
                       Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept length ("+fileLength+")");
@@ -927,7 +953,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                         
                       activities.ingestDocumentWithException(documentIdentifier, versionString, uri, rd);
                       errorCode = "OK";
-                      fileLengthLong = new Long(fileLength(file));
+                      fileLengthLong = new Long(fileLength);
                     }
                     finally
                     {
@@ -1355,14 +1381,47 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
   // Protected methods
 
+  /** Check if a file's stats are OK for inclusion.
+  */
+  protected static boolean checkIncludeFile(long fileLength, String fileName, Specification documentSpecification, IFingerprintActivity activities)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    // If it's a file, make sure the maximum length is not exceeded
+    if (!activities.checkLengthIndexable(fileLength) ||
+      !activities.checkMimeTypeIndexable(mapExtensionToMimeType(fileName)))
+      return false;
+    long maxFileLength = Long.MAX_VALUE;
+    for (int i = 0; i < documentSpecification.getChildCount(); i++)
+    {
+      SpecificationNode sn = documentSpecification.getChild(i++);
+      if (sn.getType().equals(NODE_MAXLENGTH))
+      {
+        try
+        {
+          String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
+          if (value != null && value.length() > 0)
+            maxFileLength = new Long(value).longValue();
+        }
+        catch (NumberFormatException e)
+        {
+          throw new ManifoldCFException("Bad number: "+e.getMessage(),e);
+        }
+      }
+    }
+    if (fileLength > maxFileLength)
+      return false;
+    return true;
+  }
+
+
   /** Check if a file or directory should be included, given a document specification.
-  *@param file is the file object.
+  *@param isDirectory is true if the file is a directory.
   *@param fileName is the canonical file name.
   *@param documentSpecification is the specification.
   *@return true if it should be included.
   */
-  protected boolean checkInclude(SmbFile file, String fileName, Specification documentSpecification, IFingerprintActivity activities)
-    throws ManifoldCFException, ServiceInterruption
+  protected boolean checkInclude(boolean isDirectory, String fileName, Specification documentSpecification)
+    throws ManifoldCFException
   {
     if (Logging.connectors.isDebugEnabled())
       Logging.connectors.debug("JCIFS: In checkInclude for '"+fileName+"'");
@@ -1375,7 +1434,6 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     {
       String pathPart;
       String filePart;
-      boolean isDirectory = fileIsDirectory(file);
       if (isDirectory)
       {
 
@@ -1398,36 +1456,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
         }
       }
 
-      // If it's a file, make sure the maximum length is not exceeded
       int i;
-      if (!isDirectory)
-      {
-        long fileLength = fileLength(file);
-        if (!activities.checkLengthIndexable(fileLength) ||
-          !activities.checkMimeTypeIndexable(mapExtensionToMimeType(fileName)))
-          return false;
-        long maxFileLength = Long.MAX_VALUE;
-        i = 0;
-        while (i < documentSpecification.getChildCount())
-        {
-          SpecificationNode sn = documentSpecification.getChild(i++);
-          if (sn.getType().equals(NODE_MAXLENGTH))
-          {
-            try
-            {
-              String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
-              if (value != null && value.length() > 0)
-                maxFileLength = new Long(value).longValue();
-            }
-            catch (NumberFormatException e)
-            {
-              throw new ManifoldCFException("Bad number: "+e.getMessage(),e);
-            }
-          }
-        }
-        if (fileLength > maxFileLength)
-          return false;
-      }
 
       // Scan until we match a startpoint
       i = 0;
@@ -1539,25 +1568,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
       return false;
     }
-    catch (jcifs.smb.SmbAuthException e)
-    {
-      Logging.connectors.warn("JCIFS: Authorization exception checking inclusion for "+fileName+" - skipping");
-      return false;
-    }
-    catch (SmbException se)
-    {
-      processSMBException(se, fileName, "checking inclusion", "canonical path mapping");
-      return false;
-    }
-    catch (java.net.SocketTimeoutException e)
+    catch (MalformedURLException e)
     {
       throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
-    catch (InterruptedIOException e)
-    {
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
-    catch (IOException e)
+    catch (UnknownHostException e)
     {
       throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
@@ -1687,15 +1702,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
       return false;
     }
-    catch (java.net.SocketTimeoutException e)
+    catch (MalformedURLException e)
     {
       throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
-    catch (InterruptedIOException e)
-    {
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
-    catch (IOException e)
+    catch (UnknownHostException e)
     {
       throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
@@ -1835,25 +1846,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       }
       return false;
     }
-    catch (jcifs.smb.SmbAuthException e)
-    {
-      Logging.connectors.warn("JCIFS: Authorization exception checking ingestion for "+fileName+" - skipping");
-      return false;
-    }
-    catch (SmbException se)
-    {
-      processSMBException(se, fileName, "checking ingestion", "reading document");
-      return false;
-    }
-    catch (java.net.SocketTimeoutException e)
+    catch (MalformedURLException e)
     {
       throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
-    catch (InterruptedIOException e)
-    {
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
-    catch (IOException e)
+    catch (UnknownHostException e)
     {
       throw new ManifoldCFException("Couldn't map to canonical path: "+e.getMessage(),e);
     }
@@ -2082,7 +2079,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   /** Map a "path" specification to a full identifier.
   */
   protected String mapToIdentifier(String path)
-    throws IOException
+    throws MalformedURLException, UnknownHostException
   {
     String smburi = smbconnectionPath;
     String uri = smburi + path + "/";
@@ -4820,11 +4817,30 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           // documents that we will immediately turn around and remove.  However, if this
           // check was not here, everything should still function, provided the getDocumentVersions()
           // method does the right thing.
-          if (checkInclude(f, newPath, spec, activities))
+          boolean fileIsDirectory = fileIsDirectory(f);
+          if (checkInclude(fileIsDirectory, newPath, spec))
           {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("JCIFS: Recorded path is '" + newPath + "' and is included.");
-            activities.addDocumentReference(newPath);
+            if (fileIsDirectory)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("JCIFS: Recorded path is '" + newPath + "' and is included.");
+              activities.addDocumentReference(newPath);
+            }
+            else
+            {
+              long fileLength = fileLength(f);
+              if (checkIncludeFile(fileLength, newPath, spec, activities))
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("JCIFS: Recorded path is '" + newPath + "' and is included.");
+                activities.addDocumentReference(newPath);
+              }
+              else
+              {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("JCIFS: Recorded path '"+newPath+"' is excluded!");
+              }
+            }
           }
           else
           {

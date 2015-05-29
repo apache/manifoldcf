@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.10-dev =====================
 
+CONNECTORS-1204: Add ability to post original binary length of document
+to Solr from JCIFS connector.  Also improve efficiency of JCIFS connector.
+(Karl Wright)
+
 CONNECTORS-1193: Add ability to discard web content based on a 
 set of regular expressions.
 (Arcadius Ahouansou)
