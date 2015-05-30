@@ -30,7 +30,7 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
-    <property name="alfresco-indexer.version" value="0.7.0"/>
+    <property name="alfresco-indexer.version" value="0.7.1"/>
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
