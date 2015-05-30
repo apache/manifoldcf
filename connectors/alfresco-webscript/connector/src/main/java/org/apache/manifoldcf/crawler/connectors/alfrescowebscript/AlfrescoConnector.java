@@ -41,10 +41,10 @@ import java.util.*;
 
 
 public class AlfrescoConnector extends BaseRepositoryConnector {
-	
+
   private static final String ACTIVITY_FETCH = "fetch document";
   private static final String[] activitiesList = new String[]{ACTIVITY_FETCH};
-  
+
   private AlfrescoClient alfrescoClient;
 
   private static final String CONTENT_URL_PROPERTY = "contentUrlPath";
@@ -127,8 +127,13 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
       if (Logging.connectors != null) {
         Logging.connectors.warn(e.getMessage(), e);
       }
-      return "Connection failed: " + e.getMessage();
-    }
+      return "Alfresco connection check failed: " + e.getMessage();
+    } catch (Exception e) {
+			if (Logging.connectors != null) {
+				Logging.connectors.error(e.getMessage(), e);
+			}
+			throw new ManifoldCFException("Alfresco connection check failed",e);
+		}
   }
 
   @Override
@@ -153,7 +158,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
     try {
       long lastTransactionId = 0;
       long lastAclChangesetId = 0;
-      
+
       if(lastSeedVersion != null && !lastSeedVersion.isEmpty()) {
         StringTokenizer tokenizer = new StringTokenizer(lastSeedVersion,"|");
 
@@ -162,15 +167,15 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           lastAclChangesetId = new Long(tokenizer.nextToken());
         }
       }
-      
+
       if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
         Logging.connectors.debug(MessageFormat.format("Starting from transaction id: {0} and acl changeset id: {1}", new Object[]{lastTransactionId, lastAclChangesetId}));
-      
+
       long transactionIdsProcessed;
       long aclChangesetsProcessed;
       do {
         final AlfrescoResponse response = alfrescoClient.
-            fetchNodes(lastTransactionId, 
+            fetchNodes(lastTransactionId,
                        lastAclChangesetId,
                        ConfigurationHandler.getFilters(spec));
         int count = 0;
@@ -210,7 +215,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
 
     boolean enableDocumentProcessing = ConfigurationHandler.getEnableDocumentProcessing(spec);
     for (String doc : documentIdentifiers) {
-      
+
       String errorCode = null;
       String errorDesc = null;
       Long fileLengthLong = null;
@@ -218,8 +223,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
 
       try {
 
-        String nextVersion = statuses.getIndexedVersionString(doc);	
-          
+        String nextVersion = statuses.getIndexedVersionString(doc);
+
         // Calling again Alfresco API because Document's actions are lost from seeding method
         AlfrescoResponse response = alfrescoClient.fetchNode(doc);
         if(response.getDocumentList().isEmpty()){ // Not found seeded document. Could reflect an error in Alfresco
@@ -253,7 +258,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           String size = mdObject.toString();
           lSize = new Long(size);
         }
-        
+
         // Modified Date
         Date modifiedDate = null;
         mdObject = properties.get(MODIFIED_DATE_PROPERTY);
@@ -274,7 +279,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           activities.deleteDocument(doc);
           continue;
         }
-        
+
         String documentVersion = (enableDocumentProcessing?"+":"-") + new Long(modifiedDate.getTime()).toString();
 
         if(!activities.checkDocumentNeedsReindexing(doc, documentVersion))
@@ -292,7 +297,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           errorDesc = "Excluding document because of length ("+lSize+")";
           continue;
         }
-        
+
         if (!activities.checkMimeTypeIndexable(mimeType)) {
           activities.noDocument(doc, documentVersion);
           errorCode = activities.EXCLUDED_MIMETYPE;
@@ -306,7 +311,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           errorDesc = "Excluding document because of date ("+modifiedDate+")";
           continue;
         }
-        
+
         String contentUrlPath = (String) properties.get(CONTENT_URL_PROPERTY);
         if (contentUrlPath == null || contentUrlPath.isEmpty()) {
           activities.noDocument(doc, documentVersion);
@@ -314,7 +319,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           errorDesc = "Excluding document because no URL found";
           continue;
         }
-        
+
         if (!activities.checkURLIndexable(contentUrlPath)) {
           activities.noDocument(doc, documentVersion);
           errorCode = activities.EXCLUDED_URL;
@@ -326,7 +331,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         rd.addField(FIELD_NODEREF, nodeRef);
         rd.addField(FIELD_TYPE, type);
         rd.setFileName(name);
-        
+
         if (modifiedDate != null)
           rd.setModifiedDate(modifiedDate);
 
@@ -353,7 +358,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         InputStream stream;
         long length;
         byte[] empty = new byte[0];
-        
+
         if (enableDocumentProcessing) {
           if (lSize != null) {
             stream = alfrescoClient.fetchContent(contentUrlPath);
@@ -372,7 +377,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           stream = new ByteArrayInputStream(empty);
           length = 0L;
         }
-        
+
         try {
           rd.setBinary(stream, length);
           if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
@@ -405,7 +410,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
   }
 
   protected final static long interruptionRetryTime = 5L*60L*1000L;
-  
+
   protected static void handleAlfrescoDownException(AlfrescoDownException e, String context)
     throws ManifoldCFException, ServiceInterruption {
     long currentTime = System.currentTimeMillis();
@@ -420,7 +425,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
       3,
       true);
   }
-  
+
   protected static void handleIOException(IOException e, String context)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -428,7 +433,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
       throw new ManifoldCFException(e.getMessage(), ManifoldCFException.INTERRUPTED);
 
     long currentTime = System.currentTimeMillis();
-    
+
     if (e instanceof java.net.ConnectException)
     {
       // Server isn't up at all.  Try for a brief time then give up.
@@ -441,7 +446,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         3,
         true);
     }
-    
+
     if (e instanceof java.net.SocketTimeoutException)
     {
       String message2 = "Socket timeout exception during "+context+": "+e.getMessage();
@@ -453,7 +458,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         -1,
         false);
     }
-      
+
     if (e.getClass().getName().equals("java.net.SocketException"))
     {
       // In the past we would have treated this as a straight document rejection, and
@@ -480,8 +485,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           3,
           false);
       }
-      
-      // Other socket exceptions are service interruptions - but if we keep getting them, it means 
+
+      // Other socket exceptions are service interruptions - but if we keep getting them, it means
       // that a socket timeout is probably set too low to accept this particular document.  So
       // we retry for a while, then skip the document.
       String message2 = "Socket exception during "+context+": "+e.getMessage();
@@ -504,7 +509,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
       -1,
       true);
   }
-  
+
   @Override
   public void outputConfigurationHeader(IThreadContext threadContext,
                                         IHTTPOutput out, Locale locale, ConfigParams parameters,
