@@ -19,7 +19,7 @@
 package org.apache.manifoldcf.crawler.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import java.util.ArrayList;
+import java.util.List;
 
 /** This manager deals with jobs.  Each job is associated with a repository connection, and has a number
 * of scheduling options: starting every n hours/days/weeks/months, on specific dates, or "continuous" (which basically
@@ -819,7 +819,7 @@ public interface IJobManager
   *@param currentTime is the current time in milliseconds since epoch.
   *@param unwaitList is filled in with the set of job id's that were resumed (Long's).
   */
-  public void startJobs(long currentTime, ArrayList unwaitList)
+  public void startJobs(long currentTime, List<Long> unwaitList)
     throws ManifoldCFException;
 
 
@@ -827,7 +827,7 @@ public interface IJobManager
   *@param currentTime is the current time in milliseconds since epoch.
   *@param waitList is filled in with the set of job id's that were put into a wait state (Long's).
   */
-  public void waitJobs(long currentTime, ArrayList waitList)
+  public void waitJobs(long currentTime, List<Long> waitList)
     throws ManifoldCFException;
 
   /** Get the list of jobs that are ready for seeding.
@@ -1102,8 +1102,9 @@ public interface IJobManager
   * and will record the jobs that have been so modified.
   *@param timestamp is the current time in milliseconds since epoch.
   *@param modifiedJobs is filled in with the set of IJobDescription objects that were stopped.
+  *@param stopNotificationTypes is filled in with the type of stop notification.
   */
-  public void finishJobStops(long timestamp, ArrayList modifiedJobs)
+  public void finishJobStops(long timestamp, List<IJobDescription> modifiedJobs, List<Integer> stopNotificationTypes)
     throws ManifoldCFException;
 
   /** Complete the sequence that resumes jobs, either from a pause or from a scheduling window
@@ -1112,7 +1113,7 @@ public interface IJobManager
   *@param timestamp is the current time in milliseconds since epoch.
   *@param modifiedJobs is filled in with the set of IJobDescription objects that were resumed.
   */
-  public void finishJobResumes(long timestamp, ArrayList modifiedJobs)
+  public void finishJobResumes(long timestamp, List<IJobDescription> modifiedJobs)
     throws ManifoldCFException;
     
   /** Put all eligible jobs in the "shutting down" state.
@@ -1129,7 +1130,7 @@ public interface IJobManager
   *@param currentTime is the current time in milliseconds since epoch.
   *@param resetJobs is filled in with the set of IJobDescription objects that were reset.
   */
-  public void resetJobs(long currentTime, ArrayList resetJobs)
+  public void resetJobs(long currentTime, List<IJobDescription> resetJobs)
     throws ManifoldCFException;
 
 
