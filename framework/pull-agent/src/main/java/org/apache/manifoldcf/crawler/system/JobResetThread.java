@@ -68,11 +68,12 @@ public class JobResetThread extends Thread
           // See if there are any completed jobs
           long currentTime = System.currentTimeMillis();
           
-          ArrayList jobStops = new ArrayList();
-          jobManager.finishJobStops(currentTime,jobStops);
-          ArrayList jobResumes = new ArrayList();
+          List<IJobDescription> jobStops = new ArrayList<IJobDescription>();
+          List<Integer> jobStopNotifications = new ArrayList<Integer>();
+          jobManager.finishJobStops(currentTime,jobStops,jobStopNotifications);
+          List<IJobDescription> jobResumes = new ArrayList<IJobDescription>();
           jobManager.finishJobResumes(currentTime,jobResumes);
-          ArrayList jobCompletions = new ArrayList();
+          List<IJobDescription> jobCompletions = new ArrayList<IJobDescription>();
           jobManager.resetJobs(currentTime,jobCompletions);
           
           // If there were any job aborts, we must reprioritize all active documents, since we've done something
@@ -92,18 +93,20 @@ public class JobResetThread extends Thread
           int k = 0;
           while (k < jobStops.size())
           {
-            IJobDescription desc = (IJobDescription)jobStops.get(k++);
+            IJobDescription desc = jobStops.get(k);
+            Integer notificationType = jobStopNotifications.get(k);
             connectionManager.recordHistory(desc.getConnectionName(),
               null,connectionManager.ACTIVITY_JOBSTOP,null,
               desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
             // As a courtesy, call all the notification connections (if any)
-            doStopNotifications(desc,notificationManager,notificationPool);
+            doStopNotifications(desc,notificationType,notificationManager,notificationPool);
+            k++;
           }
 
           k = 0;
           while (k < jobResumes.size())
           {
-            IJobDescription desc = (IJobDescription)jobResumes.get(k++);
+            IJobDescription desc = jobResumes.get(k++);
             connectionManager.recordHistory(desc.getConnectionName(),
               null,connectionManager.ACTIVITY_JOBCONTINUE,null,
               desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
@@ -112,7 +115,7 @@ public class JobResetThread extends Thread
           k = 0;
           while (k < jobCompletions.size())
           {
-            IJobDescription desc = (IJobDescription)jobCompletions.get(k++);
+            IJobDescription desc = jobCompletions.get(k++);
             connectionManager.recordHistory(desc.getConnectionName(),
               null,connectionManager.ACTIVITY_JOBEND,null,
               desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
@@ -179,7 +182,7 @@ public class JobResetThread extends Thread
     }
   }
 
-  protected static void doStopNotifications(IJobDescription jobDescription, INotificationConnectionManager notificationManager,
+  protected static void doStopNotifications(IJobDescription jobDescription, int notificationType, INotificationConnectionManager notificationManager,
     INotificationConnectorPool notificationPool)
     throws ManifoldCFException
   {
@@ -196,7 +199,7 @@ public class JobResetThread extends Thread
           {
             try
             {
-              connector.notifyOfJobStop(jobDescription.getNotificationSpecification(j));
+              connector.notifyOfJobStop(jobDescription.getNotificationSpecification(j),notificationType);
             }
             finally
             {

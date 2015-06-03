@@ -48,6 +48,13 @@ public interface INotificationConnector extends IConnector
 {
   public static final String _rcsid = "@(#)$Id$";
 
+  // Job stop reasons
+  public final int STOP_ERRORABORT = 0;
+  public final int STOP_MANUALABORT = 1;
+  public final int STOP_MANUALPAUSE = 2;
+  public final int STOP_SCHEDULEPAUSE = 3;
+  public final int STOP_RESTART = 4;
+  
   /** Request arbitrary connector information.
   * This method is called directly from the API in order to allow API users to perform any one of several
   * connector-specific queries.  These are usually used to create external UI's.  The connector will be
@@ -61,8 +68,9 @@ public interface INotificationConnector extends IConnector
 
   /** Notify of job stop
   *@param spec is the notification specification.
+  *@param stopReason is the reason for the stop.
   */
-  public void notifyOfJobStop(Specification spec)
+  public void notifyOfJobStop(Specification spec, int stopReason)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Notify of job end

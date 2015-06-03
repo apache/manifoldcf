@@ -68,25 +68,25 @@ public class JobStartThread extends Thread
           if (Logging.threads.isDebugEnabled())
             Logging.threads.debug("Job start thread - checking for jobs to start at "+new Long(currentTime).toString());
           // Start any waiting jobs
-          ArrayList unwaitJobs = new ArrayList();
+          List<Long> unwaitJobs = new ArrayList<Long>();
           jobManager.startJobs(currentTime,unwaitJobs);
           // Log these events in the event log
           int k = 0;
           while (k < unwaitJobs.size())
           {
-            Long jobID = (Long)unwaitJobs.get(k++);
+            Long jobID = unwaitJobs.get(k++);
             IJobDescription desc = jobManager.load(jobID);
             connectionManager.recordHistory(desc.getConnectionName(),
               null,connectionManager.ACTIVITY_JOBUNWAIT,null,
               desc.getID().toString()+"("+desc.getDescription()+")",null,null,null);
           }
           // Cause jobs out of window to stop.
-          ArrayList waitJobs = new ArrayList();
+          List<Long> waitJobs = new ArrayList<Long>();
           jobManager.waitJobs(currentTime,waitJobs);
           k = 0;
           while (k < waitJobs.size())
           {
-            Long jobID = (Long)waitJobs.get(k++);
+            Long jobID = waitJobs.get(k++);
             IJobDescription desc = jobManager.load(jobID);
             connectionManager.recordHistory(desc.getConnectionName(),
               null,connectionManager.ACTIVITY_JOBWAIT,null,
