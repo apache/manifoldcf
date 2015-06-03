@@ -64,10 +64,19 @@ public abstract class BaseNotificationConnector extends org.apache.manifoldcf.co
     return false;
   }
 
+  /** Notify of job stop
+  *@param spec is the notification specification.
+  *@param stopReason is the reason for the stop.
+  */
+  public void notifyOfJobStop(Specification spec, int stopReason)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    notifyOfJobStop(spec);
+  }
+
   /** Notify of job stop.
   *@param spec is the notification specification.
   */
-  @Override
   public void notifyOfJobStop(Specification spec)
     throws ManifoldCFException, ServiceInterruption
   {

@@ -5859,7 +5859,7 @@ public class JobManager implements IJobManager
   *@param unwaitList is filled in with the set of job ID objects that were resumed.
   */
   @Override
-  public void startJobs(long currentTime, ArrayList unwaitList)
+  public void startJobs(long currentTime, List<Long> unwaitList)
     throws ManifoldCFException
   {
     // This method should compare the lasttime field against the current time, for all
@@ -6097,7 +6097,7 @@ public class JobManager implements IJobManager
   *@param waitList is filled in with the set of job ID's that were put into a wait state.
   */
   @Override
-  public void waitJobs(long currentTime, ArrayList waitList)
+  public void waitJobs(long currentTime, List<Long> waitList)
     throws ManifoldCFException
   {
     // This method assesses jobs that are ACTIVE or PAUSED to see if they should be
@@ -8148,7 +8148,7 @@ public class JobManager implements IJobManager
   *@param modifiedJobs is filled in with the set of IJobDescription objects that were resumed.
   */
   @Override
-  public void finishJobResumes(long timestamp, ArrayList modifiedJobs)
+  public void finishJobResumes(long timestamp, List<IJobDescription> modifiedJobs)
     throws ManifoldCFException
   {
     // Alternative to using a write lock here: Put this in a transaction, with a "FOR UPDATE" on the first query.
@@ -8196,9 +8196,10 @@ public class JobManager implements IJobManager
   * and will record the jobs that have been so modified.
   *@param timestamp is the current time in milliseconds since epoch.
   *@param modifiedJobs is filled in with the set of IJobDescription objects that were stopped.
+  *@param stopNotificationTypes is filled in with the type of stop notification.
   */
   @Override
-  public void finishJobStops(long timestamp, ArrayList modifiedJobs)
+  public void finishJobStops(long timestamp, List<IJobDescription> modifiedJobs, List<Integer> stopNotificationTypes)
     throws ManifoldCFException
   {
     // Alternative to using a write lock here: Put this in a transaction, with a "FOR UPDATE" on the first query.
@@ -8215,7 +8216,7 @@ public class JobManager implements IJobManager
       StringBuilder sb = new StringBuilder("SELECT ");
       ArrayList list = new ArrayList();
           
-      sb.append(jobs.idField)
+      sb.append(jobs.idField).append(",").append(jobs.statusField).append(",").append(jobs.errorField)
         .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
         .append(database.buildConjunctionClause(list,new ClauseDescription[]{
           new MultiClause(jobs.statusField,new Object[]{
@@ -8238,7 +8239,9 @@ public class JobManager implements IJobManager
       {
         IResultRow row = set.getRow(i++);
         Long jobID = (Long)row.getValue(jobs.idField);
-
+        int jobStatus = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+        String errorText = (String)row.getValue(jobs.errorField);
+        
         sb = new StringBuilder("SELECT ");
         list.clear();
 
@@ -8266,7 +8269,8 @@ public class JobManager implements IJobManager
             
         IJobDescription jobDesc = jobs.load(jobID,true);
         modifiedJobs.add(jobDesc);
-
+        stopNotificationTypes.add(mapToNotificationType(jobStatus,(errorText==null || errorText.length() == 0)));
+        
         jobs.finishStopJob(jobID,timestamp);
             
         Logging.jobs.info("Stopped job "+jobID);
@@ -8275,6 +8279,29 @@ public class JobManager implements IJobManager
     finally
     {
       lockManager.leaveWriteLock(jobStopLock);
+    }
+  }
+
+  protected static Integer mapToNotificationType(int jobStatus, boolean noErrorText)
+  {
+    switch (jobStatus)
+    {
+    case Jobs.STATUS_ABORTING:
+    case Jobs.STATUS_ABORTINGSHUTTINGDOWN:
+      return noErrorText?INotificationConnector.STOP_MANUALABORT:INotificationConnector.STOP_ERRORABORT;
+    case Jobs.STATUS_ABORTINGFORRESTART:
+    case Jobs.STATUS_ABORTINGFORRESTARTMINIMAL:
+      return INotificationConnector.STOP_RESTART;
+    case Jobs.STATUS_PAUSING:
+    case Jobs.STATUS_PAUSINGSEEDING:
+    case Jobs.STATUS_PAUSINGWAITING:
+    case Jobs.STATUS_PAUSINGWAITINGSEEDING:
+      return INotificationConnector.STOP_MANUALPAUSE;
+    case Jobs.STATUS_ACTIVEWAITING:
+    case Jobs.STATUS_ACTIVEWAITINGSEEDING:
+      return INotificationConnector.STOP_SCHEDULEPAUSE;
+    default:
+      throw new RuntimeException("Unexpected job status: "+jobStatus);
     }
   }
 
@@ -8333,7 +8360,7 @@ public class JobManager implements IJobManager
   *@param resetJobs is filled in with the set of IJobDescription objects that were reset.
   */
   @Override
-  public void resetJobs(long currentTime, ArrayList resetJobs)
+  public void resetJobs(long currentTime, List<IJobDescription> resetJobs)
     throws ManifoldCFException
   {
     // Alternative to using a write lock here: Put this in a transaction, with a "FOR UPDATE" on the first query.
