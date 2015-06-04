@@ -216,28 +216,63 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
 
   //////////////////////////////Start of Notification Connector Method///////////////////////////////////
 
-  /** Notify of job stop.
+  /** Notify of job stop due to error abort.
   *@param spec is the notification specification.
   */
   @Override
-  public void notifyOfJobStop(Specification spec)
+  public void notifyOfJobStopErrorAbort(final Specification spec)
     throws ManifoldCFException, ServiceInterruption {
-    sendMail(spec);
+    sendMail(spec, EmailConfig.NODE_ERRORABORTED);
   }
-  
+
+  /** Notify of job stop due to manual abort.
+  *@param spec is the notification specification.
+  */
+  @Override
+  public void notifyOfJobStopManualAbort(final Specification spec)
+    throws ManifoldCFException, ServiceInterruption {
+    sendMail(spec, EmailConfig.NODE_MANUALABORTED);
+  }
+
+  /** Notify of job stop due to manual pause.
+  *@param spec is the notification specification.
+  */
+  @Override
+  public void notifyOfJobStopManualPause(final Specification spec)
+    throws ManifoldCFException, ServiceInterruption {
+    sendMail(spec, EmailConfig.NODE_MANUALPAUSED);
+  }
+
+  /** Notify of job stop due to schedule pause.
+  *@param spec is the notification specification.
+  */
+  @Override
+  public void notifyOfJobStopSchedulePause(final Specification spec)
+    throws ManifoldCFException, ServiceInterruption {
+    sendMail(spec, EmailConfig.NODE_SCHEDULEPAUSED);
+  }
+
+  /** Notify of job stop due to restart.
+  *@param spec is the notification specification.
+  */
+  @Override
+  public void notifyOfJobStopRestart(final Specification spec)
+    throws ManifoldCFException, ServiceInterruption {
+    sendMail(spec, EmailConfig.NODE_RESTARTED);
+  }
+
   /** Notify of job end.
   *@param spec is the notification specification.
   */
   @Override
-  public void notifyOfJobEnd(Specification spec)
+  public void notifyOfJobEnd(final Specification spec)
     throws ManifoldCFException, ServiceInterruption {
-    sendMail(spec);
+    sendMail(spec, EmailConfig.NODE_FINISHED);
   }
 
-  protected void sendMail(Specification spec)
+  protected void sendMail(final Specification spec, final String nodeType)
     throws ManifoldCFException, ServiceInterruption
   {
-    // Grab the necessary info from the spec
     final List<String> to = new ArrayList<String>();
     String from = null;
     String subject = "";
@@ -253,6 +288,30 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
       else if (sn.getType().equals(EmailConfig.NODE_BODY))
         body = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
     }
+    // Look for node of the specified type
+    if (nodeType != null)
+    {
+      for (int i = 0; i < spec.getChildCount(); i++) {
+        SpecificationNode childNode = spec.getChild(i);
+        if (childNode.getType().equals(nodeType))
+        {
+          for (int j = 0; j < childNode.getChildCount(); i++) {
+            SpecificationNode sn = childNode.getChild(j);
+            if (sn.getType().equals(EmailConfig.NODE_TO))
+              to.add(sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE));
+            else if (sn.getType().equals(EmailConfig.NODE_FROM))
+              from = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
+            else if (sn.getType().equals(EmailConfig.NODE_SUBJECT))
+              subject = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
+            else if (sn.getType().equals(EmailConfig.NODE_BODY))
+              body = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
+          }
+        }
+      }
+    }
+    
+    if (to.size() == 0)
+      return;
     
     // Construct and send an email
     getSession();
@@ -519,13 +578,14 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
   */
   protected static void fillInMessageTab(Map<String, Object> paramMap,
     Specification ds) {
+      
+    // Preload default values, for backwards compatibility
     String toValue = "";
     String fromValue = "";
     String subjectValue = "";
     String bodyValue = "";
-    int i = 0;
-    while (i < ds.getChildCount()) {
-      SpecificationNode sn = ds.getChild(i++);
+    for (int i = 0; i < ds.getChildCount(); i++) {
+      SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(EmailConfig.NODE_TO)) {
         toValue = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
       } else if (sn.getType().equals(EmailConfig.NODE_FROM)) {
@@ -536,13 +596,65 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
         bodyValue = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
       }
     }
-    paramMap.put("TO", toValue);
-    paramMap.put("FROM", fromValue);
-    paramMap.put("SUBJECT", subjectValue);
-    paramMap.put("BODY", bodyValue);
+    // If ANY of the above are non-empty, we create a new dummy record
+    if (toValue.length() > 0) {
+      // Add the dummy records
+      addRecord(paramMap, EmailConfig.NODE_FINISHED, toValue, fromValue, subjectValue, bodyValue);
+      addRecord(paramMap, EmailConfig.NODE_ERRORABORTED, toValue, fromValue, subjectValue, bodyValue);
+      addRecord(paramMap, EmailConfig.NODE_MANUALABORTED, toValue, fromValue, subjectValue, bodyValue);
+      addRecord(paramMap, EmailConfig.NODE_MANUALPAUSED, toValue, fromValue, subjectValue, bodyValue);
+      addRecord(paramMap, EmailConfig.NODE_SCHEDULEPAUSED, toValue, fromValue, subjectValue, bodyValue);
+      addRecord(paramMap, EmailConfig.NODE_RESTARTED, toValue, fromValue, subjectValue, bodyValue);
+      
+    }
+    else
+    {
+      // Initialize all records with blanks
+      addRecord(paramMap, EmailConfig.NODE_FINISHED, "", "", "", "");
+      addRecord(paramMap, EmailConfig.NODE_ERRORABORTED, "", "", "", "");
+      addRecord(paramMap, EmailConfig.NODE_MANUALABORTED, "", "", "", "");
+      addRecord(paramMap, EmailConfig.NODE_MANUALPAUSED, "", "", "", "");
+      addRecord(paramMap, EmailConfig.NODE_SCHEDULEPAUSED, "", "", "", "");
+      addRecord(paramMap, EmailConfig.NODE_RESTARTED, "", "", "" ,"");
 
+      // Loop through nodes and pick them out that way
+      for (int i = 0; i < ds.getChildCount(); i++) {
+        SpecificationNode childNode = ds.getChild(i);
+        if (childNode.getType().equals(EmailConfig.NODE_FINISHED) ||
+          childNode.getType().equals(EmailConfig.NODE_ERRORABORTED) ||
+          childNode.getType().equals(EmailConfig.NODE_MANUALABORTED) ||
+          childNode.getType().equals(EmailConfig.NODE_MANUALPAUSED) ||
+          childNode.getType().equals(EmailConfig.NODE_SCHEDULEPAUSED) ||
+          childNode.getType().equals(EmailConfig.NODE_RESTARTED)) {
+          toValue = "";
+          fromValue = "";
+          subjectValue = "";
+          bodyValue = "";
+          for (int j = 0; j < childNode.getChildCount(); j++) {
+            SpecificationNode sn = childNode.getChild(j);
+            if (sn.getType().equals(EmailConfig.NODE_TO)) {
+              toValue = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
+            } else if (sn.getType().equals(EmailConfig.NODE_FROM)) {
+              fromValue = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
+            } else if (sn.getType().equals(EmailConfig.NODE_SUBJECT)) {
+              subjectValue = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
+            } else if (sn.getType().equals(EmailConfig.NODE_BODY)) {
+              bodyValue = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
+            }
+          }
+          addRecord(paramMap, childNode.getType(), toValue, fromValue, subjectValue, bodyValue);
+        }
+      }
+    }
   }
 
+  protected static void addRecord(Map<String,Object> paramMap, String nodeType, String toValue, String fromValue, String subjectValue, String bodyValue) {
+    paramMap.put(nodeType+"_TO", toValue);
+    paramMap.put(nodeType+"_FROM", fromValue);
+    paramMap.put(nodeType+"_SUBJECT", subjectValue);
+    paramMap.put(nodeType+"_BODY", bodyValue);
+  }
+  
   /** Process a specification post.
   * This method is called at the start of job's edit or view page, whenever there is a possibility that form
   * data for a connection has been posted.  Its purpose is to gather form information and modify the
@@ -569,31 +681,47 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
 
     String seqPrefix = "s"+connectionSequenceNumber+"_";
     
-    String toString = variableContext.getParameter(seqPrefix + "to");
+    // Remove legacy nodes always
+    removeNodes(ds, EmailConfig.NODE_TO);
+    removeNodes(ds, EmailConfig.NODE_FROM);
+    removeNodes(ds, EmailConfig.NODE_SUBJECT);
+    removeNodes(ds, EmailConfig.NODE_BODY);
+    
+    // Gather all different kinds.
+    gatherRecord(ds, seqPrefix, variableContext, EmailConfig.NODE_FINISHED);
+    gatherRecord(ds, seqPrefix, variableContext, EmailConfig.NODE_ERRORABORTED);
+    gatherRecord(ds, seqPrefix, variableContext, EmailConfig.NODE_MANUALABORTED);
+    gatherRecord(ds, seqPrefix, variableContext, EmailConfig.NODE_MANUALPAUSED);
+    gatherRecord(ds, seqPrefix, variableContext, EmailConfig.NODE_SCHEDULEPAUSED);
+    gatherRecord(ds, seqPrefix, variableContext, EmailConfig.NODE_RESTARTED);
+    
+    return null;
+  }
+
+  protected static void gatherRecord(Specification ds, String seqPrefix, IPostParameters variableContext, String nodeType) {
+    removeNodes(ds, nodeType);
+    SpecificationNode sn = new SpecificationNode(nodeType);
+    String toString = variableContext.getParameter(seqPrefix + nodeType + "_to");
     if (toString != null)
     {
-      removeNodes(ds, EmailConfig.NODE_TO);
-      addNodeValue(ds, EmailConfig.NODE_TO, toString);
+      addNodeValue(sn, EmailConfig.NODE_TO, toString);
     }
-    String fromString = variableContext.getParameter(seqPrefix + "from");
+    String fromString = variableContext.getParameter(seqPrefix + nodeType + "_from");
     if (fromString != null)
     {
-      removeNodes(ds, EmailConfig.NODE_FROM);
-      addNodeValue(ds, EmailConfig.NODE_FROM, fromString);
+      addNodeValue(sn, EmailConfig.NODE_FROM, fromString);
     }
-    String subjectString = variableContext.getParameter(seqPrefix + "subject");
+    String subjectString = variableContext.getParameter(seqPrefix + nodeType + "_subject");
     if (subjectString != null)
     {
-      removeNodes(ds, EmailConfig.NODE_SUBJECT);
-      addNodeValue(ds, EmailConfig.NODE_SUBJECT, subjectString);
+      addNodeValue(sn, EmailConfig.NODE_SUBJECT, subjectString);
     }
-    String bodyString = variableContext.getParameter(seqPrefix + "body");
+    String bodyString = variableContext.getParameter(seqPrefix + nodeType + "_body");
     if (bodyString != null)
     {
-      removeNodes(ds, EmailConfig.NODE_BODY);
-      addNodeValue(ds, EmailConfig.NODE_BODY, bodyString);
+      addNodeValue(sn, EmailConfig.NODE_BODY, bodyString);
     }
-    return null;
+    ds.addChild(ds.getChildCount(),sn);
   }
 
   /** View specification.
@@ -626,8 +754,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     parameters.addChild(parameters.getChildCount(), cn);
   }
 
-  protected static void removeNodes(ConfigParams parameters,
-                    String nodeTypeName) {
+  protected static void removeNodes(ConfigParams parameters, String nodeTypeName) {
     int i = 0;
     while (i < parameters.getChildCount()) {
       ConfigNode cn = parameters.getChild(i);
@@ -638,8 +765,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     }
   }
 
-  protected static void removeNodes(Specification ds,
-                    String nodeTypeName) {
+  protected static void removeNodes(Specification ds, String nodeTypeName) {
     int i = 0;
     while (i < ds.getChildCount()) {
       SpecificationNode sn = ds.getChild(i);
@@ -650,7 +776,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     }
   }
 
-  protected static void addNodeValue(Specification ds, String nodeType, String value)
+  protected static void addNodeValue(SpecificationNode ds, String nodeType, String value)
   {
     SpecificationNode sn = new SpecificationNode(nodeType);
     sn.setAttribute(EmailConfig.ATTRIBUTE_VALUE,value);
