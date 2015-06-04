@@ -74,6 +74,13 @@ public class EmailConfig {
 
   // Specification nodes
   
+  public static final String NODE_FINISHED = "finished";
+  public static final String NODE_ERRORABORTED = "erroraborted";
+  public static final String NODE_MANUALABORTED = "manualaborted";
+  public static final String NODE_MANUALPAUSED = "manualpaused";
+  public static final String NODE_SCHEDULEPAUSED = "schedulepaused";
+  public static final String NODE_RESTARTED = "restarted";
+  
   public static final String NODE_TO = "to";
   public static final String NODE_FROM = "from";
   public static final String NODE_SUBJECT = "subject";
