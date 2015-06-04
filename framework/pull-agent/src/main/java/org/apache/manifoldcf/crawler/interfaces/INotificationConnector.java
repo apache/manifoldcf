@@ -48,13 +48,6 @@ public interface INotificationConnector extends IConnector
 {
   public static final String _rcsid = "@(#)$Id$";
 
-  // Job stop reasons
-  public final int STOP_ERRORABORT = 0;
-  public final int STOP_MANUALABORT = 1;
-  public final int STOP_MANUALPAUSE = 2;
-  public final int STOP_SCHEDULEPAUSE = 3;
-  public final int STOP_RESTART = 4;
-  
   /** Request arbitrary connector information.
   * This method is called directly from the API in order to allow API users to perform any one of several
   * connector-specific queries.  These are usually used to create external UI's.  The connector will be
@@ -66,11 +59,34 @@ public interface INotificationConnector extends IConnector
   public boolean requestInfo(Configuration output, String command)
     throws ManifoldCFException;
 
-  /** Notify of job stop
+  /** Notify of job stop due to error abort.
   *@param spec is the notification specification.
-  *@param stopReason is the reason for the stop.
   */
-  public void notifyOfJobStop(Specification spec, int stopReason)
+  public void notifyOfJobStopErrorAbort(Specification spec)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Notify of job stop due to manual abort.
+  *@param spec is the notification specification.
+  */
+  public void notifyOfJobStopManualAbort(Specification spec)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Notify of job stop due to manual pause.
+  *@param spec is the notification specification.
+  */
+  public void notifyOfJobStopManualPause(Specification spec)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Notify of job stop due to schedule pause.
+  *@param spec is the notification specification.
+  */
+  public void notifyOfJobStopSchedulePause(Specification spec)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Notify of job stop due to restart.
+  *@param spec is the notification specification.
+  */
+  public void notifyOfJobStopRestart(Specification spec)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Notify of job end
