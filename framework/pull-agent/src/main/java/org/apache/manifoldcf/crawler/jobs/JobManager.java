@@ -8335,18 +8335,18 @@ public class JobManager implements IJobManager
     {
     case Jobs.STATUS_ABORTING:
     case Jobs.STATUS_ABORTINGSHUTTINGDOWN:
-      return noErrorText?INotificationConnector.STOP_MANUALABORT:INotificationConnector.STOP_ERRORABORT;
+      return noErrorText?STOP_MANUALABORT:STOP_ERRORABORT;
     case Jobs.STATUS_ABORTINGFORRESTART:
     case Jobs.STATUS_ABORTINGFORRESTARTMINIMAL:
-      return INotificationConnector.STOP_RESTART;
+      return STOP_RESTART;
     case Jobs.STATUS_PAUSING:
     case Jobs.STATUS_PAUSINGSEEDING:
     case Jobs.STATUS_PAUSINGWAITING:
     case Jobs.STATUS_PAUSINGWAITINGSEEDING:
-      return INotificationConnector.STOP_MANUALPAUSE;
+      return STOP_MANUALPAUSE;
     case Jobs.STATUS_ACTIVEWAITING:
     case Jobs.STATUS_ACTIVEWAITINGSEEDING:
-      return INotificationConnector.STOP_SCHEDULEPAUSE;
+      return STOP_SCHEDULEPAUSE;
     default:
       throw new RuntimeException("Unexpected job status: "+jobStatus);
     }

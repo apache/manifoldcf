@@ -53,6 +53,13 @@ public interface IJobManager
   public static final int DOCSTATUS_WAITINGFOREVER = 8;
   public static final int DOCSTATUS_HOPCOUNTEXCEEDED = 9;
 
+  // Job stop reasons
+  public static final int STOP_ERRORABORT = 0;
+  public static final int STOP_MANUALABORT = 1;
+  public static final int STOP_MANUALPAUSE = 2;
+  public static final int STOP_SCHEDULEPAUSE = 3;
+  public static final int STOP_RESTART = 4;
+  
   /** Install the job manager's tables.
   */
   public void install()
