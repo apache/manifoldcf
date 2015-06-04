@@ -199,7 +199,26 @@ public class JobResetThread extends Thread
           {
             try
             {
-              connector.notifyOfJobStop(jobDescription.getNotificationSpecification(j),notificationType);
+              switch (notificationType)
+              {
+              case IJobManager.STOP_ERRORABORT:
+                connector.notifyOfJobStopErrorAbort(jobDescription.getNotificationSpecification(j));
+                break;
+              case IJobManager.STOP_MANUALABORT:
+                connector.notifyOfJobStopManualAbort(jobDescription.getNotificationSpecification(j));
+                break;
+              case IJobManager.STOP_MANUALPAUSE:
+                connector.notifyOfJobStopManualPause(jobDescription.getNotificationSpecification(j));
+                break;
+              case IJobManager.STOP_SCHEDULEPAUSE:
+                connector.notifyOfJobStopSchedulePause(jobDescription.getNotificationSpecification(j));
+                break;
+              case IJobManager.STOP_RESTART:
+                connector.notifyOfJobStopRestart(jobDescription.getNotificationSpecification(j));
+                break;
+              default:
+                throw new RuntimeException("Unhandled notification type: "+notificationType);
+              }
             }
             finally
             {
