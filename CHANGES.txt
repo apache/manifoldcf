@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1210: List notifications page links broken.
+(KOIZUMI Satoru, Karl Wright)
+
 CONNECTORS-1208: Provide more full-featured notification ability.
 (Karl Wright)
 
