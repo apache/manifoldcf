@@ -112,6 +112,9 @@ public class SPSProxyHelper {
   public String[] getACLs(String site, String guid, boolean activeDirectoryAuthority )
     throws ManifoldCFException, ServiceInterruption
   {
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("SharePoint: In getACLs; site='"+site+"', guid='"+guid+"', activeDirectoryAuthority="+activeDirectoryAuthority);
+
     long currentTime;
     try
     {
@@ -125,7 +128,11 @@ public class SPSProxyHelper {
       com.microsoft.schemas.sharepoint.soap.directory.GetPermissionCollectionResponseGetPermissionCollectionResult aclResult = aclCall.getPermissionCollection( guid, "List" );
       org.apache.axis.message.MessageElement[] aclList = aclResult.get_any();
 
-      XMLDoc doc = new XMLDoc( aclList[0].toString() );
+      final String xmlResponse = aclList[0].toString();
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: getACLs xml response: "+xmlResponse);
+      
+      XMLDoc doc = new XMLDoc( xmlResponse );
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -322,7 +329,7 @@ public class SPSProxyHelper {
         encodedRelativePath = encodedRelativePath.substring(1);
 
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("SharePoint: Getting document acls for site '"+site+"' file '"+file+"': Encoded relative path is '"+encodedRelativePath+"'");
+        Logging.connectors.debug("SharePoint: In getDocumentACLs for site '"+site+"', file '"+file+"': Encoded relative path is '"+encodedRelativePath+"'");
       UserGroupWS userService = new UserGroupWS( baseUrl + site, userName, password, configuration, httpClient  );
       com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall = userService.getUserGroupSoapHandler( );
 
@@ -332,18 +339,19 @@ public class SPSProxyHelper {
       com.microsoft.sharepoint.webpartpages.GetPermissionCollectionResponseGetPermissionCollectionResult aclResult = aclCall.getPermissionCollection( encodedRelativePath, "Item" );
       if (aclResult == null)
       {
-        Logging.connectors.debug("SharePoint: document acls were null");
+        Logging.connectors.debug("SharePoint: getDocumentACLs: document acls were null");
         return null;
       }
       
       org.apache.axis.message.MessageElement[] aclList = aclResult.get_any();
 
+      final String xmlResponse = aclList[0].toString();
       if (Logging.connectors.isDebugEnabled())
       {
-        Logging.connectors.debug("SharePoint: document acls xml: '" + aclList[0].toString() + "'");
+        Logging.connectors.debug("SharePoint: getDocumentACLs xml response: " + xmlResponse);
       }
 
-      XMLDoc doc = new XMLDoc( aclList[0].toString() );
+      XMLDoc doc = new XMLDoc( xmlResponse );
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -520,6 +528,9 @@ public class SPSProxyHelper {
   public boolean getChildren(IFileStream fileStream, String site, String guid, boolean dspStsWorks )
     throws ManifoldCFException, ServiceInterruption
   {
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("SharePoint: In getChildren; site='"+site+"', guid='"+guid+"', dspStsWorks="+dspStsWorks);
+
     long currentTime;
     try
     {
@@ -553,12 +564,12 @@ public class SPSProxyHelper {
 
         QueryResponse resp = call.query( myRequest );
         org.apache.axis.message.MessageElement[] list = resp.get_any();
-        if (Logging.connectors.isDebugEnabled())
-        {
-          Logging.connectors.debug("SharePoint: list xml: '" + list[0].toString() + "'");
-        }
 
-        XMLDoc doc = new XMLDoc( list[0].toString() );
+        final String xmlResponse = list[0].toString();
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("SharePoint: getChildren xml response: "+xmlResponse);
+
+        XMLDoc doc = new XMLDoc( xmlResponse );
 
         doc.processPath(nodeList, "*", null);
         if (nodeList.size() != 1)
@@ -617,7 +628,7 @@ public class SPSProxyHelper {
           MessageElement[] itemsList = itemsResult.get_any();
 
           if (Logging.connectors.isDebugEnabled()){
-            Logging.connectors.debug("SharePoint: getListItems xml response: '" + itemsList[0].toString() + "'");
+            Logging.connectors.debug("SharePoint: getChildren xml response: " + itemsList[0].toString());
           }
 
           if (itemsList.length != 1)
@@ -771,6 +782,9 @@ public class SPSProxyHelper {
   public String getDocLibID(String parentSite, String parentSiteDecoded, String docLibrary)
     throws ServiceInterruption, ManifoldCFException
   {
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("SharePoint: In getDocLibID; parentSite='"+parentSite+"', parentSiteDecoded='"+parentSiteDecoded+"', docLibrary='"+docLibrary+"'");
+
     long currentTime;
     try
     {
@@ -792,7 +806,10 @@ public class SPSProxyHelper {
       GetListCollectionResponseGetListCollectionResult listResp = listsCall.getListCollection();
       org.apache.axis.message.MessageElement[] lists = listResp.get_any();
 
-      XMLDoc doc = new XMLDoc( lists[0].toString() );
+      final String xmlResponse = lists[0].toString();
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: getDocLibID xml response: "+xmlResponse);
+      XMLDoc doc = new XMLDoc( xmlResponse );
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -967,6 +984,9 @@ public class SPSProxyHelper {
   public String getListID(String parentSite, String parentSiteDecoded, String listName)
     throws ServiceInterruption, ManifoldCFException
   {
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("SharePoint: In getListID; parentsite='"+parentSite+"', parentSiteDecoded='"+parentSiteDecoded+"', listName='"+listName+"'");
+
     long currentTime;
     try
     {
@@ -988,7 +1008,10 @@ public class SPSProxyHelper {
       GetListCollectionResponseGetListCollectionResult listResp = listsCall.getListCollection();
       org.apache.axis.message.MessageElement[] lists = listResp.get_any();
 
-      XMLDoc doc = new XMLDoc( lists[0].toString() );
+      final String xmlResponse = lists[0].toString();
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: getListID xml response: "+xmlResponse);
+      XMLDoc doc = new XMLDoc( xmlResponse );
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -1170,6 +1193,9 @@ public class SPSProxyHelper {
   public XMLDoc getVersions( String site, String docPath)
     throws ServiceInterruption, ManifoldCFException
   {
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("SharePoint: In getVersions; site='"+site+"', docPath='"+docPath+"'");
+
     long currentTime;
     try
     {
@@ -1180,8 +1206,11 @@ public class SPSProxyHelper {
       GetVersionsResponseGetVersionsResult versionsResp = versionsCall.getVersions( docPath );
       org.apache.axis.message.MessageElement[] lists = versionsResp.get_any();
 
-      //System.out.println( lists[0].toString() );
-      XMLDoc doc = new XMLDoc( lists[0].toString() );
+      final String xmlResponse = lists[0].toString();
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: getVersions response: "+xmlResponse);
+      
+      XMLDoc doc = new XMLDoc( xmlResponse );
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -1601,7 +1630,11 @@ public class SPSProxyHelper {
         listCall.getAttachmentCollection( listName, itemID );
       org.apache.axis.message.MessageElement[] List = listResponse.get_any();
 
-      XMLDoc doc = new XMLDoc( List[0].toString() );
+      final String xmlResponse = List[0].toString();
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: getAttachmentNames response: "+xmlResponse);
+
+      XMLDoc doc = new XMLDoc( xmlResponse );
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -1722,7 +1755,11 @@ public class SPSProxyHelper {
       GetListResponseGetListResult listResponse = listCall.getList( listName );
       org.apache.axis.message.MessageElement[] List = listResponse.get_any();
 
-      XMLDoc doc = new XMLDoc( List[0].toString() );
+      final String xmlResponse = List[0].toString();
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: getFieldList xml response: "+xmlResponse);
+      
+      XMLDoc doc = new XMLDoc( xmlResponse );
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -1833,6 +1870,9 @@ public class SPSProxyHelper {
   public Map<String,String> getFieldValues( String[] fieldNames, String site, String docLibrary, String docId, boolean dspStsWorks )
     throws ManifoldCFException, ServiceInterruption
   {
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("SharePoint: In getFieldValues; fieldNames="+fieldNames+", site='"+site+"', docLibrary='"+docLibrary+"', docId='"+docId+"', dspStsWorks="+dspStsWorks);
+
     long currentTime;
     try
     {
@@ -1912,12 +1952,13 @@ public class SPSProxyHelper {
         QueryResponse resp = call.query( myRequest );
         org.apache.axis.message.MessageElement[] list = resp.get_any();
 
+        final String xmlResponse = list[0].toString();
         if (Logging.connectors.isDebugEnabled())
         {
-          Logging.connectors.debug("SharePoint: list xml: '" + list[0].toString() + "'");
+          Logging.connectors.debug("SharePoint: getFieldValues xml response: '" +xmlResponse+ "'");
         }
 
-        XMLDoc doc = new XMLDoc( list[0].toString() );
+        XMLDoc doc = new XMLDoc( xmlResponse );
         ArrayList nodeList = new ArrayList();
 
         doc.processPath(nodeList, "*", null);
@@ -1979,12 +2020,13 @@ public class SPSProxyHelper {
 
         MessageElement[] list = items.get_any();
 
+        final String xmlResponse = list[0].toString();
         if (Logging.connectors.isDebugEnabled()){
-          Logging.connectors.debug("SharePoint: getListItems for '"+docId+"' using FileRef value '"+sitePlusDocId+"' xml response: '" + list[0].toString() + "'");
+          Logging.connectors.debug("SharePoint: getListItems FileRef value '"+sitePlusDocId+"', xml response: '" + xmlResponse + "'");
         }
 
         ArrayList nodeList = new ArrayList();
-        XMLDoc doc = new XMLDoc(list[0].toString());
+        XMLDoc doc = new XMLDoc(xmlResponse);
 
         doc.processPath(nodeList, "*", null);
         if (nodeList.size() != 1)
@@ -2103,6 +2145,9 @@ public class SPSProxyHelper {
   public List<NameValue> getSites( String parentSite )
     throws ManifoldCFException, ServiceInterruption
   {
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("SharePoint: In getSites; parentSite='"+parentSite+"'");
+
     long currentTime;
     try
     {
@@ -2116,7 +2161,10 @@ public class SPSProxyHelper {
       GetWebCollectionResponseGetWebCollectionResult webResp = webCall.getWebCollection();
       org.apache.axis.message.MessageElement[] webList = webResp.get_any();
 
-      XMLDoc doc = new XMLDoc( webList[0].toString() );
+      final String xmlResponse = webList[0].toString();
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: getSites xml response: "+xmlResponse);
+      XMLDoc doc = new XMLDoc( xmlResponse );
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -2228,6 +2276,9 @@ public class SPSProxyHelper {
   public List<NameValue> getDocumentLibraries( String parentSite, String parentSiteDecoded )
     throws ManifoldCFException, ServiceInterruption
   {
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("SharePoint: In getDocumentLibraries; parentSite='"+parentSite+"', parentSiteDecoded='"+parentSiteDecoded+"'");
+
     long currentTime;
     try
     {
@@ -2249,7 +2300,11 @@ public class SPSProxyHelper {
 
       //if ( parentSite.compareTo("/Sample2") == 0) System.out.println( lists[0].toString() );
 
-      XMLDoc doc = new XMLDoc( lists[0].toString() );
+      final String xmlResponse = lists[0].toString();
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: getDocumentLibraries xml response: "+xmlResponse);
+      
+      XMLDoc doc = new XMLDoc( xmlResponse );
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -2379,6 +2434,9 @@ public class SPSProxyHelper {
   public List<NameValue> getLists( String parentSite, String parentSiteDecoded )
     throws ManifoldCFException, ServiceInterruption
   {
+    if (Logging.connectors.isDebugEnabled())
+      Logging.connectors.debug("SharePoint: In getLists; parentSite='"+parentSite+"', parentSiteDecoded='"+parentSiteDecoded+"'");
+
     long currentTime;
     try
     {
@@ -2398,9 +2456,11 @@ public class SPSProxyHelper {
       GetListCollectionResponseGetListCollectionResult listResp = listsCall.getListCollection();
       org.apache.axis.message.MessageElement[] lists = listResp.get_any();
 
-      //if ( parentSite.compareTo("/Sample2") == 0) System.out.println( lists[0].toString() );
+      final String xmlResponse = lists[0].toString();
+      if (Logging.connectors.isDebugEnabled())
+        Logging.connectors.debug("SharePoint: getLists xml response: "+xmlResponse);
 
-      XMLDoc doc = new XMLDoc( lists[0].toString() );
+      XMLDoc doc = new XMLDoc( xmlResponse );
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
