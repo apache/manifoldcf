@@ -44,6 +44,8 @@ public class ExpressionTest
       // Second access of reader fields, without prior string conversion, also must work
       arrayEquals(new Reader[]{new StringReader("readera"),new StringReader("readerb")}, (Reader[])(ForcedMetadataConnector.processExpression("${readerfield}", fdf).getRawForm()));
       arrayEquals(new String[]{"prefixreaderapostfix","prefixreaderbpostfix"}, (String[])(ForcedMetadataConnector.processExpression("prefix${readerfield}postfix", fdf).getRawForm()));
+      arrayEquals(new String[]{"prefixapostfix","prefixbpostfix","prefixcpostfix"}, (String[])(ForcedMetadataConnector.processExpression("prefix${stringfield|string([abc])|1}postfix", fdf).getRawForm()));
+      arrayEquals(new String[]{"prefixApostfix","prefixBpostfix","prefixCpostfix"}, (String[])(ForcedMetadataConnector.processExpression("prefix${stringfield|string([abc])|1u}postfix", fdf).getRawForm()));
     } finally {
       fdf.close();
     }

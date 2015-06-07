@@ -542,7 +542,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
           addition = new HashSet<String>();
           additions.put(parameter,addition);
         }
-        addition.add(expressionEscape(value));
+        addition.add(nonExpressionEscape(value));
       }
       else if (sn.getType().equals(NODE_EXPRESSION))
       {
@@ -619,12 +619,16 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
     paramMap.put("FILTEREMPTY",filterEmptyValue);
   }
   
-  protected static String expressionEscape(String input) {
+  /** This is used to upgrade older constant values to new ones, that won't trigger expression eval.
+  */
+  protected static String nonExpressionEscape(String input) {
     // Not doing any escaping yet
     return input;
   }
 
-  protected static String expressionUnescape(String input) {
+  /** This is used to unescape text that's been escaped to prevent substitution of ${} expressions.
+  */
+  protected static String nonExpressionUnescape(String input) {
     // Not doing any escaping yet
     return input;
   }
@@ -664,23 +668,64 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
       // Look for next field specification
       int field = expression.indexOf("${",index);
       if (field == -1)
-        return append(input, new StringSource(expressionUnescape(expression.substring(index))));
+        return append(input, new StringSource(nonExpressionUnescape(expression.substring(index))));
       if (field > 0)
-        input = append(input, new StringSource(expressionUnescape(expression.substring(index,field))));
-      // Get the field name
-      int fieldEnd = expression.indexOf("}",field);
-      String fieldName;
-      if (fieldEnd == -1) {
-        fieldName = expression.substring(field+2);
-        return append(input, new FieldSource(sourceDocument, fieldName));
+        input = append(input, new StringSource(nonExpressionUnescape(expression.substring(index,field))));
+      // Parse the field name, and regular expression (if any)
+      StringBuilder fieldNameBuffer = new StringBuilder();
+      StringBuilder regExpBuffer = new StringBuilder();
+      StringBuilder groupNumberBuffer = new StringBuilder();
+      field = parseArgument(expression, field+2, fieldNameBuffer);
+      field = parseArgument(expression, field, regExpBuffer);
+      field = parseArgument(expression, field, groupNumberBuffer);
+      int fieldEnd = parseToEnd(expression, field);
+      if (fieldEnd == expression.length()) {
+        if (fieldNameBuffer.length() > 0)
+          return append(input, new FieldSource(sourceDocument, fieldNameBuffer.toString(), regExpBuffer.toString(), groupNumberBuffer.toString()));
+        return input;
       } else {
-        fieldName = expression.substring(field+2,fieldEnd);
-        input = append(input, new FieldSource(sourceDocument, fieldName));
-        index = fieldEnd+1;
+        if (fieldNameBuffer.length() > 0)
+          input = append(input, new FieldSource(sourceDocument, fieldNameBuffer.toString(), regExpBuffer.toString(), groupNumberBuffer.toString()));
+        index = fieldEnd;
       }
     }
   }
   
+  protected static int parseArgument(final String input, int start, final StringBuilder output) {
+    // Parse until we hit the end marker or an unescaped pipe symbol
+    while (true) {
+      if (input.length() == start)
+        return start;
+      char theChar = input.charAt(start);
+      if (theChar == '}')
+        return start;
+      start++;
+      if (theChar == '|')
+        return start;
+      if (theChar == '\\') {
+        if (input.length() == start)
+          return start;
+        theChar = input.charAt(start++);
+      }
+      output.append(theChar);
+    }
+  }
+  
+  protected static int parseToEnd(final String input, int start) {
+    while (true) {
+      if (input.length() == start)
+        return start;
+      char theChar = input.charAt(start++);
+      if (theChar == '}')
+        return start;
+      if (theChar == '\\') {
+        if (input.length() == start)
+          return start;
+        start++;
+      }
+    }
+  }
+
   protected static class SpecPacker {
     
     private final boolean keepAllMetadata;
@@ -725,7 +770,7 @@ public class ForcedMetadataConnector extends org.apache.manifoldcf.agents.transf
             addition = new HashSet<String>();
             additions.put(parameter,addition);
           }
-          addition.add(expressionEscape(value));
+          addition.add(nonExpressionEscape(value));
         }
         else if (sn.getType().equals(NODE_EXPRESSION))
         {
