@@ -382,7 +382,7 @@ function _init() {
 $.ManifoldCF.setTitle = function(title,header,activeMenu){
     document.title = title;
 
-    $(".content-header h1").text(header);
+    $(".content-header #heading").text(header);
 
     activeMenu = typeof activeMenu !== 'undefined' ? activeMenu : 'outputs';
     $("." + activeMenu).addClass("active");
@@ -405,7 +405,7 @@ $.ManifoldCF.loadContent = function(url){
     $('#content').load(decodeURIComponent(url),function(response, status, xhr){
         $('.spinner').hide();
         if(status=='error'){
-            $(".content-header h1").text('Error');
+            $(".content-header #heading").text('Error');
             document.title = 'Error';
             displayError(xhr);
         }
