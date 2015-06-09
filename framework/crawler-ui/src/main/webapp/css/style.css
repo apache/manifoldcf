@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 /*
- * Core: Genral Layout Style
+ * Core: General Layout Style
  * -------------------------
  */
 html,
@@ -154,6 +154,9 @@ a:focus {
   outline: none;
   text-decoration: none;
   color: #72afd2;
+}
+label {
+  font-weight: 600;
 }
 /*
  * Component: Main Header
@@ -1734,6 +1737,18 @@ a:focus {
 .nav-tabs > li:first-of-type.active > a {
   border-left-width: 0;
 }
+.nav-tabs > li[seq="0"] {
+  border-bottom: solid 2px #ff851b;
+}
+.nav-tabs > li[seq="1"] {
+  border-bottom: solid 2px #f012be;
+}
+.nav-tabs > li[seq="2"] {
+  border-bottom: solid 2px #00a65a;
+}
+.nav-tabs > li[seq="3"] {
+  border-bottom: solid 2px #0073b7;
+}
 .nav-tabs.pull-right {
   float: none!important;
 }
@@ -1792,6 +1807,13 @@ a:focus {
 .table > tfoot > tr > td {
   border-top: 1px solid #f4f4f4;
 }
+.table > thead > tr > th,
+.table > tbody > tr > th,
+.table > tfoot > tr > th {
+  font-weight: 600;
+  text-decoration: underline;
+  font-style: italic;
+}
 .table > thead > tr > th {
   border-bottom: 2px solid #f4f4f4;
 }
@@ -1806,6 +1828,7 @@ a:focus {
 }
 .table .callout {
   margin: 0px;
+  padding: 5px 15px;
 }
 .table-bordered {
   border: 1px solid #f4f4f4;
@@ -2431,6 +2454,16 @@ table.text-center th {
   border-top: 1px solid #f4f4f4;
 }
 .displaytable > thead > tr > th,
+.formtable > thead > tr > th,
+.displaytable > tbody > tr > th,
+.formtable > tbody > tr > th,
+.displaytable > tfoot > tr > th,
+.formtable > tfoot > tr > th {
+  font-weight: 600;
+  text-decoration: underline;
+  font-style: italic;
+}
+.displaytable > thead > tr > th,
 .formtable > thead > tr > th {
   border-bottom: 2px solid #f4f4f4;
 }
@@ -2449,6 +2482,7 @@ table.text-center th {
 .displaytable .callout,
 .formtable .callout {
   margin: 0px;
+  padding: 5px 15px;
 }
 .displaytable > thead > tr > th,
 .formtable > thead > tr > th,
@@ -2476,13 +2510,17 @@ table.text-center th {
 }
 .displaytable tr .separator,
 .formtable tr .separator,
+.displaytable tr .lightseparator,
+.formtable tr .lightseparator,
 .displaytable tr .formseparator,
 .formtable tr .formseparator {
   display: none;
 }
 .displaytable tr .description,
 .formtable tr .description {
-  font-weight: bold;
+  font-weight: 600;
+  text-decoration: underline;
+  font-style: italic;
 }
 .displaytable td input[type="text"],
 .formtable td input[type="text"],

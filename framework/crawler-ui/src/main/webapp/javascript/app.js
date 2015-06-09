@@ -385,6 +385,7 @@ $.ManifoldCF.setTitle = function(title,header,activeMenu){
     $(".content-header #heading").text(header);
 
     activeMenu = typeof activeMenu !== 'undefined' ? activeMenu : 'outputs';
+    $(".sidebar-menu").find("li.active").removeClass("active");
     $("." + activeMenu).addClass("active");
 
     $($.ManifoldCF.options.BSTooltipSelector).tooltip();
