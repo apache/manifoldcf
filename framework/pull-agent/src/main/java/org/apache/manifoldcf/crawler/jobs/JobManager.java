@@ -124,7 +124,7 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ManifoldCF.writeDword(os,5);
+    ManifoldCF.writeDword(os,6);
     // Get the job list
     IJobDescription[] list = getAllJobs();
     // Write the number of authorities
@@ -137,6 +137,7 @@ public class JobManager implements IJobManager
       ManifoldCF.writeDword(os,job.getType());
       ManifoldCF.writeDword(os,job.getStartMethod());
       ManifoldCF.writeLong(os,job.getInterval());
+      ManifoldCF.writeLong(os,job.getMaxInterval());
       ManifoldCF.writeLong(os,job.getExpiration());
       ManifoldCF.writeLong(os,job.getReseedInterval());
       ManifoldCF.writeDword(os,job.getPriority());
@@ -208,7 +209,7 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     int version = ManifoldCF.readDword(is);
-    if (version != 5)
+    if (version != 5 && version != 6)
       throw new java.io.IOException("Unknown job configuration version: "+Integer.toString(version));
     int count = ManifoldCF.readDword(is);
     for (int i = 0; i < count; i++)
@@ -220,6 +221,8 @@ public class JobManager implements IJobManager
       job.setType(ManifoldCF.readDword(is));
       job.setStartMethod(ManifoldCF.readDword(is));
       job.setInterval(ManifoldCF.readLong(is));
+      if (version >= 6)
+        job.setMaxInterval(ManifoldCF.readLong(is));
       job.setExpiration(ManifoldCF.readLong(is));
       job.setReseedInterval(ManifoldCF.readLong(is));
       job.setPriority(ManifoldCF.readDword(is));
