@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1212: Fix export/import of jobs to handle max
+intervals.
+(Kevin J. Walsh, Karl Wright)
+
 CONNECTORS-1209: Add regular expression extraction to
 Metadata Adjuster.
 (Karl Wright)
