@@ -853,7 +853,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             
             String[] fields = new String[fieldNames.size()];
             int j = 0;
-            for (String field : fieldNames.keySet())
+            for (String field : fieldNames.values())
             {
               fields[j++] = field;
             }
@@ -1305,7 +1305,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             
             String[] fields = new String[fieldNames.size()];
             int j = 0;
-            for (String field : fieldNames.keySet())
+            for (String field : fieldNames.values())
             {
               fields[j++] = field;
             }
@@ -4491,7 +4491,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
   protected static class MetadataInformation
   {
     protected boolean allMetadata = false;
-    protected HashMap metadataFields = new HashMap();
+    protected Set<String> metadataFields = new HashSet<String>();
 
     /** Constructor */
     public MetadataInformation()
@@ -4507,7 +4507,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     /** Add a metadata field */
     public void addMetadataField(String fieldName)
     {
-      metadataFields.put(fieldName,fieldName);
+      metadataFields.add(fieldName);
     }
 
     /** Get whether "all metadata" is to be used */
@@ -4520,11 +4520,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     public String[] getMetadataFields()
     {
       String[] rval = new String[metadataFields.size()];
-      Iterator iter = metadataFields.keySet().iterator();
       int i = 0;
-      while (iter.hasNext())
+      for (String field : metadataFields)
       {
-        rval[i++] = (String)iter.next();
+        rval[i++] = field;
       }
       return rval;
     }
