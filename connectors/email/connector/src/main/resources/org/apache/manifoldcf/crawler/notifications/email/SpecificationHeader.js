@@ -33,19 +33,112 @@ function s${SeqNum}_SpecOp(n, opValue, anchorvalue)
 
 function s${SeqNum}_checkMessageTabForSave()
 {
-  if (editjob.s${SeqNum}_to.value == "")
+  if (editjob.s${SeqNum}_finished_subject.value != "" || editjob.s${SeqNum}_finished_body.value != "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.ToFieldCannotBeBlank'))");
-    SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
-    editjob.s${SeqNum}_to.focus();
-    return false;
+    if (editjob.s${SeqNum}_finished_to.value == "")
+    {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.ToFieldCannotBeBlank'))");
+      SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
+      editjob.s${SeqNum}_finished_to.focus();
+      return false;
+    }
+    if (editjob.s${SeqNum}_finished_from.value == "")
+    {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.FromFieldCannotBeBlank'))");
+      SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
+      editjob.s${SeqNum}_finished_from.focus();
+      return false;
+    }
   }
-  if (editjob.s${SeqNum}_from.value == "")
+
+  if (editjob.s${SeqNum}_erroraborted_subject.value != "" || editjob.s${SeqNum}_erroraborted_body.value != "")
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.FromFieldCannotBeBlank'))");
-    SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
-    editjob.s${SeqNum}_from.focus();
-    return false;
+    if (editjob.s${SeqNum}_erroraborted_to.value == "")
+    {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.ToFieldCannotBeBlank'))");
+      SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
+      editjob.s${SeqNum}_erroraborted_to.focus();
+      return false;
+    }
+    if (editjob.s${SeqNum}_erroraborted_from.value == "")
+    {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.FromFieldCannotBeBlank'))");
+      SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
+      editjob.s${SeqNum}_erroraborted_from.focus();
+      return false;
+    }
+  }
+
+  if (editjob.s${SeqNum}_manualaborted_subject.value != "" || editjob.s${SeqNum}_manualaborted_body.value != "")
+  {
+    if (editjob.s${SeqNum}_manualaborted_to.value == "")
+    {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.ToFieldCannotBeBlank'))");
+      SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
+      editjob.s${SeqNum}_manualaborted_to.focus();
+      return false;
+    }
+    if (editjob.s${SeqNum}_manualaborted_from.value == "")
+    {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.FromFieldCannotBeBlank'))");
+      SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
+      editjob.s${SeqNum}_manualaborted_from.focus();
+      return false;
+    }
+  }
+  
+  if (editjob.s${SeqNum}_manualpaused_subject.value != "" || editjob.s${SeqNum}_manualpaused_body.value != "")
+  {
+    if (editjob.s${SeqNum}_manualpaused_to.value == "")
+    {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.ToFieldCannotBeBlank'))");
+      SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
+      editjob.s${SeqNum}_manualpaused_to.focus();
+      return false;
+    }
+    if (editjob.s${SeqNum}_manualpaused_from.value == "")
+    {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.FromFieldCannotBeBlank'))");
+      SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
+      editjob.s${SeqNum}_manualpaused_from.focus();
+      return false;
+    }
+  }
+
+  if (editjob.s${SeqNum}_schedulepaused_subject.value != "" || editjob.s${SeqNum}_schedulepaused_body.value != "")
+  {
+    if (editjob.s${SeqNum}_schedulepaused_to.value == "")
+    {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.ToFieldCannotBeBlank'))");
+      SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
+      editjob.s${SeqNum}_schedulepaused_to.focus();
+      return false;
+    }
+    if (editjob.s${SeqNum}_schedulepaused_from.value == "")
+    {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.FromFieldCannotBeBlank'))");
+      SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
+      editjob.s${SeqNum}_schedulepaused_from.focus();
+      return false;
+    }
+  }
+
+  if (editjob.s${SeqNum}_restarted_subject.value != "" || editjob.s${SeqNum}_restarted_body.value != "")
+  {
+    if (editjob.s${SeqNum}_restarted_to.value == "")
+    {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.ToFieldCannotBeBlank'))");
+      SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
+      editjob.s${SeqNum}_restarted_to.focus();
+      return false;
+    }
+    if (editjob.s${SeqNum}_restarted_from.value == "")
+    {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('EmailConnector.FromFieldCannotBeBlank'))");
+      SelectSequencedTab("$Encoder.attributeJavascriptEscape($ResourceBundle.getString('EmailConnector.Message'))",${SeqNum})
+      editjob.s${SeqNum}_restarted_from.focus();
+      return false;
+    }
   }
 
   return true;

@@ -59,10 +59,34 @@ public interface INotificationConnector extends IConnector
   public boolean requestInfo(Configuration output, String command)
     throws ManifoldCFException;
 
-  /** Notify of job stop
+  /** Notify of job stop due to error abort.
   *@param spec is the notification specification.
   */
-  public void notifyOfJobStop(Specification spec)
+  public void notifyOfJobStopErrorAbort(Specification spec)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Notify of job stop due to manual abort.
+  *@param spec is the notification specification.
+  */
+  public void notifyOfJobStopManualAbort(Specification spec)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Notify of job stop due to manual pause.
+  *@param spec is the notification specification.
+  */
+  public void notifyOfJobStopManualPause(Specification spec)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Notify of job stop due to schedule pause.
+  *@param spec is the notification specification.
+  */
+  public void notifyOfJobStopSchedulePause(Specification spec)
+    throws ManifoldCFException, ServiceInterruption;
+
+  /** Notify of job stop due to restart.
+  *@param spec is the notification specification.
+  */
+  public void notifyOfJobStopRestart(Specification spec)
     throws ManifoldCFException, ServiceInterruption;
 
   /** Notify of job end

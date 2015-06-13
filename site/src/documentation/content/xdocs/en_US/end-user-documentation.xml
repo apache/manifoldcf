@@ -1011,9 +1011,12 @@ curl -XGET http://localhost:9200/index/_mapping
                       provide more than one rule for the same metadata item, by simply adding additional lines to the table with the same target metadata name.  But if you specify
                       a rule to remove the metadata field from the document, that selection overrides all others.</p>
                 <p>Metadata rules are just strings, which may have field specifications within them.  For example, the rule value "hello" will generate a single-valued metadata
-                      field with the value "hello".  The rule "hello ${there}", on the other hand, will generate a value for each value in the incoming field  named "there".  If the incoming
+                      field with the value "hello".  The rule "hello ${there}", on the other hand, will generate a value for each value in the incoming field  named "there". If the incoming
                       field had the values "a", "b", and "c", then the rule would generate a three-valued field with values "hello a", "hello b", and "hello c".  If more than one incoming
                       field is specified, then a combinatoric combination of the field values will be produced.</p>
+                <p>You can also use regular expressions in the substitution string, for example: "${there|[0-9]*}", which will extract the first sequence of sequential numbers it finds in the
+                      value of the field "there", or "${there|string(.*)|1}", which will include everything following "string" in the field value.  (The third argument specifies the regular
+                      expression group number, with an optional suffix of "l" or "u" meaning upper-case or lower-case.)</p>
                 <p>Enter a parameter name, and either select to remove the value or provide an expression.  If you chose to supply an expression, enter the expression in the box.
                       Then, click the "Add" button.</p>
                 <p>When your expressions have been edited, you can uncheck the "Keep all metadata"

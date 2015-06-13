@@ -85,6 +85,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   
   // Attributes going into Solr
   protected String idAttributeName = null;
+  protected String originalSizeAttributeName = null;
   protected String modifiedDateAttributeName = null;
   protected String createdDateAttributeName = null;
   protected String indexedDateAttributeName = null;
@@ -181,6 +182,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     excludedMimeTypesString = null;
     excludedMimeTypes = null;
     idAttributeName = null;
+    originalSizeAttributeName = null;
     modifiedDateAttributeName = null;
     createdDateAttributeName = null;
     indexedDateAttributeName = null;
@@ -214,6 +216,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       if (idAttributeName == null || idAttributeName.length() == 0)
         idAttributeName = "id";
 
+      originalSizeAttributeName = params.getParameter(SolrConfig.PARAM_ORIGINALSIZEFIELD);
+      if (originalSizeAttributeName == null || originalSizeAttributeName.length() == 0)
+        originalSizeAttributeName = null;
+      
       modifiedDateAttributeName = params.getParameter(SolrConfig.PARAM_MODIFIEDDATEFIELD);
       if (modifiedDateAttributeName == null || modifiedDateAttributeName.length() == 0)
         modifiedDateAttributeName = null;
@@ -355,7 +361,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             connectTimeout,socketTimeout,
             updatePath,removePath,statusPath,realm,userID,password,
             allowAttributeName,denyAttributeName,idAttributeName,
-            modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
+            originalSizeAttributeName,modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
             fileNameAttributeName,mimeTypeAttributeName,contentAttributeName,
             keystoreManager,maxDocumentLength,commitWithin,useExtractUpdateHandler);
           
@@ -411,7 +417,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             zkClientTimeout,zkConnectTimeout,
             updatePath,removePath,statusPath,
             allowAttributeName,denyAttributeName,idAttributeName,
-            modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
+            originalSizeAttributeName,modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
             fileNameAttributeName,mimeTypeAttributeName,contentAttributeName,
             maxDocumentLength,commitWithin,useExtractUpdateHandler);
           
@@ -1009,6 +1015,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     String idField = parameters.getParameter(SolrConfig.PARAM_IDFIELD);
     if (idField == null)
       idField = "id";
+
+    String originalSizeField = parameters.getParameter(SolrConfig.PARAM_ORIGINALSIZEFIELD);
+    if (originalSizeField == null)
+      originalSizeField = "";
     
     String modifiedDateField = parameters.getParameter(SolrConfig.PARAM_MODIFIEDDATEFIELD);
     if (modifiedDateField == null)
@@ -1463,6 +1473,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    </td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.OriginalSizeFieldName") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <input name=\"originalsizefield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(originalSizeField)+"\"/>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SolrConnector.ModifiedDateFieldName") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <input name=\"modifieddatefield\" type=\"text\" size=\"32\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(modifiedDateField)+"\"/>\n"+
@@ -1526,6 +1542,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     {
       out.print(
 "<input type=\"hidden\" name=\"idfield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(idField)+"\"/>\n"+
+"<input type=\"hidden\" name=\"originalsizefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(originalSizeField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"modifieddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(modifiedDateField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"createddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(createdDateField)+"\"/>\n"+
 "<input type=\"hidden\" name=\"indexeddatefield\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(indexedDateField)+"\"/>\n"+
@@ -1813,6 +1830,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     String idField = variableContext.getParameter("idfield");
     if (idField != null)
       parameters.setParameter(SolrConfig.PARAM_IDFIELD,idField);
+
+    String originalSizeField = variableContext.getParameter("originalsizefield");
+    if (originalSizeField != null)
+      parameters.setParameter(SolrConfig.PARAM_ORIGINALSIZEFIELD,originalSizeField);
 
     String modifiedDateField = variableContext.getParameter("modifieddatefield");
     if (modifiedDateField != null)
@@ -2251,6 +2272,14 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
       {
           sb.append('+');
           pack(sb,idAttributeName,'+');
+      }
+      else
+        sb.append('-');
+
+      if (originalSizeAttributeName != null)
+      {
+          sb.append('+');
+          pack(sb,originalSizeAttributeName,'+');
       }
       else
         sb.append('-');

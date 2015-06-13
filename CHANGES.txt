@@ -3,6 +3,32 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1203: SharePoint connector did not consistently use
+internal metadata names throughout.
+(Dale Dreiske, Karl Wright)
+
+CONNECTORS-1212: Fix export/import of jobs to handle max
+intervals.
+(Kevin J. Walsh, Karl Wright)
+
+CONNECTORS-1209: Add regular expression extraction to
+Metadata Adjuster.
+(Karl Wright)
+
+CONNECTORS-1210: List notifications page links broken.
+(KOIZUMI Satoru, Karl Wright)
+
+CONNECTORS-1208: Provide more full-featured notification ability.
+(Karl Wright)
+
+CONNECTORS-1204: Add ability to post original binary length of document
+to Solr from JCIFS connector.  Also improve efficiency of JCIFS connector.
+(Karl Wright)
+
+CONNECTORS-1193: Add ability to discard web content based on a 
+set of regular expressions.
+(Arcadius Ahouansou)
+
 CONNECTORS-1199: SearchBlox connector formatting non-standard.
 (Karl Wright)
 
