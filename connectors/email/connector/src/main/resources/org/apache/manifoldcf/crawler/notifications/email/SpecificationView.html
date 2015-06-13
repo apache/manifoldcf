@@ -16,28 +16,161 @@ limitations under the License.
 -->
 
 <table class="displaytable">
+
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.JobFinished'))</nobr></td></tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ToColon'))</nobr></td>
     <td class="value">
-      <nobr>$Encoder.bodyEscape($TO)</nobr>
+      <nobr>$Encoder.bodyEscape($finished_TO)</nobr>
     </td>
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.FromColon'))</nobr></td>
     <td class="value">
-      <nobr>$Encoder.bodyEscape($FROM)</nobr>
+      <nobr>$Encoder.bodyEscape($finished_FROM)</nobr>
     </td>
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.SubjectColon'))</nobr></td>
     <td class="value">
-      $Encoder.bodyEscape($SUBJECT)
+      $Encoder.bodyEscape($finished_SUBJECT)
     </td>
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.BodyColon'))</nobr></td>
     <td class="value">
-      $Encoder.bodyEscape($BODY)
+      $Encoder.bodyEscape($finished_BODY)
     </td>
   </tr>
+
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.JobStopErrorAbort'))</nobr></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ToColon'))</nobr></td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($erroraborted_TO)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.FromColon'))</nobr></td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($erroraborted_FROM)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.SubjectColon'))</nobr></td>
+    <td class="value">
+      $Encoder.bodyEscape($erroraborted_SUBJECT)
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.BodyColon'))</nobr></td>
+    <td class="value">
+      $Encoder.bodyEscape($erroraborted_BODY)
+    </td>
+  </tr>
+
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.JobStopManualAbort'))</nobr></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ToColon'))</nobr></td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($manualaborted_TO)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.FromColon'))</nobr></td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($manualaborted_FROM)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.SubjectColon'))</nobr></td>
+    <td class="value">
+      $Encoder.bodyEscape($manualaborted_SUBJECT)
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.BodyColon'))</nobr></td>
+    <td class="value">
+      $Encoder.bodyEscape($manualaborted_BODY)
+    </td>
+  </tr>
+
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.JobStopManualPause'))</nobr></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ToColon'))</nobr></td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($manualpaused_TO)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.FromColon'))</nobr></td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($manualpaused_FROM)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.SubjectColon'))</nobr></td>
+    <td class="value">
+      $Encoder.bodyEscape($manualpaused_SUBJECT)
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.BodyColon'))</nobr></td>
+    <td class="value">
+      $Encoder.bodyEscape($manualpaused_BODY)
+    </td>
+  </tr>
+
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.JobStopSchedulePause'))</nobr></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ToColon'))</nobr></td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($schedulepaused_TO)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.FromColon'))</nobr></td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($schedulepaused_FROM)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.SubjectColon'))</nobr></td>
+    <td class="value">
+      $Encoder.bodyEscape($schedulepaused_SUBJECT)
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.BodyColon'))</nobr></td>
+    <td class="value">
+      $Encoder.bodyEscape($schedulepaused_BODY)
+    </td>
+  </tr>
+
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.JobStopRestart'))</nobr></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ToColon'))</nobr></td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($restarted_TO)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.FromColon'))</nobr></td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($restarted_FROM)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.SubjectColon'))</nobr></td>
+    <td class="value">
+      $Encoder.bodyEscape($restarted_SUBJECT)
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.BodyColon'))</nobr></td>
+    <td class="value">
+      $Encoder.bodyEscape($restarted_BODY)
+    </td>
+  </tr>
+
 </table>

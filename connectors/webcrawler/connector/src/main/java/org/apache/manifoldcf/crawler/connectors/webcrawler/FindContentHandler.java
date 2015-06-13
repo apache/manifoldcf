@@ -18,15 +18,17 @@
 */
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.crawler.system.Logging;
-import java.util.regex.*;
-import java.util.*;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+import static java.util.Arrays.asList;
+import static org.apache.manifoldcf.crawler.system.Logging.connectors;
 
 /** This class is the handler for HTML content grepping during state transitions */
 public class FindContentHandler extends FindHandler implements IHTMLHandler
 {
-  protected final Pattern contentPattern;
+  protected final List<Pattern> contentPatterns;
   protected final StringBuilder contentBuffer = new StringBuilder();
 
   protected final static int MAX_LENGTH = 65536;
@@ -35,7 +37,13 @@ public class FindContentHandler extends FindHandler implements IHTMLHandler
   public FindContentHandler(String parentURI, Pattern contentPattern)
   {
     super(parentURI);
-    this.contentPattern = contentPattern;
+    this.contentPatterns = asList(contentPattern);
+  }
+
+  public FindContentHandler(String parentURI, List<Pattern> contentPatterns)
+  {
+    super(parentURI);
+    this.contentPatterns = contentPatterns;
   }
 
   /** Apply overrides */
@@ -69,10 +77,14 @@ public class FindContentHandler extends FindHandler implements IHTMLHandler
         // continuity
         String bufferContents = contentBuffer.toString();
         contentBuffer.setLength(0);
-        if (contentPattern.matcher(bufferContents).find())
-          targetURI = "";
-        else
-        {
+        for (Pattern contentPattern : contentPatterns) {
+          if (contentPattern.matcher(bufferContents).find()) {
+            targetURI = "";
+            break;
+          }
+        }
+
+        if(targetURI == null) {
           contentBuffer.append(bufferContents.substring(bufferContents.length() - OVERLAP_AMOUNT));
         }
       }
@@ -153,8 +165,12 @@ public class FindContentHandler extends FindHandler implements IHTMLHandler
   {
     String bufferContents = contentBuffer.toString();
     contentBuffer.setLength(0);
-    if (contentPattern.matcher(bufferContents).find())
-      targetURI = "";
+    for(Pattern contentPattern: contentPatterns) {
+      if (contentPattern.matcher(bufferContents).find()) {
+        targetURI = "";
+        return;
+      }
+    }
   }
 
 }

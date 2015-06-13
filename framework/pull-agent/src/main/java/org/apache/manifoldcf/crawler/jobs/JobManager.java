@@ -124,7 +124,7 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ManifoldCF.writeDword(os,5);
+    ManifoldCF.writeDword(os,6);
     // Get the job list
     IJobDescription[] list = getAllJobs();
     // Write the number of authorities
@@ -137,6 +137,7 @@ public class JobManager implements IJobManager
       ManifoldCF.writeDword(os,job.getType());
       ManifoldCF.writeDword(os,job.getStartMethod());
       ManifoldCF.writeLong(os,job.getInterval());
+      ManifoldCF.writeLong(os,job.getMaxInterval());
       ManifoldCF.writeLong(os,job.getExpiration());
       ManifoldCF.writeLong(os,job.getReseedInterval());
       ManifoldCF.writeDword(os,job.getPriority());
@@ -208,7 +209,7 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     int version = ManifoldCF.readDword(is);
-    if (version != 5)
+    if (version != 5 && version != 6)
       throw new java.io.IOException("Unknown job configuration version: "+Integer.toString(version));
     int count = ManifoldCF.readDword(is);
     for (int i = 0; i < count; i++)
@@ -220,6 +221,8 @@ public class JobManager implements IJobManager
       job.setType(ManifoldCF.readDword(is));
       job.setStartMethod(ManifoldCF.readDword(is));
       job.setInterval(ManifoldCF.readLong(is));
+      if (version >= 6)
+        job.setMaxInterval(ManifoldCF.readLong(is));
       job.setExpiration(ManifoldCF.readLong(is));
       job.setReseedInterval(ManifoldCF.readLong(is));
       job.setPriority(ManifoldCF.readDword(is));
@@ -5859,7 +5862,7 @@ public class JobManager implements IJobManager
   *@param unwaitList is filled in with the set of job ID objects that were resumed.
   */
   @Override
-  public void startJobs(long currentTime, ArrayList unwaitList)
+  public void startJobs(long currentTime, List<Long> unwaitList)
     throws ManifoldCFException
   {
     // This method should compare the lasttime field against the current time, for all
@@ -6097,7 +6100,7 @@ public class JobManager implements IJobManager
   *@param waitList is filled in with the set of job ID's that were put into a wait state.
   */
   @Override
-  public void waitJobs(long currentTime, ArrayList waitList)
+  public void waitJobs(long currentTime, List<Long> waitList)
     throws ManifoldCFException
   {
     // This method assesses jobs that are ACTIVE or PAUSED to see if they should be
@@ -8148,7 +8151,7 @@ public class JobManager implements IJobManager
   *@param modifiedJobs is filled in with the set of IJobDescription objects that were resumed.
   */
   @Override
-  public void finishJobResumes(long timestamp, ArrayList modifiedJobs)
+  public void finishJobResumes(long timestamp, List<IJobDescription> modifiedJobs)
     throws ManifoldCFException
   {
     // Alternative to using a write lock here: Put this in a transaction, with a "FOR UPDATE" on the first query.
@@ -8196,9 +8199,10 @@ public class JobManager implements IJobManager
   * and will record the jobs that have been so modified.
   *@param timestamp is the current time in milliseconds since epoch.
   *@param modifiedJobs is filled in with the set of IJobDescription objects that were stopped.
+  *@param stopNotificationTypes is filled in with the type of stop notification.
   */
   @Override
-  public void finishJobStops(long timestamp, ArrayList modifiedJobs)
+  public void finishJobStops(long timestamp, List<IJobDescription> modifiedJobs, List<Integer> stopNotificationTypes)
     throws ManifoldCFException
   {
     // Alternative to using a write lock here: Put this in a transaction, with a "FOR UPDATE" on the first query.
@@ -8215,7 +8219,7 @@ public class JobManager implements IJobManager
       StringBuilder sb = new StringBuilder("SELECT ");
       ArrayList list = new ArrayList();
           
-      sb.append(jobs.idField)
+      sb.append(jobs.idField).append(",").append(jobs.statusField).append(",").append(jobs.errorField)
         .append(" FROM ").append(jobs.getTableName()).append(" WHERE ")
         .append(database.buildConjunctionClause(list,new ClauseDescription[]{
           new MultiClause(jobs.statusField,new Object[]{
@@ -8238,7 +8242,9 @@ public class JobManager implements IJobManager
       {
         IResultRow row = set.getRow(i++);
         Long jobID = (Long)row.getValue(jobs.idField);
-
+        int jobStatus = jobs.stringToStatus((String)row.getValue(jobs.statusField));
+        String errorText = (String)row.getValue(jobs.errorField);
+        
         sb = new StringBuilder("SELECT ");
         list.clear();
 
@@ -8266,7 +8272,8 @@ public class JobManager implements IJobManager
             
         IJobDescription jobDesc = jobs.load(jobID,true);
         modifiedJobs.add(jobDesc);
-
+        stopNotificationTypes.add(mapToNotificationType(jobStatus,(errorText==null || errorText.length() == 0)));
+        
         jobs.finishStopJob(jobID,timestamp);
             
         Logging.jobs.info("Stopped job "+jobID);
@@ -8275,6 +8282,29 @@ public class JobManager implements IJobManager
     finally
     {
       lockManager.leaveWriteLock(jobStopLock);
+    }
+  }
+
+  protected static Integer mapToNotificationType(int jobStatus, boolean noErrorText)
+  {
+    switch (jobStatus)
+    {
+    case Jobs.STATUS_ABORTING:
+    case Jobs.STATUS_ABORTINGSHUTTINGDOWN:
+      return noErrorText?STOP_MANUALABORT:STOP_ERRORABORT;
+    case Jobs.STATUS_ABORTINGFORRESTART:
+    case Jobs.STATUS_ABORTINGFORRESTARTMINIMAL:
+      return STOP_RESTART;
+    case Jobs.STATUS_PAUSING:
+    case Jobs.STATUS_PAUSINGSEEDING:
+    case Jobs.STATUS_PAUSINGWAITING:
+    case Jobs.STATUS_PAUSINGWAITINGSEEDING:
+      return STOP_MANUALPAUSE;
+    case Jobs.STATUS_ACTIVEWAITING:
+    case Jobs.STATUS_ACTIVEWAITINGSEEDING:
+      return STOP_SCHEDULEPAUSE;
+    default:
+      throw new RuntimeException("Unexpected job status: "+jobStatus);
     }
   }
 
@@ -8333,7 +8363,7 @@ public class JobManager implements IJobManager
   *@param resetJobs is filled in with the set of IJobDescription objects that were reset.
   */
   @Override
-  public void resetJobs(long currentTime, ArrayList resetJobs)
+  public void resetJobs(long currentTime, List<IJobDescription> resetJobs)
     throws ManifoldCFException
   {
     // Alternative to using a write lock here: Put this in a transaction, with a "FOR UPDATE" on the first query.

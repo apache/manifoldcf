@@ -1,108 +1,51 @@
 <%@ include file="adminHeaders.jsp" %>
+
 <%
 
-  /* $Id$ */
+/* $Id$ */
 
 /**
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Licensed to the Apache Software Foundation (ASF) under one or more
+* contributor license agreements. See the NOTICE file distributed with
+* this work for additional information regarding copyright ownership.
+* The ASF licenses this file to You under the Apache License, Version 2.0
+* (the "License"); you may not use this file except in compliance with
+* the License. You may obtain a copy of the License at
+* 
+* http://www.apache.org/licenses/LICENSE-2.0
+* 
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 %>
+
+<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
-<html lang="en">
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <!-- Bootstrap -->
-  <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
-  <link href="bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet" type="text/css"/>
-  <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
-  <link rel="stylesheet" href="css/style.css" type="text/css" media="screen"/>
-  <link rel="stylesheet" href="css/print.css" type="text/css" media="print"/>
-  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-  <!--[if lt IE 9]>
-  <script src=javascript/html5shiv.min.js"></script>
-  <script src="javascript/respond.min.js"></script>
-  <![endif]-->
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
+  <title>
+    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.ApacheManifoldCF")%>
+  </title>
+
 </head>
-<body class="fixed skin-black sidebar-mini">
-<div class="wrapper">
-  <header class="main-header">
-    <nav class="navbar navbar-static-top" role="navigation">
-      <a class="logo">
-        <img src="ManifoldCF-logo.png"/>
-      </a>
-      <!-- Sidebar toggle button-->
-      <a href="/" class="sidebar-toggle" data-toggle="offcanvas" role="button">
-        <span class="sr-only">Toggle navigation</span>
-      </a>
 
-      <h1 class="hidden-xs"><%=Messages.getBodyString(pageContext.getRequest().getLocale(), "banner.DocumentIngestion")%>
-      </h1>
-      <!-- Navbar Right Menu -->
-      <div class="navbar-custom-menu">
-        <div class="spinner">
-          <div class="bounce1"></div>
-          <div class="bounce2"></div>
-          <div class="bounce3"></div>
-        </div>
-      </div>
-    </nav>
-  </header>
-  <aside class="main-sidebar">
-    <jsp:include page="sidebar.jsp" flush="true"/>
-  </aside>
-  <div class="content-wrapper">
-    <section class="content-header">
-      <h1 class="visible-print-block">Apache ManifoldCF&trade;</h1>
+<body class="standardbody">
+    <table class="page">
+      <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
+      <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
+       <td class="window">
+  <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.WelcomeToApacheManifoldFC")%></p>
+       </td>
+      </tr>
+    </table>
 
-      <h1 id="heading">Welcome to Apache ManifoldCF&trade;</h1>
-    </section>
-    <section id="content" class="content">
-    </section>
-  </div>
-  <footer class="main-footer">
-    <div class="pull-right hidden-xs">
-      <b>Version</b> 2.2
-    </div>
-    <strong>Copyright &copy; 2009-2015&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" href="http://manifoldcf.apache.org/">Apache ManifoldCF&trade;</a>.</strong>
-  </footer>
-</div>
-<!-- jQuery 1.11.3 -->
-<script src="javascript/jquery-1.11.3.min.js"></script>
-<!-- Bootstrap JS -->
-<script src="bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
-<!-- Bootstrap Select -->
-<script src="bootstrap-select/js/bootstrap-select.min.js" type="text/javascript"></script>
-<script src="javascript/jquery.slimscroll.min.js" type="text/javascript"></script>
-<script src="javascript/jquery.history.js" type="text/javascript"></script>
-<!-- ManifoldCF -->
-<script src="javascript/app.js" type="text/javascript"></script>
-<%
-  String reqPage = request.getParameter("p");
-  if (reqPage != null && reqPage.length() > 0) {
-%>
-<script type="application/javascript">
-  $(document).ready(function () {
-    $.ManifoldCF.loadContent('<%=URLEncoder.encode(reqPage)%>');
-  });
-</script>
-<%
-  }
-%>
 </body>
+
 </html>

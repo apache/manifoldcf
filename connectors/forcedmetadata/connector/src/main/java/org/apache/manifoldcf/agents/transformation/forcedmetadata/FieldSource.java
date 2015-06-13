@@ -23,15 +23,62 @@ import org.apache.manifoldcf.agents.interfaces.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.*;
 
 public class FieldSource implements IDataSource {
-    
+  
+  protected final static int CASE_EXACT = 0;
+  protected final static int CASE_LOWER = 1;
+  protected final static int CASE_UPPER = 2;
+  
   protected final FieldDataFactory rd;
   protected final String fieldName;
-    
-  public FieldSource(FieldDataFactory rd, String fieldName) {
+  protected final Pattern regExpPattern;
+  protected final int groupNumber;
+  protected final int caseSpecifier;
+
+  protected String[] cachedValue;
+
+  public FieldSource(final FieldDataFactory rd, final String fieldName, final String regExp, final String groupNumber)
+    throws ManifoldCFException {
     this.rd = rd;
     this.fieldName = fieldName;
+    if (regExp == null || regExp.length() == 0) {
+      regExpPattern = null;
+      this.groupNumber = 0;
+      this.caseSpecifier = CASE_EXACT;
+    } else {
+      try {
+        this.regExpPattern = Pattern.compile(regExp);
+        if (groupNumber == null || groupNumber.length() == 0) {
+          this.groupNumber = 0;
+          this.caseSpecifier = CASE_EXACT;
+        } else {
+          final StringBuilder sb = new StringBuilder();
+          int caseResult = CASE_EXACT;
+          int i = 0;
+          while (i < groupNumber.length()) {
+            final char theChar = groupNumber.charAt(i++);
+            if (theChar >= '0' && theChar <= '9')
+              sb.append(theChar);
+            else if (theChar == 'l')
+              caseResult = CASE_LOWER;
+            else if (theChar == 'u')
+              caseResult = CASE_UPPER;
+            else
+              throw new ManifoldCFException("Regular expression group specifier '"+groupNumber+"' has illegal character '"+theChar+"'; should be a number, or number + l, or number + u");
+          }
+          if (sb.length() == 0)
+            throw new ManifoldCFException("Regular expression group specifier '"+groupNumber+"' must include a number");
+          this.caseSpecifier = caseResult;
+          this.groupNumber = Integer.parseInt(sb.toString());
+        }
+      } catch (NumberFormatException e) {
+        throw new ManifoldCFException("Regular expression group specifier '"+groupNumber+"': "+e.getMessage(),e);
+      } catch (PatternSyntaxException e) {
+        throw new ManifoldCFException("Regular expression '"+regExp+"': "+e.getMessage(),e);
+      }
+    }
   }
     
   @Override
@@ -46,12 +93,46 @@ public class FieldSource implements IDataSource {
   @Override
   public Object[] getRawForm()
     throws IOException, ManifoldCFException {
+    if (regExpPattern != null) {
+      return calculateExtractedResult();
+    }
     return rd.getField(fieldName);
   }
     
   @Override
   public String[] getStringForm()
     throws IOException, ManifoldCFException {
+    if (regExpPattern != null) {
+      return calculateExtractedResult();
+    }
     return rd.getFieldAsStrings(fieldName);
+  }
+  
+  protected String[] calculateExtractedResult()
+    throws IOException, ManifoldCFException {
+    if (cachedValue == null) {
+      final String[] resultSources = rd.getFieldAsStrings(fieldName);
+      final List<String> resultList = new ArrayList<String>(resultSources.length);
+      for (String x : resultSources) {
+        final Matcher m = regExpPattern.matcher(x);
+        if (m.find()) {
+          String result = x.substring(m.start(groupNumber),m.end(groupNumber));
+          switch (caseSpecifier) {
+          case CASE_LOWER:
+            result = result.toLowerCase(Locale.ROOT);
+            break;
+          case CASE_UPPER:
+            result = result.toUpperCase(Locale.ROOT);
+            break;
+          case CASE_EXACT:
+          default:
+            break;
+          }
+          resultList.add(result);
+        }
+      }
+      cachedValue = resultList.toArray(new String[0]);
+    }
+    return cachedValue;
   }
 }

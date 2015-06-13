@@ -83,6 +83,8 @@ public class SolrConfig
   public static final String PARAM_STATUSPATH = "Server status handler";
   /** Id field */
   public static final String PARAM_IDFIELD = "Solr id field name";
+  /** Optional original size field */
+  public static final String PARAM_ORIGINALSIZEFIELD = "Solr original size field name";
   /** Optional modified date field */
   public static final String PARAM_MODIFIEDDATEFIELD = "Solr modified date field name";
   /** Optional created date field */
