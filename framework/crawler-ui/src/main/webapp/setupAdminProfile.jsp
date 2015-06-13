@@ -30,16 +30,16 @@ response.setContentType("text/html;charset=utf-8");
 String userID = variableContext.getParameter("userID");
 String password = variableContext.getParameter("password");
 if (userID == null)
-	userID = "";
+  userID = "";
 if (password == null)
-	password = "";
+  password = "";
 
 adminprofile.login(threadContext,userID,password);
 if (adminprofile.getLoggedOn())
-	response.sendRedirect("index.jsp");
+  response.sendRedirect("index.jsp");
 else
 {
-	// Go back to login page, but with signal that login failed
-	response.sendRedirect("login.jsp?loginfailed=true");
+  // Go back to login page, but with signal that login failed
+  response.sendRedirect("login.jsp?loginfailed=true");
 }
 %>

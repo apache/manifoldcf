@@ -30,62 +30,62 @@ response.setContentType("text/html;charset=utf-8");
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
-		<title>
-			<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.ApacheManifoldCFLogin")%>
-		</title>
-		<script type="text/javascript">
-			<!--
-			function login()
-			{
-				document.loginform.submit();
-			}
-			//-->
-		</script>
-	</head>
-	<body class="standardbody">
-		<table class="page">
-			<tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-			<tr>
-				<td colspan="2" class="window">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
+    <title>
+      <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.ApacheManifoldCFLogin")%>
+    </title>
+    <script type="text/javascript">
+      <!--
+      function login()
+      {
+        document.loginform.submit();
+      }
+      //-->
+    </script>
+  </head>
+  <body class="standardbody">
+    <table class="page">
+      <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
+      <tr>
+        <td colspan="2" class="window">
 
-					<form class="standardform" name="loginform" action="setupAdminProfile.jsp" method="POST">
-						<table class="displaytable">
+          <form class="standardform" name="loginform" action="setupAdminProfile.jsp" method="POST">
+            <table class="displaytable">
 <%
 String value = variableContext.getParameter("loginfailed");
 if (value != null && value.equals("true"))
 {
 %>
-							<tr><td class="message" colspan="2"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.LoginFailed")%></td></tr>
-							<tr><td class="separator" colspan="2"><hr/></td></tr>
+              <tr><td class="message" colspan="2"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.LoginFailed")%></td></tr>
+              <tr><td class="separator" colspan="2"><hr/></td></tr>
 <%
 }
 %>
-							<tr>
-								<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.UserIDColon")%></nobr></td>
-								<td class="value">
-									<input name="userID" type="text" size="32" value=""/>
-								</td>
-							</tr>
-							<tr>
-								<td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.PasswordColon")%></nobr></td>
-								<td class="value">
-									<input name="password" type="password" size="32" value=""/>
-								</td>
-							</tr>
-							<tr><td class="separator" colspan="2"><hr/></td></tr>
-							<tr>
-								<td class="message" colspan="2">
-									<input type="button" onclick='Javascript:login();' value='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>'/>
-								</td>
-							</tr>
-						</table>
-					</form>
-				</td>
-			</tr>
-		</table>
-	</body>
+              <tr>
+                <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.UserIDColon")%></nobr></td>
+                <td class="value">
+                  <input name="userID" type="text" size="32" value=""/>
+                </td>
+              </tr>
+              <tr>
+                <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.PasswordColon")%></nobr></td>
+                <td class="value">
+                  <input name="password" type="password" size="32" value=""/>
+                </td>
+              </tr>
+              <tr><td class="separator" colspan="2"><hr/></td></tr>
+              <tr>
+                <td class="message" colspan="2">
+                  <input type="button" onclick='Javascript:login();' value='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>'/>
+                </td>
+              </tr>
+            </table>
+          </form>
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>
 
