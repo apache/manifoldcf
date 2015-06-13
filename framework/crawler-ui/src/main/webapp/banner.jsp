@@ -23,24 +23,24 @@
 %>
 
 <%
-	// This module is meant to be called within a table cell, and will drop the
-	// lcf banner into the cell
-	String dateString = java.text.DateFormat.getDateTimeInstance().format(new java.util.Date());
+  // This module is meant to be called within a table cell, and will drop the
+  // lcf banner into the cell
+  String dateString = java.text.DateFormat.getDateTimeInstance().format(new java.util.Date());
 %>
 
 <table class="bannertable">
     <tr class="bannerrow">
-	<td class="headerimage"><img src="ManifoldCF-logo.png"/></td>
+  <td class="headerimage"><img src="ManifoldCF-logo.png"/></td>
           <td class="headercell">
-	    <table class="headertable">
-		<tr class="headerdaterow">
-			<td class="headerdate"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dateString)%></td>
-		</tr>
-	          <tr class="headerrow">
-			<td class="header"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"banner.DocumentIngestion")%></td>
-		</tr>
-	    </table>
-	</td>
+      <table class="headertable">
+    <tr class="headerdaterow">
+      <td class="headerdate"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dateString)%></td>
+    </tr>
+            <tr class="headerrow">
+      <td class="header"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"banner.DocumentIngestion")%></td>
+    </tr>
+      </table>
+  </td>
     </tr>
 </table>
 

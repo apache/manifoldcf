@@ -28,24 +28,24 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
-	<title>
-		<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.ApacheManifoldCFViewGroup")%>
-	</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
+  <title>
+    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.ApacheManifoldCFViewGroup")%>
+  </title>
 
-	<script type="text/javascript">
-	<!--
+  <script type="text/javascript">
+  <!--
 
-	function Delete(groupName)
-	{
-		document.viewgroup.op.value="Delete";
-		document.viewgroup.groupname.value=groupName;
-		document.viewgroup.submit();
-	}
+  function Delete(groupName)
+  {
+    document.viewgroup.op.value="Delete";
+    document.viewgroup.groupname.value=groupName;
+    document.viewgroup.submit();
+  }
 
-	//-->
-	</script>
+  //-->
+  </script>
 
 </head>
 
@@ -55,64 +55,64 @@
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="window">
-	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.ViewAuthorityGroup")%></p>
+  <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.ViewAuthorityGroup")%></p>
 
-	<form class="standardform" name="viewgroup" action="execute.jsp" method="POST">
-		<input type="hidden" name="op" value="Continue"/>
-		<input type="hidden" name="type" value="group"/>
-		<input type="hidden" name="groupname" value=""/>
+  <form class="standardform" name="viewgroup" action="execute.jsp" method="POST">
+    <input type="hidden" name="op" value="Continue"/>
+    <input type="hidden" name="type" value="group"/>
+    <input type="hidden" name="groupname" value=""/>
 
 <%
     try
     {
-	// Get the job manager handle
-	IAuthorityGroupManager manager = AuthorityGroupManagerFactory.make(threadContext);
-	String groupName = variableContext.getParameter("groupname");
-	IAuthorityGroup group = manager.load(groupName);
-	if (group == null)
-	{
-		throw new ManifoldCFException("No such group: "+groupName);
-	}
-	else
-	{
-		String description = group.getDescription();
-		if (description == null)
-			description = "";
+  // Get the job manager handle
+  IAuthorityGroupManager manager = AuthorityGroupManagerFactory.make(threadContext);
+  String groupName = variableContext.getParameter("groupname");
+  IAuthorityGroup group = manager.load(groupName);
+  if (group == null)
+  {
+    throw new ManifoldCFException("No such group: "+groupName);
+  }
+  else
+  {
+    String description = group.getDescription();
+    if (description == null)
+      description = "";
 %>
-		<table class="displaytable">
-			<tr>
-				<td class="separator" colspan="4"><hr/></td>
-			</tr>
-			<tr>
-				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.NameColon")%></nobr></td>
-				<td class="value" colspan="1"><%="<!--group="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(groupName)+"-->"%><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(groupName)%></nobr></td>
-				<td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.DescriptionColon")%></nobr></td>
-				<td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
-			</tr>
-			<tr>
-				<td class="separator" colspan="4"><hr/></td>
-			</tr>
-			<tr>
-				<td class="message" colspan="4">
-					<a href='<%="editgroup.jsp?groupname="+org.apache.manifoldcf.core.util.URLEncoder.encode(groupName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewgroup.EditThisAuthorityGroup")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(groupName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewgroup.DeleteThisAuthorityGroup")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.Delete")%></a>
-				</td>
-			</tr>
-		</table>
+    <table class="displaytable">
+      <tr>
+        <td class="separator" colspan="4"><hr/></td>
+      </tr>
+      <tr>
+        <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.NameColon")%></nobr></td>
+        <td class="value" colspan="1"><%="<!--group="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(groupName)+"-->"%><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(groupName)%></nobr></td>
+        <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.DescriptionColon")%></nobr></td>
+        <td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
+      </tr>
+      <tr>
+        <td class="separator" colspan="4"><hr/></td>
+      </tr>
+      <tr>
+        <td class="message" colspan="4">
+          <a href='<%="editgroup.jsp?groupname="+org.apache.manifoldcf.core.util.URLEncoder.encode(groupName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewgroup.EditThisAuthorityGroup")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(groupName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewgroup.DeleteThisAuthorityGroup")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.Delete")%></a>
+        </td>
+      </tr>
+    </table>
 
 <%
-	}
+  }
     }
     catch (ManifoldCFException e)
     {
-	e.printStackTrace();
-	variableContext.setParameter("text",e.getMessage());
-	variableContext.setParameter("target","listgroups.jsp");
+  e.printStackTrace();
+  variableContext.setParameter("text",e.getMessage());
+  variableContext.setParameter("target","listgroups.jsp");
 %>
-	<jsp:forward page="error.jsp"/>
+  <jsp:forward page="error.jsp"/>
 <%
     }
 %>
-	</form>
+  </form>
        </td>
       </tr>
     </table>
