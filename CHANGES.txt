@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.10-dev =====================
 
+CONNECTORS-1213: Job notification information did not export/import
+correctly.
+(Cathal McGuinness, Karl Wright)
+
 CONNECTORS-1203: SharePoint connector did not consistently use
 internal metadata names throughout.
 (Dale Dreiske, Karl Wright)
