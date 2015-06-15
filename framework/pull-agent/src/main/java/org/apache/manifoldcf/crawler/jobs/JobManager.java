@@ -124,7 +124,7 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     // Write a version indicator
-    ManifoldCF.writeDword(os,7);
+    ManifoldCF.writeDword(os,9);
     // Get the job list
     IJobDescription[] list = getAllJobs();
     // Write the number of authorities
@@ -197,6 +197,16 @@ public class JobManager implements IJobManager
         ManifoldCF.writeString(os,job.getPipelineStageDescription(j));
         ManifoldCF.writeString(os,job.getPipelineStageSpecification(j).toXML());
       }
+      
+      // Write notification information
+      ManifoldCF.writeDword(os,job.countNotifications());
+      for (int j = 0; j < job.countNotifications(); j++)
+      {
+        ManifoldCF.writeString(os,job.getNotificationConnectionName(j));
+        ManifoldCF.writeString(os,job.getNotificationDescription(j));
+        ManifoldCF.writeString(os,job.getNotificationSpecification(j).toXML());
+      }
+
     }
   }
 
@@ -223,7 +233,7 @@ public class JobManager implements IJobManager
     throws java.io.IOException, ManifoldCFException
   {
     int version = ManifoldCF.readDword(is);
-    if (version != 2 && version != 3 && version != 4 && version != 7)
+    if (version != 2 && version != 3 && version != 4 && version != 7 && version != 9)
       throw new java.io.IOException("Unknown job configuration version: "+Integer.toString(version));
     int count = ManifoldCF.readDword(is);
     for (int i = 0; i < count; i++)
@@ -314,6 +324,18 @@ public class JobManager implements IJobManager
       {
         // Add a single pipeline stage for the output connection
         job.addPipelineStage(-1,true,outputConnectionName,"").fromXML(outputSpecification);
+      }
+      
+      if (version >= 9)
+      {
+        int notificationCount = ManifoldCF.readDword(is);
+        for (int j = 0; j < notificationCount; j++)
+        {
+          String connectionName = ManifoldCF.readString(is);
+          String description = ManifoldCF.readString(is);
+          String specification = ManifoldCF.readString(is);
+          job.addNotification(connectionName, description).fromXML(specification);
+        }
       }
       
       // Attempt to save this job
