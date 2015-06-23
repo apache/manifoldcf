@@ -163,7 +163,16 @@ public class ConnectionPool
         // it into the pool.
         if (rval != null)
         {
+          // We have a handle, so just free it and leave activeConnections alone
           release(rval);
+        }
+        else
+        {
+          // We didn't manage to create the handle, so decrement active connections.
+          synchronized (this)
+          {
+            activeConnections--;
+          }
         }
       }
     }
