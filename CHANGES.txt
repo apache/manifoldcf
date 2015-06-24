@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.10-dev =====================
 
+CONNECTORS-1215: Fuzzyml parser needs to ignore "<" followed by
+whitespace, since those are technically not valid tags and some sites
+care.
+(Brad Dennis, Karl Wright)
+
 CONNECTORS-1213: Job notification information did not export/import
 correctly.
 (Cathal McGuinness, Karl Wright)
