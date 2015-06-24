@@ -282,10 +282,21 @@ public class TagParseState extends SingleCharacterReceiver
       }
       else if (bTagDepth == 0)
       {
-        currentState = TAGPARSESTATE_IN_TAG_NAME;
-        currentTagNameBuffer = newBuffer();
-        if (!isWhitespace(thisChar))
+        if (isWhitespace(thisChar))
+        {
+          // Not a tag.
+          currentState = TAGPARSESTATE_NORMAL;
+          if (noteNormalCharacter('<'))
+            return true;
+          if (noteNormalCharacter(thisChar))
+            return true;
+        }
+        else
+        {
+          currentState = TAGPARSESTATE_IN_TAG_NAME;
+          currentTagNameBuffer = newBuffer();
           currentTagNameBuffer.append(thisChar);
+        }
       }
       else
       {
