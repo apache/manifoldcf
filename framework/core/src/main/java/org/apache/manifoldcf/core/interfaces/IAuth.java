@@ -37,10 +37,14 @@ public interface IAuth
   /** Edit jobs */
   public final static int CAPABILITY_EDIT_JOBS = 5;
   
-  /** Verify login */
-  public boolean verifyLogin(final String userId, final String password)
+  /** Verify UI login */
+  public boolean verifyUILogin(final String userId, final String password)
     throws ManifoldCFException;
-  
+
+  /** Verify API login */
+  public boolean verifyAPILogin(final String userId, final String password)
+    throws ManifoldCFException;
+	
   /** Check user capability */
   public boolean checkCapability(final String userId, final int capability)
     throws ManifoldCFException;
