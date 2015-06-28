@@ -3,6 +3,10 @@ $Id$
 
 ======================= 1.10-dev =====================
 
+CONNECTORS-1216: Set default core/collection name
+and add required check on Solr connector.
+(Shinichiro Abe)
+
 CONNECTORS-1215: Fuzzyml parser needs to ignore "<" followed by
 whitespace, since those are technically not valid tags and some sites
 care.

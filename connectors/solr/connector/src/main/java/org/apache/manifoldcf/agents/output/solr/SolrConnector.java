@@ -349,7 +349,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 
         String core = params.getParameter(SolrConfig.PARAM_CORE);
         if (core != null && core.length() == 0)
-          core = null;
+          core = "collection1";
 
         // Pick up timeouts
         String socketTimeoutString = params.getParameter(SolrConfig.PARAM_SOCKET_TIMEOUT);
@@ -795,6 +795,12 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 "    editconnection.webappname.focus();\n"+
 "    return false;\n"+
 "  }\n"+
+"  if (editconnection.core.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.PleaseSupplySolrCoreName")+"\");\n"+
+"    editconnection.core.focus();\n"+
+"    return false;\n"+
+"  }\n"+
 "  if (editconnection.core.value != \"\" && editconnection.core.value.indexOf(\"/\") != -1)\n"+
 "  {\n"+
 "    alert(\""+Messages.getBodyJavascriptString(locale,"SolrConnector.CoreNameCannotHaveCharacters")+"\");\n"+
@@ -985,7 +991,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
 
     String core = parameters.getParameter(SolrConfig.PARAM_CORE);
     if (core == null)
-      core = "";
+      core = "collection1";
 
     String znodePath = parameters.getParameter(SolrConfig.PARAM_ZOOKEEPER_ZNODE_PATH);
     if (znodePath == null)
