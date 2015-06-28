@@ -85,8 +85,9 @@ public class APIProfile implements HttpSessionBindingListener
     sessionCleanup();
     try
     {
+      IAuth auth = AuthFactory.make(threadContext);
       // Check if everything is in place.
-      if (ManifoldCF.verifyAPILogin(threadContext,userID,userPassword))
+      if (auth.verifyAPILogin(userID,userPassword))
       {
         isLoggedIn = true;
         loginTime = System.currentTimeMillis();
