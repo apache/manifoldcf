@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1217: Fix documentation for api login parameters.
+(Karl Wright)
+
 CONNECTORS-1216: Set default core/collection name
 and add required check on Solr connector.
 (Shinichiro Abe)
