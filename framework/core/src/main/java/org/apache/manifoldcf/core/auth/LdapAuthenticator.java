@@ -29,24 +29,37 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.manifoldcf.core.interfaces.IAuth;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.system.Logging;
 import org.apache.manifoldcf.core.system.ManifoldCF;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
 
-public class LdapAuthenticator {
+public class LdapAuthenticator implements IAuth {
 
   private static final String CONTEXT_FACTORY = "com.sun.jndi.ldap.LdapCtxFactory";
+  
   private static final String PROVIDER_URL_PROPERTY = "org.apache.manifoldcf.login.ldap.providerurl";
   private static final String SECURITY_AUTHENTICATION_TYPE = "org.apache.manifoldcf.login.ldap.securityauthenticationtype";
   private static final String SECURITY_PRINCIPLE = "org.apache.manifoldcf.login.ldap.securityprinciple";
   private static final String CONTEXT_SEARCH_QUERY = "org.apache.manifoldcf.login.ldap.contextsearchquery";
   private static final String SEARCH_ATTRIBUTE = "org.apache.manifoldcf.login.ldap.searchattribute";
 
+  protected final String securityPrincipal;
+  
+  /** Constructor */
+  public LdapAuthenticator(final IThreadContext threadContext)
+    throws ManifoldCFException {
+    securityPrincipal = LockManagerFactory.getStringProperty(threadContext,SECURITY_PRINCIPLE,"admin");
+  }
+  
   /**
    * @param userID
    * @param password
    * @return
    */
-  private static Hashtable<String, String> buildEnvironment(String userID,
+  private Hashtable<String, String> buildEnvironment(String userID,
       String password) {
 
     Hashtable<String, String> environment = new Hashtable<String, String>();
@@ -60,8 +73,7 @@ public class LdapAuthenticator {
         ManifoldCF.getProperty(SECURITY_AUTHENTICATION_TYPE));
     environment.put(
         Context.SECURITY_PRINCIPAL,
-        substituteUser(ManifoldCF.getProperty(SECURITY_PRINCIPLE),
-            userID));
+        substituteUser(securityPrincipal, userID));
     environment.put(Context.SECURITY_CREDENTIALS, password);
 
     return environment;
@@ -81,7 +93,9 @@ public class LdapAuthenticator {
    * @param password
    * @return
    */
-  public static boolean verifyLogin(String userId, String password) {
+  @Override
+  public boolean verifyLogin(final String userId, final String password)
+    throws ManifoldCFException {
     boolean authenticated = false;
 
     if (StringUtils.isNotEmpty(userId) && StringUtils.isNotEmpty(password)) {
@@ -126,6 +140,7 @@ public class LdapAuthenticator {
         } catch (Exception e) {
           Logging.misc.error("User not authenticated = " + userId
               + " exception = " + e.getMessage(), e);
+          throw new ManifoldCFException("User not authenticated: "+e.getMessage(),e);
         } finally {
 
           if (results != null) {
@@ -147,9 +162,17 @@ public class LdapAuthenticator {
       } catch (NamingException e) {
         Logging.misc.error("Exception authenticating user = " + userId
             + " exception = " + e.getMessage(), e);
-
+        throw new ManifoldCFException("Exception authenticating user: "+e.getMessage(),e);
       }
     }
     return authenticated;
   }
+  
+  /** Check user capability */
+  public boolean checkCapability(final String userId, final int capability)
+    throws ManifoldCFException {
+    // No current ability to distinguish roles
+    return true;
+  }
+
 }
