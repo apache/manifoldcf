@@ -56,10 +56,10 @@ public class LdapAuthenticator implements IAuth {
   public LdapAuthenticator(final IThreadContext threadContext)
     throws ManifoldCFException {
     securityPrincipal = LockManagerFactory.getStringProperty(threadContext,SECURITY_PRINCIPLE,"???");
-    securityAuthenticationType = LockManagerFactory.getStringProperty(threadContext,SECURITY_AUTHENTICATION_TYPE,"???");
-    providerURLProperty = LockManagerFactory.getStringProperty(threadContext,PROVIDER_URL_PROPERTY,"???");
+    securityAuthenticationType = LockManagerFactory.getStringProperty(threadContext,SECURITY_AUTHENTICATION_TYPE,"simple");
+    providerURLProperty = LockManagerFactory.getStringProperty(threadContext,PROVIDER_URL_PROPERTY,"");
     contextSearchQuery = LockManagerFactory.getStringProperty(threadContext,CONTEXT_SEARCH_QUERY,"???");
-    searchAttribute = LockManagerFactory.getStringProperty(threadContext,SEARCH_ATTRIBUTE,"???");
+    searchAttribute = LockManagerFactory.getStringProperty(threadContext,SEARCH_ATTRIBUTE,"uid");
   }
   
   /**
@@ -102,8 +102,20 @@ public class LdapAuthenticator implements IAuth {
    * @return
    */
   @Override
-  public boolean verifyLogin(final String userId, final String password)
+  public boolean verifyUILogin(final String userId, final String password)
     throws ManifoldCFException {
+    return verifyLogin(userId, password);
+  }
+  
+  @Override
+  public boolean verifyAPILogin(final String userId, final String password)
+    throws ManifoldCFException {
+    return verifyLogin(userId, password);
+  }
+
+  protected boolean verifyLogin(final String userId, final String password)
+    throws ManifoldCFException {
+
     boolean authenticated = false;
 
     if (StringUtils.isNotEmpty(userId) && StringUtils.isNotEmpty(password)) {
