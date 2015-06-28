@@ -47,11 +47,19 @@ public class LdapAuthenticator implements IAuth {
   private static final String SEARCH_ATTRIBUTE = "org.apache.manifoldcf.login.ldap.searchattribute";
 
   protected final String securityPrincipal;
+  protected final String securityAuthenticationType;
+  protected final String providerURLProperty;
+  protected final String contextSearchQuery;
+  protected final String searchAttribute;
   
   /** Constructor */
   public LdapAuthenticator(final IThreadContext threadContext)
     throws ManifoldCFException {
-    securityPrincipal = LockManagerFactory.getStringProperty(threadContext,SECURITY_PRINCIPLE,"admin");
+    securityPrincipal = LockManagerFactory.getStringProperty(threadContext,SECURITY_PRINCIPLE,"???");
+    securityAuthenticationType = LockManagerFactory.getStringProperty(threadContext,SECURITY_AUTHENTICATION_TYPE,"???");
+    providerURLProperty = LockManagerFactory.getStringProperty(threadContext,PROVIDER_URL_PROPERTY,"???");
+    contextSearchQuery = LockManagerFactory.getStringProperty(threadContext,CONTEXT_SEARCH_QUERY,"???");
+    searchAttribute = LockManagerFactory.getStringProperty(threadContext,SEARCH_ATTRIBUTE,"???");
   }
   
   /**
@@ -67,10 +75,10 @@ public class LdapAuthenticator implements IAuth {
     environment.put(Context.INITIAL_CONTEXT_FACTORY, CONTEXT_FACTORY);
 
     environment.put(Context.PROVIDER_URL,
-        ManifoldCF.getProperty(PROVIDER_URL_PROPERTY));
+        providerURLProperty);
 
     environment.put(Context.SECURITY_AUTHENTICATION,
-        ManifoldCF.getProperty(SECURITY_AUTHENTICATION_TYPE));
+        securityAuthenticationType);
     environment.put(
         Context.SECURITY_PRINCIPAL,
         substituteUser(securityPrincipal, userID));
@@ -117,8 +125,7 @@ public class LdapAuthenticator implements IAuth {
 
           results = ctx
               .search("",
-                  substituteUser(ManifoldCF
-                      .getProperty(CONTEXT_SEARCH_QUERY),
+                  substituteUser(contextSearchQuery,
                       userId), controls);
           // is the user in the group?
           while (results.hasMore()) {
@@ -126,7 +133,7 @@ public class LdapAuthenticator implements IAuth {
                 .next();
 
             if (userId.equals(searchResult.getAttributes()
-                .get(ManifoldCF.getProperty(SEARCH_ATTRIBUTE))
+                .get(searchAttribute)
                 .get())) {
 
               Logging.misc.info("Successfully authenticated : "
