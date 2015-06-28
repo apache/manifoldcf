@@ -98,8 +98,9 @@ public class AdminProfile implements HttpSessionBindingListener
     sessionCleanup();
     try
     {
+      IAuth auth = AuthFactory.make(threadContext);
       // Check if everything is in place.
-      if (ManifoldCF.verifyLogin(threadContext,userID,userPassword))
+      if (auth.verifyUILogin(userID,userPassword))
       {
         isLoggedIn = true;
         loginTime = System.currentTimeMillis();
