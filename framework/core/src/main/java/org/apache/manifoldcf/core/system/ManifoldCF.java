@@ -168,6 +168,8 @@ public class ManifoldCF
   public static final String lockManagerImplementation = "org.apache.manifoldcf.lockmanagerclass";
   /** Database implementation class */
   public static final String databaseImplementation = "org.apache.manifoldcf.databaseimplementationclass";
+  /** Auth implementation class */
+  public static final String authImplementation = "org.apache.manifoldcf.authimplementationclass";
   
   // The following are system integration properties
   /** Script to invoke when configuration changes, if any */
