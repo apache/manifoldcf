@@ -1382,6 +1382,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadJobs(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -1405,6 +1408,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadJob(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -1433,6 +1439,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadOutputConnectionStatus(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(tc);
@@ -1475,6 +1484,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadTransformationConnectionStatus(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+    
     try
     {
       ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(tc);
@@ -1517,6 +1529,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadAuthorityConnectionStatus(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityConnectorPool authorityConnectorPool = AuthorityConnectorPoolFactory.make(tc);
@@ -1559,6 +1574,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadMappingConnectionStatus(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IMappingConnectorPool mappingConnectorPool = MappingConnectorPoolFactory.make(tc);
@@ -1601,6 +1619,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnectionStatus(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(tc);
@@ -1643,6 +1664,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadNotificationConnectionStatus(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       INotificationConnectorPool notificationConnectorPool = NotificationConnectorPoolFactory.make(tc);
@@ -1685,6 +1709,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadOutputConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(tc);
@@ -1718,6 +1745,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadTransformationConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(tc);
@@ -1751,6 +1781,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(tc);
@@ -1784,6 +1817,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadNotificationConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       INotificationConnectorPool notificationConnectorPool = NotificationConnectorPoolFactory.make(tc);
@@ -1817,6 +1853,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadJobStatuses(IThreadContext tc, Configuration output, Map<String,List<String>> queryParameters, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_REPORTS))
+      return READRESULT_NOTALLOWED;
+
     if (queryParameters == null)
       queryParameters = new HashMap<String,List<String>>();
     int maxCount;
@@ -1851,6 +1890,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadJobStatusesNoCounts(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_REPORTS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -1874,6 +1916,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadJobStatus(IThreadContext tc, Configuration output, Long jobID, Map<String,List<String>> queryParameters, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_REPORTS))
+      return READRESULT_NOTALLOWED;
+
     if (queryParameters == null)
       queryParameters = new HashMap<String,List<String>>();
     int maxCount;
@@ -1907,6 +1952,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadJobStatusNoCounts(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_REPORTS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -1929,6 +1977,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadAuthorityGroups(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
@@ -1952,6 +2003,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadAuthorityGroup(IThreadContext tc, Configuration output, String groupName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
@@ -1980,6 +2034,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadOutputConnections(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
@@ -2003,6 +2060,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadOutputConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
@@ -2031,6 +2091,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadTransformationConnections(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       ITransformationConnectionManager connManager = TransformationConnectionManagerFactory.make(tc);
@@ -2054,6 +2117,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadTransformationConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       ITransformationConnectionManager connectionManager = TransformationConnectionManagerFactory.make(tc);
@@ -2082,6 +2148,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadAuthorityConnections(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityConnectionManager connManager = AuthorityConnectionManagerFactory.make(tc);
@@ -2105,6 +2174,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadMappingConnections(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IMappingConnectionManager connManager = MappingConnectionManagerFactory.make(tc);
@@ -2128,6 +2200,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadAuthorityConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
@@ -2156,6 +2231,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadMappingConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IMappingConnectionManager connectionManager = MappingConnectionManagerFactory.make(tc);
@@ -2184,6 +2262,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnections(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
@@ -2207,6 +2288,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
@@ -2235,6 +2319,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadNotificationConnections(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       INotificationConnectionManager connManager = NotificationConnectionManagerFactory.make(tc);
@@ -2258,6 +2345,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadNotificationConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       INotificationConnectionManager connectionManager = NotificationConnectionManagerFactory.make(tc);
@@ -2286,6 +2376,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadOutputConnectors(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered output connectors
     try
     {
@@ -2323,6 +2416,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadTransformationConnectors(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered transformation connectors
     try
     {
@@ -2360,6 +2456,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadAuthorityConnectors(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered authority connectors
     try
     {
@@ -2397,6 +2496,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadMappingConnectors(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered authority connectors
     try
     {
@@ -2434,6 +2536,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadAuthorizationDomains(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered authorization domains
     try
     {
@@ -2472,6 +2577,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnectors(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered repository connectors
     try
     {
@@ -2509,6 +2617,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadNotificationConnectors(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered notification connectors
     try
     {
@@ -2571,6 +2682,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnectionQueue(IThreadContext tc, Configuration output,
     String connectionName, Map<String,List<String>> queryParameters, IAuthorizer authorizer) throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_REPORTS))
+      return READRESULT_NOTALLOWED;
+
     if (queryParameters == null)
       queryParameters = new HashMap<String,List<String>>();
 
@@ -2768,6 +2882,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnectionJobs(IThreadContext tc, Configuration output,
     String connectionName, IAuthorizer authorizer) throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -2796,6 +2913,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnectionHistory(IThreadContext tc, Configuration output,
     String connectionName, Map<String,List<String>> queryParameters, IAuthorizer authorizer) throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_REPORTS))
+      return READRESULT_NOTALLOWED;
+
     if (queryParameters == null)
       queryParameters = new HashMap<String,List<String>>();
       
@@ -3133,6 +3253,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiReadRepositoryConnectionActivities(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       String[] activities = getActivitiesList(tc,connectionName);
@@ -3410,6 +3533,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiPostJob(IThreadContext tc, Configuration output, Configuration input, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_JOBS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode jobNode = findConfigurationNode(input,API_JOBNODE);
     if (jobNode == null)
       throw new ManifoldCFException("Input must have '"+API_JOBNODE+"' field");
@@ -3476,6 +3602,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteStartJob(IThreadContext tc, Configuration output, Long jobID, boolean requestMinimum, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_RUN_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -3494,6 +3623,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteAbortJob(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_RUN_JOBS))
+      return READRESULT_NOTALLOWED;
+    
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -3512,6 +3644,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteRestartJob(IThreadContext tc, Configuration output, Long jobID, boolean requestMinimum, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_RUN_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -3530,6 +3665,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWritePauseJob(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_RUN_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -3548,6 +3686,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteResumeJob(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_RUN_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -3566,6 +3707,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteReseedJob(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_RUN_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -3584,6 +3728,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteJob(IThreadContext tc, Configuration output, Configuration input, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_JOBS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode jobNode = findConfigurationNode(input,API_JOBNODE);
     if (jobNode == null)
       throw new ManifoldCFException("Input must have '"+API_JOBNODE+"' field");
@@ -3622,6 +3769,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteAuthorityGroup(IThreadContext tc, Configuration output, Configuration input, String groupName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode groupNode = findConfigurationNode(input,API_AUTHORITYGROUPNODE);
     if (groupNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_AUTHORITYGROUPNODE+"' field");
@@ -3657,6 +3807,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteOutputConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode connectionNode = findConfigurationNode(input,API_OUTPUTCONNECTIONNODE);
     if (connectionNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_OUTPUTCONNECTIONNODE+"' field");
@@ -3692,6 +3845,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteTransformationConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+    
     ConfigurationNode connectionNode = findConfigurationNode(input,API_TRANSFORMATIONCONNECTIONNODE);
     if (connectionNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_TRANSFORMATIONCONNECTIONNODE+"' field");
@@ -3727,6 +3883,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteAuthorityConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode connectionNode = findConfigurationNode(input,API_AUTHORITYCONNECTIONNODE);
     if (connectionNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_AUTHORITYCONNECTIONNODE+"' field");
@@ -3762,6 +3921,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteMappingConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode connectionNode = findConfigurationNode(input,API_MAPPINGCONNECTIONNODE);
     if (connectionNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_MAPPINGCONNECTIONNODE+"' field");
@@ -3797,6 +3959,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteRepositoryConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode connectionNode = findConfigurationNode(input,API_REPOSITORYCONNECTIONNODE);
     if (connectionNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_REPOSITORYCONNECTIONNODE+"' field");
@@ -3832,6 +3997,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteClearHistoryRepositoryConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
@@ -3850,6 +4018,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteNotificationConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode connectionNode = findConfigurationNode(input,API_NOTIFICATIONCONNECTIONNODE);
     if (connectionNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_NOTIFICATIONCONNECTIONNODE+"' field");
@@ -3885,6 +4056,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteClearVersionsOutputConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       signalOutputConnectionRedo(tc,connectionName);
@@ -3902,6 +4076,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiWriteClearOutputConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       signalOutputConnectionRemoved(tc,connectionName);
@@ -4063,6 +4240,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiDeleteJob(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -4080,6 +4260,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiDeleteAuthorityGroup(IThreadContext tc, Configuration output, String groupName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
@@ -4097,6 +4280,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiDeleteOutputConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
@@ -4114,6 +4300,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiDeleteAuthorityConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
@@ -4131,6 +4320,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiDeleteRepositoryConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
@@ -4148,6 +4340,9 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static int apiDeleteNotificationConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       INotificationConnectionManager connectionManager = NotificationConnectionManagerFactory.make(tc);
