@@ -18,37 +18,28 @@
 */
 package org.apache.manifoldcf.core.interfaces;
 
-/** An instance of this interface describes how to authorize various components
-* of the ManifoldCF system.
+/** An instance of this interface authorizes a user to perform various capabilities within MCF,
+* within the local thread scope.
 */
-public interface IAuth
+public interface IAuthorizer
 {
   
   // User capabilities
-  
   /** View connections */
-  public final static int CAPABILITY_VIEW_CONNECTIONS = 1;
+  public final static int CAPABILITY_VIEW_CONNECTIONS = IAuth.CAPABILITY_VIEW_CONNECTIONS;
   /** View jobs */
-  public final static int CAPABILITY_VIEW_JOBS = 2;
+  public final static int CAPABILITY_VIEW_JOBS = IAuth.CAPABILITY_VIEW_JOBS;
   /** View reports */
-  public final static int CAPABILITY_VIEW_REPORTS = 3;
+  public final static int CAPABILITY_VIEW_REPORTS = IAuth.CAPABILITY_VIEW_REPORTS;
   /** Edit connections */
-  public final static int CAPABILITY_EDIT_CONNECTIONS = 4;
+  public final static int CAPABILITY_EDIT_CONNECTIONS = IAuth.CAPABILITY_EDIT_CONNECTIONS;
   /** Edit jobs */
-  public final static int CAPABILITY_EDIT_JOBS = 5;
+  public final static int CAPABILITY_EDIT_JOBS = IAuth.CAPABILITY_EDIT_JOBS;
   /** Run jobs */
-  public final static int CAPABILITY_RUN_JOBS = 6;
+  public final static int CAPABILITY_RUN_JOBS = IAuth.CAPABILITY_RUN_JOBS;
   
-  /** Verify UI login */
-  public boolean verifyUILogin(final String userId, final String password)
-    throws ManifoldCFException;
-
-  /** Verify API login */
-  public boolean verifyAPILogin(final String userId, final String password)
-    throws ManifoldCFException;
-	
   /** Check user capability */
-  public boolean checkCapability(final String userId, final int capability)
+  public boolean checkAllowed(final IThreadContext threadContext, final int capability)
     throws ManifoldCFException;
   
 }

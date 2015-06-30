@@ -3161,7 +3161,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   *@return read status - either found, not found, or bad args
   */
   public static int executeReadCommand(IThreadContext tc, Configuration output, String path,
-    Map<String,List<String>> queryParameters) throws ManifoldCFException
+    Map<String,List<String>> queryParameters, IAuthorizer authorizer) throws ManifoldCFException
   {
     if (path.equals("jobs"))
     {
@@ -3449,7 +3449,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   *@param input is the input object.
   *@return write result - either "not found", "found", or "created".
   */
-  public static int executePostCommand(IThreadContext tc, Configuration output, String path, Configuration input)
+  public static int executePostCommand(IThreadContext tc, Configuration output, String path, Configuration input, IAuthorizer authorizer)
     throws ManifoldCFException
   {
     if (path.equals("jobs"))
@@ -3918,7 +3918,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   *@param input is the input object.
   *@return write result - either "not found", "found", or "created".
   */
-  public static int executeWriteCommand(IThreadContext tc, Configuration output, String path, Configuration input)
+  public static int executeWriteCommand(IThreadContext tc, Configuration output, String path, Configuration input, IAuthorizer authorizer)
     throws ManifoldCFException
   {
     if (path.startsWith("start/"))
@@ -4162,7 +4162,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   *@param path is the object path.
   *@return delete result code
   */
-  public static int executeDeleteCommand(IThreadContext tc, Configuration output, String path)
+  public static int executeDeleteCommand(IThreadContext tc, Configuration output, String path, IAuthorizer authorizer)
     throws ManifoldCFException
   {
     if (path.startsWith("jobs/"))

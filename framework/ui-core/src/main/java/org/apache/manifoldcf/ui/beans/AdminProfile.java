@@ -30,7 +30,7 @@ import org.apache.manifoldcf.ui.passwords.PasswordMapper;
 * session model for the application.  This particular bean maintains the user (against
 * the IAdminUserManager service).
 */
-public class AdminProfile implements HttpSessionBindingListener
+public class AdminProfile implements HttpSessionBindingListener, IAuthorizer
 {
   public static final String _rcsid = "@(#)$Id: AdminProfile.java 988245 2010-08-23 18:39:35Z kwright $";
 
@@ -160,10 +160,22 @@ public class AdminProfile implements HttpSessionBindingListener
     passwordMapper = null;
   }
 
+  /** Check user capability */
+  @Override
+  public boolean checkAllowed(final IThreadContext threadContext, final int capability)
+    throws ManifoldCFException
+  {
+    if (!isLoggedIn)
+      return false;
+    IAuth auth = AuthFactory.make(threadContext);
+    // Check if everything is in place.
+    return auth.checkCapability(userID,capability);
+  }
 
   //*****************************************************************
   // Bind listener api - support session invalidation
   // vis logout or timeout
+  @Override
   public void valueBound(HttpSessionBindingEvent e)
   {
     HttpSession ss = e.getSession();
@@ -174,6 +186,7 @@ public class AdminProfile implements HttpSessionBindingListener
     }
   }
 
+  @Override
   public void valueUnbound(HttpSessionBindingEvent e)
   {
     sessionCleanup();

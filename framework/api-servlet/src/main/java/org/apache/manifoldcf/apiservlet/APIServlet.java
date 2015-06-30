@@ -289,7 +289,7 @@ public class APIServlet extends HttpServlet
     
     // There the only response distinction we have here is between exception and no exception.
     Configuration output = new Configuration();
-    int readResult = ManifoldCF.executeReadCommand(tc,output,command,queryParameters);
+    int readResult = ManifoldCF.executeReadCommand(tc,output,command,queryParameters,ap);
 
     // Output
     
@@ -406,7 +406,7 @@ public class APIServlet extends HttpServlet
     // Exception vs. no exception
     // OK vs CREATE (both with json response packets)
     Configuration output = new Configuration();
-    int writeResult = ManifoldCF.executeWriteCommand(tc,output,command,input);
+    int writeResult = ManifoldCF.executeWriteCommand(tc,output,command,input,ap);
     
     // Output
     
@@ -569,7 +569,7 @@ public class APIServlet extends HttpServlet
 
     
     Configuration output = new Configuration();
-    int writeResult = ManifoldCF.executePostCommand(tc,output,command,input);
+    int writeResult = ManifoldCF.executePostCommand(tc,output,command,input,ap);
     
     // Output
     
@@ -657,7 +657,7 @@ public class APIServlet extends HttpServlet
     
     // There the only response distinction we have here is between exception and no exception.
     Configuration output = new Configuration();
-    int result = ManifoldCF.executeDeleteCommand(tc,output,command);
+    int result = ManifoldCF.executeDeleteCommand(tc,output,command,ap);
     
     // Output
     String outputText = null;
