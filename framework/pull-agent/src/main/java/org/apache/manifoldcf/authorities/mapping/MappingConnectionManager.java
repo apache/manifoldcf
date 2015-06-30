@@ -214,8 +214,12 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
       // The second issue is that we need to generate Q up front.  This is easy enough; just keep a hash of connections
       // that have not been referenced (yet), and remove connections from the hash as refs are found.
       // Also interesting: we don't actually need to keep L.
+      
+      // The set of nodes with NO incoming edges
       Set<String> Q = new HashSet<String>();
+      // The set of links in the graph
       Set<String> links = new HashSet<String>();
+      // The count of the number of incoming links to a node
       Map<String,Integer> incomingCount = new HashMap<String,Integer>();
 
       for (int i = 0; i < connections.length; i++)
@@ -225,7 +229,19 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
       for (int i = 0; i < connections.length; i++)
       {
         String connectionName = connections[i].getName();
-        String prerequisite = connections[i].getPrerequisiteMapping();
+        String prerequisite;
+        if (connectionName.equals(startingConnectionName))
+        {
+          // We ignore what's saved and instead substitute a hypothetical
+          // There is a "proposed" edge from the current connection, ending at connectionToEvaluate,
+          // so for the purpose of determining cycles, add that one too into the graph
+          prerequisite = connectionToEvaluate.getName();
+        }
+        else
+        {
+          // Use what's actually saved
+          prerequisite = connections[i].getPrerequisiteMapping();
+        }
         if (prerequisite != null)
         {
           Integer x = incomingCount.get(prerequisite);
@@ -238,24 +254,26 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
         }
       }
 
-      // There is a "proposed" edge ending at connectionToEvaluate, so remove that one too
-      String thisConnectionName = connectionToEvaluate.getName();
-      Q.remove(thisConnectionName);
-      Integer x1 = incomingCount.get(thisConnectionName);
-      if (x1 == null)
-        incomingCount.put(thisConnectionName,new Integer(1));
-      else
-        incomingCount.put(thisConnectionName,new Integer(x1.intValue()+1));
-      links.add(startingConnectionName + ":" + thisConnectionName);
 
       // Now, repeat until Q is empty
       while (!Q.isEmpty())
       {
         Iterator<String> iter = Q.iterator();
         String checkConnectionName = iter.next();
+        Q.remove(checkConnectionName);
         // Get prereqs for the connection, those that are still in the graph
-        IMappingConnection sourceConnection = connectionMap.get(checkConnectionName);
-        String s = sourceConnection.getPrerequisiteMapping();
+        String s;
+        if (checkConnectionName.equals(startingConnectionName))
+        {
+          // We have a hypothetical link to evaluate and remove
+          s = connectionToEvaluate.getName();
+        }
+        else
+        {
+          IMappingConnection sourceConnection = connectionMap.get(checkConnectionName);
+          s = sourceConnection.getPrerequisiteMapping();
+        }
+        
         if (s != null)
         {
           String edgeName = checkConnectionName + ":" + s;
@@ -272,11 +290,12 @@ public class MappingConnectionManager extends org.apache.manifoldcf.core.databas
             }
             else
               incomingCount.put(s,new Integer(x.intValue() - 1));
+            
           }
         }
       }
       
-      // Any links remaining?
+      // If there are links, we've failed to remove them and thus they must be part of cycles
       if (links.isEmpty())
       {
         // No cycles.  Add this connection to the final list.
