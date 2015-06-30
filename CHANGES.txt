@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1220: User mapping prerequisite choices were broken,
+caused a hang when there were more than one.
+(Karl Wright)
+
 CONNECTORS-1218: Add lowerNames option on Tika extractor.
 (Shinichiro Abe)
 
