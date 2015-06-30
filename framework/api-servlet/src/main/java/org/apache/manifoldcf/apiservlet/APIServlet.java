@@ -319,6 +319,8 @@ public class APIServlet extends HttpServlet
 
     if (readResult == ManifoldCF.READRESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
+    else if (readResult == ManifoldCF.READRESULT_NOTALLOWED)
+      response.setStatus(response.SC_UNAUTHORIZED);
 
     byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
@@ -440,6 +442,8 @@ public class APIServlet extends HttpServlet
       response.setStatus(response.SC_CREATED);
     else if (writeResult == ManifoldCF.WRITERESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
+    else if (writeResult == ManifoldCF.WRITERESULT_NOTALLOWED)
+      response.setStatus(response.SC_UNAUTHORIZED);
     
     byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
@@ -603,7 +607,9 @@ public class APIServlet extends HttpServlet
       response.setStatus(response.SC_CREATED);
     else if (writeResult == ManifoldCF.POSTRESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
-    
+    else if (writeResult == ManifoldCF.POSTRESULT_NOTALLOWED)
+      response.setStatus(response.SC_UNAUTHORIZED);
+
     byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
     // Set response mime type
@@ -686,6 +692,9 @@ public class APIServlet extends HttpServlet
     
     if (result == ManifoldCF.DELETERESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
+    else if (result == ManifoldCF.DELETERESULT_NOTALLOWED)
+      response.setStatus(response.SC_UNAUTHORIZED);
+
     
     byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
