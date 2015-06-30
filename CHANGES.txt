@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.10-dev =====================
 
+CONNECTORS-1218: Add lowerNames option on Tika extractor.
+(Shinichiro Abe)
+
 CONNECTORS-1217: Fix documentation for api login parameters.
 (Karl Wright)
 
