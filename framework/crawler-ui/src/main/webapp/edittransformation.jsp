@@ -23,15 +23,26 @@
 %>
 
 <%
-    // The contract of this edit page is as follows.  It is either called directly, in which case it is expected to be creating
-    // a connection or beginning the process of editing an existing connection, or it is called via redirection from execute.jsp, in which case
-    // the connection object being edited will be placed in the thread context under the name "ConnectionObject".
-    try
-    {
+// The contract of this edit page is as follows.  It is either called directly, in which case it is expected to be creating
+// a connection or beginning the process of editing an existing connection, or it is called via redirection from execute.jsp, in which case
+// the connection object being edited will be placed in the thread context under the name "ConnectionObject".
+try
+{
+  // Check if authorized
+  if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+  {
+    variableContext.setParameter("target","listtransformations.jsp");
+%>
+    <jsp:forward page="unauthorized.jsp"/>
+<%
+  }
+
   // Get the connection manager handle
   ITransformationConnectionManager connMgr = TransformationConnectionManagerFactory.make(threadContext);
   // Also get the list of available connectors
   ITransformationConnectorManager connectorManager = TransformationConnectorManagerFactory.make(threadContext);
+
+  IResultSet set = connectorManager.getConnectors();
 
   // Figure out what the current tab name is.
   String tabName = variableContext.getParameter("tabname");
@@ -101,115 +112,115 @@
   <script type="text/javascript">
   <!--
 
-  // Use this method to repost the form and pick a new tab
-  function SelectTab(newtab)
+// Use this method to repost the form and pick a new tab
+function SelectTab(newtab)
+{
+  if (checkForm())
   {
-    if (checkForm())
-    {
-      document.editconnection.tabname.value = newtab;
-      document.editconnection.submit();
-    }
-  }
-
-  // Use this method to repost the form,
-  // and set the anchor request.
-  function postFormSetAnchor(anchorValue)
-  {
-    if (checkForm())
-    {
-      if (anchorValue != "")
-        document.editconnection.action = document.editconnection.action + "#" + anchorValue;
-      document.editconnection.submit();
-    }
-  }
-
-  // Use this method to repost the form
-  function postForm()
-  {
-    if (checkForm())
-    {
-      document.editconnection.submit();
-    }
-  }
-
-  function Save()
-  {
-    if (checkForm())
-    {
-      // Can't submit until all required fields have been set.
-      // Some of these don't live on the current tab, so don't set
-      // focus.
-
-      // Check our part of the form, for save
-      if (editconnection.connname.value == "")
-      {
-        alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"edittransformation.ConnectionMustHaveAName")%>");
-        SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"edittransformation.Name")%>");
-        document.editconnection.connname.focus();
-        return;
-      }
-      if (window.checkConfigForSave)
-      {
-        if (!checkConfigForSave())
-          return;
-      }
-      document.editconnection.op.value="Save";
-      document.editconnection.submit();
-    }
-  }
-
-  function Continue()
-  {
-    document.editconnection.op.value="Continue";
-    postForm();
-  }
-
-  function Cancel()
-  {
-    document.editconnection.op.value="Cancel";
+    document.editconnection.tabname.value = newtab;
     document.editconnection.submit();
   }
+}
 
-  function checkForm()
+// Use this method to repost the form,
+// and set the anchor request.
+function postFormSetAnchor(anchorValue)
+{
+  if (checkForm())
   {
-    if (!checkConnectionCount())
-      return false;
-    if (window.checkConfig)
-      return checkConfig();
+    if (anchorValue != "")
+      document.editconnection.action = document.editconnection.action + "#" + anchorValue;
+    document.editconnection.submit();
+  }
+}
+
+// Use this method to repost the form
+function postForm()
+{
+  if (checkForm())
+  {
+    document.editconnection.submit();
+  }
+}
+
+function Save()
+{
+  if (checkForm())
+  {
+    // Can't submit until all required fields have been set.
+    // Some of these don't live on the current tab, so don't set
+    // focus.
+
+    // Check our part of the form, for save
+    if (editconnection.connname.value == "")
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"edittransformation.ConnectionMustHaveAName")%>");
+      SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"edittransformation.Name")%>");
+      document.editconnection.connname.focus();
+      return;
+    }
+    if (window.checkConfigForSave)
+    {
+      if (!checkConfigForSave())
+        return;
+    }
+    document.editconnection.op.value="Save";
+    document.editconnection.submit();
+  }
+}
+
+function Continue()
+{
+  document.editconnection.op.value="Continue";
+  postForm();
+}
+
+function Cancel()
+{
+  document.editconnection.op.value="Cancel";
+  document.editconnection.submit();
+}
+
+function checkForm()
+{
+  if (!checkConnectionCount())
+    return false;
+  if (window.checkConfig)
+    return checkConfig();
+  return true;
+}
+
+function checkConnectionCount()
+{
+  if (!isInteger(editconnection.maxconnections.value))
+  {
+    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"edittransformation.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
+    editconnection.maxconnections.focus();
+    return false;
+  }
+  return true;
+}
+
+function isRegularExpression(value)
+{
+  try
+  {
+    var foo = "teststring";
+    foo.search(value.replace(/\(\?i\)/,""));
     return true;
   }
-
-  function checkConnectionCount()
+  catch (e)
   {
-    if (!isInteger(editconnection.maxconnections.value))
-    {
-      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"edittransformation.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
-      editconnection.maxconnections.focus();
-      return false;
-    }
-    return true;
+    return false;
   }
 
-  function isRegularExpression(value)
-  {
-    try
-    {
-      var foo = "teststring";
-                        foo.search(value.replace(/\(\?i\)/,""));
-      return true;
-    }
-    catch (e)
-    {
-      return false;
-    }
+}
 
-  }
-
-  function isInteger(value)
-  {
-    var anum=/(^\d+$)/;
-    return anum.test(value);
-  }
+function isInteger(value)
+{
+  var anum=/(^\d+$)/;
+  return anum.test(value);
+}
 
   //-->
   </script>
@@ -227,7 +238,6 @@
        <td class="darkwindow">
 <%
   // Get connector list; need this to decide what to do
-  IResultSet set = connectorManager.getConnectors();
   if (set.getRowCount() == 0)
   {
 %>
@@ -273,19 +283,19 @@
     int tabNum = 0;
     while (tabNum < tabsArray.size())
     {
-    String tab = (String)tabsArray.get(tabNum++);
-    if (tab.equals(tabName))
-    {
+      String tab = (String)tabsArray.get(tabNum++);
+      if (tab.equals(tabName))
+      {
 %>
           <td class="activetab"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></nobr></td>
 <%
-    }
-    else
-    {
+      }
+      else
+      {
 %>
           <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
 <%
-    }
+      }
     }
 %>
         </tr>
@@ -330,7 +340,7 @@
     }
     else
     {
-    // Hiddens for the Name tab
+      // Hiddens for the Name tab
 %>
         <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
         <input type="hidden" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
@@ -349,39 +359,39 @@
 <%
       if (className.length() > 0)
       {
-    String value = connectorManager.getDescription(className);
-    if (value == null)
-    {
+        String value = connectorManager.getDescription(className);
+        if (value == null)
+        {
 %>
           <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
 <%
-    }
-    else
-    {
+        }
+        else
+        {
 %>
           <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)%>
 <%
-    }
+        }
 %>
           <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
 <%
       }
       else
       {
-    int i = 0;
+        int i = 0;
 %>
           <select name="classname" size="1">
 <%
-    while (i < set.getRowCount())
-    {
-      IResultRow row = set.getRow(i++);
-      String thisClassName = row.getValue("classname").toString();
-      String thisDescription = row.getValue("description").toString();
+        while (i < set.getRowCount())
+        {
+          IResultRow row = set.getRow(i++);
+          String thisClassName = row.getValue("classname").toString();
+          String thisDescription = row.getValue("description").toString();
 %>
             <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisClassName)%>'
               <%=className.equals(thisClassName)?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
 <%
-    }
+        }
 %>
           </select>
 <%
@@ -394,7 +404,7 @@
     }
     else
     {
-    // Hiddens for the "Type" tab
+      // Hiddens for the "Type" tab
 %>
         <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
 <%
@@ -416,14 +426,14 @@
     }
     else
     {
-    // Hiddens for "Throttling" tab
+      // Hiddens for "Throttling" tab
 %>
         <input type="hidden" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/>
 <%
     }
 
     if (className.length() > 0)
-    TransformationConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabName);
+      TransformationConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabName);
 
 %>
         <table class="displaytable">
@@ -438,12 +448,12 @@
     }
     else
     {
-    if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"edittransformation.Type")))
-    {
+      if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"edittransformation.Type")))
+      {
 %>
           <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.ContinueToNextPage")%>"/>
 <%
-    }
+      }
     }
 %>
           &nbsp;<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.Cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.CancelTransformationConnectionEditing")%>"/></nobr></td>
@@ -467,15 +477,15 @@
 </html>
 
 <%
-    }
-    catch (ManifoldCFException e)
-    {
+}
+catch (ManifoldCFException e)
+{
   e.printStackTrace();
   variableContext.setParameter("text",e.getMessage());
   variableContext.setParameter("target","listtransformations.jsp");
 %>
   <jsp:forward page="error.jsp"/>
 <%
-    }
+}
 %>
 
