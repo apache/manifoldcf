@@ -31,7 +31,7 @@ try
   // Check if authorized
   if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
   {
-    variableContext.setParameter("target","listauthorities.jsp");
+    variableContext.setParameter("target","listconnections.jsp");
 %>
     <jsp:forward page="unauthorized.jsp"/>
 <%
