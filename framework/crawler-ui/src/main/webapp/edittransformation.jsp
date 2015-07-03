@@ -232,53 +232,54 @@ function isInteger(value)
 
 <body class="standardbody">
 
-    <table class="page">
-      <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-      <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
-       <td class="darkwindow">
+  <table class="page">
+    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
+    <tr>
+      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
+      <td class="darkwindow">
 <%
   // Get connector list; need this to decide what to do
   if (set.getRowCount() == 0)
   {
 %>
-  <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.EditTransformationConnection2")%></p>
-  <table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.NoTransformationConnectorsRegistered")%></td></tr></table>
+        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.EditTransformationConnection2")%></p>
+        <table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.NoTransformationConnectorsRegistered")%></td></tr></table>
 <%
   }
   else
   {
 %>
 
-  <form class="standardform" name="editconnection" action="execute.jsp" method="POST" enctype="multipart/form-data">
-      <input type="hidden" name="op" value="Continue"/>
-      <input type="hidden" name="type" value="transformation"/>
-      <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
-      <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
-      <table class="tabtable">
-        <tr class="tabspacerrow">
-    <td class="spacertab" colspan="<%=tabsArray.size()%>"></td>
-    <td class="remaindertab" rowspan="3">
+        <form class="standardform" name="editconnection" action="execute.jsp" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="op" value="Continue"/>
+          <input type="hidden" name="type" value="transformation"/>
+          <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
+          <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
+          <table class="tabtable">
+            <tr class="tabspacerrow">
+              <td class="spacertab" colspan="<%=tabsArray.size()%>"></td>
+              <td class="remaindertab" rowspan="3">
 <%
     if (description.length() > 0)
     {
 %>
-        <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.EditTransformationConnection")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
+                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.EditTransformationConnection")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
 <%
     }
     else
     {
 %>
 
-              <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.EditATransformationConnection")%></nobr>
+                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.EditATransformationConnection")%></nobr>
 <%
     }
 %>
-    </td>
-        </tr>
-        <tr class="tabsequencerow">
-    <td class="blanksequencetab" colspan="<%=tabsArray.size()%>"></td>
-        </tr>
-        <tr class="tabrow">
+              </td>
+            </tr>
+            <tr class="tabsequencerow">
+              <td class="blanksequencetab" colspan="<%=tabsArray.size()%>"></td>
+            </tr>
+            <tr class="tabrow">
 <%
     int tabNum = 0;
     while (tabNum < tabsArray.size())
@@ -287,20 +288,20 @@ function isInteger(value)
       if (tab.equals(tabName))
       {
 %>
-          <td class="activetab"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></nobr></td>
+              <td class="activetab"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></nobr></td>
 <%
       }
       else
       {
 %>
-          <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
+              <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
 <%
       }
     }
 %>
-        </tr>
-        <tr class="tabbodyrow">
-    <td class="tabbody" colspan='<%=Integer.toString(tabsArray.size()+1)%>'>
+            </tr>
+            <tr class="tabbodyrow">
+              <td class="tabbody" colspan='<%=Integer.toString(tabsArray.size()+1)%>'>
 <%
 
 
@@ -308,42 +309,45 @@ function isInteger(value)
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"edittransformation.Name")))
     {
 %>
-        <table class="displaytable">
-      <tr><td class="separator" colspan="5"><hr/></td></tr>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.NameColon")%></nobr></td><td class="value" colspan="4">
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="5"><hr/></td></tr>
+                  <tr>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.NameColon")%></nobr></td><td class="value" colspan="4">
 <%
       // If the connection doesn't exist yet, we are allowed to change the name.
       if (connection == null || connectionName.length() < 1)
       {
 %>
-          <input type="text" size="32" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+                      <input type="text" size="32" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
 <%
       }
       else
       {
 %>
-          <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%>
-          <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+                      <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%>
+                      <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
 <%
       }
 %>
-        </td>
-      </tr>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.DescriptionColon")%></nobr></td><td class="value" colspan="4">
-          <input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
-        </td>
-      </tr>
-        </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="description">
+                      <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.DescriptionColon")%></nobr>
+                    </td>
+                    <td class="value" colspan="4">
+                      <input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
+                    </td>
+                  </tr>
+                </table>
 <%
     }
     else
     {
       // Hiddens for the Name tab
 %>
-        <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
-        <input type="hidden" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
+                <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+                <input type="hidden" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
 <%
     }
 
@@ -352,10 +356,10 @@ function isInteger(value)
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"edittransformation.Type")))
     {
 %>
-        <table class="displaytable">
-      <tr><td class="separator" colspan="5"><hr/></td></tr>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.ConnectionTypeColon")%></nobr></td><td class="value" colspan="4">
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="5"><hr/></td></tr>
+                  <tr>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.ConnectionTypeColon")%></nobr></td><td class="value" colspan="4">
 <%
       if (className.length() > 0)
       {
@@ -363,24 +367,24 @@ function isInteger(value)
         if (value == null)
         {
 %>
-          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
+                      <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
 <%
         }
         else
         {
 %>
-          <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)%>
+                      <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)%>
 <%
         }
 %>
-          <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
+                      <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
 <%
       }
       else
       {
         int i = 0;
 %>
-          <select name="classname" size="1">
+                      <select name="classname" size="1">
 <%
         while (i < set.getRowCount())
         {
@@ -388,25 +392,26 @@ function isInteger(value)
           String thisClassName = row.getValue("classname").toString();
           String thisDescription = row.getValue("description").toString();
 %>
-            <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisClassName)%>'
-              <%=className.equals(thisClassName)?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+                        <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisClassName)%>'
+                      <%=className.equals(thisClassName)?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%>
+                        </option>
 <%
         }
 %>
-          </select>
+                      </select>
 <%
       }
 %>
-        </td>
-      </tr>
-        </table>
+                    </td>
+                  </tr>
+                </table>
 <%
     }
     else
     {
       // Hiddens for the "Type" tab
 %>
-        <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
+                <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
 <%
     }
 
@@ -415,20 +420,20 @@ function isInteger(value)
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"edittransformation.Throttling")))
     {
 %>
-        <table class="displaytable">
-      <tr><td class="separator" colspan="2"><hr/></td></tr>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.MaxConnectionsColon")%></nobr></td>
-        <td class="value"><input type="text" size="6" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/></td>
-      </tr>
-        </table>
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="2"><hr/></td></tr>
+                  <tr>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"edittransformation.MaxConnectionsColon")%></nobr></td>
+                    <td class="value"><input type="text" size="6" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/></td>
+                  </tr>
+                </table>
 <%
     }
     else
     {
       // Hiddens for "Throttling" tab
 %>
-        <input type="hidden" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/>
+                <input type="hidden" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/>
 <%
     }
 
@@ -436,14 +441,16 @@ function isInteger(value)
       TransformationConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabName);
 
 %>
-        <table class="displaytable">
-      <tr><td class="separator" colspan="4"><hr/></td></tr>
-      <tr><td class="message" colspan="4"><nobr>
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="4"><hr/></td></tr>
+                  <tr>
+                    <td class="message" colspan="4">
+                      <nobr>
 <%
     if (className.length() > 0)
     {
 %>
-          <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.SaveThisTransformationConnection")%>"/>
+                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.SaveThisTransformationConnection")%>"/>
 <%
     }
     else
@@ -451,26 +458,28 @@ function isInteger(value)
       if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"edittransformation.Type")))
       {
 %>
-          <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.ContinueToNextPage")%>"/>
+                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.ContinueToNextPage")%>"/>
 <%
       }
     }
 %>
-          &nbsp;<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.Cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.CancelTransformationConnectionEditing")%>"/></nobr></td>
-      </tr>
-        </table>
-    </td>
-        </tr>
-      </table>
-  </form>
+                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.Cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.CancelTransformationConnectionEditing")%>"/>
+                      </nobr>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </form>
 
 <%
   }
 %>
 
-       </td>
-      </tr>
-    </table>
+      </td>
+    </tr>
+  </table>
 
 </body>
 
