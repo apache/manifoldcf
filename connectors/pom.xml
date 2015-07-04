@@ -65,6 +65,7 @@
     <module>tika</module>
     <module>documentfilter</module>
     <module>searchblox</module>
+    <module>lucene</module>
   </modules>
 
 </project>
