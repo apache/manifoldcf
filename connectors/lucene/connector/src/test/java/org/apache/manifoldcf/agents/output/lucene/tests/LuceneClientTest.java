@@ -112,7 +112,7 @@ public class LuceneClientTest {
 
   @Test
   public void testGetClientFromManager() throws Exception {
-    String path = testDir.getAbsolutePath()+sep+"tmp"+sep+"getclientfrommager-index";
+    String path = testDir.getAbsolutePath()+sep+"tmp"+sep+"getclientfrommanager-index";
 
     LuceneClient client1 =
       LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
@@ -139,6 +139,7 @@ public class LuceneClientTest {
     client1.close();
     assertThat(client1.isOpen(), is(false));
     assertThat(client2.isOpen(), is(false));
+    assertThat(client1, is(client2));
 
     client3 =
       LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
@@ -272,18 +273,18 @@ public class LuceneClientTest {
       }
       assertThat(client.reader().docFreq(new Term(CONTENT, br)), is(3));
 
-      hits = searcher.search(client.newQuery(ID+":\\/repo\\/003"), 1);
+      hits = searcher.search(client.newQuery("id:\\/repo\\/003"), 1);
       Document storedDocument = searcher.doc(hits.scoreDocs[0].doc);
       assertThat(storedDocument.getField(CONTENT).stringValue(), is("Apache Solr"));
 
-      String rt = "realtime";
+      String nrt = "near-real-time";
       LuceneDocument doc4 = new LuceneDocument()
-        .addStringField(ID, rt, true);
-      client.addOrReplace(rt, doc4);
-      ManifoldCF.sleep(2000L);
-      assertThat(searcher.count(client.newQuery(ID+":"+rt)), is(0));
-      assertThat(client.newSearcher().count(client.newQuery(ID+":"+rt)), is(0));
-      assertThat(client.newRealtimeSearcher().count(client.newQuery(ID+":"+rt)), is(1));
+        .addStringField(ID, nrt, true);
+      client.addOrReplace(nrt, doc4);
+      ManifoldCF.sleep(1500L);
+      assertThat(searcher.count(client.newQuery(ID+":"+nrt)), is(0));
+      assertThat(client.newSearcher().count(client.newQuery(ID+":"+nrt)), is(0));
+      assertThat(client.newRealtimeSearcher().count(client.newQuery(ID+":"+nrt)), is(1));
     }
   }
 
@@ -297,19 +298,17 @@ public class LuceneClientTest {
 
     String path = testDir.getAbsolutePath()+sep+"tmp"+sep+"rd-index";
     try (LuceneClient client = new LuceneClient(new File(path).toPath())) {
-
-      Map<String,Map<String,Object>> fieldsInfo = client.fieldsInfo();
-
       LuceneDocument doc = new LuceneDocument();
-      doc = LuceneDocument.addField(doc, client.idField(), documentURI, fieldsInfo);
+
+      doc = LuceneDocument.addField(doc, client.idField(), documentURI, client.fieldsInfo());
 
       Iterator<String> it = rd.getFields();
       while (it.hasNext()) {
         String rdField = it.next();
-        if (fieldsInfo.containsKey(rdField)) {
+        if (client.fieldsInfo().containsKey(rdField)) {
           String[] values = rd.getFieldAsStrings(rdField);
           for (String value : values) {
-            doc = LuceneDocument.addField(doc, rdField, value, fieldsInfo);
+            doc = LuceneDocument.addField(doc, rdField, value, client.fieldsInfo());
           }
         }
       }
