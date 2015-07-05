@@ -22,65 +22,21 @@
 */
 %>
 
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html>
-<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
-  <title>
-    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ApacheManifoldCFViewJob")%>
-  </title>
-
-  <script type="text/javascript">
-  <!--
-
-  function Delete(jobID)
-  {
-    if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewjob.DeleteJobConfirmation")%>"))
-    {
-      document.viewjob.op.value="Delete";
-      document.viewjob.jobid.value=jobID;
-      document.viewjob.submit();
-    }
-  }
-
-  function StartOver(jobID)
-  {
-    if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewjob.StartOverConfirmation")%>"))
-    {
-      document.viewjob.op.value="StartOver";
-      document.viewjob.jobid.value=jobID;
-      document.viewjob.submit();
-    }
-  }
-
-  //-->
-  </script>
-
-</head>
-
-<body class="standardbody">
-
-    <table class="page">
-      <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-      <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
-       <td class="window">
-  <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ViewAJob")%></p>
-
-  <form class="standardform" name="viewjob" action="execute.jsp" method="POST">
-    <input type="hidden" name="op" value="Continue"/>
-    <input type="hidden" name="type" value="job"/>
-    <input type="hidden" name="jobid" value=""/>
-
 <%
-    try
-    {
+try
+{
+  // Check if authorized
+  if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_VIEW_JOBS))
+  {
+    variableContext.setParameter("target","index.jsp");
+%>
+    <jsp:forward page="unauthorized.jsp"/>
+<%
+  }
+
   // Get the job manager handle
   IJobManager manager = JobManagerFactory.make(threadContext);
-        IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
+  IOutputConnectionManager outputManager = OutputConnectionManagerFactory.make(threadContext);
   IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(threadContext);
   INotificationConnectionManager notificationManager = NotificationConnectionManagerFactory.make(threadContext);
   ITransformationConnectionManager transformationManager = TransformationConnectionManagerFactory.make(threadContext);
@@ -159,127 +115,182 @@
     int rowCounter = 0;
 
 %>
-    <table class="displaytable">
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NameColon")%></nobr></td>
-        <td class="value" colspan="3" ><%="<!--jobid="+jobID+"-->"%><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getDescription())%></td>
-      </tr>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.PipelineColon")%></nobr></td>
-        <td class="boxcell" colspan="3">
-          <table class="formtable">
-            <tr class="formheaderrow">
-              <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageNumber")%></nobr></td>
-              <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageType")%></nobr></td>
-              <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StagePrecedent")%></nobr></td>
-              <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageDescription")%></nobr></td>
-              <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageConnectionName")%></nobr></td>
+
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
+  <title>
+    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ApacheManifoldCFViewJob")%>
+  </title>
+
+  <script type="text/javascript">
+  <!--
+
+function Delete(jobID)
+{
+  if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewjob.DeleteJobConfirmation")%>"))
+  {
+    document.viewjob.op.value="Delete";
+    document.viewjob.jobid.value=jobID;
+    document.viewjob.submit();
+  }
+}
+
+function StartOver(jobID)
+{
+  if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewjob.StartOverConfirmation")%>"))
+  {
+    document.viewjob.op.value="StartOver";
+    document.viewjob.jobid.value=jobID;
+    document.viewjob.submit();
+  }
+}
+
+  //-->
+  </script>
+
+</head>
+
+<body class="standardbody">
+
+  <table class="page">
+    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
+    <tr>
+      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
+      <td class="window">
+        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ViewAJob")%></p>
+
+        <form class="standardform" name="viewjob" action="execute.jsp" method="POST">
+          <input type="hidden" name="op" value="Continue"/>
+          <input type="hidden" name="type" value="job"/>
+          <input type="hidden" name="jobid" value=""/>
+
+          <table class="displaytable">
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
             </tr>
-            <tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
-              <td class="formcolumncell">1.</td>
-              <td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Repository")%></td>
-              <td class="formcolumncell"></td>
-              <td class="formcolumncell"></td>
-              <td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></td>
+            <tr>
+              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NameColon")%></nobr></td>
+              <td class="value" colspan="3" ><%="<!--jobid="+jobID+"-->"%><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getDescription())%></td>
             </tr>
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.PipelineColon")%></nobr></td>
+              <td class="boxcell" colspan="3">
+                <table class="formtable">
+                  <tr class="formheaderrow">
+                    <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageNumber")%></nobr></td>
+                    <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageType")%></nobr></td>
+                    <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StagePrecedent")%></nobr></td>
+                    <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageDescription")%></nobr></td>
+                    <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageConnectionName")%></nobr></td>
+                  </tr>
+                  <tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
+                    <td class="formcolumncell">1.</td>
+                    <td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Repository")%></td>
+                    <td class="formcolumncell"></td>
+                    <td class="formcolumncell"></td>
+                    <td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></td>
+                  </tr>
 <%
     for (int j = 0; j < job.countPipelineStages(); j++)
     {
 %>
-            <tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
-              <td class="formcolumncell"><%=(j+2)%>.</td>
-              <td class="formcolumncell"><%=job.getPipelineStageIsOutputConnection(j)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Output"):Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Transformation")%></td>
-              <td class="formcolumncell"><%=(job.getPipelineStagePrerequisite(j)+2)%>.</td>
-              <td class="formcolumncell"><%=(job.getPipelineStageDescription(j)!=null)?org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getPipelineStageDescription(j)):""%></td>
-              <td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getPipelineStageConnectionName(j))%></td>
-            </tr>
+                  <tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
+                    <td class="formcolumncell"><%=(j+2)%>.</td>
+                    <td class="formcolumncell"><%=job.getPipelineStageIsOutputConnection(j)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Output"):Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Transformation")%></td>
+                    <td class="formcolumncell"><%=(job.getPipelineStagePrerequisite(j)+2)%>.</td>
+                    <td class="formcolumncell"><%=(job.getPipelineStageDescription(j)!=null)?org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getPipelineStageDescription(j)):""%></td>
+                    <td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getPipelineStageConnectionName(j))%></td>
+                  </tr>
 <%
     }
 %>
-          </table>
-        </td>
-      </tr>
-      <tr>
-        <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NotificationsColon")%></nobr></td>
-        <td class="boxcell" colspan="3">
-          <table class="formtable">
-            <tr class="formheaderrow">
-              <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageNumber")%></nobr></td>
-              <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NotificationDescription")%></nobr></td>
-              <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NotificationConnectionName")%></nobr></td>
+                </table>
+              </td>
             </tr>
+            <tr>
+              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NotificationsColon")%></nobr></td>
+              <td class="boxcell" colspan="3">
+                <table class="formtable">
+                  <tr class="formheaderrow">
+                    <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StageNumber")%></nobr></td>
+                    <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NotificationDescription")%></nobr></td>
+                    <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NotificationConnectionName")%></nobr></td>
+                  </tr>
 <%
     for (int j = 0; j < job.countNotifications(); j++)
     {
 %>
-            <tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
-              <td class="formcolumncell"><%=(j+job.countPipelineStages()+2)%>.</td>
-              <td class="formcolumncell"><%=(job.getNotificationDescription(j)!=null)?org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getNotificationDescription(j)):""%></td>
-              <td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getNotificationConnectionName(j))%></td>
-            </tr>
+                  <tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
+                    <td class="formcolumncell"><%=(j+job.countPipelineStages()+2)%>.</td>
+                    <td class="formcolumncell"><%=(job.getNotificationDescription(j)!=null)?org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getNotificationDescription(j)):""%></td>
+                    <td class="formcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(job.getNotificationConnectionName(j))%></td>
+                  </tr>
 <%
     }
     if (job.countNotifications() == 0)
     {
 %>
-            <tr class="formrow"><td class="formcolumnmessage" colspan="3"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NoNotificationConnections")%></td></tr>
+                  <tr class="formrow"><td class="formcolumnmessage" colspan="3"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NoNotificationConnections")%></td></tr>
 <%
     }
 %>
-          </table>
-        </td>
-      </tr>
+                </table>
+              </td>
+            </tr>
 
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.PriorityColon")%></nobr></td>
-        <td class="value"><%=priority%></td>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StartMethodColon")%></nobr></td>
-        <td class="value"><%=startMethod%></td>
-      </tr>
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.PriorityColon")%></nobr></td>
+              <td class="value"><%=priority%></td>
+              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.StartMethodColon")%></nobr></td>
+              <td class="value"><%=startMethod%></td>
+            </tr>
 <%
     if (model != -1 && model != IRepositoryConnector.MODEL_ADD_CHANGE_DELETE)
     {
 %>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ScheduleTypeColon")%></nobr></td>
-        <td class="value" colspan="3"><nobr><%=jobType%></nobr></td>
-      </tr>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MinimumRecrawlIntervalColon")%></nobr></td>
-        <td class="value"><nobr><%=intervalString%></nobr></td>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MaximumRecrawlIntervalColon")%></nobr></td>
-        <td class="value"><nobr><%=maxIntervalString%></nobr></td>
-      </tr>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ExpirationIntervalColon")%></nobr></td>
-        <td class="value"><nobr><%=expirationIntervalString%></nobr></td>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ReseedIntervalColon")%></nobr></td>
-        <td class="value"><nobr><%=reseedIntervalString%></nobr></td>
-      </tr>
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ScheduleTypeColon")%></nobr></td>
+              <td class="value" colspan="3"><nobr><%=jobType%></nobr></td>
+            </tr>
+            <tr>
+              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MinimumRecrawlIntervalColon")%></nobr></td>
+              <td class="value"><nobr><%=intervalString%></nobr></td>
+              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MaximumRecrawlIntervalColon")%></nobr></td>
+              <td class="value"><nobr><%=maxIntervalString%></nobr></td>
+            </tr>
+            <tr>
+              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ExpirationIntervalColon")%></nobr></td>
+              <td class="value"><nobr><%=expirationIntervalString%></nobr></td>
+              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ReseedIntervalColon")%></nobr></td>
+              <td class="value"><nobr><%=reseedIntervalString%></nobr></td>
+            </tr>
 <%
     }
 %>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
 
 <%
     if (job.getScheduleRecordCount() == 0)
     {
 %>
-      <tr><td class="message" colspan="4"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NoScheduledRunTimes")%></td></tr>
+            <tr><td class="message" colspan="4"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.NoScheduledRunTimes")%></td></tr>
 <%
     }
     else
@@ -301,15 +312,15 @@
         if (j > 0)
         {
 %>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
 <%
         }
 %>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ScheduledTimeColon")%></nobr></td>
-        <td class="value" colspan="3">
+            <tr>
+              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ScheduledTimeColon")%></nobr></td>
+              <td class="value" colspan="3">
 <%
           if (srDayOfWeek == null)
             out.println(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Anydayoftheweek"));
@@ -585,32 +596,32 @@
             out.println(sb.toString());
           }
 %>
-        </td>
-      </tr>
-      <tr>
-        <td class="description">
-          <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MaximumRunTimeColon")%>
-        </td>
-        <td class="value">
+              </td>
+            </tr>
+            <tr>
+              <td class="description">
+                <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MaximumRunTimeColon")%>
+              </td>
+              <td class="value">
 <%
           if (srDuration == null)
             out.println(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Nolimit"));
           else
             out.println(new Long(srDuration.longValue()/60000L).toString() + " "+Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.minutes"));
 %>
-        </td>
-        <td class="description">
-          <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.JobInvocationColon")%>
-        </td>
-        <td class="value">
+              </td>
+              <td class="description">
+                <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.JobInvocationColon")%>
+              </td>
+              <td class="value">
 <%
           if (srRequestMinimum)
             out.println(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Minimal"));
           else
             out.println(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Complete"));
 %>
-        </td>
-      </tr>
+              </td>
+            </tr>
 <%
         j++;
       }
@@ -619,9 +630,9 @@
     if (relationshipTypes != null && relationshipTypes.length > 0)
     {
 %>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
 <%
       int k = 0;
       while (k < relationshipTypes.length)
@@ -629,45 +640,45 @@
         String relationshipType = relationshipTypes[k++];
         Long value = (Long)hopCountFilters.get(relationshipType);
 %>
-      <tr>
-        <td class="description" colspan="1">
-          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MaximumHopCountForLinkType")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(relationshipType)%>':</nobr>
-        </td>
-        <td class="value" colspan="3">
-          <%=((value==null)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Unlimited"):value.toString())%>
-        </td>
-      </tr>
+            <tr>
+              <td class="description" colspan="1">
+                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.MaximumHopCountForLinkType")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(relationshipType)%>':</nobr>
+              </td>
+              <td class="value" colspan="3">
+                <%=((value==null)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Unlimited"):value.toString())%>
+              </td>
+            </tr>
 
 <%
       }
 %>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td class="description" colspan="1">
-          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.HopCountModeColon")%></nobr>
-        </td>
-        <td class="value" colspan="3">
-          <nobr>
-            <%=(hopcountMode==IJobDescription.HOPCOUNT_ACCURATE)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Deleteunreachabledocuments"):""%>
-            <%=(hopcountMode==IJobDescription.HOPCOUNT_NODELETE)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Nodeletesfornow"):""%>
-            <%=(hopcountMode==IJobDescription.HOPCOUNT_NEVERDELETE)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Nodeletesforever"):""%>
-          </nobr>
-        </td>
-      </tr>
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="description" colspan="1">
+                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.HopCountModeColon")%></nobr>
+              </td>
+              <td class="value" colspan="3">
+                <nobr>
+                  <%=(hopcountMode==IJobDescription.HOPCOUNT_ACCURATE)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Deleteunreachabledocuments"):""%>
+                  <%=(hopcountMode==IJobDescription.HOPCOUNT_NODELETE)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Nodeletesfornow"):""%>
+                  <%=(hopcountMode==IJobDescription.HOPCOUNT_NEVERDELETE)?Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Nodeletesforever"):""%>
+                </nobr>
+              </td>
+            </tr>
 <%
 
     }
 %>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td class="message" colspan="4">1.</td>
-      </tr>
-      <tr>
-        <td colspan="4">
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="message" colspan="4">1.</td>
+            </tr>
+            <tr>
+              <td colspan="4">
 <%
     if (connection != null)
     {
@@ -685,20 +696,20 @@
       }
     }
 %>
-        </td>
-      </tr>
+              </td>
+            </tr>
 <%
     for (int j = 0; j < job.countPipelineStages(); j++)
     {
 %>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td class="message" colspan="4"><%=(j+2)%>.</td>
-      </tr>
-      <tr>
-        <td colspan="4">
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="message" colspan="4"><%=(j+2)%>.</td>
+            </tr>
+            <tr>
+              <td colspan="4">
 <%
       Specification os = job.getPipelineStageSpecification(j);
       if (job.getPipelineStageIsOutputConnection(j))
@@ -734,22 +745,22 @@
         }
       }
 %>
-        </td>
-      </tr>
+              </td>
+            </tr>
 <%
     }
 
     for (int j = 0; j < job.countNotifications(); j++)
     {
 %>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td class="message" colspan="4"><%=(j+job.countPipelineStages()+2)%>.</td>
-      </tr>
-      <tr>
-        <td colspan="4">
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="message" colspan="4"><%=(j+job.countPipelineStages()+2)%>.</td>
+            </tr>
+            <tr>
+              <td colspan="4">
 <%
       Specification os = job.getNotificationSpecification(j);
       INotificationConnection thisConnection = notificationManager.load(job.getNotificationConnectionName(j));
@@ -766,44 +777,44 @@
         }
       }
 %>
-        </td>
-      </tr>
+              </td>
+            </tr>
 <%
     }
 
 %>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td class="message" colspan="4">
-          <nobr>
-            <a href='<%="editjob.jsp?jobid="+jobID%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.EditThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Edit")%></a>
-            <a href='<%="javascript:Delete(\""+jobID+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.DeleteThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Delete")%></a>
-            <a href='<%="editjob.jsp?origjobid="+jobID%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.CopyThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Copy")%></a>
-            <a href='<%="javascript:StartOver(\""+jobID+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.ResetSeedingThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ResetSeeding")%></a>
-          </nobr>
-        </td>
-      </tr>
-    </table>
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="message" colspan="4">
+                <nobr>
+                  <a href='<%="editjob.jsp?jobid="+jobID%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.EditThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Edit")%></a>
+                  <a href='<%="javascript:Delete(\""+jobID+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.DeleteThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Delete")%></a>
+                  <a href='<%="editjob.jsp?origjobid="+jobID%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.CopyThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Copy")%></a>
+                  <a href='<%="javascript:StartOver(\""+jobID+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.ResetSeedingThisJob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ResetSeeding")%></a>
+                </nobr>
+              </td>
+            </tr>
+          </table>
 
 <%
   }
-    }
-    catch (ManifoldCFException e)
-    {
+}
+catch (ManifoldCFException e)
+{
   e.printStackTrace();
   variableContext.setParameter("text",e.getMessage());
   variableContext.setParameter("target","listjobs.jsp");
 %>
   <jsp:forward page="error.jsp"/>
 <%
-    }
+}
 %>
-      </form>
-       </td>
-      </tr>
-    </table>
+        </form>
+      </td>
+    </tr>
+  </table>
 
 </body>
 

@@ -22,51 +22,17 @@
 */
 %>
 
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html>
-<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
-  <title>
-    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.ApacheManifoldCFViewMappingConnectionStatus")%>
-  </title>
-
-  <script type="text/javascript">
-  <!--
-
-  function Delete(connectionName)
-  {
-    if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewmapper.DeleteConnection")%> '"+connectionName+"'<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewmapper.qmark")%>"))
-    {
-      document.viewconnection.op.value="Delete";
-      document.viewconnection.connname.value=connectionName;
-      document.viewconnection.submit();
-    }
-  }
-
-  //-->
-  </script>
-
-</head>
-
-<body class="standardbody">
-
-    <table class="page">
-      <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-      <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
-       <td class="window">
-  <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.ViewMappingConnectionStatus")%></p>
-  <form class="standardform" name="viewconnection" action="execute.jsp" method="POST">
-    <input type="hidden" name="op" value="Continue"/>
-    <input type="hidden" name="type" value="mapper"/>
-    <input type="hidden" name="connname" value=""/>
-
 <%
-    try
-    {
+try
+{
+  // Check if authorized
+  if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+  {
+    variableContext.setParameter("target","index.jsp");
+%>
+    <jsp:forward page="unauthorized.jsp"/>
+<%
+  }
   IMappingConnectionManager manager = MappingConnectionManagerFactory.make(threadContext);
   IMappingConnectorManager connectorManager = MappingConnectorManagerFactory.make(threadContext);
   IMappingConnectorPool mappingConnectorPool = MappingConnectorPoolFactory.make(threadContext);
@@ -116,92 +82,138 @@
       connectionStatus = Messages.getString(pageContext.getRequest().getLocale(),"viewmapper.Threwexception")+" '"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
     }
 %>
-    <table class="displaytable">
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.NameColon")%></nobr></td>
-        <td class="value" colspan="1"><%="<!--connection="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)+"-->"%><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></nobr></td>
-        <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.DescriptionColon")%></nobr></td>
-        <td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
-      </tr>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.MapperTypeColon")%></nobr></td>
-        <td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></nobr></td>
-        <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.MaxConnectionsColon")%></nobr></td>
-        <td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(Integer.toString(maxCount))%></td>
-      </tr>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.PrerequisiteUserMappingColon")%></nobr></td>
-        <td class="value" colspan="3">
+
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
+  <title>
+    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.ApacheManifoldCFViewMappingConnectionStatus")%>
+  </title>
+
+  <script type="text/javascript">
+  <!--
+
+function Delete(connectionName)
+{
+  if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewmapper.DeleteConnection")%> '"+connectionName+"'<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewmapper.qmark")%>"))
+  {
+    document.viewconnection.op.value="Delete";
+    document.viewconnection.connname.value=connectionName;
+    document.viewconnection.submit();
+  }
+}
+
+  //-->
+  </script>
+
+</head>
+
+<body class="standardbody">
+
+  <table class="page">
+    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
+    <tr>
+      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
+      <td class="window">
+        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.ViewMappingConnectionStatus")%></p>
+        <form class="standardform" name="viewconnection" action="execute.jsp" method="POST">
+          <input type="hidden" name="op" value="Continue"/>
+          <input type="hidden" name="type" value="mapper"/>
+          <input type="hidden" name="connname" value=""/>
+
+          <table class="displaytable">
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.NameColon")%></nobr></td>
+              <td class="value" colspan="1"><%="<!--connection="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)+"-->"%><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></nobr></td>
+              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.DescriptionColon")%></nobr></td>
+              <td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
+            </tr>
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.MapperTypeColon")%></nobr></td>
+              <td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></nobr></td>
+              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.MaxConnectionsColon")%></nobr></td>
+              <td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(Integer.toString(maxCount))%></td>
+            </tr>
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.PrerequisiteUserMappingColon")%></nobr></td>
+              <td class="value" colspan="3">
 <%
     if (prereq != null)
     {
 %>
-          <nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(prereq)%></nobr><br/>
+                <nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(prereq)%></nobr><br/>
 <%
     }
     else
     {
 %>
-          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.NoPrerequisites")%></nobr>
+                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.NoPrerequisites")%></nobr>
 <%
     }
 %>
-        </td>
-      </tr>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td colspan="4">
+              </td>
+            </tr>
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td colspan="4">
 <%
     MappingConnectorFactory.viewConfiguration(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters);
 %>
 
-        </td>
-      </tr>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-      <tr>
-        <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.ConnectionStatusColon")%></nobr></td>
-        <td class="value" colspan="3"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionStatus)%></td>
-      </tr>
-      <tr>
-        <td class="separator" colspan="4"><hr/></td>
-      </tr>
-    <tr><td class="message" colspan="4">
-      <nobr><a href='<%="viewmapper.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.Refresh")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.Refresh")%></a></nobr>
-      <nobr><a href='<%="editmapper.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.EditThisMappingConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.Edit")%></a></nobr>
-      <nobr><a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.DeleteThisMappingConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.Delete")%></a></nobr>
-    </td></tr>
-    </table>
+              </td>
+            </tr>
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.ConnectionStatusColon")%></nobr></td>
+              <td class="value" colspan="3"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionStatus)%></td>
+            </tr>
+            <tr> 
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="message" colspan="4">
+                <nobr><a href='<%="viewmapper.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.Refresh")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.Refresh")%></a></nobr>
+                <nobr><a href='<%="editmapper.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.EditThisMappingConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.Edit")%></a></nobr>
+                <nobr><a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.DeleteThisMappingConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.Delete")%></a></nobr>
+              </td>
+            </tr>
+          </table>
 
 <%
   }
-    }
-    catch (ManifoldCFException e)
-    {
+}
+catch (ManifoldCFException e)
+{
   e.printStackTrace();
   variableContext.setParameter("text",e.getMessage());
   variableContext.setParameter("target","listmappers.jsp");
 %>
   <jsp:forward page="error.jsp"/>
 <%
-    }
+}
 %>
-      </form>
+        </form>
        </td>
-      </tr>
-    </table>
+    </tr>
+  </table>
 
 </body>
 
