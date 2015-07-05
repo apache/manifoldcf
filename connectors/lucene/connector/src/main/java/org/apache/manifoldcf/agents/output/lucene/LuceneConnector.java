@@ -17,7 +17,8 @@
 package org.apache.manifoldcf.agents.output.lucene;
 
 import java.io.IOException;
-import java.io.StringWriter;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,7 +26,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
@@ -336,9 +336,17 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
 
     try
     {
-      StringWriter writer = new StringWriter();
-      IOUtils.copy(document.getBinaryStream(), writer, StandardCharsets.UTF_8);
-      doc = LuceneDocument.addField(doc, client.contentField(), writer.toString(), client.fieldsInfo());
+      Reader r = new InputStreamReader(document.getBinaryStream(), StandardCharsets.UTF_8);
+      StringBuilder sb = new StringBuilder((int)document.getBinaryLength());
+      char[] buffer = new char[65536];
+      while (true)
+      {
+        int amt = r.read(buffer,0,buffer.length);
+        if (amt == -1)
+          break;
+        sb.append(buffer,0,amt);
+      }
+      doc = LuceneDocument.addField(doc, client.contentField(), sb.toString(), client.fieldsInfo());
     } catch (Exception e) {
       if (e instanceof IOException) {
         Logging.connectors.error("[Parsing Content]Content is not text plain, verify you are properly using Apache Tika Transformer " + documentURI, e);
