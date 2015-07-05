@@ -118,7 +118,7 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
       {
         client.close();
       } catch (IOException e) {
-        Logging.connectors.error("disconnect fails:", e);
+        Logging.connectors.error("Failed to disconnect:", e);
       }
       client = null;
       expirationTime = -1L;
@@ -128,7 +128,7 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
 
   protected void getSession() throws ManifoldCFException
   {
-    if (client == null)
+    if (client == null || !client.isOpen())
     {
       final String path = params.getParameter(LuceneConfig.PARAM_PATH);
       if (path == null)
@@ -203,7 +203,7 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
         {
           client.close();
         } catch (IOException e) {
-          Logging.connectors.error("poll fails:", e);
+          Logging.connectors.error("Failed to poll:", e);
         }
         client = null;
         expirationTime = -1L;
@@ -313,14 +313,14 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
   {
     getSession();
 
-    LuceneDocument inputDoc = buildDocument(documentURI, document);
-
     long startTime = System.currentTimeMillis();
     try
     {
+      LuceneDocument inputDoc = buildDocument(documentURI, document);
       client.addOrReplace(documentURI, inputDoc);
       activities.recordActivity(startTime, INGEST_ACTIVITY, null, documentURI, "OK", "Document Indexed");
-    } catch (IOException e) {
+    } catch (Exception e) {
+      Logging.connectors.error("Failed to addOrReplaceDocumentWithException:" + documentURI, e);
       String activityCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
       String activityDetails = e.getMessage() + ((e.getCause() != null) ? ": "+ e.getCause().getMessage() : "");
       activities.recordActivity(startTime, INGEST_ACTIVITY, null, documentURI, activityCode, activityDetails);
@@ -329,7 +329,7 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
     return DOCUMENTSTATUS_ACCEPTED;
   }
 
-  private LuceneDocument buildDocument(String documentURI, RepositoryDocument document) {
+  private LuceneDocument buildDocument(String documentURI, RepositoryDocument document) throws Exception {
     LuceneDocument doc = new LuceneDocument();
 
     doc = LuceneDocument.addField(doc, client.idField(), documentURI, client.fieldsInfo());
@@ -339,8 +339,12 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
       StringWriter writer = new StringWriter();
       IOUtils.copy(document.getBinaryStream(), writer, StandardCharsets.UTF_8);
       doc = LuceneDocument.addField(doc, client.contentField(), writer.toString(), client.fieldsInfo());
-    } catch (IOException e) {
-      Logging.connectors.error("[Parsing Content]Content is not text plain, verify you are properly using Apache Tika Transformer", e);
+    } catch (Exception e) {
+      if (e instanceof IOException) {
+        Logging.connectors.error("[Parsing Content]Content is not text plain, verify you are properly using Apache Tika Transformer " + documentURI, e);
+      } else {
+        throw e;
+      }
     }
 
     Iterator<String> it = document.getFields();
@@ -354,7 +358,7 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
             doc = LuceneDocument.addField(doc, rdField, value, client.fieldsInfo());
           }
         } catch (IOException e) {
-          Logging.connectors.error("[Getting Field Values]Impossible to read value for metadata " + rdField, e);
+          Logging.connectors.error("[Getting Field Values]Impossible to read value for metadata " + rdField + " " + documentURI, e);
         }
       }
     }
@@ -413,7 +417,7 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
     {
       client.optimize();
     } catch (IOException e) {
-      Logging.connectors.error("noteJobComplete fails:", e);
+      Logging.connectors.error("Failed to noteJobComplete:", e);
     }
   }
 

@@ -41,7 +41,7 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.queryparser.flexible.core.QueryNodeException;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.MatchNoDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -130,12 +130,11 @@ public class LuceneClient implements Closeable {
     Analyzer indexAnalyzer = new PerFieldAnalyzerWrapper(new KeywordAnalyzer(), fieldIndexAnalyzers);
     Analyzer queryAnalyzer = new PerFieldAnalyzerWrapper(new KeywordAnalyzer(), fieldQueryAnalyzers);
 
-    IndexWriterConfig config
-      = new IndexWriterConfig(indexAnalyzer)
-        .setOpenMode(OpenMode.CREATE_OR_APPEND)
-        .setUseCompoundFile(false)
-        .setCommitOnClose(IndexWriterConfig.DEFAULT_COMMIT_ON_CLOSE)
-        .setRAMBufferSizeMB(IndexWriterConfig.DEFAULT_RAM_BUFFER_SIZE_MB * 6);
+    IndexWriterConfig config = new IndexWriterConfig(indexAnalyzer)
+      .setOpenMode(OpenMode.CREATE_OR_APPEND)
+      .setUseCompoundFile(false)
+      .setCommitOnClose(IndexWriterConfig.DEFAULT_COMMIT_ON_CLOSE)
+      .setRAMBufferSizeMB(IndexWriterConfig.DEFAULT_RAM_BUFFER_SIZE_MB * 6);
 
     Directory fsDir = FSDirectory.open(path);
     NRTCachingDirectory cachedDir = new NRTCachingDirectory(fsDir, 4, 48);
@@ -215,7 +214,7 @@ public class LuceneClient implements Closeable {
     return analyzersMap;
   }
 
-  private Map<String,Analyzer> createFieldAnalyzers(Map<String,Analyzer> analyzersMap, String target) throws IOException {
+  private Map<String,Analyzer> createFieldAnalyzers(Map<String,Analyzer> analyzersMap, String target) {
     Map<String,Analyzer> fieldAnalyzers = Maps.newHashMap();
     for (Map.Entry<String,Map<String,Object>> e : fieldsInfo.entrySet()) {
       if (e.getValue().get(ATTR_FIELDTYPE).toString().equals(FIELDTYPE_TEXT)) {
@@ -360,11 +359,11 @@ public class LuceneClient implements Closeable {
 
   public Query newQuery(String queryString) {
     String qstr = Objects.firstNonNull(queryString, "*:*");
-    Query query = null;
+    Query query;
     try {
       query = queryParser.parse(qstr, contentField);
     } catch (QueryNodeException e) {
-      query = new MatchAllDocsQuery();
+      query = new MatchNoDocsQuery();
     }
     return query;
   }
@@ -372,7 +371,7 @@ public class LuceneClient implements Closeable {
   public static String defaultPath() {
     String sep = StandardSystemProperty.FILE_SEPARATOR.value();
     String userDir = StandardSystemProperty.USER_DIR.value();
-    return userDir+sep+"lucene"+sep+"data"+sep+"index";
+    return userDir+sep+"lucene"+sep+"collection1"+sep+"data"+sep+"index";
   }
 
   public static String defaultCharfilters() {

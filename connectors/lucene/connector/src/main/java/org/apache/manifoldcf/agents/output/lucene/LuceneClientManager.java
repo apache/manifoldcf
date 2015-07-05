@@ -8,7 +8,6 @@ import com.google.common.collect.Maps;
 public class LuceneClientManager {
 
   private static Map<String,LuceneClient> clients = Maps.newHashMap();
-  private static Map<String,String> versionStrings = Maps.newHashMap();
 
   private LuceneClientManager() { }
 
@@ -36,7 +35,7 @@ public class LuceneClientManager {
           LuceneClient.parseAsMap(analyzers),
           LuceneClient.parseAsMap(fields),
           idField, contentField);
-      String activeVersion = versionStrings.get(path);
+      String activeVersion = client.versionString();
       if (!activeVersion.equals(latestVersion)) {
         throw new IllegalStateException("The connection on this path is active. Can not update to the latest settings."
           + " Active settings:" + activeVersion
@@ -56,7 +55,6 @@ public class LuceneClientManager {
                            charfilters, tokenizers, filters, analyzers, fields,
                            idField, contentField);
     clients.put(path, client);
-    versionStrings.put(path, client.versionString());
     return client;
   }
 
