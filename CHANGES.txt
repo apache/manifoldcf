@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1131: Add infrastructure for controlling individual
+user access to parts of the UI and API, also allow this to be
+configured via LDAP.
+
 CONNECTORS-1220: User mapping prerequisite choices were broken,
 caused a hang when there were more than one.
 (Karl Wright)
