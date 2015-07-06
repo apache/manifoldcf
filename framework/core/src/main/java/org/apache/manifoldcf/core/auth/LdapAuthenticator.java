@@ -42,7 +42,7 @@ public class LdapAuthenticator implements IAuth {
   
   private static final String PROVIDER_URL_PROPERTY = "org.apache.manifoldcf.login.ldap.providerurl";
   private static final String SECURITY_AUTHENTICATION_TYPE = "org.apache.manifoldcf.login.ldap.securityauthenticationtype";
-  private static final String SECURITY_PRINCIPLE = "org.apache.manifoldcf.login.ldap.securityprinciple";
+  private static final String SECURITY_PRINCIPLE = "org.apache.manifoldcf.login.ldap.securityprincipal";
   private static final String CONTEXT_SEARCH_QUERY = "org.apache.manifoldcf.login.ldap.contextsearchquery";
   private static final String SEARCH_ATTRIBUTE = "org.apache.manifoldcf.login.ldap.searchattribute";
 
@@ -55,10 +55,10 @@ public class LdapAuthenticator implements IAuth {
   /** Constructor */
   public LdapAuthenticator(final IThreadContext threadContext)
     throws ManifoldCFException {
-    securityPrincipal = LockManagerFactory.getStringProperty(threadContext,SECURITY_PRINCIPLE,"???");
+    securityPrincipal = LockManagerFactory.getStringProperty(threadContext,SECURITY_PRINCIPLE,"");
     securityAuthenticationType = LockManagerFactory.getStringProperty(threadContext,SECURITY_AUTHENTICATION_TYPE,"simple");
     providerURLProperty = LockManagerFactory.getStringProperty(threadContext,PROVIDER_URL_PROPERTY,"");
-    contextSearchQuery = LockManagerFactory.getStringProperty(threadContext,CONTEXT_SEARCH_QUERY,"???");
+    contextSearchQuery = LockManagerFactory.getStringProperty(threadContext,CONTEXT_SEARCH_QUERY,"");
     searchAttribute = LockManagerFactory.getStringProperty(threadContext,SEARCH_ATTRIBUTE,"uid");
   }
   
