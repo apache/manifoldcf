@@ -443,7 +443,7 @@ public class LuceneClient implements Closeable {
   }
 
   public static Long defaultMaximumDocumentLength() {
-    return new Long(2100000000L);
+    return new Long(700000000L);
   }
 
 }
