@@ -162,11 +162,16 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
       if (contentField == null)
         throw new ManifoldCFException("content field not configured");
 
+      final String maxDocumentLength = params.getParameter(LuceneConfig.PARAM_MAXIMUMDOCUMENTLENGTH);
+      if (maxDocumentLength == null)
+        throw new ManifoldCFException("maximum document length not configured");
+      Long maximumDocumentLength = new Long(maxDocumentLength);
+
       try
       {
         client = LuceneClientManager.getClient(path,
                    charfilters, tokenizers, filters, analyzers, fields,
-                   idField, contentField);
+                   idField, contentField, maximumDocumentLength);
       }
       catch (Exception e)
       {
@@ -273,6 +278,9 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
   public boolean checkLengthIndexable(VersionContext outputDescription,
       long length, IOutputCheckActivity activities)
       throws ManifoldCFException, ServiceInterruption {
+    getSession();
+    if (length > client.maximumDocumentLength())
+      return false;
     return true;
   }
 
@@ -312,6 +320,11 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
     throws ManifoldCFException, ServiceInterruption, IOException
   {
     getSession();
+
+    if (client.maximumDocumentLength() != null && document.getBinaryLength() > client.maximumDocumentLength().longValue()){
+      activities.recordActivity(null, INGEST_ACTIVITY, null, documentURI, activities.EXCLUDED_LENGTH, "Lucene connector rejected document due to its big size: ('"+document.getBinaryLength()+"')");
+      return DOCUMENTSTATUS_REJECTED;
+    }
 
     long startTime = System.currentTimeMillis();
     try
@@ -520,6 +533,11 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
       contentField = LuceneClient.defaultContentField();
     map.put(LuceneConfig.PARAM_CONTENTFIELD, contentField);
 
+    String maximumDocumentLength = configParams.getParameter(LuceneConfig.PARAM_MAXIMUMDOCUMENTLENGTH);
+    if (maximumDocumentLength == null)
+      maximumDocumentLength = LuceneClient.defaultMaximumDocumentLength().toString();
+    map.put(LuceneConfig.PARAM_MAXIMUMDOCUMENTLENGTH, maximumDocumentLength);
+
     return map;
   }
 
@@ -577,6 +595,9 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
     String contentFields = variableContext.getParameter(LuceneConfig.PARAM_CONTENTFIELD);
     if (contentFields != null)
       parameters.setParameter(LuceneConfig.PARAM_CONTENTFIELD, contentFields);
+    String maximumDocumentLength = variableContext.getParameter(LuceneConfig.PARAM_MAXIMUMDOCUMENTLENGTH);
+    if (maximumDocumentLength != null)
+      parameters.setParameter(LuceneConfig.PARAM_MAXIMUMDOCUMENTLENGTH, maximumDocumentLength);
     return null;
   }
 

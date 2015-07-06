@@ -67,6 +67,7 @@ public class LuceneClient implements Closeable {
   private final Map<String,Map<String,Object>> fieldsInfo;
   private final String idField;
   private final String contentField;
+  private final Long maximumDocumentLength;
 
   private final String versionString;
 
@@ -105,13 +106,15 @@ public class LuceneClient implements Closeable {
     this(path,
          LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(),
          LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
-         LuceneClient.defaultIdField(), LuceneClient.defaultContentField());
+         LuceneClient.defaultIdField(), LuceneClient.defaultContentField(),
+         LuceneClient.defaultMaximumDocumentLength());
   }
 
   public LuceneClient(Path path,
                       String charfilters, String tokenizers, String filters,
                       String analyzers, String fields,
-                      String idField, String contentField) throws IOException {
+                      String idField, String contentField,
+                      Long maximumDocumentLength) throws IOException {
     this.path = Preconditions.checkNotNull(path);
     this.charfiltersInfo = parseAsMap(Preconditions.checkNotNull(charfilters));
     this.tokenizersInfo = parseAsMap(Preconditions.checkNotNull(tokenizers));
@@ -120,8 +123,9 @@ public class LuceneClient implements Closeable {
     this.fieldsInfo = parseAsMap(Preconditions.checkNotNull(fields));
     this.idField = Preconditions.checkNotNull(idField);
     this.contentField = Preconditions.checkNotNull(contentField);
+    this.maximumDocumentLength = Preconditions.checkNotNull(maximumDocumentLength);
 
-    this.versionString = createVersionString(path, charfiltersInfo, tokenizersInfo, filtersInfo, analyzersInfo, fieldsInfo, idField, contentField);
+    this.versionString = createVersionString(path, charfiltersInfo, tokenizersInfo, filtersInfo, analyzersInfo, fieldsInfo, idField, contentField, maximumDocumentLength);
 
     Map<String,Analyzer> analyzersMap = createAnalyzersMap();
     Map<String,Analyzer> fieldIndexAnalyzers = createFieldAnalyzers(analyzersMap, ATTR_INDEX_ANALYZER);
@@ -252,6 +256,10 @@ public class LuceneClient implements Closeable {
     return contentField;
   }
 
+  public Long maximumDocumentLength() {
+    return maximumDocumentLength;
+  }
+
   public String versionString() {
     return versionString;
   }
@@ -263,7 +271,8 @@ public class LuceneClient implements Closeable {
     Map<String,Map<String,Object>> filtersInfo,
     Map<String,Map<String,Object>> analyzersInfo,
     Map<String,Map<String,Object>> fieldsInfo,
-    String idField,String contentField) {
+    String idField,String contentField,
+    Long maximumDocumentLength) {
     return LuceneConfig.PARAM_PATH + ":" + path.toString() + "+"
          + LuceneConfig.PARAM_CHARFILTERS + ":" + Joiner.on(",").withKeyValueSeparator("=").join(charfiltersInfo) + "+"
          + LuceneConfig.PARAM_TOKENIZERS + ":" + Joiner.on(",").withKeyValueSeparator("=").join(tokenizersInfo) + "+"
@@ -271,7 +280,8 @@ public class LuceneClient implements Closeable {
          + LuceneConfig.PARAM_ANALYZERS + ":" + Joiner.on(",").withKeyValueSeparator("=").join(analyzersInfo) + "+"
          + LuceneConfig.PARAM_FIELDS + ":" + Joiner.on(",").withKeyValueSeparator("=").join(fieldsInfo) + "+"
          + LuceneConfig.PARAM_IDFIELD + ":" + idField + "+"
-         + LuceneConfig.PARAM_CONTENTFIELD + ":" + contentField;
+         + LuceneConfig.PARAM_CONTENTFIELD + ":" + contentField + "+"
+         + LuceneConfig.PARAM_MAXIMUMDOCUMENTLENGTH + ":" + maximumDocumentLength.toString();
   }
 
   public void refresh() throws IOException {
@@ -430,6 +440,10 @@ public class LuceneClient implements Closeable {
 
   public static String defaultContentField() {
     return "content";
+  }
+
+  public static Long defaultMaximumDocumentLength() {
+    return new Long(2100000000L);
   }
 
 }
