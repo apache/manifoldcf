@@ -82,6 +82,14 @@
       value="$Encoder.attributeEscape($CONTENTFIELD)" size="48" />
     </td>
   </tr>
+  <tr>
+    <td class="description">
+      $Encoder.bodyEscape($ResourceBundle.getString('LuceneConnector.Maximumdocumentlength'))
+    </td>
+    <td class="value"><input name="maximumdocumentlength" type="text"
+      value="$Encoder.attributeEscape($MAXIMUMDOCUMENTLENGTH)" size="48" />
+    </td>
+  </tr>
 </table>
 
 #else
@@ -94,5 +102,6 @@
 <input type="hidden" name="fields" value="$Encoder.attributeEscape($FIELDS)" />
 <input type="hidden" name="idfield" value="$Encoder.attributeEscape($IDFIELD)" />
 <input type="hidden" name="contentfield" value="$Encoder.attributeEscape($CONTENTFIELD)" />
+<input type="hidden" name="maximumdocumentlength" value="$Encoder.attributeEscape($MAXIMUMDOCUMENTLENGTH)" />
 
 #end

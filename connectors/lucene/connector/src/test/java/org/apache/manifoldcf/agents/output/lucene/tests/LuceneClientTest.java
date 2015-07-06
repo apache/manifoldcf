@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.Term;
@@ -116,12 +115,12 @@ public class LuceneClientTest {
 
     LuceneClient client1 =
       LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
-        LuceneClient.defaultIdField(), LuceneClient.defaultContentField());
+        LuceneClient.defaultIdField(), LuceneClient.defaultContentField(), LuceneClient.defaultMaximumDocumentLength());
     assertThat(client1.isOpen(), is(true));
 
     LuceneClient client2 =
       LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
-        "id", "content");
+        "id", "content", LuceneClient.defaultMaximumDocumentLength());
     assertThat(client2.isOpen(), is(true));
 
     assertThat(client1, is(client2));
@@ -130,7 +129,7 @@ public class LuceneClientTest {
     try {
       client3 =
         LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
-          "dummy_id", "dummy_content");
+          "dummy_id", "dummy_content", LuceneClient.defaultMaximumDocumentLength());
       fail("Should not get here");
     } catch (Exception e) {
       assert e instanceof IllegalStateException;
@@ -143,7 +142,7 @@ public class LuceneClientTest {
 
     client3 =
       LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
-        "dummy_id", "dummy_content");
+        "dummy_id", "dummy_content", LuceneClient.defaultMaximumDocumentLength());
     assertThat(client3.isOpen(), is(true));
 
     assertThat(client3, not(client1));

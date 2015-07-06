@@ -69,8 +69,20 @@ function checkConfig() {
   }
   if (editconnection.contentfield) {
     if (editconnection.contentfield.value == "") {
-      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.PleaseSupplyValidIdfield'))");
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.PleaseSupplyValidContentfield'))");
       editconnection.contentfield.focus();
+      return false;
+    }
+  }
+  if (editconnection.maximumdocumentlength) {
+    if (editconnection.maximumdocumentlength.value == "") {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.PleaseSupplyValidMaximumdocumentlength'))");
+      editconnection.maximumdocumentlength.focus();
+      return false;
+    }
+    if (editconnection.maximumdocumentlength.value != "" && !isInteger(editconnection.maximumdocumentlength.value)) {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.MaximumDocumentLengthMustBeAnInteger'))");
+      editconnection.maximumdocumentlength.focus();
       return false;
     }
   }
@@ -139,6 +151,20 @@ function checkConfigForSave() {
       alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.PleaseSupplyValidContentfield'))");
       SelectTab("$Encoder.javascriptBodyEscape($ResourceBundle.getString('LuceneConnector.Parameters'))");
       editconnection.contentfield.focus();
+      return false;
+    }
+  }
+  if (editconnection.maximumdocumentlength) {
+    if (editconnection.maximumdocumentlength.value == "") {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.PleaseSupplyValidMaximumdocumentlength'))");
+      SelectTab("$Encoder.javascriptBodyEscape($ResourceBundle.getString('LuceneConnector.Parameters'))");
+      editconnection.maximumdocumentlength.focus();
+      return false;
+    }
+    if (editconnection.maximumdocumentlength.value != "" && !isInteger(editconnection.maximumdocumentlength.value)) {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.MaximumDocumentLengthMustBeAnInteger'))");
+      SelectTab("$Encoder.javascriptBodyEscape($ResourceBundle.getString('LuceneConnector.Parameters'))");
+      editconnection.maximumdocumentlength.focus();
       return false;
     }
   }

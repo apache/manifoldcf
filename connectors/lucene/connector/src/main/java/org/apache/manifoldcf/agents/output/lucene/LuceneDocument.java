@@ -32,13 +32,13 @@ public class LuceneDocument {
 
   private Document doc;
 
-   private static final FieldType TYPE_STORED_WITH_TV = new FieldType(TextField.TYPE_STORED);
-   static {
-     TYPE_STORED_WITH_TV.setStoreTermVectors(true);
-     TYPE_STORED_WITH_TV.setStoreTermVectorOffsets(true);
-     TYPE_STORED_WITH_TV.setStoreTermVectorPositions(true);
-     TYPE_STORED_WITH_TV.freeze();
-   }
+  private static final FieldType TYPE_STORED_WITH_TV = new FieldType(TextField.TYPE_STORED);
+  static {
+    TYPE_STORED_WITH_TV.setStoreTermVectors(true);
+    TYPE_STORED_WITH_TV.setStoreTermVectorOffsets(true);
+    TYPE_STORED_WITH_TV.setStoreTermVectorPositions(true);
+    TYPE_STORED_WITH_TV.freeze();
+  }
 
   private static final FieldType TYPE_NOT_STORED_WITH_TV = new FieldType(TextField.TYPE_NOT_STORED);
   static {
