@@ -289,7 +289,10 @@ public class LuceneClient implements Closeable {
       realtimeReader = DirectoryReader.open(writer.getDirectory());
     }
     DirectoryReader newReader = DirectoryReader.openIfChanged(realtimeReader, writer, true);
-    if (newReader != null) realtimeReader = newReader;
+    if (newReader != null) {
+      realtimeReader.close();
+      realtimeReader = newReader;
+    }
   }
 
   public void commit() throws IOException {
