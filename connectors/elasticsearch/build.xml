@@ -68,6 +68,10 @@
         <copy todir="dist/integration/elasticsearch">
           <fileset dir="../../lib/elasticsearch"/>
         </copy>
+        <mkdir dir="dist/integration/elasticsearch-1.5"/>
+        <copy todir="dist/integration/elasticsearch-1.5">
+          <fileset dir="../../lib/elasticsearch-1.5"/>
+        </copy>
     </target>
 
     <target name="calculate-testcode-condition">
