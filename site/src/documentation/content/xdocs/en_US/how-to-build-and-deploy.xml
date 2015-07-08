@@ -1037,12 +1037,18 @@ start[.bat|.sh]
           <table>
             <caption>property.xml properties</caption>
             <tr><th>Property</th><th>Required?</th><th>Function</th></tr>
-            <tr><td>org.apache.manifoldcf.login.name</td><td>No</td><td>Crawler UI login user ID (defaults to "admin")</td></tr>
-            <tr><td>org.apache.manifoldcf.login.password</td><td>No</td><td>Crawler UI login user password (defaults to "admin")</td></tr>
-            <tr><td>org.apache.manifoldcf.login.password.obfuscated</td><td>No</td><td>Obfuscated crawler UI login user password (defaults to "admin")</td></tr>
-            <tr><td>org.apache.manifoldcf.login.apiname</td><td>No</td><td>API login user ID (defaults to "")</td></tr>
-            <tr><td>org.apache.manifoldcf.login.apipassword</td><td>No</td><td>API login user password (defaults to "")</td></tr>
-            <tr><td>org.apache.manifoldcf.login.apipassword.obfuscated</td><td>No</td><td>Obfuscated API login user password (defaults to "")</td></tr>
+            <tr><td>org.apache.manifoldcf.authimplementationclass</td><td>No</td><td>Auth implementation class (defaults to "org.apache.manifoldcf.core.auth.DefaultAuthenticator", set to "org.apache.manifoldcf.core.auth.LdapAuthenticator" for LDAP)</td></tr>
+            <tr><td>org.apache.manifoldcf.login.name</td><td>No</td><td>Default auth implementation crawler UI login user ID (defaults to "admin")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.password</td><td>No</td><td>Default auth implementation crawler UI login user password (defaults to "admin")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.password.obfuscated</td><td>No</td><td>Default auth implementation obfuscated crawler UI login user password (defaults to "admin")</td></tr>
+            <tr><td>org.apache.manifoldcf.apilogin.name</td><td>No</td><td>Default auth implementation API login user ID (defaults to "")</td></tr>
+            <tr><td>org.apache.manifoldcf.apilogin.password</td><td>No</td><td>Default auth implementation API login user password (defaults to "")</td></tr>
+            <tr><td>org.apache.manifoldcf.apilogin.password.obfuscated</td><td>No</td><td>Default auth implementation obfuscated API login user password (defaults to "")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.ldap.providerurl</td><td>No</td><td>LDAP auth implementation provider URL (defaults to "")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.ldap.securityauthenticationtype</td><td>No</td><td>LDAP auth implementation auth type (defaults to "simple")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.ldap.securityprincipal</td><td>No</td><td>LDAP auth implementation security principal (defaults to "")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.ldap.contextsearchquery</td><td>No</td><td>LDAP auth implementation search query (defaults to "")</td></tr>
+            <tr><td>org.apache.manifoldcf.login.ldap.searchattribute</td><td>No</td><td>LDAP auth implementation search attribute (defaults to "uid")</td></tr>
             <tr><td>org.apache.manifoldcf.crawleruiwarpath</td><td>Yes, for Jetty</td><td>Location of Crawler UI war</td></tr>
             <tr><td>org.apache.manifoldcf.authorityservicewarpath</td><td>Yes, for Jetty</td><td>Location of Authority Service war</td></tr>
             <tr><td>org.apache.manifoldcf.apiservicewarpath</td><td>Yes, for Jetty</td><td>Location of API Service war</td></tr>

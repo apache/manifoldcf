@@ -289,7 +289,7 @@ public class APIServlet extends HttpServlet
     
     // There the only response distinction we have here is between exception and no exception.
     Configuration output = new Configuration();
-    int readResult = ManifoldCF.executeReadCommand(tc,output,command,queryParameters);
+    int readResult = ManifoldCF.executeReadCommand(tc,output,command,queryParameters,ap);
 
     // Output
     
@@ -319,6 +319,8 @@ public class APIServlet extends HttpServlet
 
     if (readResult == ManifoldCF.READRESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
+    else if (readResult == ManifoldCF.READRESULT_NOTALLOWED)
+      response.setStatus(response.SC_UNAUTHORIZED);
 
     byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
@@ -406,7 +408,7 @@ public class APIServlet extends HttpServlet
     // Exception vs. no exception
     // OK vs CREATE (both with json response packets)
     Configuration output = new Configuration();
-    int writeResult = ManifoldCF.executeWriteCommand(tc,output,command,input);
+    int writeResult = ManifoldCF.executeWriteCommand(tc,output,command,input,ap);
     
     // Output
     
@@ -440,6 +442,8 @@ public class APIServlet extends HttpServlet
       response.setStatus(response.SC_CREATED);
     else if (writeResult == ManifoldCF.WRITERESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
+    else if (writeResult == ManifoldCF.WRITERESULT_NOTALLOWED)
+      response.setStatus(response.SC_UNAUTHORIZED);
     
     byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
@@ -569,7 +573,7 @@ public class APIServlet extends HttpServlet
 
     
     Configuration output = new Configuration();
-    int writeResult = ManifoldCF.executePostCommand(tc,output,command,input);
+    int writeResult = ManifoldCF.executePostCommand(tc,output,command,input,ap);
     
     // Output
     
@@ -603,7 +607,9 @@ public class APIServlet extends HttpServlet
       response.setStatus(response.SC_CREATED);
     else if (writeResult == ManifoldCF.POSTRESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
-    
+    else if (writeResult == ManifoldCF.POSTRESULT_NOTALLOWED)
+      response.setStatus(response.SC_UNAUTHORIZED);
+
     byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
     // Set response mime type
@@ -657,7 +663,7 @@ public class APIServlet extends HttpServlet
     
     // There the only response distinction we have here is between exception and no exception.
     Configuration output = new Configuration();
-    int result = ManifoldCF.executeDeleteCommand(tc,output,command);
+    int result = ManifoldCF.executeDeleteCommand(tc,output,command,ap);
     
     // Output
     String outputText = null;
@@ -686,6 +692,9 @@ public class APIServlet extends HttpServlet
     
     if (result == ManifoldCF.DELETERESULT_NOTFOUND)
       response.setStatus(response.SC_NOT_FOUND);
+    else if (result == ManifoldCF.DELETERESULT_NOTALLOWED)
+      response.setStatus(response.SC_UNAUTHORIZED);
+
     
     byte[] responseValue = outputText.getBytes(StandardCharsets.UTF_8);
 
