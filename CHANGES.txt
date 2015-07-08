@@ -3,6 +3,38 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1221: Update documentation for properties.xml to
+include new ldap authentication properties.
+(Karl Wright)
+
+CONNECTORS-1131: Add infrastructure for controlling individual
+user access to parts of the UI and API, also allow this to be
+configured via LDAP.
+(Colin Joyce, Karl Wright)
+
+CONNECTORS-1220: User mapping prerequisite choices were broken,
+caused a hang when there were more than one.
+(Karl Wright)
+
+CONNECTORS-1218: Add lowerNames option on Tika extractor.
+(Shinichiro Abe)
+
+CONNECTORS-1217: Fix documentation for api login parameters.
+(Karl Wright)
+
+CONNECTORS-1216: Set default core/collection name
+and add required check on Solr connector.
+(Shinichiro Abe)
+
+CONNECTORS-1215: Fuzzyml parser needs to ignore "<" followed by
+whitespace, since those are technically not valid tags and some sites
+care.
+(Brad Dennis, Karl Wright)
+
+CONNECTORS-1213: Job notification information did not export/import
+correctly.
+(Cathal McGuinness, Karl Wright)
+
 CONNECTORS-1203: SharePoint connector did not consistently use
 internal metadata names throughout.
 (Dale Dreiske, Karl Wright)

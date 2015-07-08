@@ -1376,11 +1376,15 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   // Read result codes
   public static final int READRESULT_NOTFOUND = 0;
   public static final int READRESULT_FOUND = 1;
-
+  public static final int READRESULT_NOTALLOWED = 2;
+  
   /** Read jobs */
-  protected static int apiReadJobs(IThreadContext tc, Configuration output)
+  protected static int apiReadJobs(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -1401,9 +1405,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Read a job */
-  protected static int apiReadJob(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiReadJob(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -1429,9 +1436,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Read an output connection status */
-  protected static int apiReadOutputConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadOutputConnectionStatus(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(tc);
@@ -1471,9 +1481,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Read a transformation connection status */
-  protected static int apiReadTransformationConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadTransformationConnectionStatus(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+    
     try
     {
       ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(tc);
@@ -1513,9 +1526,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Read an authority connection status */
-  protected static int apiReadAuthorityConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadAuthorityConnectionStatus(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityConnectorPool authorityConnectorPool = AuthorityConnectorPoolFactory.make(tc);
@@ -1555,9 +1571,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Read a mapping connection status */
-  protected static int apiReadMappingConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadMappingConnectionStatus(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IMappingConnectorPool mappingConnectorPool = MappingConnectorPoolFactory.make(tc);
@@ -1597,9 +1616,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Read a repository connection status */
-  protected static int apiReadRepositoryConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadRepositoryConnectionStatus(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(tc);
@@ -1639,9 +1661,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Read a notification connection status */
-  protected static int apiReadNotificationConnectionStatus(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadNotificationConnectionStatus(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       INotificationConnectorPool notificationConnectorPool = NotificationConnectorPoolFactory.make(tc);
@@ -1681,9 +1706,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Read an output connection's info */
-  protected static int apiReadOutputConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
+  protected static int apiReadOutputConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IOutputConnectorPool outputConnectorPool = OutputConnectorPoolFactory.make(tc);
@@ -1714,9 +1742,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Read a transformation connection's info */
-  protected static int apiReadTransformationConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
+  protected static int apiReadTransformationConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(tc);
@@ -1747,9 +1778,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Read a repository connection's info */
-  protected static int apiReadRepositoryConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
+  protected static int apiReadRepositoryConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IRepositoryConnectorPool repositoryConnectorPool = RepositoryConnectorPoolFactory.make(tc);
@@ -1780,9 +1814,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Read a notification connection's info */
-  protected static int apiReadNotificationConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command)
+  protected static int apiReadNotificationConnectionInfo(IThreadContext tc, Configuration output, String connectionName, String command, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       INotificationConnectorPool notificationConnectorPool = NotificationConnectorPoolFactory.make(tc);
@@ -1813,9 +1850,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Get api job statuses */
-  protected static int apiReadJobStatuses(IThreadContext tc, Configuration output, Map<String,List<String>> queryParameters)
+  protected static int apiReadJobStatuses(IThreadContext tc, Configuration output, Map<String,List<String>> queryParameters, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_REPORTS))
+      return READRESULT_NOTALLOWED;
+
     if (queryParameters == null)
       queryParameters = new HashMap<String,List<String>>();
     int maxCount;
@@ -1847,9 +1887,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Get api job statuses */
-  protected static int apiReadJobStatusesNoCounts(IThreadContext tc, Configuration output)
+  protected static int apiReadJobStatusesNoCounts(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_REPORTS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -1870,9 +1913,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Get api job status */
-  protected static int apiReadJobStatus(IThreadContext tc, Configuration output, Long jobID, Map<String,List<String>> queryParameters)
+  protected static int apiReadJobStatus(IThreadContext tc, Configuration output, Long jobID, Map<String,List<String>> queryParameters, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_REPORTS))
+      return READRESULT_NOTALLOWED;
+
     if (queryParameters == null)
       queryParameters = new HashMap<String,List<String>>();
     int maxCount;
@@ -1903,9 +1949,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Get api job status with no counts */
-  protected static int apiReadJobStatusNoCounts(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiReadJobStatusNoCounts(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_REPORTS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -1925,9 +1974,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Get authority groups */
-  protected static int apiReadAuthorityGroups(IThreadContext tc, Configuration output)
+  protected static int apiReadAuthorityGroups(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
@@ -1948,9 +2000,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Read authority group */
-  protected static int apiReadAuthorityGroup(IThreadContext tc, Configuration output, String groupName)
+  protected static int apiReadAuthorityGroup(IThreadContext tc, Configuration output, String groupName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
@@ -1976,9 +2031,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Get output connections */
-  protected static int apiReadOutputConnections(IThreadContext tc, Configuration output)
+  protected static int apiReadOutputConnections(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IOutputConnectionManager connManager = OutputConnectionManagerFactory.make(tc);
@@ -1999,9 +2057,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Read output connection */
-  protected static int apiReadOutputConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadOutputConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
@@ -2027,9 +2088,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
     /** Get transformation connections */
-  protected static int apiReadTransformationConnections(IThreadContext tc, Configuration output)
+  protected static int apiReadTransformationConnections(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       ITransformationConnectionManager connManager = TransformationConnectionManagerFactory.make(tc);
@@ -2050,9 +2114,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Read transformation connection */
-  protected static int apiReadTransformationConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadTransformationConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       ITransformationConnectionManager connectionManager = TransformationConnectionManagerFactory.make(tc);
@@ -2078,9 +2145,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Get authority connections */
-  protected static int apiReadAuthorityConnections(IThreadContext tc, Configuration output)
+  protected static int apiReadAuthorityConnections(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityConnectionManager connManager = AuthorityConnectionManagerFactory.make(tc);
@@ -2101,9 +2171,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Get mapping connections */
-  protected static int apiReadMappingConnections(IThreadContext tc, Configuration output)
+  protected static int apiReadMappingConnections(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IMappingConnectionManager connManager = MappingConnectionManagerFactory.make(tc);
@@ -2124,9 +2197,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Read authority connection */
-  protected static int apiReadAuthorityConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadAuthorityConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
@@ -2152,9 +2228,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Read mapping connection */
-  protected static int apiReadMappingConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadMappingConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IMappingConnectionManager connectionManager = MappingConnectionManagerFactory.make(tc);
@@ -2180,9 +2259,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Get repository connections */
-  protected static int apiReadRepositoryConnections(IThreadContext tc, Configuration output)
+  protected static int apiReadRepositoryConnections(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
@@ -2203,9 +2285,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Read repository connection */
-  protected static int apiReadRepositoryConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadRepositoryConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
@@ -2231,9 +2316,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** Get notification connections */
-  protected static int apiReadNotificationConnections(IThreadContext tc, Configuration output)
+  protected static int apiReadNotificationConnections(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       INotificationConnectionManager connManager = NotificationConnectionManagerFactory.make(tc);
@@ -2254,9 +2342,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Read notification connection */
-  protected static int apiReadNotificationConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadNotificationConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       INotificationConnectionManager connectionManager = NotificationConnectionManagerFactory.make(tc);
@@ -2282,9 +2373,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** List output connectors */
-  protected static int apiReadOutputConnectors(IThreadContext tc, Configuration output)
+  protected static int apiReadOutputConnectors(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered output connectors
     try
     {
@@ -2319,9 +2413,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** List transformation connectors */
-  protected static int apiReadTransformationConnectors(IThreadContext tc, Configuration output)
+  protected static int apiReadTransformationConnectors(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered transformation connectors
     try
     {
@@ -2356,9 +2453,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** List authority connectors */
-  protected static int apiReadAuthorityConnectors(IThreadContext tc, Configuration output)
+  protected static int apiReadAuthorityConnectors(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered authority connectors
     try
     {
@@ -2393,9 +2493,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** List mapping connectors */
-  protected static int apiReadMappingConnectors(IThreadContext tc, Configuration output)
+  protected static int apiReadMappingConnectors(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered authority connectors
     try
     {
@@ -2430,9 +2533,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** List authorization domains */
-  protected static int apiReadAuthorizationDomains(IThreadContext tc, Configuration output)
+  protected static int apiReadAuthorizationDomains(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered authorization domains
     try
     {
@@ -2468,9 +2574,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** List repository connectors */
-  protected static int apiReadRepositoryConnectors(IThreadContext tc, Configuration output)
+  protected static int apiReadRepositoryConnectors(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered repository connectors
     try
     {
@@ -2505,9 +2614,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
 
   /** List notification connectors */
-  protected static int apiReadNotificationConnectors(IThreadContext tc, Configuration output)
+  protected static int apiReadNotificationConnectors(IThreadContext tc, Configuration output, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     // List registered notification connectors
     try
     {
@@ -2568,8 +2680,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Queue reports */
   protected static int apiReadRepositoryConnectionQueue(IThreadContext tc, Configuration output,
-    String connectionName, Map<String,List<String>> queryParameters) throws ManifoldCFException
+    String connectionName, Map<String,List<String>> queryParameters, IAuthorizer authorizer) throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_REPORTS))
+      return READRESULT_NOTALLOWED;
+
     if (queryParameters == null)
       queryParameters = new HashMap<String,List<String>>();
 
@@ -2765,8 +2880,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** Get jobs for connection */
   protected static int apiReadRepositoryConnectionJobs(IThreadContext tc, Configuration output,
-    String connectionName) throws ManifoldCFException
+    String connectionName, IAuthorizer authorizer) throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -2793,8 +2911,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** History reports */
   protected static int apiReadRepositoryConnectionHistory(IThreadContext tc, Configuration output,
-    String connectionName, Map<String,List<String>> queryParameters) throws ManifoldCFException
+    String connectionName, Map<String,List<String>> queryParameters, IAuthorizer authorizer) throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_REPORTS))
+      return READRESULT_NOTALLOWED;
+
     if (queryParameters == null)
       queryParameters = new HashMap<String,List<String>>();
       
@@ -3129,9 +3250,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   }
   
   /** Read the activity list for a given connection name. */
-  protected static int apiReadRepositoryConnectionActivities(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiReadRepositoryConnectionActivities(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       String[] activities = getActivitiesList(tc,connectionName);
@@ -3161,40 +3285,40 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   *@return read status - either found, not found, or bad args
   */
   public static int executeReadCommand(IThreadContext tc, Configuration output, String path,
-    Map<String,List<String>> queryParameters) throws ManifoldCFException
+    Map<String,List<String>> queryParameters, IAuthorizer authorizer) throws ManifoldCFException
   {
     if (path.equals("jobs"))
     {
-      return apiReadJobs(tc,output);
+      return apiReadJobs(tc,output,authorizer);
     }
     else if (path.startsWith("jobs/"))
     {
       Long jobID = new Long(path.substring("jobs/".length()));
-      return apiReadJob(tc,output,jobID);
+      return apiReadJob(tc,output,jobID,authorizer);
     }
     else if (path.startsWith("repositoryconnectionactivities/"))
     {
       int firstSeparator = "repositoryconnectionactivities/".length();
       String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
-      return apiReadRepositoryConnectionActivities(tc,output,connectionName);
+      return apiReadRepositoryConnectionActivities(tc,output,connectionName,authorizer);
     }
     else if (path.startsWith("repositoryconnectionhistory/"))
     {
       int firstSeparator = "repositoryconnectionhistory/".length();
       String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
-      return apiReadRepositoryConnectionHistory(tc,output,connectionName,queryParameters);
+      return apiReadRepositoryConnectionHistory(tc,output,connectionName,queryParameters,authorizer);
     }
     else if (path.startsWith("repositoryconnectionqueue/"))
     {
       int firstSeparator = "repositoryconnectionqueue/".length();
       String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
-      return apiReadRepositoryConnectionQueue(tc,output,connectionName,queryParameters);
+      return apiReadRepositoryConnectionQueue(tc,output,connectionName,queryParameters,authorizer);
     }
     else if (path.startsWith("repositoryconnectionjobs/"))
     {
       int firstSeparator = "repositoryconnectionjobs/".length();
       String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
-      return apiReadRepositoryConnectionJobs(tc,output,connectionName);
+      return apiReadRepositoryConnectionJobs(tc,output,connectionName,authorizer);
     }
     else if (path.startsWith("status/"))
     {
@@ -3211,27 +3335,27 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       
       if (connectionType.equals("outputconnections"))
       {
-        return apiReadOutputConnectionStatus(tc,output,connectionName);
+        return apiReadOutputConnectionStatus(tc,output,connectionName,authorizer);
       }
       else if (connectionType.equals("transformationconnections"))
       {
-        return apiReadTransformationConnectionStatus(tc,output,connectionName);
+        return apiReadTransformationConnectionStatus(tc,output,connectionName,authorizer);
       }
       else if (connectionType.equals("mappingconnections"))
       {
-        return apiReadMappingConnectionStatus(tc,output,connectionName);
+        return apiReadMappingConnectionStatus(tc,output,connectionName,authorizer);
       }
       else if (connectionType.equals("authorityconnections"))
       {
-        return apiReadAuthorityConnectionStatus(tc,output,connectionName);
+        return apiReadAuthorityConnectionStatus(tc,output,connectionName,authorizer);
       }
       else if (connectionType.equals("repositoryconnections"))
       {
-        return apiReadRepositoryConnectionStatus(tc,output,connectionName);
+        return apiReadRepositoryConnectionStatus(tc,output,connectionName,authorizer);
       }
       else if (connectionType.equals("notificationconnections"))
       {
-        return apiReadNotificationConnectionStatus(tc,output,connectionName);
+        return apiReadNotificationConnectionStatus(tc,output,connectionName,authorizer);
       }
       else
       {
@@ -3262,19 +3386,19 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       
       if (connectionType.equals("outputconnections"))
       {
-        return apiReadOutputConnectionInfo(tc,output,connectionName,command);
+        return apiReadOutputConnectionInfo(tc,output,connectionName,command,authorizer);
       }
       else if (connectionType.equals("transformationconnections"))
       {
-        return apiReadTransformationConnectionInfo(tc,output,connectionName,command);
+        return apiReadTransformationConnectionInfo(tc,output,connectionName,command,authorizer);
       }
       else if (connectionType.equals("repositoryconnections"))
       {
-        return apiReadRepositoryConnectionInfo(tc,output,connectionName,command);
+        return apiReadRepositoryConnectionInfo(tc,output,connectionName,command,authorizer);
       }
       else if (connectionType.equals("notificationconnections"))
       {
-        return apiReadNotificationConnectionInfo(tc,output,connectionName,command);
+        return apiReadNotificationConnectionInfo(tc,output,connectionName,command,authorizer);
       }
       else
       {
@@ -3284,112 +3408,112 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     else if (path.equals("jobstatuses"))
     {
-      return apiReadJobStatuses(tc,output,queryParameters);
+      return apiReadJobStatuses(tc,output,queryParameters,authorizer);
     }
     else if (path.startsWith("jobstatuses/"))
     {
       Long jobID = new Long(path.substring("jobstatuses/".length()));
-      return apiReadJobStatus(tc,output,jobID,queryParameters);
+      return apiReadJobStatus(tc,output,jobID,queryParameters,authorizer);
     }
     else if (path.equals("jobstatusesnocounts"))
     {
-      return apiReadJobStatusesNoCounts(tc,output);
+      return apiReadJobStatusesNoCounts(tc,output,authorizer);
     }
     else if (path.startsWith("jobstatusesnocounts/"))
     {
       Long jobID = new Long(path.substring("jobstatusesnocounts/".length()));
-      return apiReadJobStatusNoCounts(tc,output,jobID);
+      return apiReadJobStatusNoCounts(tc,output,jobID,authorizer);
     }
     else if (path.equals("authoritygroups"))
     {
-      return apiReadAuthorityGroups(tc,output);
+      return apiReadAuthorityGroups(tc,output,authorizer);
     }
     else if (path.startsWith("authoritygroups/"))
     {
       String groupName = decodeAPIPathElement(path.substring("authoritygroups/".length()));
-      return apiReadAuthorityGroup(tc,output,groupName);
+      return apiReadAuthorityGroup(tc,output,groupName,authorizer);
     }
     else if (path.equals("outputconnections"))
     {
-      return apiReadOutputConnections(tc,output);
+      return apiReadOutputConnections(tc,output,authorizer);
     }
     else if (path.startsWith("outputconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
-      return apiReadOutputConnection(tc,output,connectionName);
+      return apiReadOutputConnection(tc,output,connectionName,authorizer);
     }
     else if (path.equals("transformationconnections"))
     {
-      return apiReadTransformationConnections(tc,output);
+      return apiReadTransformationConnections(tc,output,authorizer);
     }
     else if (path.startsWith("transformationconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("transformationconnections/".length()));
-      return apiReadTransformationConnection(tc,output,connectionName);
+      return apiReadTransformationConnection(tc,output,connectionName,authorizer);
     }
     else if (path.equals("mappingconnections"))
     {
-      return apiReadMappingConnections(tc,output);
+      return apiReadMappingConnections(tc,output,authorizer);
     }
     else if (path.startsWith("mappingconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("mappingconnections/".length()));
-      return apiReadMappingConnection(tc,output,connectionName);
+      return apiReadMappingConnection(tc,output,connectionName,authorizer);
     }
     else if (path.equals("authorityconnections"))
     {
-      return apiReadAuthorityConnections(tc,output);
+      return apiReadAuthorityConnections(tc,output,authorizer);
     }
     else if (path.startsWith("authorityconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("authorityconnections/".length()));
-      return apiReadAuthorityConnection(tc,output,connectionName);
+      return apiReadAuthorityConnection(tc,output,connectionName,authorizer);
     }
     else if (path.equals("repositoryconnections"))
     {
-      return apiReadRepositoryConnections(tc,output);
+      return apiReadRepositoryConnections(tc,output,authorizer);
     }
     else if (path.startsWith("repositoryconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
-      return apiReadRepositoryConnection(tc,output,connectionName);
+      return apiReadRepositoryConnection(tc,output,connectionName,authorizer);
     }
     else if (path.equals("notificationconnections"))
     {
-      return apiReadNotificationConnections(tc,output);
+      return apiReadNotificationConnections(tc,output,authorizer);
     }
     else if (path.startsWith("notificationconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("notificationconnections/".length()));
-      return apiReadNotificationConnection(tc,output,connectionName);
+      return apiReadNotificationConnection(tc,output,connectionName,authorizer);
     }
     else if (path.equals("outputconnectors"))
     {
-      return apiReadOutputConnectors(tc,output);
+      return apiReadOutputConnectors(tc,output,authorizer);
     }
     else if (path.equals("transformationconnectors"))
     {
-      return apiReadTransformationConnectors(tc,output);
+      return apiReadTransformationConnectors(tc,output,authorizer);
     }
     else if (path.equals("mappingconnectors"))
     {
-      return apiReadMappingConnectors(tc,output);
+      return apiReadMappingConnectors(tc,output,authorizer);
     }
     else if (path.equals("authorityconnectors"))
     {
-      return apiReadAuthorityConnectors(tc,output);
+      return apiReadAuthorityConnectors(tc,output,authorizer);
     }
     else if (path.equals("repositoryconnectors"))
     {
-      return apiReadRepositoryConnectors(tc,output);
+      return apiReadRepositoryConnectors(tc,output,authorizer);
     }
     else if (path.equals("notificationconnectors"))
     {
-      return apiReadNotificationConnectors(tc,output);
+      return apiReadNotificationConnectors(tc,output,authorizer);
     }
     else if (path.equals("authorizationdomains"))
     {
-      return apiReadAuthorizationDomains(tc,output);
+      return apiReadAuthorizationDomains(tc,output,authorizer);
     }
     else
     {
@@ -3402,12 +3526,16 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   public static final int POSTRESULT_NOTFOUND = 0;
   public static final int POSTRESULT_FOUND = 1;
   public static final int POSTRESULT_CREATED = 2;
+  public static final int POSTRESULT_NOTALLOWED = 3;
   
   /** Post job.
   */
-  protected static int apiPostJob(IThreadContext tc, Configuration output, Configuration input)
+  protected static int apiPostJob(IThreadContext tc, Configuration output, Configuration input, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_JOBS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode jobNode = findConfigurationNode(input,API_JOBNODE);
     if (jobNode == null)
       throw new ManifoldCFException("Input must have '"+API_JOBNODE+"' field");
@@ -3449,12 +3577,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   *@param input is the input object.
   *@return write result - either "not found", "found", or "created".
   */
-  public static int executePostCommand(IThreadContext tc, Configuration output, String path, Configuration input)
+  public static int executePostCommand(IThreadContext tc, Configuration output, String path, Configuration input, IAuthorizer authorizer)
     throws ManifoldCFException
   {
     if (path.equals("jobs"))
     {
-      return apiPostJob(tc,output,input);
+      return apiPostJob(tc,output,input,authorizer);
     }
     else
     {
@@ -3467,12 +3595,16 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   public static final int WRITERESULT_NOTFOUND = 0;
   public static final int WRITERESULT_FOUND = 1;
   public static final int WRITERESULT_CREATED = 2;
+  public static final int WRITERESULT_NOTALLOWED = 3;
   
   /** Start a job.
   */
-  protected static int apiWriteStartJob(IThreadContext tc, Configuration output, Long jobID, boolean requestMinimum)
+  protected static int apiWriteStartJob(IThreadContext tc, Configuration output, Long jobID, boolean requestMinimum, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_RUN_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -3488,9 +3620,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** Abort a job.
   */
-  protected static int apiWriteAbortJob(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiWriteAbortJob(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_RUN_JOBS))
+      return READRESULT_NOTALLOWED;
+    
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -3506,9 +3641,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** Restart a job.
   */
-  protected static int apiWriteRestartJob(IThreadContext tc, Configuration output, Long jobID, boolean requestMinimum)
+  protected static int apiWriteRestartJob(IThreadContext tc, Configuration output, Long jobID, boolean requestMinimum, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_RUN_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -3524,9 +3662,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Pause a job.
   */
-  protected static int apiWritePauseJob(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiWritePauseJob(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_RUN_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -3542,9 +3683,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Resume a job.
   */
-  protected static int apiWriteResumeJob(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiWriteResumeJob(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_RUN_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -3560,9 +3704,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Reset incremental seeding for a job.
   */
-  protected static int apiWriteReseedJob(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiWriteReseedJob(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_RUN_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -3578,9 +3725,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** Write job.
   */
-  protected static int apiWriteJob(IThreadContext tc, Configuration output, Configuration input, Long jobID)
+  protected static int apiWriteJob(IThreadContext tc, Configuration output, Configuration input, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_JOBS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode jobNode = findConfigurationNode(input,API_JOBNODE);
     if (jobNode == null)
       throw new ManifoldCFException("Input must have '"+API_JOBNODE+"' field");
@@ -3616,9 +3766,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Write authority group.
   */
-  protected static int apiWriteAuthorityGroup(IThreadContext tc, Configuration output, Configuration input, String groupName)
+  protected static int apiWriteAuthorityGroup(IThreadContext tc, Configuration output, Configuration input, String groupName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode groupNode = findConfigurationNode(input,API_AUTHORITYGROUPNODE);
     if (groupNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_AUTHORITYGROUPNODE+"' field");
@@ -3651,9 +3804,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Write output connection.
   */
-  protected static int apiWriteOutputConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName)
+  protected static int apiWriteOutputConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode connectionNode = findConfigurationNode(input,API_OUTPUTCONNECTIONNODE);
     if (connectionNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_OUTPUTCONNECTIONNODE+"' field");
@@ -3686,9 +3842,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Write transformation connection.
   */
-  protected static int apiWriteTransformationConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName)
+  protected static int apiWriteTransformationConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+    
     ConfigurationNode connectionNode = findConfigurationNode(input,API_TRANSFORMATIONCONNECTIONNODE);
     if (connectionNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_TRANSFORMATIONCONNECTIONNODE+"' field");
@@ -3721,9 +3880,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** Write authority connection.
   */
-  protected static int apiWriteAuthorityConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName)
+  protected static int apiWriteAuthorityConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode connectionNode = findConfigurationNode(input,API_AUTHORITYCONNECTIONNODE);
     if (connectionNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_AUTHORITYCONNECTIONNODE+"' field");
@@ -3756,9 +3918,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** Write mapping connection.
   */
-  protected static int apiWriteMappingConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName)
+  protected static int apiWriteMappingConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode connectionNode = findConfigurationNode(input,API_MAPPINGCONNECTIONNODE);
     if (connectionNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_MAPPINGCONNECTIONNODE+"' field");
@@ -3791,9 +3956,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Write repository connection.
   */
-  protected static int apiWriteRepositoryConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName)
+  protected static int apiWriteRepositoryConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode connectionNode = findConfigurationNode(input,API_REPOSITORYCONNECTIONNODE);
     if (connectionNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_REPOSITORYCONNECTIONNODE+"' field");
@@ -3826,9 +3994,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Clear repository connection history.
   */
-  protected static int apiWriteClearHistoryRepositoryConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiWriteClearHistoryRepositoryConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
@@ -3844,9 +4015,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Write notification connection.
   */
-  protected static int apiWriteNotificationConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName)
+  protected static int apiWriteNotificationConnection(IThreadContext tc, Configuration output, Configuration input, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     ConfigurationNode connectionNode = findConfigurationNode(input,API_NOTIFICATIONCONNECTIONNODE);
     if (connectionNode == null)
       throw new ManifoldCFException("Input argument must have '"+API_NOTIFICATIONCONNECTIONNODE+"' field");
@@ -3879,9 +4053,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Reset output connection (reset version of all recorded documents).
   */
-  protected static int apiWriteClearVersionsOutputConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiWriteClearVersionsOutputConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       signalOutputConnectionRedo(tc,connectionName);
@@ -3896,9 +4073,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Clear output connection (remove all recorded documents).
   */
-  protected static int apiWriteClearOutputConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiWriteClearOutputConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       signalOutputConnectionRemoved(tc,connectionName);
@@ -3918,94 +4098,94 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   *@param input is the input object.
   *@return write result - either "not found", "found", or "created".
   */
-  public static int executeWriteCommand(IThreadContext tc, Configuration output, String path, Configuration input)
+  public static int executeWriteCommand(IThreadContext tc, Configuration output, String path, Configuration input, IAuthorizer authorizer)
     throws ManifoldCFException
   {
     if (path.startsWith("start/"))
     {
       Long jobID = new Long(path.substring("start/".length()));
-      return apiWriteStartJob(tc,output,jobID,false);
+      return apiWriteStartJob(tc,output,jobID,false,authorizer);
     }
     else if (path.startsWith("startminimal/"))
     {
       Long jobID = new Long(path.substring("startminimal/".length()));
-      return apiWriteStartJob(tc,output,jobID,true);
+      return apiWriteStartJob(tc,output,jobID,true,authorizer);
     }
     else if (path.startsWith("abort/"))
     {
       Long jobID = new Long(path.substring("abort/".length()));
-      return apiWriteAbortJob(tc,output,jobID);
+      return apiWriteAbortJob(tc,output,jobID,authorizer);
     }
     else if (path.startsWith("restart/"))
     {
       Long jobID = new Long(path.substring("restart/".length()));
-      return apiWriteRestartJob(tc,output,jobID,false);
+      return apiWriteRestartJob(tc,output,jobID,false,authorizer);
     }
     else if (path.startsWith("restartminimal/"))
     {
       Long jobID = new Long(path.substring("restartminimal/".length()));
-      return apiWriteRestartJob(tc,output,jobID,true);
+      return apiWriteRestartJob(tc,output,jobID,true,authorizer);
     }
     else if (path.startsWith("pause/"))
     {
       Long jobID = new Long(path.substring("pause/".length()));
-      return apiWritePauseJob(tc,output,jobID);
+      return apiWritePauseJob(tc,output,jobID,authorizer);
     }
     else if (path.startsWith("resume/"))
     {
       Long jobID = new Long(path.substring("resume/".length()));
-      return apiWriteResumeJob(tc,output,jobID);
+      return apiWriteResumeJob(tc,output,jobID,authorizer);
     }
     else if (path.startsWith("reseed/"))
     {
       Long jobID = new Long(path.substring("reseed/".length()));
-      return apiWriteReseedJob(tc,output,jobID);
+      return apiWriteReseedJob(tc,output,jobID,authorizer);
     }
     else if (path.startsWith("jobs/"))
     {
       Long jobID = new Long(path.substring("jobs/".length()));
-      return apiWriteJob(tc,output,input,jobID);
+      return apiWriteJob(tc,output,input,jobID,authorizer);
     }
     else if (path.startsWith("authoritygroups/"))
     {
       String groupName = decodeAPIPathElement(path.substring("authoritygroups/".length()));
-      return apiWriteAuthorityGroup(tc,output,input,groupName);
+      return apiWriteAuthorityGroup(tc,output,input,groupName,authorizer);
     }
     else if (path.startsWith("outputconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
-      return apiWriteOutputConnection(tc,output,input,connectionName);
+      return apiWriteOutputConnection(tc,output,input,connectionName,authorizer);
     }
     else if (path.startsWith("transformationconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("transformationconnections/".length()));
-      return apiWriteTransformationConnection(tc,output,input,connectionName);
+      return apiWriteTransformationConnection(tc,output,input,connectionName,authorizer);
     }
     else if (path.startsWith("mappingconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("mappingconnections/".length()));
-      return apiWriteMappingConnection(tc,output,input,connectionName);
+      return apiWriteMappingConnection(tc,output,input,connectionName,authorizer);
     }
     else if (path.startsWith("authorityconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("authorityconnections/".length()));
-      return apiWriteAuthorityConnection(tc,output,input,connectionName);
+      return apiWriteAuthorityConnection(tc,output,input,connectionName,authorizer);
     }
     else if (path.startsWith("repositoryconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
-      return apiWriteRepositoryConnection(tc,output,input,connectionName);
+      return apiWriteRepositoryConnection(tc,output,input,connectionName,authorizer);
     }
     else if (path.startsWith("notificationconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("notificationconnections/".length()));
-      return apiWriteNotificationConnection(tc,output,input,connectionName);
+      return apiWriteNotificationConnection(tc,output,input,connectionName,authorizer);
     }
     else if (path.startsWith("clearhistory/"))
     {
       int firstSeparator = "clearhistory/".length();
       String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
-      return apiWriteClearHistoryRepositoryConnection(tc,output,connectionName);
+      return apiWriteClearHistoryRepositoryConnection(tc,output,connectionName,authorizer);
     }
     else if (path.startsWith("reset/"))
     {
@@ -4023,7 +4203,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       
       if (connectionType.equals("outputconnections"))
       {
-        return apiWriteClearVersionsOutputConnection(tc,output,connectionName);
+        return apiWriteClearVersionsOutputConnection(tc,output,connectionName,authorizer);
       }
       else
       {
@@ -4035,13 +4215,13 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       int firstSeparator = "clearversions/".length();
       String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
-      return apiWriteClearVersionsOutputConnection(tc,output,connectionName);
+      return apiWriteClearVersionsOutputConnection(tc,output,connectionName,authorizer);
     }
     else if (path.startsWith("clearrecords/"))
     {
       int firstSeparator = "clearrecords/".length();
       String connectionName = decodeAPIPathElement(path.substring(firstSeparator));
-      return apiWriteClearOutputConnection(tc,output,connectionName);
+      return apiWriteClearOutputConnection(tc,output,connectionName,authorizer);
     }
     else
     {
@@ -4053,12 +4233,16 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   // Delete result codes
   public static final int DELETERESULT_NOTFOUND = 0;
   public static final int DELETERESULT_FOUND = 1;
-
+  public static final int DELETERESULT_NOTALLOWED = 2;
+  
   /** Delete a job.
   */
-  protected static int apiDeleteJob(IThreadContext tc, Configuration output, Long jobID)
+  protected static int apiDeleteJob(IThreadContext tc, Configuration output, Long jobID, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_JOBS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IJobManager jobManager = JobManagerFactory.make(tc);
@@ -4073,9 +4257,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   
   /** Delete authority group.
   */
-  protected static int apiDeleteAuthorityGroup(IThreadContext tc, Configuration output, String groupName)
+  protected static int apiDeleteAuthorityGroup(IThreadContext tc, Configuration output, String groupName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityGroupManager groupManager = AuthorityGroupManagerFactory.make(tc);
@@ -4090,9 +4277,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Delete output connection.
   */
-  protected static int apiDeleteOutputConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiDeleteOutputConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IOutputConnectionManager connectionManager = OutputConnectionManagerFactory.make(tc);
@@ -4107,9 +4297,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Delete authority connection.
   */
-  protected static int apiDeleteAuthorityConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiDeleteAuthorityConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IAuthorityConnectionManager connectionManager = AuthorityConnectionManagerFactory.make(tc);
@@ -4124,9 +4317,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Delete repository connection.
   */
-  protected static int apiDeleteRepositoryConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiDeleteRepositoryConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
@@ -4141,9 +4337,12 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
 
   /** Delete notification connection.
   */
-  protected static int apiDeleteNotificationConnection(IThreadContext tc, Configuration output, String connectionName)
+  protected static int apiDeleteNotificationConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
     throws ManifoldCFException
   {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
     try
     {
       INotificationConnectionManager connectionManager = NotificationConnectionManagerFactory.make(tc);
@@ -4162,38 +4361,38 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   *@param path is the object path.
   *@return delete result code
   */
-  public static int executeDeleteCommand(IThreadContext tc, Configuration output, String path)
+  public static int executeDeleteCommand(IThreadContext tc, Configuration output, String path, IAuthorizer authorizer)
     throws ManifoldCFException
   {
     if (path.startsWith("jobs/"))
     {
       Long jobID = new Long(path.substring("jobs/".length()));
-      return apiDeleteJob(tc,output,jobID);
+      return apiDeleteJob(tc,output,jobID,authorizer);
     }
     else if (path.startsWith("authoritygroups/"))
     {
       String groupName = decodeAPIPathElement(path.substring("authoritygroups/".length()));
-      return apiDeleteAuthorityGroup(tc,output,groupName);
+      return apiDeleteAuthorityGroup(tc,output,groupName,authorizer);
     }
     else if (path.startsWith("outputconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
-      return apiDeleteOutputConnection(tc,output,connectionName);
+      return apiDeleteOutputConnection(tc,output,connectionName,authorizer);
     }
     else if (path.startsWith("authorityconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("authorityconnections/".length()));
-      return apiDeleteAuthorityConnection(tc,output,connectionName);
+      return apiDeleteAuthorityConnection(tc,output,connectionName,authorizer);
     }
     else if (path.startsWith("repositoryconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("repositoryconnections/".length()));
-      return apiDeleteRepositoryConnection(tc,output,connectionName);
+      return apiDeleteRepositoryConnection(tc,output,connectionName,authorizer);
     }
     else if (path.startsWith("notificationconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("notificationconnections/".length()));
-      return apiDeleteNotificationConnection(tc,output,connectionName);
+      return apiDeleteNotificationConnection(tc,output,connectionName,authorizer);
     }
     else
     {
