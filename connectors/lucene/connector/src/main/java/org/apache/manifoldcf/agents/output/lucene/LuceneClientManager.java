@@ -16,17 +16,17 @@ public class LuceneClientManager {
                       String charfilters, String tokenizers, String filters,
                       String analyzers, String fields,
                       String idField, String contentField,
-                      Long maximumDocumentLength) throws Exception
+                      Long maxDocumentLength) throws Exception
   {
     LuceneClient client = clients.get(path);
 
     if (client == null) {
-      return newClient(path, charfilters, tokenizers, filters, analyzers, fields, idField, contentField, maximumDocumentLength);
+      return newClient(path, charfilters, tokenizers, filters, analyzers, fields, idField, contentField, maxDocumentLength);
     }
 
     if (client != null) {
       if (!client.isOpen()) {
-        return newClient(path, charfilters, tokenizers, filters, analyzers, fields, idField, contentField, maximumDocumentLength);
+        return newClient(path, charfilters, tokenizers, filters, analyzers, fields, idField, contentField, maxDocumentLength);
       }
       String latestVersion = LuceneClient.createVersionString(
           new File(path).toPath(),
@@ -35,7 +35,7 @@ public class LuceneClientManager {
           LuceneClient.parseAsMap(filters),
           LuceneClient.parseAsMap(analyzers),
           LuceneClient.parseAsMap(fields),
-          idField, contentField, maximumDocumentLength);
+          idField, contentField, maxDocumentLength);
       String activeVersion = client.versionString();
       if (!activeVersion.equals(latestVersion)) {
         throw new IllegalStateException("The connection on this path is active. Can not update to the latest settings."
@@ -51,11 +51,11 @@ public class LuceneClientManager {
           String charfilters, String tokenizers, String filters,
           String analyzers, String fields,
           String idField, String contentField,
-          Long maximumDocumentLength) throws Exception
+          Long maxDocumentLength) throws Exception
   {
     LuceneClient client =  new LuceneClient(new File(path).toPath(),
                            charfilters, tokenizers, filters, analyzers, fields,
-                           idField, contentField, maximumDocumentLength);
+                           idField, contentField, maxDocumentLength);
     clients.put(path, client);
     return client;
   }

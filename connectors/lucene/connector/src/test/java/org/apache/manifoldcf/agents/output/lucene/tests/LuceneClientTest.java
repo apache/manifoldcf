@@ -18,6 +18,8 @@ package org.apache.manifoldcf.agents.output.lucene.tests;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -42,6 +44,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.base.StandardSystemProperty;
+import com.google.common.io.ByteSource;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
@@ -104,8 +107,8 @@ public class LuceneClientTest {
 
     IndexSearcher searcher = client.newSearcher();
     assertThat(searcher.count(new MatchAllDocsQuery()), is(0));
-    IndexSearcher realtimeSearcher = client.newRealtimeSearcher();
-    assertThat(realtimeSearcher.count(new MatchAllDocsQuery()), is(0));
+
+    assertThat(client.newRealtimeSearcher().count(new MatchAllDocsQuery()), is(0));
     client.close();
   }
 
@@ -115,12 +118,12 @@ public class LuceneClientTest {
 
     LuceneClient client1 =
       LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
-        LuceneClient.defaultIdField(), LuceneClient.defaultContentField(), LuceneClient.defaultMaximumDocumentLength());
+        LuceneClient.defaultIdField(), LuceneClient.defaultContentField(), LuceneClient.defaultMaxDocumentLength());
     assertThat(client1.isOpen(), is(true));
 
     LuceneClient client2 =
       LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
-        "id", "content", LuceneClient.defaultMaximumDocumentLength());
+        "id", "content", LuceneClient.defaultMaxDocumentLength());
     assertThat(client2.isOpen(), is(true));
 
     assertThat(client1, is(client2));
@@ -129,7 +132,7 @@ public class LuceneClientTest {
     try {
       client3 =
         LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
-          "dummy_id", "dummy_content", LuceneClient.defaultMaximumDocumentLength());
+          "dummy_id", "dummy_content", LuceneClient.defaultMaxDocumentLength());
       fail("Should not get here");
     } catch (Exception e) {
       assert e instanceof IllegalStateException;
@@ -142,7 +145,7 @@ public class LuceneClientTest {
 
     client3 =
       LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
-        "dummy_id", "dummy_content", LuceneClient.defaultMaximumDocumentLength());
+        "dummy_id", "dummy_content", LuceneClient.defaultMaxDocumentLength());
     assertThat(client3.isOpen(), is(true));
 
     assertThat(client3, not(client1));
@@ -154,43 +157,43 @@ public class LuceneClientTest {
     String path = testDir.getAbsolutePath()+sep+"tmp"+sep+"addorreplace-index";
     try (LuceneClient client = new LuceneClient(new File(path).toPath())) {
       // add
-      LuceneDocument doc1 = new LuceneDocument()
-        .addStringField(ID, "/repo/001", true)
-        .addTextField(CONTENT, "green", true);
+      LuceneDocument doc1 = new LuceneDocument();
+      doc1 = LuceneDocument.addField(doc1, ID, "/repo/001", client.fieldsInfo());
+      doc1 = LuceneDocument.addField(doc1, CONTENT, ByteSource.wrap("green".getBytes(StandardCharsets.UTF_8)).openBufferedStream(), client.fieldsInfo());
       client.addOrReplace("/repo/001", doc1);
 
-      LuceneDocument doc2 = new LuceneDocument()
-        .addStringField(ID, "/repo/002", true)
-        .addTextField(CONTENT, "yellow", true);
+      LuceneDocument doc2 = new LuceneDocument();
+      doc2 = LuceneDocument.addField(doc2, ID, "/repo/002", client.fieldsInfo());
+      doc2 = LuceneDocument.addField(doc2, CONTENT, ByteSource.wrap("yellow".getBytes(StandardCharsets.UTF_8)).openBufferedStream(), client.fieldsInfo());
       client.addOrReplace("/repo/002", doc2);
 
-     client.optimize();
-     IndexSearcher searcher = client.newSearcher();
-     assertThat(searcher.count(new TermQuery(new Term(CONTENT, "green"))), is(1));
-     assertThat(searcher.count(new TermQuery(new Term(CONTENT, "yellow"))), is(1));
+      client.optimize();
+      IndexSearcher searcher = client.newSearcher();
+      assertThat(searcher.count(new TermQuery(new Term(CONTENT, "green"))), is(1));
+      assertThat(searcher.count(new TermQuery(new Term(CONTENT, "yellow"))), is(1));
 
-     // update
-     LuceneDocument updateDoc = new LuceneDocument()
-       .addStringField(ID, "/repo/001", true)
-       .addTextField(CONTENT, "yellow", true);
-     client.addOrReplace("/repo/001", updateDoc);
+      // update
+      LuceneDocument updateDoc = new LuceneDocument();
+      updateDoc = LuceneDocument.addField(updateDoc, ID, "/repo/001", client.fieldsInfo());
+      updateDoc = LuceneDocument.addField(updateDoc, CONTENT, ByteSource.wrap("yellow".getBytes(StandardCharsets.UTF_8)).openBufferedStream(), client.fieldsInfo());
+      client.addOrReplace("/repo/001", updateDoc);
 
-     client.optimize();
-     searcher = client.newSearcher();
-     assertThat(searcher.count(new TermQuery(new Term(CONTENT, "green"))), is(0));
-     assertThat(searcher.count(new TermQuery(new Term(CONTENT, "yellow"))), is(2));
+      client.optimize();
+      searcher = client.newSearcher();
+      assertThat(searcher.count(new TermQuery(new Term(CONTENT, "green"))), is(0));
+      assertThat(searcher.count(new TermQuery(new Term(CONTENT, "yellow"))), is(2));
 
-     // add
-     LuceneDocument addDoc = new LuceneDocument()
-       .addStringField(ID, "/repo/100", true)
-       .addTextField(CONTENT, "red", true);
-     client.addOrReplace("/repo/100", addDoc);
+      // add
+      LuceneDocument addDoc = new LuceneDocument();
+      addDoc = LuceneDocument.addField(addDoc, ID, "/repo/100", client.fieldsInfo());
+      addDoc = LuceneDocument.addField(addDoc, CONTENT, ByteSource.wrap("red".getBytes(StandardCharsets.UTF_8)).openBufferedStream(), client.fieldsInfo());
+      client.addOrReplace("/repo/100", addDoc);
 
-     client.optimize();
-     searcher = client.newSearcher();
-     assertThat(searcher.count(new TermQuery(new Term(CONTENT, "green"))), is(0));
-     assertThat(searcher.count(new TermQuery(new Term(CONTENT, "yellow"))), is(2));
-     assertThat(searcher.count(new TermQuery(new Term(CONTENT, "red"))), is(1));
+      client.optimize();
+      searcher = client.newSearcher();
+      assertThat(searcher.count(new TermQuery(new Term(CONTENT, "green"))), is(0));
+      assertThat(searcher.count(new TermQuery(new Term(CONTENT, "yellow"))), is(2));
+      assertThat(searcher.count(new TermQuery(new Term(CONTENT, "red"))), is(1));
     }
   }
 
@@ -199,14 +202,14 @@ public class LuceneClientTest {
     String path = testDir.getAbsolutePath()+sep+"tmp"+sep+"remove-index";
     try (LuceneClient client = new LuceneClient(new File(path).toPath())) {
 
-      LuceneDocument doc1 = new LuceneDocument()
-        .addStringField(ID, "/repo/001", true)
-        .addTextField(CONTENT, "Apache", true);
+      LuceneDocument doc1 = new LuceneDocument();
+      doc1 = LuceneDocument.addField(doc1, ID, "/repo/001", client.fieldsInfo());
+      doc1 = LuceneDocument.addField(doc1, CONTENT, ByteSource.wrap("Apache".getBytes(StandardCharsets.UTF_8)).openBufferedStream(), client.fieldsInfo());
       client.addOrReplace("/repo/001", doc1);
 
-      LuceneDocument doc2 = new LuceneDocument()
-        .addStringField(ID, "/repo/002", true)
-        .addTextField(CONTENT, "Apache", true);
+      LuceneDocument doc2 = new LuceneDocument();
+      doc2 = LuceneDocument.addField(doc2, ID, "/repo/002", client.fieldsInfo());
+      doc2 = LuceneDocument.addField(doc2, CONTENT, ByteSource.wrap("Apache".getBytes(StandardCharsets.UTF_8)).openBufferedStream(), client.fieldsInfo());
       client.addOrReplace("/repo/002", doc2);
 
       client.optimize();
@@ -227,21 +230,21 @@ public class LuceneClientTest {
     try (LuceneClient client = new LuceneClient(new File(path).toPath())) {
 
       String content1 = "Apache ManifoldCF, Apache Lucene";
-      LuceneDocument doc1 = new LuceneDocument()
-        .addStringField(ID, "/repo/001", true)
-        .addTextField(CONTENT, content1, true)
-        .addTextField("content_ws", content1, false)
-        .addTextField("content_ngram", content1, false);
+      LuceneDocument doc1 = new LuceneDocument();
+      doc1 = LuceneDocument.addField(doc1, ID, "/repo/001", client.fieldsInfo());
+      doc1 = LuceneDocument.addField(doc1, CONTENT, ByteSource.wrap(content1.getBytes(StandardCharsets.UTF_8)).openBufferedStream(), client.fieldsInfo());
       client.addOrReplace("/repo/001", doc1);
 
-      LuceneDocument doc2 = new LuceneDocument()
-        .addStringField(ID, "/repo/002", true)
-        .addTextField(CONTENT, "This is stop word. apache software.", true);
+      String content2 = "This is stop word. apache software.";
+      LuceneDocument doc2 = new LuceneDocument();
+      doc2 = LuceneDocument.addField(doc2, ID, "/repo/002", client.fieldsInfo());
+      doc2 = LuceneDocument.addField(doc2, CONTENT, ByteSource.wrap(content2.getBytes(StandardCharsets.UTF_8)).openBufferedStream(), client.fieldsInfo());
       client.addOrReplace("/repo/002", doc2);
 
-      LuceneDocument doc3 = new LuceneDocument()
-        .addStringField(ID, "/repo/003", true)
-        .addTextField(CONTENT, "Apache Solr", true);
+      String content3 = "Apache Solr";
+      LuceneDocument doc3 = new LuceneDocument();
+      doc3 = LuceneDocument.addField(doc3, ID, "/repo/003", client.fieldsInfo());
+      doc3 = LuceneDocument.addField(doc3, CONTENT, ByteSource.wrap(content3.getBytes(StandardCharsets.UTF_8)).openBufferedStream(), client.fieldsInfo());
       client.addOrReplace("/repo/003", doc3);
 
       client.optimize();
@@ -272,17 +275,23 @@ public class LuceneClientTest {
       }
       assertThat(client.reader().docFreq(new Term(CONTENT, br)), is(3));
 
+      assertThat(client.reader().getTermVector(docID, "content_ws"), is(nullValue()));
+      assertThat(client.reader().getTermVector(docID, "content_ngram"), is(nullValue()));
+
       hits = searcher.search(client.newQuery("id:\\/repo\\/003"), 1);
       Document storedDocument = searcher.doc(hits.scoreDocs[0].doc);
-      assertThat(storedDocument.getField(CONTENT).stringValue(), is("Apache Solr"));
+      assertThat(storedDocument.getField(CONTENT).binaryValue().utf8ToString(), is("Apache Solr"));
+      assertThat(storedDocument.getField(CONTENT).stringValue(), is(nullValue()));
 
       String nrt = "near-real-time";
-      LuceneDocument doc4 = new LuceneDocument()
-        .addStringField(ID, nrt, true);
+      LuceneDocument doc4 = new LuceneDocument();
+      doc4 = LuceneDocument.addField(doc4, ID, nrt, client.fieldsInfo());
+      doc4 = LuceneDocument.addField(doc4, CONTENT, ByteSource.wrap(nrt.getBytes(StandardCharsets.UTF_8)).openBufferedStream(), client.fieldsInfo());
       client.addOrReplace(nrt, doc4);
       ManifoldCF.sleep(1500L);
       assertThat(searcher.count(client.newQuery(ID+":"+nrt)), is(0));
-      assertThat(client.newSearcher().count(client.newQuery(ID+":"+nrt)), is(0));
+      IndexSearcher searcher2 = client.newSearcher();
+      assertThat(searcher2.count(client.newQuery(ID+":"+nrt)), is(0));
       assertThat(client.newRealtimeSearcher().count(client.newQuery(ID+":"+nrt)), is(1));
     }
   }
@@ -290,16 +299,22 @@ public class LuceneClientTest {
   @Test
   public void testIndexRepositoryDocument() throws IOException, ManifoldCFException {
     String documentURI = "file://dummy/rd";
+    String content = "Classification, categorization, and tagging using Lucene";
+
     RepositoryDocument rd = new RepositoryDocument();
     rd.addField("cat", "foo");
     rd.addField("author", new String[]{ "abe", "obama" });
-    rd.addField(CONTENT, "Classification, categorization, and tagging using Lucene");
+    byte[] b = content.getBytes(StandardCharsets.UTF_8);
+    InputStream in = ByteSource.wrap(b).openBufferedStream();
+    rd.setBinary(in, b.length);
 
     String path = testDir.getAbsolutePath()+sep+"tmp"+sep+"rd-index";
     try (LuceneClient client = new LuceneClient(new File(path).toPath())) {
       LuceneDocument doc = new LuceneDocument();
 
       doc = LuceneDocument.addField(doc, client.idField(), documentURI, client.fieldsInfo());
+
+      doc = LuceneDocument.addField(doc, client.contentField(), rd.getBinaryStream(), client.fieldsInfo());
 
       Iterator<String> it = rd.getFields();
       while (it.hasNext()) {

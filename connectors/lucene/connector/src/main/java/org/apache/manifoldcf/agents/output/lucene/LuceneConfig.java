@@ -29,5 +29,5 @@ public class LuceneConfig
   public static final String PARAM_IDFIELD = "idfield";
   public static final String PARAM_CONTENTFIELD = "contentfield";
 
-  public static final String PARAM_MAXIMUMDOCUMENTLENGTH = "maximumdocumentlength";
+  public static final String PARAM_MAXDOCUMENTLENGTH = "maxdocumentlength";
 }

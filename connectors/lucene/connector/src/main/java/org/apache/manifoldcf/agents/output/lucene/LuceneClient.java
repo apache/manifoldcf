@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -67,7 +68,7 @@ public class LuceneClient implements Closeable {
   private final Map<String,Map<String,Object>> fieldsInfo;
   private final String idField;
   private final String contentField;
-  private final Long maximumDocumentLength;
+  private final Long maxDocumentLength;
 
   private final String versionString;
 
@@ -97,24 +98,36 @@ public class LuceneClient implements Closeable {
   public static final String ATTR_STORE = "store";
   public static final String ATTR_INDEX_ANALYZER = "index_analyzer";
   public static final String ATTR_QUERY_ANALYZER = "query_analyzer";
+  public static final String ATTR_TERM_VECTOR = "term_vector";
   public static final String ATTR_COPY_TO = "copy_to";
 
-  public static final String FIELDTYPE_STRING = "string";
-  public static final String FIELDTYPE_TEXT = "text";
+  public static enum FieldType {
+    STRING, TEXT;
+    @Override public String toString() {
+      return name().toLowerCase(Locale.ROOT);
+    }
+  }
+
+  public static enum TermVector {
+    NO, YES, WITH_POSITIONS, WITH_OFFSETS, WITH_POSITIONS_OFFSETS;
+    @Override public String toString() {
+      return name().toLowerCase(Locale.ROOT);
+    }
+  }
 
   public LuceneClient(Path path) throws IOException {
     this(path,
          LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(),
          LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
          LuceneClient.defaultIdField(), LuceneClient.defaultContentField(),
-         LuceneClient.defaultMaximumDocumentLength());
+         LuceneClient.defaultMaxDocumentLength());
   }
 
   public LuceneClient(Path path,
                       String charfilters, String tokenizers, String filters,
                       String analyzers, String fields,
                       String idField, String contentField,
-                      Long maximumDocumentLength) throws IOException {
+                      Long maxDocumentLength) throws IOException {
     this.path = Preconditions.checkNotNull(path);
     this.charfiltersInfo = parseAsMap(Preconditions.checkNotNull(charfilters));
     this.tokenizersInfo = parseAsMap(Preconditions.checkNotNull(tokenizers));
@@ -123,9 +136,9 @@ public class LuceneClient implements Closeable {
     this.fieldsInfo = parseAsMap(Preconditions.checkNotNull(fields));
     this.idField = Preconditions.checkNotNull(idField);
     this.contentField = Preconditions.checkNotNull(contentField);
-    this.maximumDocumentLength = Preconditions.checkNotNull(maximumDocumentLength);
+    this.maxDocumentLength = Preconditions.checkNotNull(maxDocumentLength);
 
-    this.versionString = createVersionString(path, charfiltersInfo, tokenizersInfo, filtersInfo, analyzersInfo, fieldsInfo, idField, contentField, maximumDocumentLength);
+    this.versionString = createVersionString(path, charfiltersInfo, tokenizersInfo, filtersInfo, analyzersInfo, fieldsInfo, idField, contentField, maxDocumentLength);
 
     Map<String,Analyzer> analyzersMap = createAnalyzersMap();
     Map<String,Analyzer> fieldIndexAnalyzers = createFieldAnalyzers(analyzersMap, ATTR_INDEX_ANALYZER);
@@ -221,7 +234,7 @@ public class LuceneClient implements Closeable {
   private Map<String,Analyzer> createFieldAnalyzers(Map<String,Analyzer> analyzersMap, String target) {
     Map<String,Analyzer> fieldAnalyzers = Maps.newHashMap();
     for (Map.Entry<String,Map<String,Object>> e : fieldsInfo.entrySet()) {
-      if (e.getValue().get(ATTR_FIELDTYPE).toString().equals(FIELDTYPE_TEXT)) {
+      if (e.getValue().get(ATTR_FIELDTYPE).toString().equals(FieldType.TEXT.toString())) {
         String field = e.getKey();
         String analyzer = e.getValue().get(target).toString();
         fieldAnalyzers.put(field, analyzersMap.get(analyzer));
@@ -256,8 +269,8 @@ public class LuceneClient implements Closeable {
     return contentField;
   }
 
-  public Long maximumDocumentLength() {
-    return maximumDocumentLength;
+  public Long maxDocumentLength() {
+    return maxDocumentLength;
   }
 
   public String versionString() {
@@ -272,7 +285,7 @@ public class LuceneClient implements Closeable {
     Map<String,Map<String,Object>> analyzersInfo,
     Map<String,Map<String,Object>> fieldsInfo,
     String idField,String contentField,
-    Long maximumDocumentLength) {
+    Long maxDocumentLength) {
     return LuceneConfig.PARAM_PATH + ":" + path.toString() + "+"
          + LuceneConfig.PARAM_CHARFILTERS + ":" + Joiner.on(",").withKeyValueSeparator("=").join(charfiltersInfo) + "+"
          + LuceneConfig.PARAM_TOKENIZERS + ":" + Joiner.on(",").withKeyValueSeparator("=").join(tokenizersInfo) + "+"
@@ -281,7 +294,7 @@ public class LuceneClient implements Closeable {
          + LuceneConfig.PARAM_FIELDS + ":" + Joiner.on(",").withKeyValueSeparator("=").join(fieldsInfo) + "+"
          + LuceneConfig.PARAM_IDFIELD + ":" + idField + "+"
          + LuceneConfig.PARAM_CONTENTFIELD + ":" + contentField + "+"
-         + LuceneConfig.PARAM_MAXIMUMDOCUMENTLENGTH + ":" + maximumDocumentLength.toString();
+         + LuceneConfig.PARAM_MAXDOCUMENTLENGTH + ":" + maxDocumentLength.toString();
   }
 
   public void refresh() throws IOException {
@@ -427,12 +440,12 @@ public class LuceneClient implements Closeable {
   public static String defaultFields() {
     String fields =
         "{" + "\n"
-          + "  \"id\":{\""+ATTR_FIELDTYPE+"\":\""+FIELDTYPE_STRING+"\", \""+ATTR_STORE+"\":true},"+ "\n"
-          + "  \"cat\":{\""+ATTR_FIELDTYPE+"\":\""+FIELDTYPE_STRING+"\", \""+ATTR_STORE+"\":true},"+ "\n"
-          + "  \"author\":{\""+ATTR_FIELDTYPE+"\":\""+FIELDTYPE_STRING+"\", \""+ATTR_STORE+"\":true},"+ "\n"
-          + "  \"content\":{\""+ATTR_FIELDTYPE+"\":\""+FIELDTYPE_TEXT+"\", \""+ATTR_STORE+"\":true,\""+ATTR_INDEX_ANALYZER+"\":\"text_general\",\""+ATTR_QUERY_ANALYZER+"\":\"text_general\",\""+ATTR_COPY_TO+"\":[\"content_ws\", \"content_ngram\"]}," + "\n"
-          + "  \"content_ws\":{\""+ATTR_FIELDTYPE+"\":\""+FIELDTYPE_TEXT+"\", \""+ATTR_STORE+"\":false,\""+ATTR_INDEX_ANALYZER+"\":\"text_ws\",\""+ATTR_QUERY_ANALYZER+"\":\"text_ws\"}," + "\n"
-          + "  \"content_ngram\":{\""+ATTR_FIELDTYPE+"\":\""+FIELDTYPE_TEXT+"\", \""+ATTR_STORE+"\":false,\""+ATTR_INDEX_ANALYZER+"\":\"text_ngram\",\""+ATTR_QUERY_ANALYZER+"\":\"text_ngram\"}" + "\n"
+          + "  \"id\":{\""+ATTR_FIELDTYPE+"\":\""+FieldType.STRING.toString()+"\", \""+ATTR_STORE+"\":true},"+ "\n"
+          + "  \"cat\":{\""+ATTR_FIELDTYPE+"\":\""+FieldType.STRING.toString()+"\", \""+ATTR_STORE+"\":true},"+ "\n"
+          + "  \"author\":{\""+ATTR_FIELDTYPE+"\":\""+FieldType.STRING.toString()+"\", \""+ATTR_STORE+"\":true},"+ "\n"
+          + "  \"content\":{\""+ATTR_FIELDTYPE+"\":\""+FieldType.TEXT.toString()+"\", \""+ATTR_STORE+"\":true,\""+ATTR_INDEX_ANALYZER+"\":\"text_general\",\""+ATTR_QUERY_ANALYZER+"\":\"text_general\",\""+ ATTR_TERM_VECTOR +"\":\""+ TermVector.WITH_POSITIONS_OFFSETS.toString() +"\",\""+ATTR_COPY_TO+"\":[\"content_ws\", \"content_ngram\"]}," + "\n"
+          + "  \"content_ws\":{\""+ATTR_FIELDTYPE+"\":\""+FieldType.TEXT.toString()+"\", \""+ATTR_STORE+"\":false,\""+ATTR_INDEX_ANALYZER+"\":\"text_ws\",\""+ATTR_QUERY_ANALYZER+"\":\"text_ws\"}," + "\n"
+          + "  \"content_ngram\":{\""+ATTR_FIELDTYPE+"\":\""+FieldType.TEXT.toString()+"\", \""+ATTR_STORE+"\":false,\""+ATTR_INDEX_ANALYZER+"\":\"text_ngram\",\""+ATTR_QUERY_ANALYZER+"\":\"text_ngram\"}" + "\n"
       + "}";
     return fields;
   }
@@ -445,7 +458,7 @@ public class LuceneClient implements Closeable {
     return "content";
   }
 
-  public static Long defaultMaximumDocumentLength() {
+  public static Long defaultMaxDocumentLength() {
     return new Long(700000000L);
   }
 
