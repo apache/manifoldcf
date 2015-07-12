@@ -17,9 +17,6 @@
 package org.apache.manifoldcf.agents.output.lucene;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -162,16 +159,16 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
       if (contentField == null)
         throw new ManifoldCFException("content field not configured");
 
-      final String maxDocumentLength = params.getParameter(LuceneConfig.PARAM_MAXIMUMDOCUMENTLENGTH);
-      if (maxDocumentLength == null)
-        throw new ManifoldCFException("maximum document length not configured");
-      Long maximumDocumentLength = new Long(maxDocumentLength);
+      final String maxDocLength = params.getParameter(LuceneConfig.PARAM_MAXDOCUMENTLENGTH);
+      if (maxDocLength == null)
+        throw new ManifoldCFException("max document length not configured");
+      Long maxDocumentLength = new Long(maxDocLength);
 
       try
       {
         client = LuceneClientManager.getClient(path,
                    charfilters, tokenizers, filters, analyzers, fields,
-                   idField, contentField, maximumDocumentLength);
+                   idField, contentField, maxDocumentLength);
       }
       catch (Exception e)
       {
@@ -279,7 +276,7 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
       long length, IOutputCheckActivity activities)
       throws ManifoldCFException, ServiceInterruption {
     getSession();
-    if (length > client.maximumDocumentLength())
+    if (length > client.maxDocumentLength())
       return false;
     return true;
   }
@@ -316,12 +313,14 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
    *             only if there's a stream error reading the document data.
    */
   @Override
-  public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-    throws ManifoldCFException, ServiceInterruption, IOException
+  public int addOrReplaceDocumentWithException(String documentURI,
+      VersionContext pipelineDescription, RepositoryDocument document,
+      String authorityNameString, IOutputAddActivity activities)
+      throws ManifoldCFException, ServiceInterruption, IOException
   {
     getSession();
 
-    if (client.maximumDocumentLength() != null && document.getBinaryLength() > client.maximumDocumentLength().longValue()){
+    if (document.getBinaryLength() > client.maxDocumentLength().longValue()){
       activities.recordActivity(null, INGEST_ACTIVITY, null, documentURI, activities.EXCLUDED_LENGTH, "Lucene connector rejected document due to its big size: ('"+document.getBinaryLength()+"')");
       return DOCUMENTSTATUS_REJECTED;
     }
@@ -349,17 +348,7 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
 
     try
     {
-      Reader r = new InputStreamReader(document.getBinaryStream(), StandardCharsets.UTF_8);
-      StringBuilder sb = new StringBuilder((int)document.getBinaryLength());
-      char[] buffer = new char[65536];
-      while (true)
-      {
-        int amt = r.read(buffer,0,buffer.length);
-        if (amt == -1)
-          break;
-        sb.append(buffer,0,amt);
-      }
-      doc = LuceneDocument.addField(doc, client.contentField(), sb.toString(), client.fieldsInfo());
+      doc = LuceneDocument.addField(doc, client.contentField(), document.getBinaryStream(), client.fieldsInfo());
     } catch (Exception e) {
       if (e instanceof IOException) {
         Logging.connectors.error("[Parsing Content]Content is not text plain, verify you are properly using Apache Tika Transformer " + documentURI, e);
@@ -407,8 +396,9 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
    *            processing activity.
    */
   @Override
-  public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
-    throws ManifoldCFException, ServiceInterruption
+  public void removeDocument(String documentURI, String outputDescription,
+      IOutputRemoveActivity activities)
+      throws ManifoldCFException, ServiceInterruption
   {
     getSession();
 
@@ -533,10 +523,10 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
       contentField = LuceneClient.defaultContentField();
     map.put(LuceneConfig.PARAM_CONTENTFIELD, contentField);
 
-    String maximumDocumentLength = configParams.getParameter(LuceneConfig.PARAM_MAXIMUMDOCUMENTLENGTH);
-    if (maximumDocumentLength == null)
-      maximumDocumentLength = LuceneClient.defaultMaximumDocumentLength().toString();
-    map.put(LuceneConfig.PARAM_MAXIMUMDOCUMENTLENGTH, maximumDocumentLength);
+    String maxDocumentLength = configParams.getParameter(LuceneConfig.PARAM_MAXDOCUMENTLENGTH);
+    if (maxDocumentLength == null)
+      maxDocumentLength = LuceneClient.defaultMaxDocumentLength().toString();
+    map.put(LuceneConfig.PARAM_MAXDOCUMENTLENGTH, maxDocumentLength);
 
     return map;
   }
@@ -595,9 +585,9 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
     String contentFields = variableContext.getParameter(LuceneConfig.PARAM_CONTENTFIELD);
     if (contentFields != null)
       parameters.setParameter(LuceneConfig.PARAM_CONTENTFIELD, contentFields);
-    String maximumDocumentLength = variableContext.getParameter(LuceneConfig.PARAM_MAXIMUMDOCUMENTLENGTH);
-    if (maximumDocumentLength != null)
-      parameters.setParameter(LuceneConfig.PARAM_MAXIMUMDOCUMENTLENGTH, maximumDocumentLength);
+    String maxDocumentLength = variableContext.getParameter(LuceneConfig.PARAM_MAXDOCUMENTLENGTH);
+    if (maxDocumentLength != null)
+      parameters.setParameter(LuceneConfig.PARAM_MAXDOCUMENTLENGTH, maxDocumentLength);
     return null;
   }
 

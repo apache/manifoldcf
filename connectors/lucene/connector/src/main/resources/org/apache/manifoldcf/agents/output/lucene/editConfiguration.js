@@ -74,15 +74,15 @@ function checkConfig() {
       return false;
     }
   }
-  if (editconnection.maximumdocumentlength) {
-    if (editconnection.maximumdocumentlength.value == "") {
-      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.PleaseSupplyValidMaximumdocumentlength'))");
-      editconnection.maximumdocumentlength.focus();
+  if (editconnection.maxdocumentlength) {
+    if (editconnection.maxdocumentlength.value == "") {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.PleaseSupplyValidMaxdocumentlength'))");
+      editconnection.maxdocumentlength.focus();
       return false;
     }
-    if (editconnection.maximumdocumentlength.value != "" && !isInteger(editconnection.maximumdocumentlength.value)) {
-      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.MaximumDocumentLengthMustBeAnInteger'))");
-      editconnection.maximumdocumentlength.focus();
+    if (editconnection.maxdocumentlength.value != "" && !isInteger(editconnection.maxdocumentlength.value)) {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.MaxDocumentLengthMustBeAnInteger'))");
+      editconnection.maxdocumentlength.focus();
       return false;
     }
   }
@@ -154,17 +154,17 @@ function checkConfigForSave() {
       return false;
     }
   }
-  if (editconnection.maximumdocumentlength) {
-    if (editconnection.maximumdocumentlength.value == "") {
-      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.PleaseSupplyValidMaximumdocumentlength'))");
+  if (editconnection.maxdocumentlength) {
+    if (editconnection.maxdocumentlength.value == "") {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.PleaseSupplyValidMaxdocumentlength'))");
       SelectTab("$Encoder.javascriptBodyEscape($ResourceBundle.getString('LuceneConnector.Parameters'))");
-      editconnection.maximumdocumentlength.focus();
+      editconnection.maxdocumentlength.focus();
       return false;
     }
-    if (editconnection.maximumdocumentlength.value != "" && !isInteger(editconnection.maximumdocumentlength.value)) {
-      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.MaximumDocumentLengthMustBeAnInteger'))");
+    if (editconnection.maxdocumentlength.value != "" && !isInteger(editconnection.maxdocumentlength.value)) {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LuceneConnector.MaxDocumentLengthMustBeAnInteger'))");
       SelectTab("$Encoder.javascriptBodyEscape($ResourceBundle.getString('LuceneConnector.Parameters'))");
-      editconnection.maximumdocumentlength.focus();
+      editconnection.maxdocumentlength.focus();
       return false;
     }
   }
