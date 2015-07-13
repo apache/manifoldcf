@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1222: Handle unregistered connector class in getActivitiesList().
+(Thomas Daniel, Karl Wright)
+
 CONNECTORS-1221: Update documentation for properties.xml to
 include new ldap authentication properties.
 (Karl Wright)
