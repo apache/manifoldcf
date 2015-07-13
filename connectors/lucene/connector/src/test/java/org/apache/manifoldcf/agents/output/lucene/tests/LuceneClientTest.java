@@ -33,19 +33,20 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.util.BytesRef;
+
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.output.lucene.LuceneClient;
 import org.apache.manifoldcf.agents.output.lucene.LuceneClientManager;
 import org.apache.manifoldcf.agents.output.lucene.LuceneDocument;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.system.ManifoldCF;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.io.ByteSource;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 
