@@ -3,6 +3,9 @@ $Id$
 
 ======================= 1.10-dev =====================
 
+CONNECTORS-1222: Handle unregistered connector class in getActivitiesList().
+(Thomas Daniel, Karl Wright)
+
 CONNECTORS-1220: User mapping prerequisite choices were broken,
 caused a hang when there were more than one.
 (Karl Wright)
