@@ -3,6 +3,21 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1224: Upgrade to Hadoop 2.6.0.
+(Shinichiro Abe)
+
+CONNECTORS-1222: Handle unregistered connector class in getActivitiesList().
+(Thomas Daniel, Karl Wright)
+
+CONNECTORS-1221: Update documentation for properties.xml to
+include new ldap authentication properties.
+(Karl Wright)
+
+CONNECTORS-1131: Add infrastructure for controlling individual
+user access to parts of the UI and API, also allow this to be
+configured via LDAP.
+(Colin Joyce, Karl Wright)
+
 CONNECTORS-1220: User mapping prerequisite choices were broken,
 caused a hang when there were more than one.
 (Karl Wright)
