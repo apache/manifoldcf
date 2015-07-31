@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1224: Upgrade to Hadoop 2.6.0.
+(Shinichiro Abe)
+
 CONNECTORS-1222: Handle unregistered connector class in getActivitiesList().
 (Thomas Daniel, Karl Wright)
 
