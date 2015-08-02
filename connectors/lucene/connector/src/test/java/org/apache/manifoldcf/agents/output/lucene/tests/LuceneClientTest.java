@@ -24,7 +24,10 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.LeafReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
@@ -32,8 +35,8 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.util.BytesRef;
-
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.output.lucene.LuceneClient;
 import org.apache.manifoldcf.agents.output.lucene.LuceneClientManager;
@@ -45,8 +48,11 @@ import com.google.common.base.StandardSystemProperty;
 import com.google.common.io.ByteSource;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 
@@ -55,8 +61,28 @@ public class LuceneClientTest {
   private static final String sep = StandardSystemProperty.FILE_SEPARATOR.value();
   private File testDir;
 
+  static {
+    System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
+  }
+  private static MiniDFSCluster hdfsCluster;
+  private static String hdfsPath;
+
   private static final String ID = LuceneClient.defaultIdField();
   private static final String CONTENT = LuceneClient.defaultContentField();
+
+  @BeforeClass
+  public static void beforeClass() throws IOException {
+    Configuration conf = new Configuration();
+    conf.setBoolean("fs.hdfs.impl.disable.cache", true);
+    MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
+    hdfsCluster = builder.build();
+    hdfsPath = "hdfs://localhost:" + hdfsCluster.getNameNodePort() + "/HdfsTest";
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    hdfsCluster.shutdown();
+  }
 
   @Before
   public void setUp() {
@@ -90,7 +116,7 @@ public class LuceneClientTest {
     String path = testDir.getAbsolutePath()+sep+"tmp"+sep+"openclose-index";
     File f = new File(path);
     assertThat(f.exists(), is(false));
-    LuceneClient client = new LuceneClient(f.toPath());
+    LuceneClient client = new LuceneClient(path);
     assertThat(f.exists(), is(true));
     assertThat(client.isOpen(), is(true));
     client.close();
@@ -100,7 +126,7 @@ public class LuceneClientTest {
   @Test
   public void testInitIndexDir() throws IOException {
     String path = testDir.getAbsolutePath()+sep+"tmp"+sep+"initindexdir-index";
-    LuceneClient client = new LuceneClient(new File(path).toPath());
+    LuceneClient client = new LuceneClient(path);
     List<String> indexDirList = Arrays.asList(new File(path).list());
     assertThat(indexDirList.size(), is(2));
     assertThat(indexDirList.contains("write.lock"), is(true));
@@ -108,6 +134,7 @@ public class LuceneClientTest {
 
     IndexSearcher searcher = client.newSearcher();
     assertThat(searcher.count(new MatchAllDocsQuery()), is(0));
+    searcher.getIndexReader().close();
 
     assertThat(client.newRealtimeSearcher().count(new MatchAllDocsQuery()), is(0));
     client.close();
@@ -118,12 +145,12 @@ public class LuceneClientTest {
     String path = testDir.getAbsolutePath()+sep+"tmp"+sep+"getclientfrommanager-index";
 
     LuceneClient client1 =
-      LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
+      LuceneClientManager.getClient(path, ManifoldCF.getProcessID(), LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
         LuceneClient.defaultIdField(), LuceneClient.defaultContentField(), LuceneClient.defaultMaxDocumentLength());
     assertThat(client1.isOpen(), is(true));
 
     LuceneClient client2 =
-      LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
+      LuceneClientManager.getClient(path, ManifoldCF.getProcessID(), LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
         "id", "content", LuceneClient.defaultMaxDocumentLength());
     assertThat(client2.isOpen(), is(true));
 
@@ -132,7 +159,7 @@ public class LuceneClientTest {
     LuceneClient client3;
     try {
       client3 =
-        LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
+        LuceneClientManager.getClient(path, ManifoldCF.getProcessID(), LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
           "dummy_id", "dummy_content", LuceneClient.defaultMaxDocumentLength());
       fail("Should not get here");
     } catch (Exception e) {
@@ -145,7 +172,56 @@ public class LuceneClientTest {
     assertThat(client1, is(client2));
 
     client3 =
-      LuceneClientManager.getClient(path, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
+      LuceneClientManager.getClient(path, ManifoldCF.getProcessID(), LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
+        "dummy_id", "dummy_content", LuceneClient.defaultMaxDocumentLength());
+    assertThat(client3.isOpen(), is(true));
+
+    assertThat(client3, not(client1));
+    assertThat(client3, not(client2));
+  }
+
+  @Test
+  public void testGetClientFromManagerHdfs() throws Exception {
+    String path = hdfsPath+"/getclientfrommanager";
+    String processID_A = "A";
+    String processID_B = "B";
+
+    LuceneClient client1 =
+      LuceneClientManager.getClient(path, processID_A, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
+        LuceneClient.defaultIdField(), LuceneClient.defaultContentField(), LuceneClient.defaultMaxDocumentLength());
+    assertThat(client1.isOpen(), is(true));
+
+    LuceneClient client2 =
+      LuceneClientManager.getClient(path, processID_A, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
+        "id", "content", LuceneClient.defaultMaxDocumentLength());
+    assertThat(client2.isOpen(), is(true));
+
+    assertThat(client1, is(client2));
+
+    LuceneClient clientB =
+      LuceneClientManager.getClient(path, processID_B, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
+      LuceneClient.defaultIdField(), LuceneClient.defaultContentField(), LuceneClient.defaultMaxDocumentLength());
+    assertThat(clientB.isOpen(), is(true));
+
+    assertThat(clientB, not(client2));
+
+    LuceneClient client3;
+    try {
+      client3 =
+        LuceneClientManager.getClient(path, processID_A, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
+          "dummy_id", "dummy_content", LuceneClient.defaultMaxDocumentLength());
+      fail("Should not get here");
+    } catch (Exception e) {
+      assert e instanceof IllegalStateException;
+    }
+
+    client1.close();
+    assertThat(client1.isOpen(), is(false));
+    assertThat(client2.isOpen(), is(false));
+    assertThat(client1, is(client2));
+
+    client3 =
+      LuceneClientManager.getClient(path, processID_A, LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(), LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
         "dummy_id", "dummy_content", LuceneClient.defaultMaxDocumentLength());
     assertThat(client3.isOpen(), is(true));
 
@@ -156,7 +232,7 @@ public class LuceneClientTest {
   @Test
   public void testAddOrReplace() throws IOException {
     String path = testDir.getAbsolutePath()+sep+"tmp"+sep+"addorreplace-index";
-    try (LuceneClient client = new LuceneClient(new File(path).toPath())) {
+    try (LuceneClient client = new LuceneClient(path)) {
       // add
       LuceneDocument doc1 = new LuceneDocument();
       doc1 = LuceneDocument.addField(doc1, ID, "/repo/001", client.fieldsInfo());
@@ -172,6 +248,7 @@ public class LuceneClientTest {
       IndexSearcher searcher = client.newSearcher();
       assertThat(searcher.count(new TermQuery(new Term(CONTENT, "green"))), is(1));
       assertThat(searcher.count(new TermQuery(new Term(CONTENT, "yellow"))), is(1));
+      searcher.getIndexReader().close();
 
       // update
       LuceneDocument updateDoc = new LuceneDocument();
@@ -183,6 +260,7 @@ public class LuceneClientTest {
       searcher = client.newSearcher();
       assertThat(searcher.count(new TermQuery(new Term(CONTENT, "green"))), is(0));
       assertThat(searcher.count(new TermQuery(new Term(CONTENT, "yellow"))), is(2));
+      searcher.getIndexReader().close();
 
       // add
       LuceneDocument addDoc = new LuceneDocument();
@@ -195,13 +273,14 @@ public class LuceneClientTest {
       assertThat(searcher.count(new TermQuery(new Term(CONTENT, "green"))), is(0));
       assertThat(searcher.count(new TermQuery(new Term(CONTENT, "yellow"))), is(2));
       assertThat(searcher.count(new TermQuery(new Term(CONTENT, "red"))), is(1));
+      searcher.getIndexReader().close();
     }
   }
 
   @Test
   public void testRemove() throws IOException {
     String path = testDir.getAbsolutePath()+sep+"tmp"+sep+"remove-index";
-    try (LuceneClient client = new LuceneClient(new File(path).toPath())) {
+    try (LuceneClient client = new LuceneClient(path)) {
 
       LuceneDocument doc1 = new LuceneDocument();
       doc1 = LuceneDocument.addField(doc1, ID, "/repo/001", client.fieldsInfo());
@@ -216,19 +295,21 @@ public class LuceneClientTest {
       client.optimize();
       IndexSearcher searcher = client.newSearcher();
       assertThat(searcher.count(new TermQuery(new Term(CONTENT, "apache"))), is(2));
+      searcher.getIndexReader().close();
 
       client.remove("/repo/001");
 
       client.optimize();
       searcher = client.newSearcher();
       assertThat(searcher.count(new TermQuery(new Term(CONTENT, "apache"))), is(1));
+      searcher.getIndexReader().close();
     }
   }
 
   @Test
   public void testDefaultSettings() throws IOException, InterruptedException {
     String path = testDir.getAbsolutePath()+sep+"tmp"+sep+"defaultsettings-index";
-    try (LuceneClient client = new LuceneClient(new File(path).toPath())) {
+    try (LuceneClient client = new LuceneClient(path)) {
 
       String content1 = "Apache ManifoldCF, Apache Lucene";
       LuceneDocument doc1 = new LuceneDocument();
@@ -264,20 +345,22 @@ public class LuceneClientTest {
 
       TopDocs hits = searcher.search(client.newQuery("id:\\/repo\\/001"), 1);
       int docID = hits.scoreDocs[0].doc;
-      Terms terms = client.reader().getTermVector(docID, CONTENT);
-      TermsEnum te = terms.iterator();
-      BytesRef br;
-      while ((br = te.next()) != null) {
-        if (te.seekExact(new BytesRef("apache"))) {
-          assertThat(br.utf8ToString(), is("apache"));
-          assertThat(te.totalTermFreq(), is(2L));
-          break;
+      try (LeafReader reader = client.reader()) {
+        Terms terms = reader.getTermVector(docID, CONTENT);
+        TermsEnum te = terms.iterator();
+        BytesRef br;
+        while ((br = te.next()) != null) {
+          if (te.seekExact(new BytesRef("apache"))) {
+            assertThat(br.utf8ToString(), is("apache"));
+            assertThat(te.totalTermFreq(), is(2L));
+            break;
+          }
         }
-      }
-      assertThat(client.reader().docFreq(new Term(CONTENT, br)), is(3));
+        assertThat(reader.docFreq(new Term(CONTENT, br)), is(3));
 
-      assertThat(client.reader().getTermVector(docID, "content_ws"), is(nullValue()));
-      assertThat(client.reader().getTermVector(docID, "content_ngram"), is(nullValue()));
+        assertThat(reader.getTermVector(docID, "content_ws"), is(nullValue()));
+        assertThat(reader.getTermVector(docID, "content_ngram"), is(nullValue()));
+      }
 
       hits = searcher.search(client.newQuery("id:\\/repo\\/003"), 1);
       Document storedDocument = searcher.doc(hits.scoreDocs[0].doc);
@@ -294,6 +377,9 @@ public class LuceneClientTest {
       IndexSearcher searcher2 = client.newSearcher();
       assertThat(searcher2.count(client.newQuery(ID+":"+nrt)), is(0));
       assertThat(client.newRealtimeSearcher().count(client.newQuery(ID+":"+nrt)), is(1));
+ 
+      searcher.getIndexReader().close();
+      searcher2.getIndexReader().close();
     }
   }
 
@@ -310,7 +396,7 @@ public class LuceneClientTest {
     rd.setBinary(in, b.length);
 
     String path = testDir.getAbsolutePath()+sep+"tmp"+sep+"rd-index";
-    try (LuceneClient client = new LuceneClient(new File(path).toPath())) {
+    try (LuceneClient client = new LuceneClient(path)) {
       LuceneDocument doc = new LuceneDocument();
 
       doc = LuceneDocument.addField(doc, client.idField(), documentURI, client.fieldsInfo());
@@ -339,6 +425,92 @@ public class LuceneClientTest {
       assertThat(searcher.count(client.newQuery("content:categorization")), is(1));
       assertThat(searcher.count(client.newQuery("content:tagging")), is(1));
       assertThat(searcher.count(client.newQuery("content:(classification AND lucene)")), is(1));
+      searcher.getIndexReader().close();
+    }
+  }
+
+  @Test
+  public void testHdfsSimple1() throws IOException {
+    try (LuceneClient client = new LuceneClient(hdfsPath+"/Simple1")) {
+      for (int i = 0; i < 10; i++) {
+        LuceneDocument doc = new LuceneDocument();
+        doc = LuceneDocument.addField(doc, ID, String.valueOf(i), client.fieldsInfo());
+        doc = LuceneDocument.addField(doc, CONTENT, ByteSource.wrap("hdfs directory?".getBytes(StandardCharsets.UTF_8)).openBufferedStream(), client.fieldsInfo());
+        client.addOrReplace(String.valueOf(i), doc);
+      }
+      client.refresh();
+      assertThat(client.newRealtimeSearcher().count(client.newQuery("content:hdfs")), is(10));
+
+      client.remove(String.valueOf(0));
+      client.refresh();
+      assertThat(client.newRealtimeSearcher().count(client.newQuery("content:hdfs")), is(9));
+    }
+  }
+
+  @Test
+  public void testHdfsSimple2() throws IOException {
+    try (LuceneClient client = new LuceneClient(hdfsPath+"/Simple2")) {
+      for (int i = 0; i < 10; i++) {
+        LuceneDocument doc = new LuceneDocument();
+        doc = LuceneDocument.addField(doc, ID, String.valueOf(i), client.fieldsInfo());
+        doc = LuceneDocument.addField(doc, CONTENT, ByteSource.wrap("hdfs directory.".getBytes(StandardCharsets.UTF_8)).openBufferedStream(), client.fieldsInfo());
+        client.addOrReplace(String.valueOf(i), doc);
+      }
+      client.optimize();
+      IndexSearcher searcher = client.newSearcher();
+      assertThat(searcher.count(client.newQuery("content:hdfs")), is(10));
+      searcher.getIndexReader().close();
+
+      client.remove(String.valueOf(0));
+      client.optimize();
+      IndexSearcher searcher2 = client.newSearcher();
+      assertThat(searcher2.count(client.newQuery("content:hdfs")), is(9));
+      searcher2.getIndexReader().close();
+    }
+  }
+
+  @Test
+  public void testHdfsLock() throws IOException {
+    String samePath = testDir.getAbsolutePath()+sep+"tmp"+sep+"lock";
+    try {
+      try (LuceneClient client1 = new LuceneClient(samePath);
+           LuceneClient client2 = new LuceneClient(samePath)) {
+        fail("Should not get here");
+      }
+    } catch (Exception e) {
+      assert e instanceof LockObtainFailedException;
+    }
+
+    samePath = hdfsPath+"/lock";
+    String processID_A = "/A";
+    String processID_B = "/B";
+    try {
+      try (LuceneClient client1 = new LuceneClient(samePath+processID_A);
+           LuceneClient client2 = new LuceneClient(samePath+processID_B)) {
+        for (int i = 0; i < 2; i++) {
+          LuceneDocument doc1 = new LuceneDocument();
+          doc1 = LuceneDocument.addField(doc1, ID, "A"+String.valueOf(i), client1.fieldsInfo());
+          client1.addOrReplace("A"+String.valueOf(i), doc1);
+        }
+        client1.commit();
+        for (int i = 0; i < 3; i++) {
+          LuceneDocument doc2 = new LuceneDocument();
+          doc2 = LuceneDocument.addField(doc2, ID, "B"+String.valueOf(i), client2.fieldsInfo());
+          client2.addOrReplace("B"+String.valueOf(i), doc2);
+        }
+        client2.commit();
+
+        IndexSearcher searcher1 = client1.newSearcher();
+        assertThat(searcher1.count(client1.newQuery("*:*")), is(2));
+        searcher1.getIndexReader().close();
+
+        IndexSearcher searcher2 = client2.newSearcher();
+        assertThat(searcher2.count(client2.newQuery("*:*")), is(3));
+        searcher2.getIndexReader().close();
+      }
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+      fail("Should not get here");
     }
   }
 

@@ -36,6 +36,7 @@ import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 
@@ -166,7 +167,7 @@ public class LuceneConnector extends org.apache.manifoldcf.agents.output.BaseOut
 
       try
       {
-        client = LuceneClientManager.getClient(path,
+        client = LuceneClientManager.getClient(path, ManifoldCF.getProcessID(),
                    charfilters, tokenizers, filters, analyzers, fields,
                    idField, contentField, maxDocumentLength);
       }
