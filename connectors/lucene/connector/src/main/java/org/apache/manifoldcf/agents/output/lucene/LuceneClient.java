@@ -20,7 +20,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +27,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
@@ -47,6 +48,14 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.NRTCachingDirectory;
+import org.apache.solr.store.blockcache.BlockCache;
+import org.apache.solr.store.blockcache.BlockDirectory;
+import org.apache.solr.store.blockcache.BlockDirectoryCache;
+import org.apache.solr.store.blockcache.BufferStore;
+import org.apache.solr.store.blockcache.Cache;
+import org.apache.solr.store.blockcache.Metrics;
+import org.apache.solr.store.hdfs.HdfsDirectory;
+import org.apache.solr.store.hdfs.HdfsLockFactory;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
@@ -60,7 +69,7 @@ import com.google.gson.reflect.TypeToken;
 
 public class LuceneClient implements Closeable {
 
-  private final Path path;
+  private final String path;
   private final Map<String,Map<String,Object>> charfiltersInfo;
   private final Map<String,Map<String,Object>> tokenizersInfo;
   private final Map<String,Map<String,Object>> filtersInfo;
@@ -115,7 +124,7 @@ public class LuceneClient implements Closeable {
     }
   }
 
-  public LuceneClient(Path path) throws IOException {
+  public LuceneClient(String path) throws IOException {
     this(path,
          LuceneClient.defaultCharfilters(), LuceneClient.defaultTokenizers(), LuceneClient.defaultFilters(),
          LuceneClient.defaultAnalyzers(), LuceneClient.defaultFields(),
@@ -123,7 +132,7 @@ public class LuceneClient implements Closeable {
          LuceneClient.defaultMaxDocumentLength());
   }
 
-  public LuceneClient(Path path,
+  public LuceneClient(String path,
                       String charfilters, String tokenizers, String filters,
                       String analyzers, String fields,
                       String idField, String contentField,
@@ -153,10 +162,9 @@ public class LuceneClient implements Closeable {
       .setCommitOnClose(IndexWriterConfig.DEFAULT_COMMIT_ON_CLOSE)
       .setRAMBufferSizeMB(IndexWriterConfig.DEFAULT_RAM_BUFFER_SIZE_MB * 6);
 
-    Directory fsDir = FSDirectory.open(path);
-    NRTCachingDirectory cachedDir = new NRTCachingDirectory(fsDir, 4, 48);
+    Directory dir = initDirectory();
 
-    this.writer = new IndexWriter(cachedDir, config);
+    this.writer = new IndexWriter(dir, config);
 
     initIndex();
 
@@ -251,10 +259,68 @@ public class LuceneClient implements Closeable {
     return copy;
   }
 
+  public static boolean useHdfs(String path) {
+    return path.startsWith("hdfs:/");
+  }
+
+  private static BlockCache globalBlockCache;
+
+  private Directory initDirectory() throws IOException {
+    Directory directory;
+
+    if (!useHdfs(path)) {
+      Directory fsDir = FSDirectory.open(new File(path).toPath());
+      directory = new NRTCachingDirectory(fsDir, 4, 48);
+    } else {
+      Directory dir;
+
+      Configuration conf = new Configuration();
+      conf.setBoolean("fs.hdfs.impl.disable.cache", true);
+
+      Metrics metrics = new Metrics();
+
+      boolean blockCacheEnabled = true;
+      if (blockCacheEnabled) {
+        boolean blockCacheGlobal = true;
+        boolean blockCacheReadEnabled = true;
+
+        int numberOfBlocksPerBank = 16384;
+        int blockSize = BlockDirectory.BLOCK_SIZE;
+        int bankCount = 1;
+        boolean directAllocation = true;
+        int slabSize = numberOfBlocksPerBank * blockSize;
+        int bufferSize = 128;
+        int bufferCount = 128 * 128;
+
+        synchronized (LuceneClient.class) {
+          if (globalBlockCache == null) {
+            BufferStore.initNewBuffer(bufferSize, bufferCount, metrics);
+
+            long totalMemory = (long) bankCount * (long) numberOfBlocksPerBank * (long) blockSize;
+            globalBlockCache = new BlockCache(metrics, directAllocation, totalMemory, slabSize, blockSize);
+          }
+        }
+
+        Cache cache = new BlockDirectoryCache(globalBlockCache, path, metrics, blockCacheGlobal);
+        HdfsDirectory hdfsDir = new HdfsDirectory(new Path(path), HdfsLockFactory.INSTANCE, conf);
+        dir = new BlockDirectory(path, hdfsDir, cache, null, blockCacheReadEnabled, false);
+      } else {
+        dir = new HdfsDirectory(new Path(path), HdfsLockFactory.INSTANCE, conf);
+      }
+      directory = new NRTCachingDirectory(dir, 16, 192);
+    }
+    return directory;
+  }
+
   private void initIndex() throws IOException {
-    File dirFile = path.toFile();
-    boolean indexExists = dirFile.canRead() && dirFile.list().length > 1;
-    if (!indexExists) writer.commit();
+    if (!useHdfs(path)) {
+      File dirFile = new File(path);
+      boolean indexExists = dirFile.canRead() && dirFile.list().length > 1;
+      if (!indexExists) writer.commit();
+    } else {
+      writer.commit();
+      refresh();
+    }
   }
 
   public Map<String,Map<String,Object>> fieldsInfo() {
@@ -278,7 +344,7 @@ public class LuceneClient implements Closeable {
   }
 
   public static String createVersionString(
-    Path path,
+    String path,
     Map<String,Map<String,Object>> charfiltersInfo,
     Map<String,Map<String,Object>> tokenizersInfo,
     Map<String,Map<String,Object>> filtersInfo,
@@ -286,7 +352,7 @@ public class LuceneClient implements Closeable {
     Map<String,Map<String,Object>> fieldsInfo,
     String idField,String contentField,
     Long maxDocumentLength) {
-    return LuceneConfig.PARAM_PATH + ":" + path.toString() + "+"
+    return LuceneConfig.PARAM_PATH + ":" + path + "+"
          + LuceneConfig.PARAM_CHARFILTERS + ":" + Joiner.on(",").withKeyValueSeparator("=").join(charfiltersInfo) + "+"
          + LuceneConfig.PARAM_TOKENIZERS + ":" + Joiner.on(",").withKeyValueSeparator("=").join(tokenizersInfo) + "+"
          + LuceneConfig.PARAM_FILTERS + ":" + Joiner.on(",").withKeyValueSeparator("=").join(filtersInfo) + "+"
@@ -371,10 +437,12 @@ public class LuceneClient implements Closeable {
   }
 
   public LeafReader reader() throws IOException {
+    // The caller is responsible for ensuring that the returned reader is closed.
     return SlowCompositeReaderWrapper.wrap(DirectoryReader.open(writer.getDirectory()));
   }
 
   public IndexSearcher newSearcher() throws IOException {
+    // The caller is responsible for ensuring that returned searcher's reader is closed.
     return new IndexSearcher(DirectoryReader.open(writer.getDirectory()));
   }
 

@@ -1,6 +1,5 @@
 package org.apache.manifoldcf.agents.output.lucene;
 
-import java.io.File;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
@@ -12,24 +11,31 @@ public class LuceneClientManager {
   private LuceneClientManager() { }
 
   public synchronized static LuceneClient getClient(
-                      String path,
+                      String path, String processID,
                       String charfilters, String tokenizers, String filters,
                       String analyzers, String fields,
                       String idField, String contentField,
                       Long maxDocumentLength) throws Exception
   {
-    LuceneClient client = clients.get(path);
+    String paramPath;
+    if (!LuceneClient.useHdfs(path)) {
+      paramPath = path;
+    } else {
+      paramPath =  (processID.equals("")) ? path : path + "/" + processID;
+    }
+
+    LuceneClient client = clients.get(paramPath);
 
     if (client == null) {
-      return newClient(path, charfilters, tokenizers, filters, analyzers, fields, idField, contentField, maxDocumentLength);
+      return newClient(paramPath, charfilters, tokenizers, filters, analyzers, fields, idField, contentField, maxDocumentLength);
     }
 
     if (client != null) {
       if (!client.isOpen()) {
-        return newClient(path, charfilters, tokenizers, filters, analyzers, fields, idField, contentField, maxDocumentLength);
+        return newClient(paramPath, charfilters, tokenizers, filters, analyzers, fields, idField, contentField, maxDocumentLength);
       }
       String latestVersion = LuceneClient.createVersionString(
-          new File(path).toPath(),
+          paramPath,
           LuceneClient.parseAsMap(charfilters), 
           LuceneClient.parseAsMap(tokenizers),
           LuceneClient.parseAsMap(filters),
@@ -53,9 +59,16 @@ public class LuceneClientManager {
           String idField, String contentField,
           Long maxDocumentLength) throws Exception
   {
-    LuceneClient client =  new LuceneClient(new File(path).toPath(),
-                           charfilters, tokenizers, filters, analyzers, fields,
-                           idField, contentField, maxDocumentLength);
+    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+    LuceneClient client;
+    try {
+      Thread.currentThread().setContextClassLoader(LuceneClientManager.class.getClassLoader());
+      client = new LuceneClient(path,
+        charfilters, tokenizers, filters, analyzers, fields,
+        idField, contentField, maxDocumentLength);
+    } finally {
+      Thread.currentThread().setContextClassLoader(cl);
+    }
     clients.put(path, client);
     return client;
   }

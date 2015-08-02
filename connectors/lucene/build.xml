@@ -40,6 +40,22 @@
               <include name="lucene-sandbox*.jar"/>
               <include name="guava-*.jar"/>
               <include name="gson*.jar"/>
+              <include name="solr-core*.jar"/>
+              <include name="concurrentlinkedhashmap-lru*.jar"/>
+              <include name="solr-solrj*.jar"/>
+              <include name="hadoop-common*.jar"/>
+              <include name="hadoop-annotations*.jar"/>
+              <include name="hadoop-auth*.jar"/>
+              <include name="hadoop-hdfs*.jar"/>
+              <include name="htrace-core*.jar"/>
+              <include name="protobuf-java*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="connector-test-classpath">
+        <path refid="mcf-connector-build.connector-test-classpath"/>
+        <fileset dir="../../lib/hadoop-minicluster/target/dependency">
+            <include name="*.jar"/>
         </fileset>
     </path>
 
@@ -54,6 +70,15 @@
                 <include name="lucene-sandbox*.jar"/>
                 <include name="guava-*.jar"/>
                 <include name="gson*.jar"/>
+                <include name="solr-core*.jar"/>
+                <include name="concurrentlinkedhashmap-lru*.jar"/>
+                <include name="solr-solrj*.jar"/>
+                <include name="hadoop-common*.jar"/>
+                <include name="hadoop-annotations*.jar"/>
+                <include name="hadoop-auth*.jar"/>
+                <include name="hadoop-hdfs*.jar"/>
+                <include name="htrace-core*.jar"/>
+                <include name="protobuf-java*.jar"/>
             </fileset>
         </copy>
     </target>
