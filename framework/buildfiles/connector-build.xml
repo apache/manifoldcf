@@ -195,9 +195,6 @@
             <include name="castor*.jar"/>
             <include name="geronimo-javamail_1.4_spec*.jar"/>
         </fileset>
-    	<fileset dir="${mcf-dist}/connector-lib">
-    	    <include name="guava*.jar"/>
-    	</fileset>
         <pathelement location="build/stubclasses"/>
         <pathelement location="build/wsdlclasses"/>
         <pathelement location="build/xsdclasses"/>
