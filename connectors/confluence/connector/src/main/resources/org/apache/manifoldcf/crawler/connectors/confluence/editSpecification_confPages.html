@@ -1,0 +1,26 @@
+
+
+#if($TabName == $ResourceBundle.getString('ConfluenceRepositoryConnector.Pages') && ${SeqNum} == ${SelectedNum})
+
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  
+	<tr>
+  		<td class="description" colspan="2">
+  			$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.ProcessAttachments'))
+  		</td>
+      		
+    <td class="value">
+      <input type="checkbox" name="s${SeqNum}_process_attachments" value="true"
+      #if($PROCESS_ATTACHMENTS) checked 
+      #end 
+      />
+    </td>
+  </tr>
+</table>
+
+#else
+
+<input type="hidden" name="s${SeqNum}_process_attachments" value="$PROCESS_ATTACHMENTS"/>
+
+#end

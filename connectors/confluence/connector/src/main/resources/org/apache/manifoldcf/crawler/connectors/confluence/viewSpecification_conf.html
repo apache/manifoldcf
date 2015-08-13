@@ -1,0 +1,29 @@
+<table class="displaytable">
+  <tr>
+#if($SPACES.size() == 0)
+    <td class="message" colspan="2">
+      $Encoder.bodyEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.NoSpacesConfigured'))
+    </td>
+#else
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.Spaces'))</nobr>
+    </td>
+    <td class="value">
+  #set($spacecounter = 0)
+  #foreach($space in $SPACES)
+    <nobr>$Encoder.bodyEscape($space)</nobr><br/>
+    #set($spacecounter = $spacecounter + 1)
+  #end
+    </td>
+#end
+  </tr>
+
+  <tr>
+  	<td class="message" colspan="2">
+  		$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.ProcessAttachments'))
+  	</td>
+  	<td class="description">
+  		<nobr>$PROCESS_ATTACHMENTS</nobr>
+  	</td>
+  </tr>
+</table>
