@@ -17,28 +17,44 @@
 
 <project name="confluence" default="all">
 
-    <property environment="env"/>
-    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
-        <isset property="env.MCFDISTPATH"/>
-    </condition>
-    <property name="abs-dist" location="../../dist"/>
-    <condition property="mcf-dist" value="${abs-dist}">
-        <not>
-            <isset property="env.MCFDISTPATH"/>
-        </not>
-    </condition>
+	<property environment="env" />
+	<condition property="mcf-dist" value="${env.MCFDISTPATH}">
+		<isset property="env.MCFDISTPATH" />
+	</condition>
+	<property name="abs-dist" location="../../dist" />
+	<condition property="mcf-dist" value="${abs-dist}">
+		<not>
+			<isset property="env.MCFDISTPATH" />
+		</not>
+	</condition>
 
-    <import file="${mcf-dist}/connector-build.xml"/>
+	<import file="${mcf-dist}/connector-build.xml" />
 
-    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
-        <antcall target="general-add-repository-connector">
-            <param name="connector-label" value="Confluence"/>
-            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.confluence.ConfluenceRepositoryConnector"/>
-        </antcall>
-        <antcall target="general-add-authority-connector">
-            <param name="connector-label" value="Confluence"/>
-            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.confluence.ConfluenceAuthorityConnector"/>
-        </antcall>
-    </target>
+	<path id="connector-classpath">
+		<path refid="mcf-connector-build.connector-classpath" />
+		<fileset dir="../../lib">
+			<include name="guava-*.jar" />
+		</fileset>
+	</path>
+
+	<target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
+		<mkdir dir="dist/lib" />
+		<copy todir="dist/lib">
+			<fileset dir="../../lib">
+				<include name="guava-*.jar" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+		<antcall target="general-add-repository-connector">
+			<param name="connector-label" value="Confluence" />
+			<param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.confluence.ConfluenceRepositoryConnector" />
+		</antcall>
+		<antcall target="general-add-authority-connector">
+			<param name="connector-label" value="Confluence" />
+			<param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.confluence.ConfluenceAuthorityConnector" />
+		</antcall>
+	</target>
 
 </project>
