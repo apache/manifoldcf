@@ -66,6 +66,20 @@ public class ConnectionPoolManager
     return cp;
   }
   
+  public void flush()
+  {
+    synchronized (this)
+    {
+      Iterator<String> iter = poolMap.keySet().iterator();
+      while (iter.hasNext())
+      {
+        String poolKey = iter.next();
+        ConnectionPool cp = poolMap.get(poolKey);
+        cp.flushPool();
+      }
+    }
+  }
+  
   public void shutdown()
   {
     //System.out.println("JDBC POOL SHUTDOWN CALLED");

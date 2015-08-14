@@ -131,6 +131,19 @@ public abstract class Database
     return rawLabelName;
   }
   
+  /** Prepare database for database creation step.
+  * In order to do this, all connections to the back end must be closed.  Since we have a pool, and a local
+  * connection, these all need to be cleaned up.
+  */
+  public void prepareForDatabaseCreate()
+    throws ManifoldCFException
+  {
+    if (connection != null) {
+      throw new ManifoldCFException("Can't do a database create within a transaction");
+    }
+    ConnectionFactory.flush();
+  }
+  
   /** Execute arbitrary database query, and optionally cache the result.  Cached results are
   * returned for this operation if they are valid and appropriate.  Note that any cached results
   * returned were only guaranteed to be pertinent at the time the cached result was obtained; the
