@@ -1849,6 +1849,7 @@
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
+                <pathelement location="build/connector-common/classes"/>
                 <pathelement location="build/authority-servlet/classes"/>
                 <pathelement location="build/api-servlet/classes"/>
                 <pathelement location="build/core-tests/classes"/>
@@ -1872,6 +1873,7 @@
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
+                <pathelement location="build/connector-common/classes"/>
                 <pathelement location="build/authority-servlet/classes"/>
                 <pathelement location="build/api-servlet/classes"/>
                 <pathelement location="build/core-tests/classes"/>
@@ -1895,6 +1897,7 @@
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
+                <pathelement location="build/connector-common/classes"/>
                 <pathelement location="build/authority-servlet/classes"/>
                 <pathelement location="build/api-servlet/classes"/>
                 <pathelement location="build/core-tests/classes"/>
@@ -1919,6 +1922,7 @@
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
+                <pathelement location="build/connector-common/classes"/>
                 <pathelement location="build/authority-servlet/classes"/>
                 <pathelement location="build/api-servlet/classes"/>
                 <pathelement location="build/core-tests/classes"/>
