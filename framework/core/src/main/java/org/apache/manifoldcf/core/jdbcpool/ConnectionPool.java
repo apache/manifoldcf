@@ -83,7 +83,17 @@ public class ConnectionPool
             throw new InterruptedException("Pool already closed");
           rval = freeConnections[--freePointer];
           freeConnections[freePointer] = null;
-          if (!rval.isValid(1)) {
+          boolean isValid = true;
+          try
+          {
+            isValid = rval.isValid(1);
+          }
+          catch (SQLException e)
+          {
+            // Ignore this; we just can't check if handle is valid I guess.
+            // (Postgresql doesn't implement this method so it fails always)
+          }
+          if (!isValid) {
             // If the connection is invalid, drop it on the floor, and get a new one.
             activeConnections--;
             rval.close();
@@ -178,6 +188,27 @@ public class ConnectionPool
     }
   }
   
+  /** Flush the pool.
+  */
+  public synchronized void flushPool()
+  {
+    for (int i = 0 ; i < freePointer ; i++)
+    {
+      try
+      {
+        freeConnections[i].close();
+      }
+      catch (SQLException e)
+      {
+        Logging.db.warn("Error closing pooled connection: "+e.getMessage(),e);
+      }
+      freeConnections[i] = null;
+      activeConnections--;
+    }
+    freePointer = 0;
+    notifyAll();
+  }
+  
   /** Close down the pool.
   */
   public synchronized void closePool()
@@ -243,6 +274,8 @@ public class ConnectionPool
     {
       synchronized (outstandingConnections)
       {
+        if (!outstandingConnections.contains(connection))
+          Logging.db.warn("Released a connection that wasn't tracked!!");
         outstandingConnections.remove(connection);
       }
     }

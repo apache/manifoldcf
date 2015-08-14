@@ -3,6 +3,11 @@ $Id$
 
 ======================= 1.10-dev =====================
 
+CONNECTORS-1226: PostgreSQL does not implement the isValid()
+JDBC method in the driver we include, so make sure when we call it
+we don't fail if we get an exception.  Related to CONNECTORS-1202.
+(Karl Wright)
+
 CONNECTORS-1224: Upgrade to Hadoop 2.6.0.
 (Shinichiro Abe)
 
