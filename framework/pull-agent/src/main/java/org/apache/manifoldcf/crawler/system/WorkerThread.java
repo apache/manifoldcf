@@ -2055,7 +2055,7 @@ public class WorkerThread extends Thread
 
           // Calculate desired document priority based on current queuetracker status.
           String[] bins = ManifoldCF.calculateBins(connector,dr.getLocalIdentifier());
-          PriorityCalculator p = new PriorityCalculator(rt,currentMinimumDepth,connection,bins);
+          PriorityCalculator p = new PriorityCalculator(rt,currentMinimumDepth,connection,bins,dr.getLocalIdentifier());
           priorities[j] = p;
           p.makePreloadRequest();
         }

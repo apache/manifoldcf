@@ -1073,7 +1073,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       DocumentDescription dd = requeueCandidates[q];
       String[] bins = calculateBins(connector,dd.getDocumentIdentifier());
       binNames[q] = bins;
-      docPriorities[q] = new PriorityCalculator(rt,connection,bins);
+      docPriorities[q] = new PriorityCalculator(rt,connection,bins,dd.getDocumentIdentifier());
       q++;
     }
 
@@ -1262,7 +1262,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         else
           // Get the bins for the document identifier
           binNames = connector.getBinNames(descs[i].getDocumentIdentifier());
-        PriorityCalculator p = new PriorityCalculator(rt,minimumDepth,connection,binNames);
+        PriorityCalculator p = new PriorityCalculator(rt,minimumDepth,connection,binNames,descs[i].getDocumentIdentifier());
         priorities[i] = p;
         p.makePreloadRequest();
       }
