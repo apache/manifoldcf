@@ -731,7 +731,10 @@ public class WorkerThread extends Thread
                     // Successful processing of the set
                     // We count 'get version' time in the average, so even if we decide not to process a doc
                     // it still counts.
-                    queueTracker.noteConnectionPerformance(qds.getCount(),connectionName,System.currentTimeMillis() - processingStartTime);
+                    long elapsedTime = System.currentTimeMillis() - processingStartTime;
+                    if (Logging.scheduling.isDebugEnabled())
+                      Logging.scheduling.debug("Worker thread for connection "+connectionName+" took "+new Long(elapsedTime).toString()+"ms to handle "+Integer.toString(qds.getCount())+" documents");
+                    queueTracker.noteConnectionPerformance(qds.getCount(),connectionName,elapsedTime);
 
                   }
                   
