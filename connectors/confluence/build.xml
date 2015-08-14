@@ -34,6 +34,8 @@
 		<path refid="mcf-connector-build.connector-classpath" />
 		<fileset dir="../../lib">
 			<include name="guava-*.jar" />
+			<include name="httpcore*.jar" />
+			<include name="httpclient*.jar" />
 		</fileset>
 	</path>
 

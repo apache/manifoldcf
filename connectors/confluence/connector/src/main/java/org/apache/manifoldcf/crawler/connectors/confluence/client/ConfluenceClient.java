@@ -14,8 +14,11 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -114,50 +117,37 @@ public class ConfluenceClient {
 	 */
 	private void connect() throws ManifoldCFException {
 
-	    int socketTimeout = 900000;
+		int socketTimeout = 900000;
 	    int connectionTimeout = 60000;
 
 	    javax.net.ssl.SSLSocketFactory httpsSocketFactory = KeystoreManagerFactory.getTrustingSecureSocketFactory();
 	    SSLConnectionSocketFactory myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeout),
-	      SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+	      NoopHostnameVerifier.INSTANCE);
 
-	    HttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+	    PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+	        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+	        .register("https", myFactory)
+	        .build());
+	    poolingConnectionManager.setDefaultMaxPerRoute(1);
+	    poolingConnectionManager.setValidateAfterInactivity(60000);
+	    poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+	      .setTcpNoDelay(true)
+	      .setSoTimeout(socketTimeout)
+	      .build());
 
-	    // If authentication needed, set that
-	    // Preemptive authentication not working
-	    /*if (username != null)
-	    {
-	    	CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-	    	credentialsProvider.setCredentials(
-	    			AuthScope.ANY,
-	    			new UsernamePasswordCredentials(username,password));
-
-	    	AuthCache authCache = new BasicAuthCache();
-	    	authCache.put(new HttpHost(host, port), new BasicScheme());
-	    	httpContext = HttpClientContext.create();
-	    	httpContext.setCredentialsProvider(credentialsProvider);
-	    	httpContext.setAuthCache(authCache);
-	    }*/
 
 	    RequestConfig.Builder requestBuilder = RequestConfig.custom()
 	      .setCircularRedirectsAllowed(true)
 	      .setSocketTimeout(socketTimeout)
-	      .setStaleConnectionCheckEnabled(true)
 	      .setExpectContinueEnabled(true)
 	      .setConnectTimeout(connectionTimeout)
 	      .setConnectionRequestTimeout(socketTimeout);
 
 
 	    httpClient = HttpClients.custom()
-	      .setConnectionManager(connectionManager)
-	      .setMaxConnTotal(1)
+	      .setConnectionManager(poolingConnectionManager)
 	      .disableAutomaticRetries()
 	      .setDefaultRequestConfig(requestBuilder.build())
-	      .setDefaultSocketConfig(SocketConfig.custom()
-	        .setTcpNoDelay(true)
-	        .setSoTimeout(socketTimeout)
-	        .build())
-	      .setSSLSocketFactory(myFactory)
 	      .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
 	      .setRedirectStrategy(new DefaultRedirectStrategy())
 	      .build();
