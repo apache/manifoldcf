@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.2-dev =====================
 
+CONNECTORS-1229: Fix NPE in metadata adjuster.
+(Mike Caceres, Karl Wright)
+
 CONNECTORS-1226: PostgreSQL does not implement the isValid()
 JDBC method in the driver we include, so make sure when we call it
 we don't fail if we get an exception.  Related to CONNECTORS-1202.

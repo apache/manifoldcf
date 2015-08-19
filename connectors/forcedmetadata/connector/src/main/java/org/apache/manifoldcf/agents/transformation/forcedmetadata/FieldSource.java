@@ -31,6 +31,9 @@ public class FieldSource implements IDataSource {
   protected final static int CASE_LOWER = 1;
   protected final static int CASE_UPPER = 2;
   
+  protected final static Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+  protected final static String[] EMPTY_STRING_ARRAY = new String[0];
+  
   protected final FieldDataFactory rd;
   protected final String fieldName;
   protected final Pattern regExpPattern;
@@ -84,10 +87,7 @@ public class FieldSource implements IDataSource {
   @Override
   public int getSize()
     throws IOException, ManifoldCFException {
-    Object[] rawForm = getRawForm();
-    if (rawForm == null)
-      return 0;
-    return rawForm.length;
+    return getRawForm().length;
   }
     
   @Override
@@ -96,7 +96,10 @@ public class FieldSource implements IDataSource {
     if (regExpPattern != null) {
       return calculateExtractedResult();
     }
-    return rd.getField(fieldName);
+    final Object[] rval = rd.getField(fieldName);
+    if (rval == null)
+      return EMPTY_OBJECT_ARRAY;
+    return rval;
   }
     
   @Override
@@ -105,7 +108,10 @@ public class FieldSource implements IDataSource {
     if (regExpPattern != null) {
       return calculateExtractedResult();
     }
-    return rd.getFieldAsStrings(fieldName);
+    final String[] rval = rd.getFieldAsStrings(fieldName);
+    if (rval == null)
+      return EMPTY_STRING_ARRAY;
+    return rval;
   }
   
   protected String[] calculateExtractedResult()
@@ -131,7 +137,7 @@ public class FieldSource implements IDataSource {
           resultList.add(result);
         }
       }
-      cachedValue = resultList.toArray(new String[0]);
+      cachedValue = resultList.toArray(EMPTY_STRING_ARRAY);
     }
     return cachedValue;
   }
