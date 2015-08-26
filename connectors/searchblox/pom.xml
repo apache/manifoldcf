@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.apache.manifoldcf</groupId>
 		<artifactId>mcf-connectors</artifactId>
-		<version>1.10-SNAPSHOT</version>
+		<version>1.10</version>
 	</parent>
 
 	<artifactId>mcf-searchblox-connector</artifactId>
