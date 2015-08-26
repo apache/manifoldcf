@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.2-dev =====================
+======================= Release 2.2 =====================
 
 CONNECTORS-1229: Fix NPE in metadata adjuster.
 (Mike Caceres, Karl Wright)
