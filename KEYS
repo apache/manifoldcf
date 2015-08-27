@@ -302,6 +302,13 @@ qeM=
 =OdJw
 -----END PGP PUBLIC KEY BLOCK-----
 
+----------------------------------
+pub   4096R/A5AD43BF 2015-08-26
+uid                  Rafa Haro (CODE SIGNING KEY) <rharo@apache.org>
+sig 3        A5AD43BF 2015-08-26  Rafa Haro (CODE SIGNING KEY) <rharo@apache.org>
+sub   4096R/2353BB04 2015-08-26
+sig          A5AD43BF 2015-08-26  Rafa Haro (CODE SIGNING KEY) <rharo@apache.org>
+
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: GnuPG v1
 
