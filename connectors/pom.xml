@@ -66,6 +66,7 @@
     <module>documentfilter</module>
     <module>searchblox</module>
     <module>confluence</module>
+    <module>amazons3</module>
   </modules>
 
 </project>
