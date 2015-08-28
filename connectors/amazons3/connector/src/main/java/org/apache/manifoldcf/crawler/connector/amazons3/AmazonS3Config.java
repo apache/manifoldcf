@@ -16,8 +16,6 @@
  */
 package org.apache.manifoldcf.crawler.connectors.amazons3;
 
-import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
-
 /**
  * @author Kuhajeyan
  *
