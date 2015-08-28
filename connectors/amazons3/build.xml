@@ -38,6 +38,7 @@
             <include name="jackson-databind*.jar"/>
             <include name="jackson-annotations*.jar"/>
             <include name="joda-time*.jar"/>
+            <include name="json-simple*.jar"/>
         </fileset>
     </path>
 
@@ -50,6 +51,7 @@
               <include name="jackson-databind*.jar"/>
               <include name="jackson-annotations*.jar"/>
               <include name="joda-time*.jar"/>
+              <include name="json-simple*.jar"/>
             </fileset>
         </copy>
     </target>
