@@ -49,227 +49,227 @@ import com.amazonaws.services.s3.model.S3Object;
  *
  */
 public class GenericDocumentProcess extends AmazonS3DocumentProcessUtility
-		implements DocumentProcess {
+    implements DocumentProcess {
 
-	/**
-	 * Process documents with out any tika extractor
-	 * @param documentIdentifiers
-	 * @param statuses
-	 * @param spec
-	 * @param activities
-	 * @param jobMode
-	 * @param usesDefaultAuthority
-	 * @param amazons3Client
-	 * @throws ManifoldCFException
-	 */
-	@Override
-	public void doPocessDocument(String[] documentIdentifiers,
-			IExistingVersions statuses, Specification spec,
-			IProcessActivity activities, int jobMode,
-			boolean usesDefaultAuthority, AmazonS3 amazons3Client)
-			throws ManifoldCFException {
-		if (amazons3Client == null)
-			throw new ManifoldCFException(
-					"Amazon client can not connect at the moment");
+  /**
+   * Process documents with out any tika extractor
+   * @param documentIdentifiers
+   * @param statuses
+   * @param spec
+   * @param activities
+   * @param jobMode
+   * @param usesDefaultAuthority
+   * @param amazons3Client
+   * @throws ManifoldCFException
+   */
+  @Override
+  public void doPocessDocument(String[] documentIdentifiers,
+      IExistingVersions statuses, Specification spec,
+      IProcessActivity activities, int jobMode,
+      boolean usesDefaultAuthority, AmazonS3 amazons3Client)
+      throws ManifoldCFException {
+    if (amazons3Client == null)
+      throw new ManifoldCFException(
+          "Amazon client can not connect at the moment");
 
-		for (String documentIdentifier : documentIdentifiers) {
-			try {
-				if (documentIdentifier == null
-						|| StringUtils.isEmpty(documentIdentifier)) {
-					Logging.connectors
-							.warn("Document identifier is empty, document will not be processed");
-					continue;
-				}
+    for (String documentIdentifier : documentIdentifiers) {
+      try {
+        if (documentIdentifier == null
+            || StringUtils.isEmpty(documentIdentifier)) {
+          Logging.connectors
+              .warn("Document identifier is empty, document will not be processed");
+          continue;
+        }
 
-				String versionString;
-				String[] aclsToUse;
+        String versionString;
+        String[] aclsToUse;
 
-				if (documentIdentifier
-						.split(AmazonS3Config.STD_SEPARATOR_BUCKET_AND_KEY) == null
-						&& documentIdentifier.length() < 1) {
-					continue;
-				}
+        if (documentIdentifier
+            .split(AmazonS3Config.STD_SEPARATOR_BUCKET_AND_KEY) == null
+            && documentIdentifier.length() < 1) {
+          continue;
+        }
 
-				S3Artifact s3Artifact = getS3Artifact(documentIdentifier);
-				S3Object s3Obj = amazons3Client.getObject(new GetObjectRequest(
-						s3Artifact.getBucketName(), s3Artifact.getKey()));
+        S3Artifact s3Artifact = getS3Artifact(documentIdentifier);
+        S3Object s3Obj = amazons3Client.getObject(new GetObjectRequest(
+            s3Artifact.getBucketName(), s3Artifact.getKey()));
 
-				if (s3Obj == null) {
-					// no such document in the bucket now
-					// delete document
-					activities.deleteDocument(documentIdentifier);
-					continue;
-				}
+        if (s3Obj == null) {
+          // no such document in the bucket now
+          // delete document
+          activities.deleteDocument(documentIdentifier);
+          continue;
+        }
 
-				Logging.connectors.info("Content-Type: "
-						+ s3Obj.getObjectMetadata().getContentType());
-				ObjectMetadata objectMetadata = s3Obj.getObjectMetadata();
+        Logging.connectors.info("Content-Type: "
+            + s3Obj.getObjectMetadata().getContentType());
+        ObjectMetadata objectMetadata = s3Obj.getObjectMetadata();
 
-				Date lastModified = objectMetadata.getLastModified();
-				StringBuilder sb = new StringBuilder();
-				if (lastModified == null) {
-					// remove the content
-					activities.deleteDocument(documentIdentifier);
-					continue;
-				}
+        Date lastModified = objectMetadata.getLastModified();
+        StringBuilder sb = new StringBuilder();
+        if (lastModified == null) {
+          // remove the content
+          activities.deleteDocument(documentIdentifier);
+          continue;
+        }
 
-				aclsToUse = new String[0];
+        aclsToUse = new String[0];
 
-				AccessControlList objectAcl = amazons3Client.getObjectAcl(
-						s3Artifact.getBucketName(), s3Artifact.getKey());
+        AccessControlList objectAcl = amazons3Client.getObjectAcl(
+            s3Artifact.getBucketName(), s3Artifact.getKey());
 
-				Set<Grant> grants = objectAcl.getGrants();
-				String[] users = getUsers(grants);
+        Set<Grant> grants = objectAcl.getGrants();
+        String[] users = getUsers(grants);
 
-				aclsToUse = users;
+        aclsToUse = users;
 
-				//
-				sb.append(lastModified.toString());
-				versionString = sb.toString();
+        //
+        sb.append(lastModified.toString());
+        versionString = sb.toString();
 
-				Logging.connectors.debug("version string : " + versionString);
+        Logging.connectors.debug("version string : " + versionString);
 
-				if (versionString.length() > 0
-						&& !activities.checkDocumentNeedsReindexing(
-								documentIdentifier, versionString)) {
-					Logging.connectors
-							.info("Document need not to be reindexed : "
-									+ documentIdentifier);
-					continue;
-				}
+        if (versionString.length() > 0
+            && !activities.checkDocumentNeedsReindexing(
+                documentIdentifier, versionString)) {
+          Logging.connectors
+              .info("Document need not to be reindexed : "
+                  + documentIdentifier);
+          continue;
+        }
 
-				Logging.connectors
-						.debug("JIRA: Processing document identifier '"
-								+ documentIdentifier + "'");
+        Logging.connectors
+            .debug("JIRA: Processing document identifier '"
+                + documentIdentifier + "'");
 
-				long startTime = System.currentTimeMillis();
-				String errorCode = null;
-				String errorDesc = null;
-				Long fileSize = null;
+        long startTime = System.currentTimeMillis();
+        String errorCode = null;
+        String errorDesc = null;
+        Long fileSize = null;
 
-				String mimeType = "text/plain";// default
+        String mimeType = "text/plain";// default
 
-				// tika works starts
-				InputStream in = null;
-				ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        // tika works starts
+        InputStream in = null;
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
-				String document = null;
+        String document = null;
 
-				try {
-					in = s3Obj.getObjectContent();
-					IOUtils.copy(in, bao);
-					long fileLength = bao.size();
-					if(fileLength < 1)
-					{
-						Logging.connectors.warn("File length 0");
-						continue;
-					}
+        try {
+          in = s3Obj.getObjectContent();
+          IOUtils.copy(in, bao);
+          long fileLength = bao.size();
+          if(fileLength < 1)
+          {
+            Logging.connectors.warn("File length 0");
+            continue;
+          }
 
-					String documentURI = getDocumentURI(s3Artifact);
-					Logging.connectors.debug("document : " + documentURI);
+          String documentURI = getDocumentURI(s3Artifact);
+          Logging.connectors.debug("document : " + documentURI);
 
-					try {
-						if (!activities.checkURLIndexable(documentURI)) {
-							errorCode = activities.EXCLUDED_URL;
-							errorDesc = "Excluded because of URL ('"
-									+ documentURI + "')";
-							activities.noDocument(documentIdentifier,
-									versionString);
-							continue;
-						}
+          try {
+            if (!activities.checkURLIndexable(documentURI)) {
+              errorCode = activities.EXCLUDED_URL;
+              errorDesc = "Excluded because of URL ('"
+                  + documentURI + "')";
+              activities.noDocument(documentIdentifier,
+                  versionString);
+              continue;
+            }
 
-						if (!activities.checkMimeTypeIndexable(mimeType)) {
-							errorCode = activities.EXCLUDED_MIMETYPE;
-							errorDesc = "Excluded because of mime type ('"
-									+ mimeType + "')";
-							activities.noDocument(documentIdentifier,
-									versionString);
-							continue;
-						}
-						if (!activities.checkDateIndexable(lastModified)) {
-							errorCode = activities.EXCLUDED_DATE;
-							errorDesc = "Excluded because of date ("
-									+ lastModified + ")";
-							activities.noDocument(documentIdentifier,
-									versionString);
-							continue;
-						}
+            if (!activities.checkMimeTypeIndexable(mimeType)) {
+              errorCode = activities.EXCLUDED_MIMETYPE;
+              errorDesc = "Excluded because of mime type ('"
+                  + mimeType + "')";
+              activities.noDocument(documentIdentifier,
+                  versionString);
+              continue;
+            }
+            if (!activities.checkDateIndexable(lastModified)) {
+              errorCode = activities.EXCLUDED_DATE;
+              errorDesc = "Excluded because of date ("
+                  + lastModified + ")";
+              activities.noDocument(documentIdentifier,
+                  versionString);
+              continue;
+            }
 
-						// otherwise process
-						RepositoryDocument rd = new RepositoryDocument();
-						addRawMetadata(rd, objectMetadata);
-						// Turn into acls and add into
-						// description
-						String[] denyAclsToUse;
-						if (aclsToUse.length > 0)
-							denyAclsToUse = new String[] { AmazonS3Config.defaultAuthorityDenyToken };
-						else
-							denyAclsToUse = new String[0];
-						rd.setSecurity(
-								RepositoryDocument.SECURITY_TYPE_DOCUMENT,
-								aclsToUse, denyAclsToUse);
+            // otherwise process
+            RepositoryDocument rd = new RepositoryDocument();
+            addRawMetadata(rd, objectMetadata);
+            // Turn into acls and add into
+            // description
+            String[] denyAclsToUse;
+            if (aclsToUse.length > 0)
+              denyAclsToUse = new String[] { AmazonS3Config.defaultAuthorityDenyToken };
+            else
+              denyAclsToUse = new String[0];
+            rd.setSecurity(
+                RepositoryDocument.SECURITY_TYPE_DOCUMENT,
+                aclsToUse, denyAclsToUse);
 
-						rd.setMimeType(mimeType);
+            rd.setMimeType(mimeType);
 
-						if (lastModified != null)
-							rd.setModifiedDate(lastModified);
+            if (lastModified != null)
+              rd.setModifiedDate(lastModified);
 
-						
-					    
+            
+              
 
-						if (!activities.checkLengthIndexable(fileLength)) {
-							errorCode = activities.EXCLUDED_LENGTH;
-							errorDesc = "Excluded because of document length ("
-									+ fileLength + ")";
-							activities.noDocument(documentIdentifier,
-									versionString);
-							continue;
-						}
+            if (!activities.checkLengthIndexable(fileLength)) {
+              errorCode = activities.EXCLUDED_LENGTH;
+              errorDesc = "Excluded because of document length ("
+                  + fileLength + ")";
+              activities.noDocument(documentIdentifier,
+                  versionString);
+              continue;
+            }
 
-						InputStream is = null;
-						try {
-							is = new ByteArrayInputStream(bao.toByteArray());
-							rd.setBinary(is, fileLength);
-							activities.ingestDocumentWithException(
-									documentIdentifier, versionString,
-									documentURI, rd);
+            InputStream is = null;
+            try {
+              is = new ByteArrayInputStream(bao.toByteArray());
+              rd.setBinary(is, fileLength);
+              activities.ingestDocumentWithException(
+                  documentIdentifier, versionString,
+                  documentURI, rd);
 
-							errorCode = "OK";
-							fileSize = new Long(fileLength);
-						}
-						finally {
-							if (is != null)
-								IOUtils.closeQuietly(is);
-						}
+              errorCode = "OK";
+              fileSize = new Long(fileLength);
+            }
+            finally {
+              if (is != null)
+                IOUtils.closeQuietly(is);
+            }
 
-					}
-					catch (ServiceInterruption e) {
-						Logging.connectors
-								.error("Error while checking if document is indexable",
-										e);
-					}
-				}
-				catch (IOException e1) {
-					Logging.connectors.error("Error while copying stream", e1);
-				}
-				finally {
-					//close output stream
-					IOUtils.closeQuietly(bao);
+          }
+          catch (ServiceInterruption e) {
+            Logging.connectors
+                .error("Error while checking if document is indexable",
+                    e);
+          }
+        }
+        catch (IOException e1) {
+          Logging.connectors.error("Error while copying stream", e1);
+        }
+        finally {
+          //close output stream
+          IOUtils.closeQuietly(bao);
 
-					//close input stream
-					if (in != null)
-						IOUtils.closeQuietly(in);
-				}
+          //close input stream
+          if (in != null)
+            IOUtils.closeQuietly(in);
+        }
 
-			}
-			catch (AmazonServiceException e) {
-				Logging.connectors.error(e);
-			}
-			catch (AmazonClientException e) {
-				Logging.connectors.error(e);
-			}
-		}
+      }
+      catch (AmazonServiceException e) {
+        Logging.connectors.error(e);
+      }
+      catch (AmazonClientException e) {
+        Logging.connectors.error(e);
+      }
+    }
 
-	}
+  }
 
 }

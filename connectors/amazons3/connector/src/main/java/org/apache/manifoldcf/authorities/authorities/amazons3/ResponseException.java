@@ -22,11 +22,11 @@ package org.apache.manifoldcf.authorities.authorities.amazons3;
  */
 public class ResponseException extends Exception {
 
-	public ResponseException(String msg) {
-		super(msg);
-	}
+  public ResponseException(String msg) {
+    super(msg);
+  }
 
-	public ResponseException(String msg, Throwable cause) {
-		super(msg, cause);
-	}
+  public ResponseException(String msg, Throwable cause) {
+    super(msg, cause);
+  }
 }

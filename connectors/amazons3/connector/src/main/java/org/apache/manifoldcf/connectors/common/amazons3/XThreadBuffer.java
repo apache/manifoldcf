@@ -29,60 +29,60 @@ import org.apache.manifoldcf.crawler.system.Logging;
  * @param <T>
  */
 public class XThreadBuffer<T> {
-	protected static int MAX_SIZE = 1024;
+  protected static int MAX_SIZE = 1024;
 
-	protected List<T> buffer = Collections.synchronizedList(new ArrayList<T>(
-			MAX_SIZE));
+  protected List<T> buffer = Collections.synchronizedList(new ArrayList<T>(
+      MAX_SIZE));
 
-	protected boolean complete = false;
+  protected boolean complete = false;
 
-	protected boolean abandoned = false;
+  protected boolean abandoned = false;
 
-	/** Constructor */
-	public XThreadBuffer() {
-	}
+  /** Constructor */
+  public XThreadBuffer() {
+  }
 
-	public synchronized void add(T t) throws InterruptedException {
-		while (buffer.size() == MAX_SIZE && !abandoned)
-			wait();
-		if (abandoned)
-			return;
-		buffer.add(t);
-		// Notify threads that are waiting on there being stuff in the queue
-		notifyAll();
-	}
+  public synchronized void add(T t) throws InterruptedException {
+    while (buffer.size() == MAX_SIZE && !abandoned)
+      wait();
+    if (abandoned)
+      return;
+    buffer.add(t);
+    // Notify threads that are waiting on there being stuff in the queue
+    notifyAll();
+  }
 
-	public synchronized void abandon() {
-		abandoned = true;
-		// Notify waiting threads
-		notifyAll();
-	}
+  public synchronized void abandon() {
+    abandoned = true;
+    // Notify waiting threads
+    notifyAll();
+  }
 
-	public synchronized T fetch() throws InterruptedException {
+  public synchronized T fetch() throws InterruptedException {
 
-		while (buffer.size() == 0 && !complete) 
-		{
-			if (Logging.connectors != null) {
-				Logging.connectors.info("thread will be put to wait");
-			}
-			wait();
-		}
+    while (buffer.size() == 0 && !complete) 
+    {
+      if (Logging.connectors != null) {
+        Logging.connectors.info("thread will be put to wait");
+      }
+      wait();
+    }
 
-		if (buffer.size() == 0)
-			return null;
-		boolean isBufferFull = (buffer.size() == MAX_SIZE);
-		T rval = buffer.remove(buffer.size() - 1);
-		// Notify those threads waiting on buffer being not completely full to
-		// wake
-		if (isBufferFull)
-			notifyAll();
-		return rval;
-	}
+    if (buffer.size() == 0)
+      return null;
+    boolean isBufferFull = (buffer.size() == MAX_SIZE);
+    T rval = buffer.remove(buffer.size() - 1);
+    // Notify those threads waiting on buffer being not completely full to
+    // wake
+    if (isBufferFull)
+      notifyAll();
+    return rval;
+  }
 
-	public synchronized void signalDone() {
-		complete = true;
-		// Notify threads that are waiting for stuff to appear, because it won't
-		notifyAll();
-	}
+  public synchronized void signalDone() {
+    complete = true;
+    // Notify threads that are waiting for stuff to appear, because it won't
+    notifyAll();
+  }
 
 }

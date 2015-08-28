@@ -21,100 +21,100 @@ package org.apache.manifoldcf.crawler.connectors.amazons3;
  *
  */
 public class AmazonS3Config {
-	public static final String AWS_ACCESS_KEY = "aws_access_key";
+  public static final String AWS_ACCESS_KEY = "aws_access_key";
 
-	public static final String AWS_SECRET_KEY = "aws_secret_key";
+  public static final String AWS_SECRET_KEY = "aws_secret_key";
 
-	public static final String AMAZONS3_HOST = "amazons3_host";
+  public static final String AMAZONS3_HOST = "amazons3_host";
 
-	public static final String AMAZONS3_PORT = "amazons3_port";
+  public static final String AMAZONS3_PORT = "amazons3_port";
 
-	public static final String AMAZONS3_PROTOCOL = "amazons3_protocol";
+  public static final String AMAZONS3_PROTOCOL = "amazons3_protocol";
 
-	public static final String AMAZONS3_PROXY_HOST = "amazons3_proxy_host";
+  public static final String AMAZONS3_PROXY_HOST = "amazons3_proxy_host";
 
-	public static final String AMAZONS3_PROXY_PORT = "amazons3_proxy_port";
+  public static final String AMAZONS3_PROXY_PORT = "amazons3_proxy_port";
 
-	public static final String AMAZONS3_PROXY_DOMAIN = "amazons3_proxy_domain";
+  public static final String AMAZONS3_PROXY_DOMAIN = "amazons3_proxy_domain";
 
-	public static final String AMAZONS3_PROXY_USERNAME = "amazons3_proxy_username";
+  public static final String AMAZONS3_PROXY_USERNAME = "amazons3_proxy_username";
 
-	public static final String AMAZONS3_PROXY_PASSWORD = "amazons3_proxy_password";
+  public static final String AMAZONS3_PROXY_PASSWORD = "amazons3_proxy_password";
 
-	public static final String AMAZONS3_HOST_DEFAULT = "";
+  public static final String AMAZONS3_HOST_DEFAULT = "";
 
-	public static final String AMAZONS3_PORT_DEFAULT = "";
+  public static final String AMAZONS3_PORT_DEFAULT = "";
 
-	public static final String AMAZONS3_PROTOCOL_DEFAULT = "http";
+  public static final String AMAZONS3_PROTOCOL_DEFAULT = "http";
 
-	public static final String AMAZONS3_AWS_ACCESS_KEY_DEFAULT = "";
+  public static final String AMAZONS3_AWS_ACCESS_KEY_DEFAULT = "";
 
-	public static final String AMAZONS3_AWS_SECRET_KEY_DEFAULT = "";
+  public static final String AMAZONS3_AWS_SECRET_KEY_DEFAULT = "";
 
-	public static final String AMAZONS3_PROXY_HOST_DEFAULT = "";
+  public static final String AMAZONS3_PROXY_HOST_DEFAULT = "";
 
-	public static final String AMAZONS3_PROXY_PORT_DEFAULT = "";
+  public static final String AMAZONS3_PROXY_PORT_DEFAULT = "";
 
-	public static final String AMAZONS3_PROXY_DOMAIN_DEFAULT = "";
+  public static final String AMAZONS3_PROXY_DOMAIN_DEFAULT = "";
 
-	public static final String AMAZONS3_PROXY_USERNAME_DEFAULT = "";
+  public static final String AMAZONS3_PROXY_USERNAME_DEFAULT = "";
 
-	public static final String AMAZONS3_PROXY_PASSWORD_DEFAULT = "";
+  public static final String AMAZONS3_PROXY_PASSWORD_DEFAULT = "";
 
-	public static final String AMAZONS3_BUCKETS_DEFAULT = "";
+  public static final String AMAZONS3_BUCKETS_DEFAULT = "";
 
-	// Configuration tabs
-	public static final String AMAZONS3_SERVER_TAB_PROPERTY = "Amazons3RepositoryConnector.Server";
+  // Configuration tabs
+  public static final String AMAZONS3_SERVER_TAB_PROPERTY = "Amazons3RepositoryConnector.Server";
 
-	public static final String AMAZONS3_PROXY_TAB_PROPERTY = "Amazons3RepositoryConnector.Proxy";
+  public static final String AMAZONS3_PROXY_TAB_PROPERTY = "Amazons3RepositoryConnector.Proxy";
 
-	// Specification tabs
-	public static final String AMAZONS3_BUCKETS_TAB_PROPERTY = "Amazons3RepositoryConnector.Amazons3Buckets";
+  // Specification tabs
+  public static final String AMAZONS3_BUCKETS_TAB_PROPERTY = "Amazons3RepositoryConnector.Amazons3Buckets";
 
-	public static final String AMAZONS3_SECURITY_TAB_PROPERTY = "Amazons3RepositoryConnector.Amazons3Security";
+  public static final String AMAZONS3_SECURITY_TAB_PROPERTY = "Amazons3RepositoryConnector.Amazons3Security";
 
-	// Template names for configuration
-	/**
-	 * Forward to the javascript to check the configuration parameters
-	 */
-	public static final String EDIT_CONFIG_HEADER_FORWARD = "editConfiguration_amazons3.js";
+  // Template names for configuration
+  /**
+   * Forward to the javascript to check the configuration parameters
+   */
+  public static final String EDIT_CONFIG_HEADER_FORWARD = "editConfiguration_amazons3.js";
 
-	public static final String EDIT_CONFIG_FORWARD_SERVER = "editConfiguration_amazons3_server.html";
+  public static final String EDIT_CONFIG_FORWARD_SERVER = "editConfiguration_amazons3_server.html";
 
-	public static final String EDIT_CONFIG_FORWARD_PROXY = "editConfiguration_amazons3_proxy.html";
+  public static final String EDIT_CONFIG_FORWARD_PROXY = "editConfiguration_amazons3_proxy.html";
 
-	public static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification_amazons3.js";
+  public static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification_amazons3.js";
 
-	public static final String EDIT_SPEC_FORWARD_BUCKETS = "editSpecification_buckets.html";
+  public static final String EDIT_SPEC_FORWARD_BUCKETS = "editSpecification_buckets.html";
 
-	public static final String VIEW_CONFIG_FORWARD = "viewConfiguration_amazons3.html";
+  public static final String VIEW_CONFIG_FORWARD = "viewConfiguration_amazons3.html";
 
-	public static final String VIEW_SPEC_FORWARD = "viewSpecification_amazons3.html";
-	
-	//job
-	protected static final String RELATIONSHIP_RELATED = "related";
+  public static final String VIEW_SPEC_FORWARD = "viewSpecification_amazons3.html";
+  
+  //job
+  protected static final String RELATIONSHIP_RELATED = "related";
 
-	
+  
 
-	public static final String JOB_ACCESS_NODE_TYPE = "access";
+  public static final String JOB_ACCESS_NODE_TYPE = "access";
 
-	public static final String JOB_TOKEN_ATTRIBUTE = "token";
-	
-	
-	
-	
-	//////
-	public static final int CHARACTER_LIMIT = 1000000;
-	public static final String DOCUMENT_URI_FORMAT = "%s.s3.amazonaws.com/%s";
-	public static final String BUCKET_SPLITTER = ",";
-	public static final String STD_SEPARATOR_BUCKET_AND_KEY = BUCKET_SPLITTER;
+  public static final String JOB_TOKEN_ATTRIBUTE = "token";
+  
+  
+  
+  
+  //////
+  public static final int CHARACTER_LIMIT = 1000000;
+  public static final String DOCUMENT_URI_FORMAT = "%s.s3.amazonaws.com/%s";
+  public static final String BUCKET_SPLITTER = ",";
+  public static final String STD_SEPARATOR_BUCKET_AND_KEY = BUCKET_SPLITTER;
 
-	
+  
 
-	/** Deny access token for default authority */
-	public final static String defaultAuthorityDenyToken = BaseRepositoryConnector.GLOBAL_DENY_TOKEN;
+  /** Deny access token for default authority */
+  public final static String defaultAuthorityDenyToken = BaseRepositoryConnector.GLOBAL_DENY_TOKEN;
 
-	public static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
+  public static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
 
-	public static final String JOB_BUCKETS_ATTRIBUTE = "s3buckets";
+  public static final String JOB_BUCKETS_ATTRIBUTE = "s3buckets";
 }
