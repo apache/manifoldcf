@@ -24,12 +24,12 @@ import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import com.amazonaws.services.s3.AmazonS3;
 
 public interface DocumentProcess {
-	
+  
 
-	void doPocessDocument(String[] documentIdentifiers,
-			IExistingVersions statuses, Specification spec,
-			IProcessActivity activities, int jobMode,
-			boolean usesDefaultAuthority, AmazonS3 amazons3Client)
-			throws ManifoldCFException;
+  void doPocessDocument(String[] documentIdentifiers,
+      IExistingVersions statuses, Specification spec,
+      IProcessActivity activities, int jobMode,
+      boolean usesDefaultAuthority, AmazonS3 amazons3Client)
+      throws ManifoldCFException;
 
 }
