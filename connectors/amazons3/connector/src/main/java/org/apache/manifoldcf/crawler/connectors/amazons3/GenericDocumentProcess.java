@@ -202,7 +202,7 @@ public class GenericDocumentProcess extends AmazonS3DocumentProcessUtility
             // description
             String[] denyAclsToUse;
             if (aclsToUse.length > 0)
-              denyAclsToUse = new String[] { AmazonS3Config.defaultAuthorityDenyToken };
+              denyAclsToUse = new String[] { AmazonS3Connector.GLOBAL_DENY_TOKEN };
             else
               denyAclsToUse = new String[0];
             rd.setSecurity(

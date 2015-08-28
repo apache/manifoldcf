@@ -111,9 +111,6 @@ public class AmazonS3Config {
 
   
 
-  /** Deny access token for default authority */
-  public final static String defaultAuthorityDenyToken = BaseRepositoryConnector.GLOBAL_DENY_TOKEN;
-
   public static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
 
   public static final String JOB_BUCKETS_ATTRIBUTE = "s3buckets";
