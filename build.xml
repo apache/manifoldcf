@@ -129,7 +129,8 @@
     <property name="resteasy.client.version" value="3.0.8.Final"/>
     <property name="jsoup.version" value="1.8.1"/>
     <property name="hadoop.version" value="2.6.0"/>
-
+    <property name="aws-sdk.version" value="1.9.0"/>
+    <property name="joda-time.version" value="2.8.2"/>
 
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
@@ -885,6 +886,177 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
+    <target name="download-aws-sdk">
+        <mkdir dir="lib"/>
+        <property name="aws-sdk-package" value="com/amazonaws"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-directconnect"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-logs"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-elasticbeanstalk"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-iam"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-autoscaling"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-emr"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-cognitoidentity"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-cloudwatchmetrics"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-cloudwatch"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-dynamodb"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-ses"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-simpleworkflow"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-swf-libraries"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-importexport"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-support"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-elasticache"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-cloudfront"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-opsworks"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-storagegateway"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-kinesis"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-redshift"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-cloudsearch"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-cloudformation"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-rds"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-sts"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-route53"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-glacier"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-sqs"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-sns"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-cloudtrail"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-ec2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-cognitosync"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-simpledb"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-datapipeline"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-elasticloadbalancing"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-elastictranscoder"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-s3"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="aws-java-sdk-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-joda-time">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="joda-time"/>
+            <param name="artifact-version" value="${joda-time.version}"/>
+            <param name="artifact-name" value="joda-time"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
     <target name="download-axis">
         <mkdir dir="lib"/>
         <property name="axis-package" value="org/apache/axis"/>
@@ -1970,7 +2142,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 	
-    <target name="make-core-deps" depends="download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
+    <target name="make-core-deps" depends="download-joda-time,download-aws-sdk,download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
