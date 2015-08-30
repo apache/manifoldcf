@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.manifoldcf.authorities.authorities.BaseAuthorityConnector;
 import org.apache.manifoldcf.authorities.interfaces.AuthorizationResponse;
 import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.core.interfaces.ConfigNode;
@@ -394,10 +393,17 @@ public class AmazonS3Authority extends org.apache.manifoldcf.authorities.authori
   public AuthorizationResponse getAuthorizationResponse(String userName)
       throws ManifoldCFException {
 
-    HashMap<String, Set<Grant>> checkUserExists = checkUserExists(userName);
-    if (isUserAvailable(userName, checkUserExists.values())) {
-      return new AuthorizationResponse(new String[] { userName },
+    try {
+      HashMap<String, Set<Grant>> checkUserExists = checkUserExists(userName);
+      if (isUserAvailable(userName, checkUserExists.values())) {
+        return new AuthorizationResponse(new String[] { userName },
           AuthorizationResponse.RESPONSE_OK);
+      }
+		
+    }
+    catch (Exception e) {
+      Logging.authorityConnectors.error("Error while getting authorization response",e);
+      return RESPONSE_UNREACHABLE;
     }
     return RESPONSE_USERNOTFOUND;
   }
