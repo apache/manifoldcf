@@ -14,7 +14,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.connectors.common.amazons3;
+package org.apache.manifoldcf.amazons3;
 
 import java.util.ArrayList;
 import java.util.Collections;
