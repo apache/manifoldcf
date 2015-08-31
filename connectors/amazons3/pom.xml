@@ -406,7 +406,7 @@
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk</artifactId>
+      <artifactId>aws-java-sdk-core</artifactId>
       <version>${aws-java-sdk.version}</version>
     </dependency>
     
