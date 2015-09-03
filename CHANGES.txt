@@ -3,6 +3,8 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1230: Add writeLimit option on Tika extractor.
+(Shinichiro Abe)
 
 ======================= Release 2.2 =====================
 
