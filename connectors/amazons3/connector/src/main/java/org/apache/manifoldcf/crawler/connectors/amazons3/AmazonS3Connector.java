@@ -730,7 +730,7 @@ public class AmazonS3Connector extends BaseRepositoryConnector {
     if (amazons3Client == null)
       throw new ManifoldCFException(
           "Amazon client can not connect at the moment");
-    documentProcess.doPocessDocument(documentIdentifiers, statuses, spec,
+    documentProcess.doProcessDocument(documentIdentifiers, statuses, spec,
         activities, jobMode, usesDefaultAuthority, amazons3Client);
 
   }
