@@ -889,7 +889,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-aws-sdk">
         <mkdir dir="lib"/>
         <property name="aws-sdk-package" value="com/amazonaws"/>
-        <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
+        <!-- antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="aws-java-sdk"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1036,7 +1036,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="aws-java-sdk-elastictranscoder"/>
             <param name="artifact-type" value="jar"/>
-        </antcall>
+        </antcall-->
         <antcall target="download-via-maven"><param name="project-path" value="${aws-sdk-package}"/><param name="artifact-version" value="${aws-sdk.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="aws-java-sdk-s3"/>
             <param name="artifact-type" value="jar"/>
