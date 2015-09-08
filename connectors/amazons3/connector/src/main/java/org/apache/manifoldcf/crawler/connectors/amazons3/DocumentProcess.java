@@ -20,16 +20,17 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 
 import com.amazonaws.services.s3.AmazonS3;
 
 public interface DocumentProcess {
   
 
-  void doPocessDocument(String[] documentIdentifiers,
+  void doProcessDocument(String[] documentIdentifiers,
       IExistingVersions statuses, Specification spec,
       IProcessActivity activities, int jobMode,
       boolean usesDefaultAuthority, AmazonS3 amazons3Client)
-      throws ManifoldCFException;
+      throws ManifoldCFException, ServiceInterruption;
 
 }

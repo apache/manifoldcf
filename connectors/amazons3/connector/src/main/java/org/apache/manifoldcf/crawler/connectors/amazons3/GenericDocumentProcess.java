@@ -51,6 +51,8 @@ import com.amazonaws.services.s3.model.S3Object;
 public class GenericDocumentProcess extends AmazonS3DocumentProcessUtility
     implements DocumentProcess {
 
+  private static final String TEXT_PLAIN = "text/plain";
+
   /**
    * Process documents with out any tika extractor
    * @param documentIdentifiers
@@ -63,11 +65,11 @@ public class GenericDocumentProcess extends AmazonS3DocumentProcessUtility
    * @throws ManifoldCFException
    */
   @Override
-  public void doPocessDocument(String[] documentIdentifiers,
+  public void doProcessDocument(String[] documentIdentifiers,
       IExistingVersions statuses, Specification spec,
       IProcessActivity activities, int jobMode,
       boolean usesDefaultAuthority, AmazonS3 amazons3Client)
-      throws ManifoldCFException {
+      throws ManifoldCFException, ServiceInterruption {
     if (amazons3Client == null)
       throw new ManifoldCFException(
           "Amazon client can not connect at the moment");
@@ -122,8 +124,7 @@ public class GenericDocumentProcess extends AmazonS3DocumentProcessUtility
         String[] users = getUsers(grants);
 
         aclsToUse = users;
-
-        //
+        
         sb.append(lastModified.toString());
         versionString = sb.toString();
 
@@ -147,129 +148,122 @@ public class GenericDocumentProcess extends AmazonS3DocumentProcessUtility
         String errorDesc = null;
         Long fileSize = null;
 
-        String mimeType = "text/plain";// default
+        String mimeType = TEXT_PLAIN;//default        
+        long fileLength = s3Obj.getObjectMetadata()
+          .getContentLength();
+        
+        if (!activities.checkLengthIndexable(fileLength)) {
+          errorCode = activities.EXCLUDED_LENGTH;
+          errorDesc = "Excluded because of document length ("
+              + fileLength + ")";
+          activities.noDocument(documentIdentifier,
+              versionString);
+          continue;
+        }
 
-        // tika works starts
+        String documentURI = getDocumentURI(s3Artifact);
+        Logging.connectors.debug("document : " + documentURI);
+
+        if (!activities.checkURLIndexable(documentURI)) {
+          errorCode = activities.EXCLUDED_URL;
+          errorDesc = "Excluded because of URL ('"
+              + documentURI + "')";
+          activities.noDocument(documentIdentifier,
+              versionString);
+          continue;
+        }
+
+        if (!activities.checkMimeTypeIndexable(mimeType)) {
+          errorCode = activities.EXCLUDED_MIMETYPE;
+          errorDesc = "Excluded because of mime type ('"
+              + mimeType + "')";
+          activities.noDocument(documentIdentifier,
+              versionString);
+          continue;
+        }
+        
+        if (!activities.checkDateIndexable(lastModified)) {
+          errorCode = activities.EXCLUDED_DATE;
+          errorDesc = "Excluded because of date ("
+              + lastModified + ")";
+          activities.noDocument(documentIdentifier,
+              versionString);
+          continue;
+        }
+
         InputStream in = null;
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-
-        String document = null;
-
         try {
+
           in = s3Obj.getObjectContent();
-          IOUtils.copy(in, bao);
-          long fileLength = bao.size();
-          if(fileLength < 1)
-          {
-            Logging.connectors.warn("File length 0");
-            continue;
-          }
 
-          String documentURI = getDocumentURI(s3Artifact);
-          Logging.connectors.debug("document : " + documentURI);
+          // otherwise process
+          RepositoryDocument rd = new RepositoryDocument();
+          addRawMetadata(rd, objectMetadata);
+          // Turn into acls and add into
+          // description
+          String[] denyAclsToUse;
+          if (aclsToUse.length > 0)
+            denyAclsToUse = new String[] { AmazonS3Connector.GLOBAL_DENY_TOKEN };
+          else
+            denyAclsToUse = new String[0];
+          rd.setSecurity(
+              RepositoryDocument.SECURITY_TYPE_DOCUMENT,
+              aclsToUse, denyAclsToUse);
 
-          try {
-            if (!activities.checkURLIndexable(documentURI)) {
-              errorCode = activities.EXCLUDED_URL;
-              errorDesc = "Excluded because of URL ('"
-                  + documentURI + "')";
-              activities.noDocument(documentIdentifier,
-                  versionString);
-              continue;
-            }
+          rd.setMimeType(mimeType);
 
-            if (!activities.checkMimeTypeIndexable(mimeType)) {
-              errorCode = activities.EXCLUDED_MIMETYPE;
-              errorDesc = "Excluded because of mime type ('"
-                  + mimeType + "')";
-              activities.noDocument(documentIdentifier,
-                  versionString);
-              continue;
-            }
-            if (!activities.checkDateIndexable(lastModified)) {
-              errorCode = activities.EXCLUDED_DATE;
-              errorDesc = "Excluded because of date ("
-                  + lastModified + ")";
-              activities.noDocument(documentIdentifier,
-                  versionString);
-              continue;
-            }
+          if (lastModified != null)
+            rd.setModifiedDate(lastModified);
 
-            // otherwise process
-            RepositoryDocument rd = new RepositoryDocument();
-            addRawMetadata(rd, objectMetadata);
-            // Turn into acls and add into
-            // description
-            String[] denyAclsToUse;
-            if (aclsToUse.length > 0)
-              denyAclsToUse = new String[] { AmazonS3Connector.GLOBAL_DENY_TOKEN };
-            else
-              denyAclsToUse = new String[0];
-            rd.setSecurity(
-                RepositoryDocument.SECURITY_TYPE_DOCUMENT,
-                aclsToUse, denyAclsToUse);
 
-            rd.setMimeType(mimeType);
+          //assign the stream
+          rd.setBinary(in, fileLength);
+          activities.ingestDocumentWithException(
+              documentIdentifier, versionString,
+              documentURI, rd);
 
-            if (lastModified != null)
-              rd.setModifiedDate(lastModified);
-
-            
-              
-
-            if (!activities.checkLengthIndexable(fileLength)) {
-              errorCode = activities.EXCLUDED_LENGTH;
-              errorDesc = "Excluded because of document length ("
-                  + fileLength + ")";
-              activities.noDocument(documentIdentifier,
-                  versionString);
-              continue;
-            }
-
-            InputStream is = null;
-            try {
-              is = new ByteArrayInputStream(bao.toByteArray());
-              rd.setBinary(is, fileLength);
-              activities.ingestDocumentWithException(
-                  documentIdentifier, versionString,
-                  documentURI, rd);
-
-              errorCode = "OK";
-              fileSize = new Long(fileLength);
-            }
-            finally {
-              if (is != null)
-                IOUtils.closeQuietly(is);
-            }
-
-          }
-          catch (ServiceInterruption e) {
-            Logging.connectors
-                .error("Error while checking if document is indexable",
-                    e);
-          }
+          errorCode = "OK";
+          fileSize = new Long(fileLength);
         }
         catch (IOException e1) {
-          Logging.connectors.error("Error while copying stream", e1);
+          handleIOException(e1);
         }
         finally {
-          //close output stream
-          IOUtils.closeQuietly(bao);
 
-          //close input stream
+          // close input stream
           if (in != null)
             IOUtils.closeQuietly(in);
         }
 
       }
       catch (AmazonServiceException e) {
-        Logging.connectors.error(e);
+        handleServiceException(e);
       }
       catch (AmazonClientException e) {
-        Logging.connectors.error(e);
+        handleClientException(e);
       }
     }
 
   }
 
+  protected static void handleIOException(final IOException e1)
+    throws ManifoldCFException, ServiceInterruption {
+    Logging.connectors.error("Error while copying stream", e1);
+    // Gotta handle this?? MHL
+    throw new ManifoldCFException("Error copying stream: "+e1.getMessage(),e1);
+  }
+
+  protected static void handleServiceException(final AmazonServiceException e1)
+    throws ManifoldCFException, ServiceInterruption {
+    // MHL to figure out what to throw?
+    Logging.connectors.error(e1);
+    throw new ManifoldCFException("Amazon service exception: "+e1.getMessage(),e1);
+  }
+  
+  protected static void handleClientException(final AmazonClientException e1)
+    throws ManifoldCFException, ServiceInterruption {
+    // MHL to figure out what to throw?
+    Logging.connectors.error(e1);
+    throw new ManifoldCFException("Amazon client exception: "+e1.getMessage(),e1);
+  }
 }
