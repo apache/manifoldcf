@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1233: Add Amazon S3 connector.
+(Gunaratnam Kuhajeyan, Karl Wright)
+
 CONNECTORS-1230: Add writeLimit option on Tika extractor.
 (Shinichiro Abe)
 
