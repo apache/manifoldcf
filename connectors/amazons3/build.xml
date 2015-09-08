@@ -48,7 +48,7 @@
         <copy todir="dist/lib">
             <fileset dir="../../lib">
               <include name="aws-java-sdk-core-*.jar"/>
-			  <include name="aws-java-sdk-s3-*.jar"/>
+              <include name="aws-java-sdk-s3-*.jar"/>
               <include name="jackson-core*.jar"/>
               <include name="jackson-databind*.jar"/>
               <include name="jackson-annotations*.jar"/>
