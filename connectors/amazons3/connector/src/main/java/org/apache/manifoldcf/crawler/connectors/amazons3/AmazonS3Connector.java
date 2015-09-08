@@ -180,8 +180,9 @@ public class AmazonS3Connector extends BaseRepositoryConnector {
    * Get the Amazons3 client, relevant access keys should have been posted
    * already
    * @return
+ * @throws ManifoldCFException 
    */
-  protected AmazonS3 getClient() {
+  protected AmazonS3 getClient() throws ManifoldCFException {
     if (amazonS3 == null) {
       try {
         BasicAWSCredentials awsCreds = new BasicAWSCredentials(
@@ -191,7 +192,8 @@ public class AmazonS3Connector extends BaseRepositoryConnector {
       catch (Exception e) {
         Logging.connectors
             .error("Error while amazon s3 connectionr", e);
-
+        throw new ManifoldCFException(
+                "Amazon client can not connect at the moment",e.getCause());
       }
     }
     lastSessionFetch = System.currentTimeMillis();
@@ -612,12 +614,12 @@ public class AmazonS3Connector extends BaseRepositoryConnector {
     if (unparsedBuckets != null && StringUtils.isNotEmpty(unparsedBuckets))
       bucketsToRemove = unparsedBuckets.split(BUCKET_SPLITTER);
     // get seeds
-    GeedSeeds(activities, bucketsToRemove);
+    getSeeds(activities, bucketsToRemove);
 
     return new Long(seedTime).toString();
   }
 
-  private void GeedSeeds(ISeedingActivity activities, String[] buckets)
+  private void getSeeds(ISeedingActivity activities, String[] buckets)
       throws ManifoldCFException, ServiceInterruption {
     GetSeedsThread t = new GetSeedsThread(getClient(), buckets);
     try {
@@ -726,10 +728,7 @@ public class AmazonS3Connector extends BaseRepositoryConnector {
       IProcessActivity activities, int jobMode,
       boolean usesDefaultAuthority) throws ManifoldCFException,
       ServiceInterruption {
-    AmazonS3 amazons3Client = getClient();
-    if (amazons3Client == null)
-      throw new ManifoldCFException(
-          "Amazon client can not connect at the moment");
+    AmazonS3 amazons3Client = getClient();    
     documentProcess.doProcessDocument(documentIdentifiers, statuses, spec,
         activities, jobMode, usesDefaultAuthority, amazons3Client);
 
