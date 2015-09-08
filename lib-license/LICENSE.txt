@@ -395,6 +395,12 @@ License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 This product includes a jsoup.jar.
 License: MIT license (http://opensource.org/licenses/MIT)
 
+This product includes a number of aws-java-sdk-* jars.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a joda-time.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
 This product may include pdf files that embed IPA-licensed fonts.
 License: IPA Font License Agreement v1.0 (http://ossipedia.ipa.go.jp/ipafont/index.html#LicenseEng)
 
