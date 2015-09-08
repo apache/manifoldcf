@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.util.Date;
 import java.util.Set;
 
@@ -124,7 +125,7 @@ public class GenericDocumentProcess extends AmazonS3DocumentProcessUtility
         String[] users = getUsers(grants);
 
         aclsToUse = users;
-        
+
         sb.append(lastModified.toString());
         versionString = sb.toString();
 
@@ -148,16 +149,14 @@ public class GenericDocumentProcess extends AmazonS3DocumentProcessUtility
         String errorDesc = null;
         Long fileSize = null;
 
-        String mimeType = TEXT_PLAIN;//default        
-        long fileLength = s3Obj.getObjectMetadata()
-          .getContentLength();
-        
+        String mimeType = TEXT_PLAIN;// default
+        long fileLength = s3Obj.getObjectMetadata().getContentLength();
+
         if (!activities.checkLengthIndexable(fileLength)) {
           errorCode = activities.EXCLUDED_LENGTH;
           errorDesc = "Excluded because of document length ("
               + fileLength + ")";
-          activities.noDocument(documentIdentifier,
-              versionString);
+          activities.noDocument(documentIdentifier, versionString);
           continue;
         }
 
@@ -166,28 +165,25 @@ public class GenericDocumentProcess extends AmazonS3DocumentProcessUtility
 
         if (!activities.checkURLIndexable(documentURI)) {
           errorCode = activities.EXCLUDED_URL;
-          errorDesc = "Excluded because of URL ('"
-              + documentURI + "')";
-          activities.noDocument(documentIdentifier,
-              versionString);
+          errorDesc = "Excluded because of URL ('" + documentURI
+              + "')";
+          activities.noDocument(documentIdentifier, versionString);
           continue;
         }
 
         if (!activities.checkMimeTypeIndexable(mimeType)) {
           errorCode = activities.EXCLUDED_MIMETYPE;
-          errorDesc = "Excluded because of mime type ('"
-              + mimeType + "')";
-          activities.noDocument(documentIdentifier,
-              versionString);
+          errorDesc = "Excluded because of mime type ('" + mimeType
+              + "')";
+          activities.noDocument(documentIdentifier, versionString);
           continue;
         }
-        
+
         if (!activities.checkDateIndexable(lastModified)) {
           errorCode = activities.EXCLUDED_DATE;
-          errorDesc = "Excluded because of date ("
-              + lastModified + ")";
-          activities.noDocument(documentIdentifier,
-              versionString);
+          errorDesc = "Excluded because of date (" + lastModified
+              + ")";
+          activities.noDocument(documentIdentifier, versionString);
           continue;
         }
 
@@ -206,8 +202,7 @@ public class GenericDocumentProcess extends AmazonS3DocumentProcessUtility
             denyAclsToUse = new String[] { AmazonS3Connector.GLOBAL_DENY_TOKEN };
           else
             denyAclsToUse = new String[0];
-          rd.setSecurity(
-              RepositoryDocument.SECURITY_TYPE_DOCUMENT,
+          rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,
               aclsToUse, denyAclsToUse);
 
           rd.setMimeType(mimeType);
@@ -215,12 +210,10 @@ public class GenericDocumentProcess extends AmazonS3DocumentProcessUtility
           if (lastModified != null)
             rd.setModifiedDate(lastModified);
 
-
-          //assign the stream
+          // assign the stream
           rd.setBinary(in, fileLength);
-          activities.ingestDocumentWithException(
-              documentIdentifier, versionString,
-              documentURI, rd);
+          activities.ingestDocumentWithException(documentIdentifier,
+              versionString, documentURI, rd);
 
           errorCode = "OK";
           fileSize = new Long(fileLength);
@@ -229,7 +222,6 @@ public class GenericDocumentProcess extends AmazonS3DocumentProcessUtility
           handleIOException(e1);
         }
         finally {
-
           // close input stream
           if (in != null)
             IOUtils.closeQuietly(in);
@@ -246,24 +238,39 @@ public class GenericDocumentProcess extends AmazonS3DocumentProcessUtility
 
   }
 
-  protected static void handleIOException(final IOException e1)
-    throws ManifoldCFException, ServiceInterruption {
-    Logging.connectors.error("Error while copying stream", e1);
-    // Gotta handle this?? MHL
-    throw new ManifoldCFException("Error copying stream: "+e1.getMessage(),e1);
+  protected static void handleIOException(final IOException e)
+      throws ManifoldCFException, ServiceInterruption {
+    Logging.connectors.error("Error while copying stream", e);
+    if (!(e instanceof java.net.SocketTimeoutException)
+        && (e instanceof InterruptedIOException)) {
+      throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+          ManifoldCFException.INTERRUPTED);
+    }
+    long currentTime = System.currentTimeMillis();
+    throw new ServiceInterruption("IO exception: " + e.getMessage(), e,
+        currentTime + 300000L, currentTime + 3 * 60 * 60000L, -1, false);
   }
 
-  protected static void handleServiceException(final AmazonServiceException e1)
-    throws ManifoldCFException, ServiceInterruption {
-    // MHL to figure out what to throw?
-    Logging.connectors.error(e1);
-    throw new ManifoldCFException("Amazon service exception: "+e1.getMessage(),e1);
+  protected static void handleServiceException(final AmazonServiceException e)
+      throws ManifoldCFException, ServiceInterruption {
+    Logging.connectors.error("Service exception status : " + e.getStatusCode(),e);
+    
+    if (!e.isRetryable()) {
+      throw new ManifoldCFException("Amazon service exception: "
+          + e.getMessage(), e.getCause());
+    }
+    
+    throw new ServiceInterruption(e.getMessage(), System.currentTimeMillis()+300000L);
   }
-  
-  protected static void handleClientException(final AmazonClientException e1)
-    throws ManifoldCFException, ServiceInterruption {
-    // MHL to figure out what to throw?
-    Logging.connectors.error(e1);
-    throw new ManifoldCFException("Amazon client exception: "+e1.getMessage(),e1);
+
+  protected static void handleClientException(final AmazonClientException e)
+      throws ManifoldCFException, ServiceInterruption {
+    Logging.connectors.error(e);
+    if (!e.isRetryable()) {
+      throw new ManifoldCFException("Amazon client exception: "
+          + e.getMessage(), e.getCause());
+    }
+
+    throw new ServiceInterruption(e.getMessage(), System.currentTimeMillis()+300000L);
   }
 }
