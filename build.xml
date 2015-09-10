@@ -105,7 +105,7 @@
     <property name="james.version" value="0.7.2"/>
     <property name="vorbis.version" value="0.6"/>
     <property name="metadata-extractor.version" value="2.8.1"/>
-    <property name="aspectjrt.version" value="1.8.0"/>
+    <property name="aspectjrt.version" value="1.8.6"/>
     <property name="jhighlight.version" value="1.0.2"/>
     <property name="xmlbeans.version" value="2.6.0"/>
     <property name="bc.version" value="1.52"/>
@@ -116,6 +116,13 @@
     <property name="commons-exec.version" value="1.3"/>
     <property name="juniversalchardet.version" value="1.0.3"/>
     <property name="ucar.version" value="4.5.5"/>
+    <property name="jcommander.version" value="1.48"/>
+    <property name="protobuf.version" value="2.6.1"/>
+    <property name="jcip-annotations.version" value="1.0"/>
+    <property name="ehcache.version" value="2.6.11"/>
+    <property name="bzip2.version" value="0.9.1"/>
+    <property name="jdom2.version" value="2.0.4"/>
+    <property name="quartz.version" value="2.2.1"/>
     <property name="boilerpipe.version" value="1.1.0"/>
     <property name="dom4j.version" value="1.6.1"/>
     <property name="asm.version" value="4.1"/>
@@ -1912,6 +1919,48 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/beust"/>
+            <param name="artifact-version" value="${jcommander.version}"/>
+            <param name="artifact-name" value="jcommander"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/google/protobuf"/>
+            <param name="artifact-version" value="${protobuf.version}"/>
+            <param name="artifact-name" value="protobuf-java"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="net/jcip"/>
+            <param name="artifact-name" value="jcip-annotations"/>
+            <param name="artifact-version" value="${jcip-annotations.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="net/sf/ehcache"/>
+            <param name="artifact-name" value="ehcache-core"/>
+            <param name="artifact-version" value="${ehcache.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/itadaki"/>
+            <param name="artifact-name" value="bzip2"/>
+            <param name="artifact-version" value="${bzip2.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/jdom"/>
+            <param name="artifact-name" value="jdom2"/>
+            <param name="artifact-version" value="${jdom2.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/quartz-scheduler"/>
+            <param name="artifact-name" value="quartz"/>
+            <param name="artifact-version" value="${quartz.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="javax"/>
             <param name="artifact-version" value="${javaee-api.version}"/>
             <param name="artifact-name" value="javaee-api"/>
@@ -2010,6 +2059,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="edu/ucar"/>
             <param name="artifact-name" value="cdm"/>
+            <param name="artifact-version" value="${ucar.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="edu/ucar"/>
+            <param name="artifact-name" value="udunits"/>
             <param name="artifact-version" value="${ucar.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
