@@ -107,6 +107,7 @@
             <include name="bzip2*.jar"/>
             <include name="jdom2*.jar"/>
             <include name="quartz*.jar"/>
+            <include name="c3p0*.jar"/>
             <include name="tagsoup*.jar"/>
             <include name="poi*.jar"/>
             <include name="vorbis-java*.jar"/>
@@ -1396,6 +1397,7 @@
                 <include name="bzip2*.jar"/>
                 <include name="jdom2*.jar"/>
                 <include name="quartz*.jar"/>
+                <include name="c3p0*.jar"/>
                 <include name="tagsoup*.jar"/>
                 <include name="poi*.jar"/>
                 <include name="vorbis-java*.jar"/>

@@ -404,6 +404,28 @@ License: Junrar license (https://raw.github.com/junrar/junrar/master/license.txt
 This product includes a netcdf4.jar, httpservices.jar, grib.jar, cdm.jar, and udunits.jar.
 License: UCAR license (http://www.unidata.ucar.edu/software/netcdf/copyright.html)
 
+This product includes a jcommander.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a jcip-annotations.jar.
+License: Apache 2 (https://github.com/stephenc/jcip-annotations/blob/master/LICENSE.txt)
+
+This product includes a ehcache-core.jar.
+License: Apache 2 (src/assemble/EHCACHE-CORE-LICENSE.txt)
+
+This product includes a bzip2.jar.
+License: MIT license (http://opensource.org/licenses/mit-license.php)
+
+This product includes a jdom2.jar.
+License: Apache 2 without acknowledgment clause (https://raw.github.com/hunterhacker/jdom/master/LICENSE.txt)
+
+This product includes a quartz.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a c3p0.jar.
+License: Dual license consisting of LGPL v2.1 and EPL v1.0 ((http://www.gnu.org/licenses/lgpl-2.1.html and http://www.eclipse.org/org/documents/epl-v10.php)
+Jar included under terms of EPL v1.0 license.
+
 This product includes a jetty-server.jar, jetty-servlet.jar, jetty-io.jar, jetty-jndi.jar, jetty-webapp.jar,
 jetty-plus.jar, jetty-util.jar, jetty-http.jar, jetty-security.jar, jetty-continuation.jar, jetty-xml.jar,
 jetty-jsp-jdt.jar, and jetty-schemas.jar.
@@ -675,8 +697,10 @@ resulting litigation.
 
 
 ==========================================================================
-The following license applies to eclipse-ecj.jar, and
-h2.jar:
+The following license applies to:
+eclipse-ecj.jar
+h2.jar
+c3p0.jar
 --------------------------------------------------------------------------
 
 Eclipse Public License - v 1.0
@@ -2028,3 +2052,4 @@ The name and trademarks of copyright holders may NOT be used in advertising or
 publicity pertaining to the software without specific, written prior permission.
 Title to copyright in this software and any associated documentation will at all
 times remain with copyright holders.
+
