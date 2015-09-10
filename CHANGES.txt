@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1236: Upgrade to Tika 1.10.
+(Karl Wright)
+
 CONNECTORS-1233: Add Amazon S3 connector.
 (Gunaratnam Kuhajeyan, Karl Wright)
 
