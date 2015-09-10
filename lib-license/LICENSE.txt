@@ -194,6 +194,8 @@ including, but not limited to:
   - Apache XMLGraphics-commons
   - Apache Mime4J
   - Apache XMLBeans
+  - Apache SIS
+  - Apache OpenNLP
 
 This product includes code from: http://www.json.org
 License: JSON license (http://www.json.org/license.html)
@@ -400,6 +402,22 @@ License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 This product includes a joda-time.jar.
 License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a jackcess.jar and a jackcess-encrypt.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a javaee-api.jar.
+License: Dual license consisting of the CDDL v1.0 and GPL v2  (https://glassfish.dev.java.net/public/CDDL+GPL.html)
+Jar included under terms of CDDL v1.0 license.
+
+This product includes a geoapi.jar.
+License: Open Geospatial license (https://raw.githubusercontent.com/opengeospatial/geoapi/master/LICENSE.txt)
+
+This product includes a junrar.jar.
+License: Junrar license (https://raw.github.com/junrar/junrar/master/license.txt)
+
+This product includes a netcdf4.jar, httpservices.jar, grib.jar, and cdm.jar.
+License: UCAR license (http://www.unidata.ucar.edu/software/netcdf/copyright.html)
 
 This product may include pdf files that embed IPA-licensed fonts.
 License: IPA Font License Agreement v1.0 (http://ossipedia.ipa.go.jp/ipafont/index.html#LicenseEng)
@@ -1181,6 +1199,7 @@ with venue lying in Santa Clara County, California.
 
 ==========================================================================
 The following license applies to:
+javaee-api.jar, from https://glassfish.java.net/nonav/public/CDDL+GPL.html,
 jaxb-impl.jar, from 'Sun JAXB Reference Implementation Runtime' (https://jaxb.dev.java.net/),
 saaj-impl.jar, from 'Sun SAAJ Standard Implementation' (https://saaj.dev.java.net/),
 streambuffer.jar, from 'XML Stream Buffer Project' (https://xmlstreambuffer.dev.java.net/),
@@ -1905,14 +1924,115 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==========================================================================
 The following license applies to:
-bcprov-jdk15.jar
-bcmail-jdk15.jar
+bcprov-jdk15on.jar
+bcmail-jdk15on.jar
 --------------------------------------------------------------------------
 
-Copyright (c) 2000 - 2013 The Legion of the Bouncy Castle Inc. (http://www.bouncycastle.org)
+Copyright (c) 2000 - 2015 The Legion of the Bouncy Castle Inc. (http://www.bouncycastle.org)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+
+==========================================================================
+The following license applies to:
+netcdf4.jar
+grib.jar
+cdm.jar
+httpservices.jar
+--------------------------------------------------------------------------
+Copyright 1993-2015 University Corporation for Atmospheric Research/Unidata
+
+Portions of this software were developed by the Unidata Program at the University Corporation for Atmospheric Research.
+
+Access and use of this software shall impose the following obligations and understandings on the user. The user is granted the right, without any fee or cost, to use, copy, modify, alter, enhance and distribute this software, and any derivative works thereof, and its supporting documentation for any purpose whatsoever, provided that this entire notice appears in all copies of the software, derivative works and supporting documentation. Further, UCAR requests that the user credit UCAR/Unidata in any publications that result from the use of this software or in any product that includes this software, although this is not an obligation. The names UCAR and/or Unidata, however, may not be used in any advertising or publicity to endorse or promote any products or commercial entity unless specific written permission is obtained from UCAR/Unidata. The user also understands that UCAR/Unidata is not obligated to provide the user with any support, consulting, training or assistance of any kind with regard to the use, operation and performance of this software nor to provide the user with any updates, revisions, new versions or "bug fixes."
+
+THIS SOFTWARE IS PROVIDED BY UCAR/UNIDATA "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL UCAR/UNIDATA BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE ACCESS, USE OR PERFORMANCE OF THIS SOFTWARE.
+
+==========================================================================
+The following license applies to:
+junrar.jar
+--------------------------------------------------------------------------
+ ******    *****   ******   UnRAR - free utility for RAR archives
+ **   **  **   **  **   **  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ ******   *******  ******    License for use and distribution of
+ **   **  **   **  **   **   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ **   **  **   **  **   **         FREE portable version
+                                   ~~~~~~~~~~~~~~~~~~~~~
+
+      The source code of UnRAR utility is freeware. This means:
+
+   1. All copyrights to RAR and the utility UnRAR are exclusively
+      owned by the author - Alexander Roshal.
+
+   2. The UnRAR sources may be used in any software to handle RAR
+      archives without limitations free of charge, but cannot be used
+      to re-create the RAR compression algorithm, which is proprietary.
+      Distribution of modified UnRAR sources in separate form or as a
+      part of other software is permitted, provided that it is clearly
+      stated in the documentation and source comments that the code may
+      not be used to develop a RAR (WinRAR) compatible archiver.
+
+   3. The UnRAR utility may be freely distributed. It is allowed
+      to distribute UnRAR inside of other software packages.
+
+   4. THE RAR ARCHIVER AND THE UnRAR UTILITY ARE DISTRIBUTED "AS IS".
+      NO WARRANTY OF ANY KIND IS EXPRESSED OR IMPLIED.  YOU USE AT 
+      YOUR OWN RISK. THE AUTHOR WILL NOT BE LIABLE FOR DATA LOSS, 
+      DAMAGES, LOSS OF PROFITS OR ANY OTHER KIND OF LOSS WHILE USING
+      OR MISUSING THIS SOFTWARE.
+
+   5. Installing and using the UnRAR utility signifies acceptance of
+      these terms and conditions of the license.
+
+   6. If you don't agree with terms of the license you must remove
+      UnRAR files from your storage devices and cease to use the
+      utility.
+
+      Thank you for your interest in RAR and UnRAR.
+
+
+                                            Alexander L. Roshal
+					    
+==========================================================================
+The following license applies to:
+geoapi.jar
+--------------------------------------------------------------------------
+
+GeoAPI - Java interfaces for OGC/ISO standards
+http://www.geoapi.org
+
+Copyright (C) 2003-2015 Open Geospatial Consortium, Inc.
+All Rights Reserved. http://www.opengeospatial.org/ogc/legal
+
+This OGC work (including software, documents, or other related items) is being
+provided by the copyright holders under the following license. By obtaining,
+using and/or copying this work, you (the licensee) agree that you have read,
+understood, and will comply with the following terms and conditions:
+
+Permission to use, copy, and modify this software and its documentation, with
+or without modification, for any purpose and without fee or royalty is hereby
+granted, provided that you include the following on ALL copies of the software
+and documentation or portions thereof, including modifications, that you make:
+
+   1. The full text of this NOTICE in a location viewable to users of the
+      redistributed or derivative work.
+   2. Notice of any changes or modifications to the OGC files, including the
+      date changes were made. (We recommend you provide URIs to the location
+      from which the code is derived.)
+
+THIS SOFTWARE AND DOCUMENTATION IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE
+NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+TO, WARRANTIES OF MERCHANTABILITY OR FITNESS FOR ANY PARTICULAR PURPOSE OR THAT
+THE USE OF THE SOFTWARE OR DOCUMENTATION WILL NOT INFRINGE ANY THIRD PARTY
+PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+
+COPYRIGHT HOLDERS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL OR
+CONSEQUENTIAL DAMAGES ARISING OUT OF ANY USE OF THE SOFTWARE OR DOCUMENTATION.
+
+The name and trademarks of copyright holders may NOT be used in advertising or
+publicity pertaining to the software without specific, written prior permission.
+Title to copyright in this software and any associated documentation will at all
+times remain with copyright holders.
