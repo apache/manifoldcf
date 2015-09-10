@@ -44,7 +44,7 @@
     <property name="saaj-impl.version" value="1.3.3"/>
     <property name="castor.version" value="1.0.5"/>
     <property name="wsdl4j.version" value="1.6.2"/>
-    <property name="commons-codec.version" value="1.9"/>
+    <property name="commons-codec.version" value="1.10"/>
     <property name="commons-collections.version" value="3.2.1"/>
     <property name="commons-discovery.version" value="0.5"/>
     <property name="commons-el.version" value="1.0"/>
@@ -56,7 +56,7 @@
     <property name="commons-cli.version" value="1.2"/>
     <property name="slf4j.version" value="1.7.7"/>
     <property name="xalan.version" value="2.7.1"/>
-    <property name="poi.version" value="3.11"/>
+    <property name="poi.version" value="3.13-beta1"/>
     <property name="activation.version" value="1.1.1"/>
     <property name="avalon.version" value="4.3.1"/>
     <property name="ecj.version" value="4.3.1"/>
@@ -68,12 +68,12 @@
     <property name="jaxws.version" value="2.2.6"/>
     <property name="chemistry.version" value="0.11.0"/>
     <property name="glassfish.version" value="2.1.v20091210"/>
-    <property name="junit.version" value="4.8.2"/>
+    <property name="junit.version" value="4.12"/>
     <property name="log4j.version" value="1.2.16"/>
     <property name="mail.version" value="1.4.5"/>
     <property name="mimepull.version" value="1.3"/>
     <property name="opensaml.version" value="1.1"/>
-    <property name="osgi.version" value="1.0.0"/>
+    <property name="osgi.version" value="5.0.0"/>
     <property name="xml-resolver.version" value="1.2"/>
     <property name="servlet-api.version" value="3.1.0"/>
     <property name="stax-api.version" value="1.0.1"/>
@@ -88,7 +88,7 @@
     <property name="xml-apis.version" value="1.4.01"/>
     <property name="jstl.version" value="1.2"/>
     <property name="dropbox-client.version" value="1.5.3"/>
-    <property name="json-simple.version" value="1.1"/>
+    <property name="json-simple.version" value="1.1.1"/>
     <property name="google-api-client.version" value="v2-rev136-1.19.0"/>
     <property name="google-http-client.version" value="1.19.0"/>
     <property name="jackson-core.version" value="2.1.3"/>
@@ -96,31 +96,33 @@
     <property name="jetty-schemas.version" value="3.1.M0"/>
     <property name="alfresco-indexer.version" value="0.7.0"/>
     <property name="gson.version" value="2.2.4"/>
-    <property name="guava.version" value="15.0"/>
+    <property name="guava.version" value="18.0"/>
     <property name="mockito.version" value="1.9.5"/>
     <property name="wiremock.version" value="1.34"/>
     <property name="objenesis.version" value="2.1"/>
-    <property name="tika.version" value="1.7"/>
+    <property name="tika.version" value="1.10"/>
     <property name="tagsoup.version" value="1.2.1"/>
     <property name="james.version" value="0.7.2"/>
     <property name="vorbis.version" value="0.6"/>
-    <property name="metadata-extractor.version" value="2.6.2"/>
+    <property name="metadata-extractor.version" value="2.8.1"/>
     <property name="aspectjrt.version" value="1.8.0"/>
     <property name="jhighlight.version" value="1.0.2"/>
     <property name="xmlbeans.version" value="2.6.0"/>
-    <property name="bc.version" value="1.45"/>
+    <property name="bc.version" value="1.52"/>
     <property name="tukaani.version" value="1.5"/>
-    <property name="pdfbox.version" value="1.8.8"/>
-    <property name="commons-compress.version" value="1.8.1"/>
+    <property name="pdfbox.version" value="1.8.10"/>
+    <property name="commons-compress.version" value="1.10"/>
+    <property name="commons-csv.version" value="1.2"/>
+    <property name="commons-exec.version" value="1.3"/>
     <property name="juniversalchardet.version" value="1.0.3"/>
-    <property name="netcdf.version" value="4.2.20"/>
+    <property name="ucar.version" value="4.5.5"/>
     <property name="boilerpipe.version" value="1.1.0"/>
     <property name="dom4j.version" value="1.6.1"/>
     <property name="asm.version" value="4.1"/>
     <property name="xmpcore.version" value="5.1.2"/>
     <property name="jdom.version" value="1.0"/>
     <property name="rome.version" value="1.0"/>
-    <property name="mp4parser.version" value="1.0.2"/>
+    <property name="mp4parser.version" value="1.1.5"/>
     <property name="jmatio.version" value="1.0"/>
     <property name="java-libpst.version" value="0.8.1"/>
     <property name="commons-httpclient.version" value="3.1"/>
@@ -131,7 +133,15 @@
     <property name="hadoop.version" value="2.6.0"/>
     <property name="aws-sdk.version" value="1.9.0"/>
     <property name="joda-time.version" value="2.8.2"/>
-
+    <property name="junrar.version" value="0.7"/>
+    <property name="jackcess.version" value="2.1.2"/>
+    <property name="jackcess-encrypt.version" value="2.1.0"/>
+    <property name="opennlp.version" value="1.6.0"/>
+    <property name="sis.version" value="0.5"/>
+    <property name="opengis.version" value="3.0.0"/>
+    <property name="javaee-api.version" value="6.0"/>
+    <property name="commons-vfs2.version" value="2.0"/>
+    
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
         <available file="lib/hsqldb-${hsqldb.version}.jar" property="hsqldb-found"/>
@@ -1517,7 +1527,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-osgi">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/apache/felix"/>
+            <param name="project-path" value="org/osgi"/>
             <param name="artifact-version" value="${osgi.version}"/>
             <param name="artifact-name" value="org.osgi.core"/>
             <param name="artifact-type" value="jar"/>
@@ -1902,6 +1912,108 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="javax"/>
+            <param name="artifact-version" value="${javaee-api.version}"/>
+            <param name="artifact-name" value="javaee-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/opengis"/>
+            <param name="artifact-version" value="${opengis.version}"/>
+            <param name="artifact-name" value="geoapi"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/sis/core"/>
+            <param name="artifact-version" value="${sis.version}"/>
+            <param name="artifact-name" value="sis-metadata"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/sis/core"/>
+            <param name="artifact-version" value="${sis.version}"/>
+            <param name="artifact-name" value="sis-utility"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/sis/storage"/>
+            <param name="artifact-version" value="${sis.version}"/>
+            <param name="artifact-name" value="sis-netcdf"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/sis/storage"/>
+            <param name="artifact-version" value="${sis.version}"/>
+            <param name="artifact-name" value="sis-storage"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/opennlp"/>
+            <param name="artifact-version" value="${opennlp.version}"/>
+            <param name="artifact-name" value="opennlp-tools"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/healthmarketscience/jackcess"/>
+            <param name="artifact-version" value="${jackcess.version}"/>
+            <param name="artifact-name" value="jackcess"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/healthmarketscience/jackcess"/>
+            <param name="artifact-version" value="${jackcess-encrypt.version}"/>
+            <param name="artifact-name" value="jackcess-encrypt"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/github/junrar"/>
+            <param name="artifact-version" value="${junrar.version}"/>
+            <param name="artifact-name" value="junrar"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/commons"/>
+            <param name="artifact-version" value="${commons-vfs2.version}"/>
+            <param name="artifact-name" value="commons-vfs2"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/commons"/>
+            <param name="artifact-name" value="commons-csv"/>
+            <param name="artifact-version" value="${commons-csv.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/commons"/>
+            <param name="artifact-name" value="commons-exec"/>
+            <param name="artifact-version" value="${commons-exec.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="edu/ucar"/>
+            <param name="artifact-name" value="netcdf4"/>
+            <param name="artifact-version" value="${ucar.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="edu/ucar"/>
+            <param name="artifact-name" value="httpservices"/>
+            <param name="artifact-version" value="${ucar.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="edu/ucar"/>
+            <param name="artifact-name" value="grib"/>
+            <param name="artifact-version" value="${ucar.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="edu/ucar"/>
+            <param name="artifact-name" value="cdm"/>
+            <param name="artifact-version" value="${ucar.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/ccil/cowan/tagsoup"/>
             <param name="artifact-version" value="${tagsoup.version}"/>
             <param name="artifact-name" value="tagsoup"/>
@@ -1957,7 +2069,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/bouncycastle"/>
-            <param name="artifact-name" value="bcprov-jdk15"/>
+            <param name="artifact-name" value="bcmail-jdk15on"/>
+            <param name="artifact-version" value="${bc.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/bouncycastle"/>
+            <param name="artifact-name" value="bcprov-jdk15on"/>
             <param name="artifact-version" value="${bc.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1997,25 +2115,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-version" value="${juniversalchardet.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <!-- netcdf is a dependency of tika, but is lgpl, so we don't download it anymore
-        antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="edu/ucar"/>
-            <param name="artifact-name" value="netcdf"/>
-            <param name="artifact-version" value="${netcdf.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="commons-httpclient"/>
-            <param name="artifact-name" value="commons-httpclient"/>
-            <param name="artifact-version" value="${commons-httpclient.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="edu/ucar"/>
-            <param name="artifact-name" value="unidataCommon"/>
-            <param name="artifact-version" value="${netcdf.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall -->
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="de/l3s/boilerpipe"/>
             <param name="artifact-name" value="boilerpipe"/>
@@ -2086,12 +2185,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="org/apache/poi"/>
             <param name="artifact-name" value="poi-ooxml-schemas"/>
             <param name="artifact-version" value="${poi.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/bouncycastle"/>
-            <param name="artifact-name" value="bcmail-jdk15"/>
-            <param name="artifact-version" value="${bc.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
