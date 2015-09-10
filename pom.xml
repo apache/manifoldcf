@@ -54,7 +54,7 @@
     <axis.version>1.4</axis.version>
     <wsdl4j.version>1.6.2</wsdl4j.version>
     <castor.version>1.0.5</castor.version>
-    <commons-codec.version>1.9</commons-codec.version>
+    <commons-codec.version>1.10</commons-codec.version>
     <commons-io.version>2.4</commons-io.version>
     <commons-logging.version>1.2</commons-logging.version>
     <commons-collections.version>3.2.1</commons-collections.version>
@@ -76,15 +76,14 @@
     <jstl.version>1.2</jstl.version>
     <glassfish.version>2.1.v20091210</glassfish.version>
     <log4j.version>1.2.16</log4j.version>
-    <jdbcpool.version>0.99</jdbcpool.version>
     <json.version>20090211</json.version>
     <velocity.version>1.7</velocity.version>
     <slf4j.version>1.7.7</slf4j.version>
     <jaxb.version>2.2.6</jaxb.version>
     <zookeeper.version>3.4.6</zookeeper.version>
     <xmlbeans.version>2.6.0</xmlbeans.version>
-    <poi.version>3.11</poi.version>
-    <tika.version>1.7</tika.version>
+    <poi.version>3.13-beta1</poi.version>
+    <tika.version>1.10</tika.version>
     <jhighlight.version>1.0.2</jhighlight.version>
     <boilerpipe.version>1.1.0</boilerpipe.version>
     <hadoop.version>2.6.0</hadoop.version>
