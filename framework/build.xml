@@ -100,6 +100,7 @@
             <include name="httpservices*.jar"/>
             <include name="grib*.jar"/>
             <include name="cdm*.jar"/>
+            <include name="udunits*.jar"/>
             <include name="jcommander*.jar"/>
             <include name="protobuf-java*.jar"/>
             <include name="jcip-annotations*.jar"/>
@@ -1389,6 +1390,7 @@
                 <include name="httpservices*.jar"/>
                 <include name="grib*.jar"/>
                 <include name="cdm*.jar"/>
+                <include name="udunits*.jar"/>
                 <include name="jcommander*.jar"/>
                 <include name="protobuf-java*.jar"/>
                 <include name="jcip-annotations*.jar"/>
