@@ -416,7 +416,7 @@ License: Open Geospatial license (https://raw.githubusercontent.com/opengeospati
 This product includes a junrar.jar.
 License: Junrar license (https://raw.github.com/junrar/junrar/master/license.txt)
 
-This product includes a netcdf4.jar, httpservices.jar, grib.jar, and cdm.jar.
+This product includes a netcdf4.jar, httpservices.jar, grib.jar, cdm.jar, and udunits.jar.
 License: UCAR license (http://www.unidata.ucar.edu/software/netcdf/copyright.html)
 
 This product may include pdf files that embed IPA-licensed fonts.
@@ -1941,6 +1941,7 @@ The following license applies to:
 netcdf4.jar
 grib.jar
 cdm.jar
+udunits.jar
 httpservices.jar
 --------------------------------------------------------------------------
 Copyright 1993-2015 University Corporation for Atmospheric Research/Unidata

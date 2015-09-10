@@ -102,7 +102,6 @@
             <include name="cdm*.jar"/>
             <include name="udunits*.jar"/>
             <include name="jcommander*.jar"/>
-            <include name="protobuf-java*.jar"/>
             <include name="jcip-annotations*.jar"/>
             <include name="ehcache-core*.jar"/>
             <include name="bzip2*.jar"/>
@@ -1392,7 +1391,6 @@
                 <include name="cdm*.jar"/>
                 <include name="udunits*.jar"/>
                 <include name="jcommander*.jar"/>
-                <include name="protobuf-java*.jar"/>
                 <include name="jcip-annotations*.jar"/>
                 <include name="ehcache-core*.jar"/>
                 <include name="bzip2*.jar"/>
