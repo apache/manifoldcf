@@ -1920,7 +1920,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="c3p0"/>
+            <param name="project-path" value="com/mchange"/>
             <param name="artifact-version" value="${c3p0.version}"/>
             <param name="artifact-name" value="c3p0"/>
             <param name="artifact-type" value="jar"/>
