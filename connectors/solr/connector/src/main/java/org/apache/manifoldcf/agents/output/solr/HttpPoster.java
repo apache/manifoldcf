@@ -408,6 +408,14 @@ public class HttpPoster
       // Can't process the document, so don't keep trying.
       return;
 
+    // If code is 401, we should abort the job because security credentials are incorrect
+    if (code == 401)
+    {
+      String message = "Solr authorization failure, code "+code+": aborting job";
+      Logging.ingest.error(message);
+      throw new ManifoldCFException(message);
+    }
+    
     // If the code is in the 400 range, the document will never be accepted, so indicate that.
     if (code >= 400 && code < 500)
       return;
