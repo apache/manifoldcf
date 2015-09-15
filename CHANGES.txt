@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1239: Handle code 401 from Solr more appropriately.
+(Cathal McGuinness, Karl Wright)
+
 CONNECTORS-1236: Upgrade to Tika 1.10.
 (Karl Wright)
 
