@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1231: Upgrade to JUnit 4.12.
+(Shinichiro Abe)
+
 CONNECTORS-1239: Handle code 401 from Solr more appropriately.
 (Cathal McGuinness, Karl Wright)
 
