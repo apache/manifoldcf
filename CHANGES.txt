@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1241: Documentum connector not handling subtypes
+properly.
+(Bipul Podder)
+
 CONNECTORS-1231: Upgrade to JUnit 4.12.
 (Shinichiro Abe)
 
