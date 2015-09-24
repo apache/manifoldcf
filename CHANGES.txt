@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1234: Add use-mapper-attachments option
+to Elasticsearch connector.
+(Shinichiro Abe)
+
 CONNECTORS-1242: Fix document reprioritization on job resume.
 (Niall Colreavy, Karl Wright)
 

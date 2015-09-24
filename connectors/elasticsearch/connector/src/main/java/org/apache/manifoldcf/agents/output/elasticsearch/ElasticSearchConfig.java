@@ -32,8 +32,13 @@ public class ElasticSearchConfig extends ElasticSearchParam
 
   /** Parameters used for the configuration */
   final private static ParameterEnum[] CONFIGURATIONLIST =
-  { ParameterEnum.SERVERLOCATION, ParameterEnum.INDEXNAME,
-      ParameterEnum.INDEXTYPE};
+  {
+    ParameterEnum.SERVERLOCATION,
+    ParameterEnum.INDEXNAME,
+    ParameterEnum.INDEXTYPE,
+    ParameterEnum.USEMAPPERATTACHMENTS,
+    ParameterEnum.CONTENTATTRIBUTENAME
+  };
 
   /** Build a set of ElasticSearchParameters by reading ConfigParams. If the
    * value returned by ConfigParams.getParameter is null, the default value is
@@ -73,6 +78,15 @@ public class ElasticSearchConfig extends ElasticSearchParam
       if (p != null)
         parameters.setParameter(param.name(), p);
     }
+
+    String useMapperAttachmentsPresent = variableContext.getParameter("usemapperattachments_present");
+    if (useMapperAttachmentsPresent != null)
+    {
+      String useMapperAttachments = variableContext.getParameter(ParameterEnum.USEMAPPERATTACHMENTS.name().toLowerCase());
+      if (useMapperAttachments == null || useMapperAttachments.length() == 0)
+        useMapperAttachments = "false";
+      parameters.setParameter(ParameterEnum.USEMAPPERATTACHMENTS.name(), useMapperAttachments);
+    }
   }
 
   final public String getServerLocation()
@@ -88,6 +102,16 @@ public class ElasticSearchConfig extends ElasticSearchParam
   final public String getIndexType()
   {
     return get(ParameterEnum.INDEXTYPE);
+  }
+
+  final public Boolean getUseMapperAttachments()
+  {
+    return Boolean.valueOf(get(ParameterEnum.USEMAPPERATTACHMENTS));
+  }
+
+  final public String getContentAttributeName()
+  {
+    return get(ParameterEnum.CONTENTATTRIBUTENAME);
   }
 
 }
