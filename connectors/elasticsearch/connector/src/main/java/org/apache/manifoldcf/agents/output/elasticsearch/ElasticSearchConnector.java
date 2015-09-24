@@ -332,6 +332,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
   {
     HttpClient client = getSession();
     ElasticSearchConfig config = getConfigParameters(null);
+
     InputStream inputStream = document.getBinaryStream();
     // For ES, we have to have fixed fields only; nothing else is possible b/c we don't have
     // default field values.

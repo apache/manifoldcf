@@ -39,6 +39,13 @@ function checkConfig() {
       return false;
     }
   }
+  if (editconnection.contentattributename) {
+    if (editconnection.contentattributename.value == "" && ((editconnection.usemapperattachments_checkbox.value == "true" && editconnection. usemapperattachments.checked == false) || (editconnection.usemapperattachments_checkbox.value != "true" && editconnection.usemapperattachments.value != "true"))) {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.ContentAttributeNameRequiredUnlessMapperAttachments'))");
+      editconnection.contentattributename.focus();
+      return false;
+    }
+  }
   return true;
 }
 
@@ -64,6 +71,13 @@ function checkConfigForSave() {
       alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.PleaseSupplyValidIndexType'))");
       SelectTab("$Encoder.javascriptBodyEscape($ResourceBundle.getString('ElasticSearchConnector.Parameters'))");
       editconnection.indextype.focus();
+      return false;
+    }
+  }
+  if (editconnection.contentattributename) {
+    if (editconnection.contentattributename.value == "" && ((editconnection.usemapperattachments_checkbox.value == "true" && editconnection. usemapperattachments.checked == false) || (editconnection.usemapperattachments_checkbox.value != "true" && editconnection.usemapperattachments.value != "true"))) {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.ContentAttributeNameRequiredUnlessMapperAttachments'))");
+      editconnection.contentattributename.focus();
       return false;
     }
   }

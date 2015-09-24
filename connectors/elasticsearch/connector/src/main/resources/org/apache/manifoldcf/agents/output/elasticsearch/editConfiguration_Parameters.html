@@ -37,6 +37,24 @@
     <td class="value"><input name="indextype" type="text" value="$Encoder.attributeEscape($INDEXTYPE)"
       size="24" /></td>
   </tr>
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.UseMapperAttachmentsColon'))</nobr></td>
+    <td class="value">
+       <input type="hidden" name="usemapperattachments_checkbox" value="true"/>
+       <input type="hidden" name="usemapperattachments_present" value="true"/>
+  #if($USEMAPPERATTACHMENTS == 'true')
+       <input type="checkbox" checked="true" name="usemapperattachments" value="true"/>
+  #else
+       <input type="checkbox" name="usemapperattachments" value="true"/>
+  #end
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.ContentAttributeNameColon'))</nobr></td>
+    <td class="value"><input name="contentattributename" type="text" value="$Encoder.attributeEscape($CONTENTATTRIBUTENAME)"
+      size="24" /></td>
+  </tr>
 </table>
 
 #else
@@ -44,5 +62,8 @@
 <input type="hidden" name="serverlocation" value="$Encoder.attributeEscape($SERVERLOCATION)" />
 <input type="hidden" name="indexname" value="$Encoder.attributeEscape($INDEXNAME)" />
 <input type="hidden" name="indextype" value="$Encoder.attributeEscape($INDEXTYPE)" />
-
+<input type="hidden" name="usemapperattachments_checkbox" value="false"/>
+<input type="hidden" name="usemapperattachments_present" value="true"/>
+<input type="hidden" name="usemapperattachments" value="$Encoder.bodyEscape($USEMAPPERATTACHMENTS)" />
+<input type="hidden" name="contentattributename" value="$Encoder.attributeEscape($CONTENTATTRIBUTENAME)" />
 #end
