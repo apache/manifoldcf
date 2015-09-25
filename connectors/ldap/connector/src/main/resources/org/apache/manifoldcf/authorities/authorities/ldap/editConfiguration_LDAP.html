@@ -55,7 +55,7 @@
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.AddUserAuthColon'))</nobr></td>
     <td class="value">
-  #if($FADDUSERRECORD)
+  #if($FADDUSERRECORD == '1')
       <input type="checkbox" value="1" name="ldapAddUserRecord" checked="true"/>
   #else
       <input type="checkbox" value="1" name="ldapAddUserRecord"/>
@@ -82,7 +82,7 @@
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.GroupMemberDnColon'))</nobr></td>
     <td class="value">
-  #if($FGROUPMEMBERDN)
+  #if($FGROUPMEMBERDN == '1')
       <input type="checkbox" value="1" name="ldapGroupMemberDn" checked="true"/>
   #else
       <input type="checkbox" value="1" name="ldapGroupMemberDn"/>
@@ -138,14 +138,6 @@
 <input type="hidden" name="ldapGroupSearch" value="$Encoder.attributeEscape($FGROUPSEARCH)"/>
 <input type="hidden" name="ldapGroupNameAttr" value="$Encoder.attributeEscape($FGROUPNAMEATTR)"/>
 <input type="hidden" name="ldapUserNameAttr" value="$Encoder.attributeEscape($FUSERNAMEATTR)"/>
-  #if ($FADDUSERRECORD)
-<input type="hidden" name="ldapAddUserRecord" value="1"/>
-  #else
-<input type="hidden" name="ldapAddUserRecord" value="0"/>
-  #end
-  #if ($FGROUPMEMBERDN)
-<input type="hidden" name="ldapGroupMemberDn" value="1"/>
-  #else
-<input type="hidden" name="ldapGroupMemberDn" value="0"/>
-  #end
+<input type="hidden" name="ldapAddUserRecord" value="$Encoder.attributeEscape($FADDUSERRECORD)"/>
+<input type="hidden" name="ldapGroupMemberDn" value="$Encoder.attributeEscape($FGROUPMEMBERDN)"/>
 #end
