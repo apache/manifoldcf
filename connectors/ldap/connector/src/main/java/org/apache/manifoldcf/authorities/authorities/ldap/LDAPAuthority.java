@@ -26,7 +26,9 @@ import javax.naming.directory.*;
 import javax.naming.ldap.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.authorities.system.ManifoldCF;
+import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.connectorcommon.interfaces.*;
 import org.apache.manifoldcf.ui.util.Encoder;
 
 /**
@@ -73,6 +75,10 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
 
   private String userNameAttr;
 
+  private String sslKeystoreData;
+  
+  private IKeystoreManager sslKeystore;
+  
   private long responseLifetime = 60000L; //60sec
 
   private int LRUsize = 1000;
@@ -113,6 +119,8 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     serverPort = configParams.getParameter("ldapServerPort");
     serverBase = configParams.getParameter("ldapServerBase");
 
+    sslKeystoreData = configParams.getParameter("sslKeystore");
+    
     userBase = configParams.getParameter("ldapUserBase");
     userSearch = configParams.getParameter("ldapUserSearch");
     groupBase = configParams.getParameter("ldapGroupBase");
@@ -167,6 +175,12 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     }
     if (userNameAttr == null || userNameAttr.length() == 0) {
       throw new ManifoldCFException("User name attribute missing but required");
+    }
+
+    if (sslKeystoreData != null) {
+      sslKeystore = KeystoreManagerFactory.make("", sslKeystoreData);
+    } else {
+      sslKeystore = null;
     }
 
     Hashtable env = new Hashtable();
@@ -280,6 +294,8 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     groupNameAttr = null;
     userNameAttr = null;
     forcedTokens = null;
+    sslKeystoreData = null;
+    sslKeystore = null;
   }
 
   protected String createCacheConnectionString() {
@@ -576,6 +592,8 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     String fServerPort = getParam(parameters, "ldapServerPort", "389");
     String fServerBase = getParam(parameters, "ldapServerBase", "");
 
+    String sslKeystoreData = getParam(parameters, "sslKeystore", null);
+    
     String fUserBase = getParam(parameters, "ldapUserBase", "ou=People");
     String fUserSearch = getParam(parameters, "ldapUserSearch", "(&(objectClass=inetOrgPerson)(uid={0}))");
     String fUserNameAttr = getParam(parameters, "ldapUserNameAttr", "uid");
@@ -594,6 +612,33 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       //ignore
     }
     fBindPass = out.mapPasswordToKey(fBindPass);
+
+    final IKeystoreManager localSslKeystore;
+    Map<String,String> serverCertificatesMap = null;
+    String message = null;
+
+    try {
+      if (sslKeystoreData == null)
+        localSslKeystore = KeystoreManagerFactory.make("");
+      else
+        localSslKeystore = KeystoreManagerFactory.make("",sslKeystoreData);
+
+      // List the individual certificates in the store, with a delete button for each
+      String[] contents = localSslKeystore.getContents();
+      if (contents.length > 0)
+      {
+        serverCertificatesMap = new HashMap<>();
+        for (final String alias : contents) {
+          String description = localSslKeystore.getDescription(alias);
+          if (description.length() > 128)
+            description = description.substring(0,125) + "...";
+          serverCertificatesMap.put(alias, description);
+        }
+      }
+    } catch (ManifoldCFException e) {
+      message = e.getMessage();
+      Logging.authorityConnectors.warn(e);
+    }
 
     if (tabName.equals(Messages.getString(locale, "LDAP.LDAP"))) {
       out.print(
