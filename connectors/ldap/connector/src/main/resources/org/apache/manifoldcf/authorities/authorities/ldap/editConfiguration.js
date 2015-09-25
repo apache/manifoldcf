@@ -16,23 +16,23 @@ limitations under the License.
 -->
 <script type="text/javascript">
     <!--
-    function ServerDeleteCertificate(aliasName)
+    function SSLDeleteCertificate(aliasName)
     {
-      editconnection.serverkeystorealias.value = aliasName;
-      editconnection.serverconfigop.value = "Delete";
+      editconnection.sslkeystorealias.value = aliasName;
+      editconnection.sslconfigop.value = "Delete";
       postForm();
     }
 
-    function ServerAddCertificate()
+    function SSLAddCertificate()
     {
-      if (editconnection.servercertificate.value == "")
+      if (editconnection.sslcertificate.value == "")
       {
         alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LDAP.ChooseACertificateFile'))");
-        editconnection.servercertificate.focus();
+        editconnection.sslcertificate.focus();
       }
       else
       {
-        editconnection.serverconfigop.value = "Add";
+        editconnection.sslconfigop.value = "Add";
         postForm();
       }
     }
