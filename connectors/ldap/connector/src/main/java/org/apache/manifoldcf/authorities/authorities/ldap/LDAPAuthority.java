@@ -459,117 +459,12 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
   @Override
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException {
-    tabsArray.add(Messages.getString(locale, "LDAP.ForcedTokens"));
     tabsArray.add(Messages.getString(locale, "LDAP.LDAP"));
-    out.print(
-      "<script type=\"text/javascript\">\n"
-      + "<!--\n"
-      + "function checkConfig() {\n"
-      + "  if (editconnection.ldapServerName.value.indexOf(\"/\") != -1) {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.ServerNameCannotIncludeSlash") + "\");\n"
-      + "    editconnection.ldapServerName.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.ldapServerPort.value != \"\" && !isInteger(editconnection.ldapServerPort.value)) {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.ServerPortMustBeAnInteger") + "\");\n"
-      + "    editconnection.ldapServerPort.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.ldapServerBase.value.indexOf(\"/\") != -1) {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.ServerBaseCannotIncludeSlash") + "\");\n"
-      + "    editconnection.ldapServerBase.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.ldapUserSearch.value != \"\" && editconnection.ldapUserSearch.value.indexOf(\"{0}\") == -1) {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.UserSearchMustIncludeSubstitution") + "\");\n"
-      + "    editconnection.ldapUserSearch.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.ldapGroupSearch.value != \"\" && editconnection.ldapGroupSearch.value.indexOf(\"{0}\") == -1) {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.GroupSearchMustIncludeSubstitution") + "\");\n"
-      + "    editconnection.ldapGroupSearch.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  return true;\n"
-      + "}\n"
-      + "\n"
-      + "function checkConfigForSave() {\n"
-      + "  if (editconnection.ldapServerName.value == \"\") {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.ServerNameCannotBeBlank") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "LDAP.LDAP") + "\");\n"
-      + "    editconnection.ldapServerName.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.ldapServerPort.value == \"\") {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.ServerPortCannotBeBlank") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "LDAP.LDAP") + "\");\n"
-      + "    editconnection.ldapServerPort.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.ldapUserSearch.value == \"\") {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.UserSearchCannotBeBlank") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "LDAP.LDAP") + "\");\n"
-      + "    editconnection.ldapUserSearch.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.ldapGroupSearch.value == \"\") {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.GroupSearchCannotBeBlank") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "LDAP.LDAP") + "\");\n"
-      + "    editconnection.ldapGroupSearch.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.ldapGroupNameAttr.value == \"\") {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.GroupNameAttrCannotBeBlank") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "LDAP.LDAP") + "\");\n"
-      + "    editconnection.ldapGroupNameAttr.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.ldapUserSearch.value != \"\" && editconnection.ldapUserSearch.value.indexOf(\"{0}\") == -1) {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.UserSearchMustIncludeSubstitution") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "LDAP.LDAP") + "\");\n"
-      + "    editconnection.ldapUserSearch.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.ldapGroupSearch.value != \"\" && editconnection.ldapGroupSearch.value.indexOf(\"{0}\") == -1) {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.GroupSearchMustIncludeSubstitution") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "LDAP.LDAP") + "\");\n"
-      + "    editconnection.ldapGroupSearch.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.ldapServerPort.value != \"\" && !isInteger(editconnection.ldapServerPort.value)) {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.ServerPortMustBeAnInteger") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "LDAP.LDAP") + "\");\n"
-      + "    editconnection.ldapServerPort.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.ldapServerName.value.indexOf(\"/\") != -1) {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.ServerNameCannotIncludeSlash") + "\");\n"
-      + "    SelectTab(\"" + Messages.getBodyJavascriptString(locale, "LDAP.LDAP") + "\");\n"
-      + "    editconnection.ldapServerName.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  if (editconnection.ldapServerBase.value.indexOf(\"/\") != -1) {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.ServerBaseCannotIncludeSlash") + "\");\n"
-      + "    editconnection.ldapServerBase.focus();\n"
-      + "    return false;\n"
-      + "  }\n"
-      + "  return true;\n"
-      + "}\n"
-      + "function SpecOp(n, opValue, anchorvalue) {\n"
-      + "  eval(\"editconnection.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"
-      + "  postFormSetAnchor(anchorvalue);\n"
-      + "}\n"
-      + "function SpecAddToken(anchorvalue) {\n"
-      + "  if (editconnection.spectoken.value == \"\")\n"
-      + "  {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "LDAP.TypeInToken") + "\");\n"
-      + "    editconnection.spectoken.focus();\n"
-      + "    return;\n"
-      + "  }\n"
-      + "  SpecOp(\"accessop\",\"Add\",anchorvalue);\n"
-      + "}\n"
-      + "//-->\n"
-      + "</script>\n");
+    tabsArray.add(Messages.getString(locale, "LDAP.ForcedTokens"));
+    final Map<String,Object> paramMap = new HashMap<String,Object>();
+    fillInLDAPTab(paramMap, out, parameters);
+    fillInForcedTokensTab(paramMap, out, parameters);
+    Messages.outputResourceWithVelocity(out, locale, "editConfiguration.js", paramMap);    
   }
 
   /**
@@ -588,211 +483,11 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
   @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException {
-    String fServerName = getParam(parameters, "ldapServerName", "");
-    String fServerPort = getParam(parameters, "ldapServerPort", "389");
-    String fServerBase = getParam(parameters, "ldapServerBase", "");
-
-    String sslKeystoreData = getParam(parameters, "sslKeystore", null);
-    
-    String fUserBase = getParam(parameters, "ldapUserBase", "ou=People");
-    String fUserSearch = getParam(parameters, "ldapUserSearch", "(&(objectClass=inetOrgPerson)(uid={0}))");
-    String fUserNameAttr = getParam(parameters, "ldapUserNameAttr", "uid");
-    boolean fAddUserRecord = "1".equals(getParam(parameters, "ldapAddUserRecord", ""));
-
-    String fGroupBase = getParam(parameters, "ldapGroupBase", "ou=Groups");
-    String fGroupSearch = getParam(parameters, "ldapGroupSearch", "(&(objectClass=groupOfNames)(member={0}))");
-    String fGroupNameAttr = getParam(parameters, "ldapGroupNameAttr", "cn");
-    boolean fGroupMemberDN = "1".equals(getParam(parameters, "ldapGroupMemberDn", ""));
-
-    String fBindUser = getParam(parameters, "ldapBindUser", "");
-    String fBindPass = "";
-    try {
-      fBindPass = ManifoldCF.deobfuscate(getParam(parameters, "ldapBindPass", ""));
-    } catch (ManifoldCFException ex) {
-      //ignore
-    }
-    fBindPass = out.mapPasswordToKey(fBindPass);
-
-    final IKeystoreManager localSslKeystore;
-    Map<String,String> serverCertificatesMap = null;
-    String message = null;
-
-    try {
-      if (sslKeystoreData == null)
-        localSslKeystore = KeystoreManagerFactory.make("");
-      else
-        localSslKeystore = KeystoreManagerFactory.make("",sslKeystoreData);
-
-      // List the individual certificates in the store, with a delete button for each
-      String[] contents = localSslKeystore.getContents();
-      if (contents.length > 0)
-      {
-        serverCertificatesMap = new HashMap<>();
-        for (final String alias : contents) {
-          String description = localSslKeystore.getDescription(alias);
-          if (description.length() > 128)
-            description = description.substring(0,125) + "...";
-          serverCertificatesMap.put(alias, description);
-        }
-      }
-    } catch (ManifoldCFException e) {
-      message = e.getMessage();
-      Logging.authorityConnectors.warn(e);
-    }
-
-    if (tabName.equals(Messages.getString(locale, "LDAP.LDAP"))) {
-      out.print(
-        "<table class=\"displaytable\">\n"
-        + " <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-        + " <tr>\n"
-        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.LDAPServerNameColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"ldapServerName\" value=\"" + Encoder.attributeEscape(fServerName) + "\"/></td>\n"
-        + " </tr>\n"
-        + " <tr>\n"
-        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.LDAPServerPortColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"5\" name=\"ldapServerPort\" value=\"" + Encoder.attributeEscape(fServerPort) + "\"/></td>\n"
-        + " </tr>\n"
-        + " <tr>\n"
-        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.LDAPServerBaseColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapServerBase\" value=\"" + Encoder.attributeEscape(fServerBase) + "\"/></td>\n"
-        + " </tr>\n"
-        + " <tr>\n"
-        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.LDAPBindUserColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapBindUser\" value=\"" + Encoder.attributeEscape(fBindUser) + "\"/></td>\n"
-        + " </tr>\n"
-        + " <tr>\n"
-        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.LDAPBindPasswordColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"password\" size=\"64\" name=\"ldapBindPass\" value=\"" + Encoder.attributeEscape(fBindPass) + "\"/></td>\n"
-        + " </tr>\n"
-        + " <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-        + " <tr>\n"
-        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.UserSearchBaseColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapUserBase\" value=\"" + Encoder.attributeEscape(fUserBase) + "\"/></td>\n"
-        + " </tr>\n"
-        + " <tr>\n"
-        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.UserSearchFilterColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapUserSearch\" value=\"" + Encoder.attributeEscape(fUserSearch) + "\"/></td>\n"
-        + " </tr>\n"
-        + " <tr>\n"
-        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.AddUserAuthColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"checkbox\" value=\"1\" name=\"ldapAddUserRecord\" " + (fAddUserRecord ? "checked=\"true\"" : "") + "/></td>\n"
-        + " </tr>\n"
-        + " <tr>\n"
-        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.UserNameAttrColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapUserNameAttr\" value=\"" + Encoder.attributeEscape(fUserNameAttr) + "\"/></td>\n"
-        + " </tr>\n"
-        + " <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-        + " <tr>\n"
-        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.GroupSearchBaseColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapGroupBase\" value=\"" + Encoder.attributeEscape(fGroupBase) + "\"/></td>\n"
-        + " </tr>\n"
-        + " <tr>\n"
-        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.GroupSearchFilterColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapGroupSearch\" value=\"" + Encoder.attributeEscape(fGroupSearch) + "\"/></td>\n"
-        + " </tr>\n"
-        + " <tr>\n"
-        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.GroupNameAttributeColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"64\" name=\"ldapGroupNameAttr\" value=\"" + Encoder.attributeEscape(fGroupNameAttr) + "\"/></td>\n"
-        + " </tr>\n"
-        + " <tr>\n"
-        + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.GroupMemberDnColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"checkbox\" value=\"1\" name=\"ldapGroupMemberDn\" " + (fGroupMemberDN ? "checked=\"true\"" : "") + "/></td>\n"
-        + " </tr>\n"
-        + "</table>\n");
-    } else {
-      out.print("<input type=\"hidden\" name=\"ldapServerName\" value=\"" + Encoder.attributeEscape(fServerName) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"ldapServerPort\" value=\"" + Encoder.attributeEscape(fServerPort) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"ldapServerBase\" value=\"" + Encoder.attributeEscape(fServerBase) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"ldapBindUser\" value=\"" + Encoder.attributeEscape(fBindUser) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"ldapBindPass\" value=\"" + Encoder.attributeEscape(fBindPass) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"ldapUserBase\" value=\"" + Encoder.attributeEscape(fUserBase) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"ldapUserSearch\" value=\"" + Encoder.attributeEscape(fUserSearch) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"ldapGroupBase\" value=\"" + Encoder.attributeEscape(fGroupBase) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"ldapGroupSearch\" value=\"" + Encoder.attributeEscape(fGroupSearch) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"ldapGroupNameAttr\" value=\"" + Encoder.attributeEscape(fGroupNameAttr) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"ldapUserNameAttr\" value=\"" + Encoder.attributeEscape(fUserNameAttr) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"ldapAddUserRecord\" value=\"" + (fAddUserRecord ? "1" : "0") + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"ldapGroupMemberDn\" value=\"" + (fGroupMemberDN ? "1" : "0") + "\"/>\n");
-    }
-
-    if (tabName.equals(Messages.getString(locale, "LDAP.ForcedTokens"))) {
-      out.print(
-        "<table class=\"displaytable\">\n"
-        + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-        + "  <tr><td class=\"value\" colspan=\"2\">" + Messages.getBodyString(locale, "LDAP.ForcedTokensDisclaimer") + "</td></tr>\n"
-        + "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n");
-
-      out.print("  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n");
-      // Go through forced ACL
-      int i = 0;
-      int k = 0;
-      while (i < parameters.getChildCount()) {
-        ConfigNode sn = parameters.getChild(i++);
-        if (sn.getType().equals("access")) {
-          String accessDescription = "_" + Integer.toString(k);
-          String accessOpName = "accessop" + accessDescription;
-          String token = sn.getAttributeValue("token");
-          out.print(
-            "  <tr>\n"
-            + "    <td class=\"description\">\n"
-            + "      <input type=\"hidden\" name=\"" + accessOpName + "\" value=\"\"/>\n"
-            + "      <input type=\"hidden\" name=\"" + "spectoken" + accessDescription + "\" value=\"" + Encoder.attributeEscape(token) + "\"/>\n"
-            + "      <a name=\"" + "token_" + Integer.toString(k) + "\">\n"
-            + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "LDAP.Delete") + "\" onClick='Javascript:SpecOp(\"" + accessOpName + "\",\"Delete\",\"token_" + Integer.toString(k) + "\")' alt=\"" + Messages.getAttributeString(locale, "LDAP.DeleteToken") + Integer.toString(k) + "\"/>\n"
-            + "      </a>&nbsp;\n"
-            + "    </td>\n"
-            + "    <td class=\"value\">\n"
-            + "      " + Encoder.bodyEscape(token) + "\n"
-            + "    </td>\n"
-            + "  </tr>\n");
-          k++;
-        }
-      }
-      if (k == 0) {
-        out.print(
-          "  <tr>\n"
-          + "    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale, "LDAP.NoTokensPresent") + "</td>\n"
-          + "  </tr>\n");
-      }
-      out.print(
-        "  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"
-        + "  <tr>\n"
-        + "    <td class=\"description\">\n"
-        + "      <input type=\"hidden\" name=\"tokencount\" value=\"" + Integer.toString(k) + "\"/>\n"
-        + "      <input type=\"hidden\" name=\"accessop\" value=\"\"/>\n"
-        + "      <a name=\"" + "token_" + Integer.toString(k) + "\">\n"
-        + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "LDAP.Add") + "\" onClick='Javascript:SpecAddToken(\"token_" + Integer.toString(k + 1) + "\")' alt=\"" + Messages.getAttributeString(locale, "LDAP.AddToken") + "\"/>\n"
-        + "      </a>&nbsp;\n"
-        + "    </td>\n"
-        + "    <td class=\"value\">\n"
-        + "      <input type=\"text\" size=\"30\" name=\"spectoken\" value=\"\"/>\n"
-        + "    </td>\n"
-        + "  </tr>\n"
-        + "</table>\n");
-    } else {
-      // Finally, go through forced ACL
-      int i = 0;
-      int k = 0;
-      while (i < parameters.getChildCount()) {
-        ConfigNode sn = parameters.getChild(i++);
-        if (sn.getType().equals("access")) {
-          String accessDescription = "_" + Integer.toString(k);
-          String token = "" + sn.getAttributeValue("token");
-          out.print(
-            "<input type=\"hidden\" name=\"" + "spectoken" + accessDescription + "\" value=\"" + Encoder.attributeEscape(token) + "\"/>\n");
-          k++;
-        }
-      }
-      out.print("<input type=\"hidden\" name=\"tokencount\" value=\"" + Integer.toString(k) + "\"/>\n");
-    }
-  }
-
-  private String getParam(ConfigParams parameters, String name, String def) {
-    return parameters.getParameter(name) != null ? parameters.getParameter(name) : def;
-  }
-
-  private String getViewParam(ConfigParams parameters, String name) {
-    return parameters.getParameter(name) != null ? parameters.getParameter(name) : "";
+    final Map<String,Object> paramMap = new HashMap<String,Object>();
+    fillInLDAPTab(paramMap, out, parameters);
+    fillInForcedTokensTab(paramMap, out, parameters);
+    Messages.outputResourceWithVelocity(out, locale, "editConfiguration_LDAP.html", paramMap);    
+    Messages.outputResourceWithVelocity(out, locale, "editConfiguration_ForcedTokens.html", paramMap);    
   }
 
   private boolean copyParam(IPostParameters variableContext, ConfigParams parameters, String name) {
@@ -804,13 +499,12 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     return true;
   }
 
-  private boolean copyParam(IPostParameters variableContext, ConfigParams parameters, String name, String def) {
+  private void copyParam(IPostParameters variableContext, ConfigParams parameters, String name, String def) {
     String val = variableContext.getParameter(name);
     if (val == null) {
       val = def;
     }
     parameters.setParameter(name, val);
-    return true;
   }
 
   /**
@@ -846,12 +540,12 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     copyParam(variableContext, parameters, "ldapAddUserRecord", "0"); //checkbox boolean value
 
     copyParam(variableContext, parameters, "ldapBindUser");
-    String bindPass = variableContext.getParameter("ldapBindPass");
+    final String bindPass = variableContext.getParameter("ldapBindPass");
     if (bindPass != null) {
       parameters.setObfuscatedParameter("ldapBindPass", variableContext.mapKeyToPassword(bindPass));
     }
 
-    String xc = variableContext.getParameter("tokencount");
+    final String xc = variableContext.getParameter("tokencount");
     if (xc != null) {
       // Delete all tokens first
       int i = 0;
@@ -864,13 +558,13 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
         }
       }
 
-      int accessCount = Integer.parseInt(xc);
+      final int accessCount = Integer.parseInt(xc);
       i = 0;
       while (i < accessCount) {
-        String accessDescription = "_" + Integer.toString(i);
-        String accessOpName = "accessop" + accessDescription;
-        xc = variableContext.getParameter(accessOpName);
-        if (xc != null && xc.equals("Delete")) {
+        final String accessDescription = "_" + Integer.toString(i);
+        final String accessOpName = "accessop" + accessDescription;
+        final String command = variableContext.getParameter(accessOpName);
+        if (command != null && command.equals("Delete")) {
           // Next row
           i++;
           continue;
@@ -892,6 +586,61 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       }
     }
 
+    final String sslConfigOp = variableContext.getParameter("sslconfigop");
+    if (sslConfigOp != null)
+    {
+      if (sslConfigOp.equals("Delete"))
+      {
+        final String alias = variableContext.getParameter("sslkeystorealias");
+        final String sslKeystoreValue = parameters.getParameter("sslkeystore");
+        final IKeystoreManager mgr;
+        if (sslKeystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",sslKeystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        mgr.remove(alias);
+        parameters.setParameter("sslkeystore",mgr.getString());
+      }
+      else if (sslConfigOp.equals("Add"))
+      {
+        String alias = IDFactory.make(threadContext);
+        byte[] certificateValue = variableContext.getBinaryBytes("sslcertificate");
+        final String sslKeystoreValue = parameters.getParameter("sslkeystore");
+        final IKeystoreManager mgr;
+        if (sslKeystoreValue != null)
+          mgr = KeystoreManagerFactory.make("",sslKeystoreValue);
+        else
+          mgr = KeystoreManagerFactory.make("");
+        java.io.InputStream is = new java.io.ByteArrayInputStream(certificateValue);
+        String certError = null;
+        try
+        {
+          mgr.importCertificate(alias,is);
+        }
+        catch (Throwable e)
+        {
+          certError = e.getMessage();
+        }
+        finally
+        {
+          try
+          {
+            is.close();
+          }
+          catch (IOException e)
+          {
+            // Eat this exception
+          }
+        }
+
+        if (certError != null)
+        {
+          return "Illegal certificate: "+certError;
+        }
+        parameters.setParameter("sslkeystore",mgr.getString());
+      }
+    }
+    
     return null;
   }
 
@@ -910,110 +659,91 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException {
-    String f_serverName = getViewParam(parameters, "ldapServerName");
-    String f_serverPort = getViewParam(parameters, "ldapServerPort");
-    String f_serverBase = getViewParam(parameters, "ldapServerBase");
-    String f_bindUser = getViewParam(parameters, "ldapBindUser");
-
-    String f_userBase = getViewParam(parameters, "ldapUserBase");
-    String f_userSearch = getViewParam(parameters, "ldapUserSearch");
-    String f_groupBase = getViewParam(parameters, "ldapGroupBase");
-    String f_groupSearch = getViewParam(parameters, "ldapGroupSearch");
-    String f_groupNameAttr = getViewParam(parameters, "ldapGroupNameAttr");
-
-    String f_userNameAttr = getViewParam(parameters, "ldapUserNameAttr");
-    boolean f_groupMemberDN = "1".equals(getViewParam(parameters, "ldapGroupMemberDn"));
-    boolean f_addUserRecord = "1".equals(getViewParam(parameters, "ldapAddUserRecord"));
-
-    out.print(
-      "<table class=\"displaytable\">\n"
-      + " <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-      + " <tr>\n"
-      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.LDAPServerNameColon") + "</nobr></td>\n"
-      + "  <td class=\"value\">" + Encoder.bodyEscape(f_serverName) + "</td>\n"
-      + " </tr>\n"
-      + " <tr>\n"
-      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.LDAPServerPortColon") + "</nobr></td>\n"
-      + "  <td class=\"value\">" + Encoder.bodyEscape(f_serverPort) + "</td>\n"
-      + " </tr>\n"
-      + " <tr>\n"
-      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.LDAPServerBaseColon") + "</nobr></td>\n"
-      + "  <td class=\"value\">" + Encoder.bodyEscape(f_serverBase) + "</td>\n"
-      + " </tr>\n"
-      + " <tr>\n"
-      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.LDAPBindUserColon") + "</nobr></td>\n"
-      + "  <td class=\"value\">" + Encoder.bodyEscape(f_bindUser) + "</td>\n"
-      + " </tr>\n"
-      + " <tr>\n"
-      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.LDAPBindPasswordColon") + "</nobr></td>\n"
-      + "  <td class=\"value\">*******</td>\n"
-      + " </tr>\n"
-      + " <tr>\n"
-      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.UserSearchBaseColon") + "</nobr></td>\n"
-      + "  <td class=\"value\">" + Encoder.bodyEscape(f_userBase) + "</td>\n"
-      + " </tr>\n"
-      + " <tr>\n"
-      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.UserSearchFilterColon") + "</nobr></td>\n"
-      + "  <td class=\"value\">" + Encoder.bodyEscape(f_userSearch) + "</td>\n"
-      + " </tr>\n"
-      + " <tr>\n"
-      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.AddUserAuthColon") + "</nobr></td>\n"
-      + "  <td class=\"value\">" + (f_addUserRecord ? "Y" : "N") + "</td>\n"
-      + " </tr>\n"
-      + " <tr>\n"
-      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.UserNameAttrColon") + "</nobr></td>\n"
-      + "  <td class=\"value\">" + Encoder.bodyEscape(f_userNameAttr) + "</td>\n"
-      + " </tr>\n"
-      + " <tr>\n"
-      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.GroupSearchBaseColon") + "</nobr></td>\n"
-      + "  <td class=\"value\">" + Encoder.bodyEscape(f_groupBase) + "</td>\n"
-      + " </tr>\n"
-      + " <tr>\n"
-      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.GroupSearchFilterColon") + "</nobr></td>\n"
-      + "  <td class=\"value\">" + Encoder.bodyEscape(f_groupSearch) + "</td>\n"
-      + " </tr>\n"
-      + " <tr>\n"
-      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.GroupNameAttributeColon") + "</nobr></td>\n"
-      + "  <td class=\"value\">" + Encoder.bodyEscape(f_groupNameAttr) + "</td>\n"
-      + " </tr>\n"
-      + " <tr>\n"
-      + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.GroupMemberDnColon") + "</nobr></td>\n"
-      + "  <td class=\"value\">" + (f_groupMemberDN ? "Y" : "N") + "</td>\n"
-      + " </tr>\n");
-
-    out.print("  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n");
-    boolean seenAny = false;
-    int i;
-
-    // Go through looking for access tokens
-    i = 0;
-    while (i < parameters.getChildCount()) {
-      ConfigNode sn = parameters.getChild(i++);
-      if (sn.getType().equals("access")) {
-        if (seenAny == false) {
-          out.print(
-            "  <tr>\n"
-            + "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "LDAP.ForcedTokensColon") + "</nobr></td>\n"
-            + "    <td class=\"value\">\n");
-          seenAny = true;
-        }
-        String token = sn.getAttributeValue("token");
-        out.print(Encoder.bodyEscape(token) + "<br/>\n");
-      }
-    }
-
-    if (seenAny) {
-      out.print(
-        "    </td>\n"
-        + "  </tr>\n");
-    } else {
-      out.print(
-        "  <tr><td class=\"message\" colspan=\"4\"><nobr>" + Messages.getBodyString(locale, "LDAP.NoTokensSpecified") + "</nobr></td></tr>\n");
-    }
-    out.print("</table>\n");
+    final Map<String,Object> paramMap = new HashMap<String,Object>();
+    fillInLDAPTab(paramMap, out, parameters);
+    fillInForcedTokensTab(paramMap, out, parameters);
+    Messages.outputResourceWithVelocity(out, locale, "viewConfiguration.html", paramMap);    
   }
 
   // Protected methods
+  
+  private static String getParam(final ConfigParams parameters, final String name, final String def) {
+    String rval = parameters.getParameter(name);
+    return rval != null ? rval : def;
+  }
+
+  /** Fill in ForcedTokens tab */
+  protected static void fillInForcedTokensTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
+    final List<String> forcedTokenList = new ArrayList<String>();
+    for (int i = 0; i < parameters.getChildCount(); i++) {
+      final ConfigNode sn = parameters.getChild(i++);
+      if (sn.getType().equals("access")) {
+        forcedTokenList.add(sn.getAttributeValue("token"));
+      }
+    }
+    velocityContext.put("FORCEDTOKENS", forcedTokenList);
+  }
+  
+  /** Fill in LDAP tab */
+  protected static void fillInLDAPTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
+    velocityContext.put("FSERVERNAME", getParam(parameters, "ldapServerName", ""));
+    velocityContext.put("FSERVERPORT", getParam(parameters, "ldapServerPort", "389"));
+    velocityContext.put("FSERVERBASE", getParam(parameters, "ldapServerBase", ""));
+    String sslKeystoreData = parameters.getParameter("sslkeystore");
+    if (sslKeystoreData != null)
+      velocityContext.put("SSLKEYSTOREDATA", sslKeystoreData);
+    velocityContext.put("FUSERBASE", getParam(parameters, "ldapUserBase", "ou=People"));
+    velocityContext.put("FUSERSEARCH", getParam(parameters, "ldapUserSearch", "(&(objectClass=inetOrgPerson)(uid={0}))"));
+    velocityContext.put("FUSERNAMEATTR", getParam(parameters, "ldapUserNameAttr", "uid"));
+    velocityContext.put("FADDUSERRECORD", getParam(parameters, "ldapAddUserRecord", ""));
+    velocityContext.put("FGROUPBASE", getParam(parameters, "ldapGroupBase", "ou=Groups"));
+    velocityContext.put("FGROUPSEARCH", getParam(parameters, "ldapGroupSearch", "(&(objectClass=groupOfNames)(member={0}))"));
+    velocityContext.put("FGROUPNAMEATTR", getParam(parameters, "ldapGroupNameAttr", "cn"));
+    velocityContext.put("FGROUPMEMBERDN", getParam(parameters, "ldapGroupMemberDn", ""));
+    velocityContext.put("FBINDUSER", getParam(parameters, "ldapBindUser", ""));
+    String fBindPass = parameters.getObfuscatedParameter("ldapBindPass");
+    if (fBindPass == null)
+      fBindPass = "";
+    else
+      fBindPass = out.mapPasswordToKey(fBindPass);
+    velocityContext.put("FBINDPASS", fBindPass);
+    
+    Map<String,String> sslCertificatesMap = null;
+    String message = null;
+
+    try {
+      final IKeystoreManager localSslKeystore;
+      if (sslKeystoreData == null)
+        localSslKeystore = KeystoreManagerFactory.make("");
+      else
+        localSslKeystore = KeystoreManagerFactory.make("",sslKeystoreData);
+
+      // List the individual certificates in the store, with a delete button for each
+      final String[] contents = localSslKeystore.getContents();
+      if (contents.length > 0)
+      {
+        sslCertificatesMap = new HashMap<>();
+        for (final String alias : contents)
+        {
+          String description = localSslKeystore.getDescription(alias);
+          if (description.length() > 128)
+            description = description.substring(0,125) + "...";
+          sslCertificatesMap.put(alias, description);
+        }
+      }
+    } catch (ManifoldCFException e) {
+      message = e.getMessage();
+      org.apache.manifoldcf.authorities.system.Logging.authorityConnectors.warn(e);
+    }
+
+    if(sslCertificatesMap != null)
+      velocityContext.put("SSLCERTIFICATESMAP", sslCertificatesMap);
+    if(message != null)
+      velocityContext.put("MESSAGE", message);
+  }
+
   /**
    * Obtain the user LDAP record for a given user logon name.
    *
