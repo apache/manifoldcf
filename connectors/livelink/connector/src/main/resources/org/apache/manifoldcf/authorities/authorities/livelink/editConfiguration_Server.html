@@ -111,7 +111,7 @@
         <tr>
           <td class="value">
             <input type="button" onclick='Javascript:ServerDeleteCertificate($Encoder.attributeJavascriptEscape($cert.Key))'
-                   alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.DeleteCert')$cert.Key)"
+                   alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.DeleteCert'))$Encoder.attributeEscape($cert.Key)"
                    value="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.Delete'))"/>
             $Encoder.bodyEscape($cert.Value)
           </td>
