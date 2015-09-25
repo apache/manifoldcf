@@ -102,7 +102,7 @@
         <tr>
           <td class="description">
             <input type="button" onclick='Javascript:SSLDeleteCertificate($Encoder.attributeJavascriptEscape($cert.Key))'
-                   alt="$Encoder.attributeEscape($ResourceBundle.getString('LDAP.DeleteCert')$cert.Key)"
+                   alt="$Encoder.attributeEscape($ResourceBundle.getString('LDAP.DeleteCert'))$Encoder.attributeEscape($cert.Key)"
                    value="$Encoder.attributeEscape($ResourceBundle.getString('LDAP.Delete'))"/>
           </td>
           <td class="value">

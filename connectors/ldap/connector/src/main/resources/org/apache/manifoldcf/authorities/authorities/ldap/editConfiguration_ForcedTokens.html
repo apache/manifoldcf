@@ -19,7 +19,7 @@
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
-  <tr><td class="value" colspan="2">$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.ForcedTokensDisclaimer'))</td></tr>
+  <tr><td class="value" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('LDAP.ForcedTokensDisclaimer'))</td></tr>
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   #set($counter = 0)
   #foreach($forcedtoken in $FORCEDTOKENS)
@@ -28,7 +28,7 @@
       <input type="hidden" name="accessop_$counter" value=""/>
       <input type="hidden" name="spectoken_$counter" value="$Encoder.attributeEscape($forcedtoken)"/>
       <a name="token_$counter">
-        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getMessage('LDAP.Delete'))" onClick='Javascript:SpecOp("accessop_$counter","Delete","token_$counter")' alt="$Encoder.attributeEscape($ResourceBundle.getMessage('LDAP.DeleteToken')$counter)"/>
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('LDAP.Delete'))" onClick='Javascript:SpecOp("accessop_$counter","Delete","token_$counter")' alt="$Encoder.attributeEscape($ResourceBundle.getString('LDAP.DeleteToken'))$counter"/>
       </a>
     </td>
     <td class="value">
@@ -39,7 +39,7 @@
   #end
   #if ($counter == 0)
   <tr>
-    <td class="message" colspan="2">$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.NoTokensPresent'))</td>
+    <td class="message" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('LDAP.NoTokensPresent'))</td>
   </tr>
   #end
   <tr><td class="lightseparator" colspan="2"><hr/></td></tr>
@@ -49,7 +49,7 @@
   #set($counterplusone = $counter + 1)
       <input type="hidden" name="accessop" value=""/>
       <a name="token_$counter">
-        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getMessage('LDAP.Add'))" onClick='Javascript:SpecAddToken("token_$counterplusone")' alt="$Encoder.attributeEscape($ResourceBundle.getMessage('LDAP.AddToken'))"/>
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('LDAP.Add'))" onClick='Javascript:SpecAddToken("token_$counterplusone")' alt="$Encoder.attributeEscape($ResourceBundle.getString('LDAP.AddToken'))"/>
       </a>
     </td>
     <td class="value">
@@ -60,9 +60,9 @@
 #else
   #set($counter = 0)
   #foreach($forcedtoken in $FORCEDTOKENS)
-<input type="hidden" name="spectoken_$counter" value="$Encoder.attributeEscape($forcedtoken)"/>);
+<input type="hidden" name="spectoken_$counter" value="$Encoder.attributeEscape($forcedtoken)"/>
     #set($counter = $counter + 1)
   #end
-<input type="hidden" name="tokencount" value="$counter"/>);
+<input type="hidden" name="tokencount" value="$counter"/>
 #end
 
