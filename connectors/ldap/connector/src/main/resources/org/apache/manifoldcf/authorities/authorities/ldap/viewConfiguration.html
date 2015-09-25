@@ -18,66 +18,66 @@
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.LDAPServerNameColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.LDAPServerNameColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($FSERVERNAME)</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.LDAPServerPortColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.LDAPServerPortColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($FSERVERPORT)</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.LDAPServerBaseColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.LDAPServerBaseColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($FSERVERBASE)</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.LDAPBindUserColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.LDAPBindUserColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($FBINDUSER)</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.LDAPBindPasswordColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.LDAPBindPasswordColon'))</nobr></td>
     <td class="value">*******</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.UserSearchBaseColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.UserSearchBaseColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($FUSERBASE)</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.UserSearchFilterColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.UserSearchFilterColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($FUSERSEARCH)</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.AddUserAuthColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.AddUserAuthColon'))</nobr></td>
     <td class="value">
 #if($FADDUSERRECORD == '1')
-    $Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.Yes'))
+    $Encoder.bodyEscape($ResourceBundle.getString('LDAP.Yes'))
 #else
-    $Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.No'))
+    $Encoder.bodyEscape($ResourceBundle.getString('LDAP.No'))
 #end
     </td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.UserNameAttrColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.UserNameAttrColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($FUSERNAMEATTR)</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.GroupSearchBaseColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.GroupSearchBaseColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($FGROUPBASE)</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.GroupSearchFilterColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.GroupSearchFilterColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($FGROUPSEARCH)</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.GroupNameAttributeColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.GroupNameAttributeColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($FGROUPNAMEATTR)</td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.GroupMemberDnColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.GroupMemberDnColon'))</nobr></td>
     <td class="value">
 #if($FGROUPMEMBERDN == '1')
-    $Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.Yes'))
+    $Encoder.bodyEscape($ResourceBundle.getString('LDAP.Yes'))
 #else
-    $Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.No'))
+    $Encoder.bodyEscape($ResourceBundle.getString('LDAP.No'))
 #end
     </td>
   </tr>
@@ -118,16 +118,16 @@
 #foreach($forcedtoken in $FORCEDTOKENS)
   #if(!$seenany)
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.ForcedTokensColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.ForcedTokensColon'))</nobr></td>
     <td class="value">
   #end
-  #set(#seenany = true)
+  #set($seenany = true)
         $Encoder.bodyEscape($forcedtoken)<br/>
 #end
 #if($seenany)
     </td>
   </tr>
 #else
-  <tr><td class="message" colspan="4"><nobr>$Encoder.bodyEscape($ResourceBundle.getMessage('LDAP.NoTokensSpecified'))</nobr></td></tr>
+  <tr><td class="message" colspan="4"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.NoTokensSpecified'))</nobr></td></tr>
 #end
 </table>

@@ -484,6 +484,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException {
     final Map<String,Object> paramMap = new HashMap<String,Object>();
+    paramMap.put("TabName",tabName);
     fillInLDAPTab(paramMap, out, parameters);
     fillInForcedTokensTab(paramMap, out, parameters);
     Messages.outputResourceWithVelocity(out, locale, "editConfiguration_LDAP.html", paramMap);    
