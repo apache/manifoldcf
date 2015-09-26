@@ -30,6 +30,7 @@ import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.connectorcommon.interfaces.*;
 import org.apache.manifoldcf.ui.util.Encoder;
+import org.apache.manifoldcf.core.common.LDAPSSLSocketFactory;
 
 /**
  * This is the Active Directory implementation of the IAuthorityConnector
@@ -46,7 +47,8 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
    * Session information for all DC's we talk with.
    */
   private LdapContext session = null;
-
+  private StartTlsResponse tls = null;
+  
   private long sessionExpirationTime = -1L;
 
   //private ConfigParams parameters;
@@ -145,54 +147,87 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
    */
   protected LdapContext getSession()
     throws ManifoldCFException {
-    if (serverName == null || serverName.length() == 0) {
-      throw new ManifoldCFException("Server name parameter missing but required");
-    }
-    if (serverPort == null || serverPort.length() == 0) {
-      throw new ManifoldCFException("Server port parameter missing but required");
-    }
-    if (serverBase == null) {
-      throw new ManifoldCFException("Server base parameter missing but required");
-    }
-    if (userBase == null) {
-      throw new ManifoldCFException("User base parameter missing but required");
-    }
-    if (userSearch == null || userSearch.length() == 0) {
-      throw new ManifoldCFException("User search expression missing but required");
-    }
-    if (groupBase == null) {
-      throw new ManifoldCFException("Group base parameter missing but required");
-    }
-    if (groupSearch == null || groupSearch.length() == 0) {
-      throw new ManifoldCFException("Group search expression missing but required");
-    }
-    if (groupNameAttr == null || groupNameAttr.length() == 0) {
-      throw new ManifoldCFException("Group name attribute missing but required");
-    }
-    if (userNameAttr == null || userNameAttr.length() == 0) {
-      throw new ManifoldCFException("User name attribute missing but required");
-    }
-
-    if (sslKeystoreData != null) {
-      sslKeystore = KeystoreManagerFactory.make("", sslKeystoreData);
-    } else {
-      sslKeystore = null;
-    }
-
-    Hashtable env = new Hashtable();
-    env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-    env.put(Context.PROVIDER_URL, "ldap://" + serverName + ":" + serverPort + "/" + serverBase);
-
-    if (bindUser != null && !bindUser.isEmpty()) {
-      env.put(Context.SECURITY_AUTHENTICATION, "simple");
-      env.put(Context.SECURITY_PRINCIPAL, bindUser);
-      env.put(Context.SECURITY_CREDENTIALS, bindPass);
-    }
 
     try {
       if (session == null) {
+        if (serverName == null || serverName.length() == 0) {
+          throw new ManifoldCFException("Server name parameter missing but required");
+        }
+        if (serverPort == null || serverPort.length() == 0) {
+          throw new ManifoldCFException("Server port parameter missing but required");
+        }
+        if (serverBase == null) {
+          throw new ManifoldCFException("Server base parameter missing but required");
+        }
+        if (userBase == null) {
+          throw new ManifoldCFException("User base parameter missing but required");
+        }
+        if (userSearch == null || userSearch.length() == 0) {
+          throw new ManifoldCFException("User search expression missing but required");
+        }
+        if (groupBase == null) {
+          throw new ManifoldCFException("Group base parameter missing but required");
+        }
+        if (groupSearch == null || groupSearch.length() == 0) {
+          throw new ManifoldCFException("Group search expression missing but required");
+        }
+        if (groupNameAttr == null || groupNameAttr.length() == 0) {
+          throw new ManifoldCFException("Group name attribute missing but required");
+        }
+        if (userNameAttr == null || userNameAttr.length() == 0) {
+          throw new ManifoldCFException("User name attribute missing but required");
+        }
+
+        if (sslKeystoreData != null) {
+          sslKeystore = KeystoreManagerFactory.make("", sslKeystoreData);
+        } else {
+          sslKeystore = KeystoreManagerFactory.make("");
+        }
+        
+        // Set thread local for keystore stuff
+        LDAPSSLSocketFactory.setSocketFactoryProducer(sslKeystore);
+
+        final String protocolToUse;
+        final boolean useTls;
+        if (serverProtocol == null || serverProtocol.length() == 0) {
+          protocolToUse = "ldap";
+          useTls = false;
+        } else {
+          int plusIndex = serverProtocol.indexOf("+");
+          if (plusIndex == -1) {
+            plusIndex = serverProtocol.length();
+            useTls = false;
+          } else {
+            useTls = true;
+          }
+          protocolToUse = serverProtocol.substring(0,plusIndex);
+        }
+
+        final Hashtable env = new Hashtable();
+        env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+        env.put(Context.PROVIDER_URL, "ldap://" + serverName + ":" + serverPort + "/" + serverBase);
+        if (protocolToUse.equals("ldaps"))
+          env.put(Context.SECURITY_PROTOCOL, "ssl");
+        
+        env.put("java.naming.ldap.factory.socket", "org.apache.manifoldcf.core.common.LDAPSSLSocketFactory");
+
+        if (bindUser != null && !bindUser.isEmpty()) {
+          env.put(Context.SECURITY_AUTHENTICATION, "simple");
+          env.put(Context.SECURITY_PRINCIPAL, bindUser);
+          env.put(Context.SECURITY_CREDENTIALS, bindPass);
+        }
+
         session = new InitialLdapContext(env, null);
+        
+        if (useTls) {
+          // Start TLS
+          StartTlsResponse tls = (StartTlsResponse) session.extendedOperation(new StartTlsRequest());
+          tls.negotiate(sslKeystore.getSecureSocketFactory());
+        }
+        
       } else {
+        // Set thread local for keystore stuff
+        LDAPSSLSocketFactory.setSocketFactoryProducer(sslKeystore);
         session.reconnect(null);
       }
       sessionExpirationTime = System.currentTimeMillis() + 300000L;
@@ -209,6 +244,14 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       session = null;
       sessionExpirationTime = -1L;
       throw new ManifoldCFException("Naming error: " + e.getMessage(), e);
+    } catch (InterruptedIOException e) {
+      session = null;
+      sessionExpirationTime = -1L;
+      throw new ManifoldCFException(e.getMessage(), ManifoldCFException.INTERRUPTED);
+    } catch (IOException e) {
+      session = null;
+      sessionExpirationTime = -1L;
+      throw new ManifoldCFException("IO error: " + e.getMessage(), e);
     }
   }
 
@@ -252,10 +295,15 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
   protected void disconnectSession() {
     if (session != null) {
       try {
+        if (tls != null)
+          tls.close();
         session.close();
       } catch (NamingException e) {
         // Eat this error
+      } catch (IOException e) {
+        // Eat this error
       }
+      tls = null;
       session = null;
       sessionExpirationTime = -1L;
     }
