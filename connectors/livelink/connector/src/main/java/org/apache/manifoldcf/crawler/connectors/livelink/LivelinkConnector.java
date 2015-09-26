@@ -1848,31 +1848,27 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String serverHTTPNTLMPassword = variableContext.getParameter("serverhttpntlmpassword");
     if (serverHTTPNTLMPassword != null)
       parameters.setObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword,variableContext.mapKeyToPassword(serverHTTPNTLMPassword));
-    String serverHTTPSKeystoreValue = variableContext.getParameter("serverhttpskeystoredata");
-    if (serverHTTPSKeystoreValue != null)
-      parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
     
-    String serverConfigOp = variableContext.getParameter("serverconfigop");
+    String serverHTTPSKeystoreValue = variableContext.getParameter("serverhttpskeystoredata");
+    final String serverConfigOp = variableContext.getParameter("serverconfigop");
     if (serverConfigOp != null)
     {
       if (serverConfigOp.equals("Delete"))
       {
         String alias = variableContext.getParameter("serverkeystorealias");
-        serverHTTPSKeystoreValue = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
-        IKeystoreManager mgr;
+        final IKeystoreManager mgr;
         if (serverHTTPSKeystoreValue != null)
           mgr = KeystoreManagerFactory.make("",serverHTTPSKeystoreValue);
         else
           mgr = KeystoreManagerFactory.make("");
         mgr.remove(alias);
-        parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,mgr.getString());
+        serverHTTPSKeystoreValue = mgr.getString();
       }
       else if (serverConfigOp.equals("Add"))
       {
         String alias = IDFactory.make(threadContext);
         byte[] certificateValue = variableContext.getBinaryBytes("servercertificate");
-        serverHTTPSKeystoreValue = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
-        IKeystoreManager mgr;
+        final IKeystoreManager mgr;
         if (serverHTTPSKeystoreValue != null)
           mgr = KeystoreManagerFactory.make("",serverHTTPSKeystoreValue);
         else
@@ -1903,10 +1899,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           return "Illegal certificate: "+certError;
         }
-        parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,mgr.getString());
+        serverHTTPSKeystoreValue = mgr.getString();
       }
     }
-
+    parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
+    
     // Ingest parameters
     String ingestProtocol = variableContext.getParameter("ingestprotocol");
     if (ingestProtocol != null)
@@ -1926,31 +1923,27 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     String ingestNtlmPassword = variableContext.getParameter("ingestntlmpassword");
     if (ingestNtlmPassword != null)
       parameters.setObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword,variableContext.mapKeyToPassword(ingestNtlmPassword));
+    
     String ingestKeystoreValue = variableContext.getParameter("ingestkeystoredata");
-    if (ingestKeystoreValue != null)
-      parameters.setParameter(LiveLinkParameters.ingestKeystore,ingestKeystoreValue);
-
-    String ingestConfigOp = variableContext.getParameter("ingestconfigop");
+    final String ingestConfigOp = variableContext.getParameter("ingestconfigop");
     if (ingestConfigOp != null)
     {
       if (ingestConfigOp.equals("Delete"))
       {
         String alias = variableContext.getParameter("ingestkeystorealias");
-        ingestKeystoreValue = parameters.getParameter(LiveLinkParameters.ingestKeystore);
-        IKeystoreManager mgr;
+        final IKeystoreManager mgr;
         if (ingestKeystoreValue != null)
           mgr = KeystoreManagerFactory.make("",ingestKeystoreValue);
         else
           mgr = KeystoreManagerFactory.make("");
         mgr.remove(alias);
-        parameters.setParameter(LiveLinkParameters.ingestKeystore,mgr.getString());
+        ingestKeystoreValue = mgr.getString();
       }
       else if (ingestConfigOp.equals("Add"))
       {
         String alias = IDFactory.make(threadContext);
         byte[] certificateValue = variableContext.getBinaryBytes("ingestcertificate");
-        ingestKeystoreValue = parameters.getParameter(LiveLinkParameters.ingestKeystore);
-        IKeystoreManager mgr;
+        final IKeystoreManager mgr;
         if (ingestKeystoreValue != null)
           mgr = KeystoreManagerFactory.make("",ingestKeystoreValue);
         else
@@ -1981,9 +1974,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           return "Illegal certificate: "+certError;
         }
-        parameters.setParameter(LiveLinkParameters.ingestKeystore,mgr.getString());
+        ingestKeystoreValue = mgr.getString();
       }
     }
+    parameters.setParameter(LiveLinkParameters.ingestKeystore,ingestKeystoreValue);
 
     return null;
   }
