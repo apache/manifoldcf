@@ -527,6 +527,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
   @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, Locale locale, ConfigParams parameters)
     throws ManifoldCFException {
+    copyParam(variableContext, parameters, "ldapProtocol");
     copyParam(variableContext, parameters, "ldapServerName");
     copyParam(variableContext, parameters, "ldapServerPort");
     copyParam(variableContext, parameters, "ldapServerBase");
@@ -690,6 +691,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
   /** Fill in LDAP tab */
   protected static void fillInLDAPTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
   {
+    velocityContext.put("FSERVERPROTOCOL", getParam(parameters, "ldapProtocol", "ldap"));
     velocityContext.put("FSERVERNAME", getParam(parameters, "ldapServerName", ""));
     velocityContext.put("FSERVERPORT", getParam(parameters, "ldapServerPort", "389"));
     velocityContext.put("FSERVERBASE", getParam(parameters, "ldapServerBase", ""));

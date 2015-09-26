@@ -24,6 +24,33 @@
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.LDAPProtocolColon'))</nobr></td>
+    <td class="value">
+      <select name="ldapProtocol" size="4">
+  #if($FSERVERPROTOCOL == '' || $FSERVERPROTOCOL == 'ldap')
+        <option value="ldap" selected="true">LDAP</option>
+  #else
+        <option value="ldap">LDAP</option>
+  #end
+  #if($FSERVERPROTOCOL == 'ldaps')
+        <option value="ldaps" selected="true">LDAPS</option>
+  #else
+        <option value="ldaps">LDAPS</option>
+  #end
+  #if($FSERVERPROTOCOL == 'ldap+tls')
+        <option value="ldap+tls" selected="true">LDAP+TLS</option>
+  #else
+        <option value="ldap+tls">LDAP+TLS</option>
+  #end
+  #if($FSERVERPROTOCOL == 'ldaps+tls')
+        <option value="ldaps+tls" selected="true">LDAPS+TLS</option>
+  #else
+        <option value="ldaps+tls">LDAPS+TLS</option>
+  #end
+      </select>
+    </td>
+  </tr>
+  <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.LDAPServerNameColon'))</nobr></td>
     <td class="value"><input type="text" size="32" name="ldapServerName" value="$Encoder.attributeEscape($FSERVERNAME)"/></td>
   </tr>
@@ -127,6 +154,7 @@
 
 </table>
 #else
+<input type="hidden" name="ldapProtocol" value="$Encoder.attributeEscape($FSERVERPROTOCOL)"/>
 <input type="hidden" name="ldapServerName" value="$Encoder.attributeEscape($FSERVERNAME)"/>
 <input type="hidden" name="ldapServerPort" value="$Encoder.attributeEscape($FSERVERPORT)"/>
 <input type="hidden" name="ldapServerBase" value="$Encoder.attributeEscape($FSERVERBASE)"/>
