@@ -49,32 +49,23 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
 
   private long sessionExpirationTime = -1L;
 
-  private ConfigParams parameters;
+  //private ConfigParams parameters;
 
+  private String bindUser;
+  private String bindPass;
+  private String serverProtocol;
   private String serverName;
-
   private String serverPort;
-
   private String serverBase;
-
   private String userBase;
-
   private String userSearch;
-
   private String groupBase;
-
   private String groupSearch;
-
   private String groupNameAttr;
-
   private boolean groupMemberDN;
-
   private boolean addUserRecord;
-
   private List<String> forcedTokens;
-
   private String userNameAttr;
-
   private String sslKeystoreData;
   
   private IKeystoreManager sslKeystore;
@@ -112,9 +103,14 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
   @Override
   public void connect(ConfigParams configParams) {
     super.connect(configParams);
-    parameters = configParams;
+    //parameters = configParams;
+
+    // Credentials
+    bindUser = configParams.getParameter("ldapBindUser");
+    bindPass = configParams.getObfuscatedParameter("ldapBindPass");
 
     // We get the parameters here, so we can check them in case they are missing
+    serverProtocol = configParams.getParameter("ldapProtocol");
     serverName = configParams.getParameter("ldapServerName");
     serverPort = configParams.getParameter("ldapServerPort");
     serverBase = configParams.getParameter("ldapServerBase");
@@ -132,8 +128,8 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
 
     forcedTokens = new ArrayList<String>();
     int i = 0;
-    while (i < parameters.getChildCount()) {
-      ConfigNode sn = parameters.getChild(i++);
+    while (i < configParams.getChildCount()) {
+      ConfigNode sn = configParams.getChild(i++);
       if (sn.getType().equals("access")) {
         String token = "" + sn.getAttributeValue("token");
         forcedTokens.add(token);
@@ -187,17 +183,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
     env.put(Context.PROVIDER_URL, "ldap://" + serverName + ":" + serverPort + "/" + serverBase);
 
-    //get bind credentials
-    String bindUser = getParam(parameters, "ldapBindUser", "");
-    String bindPass = "";
-    try {
-      bindPass = ManifoldCF.deobfuscate(getParam(parameters, "ldapBindPass", ""));
-    } catch (ManifoldCFException ex) {
-      if (!bindUser.isEmpty()) {
-        Logger.getLogger(LDAPAuthority.class.getName()).log(Level.SEVERE, "Deobfuscation error", ex);
-      }
-    }
-    if (!bindUser.isEmpty()) {
+    if (bindUser != null && !bindUser.isEmpty()) {
       env.put(Context.SECURITY_AUTHENTICATION, "simple");
       env.put(Context.SECURITY_PRINCIPAL, bindUser);
       env.put(Context.SECURITY_CREDENTIALS, bindPass);
