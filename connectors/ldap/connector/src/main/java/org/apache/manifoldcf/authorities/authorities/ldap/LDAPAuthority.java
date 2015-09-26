@@ -587,26 +587,25 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       }
     }
 
+    String sslKeystoreValue = variableContext.getParameter("sslkeystoredata");
     final String sslConfigOp = variableContext.getParameter("sslconfigop");
     if (sslConfigOp != null)
     {
       if (sslConfigOp.equals("Delete"))
       {
         final String alias = variableContext.getParameter("sslkeystorealias");
-        final String sslKeystoreValue = parameters.getParameter("sslkeystore");
         final IKeystoreManager mgr;
         if (sslKeystoreValue != null)
           mgr = KeystoreManagerFactory.make("",sslKeystoreValue);
         else
           mgr = KeystoreManagerFactory.make("");
         mgr.remove(alias);
-        parameters.setParameter("sslkeystore",mgr.getString());
+        sslKeystoreValue = mgr.getString();
       }
       else if (sslConfigOp.equals("Add"))
       {
         String alias = IDFactory.make(threadContext);
         byte[] certificateValue = variableContext.getBinaryBytes("sslcertificate");
-        final String sslKeystoreValue = parameters.getParameter("sslkeystore");
         final IKeystoreManager mgr;
         if (sslKeystoreValue != null)
           mgr = KeystoreManagerFactory.make("",sslKeystoreValue);
@@ -638,9 +637,11 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
         {
           return "Illegal certificate: "+certError;
         }
-        parameters.setParameter("sslkeystore",mgr.getString());
+        sslKeystoreValue = mgr.getString();
       }
     }
+    if (sslKeystoreValue != null)
+      parameters.setParameter("sslkeystore",sslKeystoreValue);
     
     return null;
   }

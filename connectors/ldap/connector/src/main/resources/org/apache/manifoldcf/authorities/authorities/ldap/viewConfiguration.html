@@ -93,9 +93,6 @@
         #if($SSLCERTIFICATESMAP)
           #foreach($cert in $SSLCERTIFICATESMAP.entrySet())
         <tr>
-          <td class="description">
-            $Encoder.bodyEscape($cert.Key)
-          </td>
           <td class="value">
             $Encoder.bodyEscape($cert.Value)
           </td>
