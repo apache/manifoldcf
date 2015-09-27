@@ -714,7 +714,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
   {
     final List<String> forcedTokenList = new ArrayList<String>();
     for (int i = 0; i < parameters.getChildCount(); i++) {
-      final ConfigNode sn = parameters.getChild(i++);
+      final ConfigNode sn = parameters.getChild(i);
       if (sn.getType().equals("access")) {
         forcedTokenList.add(sn.getAttributeValue("token"));
       }
