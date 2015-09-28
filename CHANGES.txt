@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1244: Add support for LDAPS and TLS to LDAP
+authority connector.
+(Karl Wright)
+
 CONNECTORS-1234: Add use-mapper-attachments option
 to Elasticsearch connector.
 (Shinichiro Abe)
