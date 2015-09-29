@@ -3,6 +3,12 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1237: Upgrade the CMIS Connector to OpenCMIS 0.13.0
+(Piergiorgio Lucidi)
+
+CONNECTORS-1235: Indexing all properties fetched with the cmis query
+(Piergiorgio Lucidi, Christian Tiralosi, Deanna Delapasse, Elisa Croci)
+
 CONNECTORS-1244: Add support for LDAPS and TLS to LDAP
 authority connector.
 (Karl Wright)

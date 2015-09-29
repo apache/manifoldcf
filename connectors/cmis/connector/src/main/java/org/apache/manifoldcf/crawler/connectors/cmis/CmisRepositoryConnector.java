@@ -72,7 +72,7 @@ import org.apache.manifoldcf.crawler.system.Logging;
 
 /**
  * This is the "repository connector" for a CMIS-compliant repository.
- * 
+ *
  * @author Piergiorgio Lucidi
  */
 public class CmisRepositoryConnector extends BaseRepositoryConnector {
@@ -88,11 +88,11 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       "yyyy-MM-dd'T'HH:mm:ssZ");
 
   // Tab name properties
-  
+
   private static final String CMIS_SERVER_TAB_PROPERTY = "CmisRepositoryConnector.Server";
   private static final String CMIS_QUERY_TAB_PROPERTY = "CmisRepositoryConnector.CMISQuery";
 
-  
+
   // Template names
 
     /** Forward to the javascript to check the configuration parameters */
@@ -103,17 +103,17 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   /** Forward to the javascript to check the specification parameters for the job */
   private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification.js";
-  
+
   /** Forward to the template to edit the configuration parameters for the job */
   private static final String EDIT_SPEC_FORWARD_CMISQUERY = "editSpecification_CMISQuery.html";
-  
+
   /** Forward to the HTML template to view the configuration parameters */
   private static final String VIEW_CONFIG_FORWARD = "viewConfiguration.html";
-  
+
   /** Forward to the template to view the specification parameters for the job */
   private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
-  
-  
+
+
   /**
    * CMIS Session handle
    */
@@ -121,19 +121,19 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   protected String username = null;
   protected String password = null;
-  
+
   /** Endpoint protocol */
   protected String protocol = null;
-  
+
   /** Endpoint server name */
   protected String server = null;
-  
+
   /** Endpoint port */
   protected String port = null;
-  
+
   /** Endpoint context path of the Alfresco webapp */
   protected String path = null;
-  
+
   protected String repositoryId = null;
   protected String binding = null;
 
@@ -144,7 +144,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   protected static final long timeToRelease = 300000L;
   protected long lastSessionFetch = -1L;
-  
+
   /**
    * Constructor
    */
@@ -162,7 +162,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     return MODEL_CHAINED_ADD_CHANGE;
   }
 
-  /** 
+  /**
    * Return the list of activities that this connector supports (i.e. writes into the log).
    * @return the list.
    */
@@ -204,7 +204,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         parameters.put(SessionParameter.PASSWORD, password);
 
         String endpoint = protocol+"://"+server+":"+port+path;
-        
+
         // connection settings
         if(CmisConfig.BINDING_ATOM_VALUE.equals(binding)){
           //AtomPub protocol
@@ -237,20 +237,20 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             Logging.connectors.error("CMIS: Error during getting CMIS repositories. Please check the endpoint parameters: " + e.getMessage(), e);
             this.exception = e;
           }
-          
+
         } else {
 
           // get a session from the repository specified in the
           // configuration with its own ID
           parameters.put(SessionParameter.REPOSITORY_ID, repositoryId);
-          
+
           try {
             session = factory.createSession(parameters);
           } catch (Exception e) {
             Logging.connectors.error("CMIS: Error during the creation of the new session. Please check the endpoint parameters: " + e.getMessage(), e);
             this.exception = e;
           }
-        
+
         }
 
       } catch (Throwable e) {
@@ -308,7 +308,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   }
 
-  /** 
+  /**
    * Close the connection.  Call this before discarding the connection.
    */
   @Override
@@ -376,7 +376,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     server = params.getParameter(CmisConfig.SERVER_PARAM);
     port = params.getParameter(CmisConfig.PORT_PARAM);
     path = params.getParameter(CmisConfig.PATH_PARAM);
-    
+
     binding = params.getParameter(CmisConfig.BINDING_PARAM);
     if (StringUtils.isNotEmpty(params.getParameter(CmisConfig.REPOSITORY_ID_PARAM)))
       repositoryId = params.getParameter(CmisConfig.REPOSITORY_ID_PARAM);
@@ -401,11 +401,11 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   protected void getSession() throws ManifoldCFException, ServiceInterruption {
     if (session == null) {
       // Check for parameter validity
-      
+
       if (StringUtils.isEmpty(binding))
         throw new ManifoldCFException("Parameter " + CmisConfig.BINDING_PARAM
             + " required but not set");
-      
+
       if (StringUtils.isEmpty(username))
         throw new ManifoldCFException("Parameter " + CmisConfig.USERNAME_PARAM
             + " required but not set");
@@ -422,15 +422,15 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       if (StringUtils.isEmpty(protocol))
         throw new ManifoldCFException("Parameter " + CmisConfig.PROTOCOL_PARAM
             + " required but not set");
-      
+
       if (StringUtils.isEmpty(server))
         throw new ManifoldCFException("Parameter " + CmisConfig.SERVER_PARAM
             + " required but not set");
-      
+
       if (StringUtils.isEmpty(port))
         throw new ManifoldCFException("Parameter " + CmisConfig.PORT_PARAM
             + " required but not set");
-      
+
       if (StringUtils.isEmpty(path))
         throw new ManifoldCFException("Parameter " + CmisConfig.PATH_PARAM
             + " required but not set");
@@ -572,7 +572,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
-  /** 
+  /**
    * This method is periodically called for all connectors that are connected but not
    * in active use.
    */
@@ -689,10 +689,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
     return "";
   }
-  
-  
 
-  /** 
+
+
+  /**
    * Get the maximum number of documents to amalgamate together into one batch, for this connector.
    * @return the maximum number. 0 indicates "unlimited".
    */
@@ -703,7 +703,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   /**
    * Return the list of relationship types that this connector recognizes.
-   * 
+   *
    * @return the list.
    */
   @Override
@@ -714,7 +714,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   /**
    * Read the content of a resource, replace the variable ${PARAMNAME} with the
    * value and copy it to the out.
-   * 
+   *
    * @param resName
    * @param out
    * @throws ManifoldCFException
@@ -738,7 +738,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     String path = parameters.getParameter(CmisConfig.PATH_PARAM);
     String repositoryId = parameters.getParameter(CmisConfig.REPOSITORY_ID_PARAM);
     String binding = parameters.getParameter(CmisConfig.BINDING_PARAM);
-      
+
     if(username == null)
       username = StringUtils.EMPTY;
     if(password == null)
@@ -757,7 +757,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       repositoryId = StringUtils.EMPTY;
     if(binding == null)
       binding = CmisConfig.BINDING_ATOM_VALUE;
-      
+
     newMap.put(CmisConfig.USERNAME_PARAM, username);
     newMap.put(CmisConfig.PASSWORD_PARAM, password);
     newMap.put(CmisConfig.PROTOCOL_PARAM, protocol);
@@ -767,14 +767,14 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     newMap.put(CmisConfig.REPOSITORY_ID_PARAM, repositoryId);
     newMap.put(CmisConfig.BINDING_PARAM, binding);
   }
-  
+
   /**
    * View configuration. This method is called in the body section of the
    * connector's view configuration page. Its purpose is to present the
    * connection information to the user. The coder can presume that the HTML that
    * is output from this configuration will be within appropriate <html> and
    * <body> tags.
-   * 
+   *
    * @param threadContext
    *          is the local thread context.
    * @param out
@@ -787,7 +787,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
       Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
     Map<String,String> paramMap = new HashMap<String,String>();
-  
+
     // Fill in map from each tab
     fillInServerConfigurationMap(paramMap, out, parameters);
 
@@ -800,7 +800,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
    * section of the connector's configuration page. Its purpose is to add the
    * required tabs to the list, and to output any javascript methods that might
    * be needed by the configuration editing HTML.
-   * 
+   *
    * @param threadContext
    *          is the local thread context.
    * @param out
@@ -842,7 +842,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     // Fill in the parameters
     fillInServerConfigurationMap(paramMap, out, parameters);
     outputResource(EDIT_CONFIG_FORWARD_SERVER, out, locale, paramMap);
-  
+
   }
 
   /**
@@ -851,7 +851,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
    * data for a connection has been posted. Its purpose is to gather form
    * information and modify the configuration parameters accordingly. The name
    * of the posted form is "editconnection".
-   * 
+   *
    * @param threadContext
    *          is the local thread context.
    * @param variableContext
@@ -868,11 +868,11 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public String processConfigurationPost(IThreadContext threadContext,
       IPostParameters variableContext, ConfigParams parameters)
       throws ManifoldCFException {
-    
+
     String binding = variableContext.getParameter(CmisConfig.BINDING_PARAM);
     if (binding != null)
       parameters.setParameter(CmisConfig.BINDING_PARAM, binding);
-    
+
     String username = variableContext.getParameter(CmisConfig.USERNAME_PARAM);
     if (username != null)
       parameters.setParameter(CmisConfig.USERNAME_PARAM, username);
@@ -885,22 +885,22 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     if (protocol != null) {
       parameters.setParameter(CmisConfig.PROTOCOL_PARAM, protocol);
     }
-    
+
     String server = variableContext.getParameter(CmisConfig.SERVER_PARAM);
     if (server != null && !StringUtils.contains(server, '/')) {
       parameters.setParameter(CmisConfig.SERVER_PARAM, server);
     }
-    
+
     String port = variableContext.getParameter(CmisConfig.PORT_PARAM);
     if (port != null){
       try {
         Integer.parseInt(port);
         parameters.setParameter(CmisConfig.PORT_PARAM, port);
       } catch (NumberFormatException e) {
-        
+
       }
     }
-    
+
     String path = variableContext.getParameter(CmisConfig.PATH_PARAM);
     if (path != null) {
       parameters.setParameter(CmisConfig.PATH_PARAM, path);
@@ -944,13 +944,13 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public void viewSpecification(IHTTPOutput out, Locale locale, Specification ds,
     int connectionSequenceNumber)
     throws ManifoldCFException, IOException {
-  
+
     Map<String,String> paramMap = new HashMap<String,String>();
     paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
 
     // Fill in the map with data from all tabs
     fillInCMISQuerySpecificationMap(paramMap, ds);
-  
+
     outputResource(VIEW_SPEC_FORWARD, out, locale, paramMap);
   }
 
@@ -1036,7 +1036,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException {
     tabsArray.add(Messages.getString(locale,CMIS_QUERY_TAB_PROPERTY));
-  
+
     Map<String,String> paramMap = new HashMap<String,String>();
     paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
 
@@ -1077,17 +1077,17 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
 
     for (String documentIdentifier : documentIdentifiers) {
-      
+
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("CMIS: Processing document identifier '"
             + documentIdentifier + "'");
 
       getSession();
-      
+
       // Load the object.  If this fails, it has been deleted.
       CmisObject cmisObject;
       try {
-        cmisObject = session.getObject(documentIdentifier);
+       cmisObject = session.getObject(documentIdentifier);
       } catch (CmisObjectNotFoundException e) {
         cmisObject = null;
       }
@@ -1097,9 +1097,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         activities.deleteDocument(documentIdentifier);
         continue;
       }
-      
+
       String versionString;
-      
+
       if (cmisObject.getBaseType().getId().equals(CMIS_DOCUMENT_BASE_TYPE)) {
         Document document = (Document) cmisObject;
 
@@ -1114,7 +1114,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         }
         if (isCurrentVersion) {
           //System.out.println(" is latest version");
-          versionString = documentIdentifier + ":" + cmisQuery;
+          //versionString = documentIdentifier + ":" + cmisQuery;
+      // take into account of the last modification date
+            long lmdSeconds = document.getLastModificationDate().getTimeInMillis();
+            versionString = documentIdentifier + lmdSeconds + ":" + cmisQuery;
         } else {
           //System.out.println(" is NOT latest vrersion");
           activities.deleteDocument(documentIdentifier);
@@ -1125,7 +1128,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         //System.out.println(" is folder");
         versionString = StringUtils.EMPTY;
       }
-      
+
       if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier,versionString)) {
         // Index this document
         String errorCode = null;
@@ -1149,7 +1152,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             // content ingestion
 
             Document document = (Document) cmisObject;
-            
+
             Date createdDate = document.getCreationDate().getTime();
             Date modifiedDate = document.getLastModificationDate().getTime();
             long fileLength = document.getContentStreamLength();
@@ -1157,7 +1160,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             String mimeType = document.getContentStreamMimeType();
             //documentURI
             String documentURI = CmisRepositoryConnectorUtils.getDocumentURL(document, session);
-            
+
             // Do any filtering (which will save us work)
             if (!activities.checkURLIndexable(documentURI))
             {
@@ -1166,7 +1169,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
               errorDesc = "Excluding due to URL ('"+documentURI+"')";
               continue;
             }
-            
+
             if (!activities.checkMimeTypeIndexable(mimeType))
             {
               activities.noDocument(documentIdentifier,versionString);
@@ -1182,7 +1185,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
               errorDesc = "Excluding due to length ("+fileLength+")";
               continue;
             }
-            
+
             if (!activities.checkDateIndexable(modifiedDate))
             {
               activities.noDocument(documentIdentifier,versionString);
@@ -1190,13 +1193,13 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
               errorDesc = "Excluding due to date ("+modifiedDate+")";
               continue;
             }
-            
+
             RepositoryDocument rd = new RepositoryDocument();
             rd.setFileName(fileName);
             rd.setMimeType(mimeType);
             rd.setCreatedDate(createdDate);
             rd.setModifiedDate(modifiedDate);
-                
+
             InputStream is;
             try {
               if (fileLength > 0)
@@ -1208,7 +1211,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
               activities.deleteDocument(documentIdentifier);
               continue;
             }
-              
+
             try {
               //binary
               if(is != null) {
@@ -1217,110 +1220,13 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
                 rd.setBinary(new NullInputStream(0),0);
               }
 
-              //properties
-              List<Property<?>> properties = document.getProperties();
-              String id = StringUtils.EMPTY;
-              for (Property<?> property : properties) {
-                String propertyId = property.getId();
-                  
-                if(CmisRepositoryConnectorUtils.existsInSelectClause(cmisQuery, propertyId)){
-                    
-                  if (propertyId.endsWith(Constants.PARAM_OBJECT_ID)) {
-                    id = (String) property.getValue();
-        
-                    if (property.getValue() !=null 
-                        || property.getValues() != null) {
-                      PropertyType propertyType = property.getType();
-          
-                      switch (propertyType) {
-          
-                      case STRING:
-                      case ID:
-                      case URI:
-                      case HTML:
-                        if(property.isMultiValued()){
-                          List<String> htmlPropertyValues = (List<String>) property.getValues();
-                          for (String htmlPropertyValue : htmlPropertyValues) {
-                            rd.addField(propertyId, htmlPropertyValue);
-                          }
-                        } else {
-                          String stringValue = (String) property.getValue();
-                          if(StringUtils.isNotEmpty(stringValue)){
-                            rd.addField(propertyId, stringValue);
-                          }
-                        }
-                        break;
-               
-                      case BOOLEAN:
-                        if(property.isMultiValued()){
-                          List<Boolean> booleanPropertyValues = (List<Boolean>) property.getValues();
-                          for (Boolean booleanPropertyValue : booleanPropertyValues) {
-                            rd.addField(propertyId, booleanPropertyValue.toString());
-                          }
-                        } else {
-                          Boolean booleanValue = (Boolean) property.getValue();
-                          if(booleanValue!=null){
-                            rd.addField(propertyId, booleanValue.toString());
-                          }
-                        }
-                        break;
-          
-                      case INTEGER:
-                        if(property.isMultiValued()){
-                          List<BigInteger> integerPropertyValues = (List<BigInteger>) property.getValues();
-                          for (BigInteger integerPropertyValue : integerPropertyValues) {
-                            rd.addField(propertyId, integerPropertyValue.toString());
-                          }
-                        } else {
-                          BigInteger integerValue = (BigInteger) property.getValue();
-                          if(integerValue!=null){
-                            rd.addField(propertyId, integerValue.toString());
-                          }
-                        }
-                        break;
-          
-                      case DECIMAL:
-                        if(property.isMultiValued()){
-                          List<BigDecimal> decimalPropertyValues = (List<BigDecimal>) property.getValues();
-                          for (BigDecimal decimalPropertyValue : decimalPropertyValues) {
-                            rd.addField(propertyId, decimalPropertyValue.toString());
-                          }
-                        } else {
-                          BigDecimal decimalValue = (BigDecimal) property.getValue();
-                          if(decimalValue!=null){
-                            rd.addField(propertyId, decimalValue.toString());
-                          }
-                        }
-                        break;
-          
-                      case DATETIME:
-                        if(property.isMultiValued()){
-                          List<GregorianCalendar> datePropertyValues = (List<GregorianCalendar>) property.getValues();
-                          for (GregorianCalendar datePropertyValue : datePropertyValues) {
-                            rd.addField(propertyId,
-                                ISO8601_DATE_FORMATTER.format(datePropertyValue.getTime()));
-                          }
-                        } else {
-                          GregorianCalendar dateValue = (GregorianCalendar) property.getValue();
-                          if(dateValue!=null){
-                            rd.addField(propertyId, ISO8601_DATE_FORMATTER.format(dateValue.getTime()));
-                          }
-                        }
-                        break;
-          
-                      default:
-                        break;
-                      }
-                    }
-                      
-                  }
-                  
-                }
-              }
-              
+              //modify the query in order to get the cmis:objectId field
+              String modifiedQuery = CmisRepositoryConnectorUtils.getCmisQueryWithObjectId(cmisQuery);
+
+              //filter the fields selected in the query
+              CmisRepositoryConnectorUtils.addValuesOfProperties(cmisObject.getProperties(), rd, modifiedQuery);
               //ingestion
-                
-                
+
               try {
                 activities.ingestDocumentWithException(documentIdentifier, versionString, documentURI, rd);
                 fileLengthLong = new Long(fileLength);
@@ -1330,7 +1236,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
                 errorDesc = e.getMessage();
                 handleIOException(e, "reading file input stream");
               }
-            } finally {
+            } catch (Exception ecc) {
+               ecc.printStackTrace();
+              } finally {
               try {
                 if(is!=null){
                   is.close();
@@ -1358,7 +1266,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         }
       }
     }
-    
+
   }
 
   protected static void handleIOException(IOException e, String context) throws ManifoldCFException, ServiceInterruption {
