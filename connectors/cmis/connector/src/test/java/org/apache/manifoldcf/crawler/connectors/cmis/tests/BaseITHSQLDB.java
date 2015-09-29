@@ -18,7 +18,6 @@
 */
 package org.apache.manifoldcf.crawler.connectors.cmis.tests;
 
-import org.apache.manifoldcf.crawler.system.ManifoldCF;
 import org.junit.After;
 import org.junit.Before;
 
