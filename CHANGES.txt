@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1245: Using wrong logger for confluence authority.
+(Jens Grassel, Karl Wright)
+
 CONNECTORS-1237: Upgrade the CMIS Connector to OpenCMIS 0.13.0
 (Piergiorgio Lucidi)
 
