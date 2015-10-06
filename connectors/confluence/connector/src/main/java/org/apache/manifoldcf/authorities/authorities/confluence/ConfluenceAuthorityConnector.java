@@ -19,7 +19,7 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.crawler.connectors.confluence.ConfluenceConfiguration;
 import org.apache.manifoldcf.crawler.connectors.confluence.client.ConfluenceClient;
 import org.apache.manifoldcf.crawler.connectors.confluence.model.ConfluenceUser;
-import org.apache.manifoldcf.crawler.system.Logging;
+import org.apache.manifoldcf.authorities.system.Logging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,8 +177,8 @@ public class ConfluenceAuthorityConnector extends BaseAuthorityConnector {
 						+ " required but not set");
 			}
 
-			if (Logging.connectors.isDebugEnabled()) {
-				Logging.connectors.debug("Confluence protocol = '" + protocol
+			if (Logging.authorityConnectors.isDebugEnabled()) {
+				Logging.authorityConnectors.debug("Confluence protocol = '" + protocol
 						+ "'");
 			}
 
@@ -188,12 +188,12 @@ public class ConfluenceAuthorityConnector extends BaseAuthorityConnector {
 						+ " required but not set");
 			}
 
-			if (Logging.connectors.isDebugEnabled()) {
-				Logging.connectors.debug("Confluence host = '" + host + "'");
+			if (Logging.authorityConnectors.isDebugEnabled()) {
+				Logging.authorityConnectors.debug("Confluence host = '" + host + "'");
 			}
 
-			if (Logging.connectors.isDebugEnabled()) {
-				Logging.connectors.debug("Confluence port = '" + port + "'");
+			if (Logging.authorityConnectors.isDebugEnabled()) {
+				Logging.authorityConnectors.debug("Confluence port = '" + port + "'");
 			}
 
 			if (StringUtils.isEmpty(path)) {
@@ -202,17 +202,17 @@ public class ConfluenceAuthorityConnector extends BaseAuthorityConnector {
 						+ " required but not set");
 			}
 
-			if (Logging.connectors.isDebugEnabled()) {
-				Logging.connectors.debug("Confluence path = '" + path + "'");
+			if (Logging.authorityConnectors.isDebugEnabled()) {
+				Logging.authorityConnectors.debug("Confluence path = '" + path + "'");
 			}
 
-			if (Logging.connectors.isDebugEnabled()) {
-				Logging.connectors.debug("Confluence username = '" + username
+			if (Logging.authorityConnectors.isDebugEnabled()) {
+				Logging.authorityConnectors.debug("Confluence username = '" + username
 						+ "'");
 			}
 
-			if (Logging.connectors.isDebugEnabled()) {
-				Logging.connectors
+			if (Logging.authorityConnectors.isDebugEnabled()) {
+				Logging.authorityConnectors
 						.debug("Confluence password '" + password != null ? "set"
 								: "not set" + "'");
 			}
