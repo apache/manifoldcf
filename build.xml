@@ -1692,6 +1692,66 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <fileset dir="build/download/apache-manifoldcf-elasticsearch-1.5-plugin-bin/elasticsearch-1.5-plugin-mcf-2.0"/>
         </copy>
     </target>
+	
+    <target name="download-kafka-client">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/kafka"/>
+            <param name="artifact-version" value="0.8.2.1"/>
+            <param name="artifact-name" value="kafka-clients"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/kafka"/>
+            <param name="artifact-version" value="0.8.2.1"/>
+            <param name="artifact-name" value="kafka_2.11"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/commons"/>
+            <param name="artifact-version" value="3.4"/>
+            <param name="artifact-name" value="commons-lang3"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/yammer/metrics"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="metrics-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/scala-lang"/>
+            <param name="artifact-version" value="2.11.0"/>
+            <param name="artifact-name" value="scala-library"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="net/sf/jopt-simple"/>
+            <param name="artifact-version" value="3.2"/>
+            <param name="artifact-name" value="jopt-simple"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/scala-lang/modules"/>
+            <param name="artifact-version" value="1.0.4"/>
+            <param name="artifact-name" value="scala-xml_2.11"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="org/scala-lang/modules"/>
+            <param name="artifact-version" value="1.0.4"/>
+            <param name="artifact-name" value="scala-parser-combinators_2.11"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
 
    <target name="download-dropbox-client">
         <mkdir dir="lib"/>
@@ -2298,7 +2358,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
   
-    <target name="make-core-deps" depends="download-joda-time,download-aws-sdk,download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
+    <target name="make-core-deps" depends="download-kafka-client,download-joda-time,download-aws-sdk,download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
