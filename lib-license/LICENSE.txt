@@ -196,6 +196,7 @@ including, but not limited to:
   - Apache XMLBeans
   - Apache SIS
   - Apache OpenNLP
+  - Apache Kafka
 
 This product includes code from: http://www.json.org
 License: JSON license (http://www.json.org/license.html)
@@ -440,6 +441,12 @@ License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 This product includes a c3p0.jar.
 License: Dual license consisting of LGPL v2.1 and EPL v1.0 (http://www.gnu.org/licenses/lgpl-2.1.html and http://www.eclipse.org/org/documents/epl-v10.php)
 Jar included under terms of EPL v1.0 license.
+
+This product includes a lz4-java.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a snappy-java.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 This product may include pdf files that embed IPA-licensed fonts.
 License: IPA Font License Agreement v1.0 (http://ossipedia.ipa.go.jp/ipafont/index.html#LicenseEng)
