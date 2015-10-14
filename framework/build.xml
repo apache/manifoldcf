@@ -1411,6 +1411,8 @@
                 <include name="pdfbox*.jar"/>
                 <include name="fontbox*.jar"/>
                 <include name="jempbox*.jar"/>
+                <include name="kafka*.jar"/>
+		<include name="zookeeper*.jar"/>
                 <include name="bcmail-jdk15*.jar"/>
                 <include name="bcprov-jdk15*.jar"/>
                 <include name="xmlbeans*.jar"/>

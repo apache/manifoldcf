@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1162: Kafka connector.
+(Tugba Dogan)
+
 CONNECTORS-1245: Using wrong logger for confluence authority.
 (Jens Grassel, Karl Wright)
 
