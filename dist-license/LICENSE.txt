@@ -196,6 +196,7 @@ including, but not limited to:
   - Apache XMLBeans
   - Apache SIS
   - Apache OpenNLP
+  - Apache Kafka
 
 This product includes code from: http://www.json.org
 License: JSON license (http://www.json.org/license.html)
@@ -425,6 +426,12 @@ License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 This product includes a c3p0.jar.
 License: Dual license consisting of LGPL v2.1 and EPL v1.0 ((http://www.gnu.org/licenses/lgpl-2.1.html and http://www.eclipse.org/org/documents/epl-v10.php)
 Jar included under terms of EPL v1.0 license.
+
+This product includes a lz4-java.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a snappy-java.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 This product includes a jetty-server.jar, jetty-servlet.jar, jetty-io.jar, jetty-jndi.jar, jetty-webapp.jar,
 jetty-plus.jar, jetty-util.jar, jetty-http.jar, jetty-security.jar, jetty-continuation.jar, jetty-xml.jar,
