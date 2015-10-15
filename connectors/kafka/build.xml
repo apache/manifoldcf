@@ -103,6 +103,13 @@
             <param name="artifact-name" value="scala-parser-combinators_2.11"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="com/101tec"/>
+            <param name="artifact-version" value="0.6"/>
+            <param name="artifact-name" value="zkclient"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
 
     <target name="download-cleanup">
@@ -128,6 +135,7 @@
             <include name="snappy-java*.jar"/>
         </fileset>
         <fileset dir="test-materials">
+            <include name="zkclient*.jar"/>
             <include name="commons-lang3*.jar"/>
             <include name="metrics-core*.jar"/>
             <include name="jopt-simple*.jar"/>

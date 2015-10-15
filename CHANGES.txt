@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1246: Get Kafka integration test running.
+(Karl Wright)
+
 CONNECTORS-1162: Kafka connector.
 (Tugba Dogan)
 
