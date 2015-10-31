@@ -120,6 +120,10 @@
             <param name="connector-label" value="SharePoint/Native"/>
             <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.sharepoint.SharePointAuthority"/>
         </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-label" value="SharePoint/Native-REST"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.sharepoint.SharePointRESTAuthority"/>
+        </antcall>
     </target>
 
 </project>
