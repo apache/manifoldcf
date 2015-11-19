@@ -114,6 +114,7 @@
         <plugins>
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>
+                <version>2.3</version>
                 <configuration>
                     <!--  Here is can control the order of overlay of your (WAR, AMP, etc.) dependencies
                         | NOTE: At least one WAR dependency must be uncompressed first
