@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1255: Ignore CheckObjectIDTest.
+(Shinichiro Abe)
+
 CONNECTORS-1252: jetty.xml is missing in jetty-runner QuickStart.
 (Shinichiro Abe)
 
