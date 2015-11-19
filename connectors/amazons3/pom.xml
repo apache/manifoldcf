@@ -29,7 +29,7 @@
 
   <packaging>jar</packaging>
   <artifactId>mcf-amazons3-connector</artifactId>
-  <name>mcf-amazons3-connector</name>
+  <name>ManifoldCF - Connectors - Amazon S3</name>
   <groupId>org.apache.manifoldcf</groupId>
 
   <developers>
