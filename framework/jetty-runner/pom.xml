@@ -260,6 +260,22 @@
       <artifactId>jetty-xml</artifactId>
       <version>${jetty.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.toolchain</groupId>
+      <artifactId>jetty-jsp-jdt</artifactId>
+      <version>${jetty-jsp-jdt.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.toolchain</groupId>
+      <artifactId>jetty-schemas</artifactId>
+      <version>${jetty-schemas.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.slf4j</groupId>
