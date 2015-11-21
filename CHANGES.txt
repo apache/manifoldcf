@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1256: Spanish translations.
+(Gladys Carrizales)
+
 CONNECTORS-1254: Some Jetty dependencies are missing in jetty-runner.
 (Shinichiro Abe)
 
