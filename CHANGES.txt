@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1258: Update Japanese translations.
+(KOIZUMI Satoru)
+
 CONNECTORS-1256: Spanish translations.
 (Gladys Carrizales)
 
