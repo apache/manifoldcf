@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1259: Use Travis CI.
+(Shinichiro Abe)
+
 CONNECTORS-1258: Update Japanese translations.
 (KOIZUMI Satoru)
 
