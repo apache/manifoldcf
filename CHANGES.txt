@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1260: Fix completely broken email connector.
+(Karl Wright, Julien Massiera)
+
 CONNECTORS-1259: Use Travis CI.
 (Shinichiro Abe)
 
