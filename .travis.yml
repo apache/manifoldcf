@@ -16,8 +16,11 @@
 sudo: false
 install: true
 env:
-  - TEST_SCRIPT="mvn install"
-  - TEST_SCRIPT="ant make-core-deps make-deps test"
+  global:
+    - TERM=dumb
+  matrix:
+    - TEST_SCRIPT="mvn install"
+    - TEST_SCRIPT="ant make-core-deps make-deps test"
 script: $TEST_SCRIPT
 language: java
 jdk:
