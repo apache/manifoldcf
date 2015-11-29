@@ -27,19 +27,19 @@ import java.util.List;
  *
  */
 public class ConfluenceUser {
-	  private final String username;
-	  private final List<String> authorities;
+    private final String username;
+    private final List<String> authorities;
 
-	  public ConfluenceUser(String username, List<String> authorities) {
-	    this.username = username;
-	    this.authorities = authorities;
-	  }
+    public ConfluenceUser(String username, List<String> authorities) {
+      this.username = username;
+      this.authorities = authorities;
+    }
 
-	  public String getUsername() {
-	    return username;
-	  }
+    public String getUsername() {
+      return username;
+    }
 
-	  public List<String> getAuthorities() {
-	    return authorities;
-	  }
-	}
+    public List<String> getAuthorities() {
+      return authorities;
+    }
+  }
