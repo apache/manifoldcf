@@ -825,32 +825,32 @@
       <section>
         <title>Plugin for Elastic Search 1.5</title>
         <section>
-          <title>Latest release (Apache ManifoldCF Plugin for Elastic Search 1.5, version 2.0, 2015 July 7)</title>
+          <title>Latest release (Apache ManifoldCF Plugin for Elastic Search 1.5, version 2.0.1, 2015 Nov 28)</title>
           <p>
-            <a href="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.KEYS">KEYS</a><br/>
-            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.CHANGES.txt">CHANGES.txt</a><br/>
+            <a href="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1.KEYS">KEYS</a><br/>
+            <a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1.CHANGES.txt">CHANGES.txt</a><br/>
           </p>
 
           <p>Sources only:<br/>
-            <a href="http://www.apache.org/dyn/closer.lua/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-src.tar.gz">apache-manifoldcf-elasticsearch-1.5-plugin-2.0-src.tar.gz</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-src.tar.gz.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-src.tar.gz.md5">MD5</a>]<br/>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-src.tar.gz.sha">SHA</a>]<br/>
-            <a href="http://www.apache.org/dyn/closer.lua/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-src.zip">apache-manifoldcf-elasticsearch-1.5-plugin-2.0-src.zip</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-src.zip.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-src.zip.md5">MD5</a>]<br/>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-src.zip.sha">SHA</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.lua/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-src.tar.gz">apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-src.tar.gz</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-src.tar.gz.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-src.tar.gz.md5">MD5</a>]<br/>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-src.tar.gz.sha">SHA</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.lua/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-src.zip">apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-src.zip</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-src.zip.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-src.zip.md5">MD5</a>]<br/>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-src.zip.sha">SHA</a>]<br/>
           </p>
 
           <p>Binary:<br/>
-            <a href="http://www.apache.org/dyn/closer.lua/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-bin.tar.gz">apache-manifoldcf-elasticsearch-1.5-plugin-2.0-bin.tar.gz</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-bin.tar.gz.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-bin.tar.gz.md5">MD5</a>]<br/>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-bin.tar.gz.sha">SHA</a>]<br/>
-            <a href="http://www.apache.org/dyn/closer.lua/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-bin.zip">apache-manifoldcf-elasticsearch-1.5-plugin-2.0-bin.zip</a>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-bin.zip.asc">PGP</a>]
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-bin.zip.md5">MD5</a>]<br/>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0/apache-manifoldcf-elasticsearch-1.5-plugin-2.0-bin.zip.sha">SHA</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.lua/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-bin.tar.gz">apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-bin.tar.gz</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-bin.tar.gz.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-bin.tar.gz.md5">MD5</a>]<br/>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-bin.tar.gz.sha">SHA</a>]<br/>
+            <a href="http://www.apache.org/dyn/closer.lua/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-bin.zip">apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-bin.zip</a>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-bin.zip.asc">PGP</a>]
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-bin.zip.md5">MD5</a>]<br/>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-bin.zip.sha">SHA</a>]<br/>
           </p>
         </section>
 
@@ -884,7 +884,7 @@
             <a href="http://www.apache.org/dyn/closer.lua/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.1/apache-manifoldcf-elasticsearch-plugin-2.1-bin.zip">apache-manifoldcf-elasticsearch-plugin-2.1-bin.zip</a>
               [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.1/apache-manifoldcf-elasticsearch-plugin-2.1-bin.zip.asc">PGP</a>]
               [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.1/apache-manifoldcf-elasticsearch-plugin-2.1-bin.zip.md5">MD5</a>]<br/>
-              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.1/apache-manifoldcf-elasticsearch-plugin-2.0-bin.zip.sha">SHA</a>]<br/>
+              [<a href="http://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.1/apache-manifoldcf-elasticsearch-plugin-2.1-bin.zip.sha">SHA</a>]<br/>
           </p>
         </section>
 
