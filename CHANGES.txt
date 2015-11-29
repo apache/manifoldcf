@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1251: Confluence connector encoding issue.
+(Karl Wright, Jens Grassel)
+
 CONNECTORS-1260: Fix completely broken email connector.
 (Karl Wright, Julien Massiera)
 
