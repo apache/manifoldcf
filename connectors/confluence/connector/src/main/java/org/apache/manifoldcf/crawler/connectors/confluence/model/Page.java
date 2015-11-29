@@ -95,7 +95,7 @@ public class Page extends ConfluenceResource{
   protected String creatorUsername;
   protected String lastModifier;
   protected String lastModifierUsername;
-  protected String mediaType = "text/html";
+  protected String mediaType = "text/html; charset=utf-8";
   protected long length;
   protected String content;
   protected List<Label> labels = Lists.newArrayList();
