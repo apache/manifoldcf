@@ -15,11 +15,11 @@
 
 sudo: false
 install: true
+git:
+  depth: 1
 env:
-  global:
-    - TERM=dumb
   matrix:
-    - TEST_SCRIPT="mvn install"
+    - TEST_SCRIPT="mvn -q install"
     - TEST_SCRIPT="ant make-core-deps make-deps test"
 script: $TEST_SCRIPT
 language: java
