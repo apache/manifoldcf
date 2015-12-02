@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1261: Supply commit-within argument for /update
+handler in Solr connector.
+(Karl Wright, Shinichiro Abe, Adrian Conlon)
+
 CONNECTORS-1251: Confluence connector encoding issue.
 (Karl Wright, Jens Grassel)
 
