@@ -282,8 +282,17 @@ public class HttpPoster
   public void shutdown()
   {
     if (solrServer != null)
-      solrServer.shutdown();
-    solrServer = null;
+    {
+      try
+      {
+        solrServer.close();
+      }
+      catch (IOException ioe)
+      {
+        // Eat this exception
+      }
+      solrServer = null;
+    }
     if (connectionManager != null)
       connectionManager.shutdown();
     connectionManager = null;
@@ -913,7 +922,14 @@ public class HttpPoster
             }
             else
             {
-              response = solrServer.add( currentSolrDoc );
+              if (commitWithin != null)
+              {
+                response = solrServer.add( currentSolrDoc, Integer.parseInt(commitWithin) );
+              }
+              else
+              {
+                response = solrServer.add( currentSolrDoc );
+              }
             }
 
             // Successful completion
