@@ -100,7 +100,7 @@ public class HDFSRepositoryConnector extends org.apache.manifoldcf.crawler.conne
   @Override
   public String[] getBinNames(String documentIdentifier)
   {
-    return new String[]{"HDFS"};
+    return new String[]{nameNodeHost};
   }
 
   /**
