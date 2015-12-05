@@ -1833,17 +1833,19 @@
         </junit>
     </target>
 
-    <target name="run-pull-agent-tests" depends="compile-pull-agent,compile-pull-agent-tests">
+    <target name="run-pull-agent-tests" depends="compile-pull-agent,compile-connector-common,compile-pull-agent-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/core-tests/classes"/>
+                <pathelement location="build/ui-core/classes"/>                
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/agents-tests/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
                 <pathelement location="build/pull-agent-tests/classes"/>
+                <pathelement location="build/connector-common/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 

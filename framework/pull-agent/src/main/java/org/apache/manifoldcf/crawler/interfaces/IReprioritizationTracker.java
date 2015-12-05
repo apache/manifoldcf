@@ -70,7 +70,7 @@ public interface IReprioritizationTracker
   
   /** Note preload amounts.
   */
-  public void addPreloadRequest(String binName, double weightedMinimumDepth);
+  public void addPreloadRequest(String connectorClass, String binName, double weightedMinimumDepth);
   
   /** Preload bin values.  Call this OUTSIDE of a transaction.
   */
@@ -86,11 +86,12 @@ public interface IReprioritizationTracker
   public void clearPreloadedValues();
 
   /** Get a bin value.  Must be called INSIDE a transaction.
+  *@param connectorClass is the connector class name.
   *@param binName is the bin name.
   *@param weightedMinimumDepth is the minimum depth to use.
   *@return the bin value.
   */
-  public double getIncrementBinValue(String binName, double weightedMinimumDepth)
+  public double getIncrementBinValue(String connectorClass, String binName, double weightedMinimumDepth)
     throws ManifoldCFException;
   
 
