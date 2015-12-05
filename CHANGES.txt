@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1249: Independent priority setting for different
+connectors, and bring individual connectors up to speed with proper
+document bin names.
+(Karl Wright)
+
 CONNECTORS-1261: Supply commit-within argument for /update
 handler in Solr connector.
 (Karl Wright, Shinichiro Abe, Adrian Conlon)
