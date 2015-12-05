@@ -46,7 +46,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
   private static final String[] activitiesList = new String[]{ACTIVITY_FETCH};
 
   private AlfrescoClient alfrescoClient;
-
+  private String binName;
+  
   private static final String CONTENT_URL_PROPERTY = "contentUrlPath";
   private static final String AUTHORITIES_PROPERTY = "readableAuthorities";
   private static final String MIMETYPE_PROPERTY = "mimetype";
@@ -70,6 +71,11 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
   }
 
   @Override
+  public String[] getBinNames(String documentIdentifier) {
+    return new String[] { binName };
+  }
+
+  @Override
   public void connect(ConfigParams config) {
     super.connect(config);
 
@@ -82,6 +88,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
     String username = getConfig(config, "username", null);
     String password = getObfuscatedConfig(config, "password", null);
 
+    /*
     System.out.println("============");
     System.out.println(protocol);
     System.out.println(hostname);
@@ -92,9 +99,11 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
     System.out.println(username);
     System.out.println(password);
     System.out.println("============");
-
+    */
+    
     alfrescoClient = new WebScriptsAlfrescoClient(protocol, hostname + ":" + port, endpoint,
         storeProtocol, storeId, username, password);
+    binName = hostname;
   }
 
   private static String getConfig(ConfigParams config,
@@ -129,16 +138,17 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
       }
       return "Alfresco connection check failed: " + e.getMessage();
     } catch (Exception e) {
-			if (Logging.connectors != null) {
-				Logging.connectors.error(e.getMessage(), e);
-			}
-			throw new ManifoldCFException("Alfresco connection check failed",e);
-		}
+      if (Logging.connectors != null) {
+        Logging.connectors.error(e.getMessage(), e);
+      }
+      throw new ManifoldCFException("Alfresco connection check failed",e);
+    }
   }
 
   @Override
   public void disconnect() throws ManifoldCFException {
     alfrescoClient = null;
+    binName = null;
     super.disconnect();
   }
 
