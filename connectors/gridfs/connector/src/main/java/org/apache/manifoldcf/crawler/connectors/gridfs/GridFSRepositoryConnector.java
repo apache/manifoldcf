@@ -155,7 +155,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
      */
     @Override
     public String[] getBinNames(String documentIdentifier) {
-        return new String[]{SERVER};
+        return new String[]{host};
     }
 
     /**
