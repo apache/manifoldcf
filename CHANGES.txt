@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1264: Fix handling of slashes in unquoted attribute values
+in html parsing.
+(Issei Nishigata, Karl Wright)
+
 CONNECTORS-1249: Independent priority setting for different
 connectors, and bring individual connectors up to speed with proper
 document bin names.
