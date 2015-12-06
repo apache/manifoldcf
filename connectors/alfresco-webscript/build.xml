@@ -97,7 +97,7 @@
     </target>
 
     <target name="calculate-testcode-condition">
-        <available file="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco.indexer.version}.war" property="alfrescoTestcodeStatus"/>
+        <available file="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco-indexer.version}.war" property="alfrescoTestcodeStatus"/>
         <condition property="tests-present">
             <isset property="alfrescoTestcodeStatus"/>
         </condition>
@@ -125,7 +125,7 @@
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
-            <jvmarg value="-DalfrescoServerWarPath=../test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco.indexer.version}.war"/>
+            <jvmarg value="-DalfrescoServerWarPath=../test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco-indexer.version}.war"/>
             <jvmarg value="-Xms512m"/>
             <jvmarg value="-Xmx1024m"/>
             <jvmarg value="-Xss1024k"/>
