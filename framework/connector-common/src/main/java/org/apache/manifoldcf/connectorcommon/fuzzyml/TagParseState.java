@@ -897,6 +897,7 @@ public class TagParseState extends SingleCharacterReceiver
       {
         currentValueBuffer.append('/');
         currentValueBuffer.append(thisChar);
+        currentState = TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE;
       }
       break;
 
