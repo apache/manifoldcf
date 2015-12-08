@@ -883,6 +883,7 @@ public class TagParseState extends SingleCharacterReceiver
       }
       else if (thisChar == '>')
       {
+        currentValueBuffer.append('/');
         currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
         currentAttrName = null;
         currentValueBuffer = null;
