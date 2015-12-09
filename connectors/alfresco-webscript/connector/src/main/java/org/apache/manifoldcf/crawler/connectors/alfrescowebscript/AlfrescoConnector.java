@@ -290,7 +290,20 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           continue;
         }
 
-        String documentVersion = (enableDocumentProcessing?"+":"-") + new Long(modifiedDate.getTime()).toString();
+        StringBuilder sb = new StringBuilder();
+          
+        sb.append((enableDocumentProcessing?"+":"-"));
+        sb.append(new Long(modifiedDate.getTime()).toString());
+          
+        @SuppressWarnings("unchecked")
+        List<String> permissions = (List<String>) properties.remove(AUTHORITIES_PROPERTY);
+        if(permissions != null){
+            for (String permission : permissions) {
+                sb.append(permission);
+            }
+        }
+          
+        String documentVersion = sb.toString();
 
         if(!activities.checkDocumentNeedsReindexing(doc, documentVersion))
           continue;
@@ -357,8 +370,6 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           rd.setMimeType(mimeType);
 
         // Indexing Permissions
-        @SuppressWarnings("unchecked")
-        List<String> permissions = (List<String>) properties.remove(AUTHORITIES_PROPERTY);
         if(permissions != null){
           rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,
                             permissions.toArray(new String[permissions.size()]));
