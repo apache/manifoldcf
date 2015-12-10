@@ -46,7 +46,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <alfresco.indexer.version>0.8.0-SNAPSHOT</alfresco.indexer.version>
+        <alfresco.indexer.version>0.8.0</alfresco.indexer.version>
     </properties>
 
     <repositories>
