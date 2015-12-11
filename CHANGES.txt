@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1263: New version of Alfresco-indexer package. 
+(Maurizio Pillitu)
+
 CONNECTORS-1262: Fix Alfresco-webscript connector's version string,
 so changes to ACLs will be detected as document changes.
 (Chalitha Perera)
