@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.3-dev =====================
+======================= Release 2.3 =====================
 
 CONNECTORS-1263: New version of Alfresco-indexer package. 
 (Maurizio Pillitu)
