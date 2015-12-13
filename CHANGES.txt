@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.4-dev =====================
 
+CONNECTORS-1266: Fix an infinite loop in email notification connector.
+(Markus Schuch)
+
 CONNECTORS-1265: Adjust interval for checking validity of http connection.
 (Shinichiro Abe, Karl Wright)
 
