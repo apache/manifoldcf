@@ -237,7 +237,7 @@ public class HttpPoster
       .register("https", myFactory)
       .build());
     connectionManager.setDefaultMaxPerRoute(1);
-    connectionManager.setValidateAfterInactivity(60000);
+    connectionManager.setValidateAfterInactivity(2000);
     connectionManager.setDefaultSocketConfig(SocketConfig.custom()
       .setTcpNoDelay(true)
       .setSoTimeout(socketTimeout)

@@ -3,6 +3,8 @@ $Id$
 
 ======================= 2.4-dev =====================
 
+CONNECTORS-1265: Adjust interval for checking validity of http connection.
+(Shinichiro Abe, Karl Wright)
 
 ======================= Release 2.3 =====================
 
