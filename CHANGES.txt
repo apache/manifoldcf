@@ -1,7 +1,11 @@
 ManifoldCF Change Log
 $Id$
 
+
 ======================= Release 2.3 =====================
+
+CONNECTORS-1265: Adjust interval for checking validity of http connection.
+(Shinichiro Abe, Karl Wright)
 
 CONNECTORS-1263: New version of Alfresco-indexer package. 
 (Maurizio Pillitu)
