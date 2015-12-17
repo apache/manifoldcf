@@ -161,16 +161,13 @@
 
     <target name="get-releases-doc" depends="install-trunk-release">
         <antcall target="install-release">
+            <param name="release-version" value="2.3"/>
+        </antcall>
+        <antcall target="install-archive">
             <param name="release-version" value="2.2"/>
         </antcall>
         <antcall target="install-release">
             <param name="release-version" value="1.10"/>
-        </antcall>
-        <antcall target="install-archive">
-            <param name="release-version" value="2.1"/>
-        </antcall>
-        <antcall target="install-archive">
-            <param name="release-version" value="1.9"/>
         </antcall>
     </target>
     
