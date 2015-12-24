@@ -6,6 +6,9 @@ $Id$
 
 ======================= Release 2.3 =====================
 
+CONNECTORS-1267: Added enter key pressed event to the login page
+(Muhammed Olgun)
+
 CONNECTORS-1266: Fix an infinite loop in email notification connector.
 (Markus Schuch)
 
