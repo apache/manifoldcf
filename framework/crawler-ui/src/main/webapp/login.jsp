@@ -42,6 +42,19 @@ response.setContentType("text/html;charset=utf-8");
       {
         document.loginform.submit();
       }
+
+      document.onkeypress = loginKeyPress;
+
+      function loginKeyPress(e)
+      {
+          e = e || window.event;
+          if (e.keyCode == 13)
+          {
+              document.getElementById('buttonLogin').click();
+              return false;
+          }
+          return true;
+      }
       //-->
     </script>
   </head>
@@ -78,7 +91,7 @@ if (value != null && value.equals("true"))
               <tr><td class="separator" colspan="2"><hr/></td></tr>
               <tr>
                 <td class="message" colspan="2">
-                  <input type="button" onclick='Javascript:login();' value='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>'/>
+                  <input id="buttonLogin" type="button" onclick='Javascript:login();' value='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>'/>
                 </td>
               </tr>
             </table>
