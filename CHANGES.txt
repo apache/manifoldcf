@@ -2,6 +2,10 @@ ManifoldCF Change Log
 $Id$
 
 ======================= 2.4-dev =====================
+
+CONNECTORS-1268: Add missing mime types to FileNet connector.
+(Damien Picard)
+
 CONNECTORS-1267: Added enter key pressed event to the login page
 (Muhammed Olgun)
 

@@ -3168,7 +3168,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         "application/MSWORD",
         "application/PDF",
         "application/MSEXCEL",
-        "application/MSPOWERPOINT"
+        "application/MSPOWERPOINT",
+        "application/vnd.oasis.opendocument.presentation",
+        "application/vnd.oasis.opendocument.spreadsheet",
+        "application/vnd.oasis.opendocument.text"
     };
   }
 
