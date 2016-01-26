@@ -68,7 +68,7 @@
     <module>confluence</module>
     <module>amazons3</module>
     <module>kafka</module>
-    <module>mcf-opennlp-connector</module>
+    <module>opennlp</module>
   </modules>
 
 </project>
