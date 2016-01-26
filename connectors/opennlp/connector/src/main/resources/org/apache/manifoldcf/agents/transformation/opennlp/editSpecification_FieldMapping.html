@@ -1,0 +1,72 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TABNAME ==
+$ResourceBundle.getString('OpenNlpExtractor.FieldMappingTabName') &&
+${SEQNUM} == ${SELECTEDNUM})
+
+<table class="displaytable">
+	<tr>
+		<td class="separator" colspan="2"><hr /></td>
+	</tr>
+	<tr>
+		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SentenceDetectorModelPath'))</nobr></td>
+		<td class="value"><input type="text" name="s${SEQNUM}_smodelpath"
+			size="128" value="$Encoder.attributeEscape($SMODELPATH)" /></td>
+	</tr>
+	<tr>
+		<td class="separator" colspan="2"><hr /></td>
+	</tr>
+	<tr>
+		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.TokenizerModelPath'))</nobr></td>
+		<td class="value"><input type="text" name="s${SEQNUM}_tmodelpath"
+			size="128" value="$Encoder.attributeEscape($TMODELPATH)" /></td>
+	</tr>
+	<tr>
+		<td class="separator" colspan="2"><hr /></td>
+	</tr>
+	<tr>
+		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.PeopleModelPath'))</nobr></td>
+		<td class="value"><input type="text" name="s${SEQNUM}_pmodelpath"
+			size="128" value="$Encoder.attributeEscape($PMODELPATH)" /></td>
+	</tr>
+	<tr>
+		<td class="separator" colspan="2"><hr /></td>
+	</tr>
+	<tr>
+		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.LocationsModelPath'))</nobr></td>
+		<td class="value"><input type="text" name="s${SEQNUM}_lmodelpath"
+			size="128" value="$Encoder.attributeEscape($LMODELPATH)" /></td>
+	</tr>
+	<tr>
+		<td class="separator" colspan="2"><hr /></td>
+	</tr>
+	<tr>
+		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.OraganizationsModelPath'))</nobr></td>
+		<td class="value"><input type="text" name="s${SEQNUM}_omodelpath"
+			size="128" value="$Encoder.attributeEscape($OMODELPATH)" /></td>
+	</tr>
+
+</table>
+
+#else
+<input type="hidden" name="s${SEQNUM}_smodelpath" value="$Encoder.bodyEscape($SMODELPATH)"/>
+<input type="hidden" name="s${SEQNUM}_tmodelpath" value="$Encoder.bodyEscape($TMODELPATH)"/>
+<input type="hidden" name="s${SEQNUM}_pmodelpath" value="$Encoder.bodyEscape($PMODELPATH)"/>
+<input type="hidden" name="s${SEQNUM}_lmodelpath" value="$Encoder.bodyEscape($LMODELPATH)"/>
+<input type="hidden" name="s${SEQNUM}_omodelpath" value="$Encoder.bodyEscape($OMODELPATH)"/>
+#end
