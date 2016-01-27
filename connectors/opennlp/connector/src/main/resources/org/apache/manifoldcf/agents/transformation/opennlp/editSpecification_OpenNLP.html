@@ -15,9 +15,7 @@
  limitations under the License.
 -->
 
-#if($TABNAME ==
-$ResourceBundle.getString('OpenNlpExtractor.OpenNLPTabName') &&
-${SEQNUM} == ${SELECTEDNUM})
+#if($TABNAME == $ResourceBundle.getString('OpenNlpExtractor.OpenNLPTabName') && ${SEQNUM} == ${SELECTEDNUM})
 
 <table class="displaytable">
   <tr>
@@ -25,40 +23,110 @@ ${SEQNUM} == ${SELECTEDNUM})
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SentenceDetectorModelPath'))</nobr></td>
-    <td class="value"><input type="text" name="s${SEQNUM}_smodelpath"
-      size="128" value="$Encoder.attributeEscape($SMODELPATH)" /></td>
+    <td class="value">
+      <select name="s${SEQNUM}_smodelpath" size="3">
+  #if($SMODELPATH == "")
+        <option value="" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #else
+        <option value="">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #end
+  #foreach ($FILENAME in $FILENAMES)
+    #if($FILENAME == $SMODELPATH)
+        <option value="$Encoder.attributeEscape($FILENAME)" selected="true">$Encoder.bodyEscape($FILENAME)</option>
+    #else
+        <option value="$Encoder.attributeEscape($FILENAME)">$Encoder.bodyEscape($FILENAME)</option>
+    #end
+  #end
+      </select>
+    </td>
   </tr>
   <tr>
     <td class="separator" colspan="2"><hr /></td>
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.TokenizerModelPath'))</nobr></td>
-    <td class="value"><input type="text" name="s${SEQNUM}_tmodelpath"
-      size="128" value="$Encoder.attributeEscape($TMODELPATH)" /></td>
+    <td class="value">
+      <select name="s${SEQNUM}_tmodelpath" size="3">
+  #if($TMODELPATH == "")
+        <option value="" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #else
+        <option value="">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #end
+  #foreach ($FILENAME in $FILENAMES)
+    #if($FILENAME == $TMODELPATH)
+        <option value="$Encoder.attributeEscape($FILENAME)" selected="true">$Encoder.bodyEscape($FILENAME)</option>
+    #else
+        <option value="$Encoder.attributeEscape($FILENAME)">$Encoder.bodyEscape($FILENAME)</option>
+    #end
+  #end
+      </select>
+    </td>
   </tr>
   <tr>
     <td class="separator" colspan="2"><hr /></td>
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.PeopleModelPath'))</nobr></td>
-    <td class="value"><input type="text" name="s${SEQNUM}_pmodelpath"
-      size="128" value="$Encoder.attributeEscape($PMODELPATH)" /></td>
+    <td class="value">
+      <select name="s${SEQNUM}_pmodelpath" size="3">
+  #if($PMODELPATH == "")
+        <option value="" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #else
+        <option value="">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #end
+  #foreach ($FILENAME in $FILENAMES)
+    #if($FILENAME == $PMODELPATH)
+        <option value="$Encoder.attributeEscape($FILENAME)" selected="true">$Encoder.bodyEscape($FILENAME)</option>
+    #else
+        <option value="$Encoder.attributeEscape($FILENAME)">$Encoder.bodyEscape($FILENAME)</option>
+    #end
+  #end
+      </select>
+    </td>
   </tr>
   <tr>
     <td class="separator" colspan="2"><hr /></td>
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.LocationsModelPath'))</nobr></td>
-    <td class="value"><input type="text" name="s${SEQNUM}_lmodelpath"
-      size="128" value="$Encoder.attributeEscape($LMODELPATH)" /></td>
+    <td class="value">
+      <select name="s${SEQNUM}_lmodelpath" size="3">
+  #if($LMODELPATH == "")
+        <option value="" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #else
+        <option value="">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #end
+  #foreach ($FILENAME in $FILENAMES)
+    #if($FILENAME == $LMODELPATH)
+        <option value="$Encoder.attributeEscape($FILENAME)" selected="true">$Encoder.bodyEscape($FILENAME)</option>
+    #else
+        <option value="$Encoder.attributeEscape($FILENAME)">$Encoder.bodyEscape($FILENAME)</option>
+    #end
+  #end
+      </select>
+    </td>
   </tr>
   <tr>
     <td class="separator" colspan="2"><hr /></td>
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.OraganizationsModelPath'))</nobr></td>
-    <td class="value"><input type="text" name="s${SEQNUM}_omodelpath"
-      size="128" value="$Encoder.attributeEscape($OMODELPATH)" /></td>
+    <td class="value">
+      <select name="s${SEQNUM}_omodelpath" size="3">
+  #if($OMODELPATH == "")
+        <option value="" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #else
+        <option value="">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #end
+  #foreach ($FILENAME in $FILENAMES)
+    #if($FILENAME == $OMODELPATH)
+        <option value="$Encoder.attributeEscape($FILENAME)" selected="true">$Encoder.bodyEscape($FILENAME)</option>
+    #else
+        <option value="$Encoder.attributeEscape($FILENAME)">$Encoder.bodyEscape($FILENAME)</option>
+    #end
+  #end
+      </select>
+    </td>
   </tr>
 
 </table>
