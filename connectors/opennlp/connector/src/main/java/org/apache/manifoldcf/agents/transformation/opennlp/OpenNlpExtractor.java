@@ -166,7 +166,7 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
       String description = null;
       Long length = null;
 
-      final MetadataAccumulator ma = new MetadataAccumulator(sp);
+      final MetadataAccumulator ma = new MetadataAccumulator(sp, document.getBinaryLength());
       
       try {
 
@@ -214,15 +214,6 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
           length = new Long(ds.getBinaryLength());
         }
 
-        // Check to be sure downstream pipeline will accept document of specified length
-        if (!activities.checkLengthIndexable(ds.getBinaryLength()))
-        {
-          activities.noDocument();
-          resultCode = activities.EXCLUDED_LENGTH;
-          description = "Downstream pipeline rejected document with length "+ds.getBinaryLength();
-          return DOCUMENTSTATUS_REJECTED;
-        }
-
       }
       finally
       {
@@ -230,6 +221,8 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
         activities.recordActivity(new Long(startTime), ACTIVITY_EXTRACT, length, documentURI,
           resultCode, description);
       }
+      
+      ma.done();
       
       // Parsing complete!
       // Create a copy of Repository Document
@@ -244,11 +237,11 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
         docCopy.setBinary(is,newBinaryLength);
 
         // add named entity meta-data
-        Map<String,List<String>> nerMap = ma.getMetadata();
+        Map<String,Set<String>> nerMap = ma.getMetadata();
         if (!nerMap.isEmpty()) {
-          for (Entry<String, List<String>> entry : nerMap.entrySet()) {
-            List<String> neList = entry.getValue();
-            String[] neArray = neList.toArray(new String[neList.size()]);
+          for (Entry<String, Set<String>> entry : nerMap.entrySet()) {
+            Set<String> neList = entry.getValue();
+            String[] neArray = neList.toArray(new String[0]);
             docCopy.addField(entry.getKey(), neArray);
           }
         }
@@ -535,22 +528,30 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
     throw new ManifoldCFException(e.getMessage(),e);
   }
 
+  protected static int maximumExtractionCharacters = 524288;
+  
   /** An instance of this class receives characters in 64K chunks, and needs to accumulate
   * extracted metadata that this transformer will pass down.
   */
   protected class MetadataAccumulator {
 
+    char[] characterBuffer = null;
+    int bufferPointer = 0;
+    
+    final int bufferSize;
+    
     final SentenceDetector sentenceDetector;
     final Tokenizer tokenizer;
     final NameFinderME peopleFinder;
     final NameFinderME locationFinder;
     final NameFinderME organizationFinder;
     
-    final List<String> peopleList = new ArrayList<>();
-    final List<String> locationsList = new ArrayList<>();
-    final List<String> organizationsList = new ArrayList<>();
+    final Set<String> peopleList = new HashSet<>();
+    final Set<String> locationsList = new HashSet<>();
+    final Set<String> organizationsList = new HashSet<>();
     
-    public MetadataAccumulator(final SpecPacker sp)
+    public MetadataAccumulator(final SpecPacker sp,
+      final long bytesize)
       throws ManifoldCFException {
       try {
         sentenceDetector = OpenNlpExtractorConfig.sentenceDetector(sp.getSModelPath());
@@ -561,31 +562,41 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
       } catch (IOException e) {
         throw new ManifoldCFException(e.getMessage(), e);
       }
+      if (bytesize > maximumExtractionCharacters) {
+        bufferSize = maximumExtractionCharacters;
+      } else {
+        bufferSize = (int)bytesize;
+      }
     }
     
     /** Accept characters, including actual count.
     */
     public void acceptCharacters(final char[] buffer, int amt) {
-      // MHL
+      if (characterBuffer == null) {
+        characterBuffer = new char[bufferSize];
+      }
+      int copyAmt;
+      if (amt > bufferSize - bufferPointer) {
+        copyAmt = bufferSize - bufferPointer;
+      } else {
+        copyAmt = amt;
+      }
+      int sourcePtr = 0;
+      while (copyAmt > 0) {
+        characterBuffer[bufferPointer++] = buffer[sourcePtr++];
+        copyAmt--;
+      }
     }
-    
-    public Map<String,List<String>> getMetadata() {
-      final Map<String, List<String>> nerMap = new HashMap<>();
-      nerMap.put(PERSONS, peopleList);
-      nerMap.put(LOCATIONS, locationsList);
-      nerMap.put(ORGANIZATIONS, organizationsList);
-      return nerMap;
-    }
-    
-  }
-  
-  /*
-      The following logic needs to be added back in, but with rolling character buffers and duplicate sentence detection...
-  
-      List<String> peopleList = new ArrayList<>();
-      List<String> locationsList = new ArrayList<>();
-      List<String> organizationsList = new ArrayList<>();
 
+    public void done() {
+      if (bufferPointer == 0 || characterBuffer == null) {
+        return;
+      }
+      
+      // Make a string freom the character array
+      final String textContent = new String(characterBuffer, 0, bufferPointer);
+
+      // Break into sentences, tokens, and then people, locations, and organizations
       String[] sentences = sentenceDetector.sentDetect(textContent);
       for (String sentence : sentences) {
         String[] tokens = tokenizer.tokenize(sentence);
@@ -598,10 +609,18 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
 
         spans = organizationFinder.find(tokens);
         organizationsList.addAll(Arrays.asList(Span.spansToStrings(spans, tokens)));
-
       }
-
-  */
+    }
+    
+    public Map<String,Set<String>> getMetadata() {
+      final Map<String, Set<String>> nerMap = new HashMap<>();
+      nerMap.put(PERSONS, peopleList);
+      nerMap.put(LOCATIONS, locationsList);
+      nerMap.put(ORGANIZATIONS, organizationsList);
+      return nerMap;
+    }
+    
+  }
   
   protected static interface DestinationStorage {
     /** Get the output stream to write to.  Caller should explicitly close this stream when done writing.
