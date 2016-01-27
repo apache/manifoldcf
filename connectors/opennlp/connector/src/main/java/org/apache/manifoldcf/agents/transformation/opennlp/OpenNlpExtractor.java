@@ -53,6 +53,8 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
   private static final String EDIT_SPECIFICATION_FIELDMAPPING_HTML = "editSpecification_FieldMapping.html";
   private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
 
+  protected static int maximumExtractionCharacters = 524288;
+  
   // Meta-data fields added by this connector
   private static final String PERSONS = "ner_people";
   private static final String LOCATIONS = "ner_locations";
@@ -528,8 +530,6 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
     throw new ManifoldCFException(e.getMessage(),e);
   }
 
-  protected static int maximumExtractionCharacters = 524288;
-  
   /** An instance of this class receives characters in 64K chunks, and needs to accumulate
   * extracted metadata that this transformer will pass down.
   */

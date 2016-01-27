@@ -153,6 +153,15 @@
             <include name="activation*.jar"/>
         </fileset>
     </path>
+
+    <target name="file-resources">
+        <mkdir dir="dist/file-resources"/>
+        <copy todir="dist/file-resources">
+            <fileset dir="example-file-resources">
+                <include name="README.txt"/>
+            </fileset>
+        </copy>
+    </target>
     
     <target name="doc">
         <mkdir dir="dist/doc"/>
@@ -1998,7 +2007,7 @@
         </java>
     </target>
     
-    <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine,obfuscation-utility,buildfiles,test-lib"/>
+    <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine,obfuscation-utility,file-resources,buildfiles,test-lib"/>
     
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-HSQLDB,run-tests-HSQLDBext"/>
     

@@ -38,6 +38,8 @@
   <property name="org.apache.manifoldcf.logconfigfile" value="./logging.ini"/>
   <!-- Specify the connectors to be loaded -->
   <property name="org.apache.manifoldcf.connectorsconfigurationfile" value="../connectors.xml"/>
+  <!-- Specify the path to the file resources directory -->
+  <property name="org.apache.manifoldcf.fileresources" value="../file-resources"/>
   <!-- Tell MCF where to find the connector jars -->
   <libdir path="../connector-lib"/>
   <libdir path="../connector-common-lib"/>
