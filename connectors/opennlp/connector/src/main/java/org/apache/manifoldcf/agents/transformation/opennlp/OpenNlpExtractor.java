@@ -50,7 +50,7 @@ import org.apache.manifoldcf.core.interfaces.VersionContext;
 
 public class OpenNlpExtractor extends BaseTransformationConnector {
   private static final String EDIT_SPECIFICATION_JS = "editSpecification.js";
-  private static final String EDIT_SPECIFICATION_FIELDMAPPING_HTML = "editSpecification_FieldMapping.html";
+  private static final String EDIT_SPECIFICATION_OPENNLP_HTML = "editSpecification_OpenNLP.html";
   private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
 
   protected static int maximumExtractionCharacters = 524288;
@@ -338,7 +338,7 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
 
-    tabsArray.add(Messages.getString(locale, "OpenNlpExtractor.FieldMappingTabName"));
+    tabsArray.add(Messages.getString(locale, "OpenNlpExtractor.OpenNLPTabName"));
 
     Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_JS, paramMap);
   }
@@ -374,9 +374,9 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
     paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
     paramMap.put("SELECTEDNUM", Integer.toString(actualSequenceNumber));
 
-    fillInFieldMappingSpecificationMap(paramMap, os);
+    fillInOpenNLPSpecificationMap(paramMap, os);
 
-    Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_FIELDMAPPING_HTML, paramMap);
+    Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_OPENNLP_HTML, paramMap);
   }
 
   /**
@@ -473,11 +473,11 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
 
-    fillInFieldMappingSpecificationMap(paramMap, os);
+    fillInOpenNLPSpecificationMap(paramMap, os);
     Messages.outputResourceWithVelocity(out, locale, VIEW_SPECIFICATION_HTML, paramMap);
   }
 
-  protected static void fillInFieldMappingSpecificationMap(Map<String, Object> paramMap, Specification os) {
+  protected static void fillInOpenNLPSpecificationMap(Map<String, Object> paramMap, Specification os) {
     String sModelPath = "";
     String tModelPath = "";
     String pModelPath = "";
