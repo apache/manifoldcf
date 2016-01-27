@@ -20,6 +20,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.File;
+import java.io.InputStream;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.TokenNameFinderModel;
@@ -33,9 +37,6 @@ import opennlp.tools.util.InvalidFormatException;
 
 public class OpenNlpExtractorConfig
 {
-  private static enum MODEL{
-    SENTENCE, TOKENIZER, PEOPLE, LOCATIONS, ORGANIZATIONS;
-  }
   
   // Specification nodes and values
   public static final String NODE_SMODEL_PATH = "SModelPath";
@@ -46,56 +47,69 @@ public class OpenNlpExtractorConfig
 
   public static final String ATTRIBUTE_VALUE = "value";
     
-  private static SentenceModel sModel = null;
-  private static TokenizerModel tModel = null;
-  private static TokenNameFinderModel pModel = null;
-  private static TokenNameFinderModel lModel = null;
-  private static TokenNameFinderModel oModel = null;
+  private final static Map<File,SentenceModel> sModels = new HashMap<>();
+  private final static Map<File,TokenizerModel> tModels = new HashMap<>();
+  private final static Map<File,TokenNameFinderModel> tnfModels = new HashMap<>();
     
-  private static synchronized void initializeModel(MODEL m, File path) throws InvalidFormatException, FileNotFoundException, IOException{
-    if(sModel == null && m == MODEL.SENTENCE)
-      sModel = new SentenceModel(new FileInputStream(path));
-    if(tModel == null && m == MODEL.TOKENIZER)
-      tModel = new TokenizerModel(new FileInputStream(path));
-    if(pModel == null && m == MODEL.PEOPLE)
-      pModel = new TokenNameFinderModel(new FileInputStream(path));
-    if(lModel == null && m == MODEL.LOCATIONS)
-      lModel = new TokenNameFinderModel(new FileInputStream(path));
-    if(oModel == null && m == MODEL.ORGANIZATIONS)
-      oModel = new TokenNameFinderModel(new FileInputStream(path));
+  protected static SentenceModel loadSModel(final File path) throws InvalidFormatException, FileNotFoundException, IOException {
+    synchronized (sModels) {
+      SentenceModel sd = sModels.get(path);
+      if (sd == null) {
+        final InputStream is = new FileInputStream(path);
+        try {
+          sd = new SentenceModel(is);
+        } finally {
+          is.close();
+        }
+        sModels.put(path, sd);
+      }
+      return sd;
+    }
   }
-    
+
+  protected static TokenizerModel loadTModel(final File path) throws InvalidFormatException, FileNotFoundException, IOException {
+    synchronized (tModels) {
+      TokenizerModel sd = tModels.get(path);
+      if (sd == null) {
+        final InputStream is = new FileInputStream(path);
+        try {
+          sd = new TokenizerModel(is);
+        } finally {
+          is.close();
+        }
+        tModels.put(path, sd);
+      }
+      return sd;
+    }
+  }
+  
+  protected static TokenNameFinderModel loadTnfModel(final File path) throws InvalidFormatException, FileNotFoundException, IOException {
+    synchronized (tnfModels) {
+      TokenNameFinderModel sd = tnfModels.get(path);
+      if (sd == null) {
+        final InputStream is = new FileInputStream(path);
+        try {
+          sd = new TokenNameFinderModel(is);
+        } finally {
+          is.close();
+        }
+        tnfModels.put(path, sd);
+      }
+      return sd;
+    }
+  }
+
   public static final SentenceDetector sentenceDetector(File path) throws InvalidFormatException, FileNotFoundException, IOException{
-    if(sModel == null)
-      initializeModel(MODEL.SENTENCE, path);
-    return new SentenceDetectorME(sModel);
+    return new SentenceDetectorME(loadSModel(path));
   }
     
   public static final Tokenizer tokenizer(File path) throws InvalidFormatException, FileNotFoundException, IOException{
-    if(tModel == null)
-      initializeModel(MODEL.TOKENIZER, path);
-    return new TokenizerME(tModel);
+    return new TokenizerME(loadTModel(path));
   }
     
-  public static final NameFinderME peopleFinder(File path) throws InvalidFormatException, FileNotFoundException, IOException{
-    if(pModel == null)
-      initializeModel(MODEL.PEOPLE, path);
-    return new NameFinderME(pModel);
+  public static final NameFinderME finder(File path) throws InvalidFormatException, FileNotFoundException, IOException{
+    return new NameFinderME(loadTnfModel(path));
   }
-    
-  public static final NameFinderME locationFinder(File path) throws InvalidFormatException, FileNotFoundException, IOException{
-    if(lModel == null)
-      initializeModel(MODEL.LOCATIONS, path);
-    return new NameFinderME(lModel);
-  }
-    
-  public static final NameFinderME organizationFinder(File path) throws InvalidFormatException, FileNotFoundException, IOException{
-    if(oModel == null)
-      initializeModel(MODEL.ORGANIZATIONS, path);
-    return new NameFinderME(oModel);
-  }
-
-
     
 
 }
