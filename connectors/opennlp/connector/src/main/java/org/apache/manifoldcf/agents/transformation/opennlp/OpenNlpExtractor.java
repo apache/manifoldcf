@@ -379,6 +379,7 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
     paramMap.put("SELECTEDNUM", Integer.toString(actualSequenceNumber));
 
     fillInOpenNLPSpecificationMap(paramMap, os);
+    setUpOpenNLPSpecificationMap(paramMap);
 
     Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_OPENNLP_HTML, paramMap);
   }
@@ -481,6 +482,12 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
     Messages.outputResourceWithVelocity(out, locale, VIEW_SPECIFICATION_HTML, paramMap);
   }
 
+  protected void setUpOpenNLPSpecificationMap(Map<String, Object> paramMap)
+    throws ManifoldCFException {
+    final String[] fileNames = getModelList();
+    paramMap.put("FILENAMES", fileNames);
+  }
+  
   protected static void fillInOpenNLPSpecificationMap(Map<String, Object> paramMap, Specification os) {
     String sModelPath = "";
     String tModelPath = "";
@@ -575,11 +582,11 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
       final long bytesize)
       throws ManifoldCFException {
       try {
-        sentenceDetector = OpenNlpExtractorConfig.sentenceDetector(sp.getSModelPath());
-        tokenizer = OpenNlpExtractorConfig.tokenizer(sp.getTModelPath());
-        peopleFinder = OpenNlpExtractorConfig.peopleFinder(sp.getPModelPath());
-        locationFinder = OpenNlpExtractorConfig.locationFinder(sp.getLModelPath());
-        organizationFinder = OpenNlpExtractorConfig.organizationFinder(sp.getOModelPath());
+        sentenceDetector = OpenNlpExtractorConfig.sentenceDetector(new File(fileDirectory,sp.getSModelPath()));
+        tokenizer = OpenNlpExtractorConfig.tokenizer(new File(fileDirectory,sp.getTModelPath()));
+        peopleFinder = OpenNlpExtractorConfig.peopleFinder(new File(fileDirectory,sp.getPModelPath()));
+        locationFinder = OpenNlpExtractorConfig.locationFinder(new File(fileDirectory,sp.getLModelPath()));
+        organizationFinder = OpenNlpExtractorConfig.organizationFinder(new File(fileDirectory,sp.getOModelPath()));
       } catch (IOException e) {
         throw new ManifoldCFException(e.getMessage(), e);
       }
