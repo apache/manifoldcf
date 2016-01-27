@@ -40,6 +40,7 @@ import org.apache.manifoldcf.agents.interfaces.IOutputCheckActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.system.Logging;
+import org.apache.manifoldcf.agents.system.ManifoldCF;
 import org.apache.manifoldcf.agents.transformation.BaseTransformationConnector;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
@@ -64,9 +65,12 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
 
   protected static final String[] activitiesList = new String[] { ACTIVITY_EXTRACT };
 
+  protected final File fileDirectory = ManifoldCF.getFileProperty(ManifoldCF.fileResourcesProperty);
+
   /** We handle up to 64K in memory; after that we go to disk. */
   protected static final long inMemoryMaximumFile = 65536;
 
+  
   /**
    * Return a list of activities that this connector generates. The connector
    * does NOT need to be connected before this method is called.
@@ -530,6 +534,23 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
     throw new ManifoldCFException(e.getMessage(),e);
   }
 
+  protected String[] getModelList() throws ManifoldCFException {
+    if (fileDirectory == null) {
+      return new String[0];
+    }
+    final String[] files = fileDirectory.list(new FileFilter());
+    // Sort it!!
+    java.util.Arrays.sort(files);
+    return files;
+  }
+  
+  protected static class FileFilter implements FilenameFilter {
+    @Override
+    public boolean accept(final File dir, final String name) {
+      return new File(dir, name).isFile();
+    }
+  }
+  
   /** An instance of this class receives characters in 64K chunks, and needs to accumulate
   * extracted metadata that this transformer will pass down.
   */
