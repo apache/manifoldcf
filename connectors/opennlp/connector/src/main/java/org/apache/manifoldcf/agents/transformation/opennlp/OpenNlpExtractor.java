@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.HashSet;
 
 import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.sentdetect.SentenceDetector;
@@ -34,6 +36,7 @@ import opennlp.tools.util.Span;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
+import org.apache.manifoldcf.agents.interfaces.IOutputCheckActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.system.Logging;
@@ -258,6 +261,33 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
     } finally {
       ds.close();
     }
+  }
+
+  private final static Set<String> acceptableMimeTypes = new HashSet<String>();
+  static
+  {
+    acceptableMimeTypes.add("text/plain;charset=utf-8");
+    acceptableMimeTypes.add("text/plain;charset=ascii");
+    acceptableMimeTypes.add("text/plain;charset=us-ascii");
+    acceptableMimeTypes.add("text/plain");
+  }
+
+  /** Detect if a mime type is acceptable or not.  This method is used to determine whether it makes sense to fetch a document
+  * in the first place.
+  *@param pipelineDescription is the document's pipeline version string, for this connection.
+  *@param mimeType is the mime type of the document.
+  *@param checkActivity is an object including the activities that can be performed by this method.
+  *@return true if the mime type can be accepted by this connector.
+  */
+  @Override
+  public boolean checkMimeTypeIndexable(VersionContext pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
+    throws ManifoldCFException, ServiceInterruption
+  {
+    if (!acceptableMimeTypes.contains(mimeType.toLowerCase(Locale.ROOT))) {
+      return false;
+    }
+    // Do a downstream check too
+    return super.checkMimeTypeIndexable(pipelineDescription, mimeType, checkActivity);
   }
 
   // ////////////////////////
