@@ -292,6 +292,10 @@
         <copy todir="dist/lib-proprietary">
             <fileset dir="framework/dist/lib-proprietary"/>
         </copy>
+        <mkdir dir="dist/file-resources"/>
+        <copy todir="dist/file-resources">
+            <fileset dir="framework/dist/file-resources"/>
+        </copy>
         <mkdir dir="dist/multiprocess-file-example"/>
         <copy todir="dist/multiprocess-file-example">
             <fileset dir="framework/dist/multiprocess-file-example"/>
