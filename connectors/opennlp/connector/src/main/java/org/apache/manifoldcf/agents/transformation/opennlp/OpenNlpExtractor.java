@@ -584,9 +584,9 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
       try {
         sentenceDetector = OpenNlpExtractorConfig.sentenceDetector(new File(fileDirectory,sp.getSModelPath()));
         tokenizer = OpenNlpExtractorConfig.tokenizer(new File(fileDirectory,sp.getTModelPath()));
-        peopleFinder = OpenNlpExtractorConfig.peopleFinder(new File(fileDirectory,sp.getPModelPath()));
-        locationFinder = OpenNlpExtractorConfig.locationFinder(new File(fileDirectory,sp.getLModelPath()));
-        organizationFinder = OpenNlpExtractorConfig.organizationFinder(new File(fileDirectory,sp.getOModelPath()));
+        peopleFinder = OpenNlpExtractorConfig.finder(new File(fileDirectory,sp.getPModelPath()));
+        locationFinder = OpenNlpExtractorConfig.finder(new File(fileDirectory,sp.getLModelPath()));
+        organizationFinder = OpenNlpExtractorConfig.finder(new File(fileDirectory,sp.getOModelPath()));
       } catch (IOException e) {
         throw new ManifoldCFException(e.getMessage(), e);
       }
