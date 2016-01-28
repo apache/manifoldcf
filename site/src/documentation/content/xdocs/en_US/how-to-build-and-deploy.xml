@@ -79,7 +79,9 @@
         <p></p>
         <ul>
           <li>Alfresco Webscript connector</li>
+          <li>Amazon S3 connector</li>
           <li>CMIS connector</li>
+          <li>Atlassian Confluence connector</li>
           <li>EMC Documentum connector, built against a Documentum API stub</li>
           <li>DropBox connector</li>
           <li>Email connector</li>
@@ -104,7 +106,9 @@
         <ul>
           <li>Active Directory authority</li>
           <li>Alfresco Webscript authority</li>
+          <li>Amazon S3 authority</li>
           <li>CMIS authority</li>
+          <li>Atlassian Confluence authority</li>
           <li>EMC Documentum authority</li>
           <li>Atlassian Jira authority</li>
           <li>LDAP authority</li>
@@ -118,6 +122,7 @@
         <p>The following output connectors will be built:</p>
         <p></p>
         <ul>
+          <li>Amazon Cloud Search output connector</li>
           <li>WGET-compatible filesystem output connector</li>
           <li>MetaCarta GTS output connector</li>
           <li>Apache Solr output connector</li>
@@ -125,7 +130,9 @@
           <li>ElasticSearch output connector</li>
           <li>WGET-compatible filesystem output connector</li>
           <li>HDFS output connector</li>
+          <li>Kafka output connector</li>
           <li>Null output connector</li>
+          <li>Searchblox output connector</li>
         </ul>
         <p></p>
         <p>The following transformation connectors will be built:</p>
@@ -133,6 +140,7 @@
         <ul>
           <li>Field mapping transformation connector</li>
           <li>Document filter transformation connector</li>
+          <li>OpenNLP transformation connector</li>
           <li>Null transformation connector</li>
           <li>Tika extractor transformation connector</li>
         </ul>
@@ -141,6 +149,12 @@
         <p></p>
         <ul>
           <li>Regular-expression mapping connector</li>
+        </ul>
+        <p></p>
+        <p>The following notification connectors will be built:</p>
+        <p></p>
+        <ul>
+          <li>Email notification connector</li>
         </ul>
         <p></p>
         <p>The dependencies and build limitations of each individual LGPL and proprietary connector is described in separate sections below.</p>
@@ -269,7 +283,19 @@
             corresponding directory.</p>
           <p></p>
         </section>
-        
+
+        <section>
+          <title>Running the Apache OpenNLP transformation connector</title>
+          <p></p>
+          <p>The Apache OpenNLP transformation connector requires OpenNLP models in order to be useful.  These models should be downloaded or created by you, and
+            must be placed in the <em>file-resources</em> folder.  This will allow the connector to find them and allow you to use them.</p>
+          <p>The models available publicly for OpenNLP can be downloaded from this URL: <a href="http://opennlp.sourceforge.net/models-1.5/">http://opennlp.sourceforge.net/models-1.5/</a>.  To use the
+            connector, you <strong>must</strong> specify a sentence model and a tokenization model.  You can specify as few or as many content extraction models as you
+            wish.</p>
+          <p></p>
+          <p><strong>If you do not download or otherwise provide models for the OpenNLP connector's use, it will not be possible to define a job which uses the connector.</strong></p>
+        </section>
+
         <section>
           <title>Running the Apache Solr output connector</title>
           <p></p>
@@ -477,6 +503,7 @@ mvn clean package
           <tr><td><em>web-proprietary</em></td><td>app-server deployable web applications (wars), including proprietary libraries; not included in binary release</td></tr>
           <tr><td><em>doc</em></td><td>javadocs for framework and all included connectors</td></tr>
           <tr><td><em>plugins</em></td><td>pre-built integration components to deploy on target systems, e.g. for Solr</td></tr>
+          <tr><td><em>file-resources</em></td><td>a directory meant to contain file resources that are identically present on all cluster members, e.g. models for OpenNLP</td></tr>
         </table>
         <p></p>
         <p>If you downloaded the binary distribution, you may notice that the <em>connector-lib-proprietary</em> directory contains only a number of 
@@ -503,6 +530,11 @@ mvn clean package
         <p></p>
         <p>The <em>plugins</em> directory contains components you may need to deploy on the target system to make the associated connector function correctly.  For example, the Solr
             connector includes plug-in classes for enforcing ManifoldCF security on Solr 3.x and 4.x.  See the README file in each directory for detailed instructions on how to deploy the components.</p>
+        <p></p>
+        <p>The <em>file-resources</em> directory contains a README.txt file plus any files your connectors specifically need access to across all cluster members.
+            You should have an exact copy of this directory present on every machine that a related ManifoldCF process runs on, and the properties.xml file parameter
+            <em>org.apache.manifoldcf.fileresources</em> should point to it.  Any third-party or custom files needed by your connector configuration (e.g. OpenNLP models)
+            should be created or downloaded and placed here.</p>
         <p></p>
         <p>Inside the <em>example</em> directory, you will find everything you need to fire up ManifoldCF in a single-process model under Jetty.  Everything is included so that all you need to do is change
             to that directory, and start it using the command <em>&lt;java&gt; -jar start.jar</em>.  This is described in more detail later, and is the recommended way for beginners to try out ManifoldCF.
