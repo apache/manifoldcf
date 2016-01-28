@@ -150,6 +150,7 @@
     <property name="javaee-api.version" value="6.0"/>
     <property name="commons-vfs2.version" value="2.0"/>
     <property name="c3p0.version" value="0.9.5.1"/>
+    <property name="opennlp.version" value="1.6.0"/>
     
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
@@ -290,6 +291,10 @@
         <mkdir dir="dist/lib-proprietary"/>
         <copy todir="dist/lib-proprietary">
             <fileset dir="framework/dist/lib-proprietary"/>
+        </copy>
+        <mkdir dir="dist/file-resources"/>
+        <copy todir="dist/file-resources">
+            <fileset dir="framework/dist/file-resources"/>
         </copy>
         <mkdir dir="dist/multiprocess-file-example"/>
         <copy todir="dist/multiprocess-file-example">
@@ -769,6 +774,17 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </java>
     </target>
 
+    <target name="download-opennlp">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/apache/opennlp"/>
+            <param name="artifact-version" value="${opennlp.version}"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="opennlp-tools"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
     <target name="download-resteasy">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
@@ -1779,7 +1795,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
-            <param name="project-path" value="com/fasterxml/jackson/core/"/>
+            <param name="project-path" value="com/fasterxml/jackson/core"/>
             <param name="artifact-version" value="${jackson-core.version}"/>
             <param name="artifact-name" value="jackson-core"/>
             <param name="artifact-type" value="jar"/>
@@ -2323,7 +2339,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
   
-    <target name="make-core-deps" depends="download-kafka-client,download-joda-time,download-aws-sdk,download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
+    <target name="make-core-deps" depends="download-opennlp,download-kafka-client,download-joda-time,download-aws-sdk,download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
