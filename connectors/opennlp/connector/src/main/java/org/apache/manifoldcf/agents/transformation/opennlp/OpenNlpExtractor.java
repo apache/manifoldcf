@@ -284,7 +284,7 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
   public boolean checkMimeTypeIndexable(VersionContext pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
-    if (!acceptableMimeTypes.contains(mimeType.toLowerCase(Locale.ROOT))) {
+    if (mimeType == null || !acceptableMimeTypes.contains(mimeType.toLowerCase(Locale.ROOT))) {
       return false;
     }
     // Do a downstream check too
