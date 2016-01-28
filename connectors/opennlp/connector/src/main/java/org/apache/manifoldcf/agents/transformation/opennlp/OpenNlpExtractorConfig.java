@@ -41,11 +41,11 @@ public class OpenNlpExtractorConfig
   // Specification nodes and values
   public static final String NODE_SMODEL_PATH = "SModelPath";
   public static final String NODE_TMODEL_PATH = "TModelPath";
-  public static final String NODE_PMODEL_PATH = "PModelPath";
-  public static final String NODE_LMODEL_PATH = "LModelPath";
-  public static final String NODE_OMODEL_PATH = "OModelPath";
+  public static final String NODE_FINDERMODEL = "FinderModel";
 
   public static final String ATTRIBUTE_VALUE = "value";
+  public static final String ATTRIBUTE_PARAMETERNAME = "parametername";
+  public static final String ATTRIBUTE_MODELFILE = "modelfile";
     
   private final static Map<File,SentenceModel> sModels = new HashMap<>();
   private final static Map<File,TokenizerModel> tModels = new HashMap<>();

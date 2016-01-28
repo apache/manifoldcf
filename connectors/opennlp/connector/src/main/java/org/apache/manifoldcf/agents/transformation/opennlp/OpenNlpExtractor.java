@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.HashSet;
@@ -427,32 +429,47 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
     }
     os.addChild(os.getChildCount(), node);
 
-    node = new SpecificationNode(OpenNlpExtractorConfig.NODE_PMODEL_PATH);
-    String pmodelPath = variableContext.getParameter(seqPrefix + "pmodelpath");
-    if (pmodelPath != null) {
-      node.setAttribute(OpenNlpExtractorConfig.ATTRIBUTE_VALUE, pmodelPath);
-    } else {
-      node.setAttribute(OpenNlpExtractorConfig.ATTRIBUTE_VALUE, "");
-    }
-    os.addChild(os.getChildCount(), node);
+    String modelCount = variableContext.getParameter(seqPrefix+"model_count");
+    if (modelCount != null)
+    {
+      int count = Integer.parseInt(modelCount);
+      // Delete old spec data, including legacy node types we no longer use
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode cn = os.getChild(i);
+        if (cn.getType().equals(OpenNlpExtractorConfig.NODE_FINDERMODEL))
+          os.removeChild(i);
+        else
+          i++;
+      }
 
-    node = new SpecificationNode(OpenNlpExtractorConfig.NODE_LMODEL_PATH);
-    String lmodelPath = variableContext.getParameter(seqPrefix + "lmodelpath");
-    if (lmodelPath != null) {
-      node.setAttribute(OpenNlpExtractorConfig.ATTRIBUTE_VALUE, lmodelPath);
-    } else {
-      node.setAttribute(OpenNlpExtractorConfig.ATTRIBUTE_VALUE, "");
-    }
-    os.addChild(os.getChildCount(), node);
+      // Now, go through form data
+      for (int j = 0; j < count; j++)
+      {
+        String op = variableContext.getParameter(seqPrefix+"model_"+j+"_op");
+        if (op != null && op.equals("Delete"))
+          continue;
+        String paramName = variableContext.getParameter(seqPrefix+"model_"+j+"_parametername");
+        String modelFile = variableContext.getParameter(seqPrefix+"model_"+j+"_modelfile");
+        SpecificationNode sn = new SpecificationNode(OpenNlpExtractorConfig.NODE_FINDERMODEL);
+        sn.setAttribute(OpenNlpExtractorConfig.ATTRIBUTE_PARAMETERNAME,paramName);
+        sn.setAttribute(OpenNlpExtractorConfig.ATTRIBUTE_MODELFILE,modelFile);
+        os.addChild(os.getChildCount(),sn);
+      }
+      // Look for add operation
+      String addOp = variableContext.getParameter(seqPrefix+"model_op");
+      if (addOp != null && addOp.equals("Add"))
+      {
+        String paramName = variableContext.getParameter(seqPrefix+"model_parametername");
+        String modelFile = variableContext.getParameter(seqPrefix+"model_modelfile");
+        SpecificationNode sn = new SpecificationNode(OpenNlpExtractorConfig.NODE_FINDERMODEL);
+        sn.setAttribute(OpenNlpExtractorConfig.ATTRIBUTE_PARAMETERNAME,paramName);
+        sn.setAttribute(OpenNlpExtractorConfig.ATTRIBUTE_MODELFILE,modelFile);
+        os.addChild(os.getChildCount(),sn);
+      }
 
-    node = new SpecificationNode(OpenNlpExtractorConfig.NODE_OMODEL_PATH);
-    String omodelPath = variableContext.getParameter(seqPrefix + "omodelpath");
-    if (omodelPath != null) {
-      node.setAttribute(OpenNlpExtractorConfig.ATTRIBUTE_VALUE, omodelPath);
-    } else {
-      node.setAttribute(OpenNlpExtractorConfig.ATTRIBUTE_VALUE, "");
     }
-    os.addChild(os.getChildCount(), node);
 
     return null;
   }
@@ -491,10 +508,8 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
   protected static void fillInOpenNLPSpecificationMap(Map<String, Object> paramMap, Specification os) {
     String sModelPath = "";
     String tModelPath = "";
-    String pModelPath = "";
-    String lModelPath = "";
-    String oModelPath = "";
-
+    final List<Map<String,String>> finderModels = new ArrayList<>();
+    
     for (int i = 0; i < os.getChildCount(); i++) {
       SpecificationNode sn = os.getChild(i);
       if (sn.getType().equals(OpenNlpExtractorConfig.NODE_SMODEL_PATH)) {
@@ -507,29 +522,19 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
         if (tModelPath == null) {
           tModelPath = "";
         }
-      } else if (sn.getType().equals(OpenNlpExtractorConfig.NODE_PMODEL_PATH)) {
-        pModelPath = sn.getAttributeValue(OpenNlpExtractorConfig.ATTRIBUTE_VALUE);
-        if (pModelPath == null) {
-          pModelPath = "";
-        }
-      } else if (sn.getType().equals(OpenNlpExtractorConfig.NODE_LMODEL_PATH)) {
-        lModelPath = sn.getAttributeValue(OpenNlpExtractorConfig.ATTRIBUTE_VALUE);
-        if (lModelPath == null) {
-          lModelPath = "";
-        }
-      } else if (sn.getType().equals(OpenNlpExtractorConfig.NODE_OMODEL_PATH)) {
-        oModelPath = sn.getAttributeValue(OpenNlpExtractorConfig.ATTRIBUTE_VALUE);
-        if (oModelPath == null) {
-          oModelPath = "";
-        }
+      } else if (sn.getType().equals(OpenNlpExtractorConfig.NODE_FINDERMODEL)) {
+        final String parameterName = sn.getAttributeValue(OpenNlpExtractorConfig.ATTRIBUTE_PARAMETERNAME);
+        final String modelFile = sn.getAttributeValue(OpenNlpExtractorConfig.ATTRIBUTE_MODELFILE);
+        final Map<String,String> modelRecord = new HashMap<>();
+        modelRecord.put("parametername", parameterName);
+        modelRecord.put("modelfile", modelFile);
+        finderModels.add(modelRecord);
       }
 
     }
     paramMap.put("SMODELPATH", sModelPath);
     paramMap.put("TMODELPATH", tModelPath);
-    paramMap.put("PMODELPATH", pModelPath);
-    paramMap.put("LMODELPATH", lModelPath);
-    paramMap.put("OMODELPATH", oModelPath);
+    paramMap.put("MODELS", finderModels);
   }
 
   protected static int handleIOException(IOException e)
@@ -570,23 +575,19 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
     
     final SentenceDetector sentenceDetector;
     final Tokenizer tokenizer;
-    final NameFinderME peopleFinder;
-    final NameFinderME locationFinder;
-    final NameFinderME organizationFinder;
-    
-    final Set<String> peopleList = new HashSet<>();
-    final Set<String> locationsList = new HashSet<>();
-    final Set<String> organizationsList = new HashSet<>();
-    
+    final Map<String,NameFinderME> finders = new HashMap<>();
+    final Map<String,Set<String>> tokenLists = new HashMap<>();
+   
     public MetadataAccumulator(final SpecPacker sp,
       final long bytesize)
       throws ManifoldCFException {
       try {
         sentenceDetector = OpenNlpExtractorConfig.sentenceDetector(new File(fileDirectory,sp.getSModelPath()));
         tokenizer = OpenNlpExtractorConfig.tokenizer(new File(fileDirectory,sp.getTModelPath()));
-        peopleFinder = OpenNlpExtractorConfig.finder(new File(fileDirectory,sp.getPModelPath()));
-        locationFinder = OpenNlpExtractorConfig.finder(new File(fileDirectory,sp.getLModelPath()));
-        organizationFinder = OpenNlpExtractorConfig.finder(new File(fileDirectory,sp.getOModelPath()));
+        final Map<String,String> finderFiles = sp.getFinderModels();
+        for (String paramName : finderFiles.keySet()) {
+          finders.put(paramName, OpenNlpExtractorConfig.finder(new File(fileDirectory,finderFiles.get(paramName))));
+        }
       } catch (IOException e) {
         throw new ManifoldCFException(e.getMessage(), e);
       }
@@ -629,23 +630,21 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
       for (String sentence : sentences) {
         String[] tokens = tokenizer.tokenize(sentence);
 
-        Span[] spans = peopleFinder.find(tokens);
-        peopleList.addAll(Arrays.asList(Span.spansToStrings(spans, tokens)));
-
-        spans = locationFinder.find(tokens);
-        locationsList.addAll(Arrays.asList(Span.spansToStrings(spans, tokens)));
-
-        spans = organizationFinder.find(tokens);
-        organizationsList.addAll(Arrays.asList(Span.spansToStrings(spans, tokens)));
+        for (String parameterName : finders.keySet()) {
+          Set<String> stringSet = tokenLists.get(parameterName);
+          if (stringSet == null) {
+            stringSet = new HashSet<String>();
+            tokenLists.put(parameterName, stringSet);
+          }
+          
+          Span[] spans = finders.get(parameterName).find(tokens);
+          stringSet.addAll(Arrays.asList(Span.spansToStrings(spans, tokens)));
+        }
       }
     }
     
     public Map<String,Set<String>> getMetadata() {
-      final Map<String, Set<String>> nerMap = new HashMap<>();
-      nerMap.put(PERSONS, peopleList);
-      nerMap.put(LOCATIONS, locationsList);
-      nerMap.put(ORGANIZATIONS, organizationsList);
-      return nerMap;
+      return tokenLists;
     }
     
   }
@@ -789,16 +788,11 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
 
     private final String sModelPath;
     private final String tModelPath;
-    private final String pModelPath;
-    private final String lModelPath;
-    private final String oModelPath;
+    private final Map<String, String> models = new TreeMap<>();
 
     public SpecPacker(Specification os) {
       String sModelPath = null;
       String tModelPath = null;
-      String pModelPath = null;
-      String lModelPath = null;
-      String oModelPath = null;
 
       for (int i = 0; i < os.getChildCount(); i++) {
         SpecificationNode sn = os.getChild(i);
@@ -809,22 +803,15 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
         if (sn.getType().equals(OpenNlpExtractorConfig.NODE_TMODEL_PATH)) {
           tModelPath = sn.getAttributeValue(OpenNlpExtractorConfig.ATTRIBUTE_VALUE);
         }
-        if (sn.getType().equals(OpenNlpExtractorConfig.NODE_PMODEL_PATH)) {
-          pModelPath = sn.getAttributeValue(OpenNlpExtractorConfig.ATTRIBUTE_VALUE);
-        }
-        if (sn.getType().equals(OpenNlpExtractorConfig.NODE_LMODEL_PATH)) {
-          lModelPath = sn.getAttributeValue(OpenNlpExtractorConfig.ATTRIBUTE_VALUE);
-        }
-        if (sn.getType().equals(OpenNlpExtractorConfig.NODE_OMODEL_PATH)) {
-          oModelPath = sn.getAttributeValue(OpenNlpExtractorConfig.ATTRIBUTE_VALUE);
+        if (sn.getType().equals(OpenNlpExtractorConfig.NODE_FINDERMODEL)) {
+          final String parameterName = sn.getAttributeValue(OpenNlpExtractorConfig.ATTRIBUTE_PARAMETERNAME);
+          final String modelFile = sn.getAttributeValue(OpenNlpExtractorConfig.ATTRIBUTE_MODELFILE);
+          models.put(parameterName, modelFile);
         }
 
       }
       this.sModelPath = sModelPath;
       this.tModelPath = tModelPath;
-      this.pModelPath = pModelPath;
-      this.lModelPath = lModelPath;
-      this.oModelPath = oModelPath;
     }
 
     public String toPackedString() {
@@ -833,14 +820,13 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
       // extract nouns
       if (sModelPath != null)
         sb.append(sModelPath);
+      sb.append(",");
       if (tModelPath != null)
         sb.append(tModelPath);
-      if (pModelPath != null)
-        sb.append(pModelPath);
-      if (lModelPath != null)
-        sb.append(lModelPath);
-      if (oModelPath != null)
-        sb.append(oModelPath);
+      sb.append("[");
+      for (String parameterName : models.keySet()) {
+        sb.append(parameterName).append("=").append(models.get(parameterName)).append(",");
+      }
 
       return sb.toString();
     }
@@ -853,16 +839,8 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
       return tModelPath;
     }
 
-    public String getPModelPath() {
-      return pModelPath;
-    }
-
-    public String getLModelPath() {
-      return lModelPath;
-    }
-
-    public String getOModelPath() {
-      return oModelPath;
+    public Map<String, String> getFinderModels() {
+      return models;
     }
 
   }

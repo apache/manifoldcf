@@ -17,9 +17,43 @@
 
 <script type="text/javascript">
 <!--
+
+function s${SEQNUM}_AddModel()
+{
+  if (editjob.s${SEQNUM}_model_parametername.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('OpenNlpExtractor.PleaseProvideAParameterName'))");
+    editjob.s${SEQNUM}_model_parametername.focus();
+    return;
+  }
+  if (editjob.s${SEQNUM}_model_modelfile.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('OpenNlpExtractor.PleaseSelectAModelFile'))");
+    editjob.s${SEQNUM}_model_modelfile.focus();
+    return;
+  }
+  document.editjob.s${SEQNUM}_model_op.value="Add";
+  postFormSetAnchor("s${SEQNUM}_model_tag");
+}
+	
+function s${SEQNUM}_DeleteModel(n)
+{
+  eval("document.editjob.s${SEQNUM}_model_"+n+"_op.value = 'Delete'");
+  if (n == 0)
+    postFormSetAnchor("s${SEQNUM}_model_tag");
+  else
+    postFormSetAnchor("s${SEQNUM}_model_"+(n-1)+"_tag");
+}
+
+function s${SEQNUM}_checkSpecificationForSave()
+{
+  return true;
+}
+
 function s${SEQNUM}_checkSpecification()
 {
   return true;
 }
+
 //-->
 </script>

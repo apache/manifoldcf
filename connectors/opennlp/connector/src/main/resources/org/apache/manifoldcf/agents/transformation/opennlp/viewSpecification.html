@@ -33,26 +33,36 @@
   <tr>
     <td class="separator" colspan="2"><hr /></td>
   </tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.PeopleModelPath'))</nobr></td>
-    <td class="value"><nobr>$Encoder.bodyEscape($PMODELPATH)</nobr></td>
-  </tr>
   
   <tr>
-    <td class="separator" colspan="2"><hr /></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.FinderModelList'))</nobr></td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.ParameterName'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.ModelFile'))</nobr></td>
+        </tr>
+  #set($modelcounter = 0)
+  #foreach($modelrecord in $MODELS)
+    #if(($modelcounter % 2) == 0)
+        <tr class="evenformrow">
+    #else
+        <tr class="oddformrow">
+    #end
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($modelrecord.get('parametername'))</nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($modelrecord.get('modelfile'))</nobr>
+          </td>
+        </tr>
+    #set($modelcounter = $modelcounter + 1)
+  #end
+  #if($modelcounter == 0)
+        <tr class="formrow"><td colspan="4" class="formcolumnmessage"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.NoModelsSpecified'))</nobr></td></tr>
+  #end
+      </table>
+    </td>
   </tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.LocationsModelPath'))</nobr></td>
-    <td class="value"><nobr>$Encoder.bodyEscape($LMODELPATH)</nobr></td>
-  </tr>
-  
-  <tr>
-    <td class="separator" colspan="2"><hr /></td>
-  </tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.OraganizationsModelPath'))</nobr></td>
-    <td class="value"><nobr>$Encoder.bodyEscape($OMODELPATH)</nobr></td>
-  </tr>
-
 
 </table>
