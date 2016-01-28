@@ -47,6 +47,20 @@ function s${SEQNUM}_DeleteModel(n)
 
 function s${SEQNUM}_checkSpecificationForSave()
 {
+  if (editjob.s${SEQNUM}_smodelpath.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('OpenNlpExtractor.YouMustSpecifyASentenceModel'))");
+    SelectSequencedTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('OpenNlpExtractor.OpenNLPTabName'))", ${SEQNUM});
+    editjob.s${SEQNUM}_smodelpath.focus();
+    return false;
+  }
+  if (editjob.s${SEQNUM}_tmodelpath.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('OpenNlpExtractor.YouMustSpecifyATokenizationModel'))");
+    SelectSequencedTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('OpenNlpExtractor.OpenNLPTabName'))", ${SEQNUM});
+    editjob.s${SEQNUM}_tmodelpath.focus();
+    return false;
+  }
   return true;
 }
 
