@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.4-dev =====================
 
+CONNECTORS-1270: Contribute OpenNLP transformation connector.
+(Chalitha Perera, Rafa Haro, Karl Wright)
+
 CONNECTORS-1268: Add missing mime types to FileNet connector.
 (Damien Picard)
 
