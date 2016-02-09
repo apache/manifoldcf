@@ -413,7 +413,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
     ElasticSearchAction oss = new ElasticSearchAction(client, getConfigParameters(null));
     try
     {
-      oss.execute(CommandEnum._status, true);
+      oss.execute(CommandEnum._stats, true);
       String resultName = oss.getResult().name();
       if (resultName.equals("OK"))
         return super.check();
