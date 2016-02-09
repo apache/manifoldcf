@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.zaizi.manifoldcf.agents.transformation.stanbol;
+package org.apache.manifoldcf.agents.transformation.stanbol;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.core.interfaces.*;

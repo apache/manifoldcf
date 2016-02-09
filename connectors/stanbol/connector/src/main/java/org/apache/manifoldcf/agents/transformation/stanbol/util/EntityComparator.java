@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.zaizi.manifoldcf.agents.transformation.stanbol.util;
+package org.apache.manifoldcf.agents.transformation.stanbol.util;
 
 import java.util.Comparator;
 
