@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.4-dev =====================
 
+CONNECTORS-1272: Update _status command for Elastic Search to _stats.
+(Andrey Leybovich, Karl Wright)
+
 CONNECTORS-1271: Broken AmazonCloudSearch connector.
 (Juan Pablo Diaz-Vaz, Karl Wright)
 
