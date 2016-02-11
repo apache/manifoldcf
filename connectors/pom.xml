@@ -69,6 +69,7 @@
     <module>amazons3</module>
     <module>kafka</module>
     <module>opennlp</module>
+    <module>stanbol</module>
   </modules>
 
 </project>

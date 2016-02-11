@@ -1,0 +1,336 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+#if($TABNAME == $ResourceBundle.getString('StanbolEnhancer.FieldMappingTabName') && ${SEQNUM} == ${SELECTEDNUM})
+
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+   <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.ServerFieldName'))</nobr></td>
+    <td class="value">
+  		<input type="text" name="s${SEQNUM}_stanbol_url" size="128" value="$Encoder.attributeEscape($STANBOL_SERVER)"/>
+  	</td>
+  </tr>
+  
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+   <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.EnhancementChainName'))</nobr></td>
+    <td class="value">
+  		<input type="text" name="s${SEQNUM}_stanbol_chain" size="128" value="$Encoder.attributeEscape($STANBOL_CHAIN)"/>
+  	</td>
+  </tr>
+  
+  <!--added for field mappings  -->
+    <tr><td class="separator" colspan="2"><hr/></td></tr>
+    <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.FieldMappings'))</nobr></td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.MetadataFieldName'))</nobr></td>
+        </tr>
+
+  #set($fieldcounter = 0)
+  #foreach($fieldmapping in $FIELDMAPPINGS)
+    #set($fieldcounterdisplay = $fieldcounter + 1)
+    #if(($fieldcounter % 2) == 0)
+        <tr class="evenformrow">
+    #else
+        <tr class="oddformrow">
+    #end
+          <td class="formcolumncell">
+            <a name="s${SEQNUM}_fieldmapping_$fieldcounter">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.Delete'))" 
+              		alt="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.DeleteFieldMapping'))$fieldcounterdisplay" onclick='javascript:s${SEQNUM}_deleteFieldMapping("$fieldcounter");'/>
+              <input type="hidden" name="s${SEQNUM}_fieldmapping_op_$fieldcounter" value="Continue"/>
+              <input type="hidden" name="s${SEQNUM}_fieldmapping_source_$fieldcounter" value="$Encoder.attributeEscape($fieldmapping.get('SOURCE'))"/>
+            </a>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($fieldmapping.get('SOURCE'))</nobr>
+          </td>
+        </tr>
+    #set($fieldcounter = $fieldcounter + 1)
+  #end
+  
+  #if($fieldcounter == 0)
+        <tr class="formrow"><td class="formmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.NoFieldMappingSpecified'))</td></tr>
+  #end
+      
+        <tr class="formrow"><td class="formseparator" colspan="3"><hr/></td></tr>
+        <tr class="formrow">
+          <td class="formcolumncell">
+            <a name="fieldmapping">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.Add'))"
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.AddFieldMapping'))" onclick="javascript:s${SEQNUM}_addFieldMapping();"/>
+            </a>
+            <input type="hidden" name="s${SEQNUM}_fieldmapping_count" value="$fieldcounter"/>
+            <input type="hidden" name="s${SEQNUM}_fieldmapping_op" value="Continue"/>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="15" name="s${SEQNUM}_fieldmapping_source" value=""/></nobr>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr> 
+  
+  
+   <tr><td class="separator" colspan="2"><hr/></td></tr>
+   <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.LDPathPrefixMappings'))</nobr></td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.LDpathPrefix'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.LDpathPrefixURI'))</nobr></td>
+        </tr>
+
+  #set($prefixcounter = 0)
+  #foreach($prefixmapping in $PREFIXMAPPINGS)
+    #set($prefixcounterdisplay = $prefixcounter + 1)
+    #if(($prefixcounter % 2) == 0)
+        <tr class="evenformrow">
+    #else
+        <tr class="oddformrow">
+    #end
+          <td class="formcolumncell">
+            <a name="s${SEQNUM}_prefixmapping_$prefixcounter">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.Delete'))" 
+              	alt="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.DeleteFieldMapping'))$prefixcounterdisplay"onclick='javascript:s${SEQNUM}_deletePrefixMapping("$prefixcounter");'/>
+              <input type="hidden" name="s${SEQNUM}_prefixmapping_op_$prefixcounter" value="Continue"/>
+              <input type="hidden" name="s${SEQNUM}_prefixmapping_source_$prefixcounter"value="$Encoder.attributeEscape($prefixmapping.get('SOURCE'))"/>
+              <input type="hidden" name="s${SEQNUM}_prefixmapping_target_$prefixcounter"value="$Encoder.attributeEscape($prefixmapping.get('TARGET'))"/>
+            </a>
+          </td>
+
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($prefixmapping.get('SOURCE'))</nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($prefixmapping.get('TARGET'))</nobr>
+          </td>
+        </tr>
+    #set($prefixcounter = $prefixcounter + 1)
+  #end
+
+  #if($prefixcounter == 0)
+        <tr class="formrow"><td class="formmessage"colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.NoFieldMappingSpecified'))</td></tr>
+  #end
+        <tr class="formrow"><td class="formseparator" colspan="3"><hr/></td></tr>
+        <tr class="formrow">
+          <td class="formcolumncell">
+            <a name="prefixmapping">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.Add'))" 
+              	alt="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.AddPrefixMapping'))"onclick="javascript:s${SEQNUM}_addPrefixMapping();"/>
+            </a>
+            <input type="hidden" name="s${SEQNUM}_prefixmapping_count" value="$prefixcounter"/>
+            <input type="hidden" name="s${SEQNUM}_prefixmapping_op" value="Continue"/>
+          </td>
+
+          <td class="formcolumncell">
+            <nobr><input type="text" size="15" name="s${SEQNUM}_prefixmapping_source" value=""/></nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="15" name="s${SEQNUM}_prefixmapping_target" value=""/></nobr>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr> 
+
+
+  <!-- LDPath field mappings -->
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+   <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.LDPathFieldMappings'))</nobr></td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.LDpathField'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.LDpathFieldURI'))</nobr></td>
+        </tr>
+  #set($ldpathfieldcounter = 0)
+  #foreach($ldpathfieldmapping in $LDPATHFIELDMAPPINGS)
+    #set($ldpathfieldcounterdisplay = $ldpathfieldcounter + 1)
+    #if(($ldpathfieldcounter % 2) == 0)
+        <tr class="evenformrow">
+    #else
+        <tr class="oddformrow">
+    #end
+          <td class="formcolumncell">
+            <a name="s${SEQNUM}_ldpathfieldmapping_$ldpathfieldcounter">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.Delete'))" 
+              	alt="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.DeleteFieldMapping'))$ldpathfieldcounterdisplay"onclick='javascript:s${SEQNUM}_deleteLdpathFieldMapping("$ldpathfieldcounter");'/>
+              <input type="hidden" name="s${SEQNUM}_ldpathfieldmapping_op_$ldpathfieldcounter" value="Continue"/>
+              <input type="hidden" name="s${SEQNUM}_ldpathfieldmapping_source_$ldpathfieldcounter"value="$Encoder.attributeEscape($ldpathfieldmapping.get('SOURCE'))"/>
+              <input type="hidden" name="s${SEQNUM}_ldpathfieldmapping_target_$ldpathfieldcounter"value="$Encoder.attributeEscape($ldpathfieldmapping.get('TARGET'))"/>
+            </a>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($ldpathfieldmapping.get('SOURCE'))</nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($ldpathfieldmapping.get('TARGET'))</nobr>
+          </td>
+        </tr>
+    #set($ldpathfieldcounter = $ldpathfieldcounter + 1)
+  #end
+  #if($ldpathfieldcounter == 0)
+        <tr class="formrow"><td class="formmessage"colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.NoFieldMappingSpecified'))</td></tr>
+  #end
+
+        <tr class="formrow"><td class="formseparator" colspan="3"><hr/></td></tr>
+        <tr class="formrow">
+          <td class="formcolumncell">
+            <a name="ldpathfieldmapping">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.Add'))"
+              	 alt="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.AddLDpathFieldMapping'))"onclick="javascript:s${SEQNUM}_addLdpathFieldMapping();"/>
+            </a>
+            <input type="hidden" name="s${SEQNUM}_ldpathfieldmapping_count" value="$ldpathfieldcounter"/>
+            <input type="hidden" name="s${SEQNUM}_ldpathfieldmapping_op" value="Continue"/>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="15" name="s${SEQNUM}_ldpathfieldmapping_source" value=""/></nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="15" name="s${SEQNUM}_ldpathfieldmapping_target" value=""/></nobr>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr> 
+
+
+<!--Field mappings for the repository document -->
+    <tr><td class="separator" colspan="2"><hr/></td></tr>
+    <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.DocumentFieldMappings'))</nobr></td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.EntityFieldName'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.DestinationFieldName'))</nobr></td>
+        </tr>
+
+  #set($docfieldcounter = 0)
+  #foreach($docfieldmapping in $DOCMAPPINGS)
+    #set($docfieldcounterdisplay = $docfieldcounter + 1)
+    #if(($docfieldcounter % 2) == 0)
+        <tr class="evenformrow">
+    #else
+        <tr class="oddformrow">
+    #end
+          <td class="formcolumncell">
+            <a name="s${SEQNUM}_docfieldmapping_$docfieldcounter">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.Delete'))"
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.DeleteFieldMapping'))$docfieldcounterdisplay"onclick='javascript:s${SEQNUM}_deleteDocumentFieldMapping("$docfieldcounter");'/>
+              <input type="hidden" name="s${SEQNUM}_docfieldmapping_op_$docfieldcounter" value="Continue"/>
+              <input type="hidden" name="s${SEQNUM}_docfieldmapping_source_$docfieldcounter"value="$Encoder.attributeEscape($docfieldmapping.get('SOURCE'))"/>
+              <input type="hidden" name="s${SEQNUM}_docfieldmapping_target_$docfieldcounter"value="$Encoder.attributeEscape($docfieldmapping.get('TARGET'))"/>
+            </a>
+          </td>
+
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($docfieldmapping.get('SOURCE'))</nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($docfieldmapping.get('TARGET'))</nobr>
+          </td>
+        </tr>
+    #set($docfieldcounter = $docfieldcounter + 1)
+  #end
+
+  #if($docfieldcounter == 0)
+        <tr class="formrow"><td class="formmessage"colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.NoFieldMappingSpecified'))</td></tr>
+  #end
+
+        <tr class="formrow"><td class="formseparator" colspan="3"><hr/></td></tr>
+        <tr class="formrow">
+          <td class="formcolumncell">
+            <a name="docfieldmapping">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.Add'))"
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('StanbolEnhancer.AddFieldMapping'))"onclick="javascript:s${SEQNUM}_addDocumentFieldMapping();"/>
+            </a>
+            <input type="hidden" name="s${SEQNUM}_docfieldmapping_count" value="$docfieldcounter"/>
+            <input type="hidden" name="s${SEQNUM}_docfieldmapping_op" value="Continue"/>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="15" name="s${SEQNUM}_docfieldmapping_source" value=""/></nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="15" name="s${SEQNUM}_docfieldmapping_target" value=""/></nobr>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <tr><td class="separator" colspan="2"><hr/></td></tr> 
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('StanbolEnhancer.KeepAllMetadata'))</nobr></td>
+    <td class="value">
+  #if($KEEPALLMETADATA == 'true')
+       <input type="checkbox" checked="true" name="s${SEQNUM}_keepallmetadata" value="true"/>
+  #else
+       <input type="checkbox" name="s${SEQNUM}_keepallmetadata" value="true"/>
+  #end
+    </td>
+  </tr>
+</table>
+
+#else
+ #set($fieldcounter = 0)
+  #foreach($fieldmapping in $FIELDMAPPINGS)
+<input type="hidden" name="s${SEQNUM}_fieldmapping_source_$fieldcounter" value="$Encoder.attributeEscape($fieldmapping.get('SOURCE'))"/>
+    #set($fieldcounter = $fieldcounter + 1)
+  #end
+ 
+<!--prefix mappings-->
+ #set($prefixcounter = 0)
+  #foreach($prefixmapping in $PREFIXMAPPINGS)
+<input type="hidden" name="s${SEQNUM}_prefixmapping_source_$prefixcounter"value="$Encoder.attributeEscape($prefixmapping.get('SOURCE'))"/>
+<input type="hidden" name="s${SEQNUM}_prefixmapping_target_$prefixcounter"value="$Encoder.attributeEscape($prefixmapping.get('TARGET'))"/>
+    #set($prefixcounter = $prefixcounter + 1)
+  #end
+<input type="hidden" name="s${SEQNUM}_prefixmapping_count" value="$prefixcounter"/> 
+
+<!--LDPath mappings-->
+ #set($ldpathfieldcounter = 0)
+  #foreach($ldpathfieldmapping in $LDPATHFIELDMAPPINGS)
+<input type="hidden" name="s${SEQNUM}_ldpathfieldmapping_source_$ldpathfieldcounter"value="$Encoder.attributeEscape($ldpathfieldmapping.get('SOURCE'))"/>
+<input type="hidden" name="s${SEQNUM}_ldpathfieldmapping_target_$ldpathfieldcounter"value="$Encoder.attributeEscape($ldpathfieldmapping.get('TARGET'))"/>
+    #set($ldpathfieldcounter = $ldpathfieldcounter + 1)
+  #end
+<input type="hidden" name="s${SEQNUM}_ldpathfieldmapping_count" value="$ldpathfieldcounter"/> 
+
+<!--Doc field mappings-->
+ #set($docfieldcounter = 0)
+  #foreach($docfieldmapping in $DOCMAPPINGS)
+<input type="hidden" name="s${SEQNUM}_docfieldmapping_source_$docfieldcounter"value="$Encoder.attributeEscape($docfieldmapping.get('SOURCE'))"/>
+<input type="hidden" name="s${SEQNUM}_docfieldmapping_target_$docfieldcounter"value="$Encoder.attributeEscape($docfieldmapping.get('TARGET'))"/>
+    #set($docfieldcounter = $docfieldcounter + 1)
+  #end
+<input type="hidden" name="s${SEQNUM}_docfieldmapping_count" value="$docfieldcounter"/>
+<input type="hidden" name="s${SEQNUM}_keepallmetadata" value="$Encoder.bodyEscape($KEEPALLMETADATA)"/> 
+<input type="hidden" name="s${SEQNUM}_fieldmapping_count" value="$fieldcounter"/>  
+<input type="hidden" name="s${SEQNUM}_stanbol_url" value="$Encoder.bodyEscape($STANBOL_SERVER)"/>
+<input type="hidden" name="s${SEQNUM}_stanbol_chain" value="$Encoder.bodyEscape($STANBOL_CHAIN)"/>
+#end
