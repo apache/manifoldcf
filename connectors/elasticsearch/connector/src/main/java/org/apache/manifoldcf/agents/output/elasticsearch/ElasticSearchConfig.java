@@ -37,7 +37,11 @@ public class ElasticSearchConfig extends ElasticSearchParam
     ParameterEnum.INDEXNAME,
     ParameterEnum.INDEXTYPE,
     ParameterEnum.USEMAPPERATTACHMENTS,
-    ParameterEnum.CONTENTATTRIBUTENAME
+    ParameterEnum.CONTENTATTRIBUTENAME,
+    ParameterEnum.CREATEDDATEATTRIBUTENAME,
+    ParameterEnum.MODIFIEDDATEATTRIBUTENAME,
+    ParameterEnum.INDEXINGDATEATTRIBUTENAME,
+    ParameterEnum.MIMETYPEATTRIBUTENAME
   };
 
   /** Build a set of ElasticSearchParameters by reading ConfigParams. If the
@@ -112,6 +116,26 @@ public class ElasticSearchConfig extends ElasticSearchParam
   final public String getContentAttributeName()
   {
     return get(ParameterEnum.CONTENTATTRIBUTENAME);
+  }
+
+  final public String getCreatedDateAttributeName()
+  {
+    return get(ParameterEnum.CREATEDDATEATTRIBUTENAME);
+  }
+
+  final public String getModifiedDateAttributeName()
+  {
+    return get(ParameterEnum.MODIFIEDDATEATTRIBUTENAME);
+  }
+
+  final public String getIndexingDateAttributeName()
+  {
+    return get(ParameterEnum.INDEXINGDATEATTRIBUTENAME);
+  }
+
+  final public String getMimeTypeAttributeName()
+  {
+    return get(ParameterEnum.MIMETYPEATTRIBUTENAME);
   }
 
 }
