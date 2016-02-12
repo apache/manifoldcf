@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.4-dev =====================
 
+CONNECTORS-1275: Help ES deal with dates properly.  Also added
+support for built-in Repository Document attributes.
+(Andrey Leybovich, Karl Wright)
+
 CONNECTORS-1272: Update _status command for Elastic Search to _stats.
 (Andrey Leybovich, Karl Wright)
 
