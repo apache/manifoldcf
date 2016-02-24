@@ -96,6 +96,11 @@ public class ConnectionPool
               // Ignore this; we just can't check if handle is valid I guess.
               // (Postgresql doesn't implement this method so it fails always)
             }
+            catch (java.lang.AbstractMethodError e)
+            {
+              // Ignore this; we just can't check if handle is valid I guess.
+              // (SQLServer doesn't implement this method so it fails always)
+            }
             if (!isValid) {
               // If the connection is invalid, drop it on the floor, and get a new one.
               // Note: Order of operations is terribly important here!!
