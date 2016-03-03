@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.4-dev =====================
 
+CONNECTORS-1282: Missing translation for Metadata Adjuster.
+(Markus Schuch, Karl Wright)
+
 CONNECTORS-1281: SQLServer under JTDS throws AbstractMethodException.
 (Olivier Tavard, Karl Wright)
 
