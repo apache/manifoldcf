@@ -3,6 +3,13 @@ $Id$
 
 ======================= 2.4-dev =====================
 
+CONNECTORS-1283: "Document has no version" signal was not working.
+This problem has been around since MCF 1.8/2.0.  The fix is simple but
+may change the functioning of some custom repository connectors.  This
+fix also restores broken functionality in the MCF JDBC connector, when
+no document version query is provided.
+(Markus Schuch, Karl Wright)
+
 CONNECTORS-1282: Missing translation for Metadata Adjuster.
 (Markus Schuch, Karl Wright)
 
