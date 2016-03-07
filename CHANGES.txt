@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.4-dev =====================
 
+CONNECTORS-1284: SharePoint fields that do not have a different
+display name from their field name (or which are defined in some way
+as yet not well understood) were being overlooked in SharePoint crawling.
+(Markus Schuch, Karl Wright)
+
 CONNECTORS-1283: "Document has no version" signal was not working.
 This problem has been around since MCF 1.8/2.0.  The fix is simple but
 may change the functioning of some custom repository connectors.  This
