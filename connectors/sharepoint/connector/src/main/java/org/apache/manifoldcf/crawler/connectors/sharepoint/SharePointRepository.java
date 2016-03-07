@@ -854,9 +854,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             
             String[] fields = new String[fieldNames.size()];
             int j = 0;
-            for (String field : fieldNames.values())
+            for (String field : fieldNames.keySet())
             {
-              fields[j++] = field;
+              String value = fieldNames.get(field);
+              fields[j++] = (value==null)?field:value;
             }
                   
             String[] accessTokens;
@@ -1306,9 +1307,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             
             String[] fields = new String[fieldNames.size()];
             int j = 0;
-            for (String field : fieldNames.values())
+            for (String field : fieldNames.keySet())
             {
-              fields[j++] = field;
+              String value = fieldNames.get(field);
+              fields[j++] = (value==null)?field:value;
             }
                   
             String[] accessTokens;
