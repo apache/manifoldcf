@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.4-dev =====================
 
+CONNECTORS-1288: SharePoint connector proxy password obfuscation
+was breaking this feature.
+(Markus Schuch, Karl Wright)
+
 CONNECTORS-1284: SharePoint fields that do not have a different
 display name from their field name (or which are defined in some way
 as yet not well understood) were being overlooked in SharePoint crawling.
