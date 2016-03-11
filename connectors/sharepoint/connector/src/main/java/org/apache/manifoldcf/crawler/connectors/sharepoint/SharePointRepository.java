@@ -235,7 +235,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         }
       }
       String proxyUsername = params.getParameter(SharePointConfig.PARAM_PROXYUSER);
-      String proxyPassword = params.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+      String proxyPassword = params.getObfuscatedParameter(SharePointConfig.PARAM_PROXYPASSWORD);
       String proxyDomain = params.getParameter(SharePointConfig.PARAM_PROXYDOMAIN);
       
       serverUrl = serverProtocol + "://" + serverName;
@@ -2469,7 +2469,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     if (proxyUser == null)
       proxyUser = "";
     
-    String proxyPassword = parameters.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+    String proxyPassword = parameters.getObfuscatedParameter(SharePointConfig.PARAM_PROXYPASSWORD);
     if (proxyPassword == null)
       proxyPassword = "";
     else
