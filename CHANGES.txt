@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.4-dev =====================
 
+CONNECTORS-1293: Duplication of attribute names in the UI when
+multiple languages are installed in Documentum.
+(Radek Sklenicka, Karl Wright)
+
 CONNECTORS-1288: SharePoint connector proxy password obfuscation
 was breaking this feature.
 (Markus Schuch, Karl Wright)
