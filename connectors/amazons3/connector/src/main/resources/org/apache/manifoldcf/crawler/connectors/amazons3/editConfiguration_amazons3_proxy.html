@@ -1,0 +1,78 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TabName == $ResourceBundle.getString('Amazons3RepositoryConnector.Proxy'))
+
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Amazons3RepositoryConnector.Amazons3ProxyHostColon'))</nobr>
+    </td>
+    <td class="value">
+      <input size="32" type="text" id="amazons3_proxy_host" name="amazons3_proxy_host" value="$Encoder.attributeEscape($AMAZONS3_PROXY_HOST)" />
+    </td>
+  </tr>
+
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Amazons3RepositoryConnector.Amazons3ProxyPortColon'))</nobr>
+    </td>
+    <td class="value">
+      <input size="5" type="text" id="amazons3_proxy_port" name="amazons3_proxy_port" value="$Encoder.attributeEscape($AMAZONS3_PROXY_PORT)" />
+    </td>
+  </tr>
+
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Amazons3RepositoryConnector.Amazons3ProxyDomainColon'))</nobr>
+    </td>
+    <td class="value">
+      <input size="32" type="text" id="amazons3_proxy_domain" name="amazons3_proxy_domain" value="$Encoder.attributeEscape($AMAZONS3_PROXY_DOMAIN)" />
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Amazons3RepositoryConnector.Amazons3ProxyUsernameColon'))</nobr>
+    </td>
+    <td class="value">
+      <input size="16" type="text" id="amazons3_proxy_username" name="amazons3_proxy_username" value="$Encoder.attributeEscape($AMAZONS3_PROXY_USERNAME)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('Amazons3RepositoryConnector.Amazons3ProxyPasswordColon'))</nobr>
+    </td>
+    <td class="value">
+      <input size="16" type="password" id="amazons3_proxy_pwd" name="amazons3_proxy_pwd" value="$Encoder.attributeEscape($AMAZONS3_PROXY_PWD)" />
+    </td>
+  </tr>
+</table>
+
+#else
+
+<input type="hidden" name="amazons3_proxy_host" value="$Encoder.attributeEscape($AMAZONS3_PROXY_PORT)" />
+<input type="hidden" name="amazons3_proxy_port" value="$Encoder.attributeEscape($AMAZONS3_PROXY_PORT)" />
+<input type="hidden" name="amazons3_proxy_domain" value="$Encoder.attributeEscape($AMAZONS3_PROXY_DOMAIN)" />
+<input type="hidden" name="amazons3_proxy_username" value="$Encoder.attributeEscape($AMAZONS3_PROXY_USERNAME)" />
+<input type="hidden" name="amazons3_proxy_pwd" value="$Encoder.attributeEscape($AMAZONS3_PROXY_PWD)" />
+
+#end

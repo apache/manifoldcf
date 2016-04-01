@@ -3,6 +3,72 @@ $Id$
 
 ======================= 2.3-dev =====================
 
+CONNECTORS-1260: Fix completely broken email connector.
+(Karl Wright, Julien Massiera)
+
+CONNECTORS-1259: Use Travis CI.
+(Shinichiro Abe)
+
+CONNECTORS-1258: Update Japanese translations.
+(KOIZUMI Satoru)
+
+CONNECTORS-1256: Spanish translations.
+(Gladys Carrizales)
+
+CONNECTORS-1254: Some Jetty dependencies are missing in jetty-runner.
+(Shinichiro Abe)
+
+CONNECTORS-1255: Ignore CheckObjectIDTest.
+(Shinichiro Abe)
+
+CONNECTORS-1252: jetty.xml is missing in jetty-runner QuickStart.
+(Shinichiro Abe)
+
+CONNECTORS-1250: Fix Confluence specification UI.
+(Jens Grassel, Karl Wright)
+
+CONNECTORS-1246: Get Kafka integration test running.
+(Karl Wright)
+
+CONNECTORS-1162: Kafka connector.
+(Tugba Dogan)
+
+CONNECTORS-1245: Using wrong logger for confluence authority.
+(Jens Grassel, Karl Wright)
+
+CONNECTORS-1237: Upgrade the CMIS Connector to OpenCMIS 0.13.0
+(Piergiorgio Lucidi)
+
+CONNECTORS-1235: Indexing all properties fetched with the cmis query
+(Piergiorgio Lucidi, Christian Tiralosi, Deanna Delapasse, Elisa Croci)
+
+CONNECTORS-1244: Add support for LDAPS and TLS to LDAP
+authority connector.
+(Karl Wright)
+
+CONNECTORS-1234: Add use-mapper-attachments option
+to Elasticsearch connector.
+(Shinichiro Abe)
+
+CONNECTORS-1242: Fix document reprioritization on job resume.
+(Niall Colreavy, Karl Wright)
+
+CONNECTORS-1241: Documentum connector not handling subtypes
+properly.
+(Bipul Podder)
+
+CONNECTORS-1231: Upgrade to JUnit 4.12.
+(Shinichiro Abe)
+
+CONNECTORS-1239: Handle code 401 from Solr more appropriately.
+(Cathal McGuinness, Karl Wright)
+
+CONNECTORS-1236: Upgrade to Tika 1.10.
+(Karl Wright)
+
+CONNECTORS-1233: Add Amazon S3 connector.
+(Gunaratnam Kuhajeyan, Karl Wright)
+
 CONNECTORS-1230: Add writeLimit option on Tika extractor.
 (Shinichiro Abe)
 

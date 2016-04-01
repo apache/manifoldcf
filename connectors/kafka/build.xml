@@ -1,0 +1,156 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<project name="kafka" default="all">
+
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <property name="abs-dist" location="../../dist"/>
+    <condition property="mcf-dist" value="${abs-dist}">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
+
+    <property name="kafka.version" value="0.8.2.1"/>
+
+    <path id="connector-classpath">
+        <path refid="mcf-connector-build.connector-classpath"/>
+        <fileset dir="../../lib">
+            <include name="kafka-clients*.jar"/>
+            <include name="lz4*.jar"/>
+            <include name="snappy-java*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="../../lib">
+                <include name="kafka-clients*.jar"/>
+                <include name="lz4*.jar"/>
+                <include name="snappy-java*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="download-dependencies">
+        <mkdir dir="test-materials"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="org/apache/kafka"/>
+            <param name="artifact-version" value="${kafka.version}"/>
+            <param name="artifact-name" value="kafka_2.11"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="org/apache/commons"/>
+            <param name="artifact-version" value="3.4"/>
+            <param name="artifact-name" value="commons-lang3"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="com/yammer/metrics"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="metrics-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="org/scala-lang"/>
+            <param name="artifact-version" value="2.11.0"/>
+            <param name="artifact-name" value="scala-library"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="net/sf/jopt-simple"/>
+            <param name="artifact-version" value="3.2"/>
+            <param name="artifact-name" value="jopt-simple"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="org/scala-lang/modules"/>
+            <param name="artifact-version" value="1.0.4"/>
+            <param name="artifact-name" value="scala-xml_2.11"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="org/scala-lang/modules"/>
+            <param name="artifact-version" value="1.0.4"/>
+            <param name="artifact-name" value="scala-parser-combinators_2.11"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="com/101tec"/>
+            <param name="artifact-version" value="0.6"/>
+            <param name="artifact-name" value="zkclient"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-cleanup">
+        <delete>
+            <fileset dir="test-materials" excludes="README*.txt"/>
+        </delete>
+    </target>
+
+    <target name="calculate-testcode-condition">
+        <available file="test-materials/kafka_2.11-${kafka.version}.jar" property="tests-present"/>
+    </target>
+
+    <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
+        <echo message="Need Kafka download in order to compile tests - run ant make-deps"/>
+    </target>
+
+    <path id="connector-test-classpath">
+        <path refid="mcf-connector-build.connector-test-classpath"/>
+        <fileset dir="../../lib">
+            <include name="zookeeper*.jar"/>
+            <include name="kafka-clients*.jar"/>
+            <include name="lz4*.jar"/>
+            <include name="snappy-java*.jar"/>
+        </fileset>
+        <fileset dir="test-materials">
+            <include name="zkclient*.jar"/>
+            <include name="commons-lang3*.jar"/>
+            <include name="metrics-core*.jar"/>
+            <include name="jopt-simple*.jar"/>
+            <include name="scala-library*.jar"/>
+            <include name="kafka_2.11*.jar"/>
+            <include name="scala-xml_2.11*.jar"/>
+            <include name="scala-parser-combinators_2.11*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-output-connector">
+            <param name="connector-label" value="Kafka"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.kafka.KafkaOutputConnector"/>
+        </antcall>
+    </target>
+	
+</project>

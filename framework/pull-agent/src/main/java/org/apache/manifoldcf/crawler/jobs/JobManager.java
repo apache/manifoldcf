@@ -8191,6 +8191,9 @@ public class JobManager implements IJobManager
         IJobDescription jobDesc = jobs.load(jobID,true);
         modifiedJobs.add(jobDesc);
 
+        // Note that all the documents that are alive need priorities
+        jobQueue.prioritizeQueuedDocuments(jobID);
+        // Now, resume the job
         jobs.finishResumeJob(jobID,timestamp);
             
         Logging.jobs.info("Resumed job "+jobID);

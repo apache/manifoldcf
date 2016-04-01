@@ -21,19 +21,21 @@ package org.apache.manifoldcf.agents.output.elasticsearch;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.Header;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
@@ -69,9 +71,12 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     private final String[] shareDenyAcls;
     private final String[] parentAcls;
     private final String[] parentDenyAcls;
+    private final boolean useMapperAttachments;
+    private final String contentAttributeName;
 
     public IndexRequestEntity(RepositoryDocument document, InputStream inputStream,
-      String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls, String[] parentAcls, String[] parentDenyAcls)
+      String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls, String[] parentAcls, String[] parentDenyAcls,
+      boolean useMapperAttachments, String contentAttributeName)
       throws ManifoldCFException
     {
       this.document = document;
@@ -82,6 +87,8 @@ public class ElasticSearchIndex extends ElasticSearchConnection
       this.shareDenyAcls = shareDenyAcls;
       this.parentAcls = parentAcls;
       this.parentDenyAcls = parentDenyAcls;
+      this.useMapperAttachments = useMapperAttachments;
+      this.contentAttributeName = contentAttributeName;
     }
 
     @Override
@@ -131,7 +138,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
         needComma = writeACLs(pw, needComma, "share", shareAcls, shareDenyAcls);
         needComma = writeACLs(pw, needComma, "parent", parentAcls, parentDenyAcls);
 
-        if(inputStream!=null){
+        if (useMapperAttachments && inputStream != null) {
           if(needComma){
             pw.print(",");
           }
@@ -149,6 +156,23 @@ public class ElasticSearchIndex extends ElasticSearchConnection
           Base64 base64 = new Base64();
           base64.encodeStream(inputStream, pw);
           pw.print("\"}");
+        }
+        
+        if (!useMapperAttachments && inputStream != null) {
+          if (contentAttributeName != null)
+          {
+            Reader r = new InputStreamReader(inputStream, Consts.UTF_8);
+            StringBuilder sb = new StringBuilder((int)document.getBinaryLength());
+            char[] buffer = new char[65536];
+            while (true)
+            {
+              int amt = r.read(buffer,0,buffer.length);
+              if (amt == -1)
+                break;
+              sb.append(buffer,0,amt);
+            }
+            needComma = writeField(pw, needComma, contentAttributeName, new String[]{sb.toString()});
+          }
         }
         
         pw.print("}");
@@ -276,7 +300,9 @@ public class ElasticSearchIndex extends ElasticSearchConnection
 
     StringBuffer url = getApiUrl(config.getIndexType() + "/" + idField, false);
     HttpPut put = new HttpPut(url.toString());
-    put.setEntity(new IndexRequestEntity(document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls));
+    put.setEntity(new IndexRequestEntity(document, inputStream,
+      acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls,
+      config.getUseMapperAttachments(), config.getContentAttributeName()));
     if (call(put) == false)
       return false;
     String error = checkJson(jsonException);
