@@ -188,6 +188,7 @@ including, but not limited to:
   - Apache Axis
   - Apache Xerces2
   - Apache Chemistry
+  - Apache OpenNLP
   - Apache Velocity
   - Apache Avalon
   - Apache FOP

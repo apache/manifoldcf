@@ -30,42 +30,50 @@ import org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchParam.Para
 public class ElasticSearchParam extends HashMap<ParameterEnum, String>
 {
 
-	/** Parameters constants */
-	public enum ParameterEnum
-	{
-		SERVERLOCATION("http://localhost:9200/"),
+  /** Parameters constants */
+  public enum ParameterEnum
+  {
+    SERVERLOCATION("http://localhost:9200/"),
 
-		INDEXNAME("index"),
+    INDEXNAME("index"),
 
-		INDEXTYPE("generictype"),
+    INDEXTYPE("generictype"),
 
-		USEMAPPERATTACHMENTS("true"),
+    USEMAPPERATTACHMENTS("true"),
 
-		CONTENTATTRIBUTENAME(""),
+    CONTENTATTRIBUTENAME(""),
 
-		FIELDLIST("");
+    CREATEDDATEATTRIBUTENAME(""),
+    
+    MODIFIEDDATEATTRIBUTENAME(""),
+    
+    INDEXINGDATEATTRIBUTENAME(""),
+    
+    MIMETYPEATTRIBUTENAME(""),
+    
+    FIELDLIST("");
 
-		final protected String defaultValue;
+    final protected String defaultValue;
 
-		private ParameterEnum(String defaultValue)
-		{
-			this.defaultValue = defaultValue;
-		}
-	}
+    private ParameterEnum(String defaultValue)
+    {
+      this.defaultValue = defaultValue;
+    }
+  }
 
-	private static final long serialVersionUID = -1593234685772720029L;
+  private static final long serialVersionUID = -1593234685772720029L;
 
-	protected ElasticSearchParam(ParameterEnum[] params)
-	{
-		super(params.length);
-	}
+  protected ElasticSearchParam(ParameterEnum[] params)
+  {
+    super(params.length);
+  }
 
-	final public Map<String, String> buildMap()
-	{
-		Map<String, String> rval = new HashMap<String, String>();
-		for (Map.Entry<ParameterEnum, String> entry : this.entrySet())
-			rval.put(entry.getKey().name(), entry.getValue());
-		return rval;
-	}
+  final public Map<String, String> buildMap()
+  {
+    Map<String, String> rval = new HashMap<String, String>();
+    for (Map.Entry<ParameterEnum, String> entry : this.entrySet())
+      rval.put(entry.getKey().name(), entry.getValue());
+    return rval;
+  }
 
 }

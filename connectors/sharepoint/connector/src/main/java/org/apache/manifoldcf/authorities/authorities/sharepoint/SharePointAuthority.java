@@ -218,7 +218,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     proxyHost = params.getParameter(SharePointConfig.PARAM_PROXYHOST);
     proxyPortString = params.getParameter(SharePointConfig.PARAM_PROXYPORT);
     proxyUsername = params.getParameter(SharePointConfig.PARAM_PROXYUSER);
-    proxyPassword = params.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+    proxyPassword = params.getObfuscatedParameter(SharePointConfig.PARAM_PROXYPASSWORD);
     proxyDomain = params.getParameter(SharePointConfig.PARAM_PROXYDOMAIN);
 
     keystoreData = params.getParameter(SharePointConfig.PARAM_SERVERKEYSTORE);
@@ -518,7 +518,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
     if (proxyUser == null)
       proxyUser = "";
     
-    String proxyPassword = parameters.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+    String proxyPassword = parameters.getObfuscatedParameter(SharePointConfig.PARAM_PROXYPASSWORD);
     if (proxyPassword == null)
       proxyPassword = "";
     else
@@ -811,7 +811,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
         .register("https", myFactory)
         .build());
       poolingConnectionManager.setDefaultMaxPerRoute(1);
-      poolingConnectionManager.setValidateAfterInactivity(60000);
+      poolingConnectionManager.setValidateAfterInactivity(2000);
       poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
         .setTcpNoDelay(true)
         .setSoTimeout(socketTimeout)

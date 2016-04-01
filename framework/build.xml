@@ -153,6 +153,15 @@
             <include name="activation*.jar"/>
         </fileset>
     </path>
+
+    <target name="file-resources">
+        <mkdir dir="dist/file-resources"/>
+        <copy todir="dist/file-resources">
+            <fileset dir="example-file-resources">
+                <include name="README.txt"/>
+            </fileset>
+        </copy>
+    </target>
     
     <target name="doc">
         <mkdir dir="dist/doc"/>
@@ -1833,17 +1842,19 @@
         </junit>
     </target>
 
-    <target name="run-pull-agent-tests" depends="compile-pull-agent,compile-pull-agent-tests">
+    <target name="run-pull-agent-tests" depends="compile-pull-agent,compile-connector-common,compile-pull-agent-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/core-tests/classes"/>
+                <pathelement location="build/ui-core/classes"/>                
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/agents-tests/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
                 <pathelement location="build/pull-agent-tests/classes"/>
+                <pathelement location="build/connector-common/classes"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
 
@@ -1996,7 +2007,7 @@
         </java>
     </target>
     
-    <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine,obfuscation-utility,buildfiles,test-lib"/>
+    <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine,obfuscation-utility,file-resources,buildfiles,test-lib"/>
     
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-HSQLDB,run-tests-HSQLDBext"/>
     

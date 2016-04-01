@@ -228,11 +228,12 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
-            // Page did not exist
+            // Page did not exist or was external reference
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist; assuming list/library deleted");
+              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist or was external; skipping list/library");
             return null;
           }
           else if (httpErrorCode.equals("401"))
@@ -260,7 +261,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The list "+guid+" in site "+site+" did not exist; assuming list/library deleted");
+              Logging.connectors.debug("SharePoint: The list "+guid+" in site "+site+" did not exist or was external; skipping list/library");
             return null;
           }
           else
@@ -439,11 +440,12 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
             // Page did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist or was external; skipping library");
             return null;
           }
           else if (httpErrorCode.equals("401"))
@@ -471,7 +473,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The file "+file+" in site "+site+" did not exist; assuming file deleted");
+              Logging.connectors.debug("SharePoint: The file "+file+" in site "+site+" did not exist or was external; skipping file");
             return null;
           }
           else
@@ -692,11 +694,12 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
             // Page did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist or was external; skipping library");
             return false;
           }
           else if (httpErrorCode.equals("401"))
@@ -724,7 +727,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The list "+guid+" in site "+site+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The list "+guid+" in site "+site+" did not exist or was external; skipping library");
             return false;
           }
           else
@@ -895,11 +898,12 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
             // Page did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The page at "+baseUrl+parentSite+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The page at "+baseUrl+parentSite+" did not exist or was external; skipping library");
             return null;
           }
           else if (httpErrorCode.equals("401"))
@@ -927,7 +931,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The list "+docLibrary+" in site "+parentSite+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The list "+docLibrary+" in site "+parentSite+" did not exist or was external; skipping library");
             return null;
           }
           else
@@ -1104,11 +1108,12 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
             // Page did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The page at "+baseUrl+parentSite+" did not exist; assuming list deleted");
+              Logging.connectors.debug("SharePoint: The page at "+baseUrl+parentSite+" did not exist or was external; skipping list");
             return null;
           }
           else if (httpErrorCode.equals("401"))
@@ -1136,7 +1141,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The list "+listName+" in site "+parentSite+" did not exist; assuming list deleted");
+              Logging.connectors.debug("SharePoint: The list "+listName+" in site "+parentSite+" did not exist or was external; skipping list");
             return null;
           }
           else
@@ -1248,11 +1253,12 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
             // Page did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist or was external; skipping library");
             return null;
           }
           else if (httpErrorCode.equals("401"))
@@ -1280,7 +1286,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The docpath "+docPath+" in site "+site+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The docpath "+docPath+" in site "+site+" did not exist or was external; skipping library");
             return null;
           }
           else
@@ -1555,10 +1561,11 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
             // Page did not exist
-            throw new ManifoldCFException("The site at "+baseUrl+site+" did not exist");
+            throw new ManifoldCFException("The site at "+baseUrl+site+" did not exist or was external; skipping");
           }
           else if (httpErrorCode.equals("401"))
             throw new ManifoldCFException("Crawl user did not authenticate properly, or has insufficient permissions to access "+baseUrl+site+": "+e.getMessage(),e);
@@ -1689,7 +1696,8 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
             return null;
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);
@@ -1822,7 +1830,8 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
             return null;
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);
@@ -2099,7 +2108,8 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
             return null;
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);
@@ -2233,7 +2243,8 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
             return null;
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);
@@ -2394,7 +2405,8 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
             return null;
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);
@@ -2559,7 +2571,8 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
             return null;
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);

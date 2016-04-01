@@ -93,6 +93,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   *@param checkActivity is an object including the activities that can be performed by this method.
   *@return true if the mime type can be accepted by this connector.
   */
+  @Override
   public boolean checkMimeTypeIndexable(VersionContext pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {

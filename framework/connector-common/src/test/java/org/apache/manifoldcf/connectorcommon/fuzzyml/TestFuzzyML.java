@@ -181,6 +181,43 @@ public class TestFuzzyML
 ;
 
   @Test
+  public void testTags()
+    throws IOException, ManifoldCFException
+  {
+    org.apache.manifoldcf.core.system.Logging.misc = org.apache.log4j.Logger.getLogger("test");
+    InputStream is = new ByteArrayInputStream("<href a=/hello/out/there/>".getBytes(StandardCharsets.UTF_8));
+    Parser p = new Parser();
+    TestParseState x = new TestParseState();
+    p.parseWithCharsetDetection(null,is,x);
+    Assert.assertTrue(x.lastTagName != null);
+    Assert.assertTrue(x.lastTagName.equals("href"));
+    Assert.assertTrue(x.lastTagAttributes.size() == 1);
+    Assert.assertTrue(x.lastTagAttributes.get(0).getName().equals("a"));
+    Assert.assertTrue(x.lastTagAttributes.get(0).getValue().equals("/hello/out/there/"));
+  }
+  
+  protected static class TestParseState extends TagParseState
+  {
+    public String lastTagName = null;
+    public List<AttrNameValue> lastTagAttributes = null;
+    
+    public TestParseState()
+    {
+      super();
+    }
+    
+    @Override
+    protected boolean noteTag(String tagName, List<AttrNameValue> attributes)
+      throws ManifoldCFException
+    {
+      lastTagName = tagName;
+      lastTagAttributes = attributes;
+      return super.noteTag(tagName, attributes);
+    }
+
+  }
+
+  @Test
   public void testFailure()
     throws IOException, ManifoldCFException
   {

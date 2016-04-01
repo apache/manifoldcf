@@ -29,6 +29,10 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
+import java.util.Date;
+
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.Consts;
@@ -73,10 +77,19 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     private final String[] parentDenyAcls;
     private final boolean useMapperAttachments;
     private final String contentAttributeName;
-
+    private final String createdDateAttributeName;
+    private final String modifiedDateAttributeName;
+    private final String indexingDateAttributeName;
+    private final String mimeTypeAttributeName;
+    
     public IndexRequestEntity(RepositoryDocument document, InputStream inputStream,
       String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls, String[] parentAcls, String[] parentDenyAcls,
-      boolean useMapperAttachments, String contentAttributeName)
+      boolean useMapperAttachments,
+      String contentAttributeName,
+      String createdDateAttributeName,
+      String modifiedDateAttributeName,
+      String indexingDateAttributeName,
+      String mimeTypeAttributeName)
       throws ManifoldCFException
     {
       this.document = document;
@@ -89,6 +102,10 @@ public class ElasticSearchIndex extends ElasticSearchConnection
       this.parentDenyAcls = parentDenyAcls;
       this.useMapperAttachments = useMapperAttachments;
       this.contentAttributeName = contentAttributeName;
+      this.createdDateAttributeName = createdDateAttributeName;
+      this.modifiedDateAttributeName = modifiedDateAttributeName;
+      this.indexingDateAttributeName = indexingDateAttributeName;
+      this.mimeTypeAttributeName = mimeTypeAttributeName;
     }
 
     @Override
@@ -130,10 +147,40 @@ public class ElasticSearchIndex extends ElasticSearchConnection
         boolean needComma = false;
         while (i.hasNext()){
           String fieldName = i.next();
-          String[] fieldValues = document.getFieldAsStrings(fieldName);
-          needComma = writeField(pw, needComma, fieldName, fieldValues);
+          Date[] dateFieldValues = document.getFieldAsDates(fieldName);
+          if (dateFieldValues != null)
+          {
+            needComma = writeField(pw, needComma, fieldName, dateFieldValues);
+          }
+          else
+          {
+            String[] fieldValues = document.getFieldAsStrings(fieldName);
+            needComma = writeField(pw, needComma, fieldName, fieldValues);
+          }
         }
 
+        // Standard document fields
+        final Date createdDate = document.getCreatedDate();
+        if (createdDate != null && createdDateAttributeName != null && createdDateAttributeName.length() > 0)
+        {
+          needComma = writeField(pw, needComma, createdDateAttributeName, new Date[]{createdDate});
+        }
+        final Date modifiedDate = document.getModifiedDate();
+        if (modifiedDate != null && modifiedDateAttributeName != null && modifiedDateAttributeName.length() > 0)
+        {
+          needComma = writeField(pw, needComma, modifiedDateAttributeName, new Date[]{modifiedDate});
+        }
+        final Date indexingDate = document.getIndexingDate();
+        if (indexingDate != null && indexingDateAttributeName != null && indexingDateAttributeName.length() > 0)
+        {
+          needComma = writeField(pw, needComma, indexingDateAttributeName, new Date[]{indexingDate});
+        }
+        final String mimeType = document.getMimeType();
+        if (mimeType != null && mimeTypeAttributeName != null && mimeTypeAttributeName.length() > 0)
+        {
+          needComma = writeField(pw, needComma, mimeTypeAttributeName, new String[]{mimeType});
+        }
+        
         needComma = writeACLs(pw, needComma, "document", acls, denyAcls);
         needComma = writeACLs(pw, needComma, "share", shareAcls, shareDenyAcls);
         needComma = writeACLs(pw, needComma, "parent", parentAcls, parentDenyAcls);
@@ -234,6 +281,52 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     }
     return needComma;
   }
+
+  private final static SimpleDateFormat DATE_FORMATTER;
+
+  static
+  {
+    String ISO_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+    TimeZone UTC = TimeZone.getTimeZone("UTC");
+    DATE_FORMATTER = new SimpleDateFormat(ISO_FORMAT);
+    DATE_FORMATTER.setTimeZone(UTC);
+  }
+  
+  protected static String formatAsString(final Date dateValue)
+  {
+    return DATE_FORMATTER.format(dateValue);
+  }
+  
+  protected static boolean writeField(PrintWriter pw, boolean needComma,
+    String fieldName, Date[] fieldValues)
+    throws IOException
+  {
+    if (fieldValues == null)
+      return needComma;
+
+    if (fieldValues.length == 1){
+      if (needComma)
+        pw.print(",");
+      pw.print(jsonStringEscape(fieldName)+" : "+jsonStringEscape(formatAsString(fieldValues[0])));
+      needComma = true;
+      return needComma;
+    }
+
+    if (fieldValues.length > 1){
+      if (needComma)
+        pw.print(",");
+      StringBuilder sb = new StringBuilder();
+      sb.append("[");
+      for(int j=0; j<fieldValues.length; j++){
+        sb.append(jsonStringEscape(formatAsString(fieldValues[j]))).append(",");
+      }
+      sb.setLength(sb.length() - 1); // discard last ","
+      sb.append("]");
+      pw.print(jsonStringEscape(fieldName)+" : "+sb.toString());
+      needComma = true;
+    }
+    return needComma;
+  }
   
   /** Output an acl level */
   protected static boolean writeACLs(PrintWriter pw, boolean needComma,
@@ -302,7 +395,12 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     HttpPut put = new HttpPut(url.toString());
     put.setEntity(new IndexRequestEntity(document, inputStream,
       acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls,
-      config.getUseMapperAttachments(), config.getContentAttributeName()));
+      config.getUseMapperAttachments(),
+      config.getContentAttributeName(),
+      config.getCreatedDateAttributeName(),
+      config.getModifiedDateAttributeName(),
+      config.getIndexingDateAttributeName(),
+      config.getMimeTypeAttributeName()));
     if (call(put) == false)
       return false;
     String error = checkJson(jsonException);

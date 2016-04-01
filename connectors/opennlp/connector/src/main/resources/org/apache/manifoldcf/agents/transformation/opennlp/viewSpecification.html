@@ -1,0 +1,68 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<table class="displaytable">
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SentenceDetectorModelPath'))</nobr></td>
+    <td class="value"><nobr>$Encoder.bodyEscape($SMODELPATH)</nobr></td>
+  </tr>
+
+  <tr>
+    <td class="separator" colspan="2"><hr /></td>
+  </tr>
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.TokenizerModelPath'))</nobr></td>
+    <td class="value"><nobr>$Encoder.bodyEscape($TMODELPATH)</nobr></td>
+  </tr>
+
+  <tr>
+    <td class="separator" colspan="2"><hr /></td>
+  </tr>
+  
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.FinderModelList'))</nobr></td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.ParameterName'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.ModelFile'))</nobr></td>
+        </tr>
+  #set($modelcounter = 0)
+  #foreach($modelrecord in $MODELS)
+    #if(($modelcounter % 2) == 0)
+        <tr class="evenformrow">
+    #else
+        <tr class="oddformrow">
+    #end
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($modelrecord.get('parametername'))</nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($modelrecord.get('modelfile'))</nobr>
+          </td>
+        </tr>
+    #set($modelcounter = $modelcounter + 1)
+  #end
+  #if($modelcounter == 0)
+        <tr class="formrow"><td colspan="4" class="formcolumnmessage"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.NoModelsSpecified'))</nobr></td></tr>
+  #end
+      </table>
+    </td>
+  </tr>
+
+</table>

@@ -2746,7 +2746,10 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         boolean needToReindex = (oldDocumentVersion == null);
         if (needToReindex == false)
         {
-          needToReindex = (!oldDocumentVersion.equals(newDocumentVersion) ||
+          // We need a way to signal that a document has no valid version string.
+          // That way is when the new document version string is empty.
+          needToReindex = (newDocumentVersion.length() == 0 ||
+            !oldDocumentVersion.equals(newDocumentVersion) ||
             !oldOutputVersion.equals(fullSpec.getStageDescriptionString(outputStage).getVersionString()) ||
             !oldAuthorityName.equals((newAuthorityNameString==null)?"":newAuthorityNameString));
         }

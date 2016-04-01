@@ -1,7 +1,83 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.3-dev =====================
+======================= 2.4-dev =====================
+
+CONNECTORS-1293: Duplication of attribute names in the UI when
+multiple languages are installed in Documentum.
+(Radek Sklenicka, Karl Wright)
+
+CONNECTORS-1288: SharePoint connector proxy password obfuscation
+was breaking this feature.
+(Markus Schuch, Karl Wright)
+
+CONNECTORS-1284: SharePoint fields that do not have a different
+display name from their field name (or which are defined in some way
+as yet not well understood) were being overlooked in SharePoint crawling.
+(Markus Schuch, Karl Wright)
+
+CONNECTORS-1283: "Document has no version" signal was not working.
+This problem has been around since MCF 1.8/2.0.  The fix is simple but
+may change the functioning of some custom repository connectors.  This
+fix also restores broken functionality in the MCF JDBC connector, when
+no document version query is provided.
+(Markus Schuch, Karl Wright)
+
+CONNECTORS-1282: Missing translation for Metadata Adjuster.
+(Markus Schuch, Karl Wright)
+
+CONNECTORS-1281: SQLServer under JTDS throws AbstractMethodException.
+(Olivier Tavard, Karl Wright)
+
+CONNECTORS-1275: Help ES deal with dates properly.  Also added
+support for built-in Repository Document attributes.
+(Andrey Leybovich, Karl Wright)
+
+CONNECTORS-1272: Update _status command for Elastic Search to _stats.
+(Andrey Leybovich, Karl Wright)
+
+CONNECTORS-1271: Broken AmazonCloudSearch connector.
+(Juan Pablo Diaz-Vaz, Karl Wright)
+
+CONNECTORS-1270: Contribute OpenNLP transformation connector.
+(Chalitha Perera, Rafa Haro, Karl Wright)
+
+CONNECTORS-1268: Add missing mime types to FileNet connector.
+(Damien Picard)
+
+CONNECTORS-1267: Added enter key pressed event to the login page
+(Muhammed Olgun)
+
+======================= Release 2.3 =====================
+
+CONNECTORS-1266: Fix an infinite loop in email notification connector.
+(Markus Schuch)
+
+CONNECTORS-1265: Adjust interval for checking validity of http connection.
+(Shinichiro Abe, Karl Wright)
+
+CONNECTORS-1263: New version of Alfresco-indexer package. 
+(Maurizio Pillitu)
+
+CONNECTORS-1262: Fix Alfresco-webscript connector's version string,
+so changes to ACLs will be detected as document changes.
+(Chalitha Perera)
+
+CONNECTORS-1264: Fix handling of slashes in unquoted attribute values
+in html parsing.
+(Issei Nishigata, Karl Wright)
+
+CONNECTORS-1249: Independent priority setting for different
+connectors, and bring individual connectors up to speed with proper
+document bin names.
+(Karl Wright)
+
+CONNECTORS-1261: Supply commit-within argument for /update
+handler in Solr connector.
+(Karl Wright, Shinichiro Abe, Adrian Conlon)
+
+CONNECTORS-1251: Confluence connector encoding issue.
+(Karl Wright, Jens Grassel)
 
 CONNECTORS-1260: Fix completely broken email connector.
 (Karl Wright, Julien Massiera)

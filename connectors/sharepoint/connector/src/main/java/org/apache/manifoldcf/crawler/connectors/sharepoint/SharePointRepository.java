@@ -235,7 +235,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         }
       }
       String proxyUsername = params.getParameter(SharePointConfig.PARAM_PROXYUSER);
-      String proxyPassword = params.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+      String proxyPassword = params.getObfuscatedParameter(SharePointConfig.PARAM_PROXYPASSWORD);
       String proxyDomain = params.getParameter(SharePointConfig.PARAM_PROXYDOMAIN);
       
       serverUrl = serverProtocol + "://" + serverName;
@@ -274,7 +274,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         .register("https", myFactory)
         .build());
       poolingConnectionManager.setDefaultMaxPerRoute(1);
-      poolingConnectionManager.setValidateAfterInactivity(60000);
+      poolingConnectionManager.setValidateAfterInactivity(2000);
       poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
         .setTcpNoDelay(true)
         .setSoTimeout(socketTimeout)
@@ -854,9 +854,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             
             String[] fields = new String[fieldNames.size()];
             int j = 0;
-            for (String field : fieldNames.values())
+            for (String field : fieldNames.keySet())
             {
-              fields[j++] = field;
+              String value = fieldNames.get(field);
+              fields[j++] = (value==null)?field:value;
             }
                   
             String[] accessTokens;
@@ -1306,9 +1307,10 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             
             String[] fields = new String[fieldNames.size()];
             int j = 0;
-            for (String field : fieldNames.values())
+            for (String field : fieldNames.keySet())
             {
-              fields[j++] = field;
+              String value = fieldNames.get(field);
+              fields[j++] = (value==null)?field:value;
             }
                   
             String[] accessTokens;
@@ -2467,7 +2469,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     if (proxyUser == null)
       proxyUser = "";
     
-    String proxyPassword = parameters.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+    String proxyPassword = parameters.getObfuscatedParameter(SharePointConfig.PARAM_PROXYPASSWORD);
     if (proxyPassword == null)
       proxyPassword = "";
     else
