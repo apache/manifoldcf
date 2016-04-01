@@ -295,7 +295,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
         SpecificationNode childNode = spec.getChild(i);
         if (childNode.getType().equals(nodeType))
         {
-          for (int j = 0; j < childNode.getChildCount(); i++) {
+          for (int j = 0; j < childNode.getChildCount(); j++) {
             SpecificationNode sn = childNode.getChild(j);
             if (sn.getType().equals(EmailConfig.NODE_TO))
               to.add(sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE));

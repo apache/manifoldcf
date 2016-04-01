@@ -1,0 +1,142 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TABNAME == $ResourceBundle.getString('OpenNlpExtractor.OpenNLPTabName') && ${SEQNUM} == ${SELECTEDNUM})
+
+<table class="displaytable">
+  <tr>
+    <td class="separator" colspan="2"><hr /></td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SentenceDetectorModelPath'))</nobr></td>
+    <td class="value">
+      <select name="s${SEQNUM}_smodelpath" size="3">
+  #if($SMODELPATH == "")
+        <option value="" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #else
+        <option value="">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #end
+  #foreach ($FILENAME in $FILENAMES)
+    #if($FILENAME == $SMODELPATH)
+        <option value="$Encoder.attributeEscape($FILENAME)" selected="true">$Encoder.bodyEscape($FILENAME)</option>
+    #else
+        <option value="$Encoder.attributeEscape($FILENAME)">$Encoder.bodyEscape($FILENAME)</option>
+    #end
+  #end
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="separator" colspan="2"><hr /></td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.TokenizerModelPath'))</nobr></td>
+    <td class="value">
+      <select name="s${SEQNUM}_tmodelpath" size="3">
+  #if($TMODELPATH == "")
+        <option value="" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #else
+        <option value="">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #end
+  #foreach ($FILENAME in $FILENAMES)
+    #if($FILENAME == $TMODELPATH)
+        <option value="$Encoder.attributeEscape($FILENAME)" selected="true">$Encoder.bodyEscape($FILENAME)</option>
+    #else
+        <option value="$Encoder.attributeEscape($FILENAME)">$Encoder.bodyEscape($FILENAME)</option>
+    #end
+  #end
+      </select>
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="separator" colspan="2"><hr /></td>
+  </tr>
+  
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.FinderModelList'))</nobr></td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.ParameterName'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.ModelFile'))</nobr></td>
+        </tr>
+  #set($modelcounter = 0)
+  #foreach($modelrecord in $MODELS)
+    #if(($modelcounter % 2) == 0)
+        <tr class="evenformrow">
+    #else
+        <tr class="oddformrow">
+    #end
+          <td class="formcolumncell">
+            <a name="s${SEQNUM}_model_${modelcounter}_tag"/>
+            <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('OpenNlpExtractor.Delete'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('OpenNlpExtractor.Deletemodelnumber'))${modelcounter}" onclick='javascript:s${SEQNUM}_DeleteModel(${modelcounter});'/>
+            <input type="hidden" name="s${SEQNUM}_model_${modelcounter}_op" value="Continue"/>
+            <input type="hidden" name="s${SEQNUM}_model_${modelcounter}_parametername" value="$Encoder.attributeEscape($modelrecord.get('parametername'))"/>
+            <input type="hidden" name="s${SEQNUM}_model_${modelcounter}_modelfile" value="$Encoder.attributeEscape($modelrecord.get('modelfile'))"/>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($modelrecord.get('parametername'))</nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($modelrecord.get('modelfile'))</nobr>
+          </td>
+        </tr>
+    #set($modelcounter = $modelcounter + 1)
+  #end
+  #if($modelcounter == 0)
+        <tr class="formrow"><td colspan="3" class="formcolumnmessage"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.NoModelsSpecified'))</nobr></td></tr>
+  #end
+        <tr class="formrow"><td colspan="3" class="formseparator"><hr/></td></tr>
+        <tr class="formrow">
+          <td class="formcolumncell">
+            <a name="s${SEQNUM}_model_tag"/>
+            <input type="hidden" name="s${SEQNUM}_model_op" value="Continue"/>
+            <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('OpenNlpExtractor.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('OpenNlpExtractor.Addmodel'))" onclick="javascript:s${SEQNUM}_AddModel();"/>
+            <input type="hidden" name="s${SEQNUM}_model_count" value="${modelcounter}"/>
+          </td>
+          <td class="formcolumncell">
+            <input type="text" name="s${SEQNUM}_model_parametername" size="30" value=""/>
+          </td>
+          <td class="formcolumncell">
+            <select name="s${SEQNUM}_model_modelfile" size="3">
+              <option value="" selected="true">$Encoder.bodyEscape($ResourceBundle.getString('OpenNlpExtractor.SelectOne'))</option>
+  #foreach ($FILENAME in $FILENAMES)
+              <option value="$Encoder.attributeEscape($FILENAME)">$Encoder.bodyEscape($FILENAME)</option>
+  #end
+            </select>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+</table>
+
+#else
+<input type="hidden" name="s${SEQNUM}_smodelpath" value="$Encoder.bodyEscape($SMODELPATH)"/>
+<input type="hidden" name="s${SEQNUM}_tmodelpath" value="$Encoder.bodyEscape($TMODELPATH)"/>
+
+  #set($modelcounter = 0)
+  #foreach($modelrecord in $MODELS)
+<input type="hidden" name="s${SEQNUM}_model_${modelcounter}_parametername" value="$Encoder.attributeEscape($modelrecord.get('parametername'))"/>
+<input type="hidden" name="s${SEQNUM}_model_${modelcounter}_modelfile" value="$Encoder.attributeEscape($modelrecord.get('modelfile'))"/>
+    #set($modelcounter = $modelcounter + 1)
+  #end
+<input type="hidden" name="s${SEQNUM}_model_count" value="${modelcounter}"/>
+#end

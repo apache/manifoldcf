@@ -42,6 +42,7 @@ public abstract class JSONReader extends Reader
       }
       cbuf[off++] = (char)theChar;
       len--;
+      amt++;
     }
   }
   

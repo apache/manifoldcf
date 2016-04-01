@@ -33,13 +33,20 @@
       <p>The javadoc for the last released version of ManifoldCF and its connectors can be found by following the links below.</p>
       <p><a href="../api/framework/index.html">ManifoldCF Framework</a></p>
       <p><a href="../api/activedirectory/index.html">Active Directory authority</a></p>
+      <p><a href="../api/alfresco-webscript/index.html">Alfresco webscript authority and connector</a></p>
       <p><a href="../api/alfresco/index.html">Alfresco connector</a></p>
+      <p><a href="../api/amazoncloudsearch/index.html">AmazonCloudSearch output connector</a></p>
+      <p><a href="../api/amazons3/index.html">Amazon S3 authority and connector</a></p>
       <p><a href="../api/cmis/index.html">CMIS authority and connector</a></p>
+      <p><a href="../api/confluence/index.html">Confluence authority and connector</a></p>
       <p><a href="../api/documentum/index.html">Documentum authority, connector, and support processes</a></p>
       <p><a href="../api/dropbox/index.html">Dropbox connector</a></p>
-      <p><a href="../api/email/index.html">Email connector</a></p>
+      <p><a href="../api/email/index.html">Email connector and notification connector</a></p>
+      <p><a href="../api/elasticsearch/index.html">ElasticSearch output connector</a></p>
       <p><a href="../api/filenet/index.html">FileNet connector and support processes</a></p>
       <p><a href="../api/filesystem/index.html">File system repository and output connector</a></p>
+      <p><a href="../api/forcedmetadata/index.html">Metadata transformation connector</a></p>
+      <p><a href="../api/generic/index.html">Generic connector</a></p>
       <p><a href="../api/googledrive/index.html">GoogleDrive connector</a></p>
       <p><a href="../api/gridfs/index.html">GridFS connector</a></p>
       <p><a href="../api/gts/index.html">qBase GTS output connector</a></p>
@@ -47,16 +54,20 @@
       <p><a href="../api/jcifs/index.html">CIFS connector</a></p>
       <p><a href="../api/jira/index.html">JIRA connector and authority</a></p>
       <p><a href="../api/jdbc/index.html">JDBC connector</a></p>
+      <p><a href="../api/kafka/index.html">Kafka output connector</a></p>
       <p><a href="../api/livelink/index.html">LiveLink authority and connector</a></p>
       <p><a href="../api/meridio/index.html">Meridio authority and connector</a></p>
       <p><a href="../api/opensearchserver/index.html">OpenSearchServer output connector</a></p>
+      <p><a href="../api/opennlp/index.html">OpenNLP transformation connector</a></p>
       <p><a href="../api/elasticsearch/index.html">ElasticSearch output connector</a></p>
       <p><a href="../api/nullauthority/index.html">Null authority</a></p>
       <p><a href="../api/nulloutput/index.html">Null output connector</a></p>
       <p><a href="../api/regexpmapper/index.html">Regular expression mapping connector</a></p>
       <p><a href="../api/rss/index.html">RSS connector</a></p>
+      <p><a href="../api/searchblox/index.html">Searchblox output connector</a></p>
       <p><a href="../api/sharepoint/index.html">SharePoint connector</a></p>
       <p><a href="../api/solr/index.html">Solr output connector</a></p>
+      <p><a href="../api/tika/index.html">Tika transformation connector</a></p>
       <p><a href="../api/webcrawler/index.html">Web connector</a></p>
       <p><a href="../api/wiki/index.html">Wiki connector</a></p>
     </section>
