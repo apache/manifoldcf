@@ -1418,7 +1418,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     long maxFileLength = Long.MAX_VALUE;
     for (int i = 0; i < documentSpecification.getChildCount(); i++)
     {
-      SpecificationNode sn = documentSpecification.getChild(i++);
+      SpecificationNode sn = documentSpecification.getChild(i);
       if (sn.getType().equals(NODE_MAXLENGTH))
       {
         try

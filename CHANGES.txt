@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.4-dev =====================
 
+CONNECTORS-1295: JCIFS connector ignoring max file length value
+sometimes.
+(Konstantin Avdeev, Karl Wright)
+
 CONNECTORS-1293: Duplication of attribute names in the UI when
 multiple languages are installed in Documentum.
 (Radek Sklenicka, Karl Wright)
