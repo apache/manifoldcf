@@ -14,7 +14,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>alfresco-4-war</artifactId>
-    <version>2.4-SNAPSHOT</version>
+    <version>2.4</version>
     <name>ManifoldCF - Test Materials - Alfresco WAR</name>
     <description>Alfresco WAR builder</description>
     <packaging>war</packaging>
@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.manifoldcf</groupId>
         <artifactId>mcf-test-materials</artifactId>
-        <version>2.4-SNAPSHOT</version>
+        <version>2.4</version>
     </parent>
     
     <properties>
