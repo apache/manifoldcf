@@ -33,42 +33,59 @@ public class EmailSession
   protected final int port;
   protected final String username;
   protected final String password;
-  protected final String protocol;
   protected final Properties properties;
 
   private Session session = null;
-  private Store store = null;
 
   /** Create a session */
-  public EmailSession(String server, int port, String username, String password,
-    String protocol, Properties properties)
+  public EmailSession(final String server, final int port, final String username, final String password,
+    Properties properties)
     throws MessagingException
   {
     this.server = server;
     this.port = port;
     this.username = username;
     this.password = password;
-    this.protocol = protocol;
     this.properties = properties;
+
+    properties.put("mail.smtp.host", server);
+    properties.put("mail.smtp.port", new Integer(port).toString());
+
+    if (properties.get("mail.smtp.connectiontimeout") == null) {
+      properties.put("mail.smtp.connectiontimeout", new Integer(60000));
+    }
+    if (properties.get("mail.smtp.timeout") == null) {
+      properties.put("mail.smtp.timeout", new Integer(60000));
+    }
+    if (properties.get("mail.smtp.writetimeout") == null) {
+      properties.put("mail.smtp.writetimeout", new Integer(60000));
+    }
+    
+    if (username != null && username.length() > 0) {
+      properties.put("mail.smtp.auth", "true");
+    }
+    
+    if (properties.get("mail.smtp.starttls.enable") == null) {
+      properties.put("mail.smtp.starttls.enable", "true");
+      //properties.put("mail.smtp.ssl.trust", true);
+    }
+
     
     // Now, try to connect
-    Session thisSession = Session.getDefaultInstance(properties, null);
-    Store thisStore = thisSession.getStore(protocol);
-    thisStore.connect(server, port, username, password);
-
+    final Session thisSession = Session.getInstance(properties,
+      new javax.mail.Authenticator() {
+        protected PasswordAuthentication getPasswordAuthentication() {
+          return new PasswordAuthentication(username, password);
+        }
+      });
+  
     session = thisSession;
-    store = thisStore;
   }
   
   public void checkConnection()
     throws MessagingException
   {
-    if (store != null)
-    {
-      if (store.getDefaultFolder() == null) {
-        throw new MessagingException("Error checking the connection: No default folder.");
-      }
-    }
+    // Need something here...
   }
 
   public void send(List<String> to, String from, String subject, String body)
@@ -98,11 +115,6 @@ public class EmailSession
   public void close()
     throws MessagingException
   {
-    if (store != null)
-    {
-      store.close();
-      store = null;
-    }
     session = null;
   }
 }
