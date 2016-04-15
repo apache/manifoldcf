@@ -499,7 +499,7 @@
     <target name="doc" depends="deliver-site-doc"/>
     
     <target name="set-version">
-      <property name="release-version" value="2.4-dev"/>
+      <property name="release-version" value="2.4"/>
     </target>
     
     <target name="create-source-zip" depends="set-version">

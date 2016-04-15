@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.4-dev =====================
+======================= Release 2.4 =====================
 
 CONNECTORS-1296: Revamp email notification connector to do
 SMTP and be more configurable.
