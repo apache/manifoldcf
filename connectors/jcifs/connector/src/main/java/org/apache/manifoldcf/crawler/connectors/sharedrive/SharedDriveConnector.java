@@ -2305,7 +2305,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           if (te.getRootCause() != null && te.getRootCause() instanceof java.lang.InterruptedException)
             throw e;
         }
-
+        if (e.getMessage().equals("0x8000002D")) {
+          // Symlink
+          Logging.connectors.warn("JCIFS: Symlink detected: "+file);
+          return new SmbFile[0];
+        }
         Logging.connectors.warn("JCIFS: Possibly transient exception detected on attempt "+Integer.toString(totalTries)+" while listing files: "+e.getMessage(),e);
         if (currentException != null)
         {
