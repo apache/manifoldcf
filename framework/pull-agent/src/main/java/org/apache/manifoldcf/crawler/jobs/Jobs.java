@@ -979,10 +979,10 @@ public class Jobs extends org.apache.manifoldcf.core.database.BaseTable
                   isSame = hopFilterManager.compareRows(id,jobDescription);
 
                 if (!isSame) {
-                  System.out.println("Setting version field to null");
+                  //System.out.println("Setting version field to null");
                   values.put(seedingVersionField,null);
                 } else {
-                  System.out.println("NOT setting version field to null");
+                  //System.out.println("NOT setting version field to null");
                 }
 
                 params.clear();
