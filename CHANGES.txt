@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1301: Addition of SSL to LDAP connector broke non-SSL
+functionality.
+(Yulin He, Karl Wright)
+
 CONNECTORS-1297: Detect symlink in JCifs connector and explicitly
 skip in that case.
 (Konstantin Avdeev, Karl Wright)
