@@ -36,7 +36,7 @@
 
     <section>
 	<title>プロジェクトの状況</title>
-	<p>Apache ManifoldCF 2.3は<a href="download.html">ここ</a>からダウンロードすることができます。</p>
+	<p>Apache ManifoldCF 2.4は<a href="download.html">ここ</a>からダウンロードすることができます。</p>
     </section>
 
     <section>
@@ -47,6 +47,10 @@
 
     <section>
         <title>ニュース</title>
+          <section>
+              <title>2016年04月23日 - ManifoldCF 2.4を公開しました！</title>
+                <p>開発者コミュニティは2.4リリースを承認しました</p>
+          </section>
           <section>
               <title>2015年12月17日 - ManifoldCF 2.3を公開しました！</title>
                 <p>開発者コミュニティは2.3リリースを承認しました</p>
