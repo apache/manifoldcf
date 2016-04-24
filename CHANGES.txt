@@ -1,7 +1,25 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.4-dev =====================
+======================= 2.5-dev =====================
+
+CONNECTORS-1301: Addition of SSL to LDAP connector broke non-SSL
+functionality.
+(Yulin He, Karl Wright)
+
+CONNECTORS-1297: Detect symlink in JCifs connector and explicitly
+skip in that case.
+(Konstantin Avdeev, Karl Wright)
+
+======================= Release 2.4 =====================
+
+CONNECTORS-1296: Revamp email notification connector to do
+SMTP and be more configurable.
+(Markus Schuch, Karl Wright)
+
+CONNECTORS-1295: JCIFS connector ignoring max file length value
+sometimes.
+(Konstantin Avdeev, Karl Wright)
 
 CONNECTORS-1293: Duplication of attribute names in the UI when
 multiple languages are installed in Documentum.

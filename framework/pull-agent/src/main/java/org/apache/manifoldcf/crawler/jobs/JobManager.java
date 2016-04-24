@@ -6005,6 +6005,7 @@ public class JobManager implements IJobManager
               matchTime = thisMatchTime;
               duration = thisDuration;
               requestMinimum = sr.getRequestMinimum();
+              //System.out.println("Scheduled job start; requestMinimum = "+requestMinimum);
             }
           }
 
@@ -6034,6 +6035,7 @@ public class JobManager implements IJobManager
             // If job was formerly "inactive", do the full startup.
             // Start this job!  but with no end time.
             // This does not get logged because the startup thread does the logging.
+            //System.out.println("Starting job with requestMinimum = "+requestMinimum);
             jobs.startJob(jobID,windowEnd,requestMinimum);
             jobQueue.clearFailTimes(jobID);
             Logging.jobs.info("Signalled for job start for job "+jobID);
@@ -7213,6 +7215,7 @@ public class JobManager implements IJobManager
             failRetryCount = (int)failRetryCountLong.longValue();
 
           boolean requestMinimum = (status == jobs.STATUS_READYFORSTARTUPMINIMAL);
+          //System.out.println("When starting the job, requestMinimum = "+requestMinimum);
           
           // Mark status of job as "starting"
           jobs.writeTransientStatus(jobID,requestMinimum?jobs.STATUS_STARTINGUPMINIMAL:jobs.STATUS_STARTINGUP,processID);

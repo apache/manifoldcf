@@ -206,11 +206,11 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
         final Hashtable env = new Hashtable();
         env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
         env.put(Context.PROVIDER_URL, "ldap://" + serverName + ":" + serverPort + "/" + serverBase);
-        if (protocolToUse.equals("ldaps"))
+        if (protocolToUse.equals("ldaps")) {
           env.put(Context.SECURITY_PROTOCOL, "ssl");
+          env.put("java.naming.ldap.factory.socket", "org.apache.manifoldcf.core.common.LDAPSSLSocketFactory");
+        }
         
-        env.put("java.naming.ldap.factory.socket", "org.apache.manifoldcf.core.common.LDAPSSLSocketFactory");
-
         if (bindUser != null && !bindUser.isEmpty()) {
           env.put(Context.SECURITY_AUTHENTICATION, "simple");
           env.put(Context.SECURITY_PRINCIPAL, bindUser);

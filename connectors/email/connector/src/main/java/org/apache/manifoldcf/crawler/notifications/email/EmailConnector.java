@@ -48,21 +48,11 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
   protected String portString = null;
   protected String username = null;
   protected String password = null;
-  protected String protocol = null;
   protected Properties properties = null;
   
   // Local session handle
   protected EmailSession session = null;
 
-  private static Map<String,String> providerMap;
-  static
-  {
-    providerMap = new HashMap<String,String>();
-    providerMap.put(EmailConfig.PROTOCOL_POP3, EmailConfig.PROTOCOL_POP3_PROVIDER);
-    providerMap.put(EmailConfig.PROTOCOL_POP3S, EmailConfig.PROTOCOL_POP3S_PROVIDER);
-    providerMap.put(EmailConfig.PROTOCOL_IMAP, EmailConfig.PROTOCOL_IMAP_PROVIDER);
-    providerMap.put(EmailConfig.PROTOCOL_IMAPS, EmailConfig.PROTOCOL_IMAPS_PROVIDER);
-  }
   //////////////////////////////////Start of Basic Connector Methods/////////////////////////
 
   /**
@@ -76,7 +66,6 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     super.connect(configParameters);
     this.server = configParameters.getParameter(EmailConfig.SERVER_PARAM);
     this.portString = configParameters.getParameter(EmailConfig.PORT_PARAM);
-    this.protocol = configParameters.getParameter(EmailConfig.PROTOCOL_PARAM);
     this.username = configParameters.getParameter(EmailConfig.USERNAME_PARAM);
     this.password = configParameters.getObfuscatedParameter(EmailConfig.PASSWORD_PARAM);
     this.properties = new Properties();
@@ -101,7 +90,6 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     throws ManifoldCFException {
     this.server = null;
     this.portString = null;
-    this.protocol = null;
     this.username = null;
     this.password = null;
     this.properties = null;
@@ -164,8 +152,6 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
         throw new ManifoldCFException("Missing server parameter");
       if (properties == null)
         throw new ManifoldCFException("Missing server properties");
-      if (protocol == null)
-        throw new ManifoldCFException("Missing protocol parameter");
       
       // Create a session.
       int port;
@@ -184,8 +170,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
         port = -1;
 
       try {
-        ConnectThread connectThread = new ConnectThread(server, port, username, password,
-          providerMap.get(protocol), properties);
+        ConnectThread connectThread = new ConnectThread(server, port, username, password, properties);
         connectThread.start();
         session = connectThread.finishUp();
       } catch (InterruptedException e) {
@@ -378,7 +363,6 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     int i = 0;
     String username = parameters.getParameter(EmailConfig.USERNAME_PARAM);
     String password = parameters.getObfuscatedParameter(EmailConfig.PASSWORD_PARAM);
-    String protocol = parameters.getParameter(EmailConfig.PROTOCOL_PARAM);
     String server = parameters.getParameter(EmailConfig.SERVER_PARAM);
     String port = parameters.getParameter(EmailConfig.PORT_PARAM);
     List<Map<String, String>> list = new ArrayList<Map<String, String>>();
@@ -401,8 +385,6 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
       password = StringUtils.EMPTY;
     else
       password = mapper.mapPasswordToKey(password);
-    if (protocol == null)
-      protocol = EmailConfig.PROTOCOL_DEFAULT_VALUE;
     if (server == null)
       server = StringUtils.EMPTY;
     if (port == null)
@@ -410,7 +392,6 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
 
     paramMap.put("USERNAME", username);
     paramMap.put("PASSWORD", password);
-    paramMap.put("PROTOCOL", protocol);
     paramMap.put("SERVER", server);
     paramMap.put("PORT", port);
     paramMap.put("PROPERTIES", list);
@@ -442,10 +423,6 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     String password = variableContext.getParameter("password");
     if (password != null)
       parameters.setObfuscatedParameter(EmailConfig.PASSWORD_PARAM, variableContext.mapKeyToPassword(password));
-
-    String protocol = variableContext.getParameter("protocol");
-    if (protocol != null)
-      parameters.setParameter(EmailConfig.PROTOCOL_PARAM, protocol);
 
     String server = variableContext.getParameter("server");
     if (server != null)
@@ -800,20 +777,18 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     protected final int port;
     protected final String username;
     protected final String password;
-    protected final String protocol;
     protected final Properties properties;
     
     // Local session handle
     protected EmailSession session = null;
     protected Throwable exception = null;
     
-    public ConnectThread(String server, int port, String username, String password, String protocol, Properties properties)
+    public ConnectThread(String server, int port, String username, String password, Properties properties)
     {
       this.server = server;
       this.port = port;
       this.username = username;
       this.password = password;
-      this.protocol = protocol;
       this.properties = properties;
       setDaemon(true);
     }
@@ -822,7 +797,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     {
       try
       {
-        session = new EmailSession(server, port, username, password, protocol, properties);
+        session = new EmailSession(server, port, username, password, properties);
       }
       catch (Throwable e)
       {
