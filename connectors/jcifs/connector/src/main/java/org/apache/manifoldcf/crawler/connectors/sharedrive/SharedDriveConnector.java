@@ -1035,7 +1035,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
               throw new ServiceInterruption("Timeout or other service interruption: "+cause.getMessage(),cause,currentTime + 300000L,
                 currentTime + 12 * 60 * 60000L,-1,false);
             }
-            if (se.getMessage().indexOf("busy") != -1)
+            if (se.getMessage().indexOf("busy") != -1 || se.getMessage().toLowerCase(Locale.ROOT).indexOf("file in use") != -1 || se.getMessage().toLowerCase(Locale.ROOT).indexOf("is being used") != -1)
             {
               Logging.connectors.warn("JCIFS: 'Busy' response when processing document/directory for "+documentIdentifier+": retrying...",se);
               errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
@@ -1292,7 +1292,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
         currentTime + 3 * 60 * 60000L,-1,false);
     }
-    else if (se.getMessage().toLowerCase(Locale.ROOT).indexOf("file in use") != -1)
+    else if (se.getMessage().toLowerCase(Locale.ROOT).indexOf("busy") != -1 || se.getMessage().toLowerCase(Locale.ROOT).indexOf("file in use") != -1 || se.getMessage().toLowerCase(Locale.ROOT).indexOf("is being used") != -1)
     {
       Logging.connectors.warn("JCIFS: 'File in Use' response when "+activity+" for "+documentIdentifier+": retrying...",se);
       // 'File in Use' skip the document and keep going
