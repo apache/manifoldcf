@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1302: Catch newer version of 'in-use' SmbException in
+JCIFS connector.
+(Vince McNamara, Karl Wright)
+
 CONNECTORS-1301: Addition of SSL to LDAP connector broke non-SSL
 functionality.
 (Yulin He, Karl Wright)
