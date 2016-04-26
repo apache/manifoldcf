@@ -59,7 +59,7 @@ public class SearchBloxDocumentTest /*extends TestCase */ {
     @Test
     public void updateXmlString() throws SearchBloxException {
         String xmlGenerated = toTest.toString(IndexingFormat.XML, DocumentAction.ADD_UPDATE);
-        String xmlExpected = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" +
+        String xmlExpected = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 "<searchblox apikey=\"apikey\"><document colname=\"collection1\"><uid>URI</uid>" +
                 "<title boost=\"1\">I am a nice title</title><content boost=\"2\">I am a nice content in english!</content>" +
                 "<description boost=\"4\">I am a little tiny description</description><size>100</size><contenttype>html</contenttype>" +
@@ -92,7 +92,7 @@ public class SearchBloxDocumentTest /*extends TestCase */ {
     //@Ignore("fails on jdk 8 due to hash order")
     public void deleteXmlString() throws SearchBloxException {
         String xmlGenerated = toTest.toString(IndexingFormat.XML, DocumentAction.DELETE);
-        String xmlExpected = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><searchblox apikey=\"apikey\"><document colname=\"collection1\" uid=\"URI\"/></searchblox>";
+        String xmlExpected = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><searchblox apikey=\"apikey\"><document colname=\"collection1\" uid=\"URI\"/></searchblox>";
         assertEquals(xmlExpected, xmlGenerated);
     }
 
