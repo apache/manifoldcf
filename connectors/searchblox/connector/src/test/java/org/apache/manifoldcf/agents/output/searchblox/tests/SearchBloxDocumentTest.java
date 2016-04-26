@@ -60,38 +60,37 @@ public class SearchBloxDocumentTest /*extends TestCase */ {
     public void updateXmlString() throws SearchBloxException {
         String xmlGenerated = toTest.toString(IndexingFormat.XML, DocumentAction.ADD_UPDATE);
         String xmlExpected = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                "<searchblox apikey=\"apikey\"><document colname=\"collection1\"><uid>URI</uid>" +
-                "<title boost=\"1\">I am a nice title</title><content boost=\"2\">I am a nice content in english!</content>" +
+                "<searchblox apikey=\"apikey\"><document colname=\"collection1\">" +
+                "<uid>URI</uid><title boost=\"1\">I am a nice title</title><content boost=\"2\">I am a nice content in english!</content>" +
                 "<description boost=\"4\">I am a little tiny description</description><size>100</size><contenttype>html</contenttype>" +
-                "<meta name=\"meta2\">I am META2!</meta><meta name=\"meta1\">I am META1!</meta>" +
-                "<meta name=\"share_allow\">user1</meta><meta name=\"share_allow\">user2</meta><meta name=\"share_allow\">user3</meta>" +
-                "<meta name=\"document_deny\">user42</meta><meta name=\"document_deny\">user52</meta><meta name=\"share_deny\">user5</meta>" +
-                "<meta name=\"share_deny\">user4</meta><meta name=\"document_allow\">user22</meta><meta name=\"document_allow\">user33</meta>" +
-                "<meta name=\"document_allow\">user12</meta></document></searchblox>";
+                "<meta name=\"meta2\">I am META2!</meta><meta name=\"share_allow\">user3</meta>" +
+                "<meta name=\"share_allow\">user2</meta><meta name=\"share_allow\">user1</meta>" +
+                "<meta name=\"meta1\">I am META1!</meta><meta name=\"share_deny\">user4</meta>" +
+                "<meta name=\"share_deny\">user5</meta><meta name=\"document_deny\">user52</meta>" +
+                "<meta name=\"document_deny\">user42</meta><meta name=\"document_allow\">user22</meta>" +
+                "<meta name=\"document_allow\">user12</meta><meta name=\"document_allow\">user33</meta></document></searchblox>";
         assertEquals(xmlExpected, xmlGenerated);
     }
 
     @Test
-    //@Ignore("fails on jdk 8 due to hash order")
     public void updateJsonString() throws SearchBloxException {
         String jsonGenerated = toTest.toString(IndexingFormat.JSON, DocumentAction.ADD_UPDATE);
-
-        String expectedJson = "{\"apikey\":\"apikey\",\"document\":{\"uid\":\"URI\",\"colname\":\"collection1\",\"size\":\"100\",\"meta\":{\"meta2\":[\"I am META2!\"],\"meta1\":[\"I am META1!\"],\"share_allow\":[\"user1\",\"user2\",\"user3\"],\"document_deny\":[\"user42\",\"user52\"],\"share_deny\":[\"user5\",\"user4\"],\"document_allow\":[\"user22\",\"user33\",\"user12\"]},\"description\":\"I am a little tiny description\",\"title\":\"I am a nice title\",\"content\":\"I am a nice content in english!\",\"contenttype\":\"html\"}}";
+        String expectedJson = "{\"document\":{\"content\":\"I am a nice content in english!\",\"uid\":\"URI\",\"title\":\"I am a nice title\",\"description\":\"I am a little tiny description\",\"contenttype\":\"html\",\"colname\":\"collection1\",\"meta\":{\"meta2\":[\"I am META2!\"],\"meta1\":[\"I am META1!\"],\"share_allow\":[\"user3\",\"user2\",\"user1\"],\"share_deny\":[\"user4\",\"user5\"],\"document_deny\":[\"user52\",\"user42\"],\"document_allow\":[\"user22\",\"user12\",\"user33\"]},\"size\":\"100\"},\"apikey\":\"apikey\"}";
         assertEquals(expectedJson, jsonGenerated);
     }
 
     @Test
-    // @Ignore("fails on jdk 8 due to hash order")
     public void deleteJsonString() throws SearchBloxException {
         String jsonGenerated = toTest.toString(IndexingFormat.JSON, DocumentAction.DELETE);
-        String xmlExpected = "{\"apikey\":\"apikey\",\"document\":{\"uid\":\"URI\",\"colname\":\"collection1\"}}";
+        System.out.println(jsonGenerated);
+        String xmlExpected = "{\"document\":{\"uid\":\"URI\",\"colname\":\"collection1\"},\"apikey\":\"apikey\"}";
         assertEquals(xmlExpected, jsonGenerated);
     }
 
     @Test
-    //@Ignore("fails on jdk 8 due to hash order")
     public void deleteXmlString() throws SearchBloxException {
         String xmlGenerated = toTest.toString(IndexingFormat.XML, DocumentAction.DELETE);
+        System.out.println(xmlGenerated);
         String xmlExpected = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><searchblox apikey=\"apikey\"><document colname=\"collection1\" uid=\"URI\"/></searchblox>";
         assertEquals(xmlExpected, xmlGenerated);
     }
