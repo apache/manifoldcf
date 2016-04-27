@@ -16,38 +16,34 @@
  */
 package org.apache.manifoldcf.agents.output.searchblox.tests;
 
-import com.google.common.collect.Lists;
-
-import org.json.*;
-
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
-import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument;
 import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument.DocumentAction;
 import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument.IndexingFormat;
 import org.apache.manifoldcf.agents.output.searchblox.SearchBloxException;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.junit.Ignore;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class SearchBloxDocumentTest {
-    SearchBloxDocument toTest;
-    RepositoryDocument rd;
+    private SearchBloxDocument toTest;
     @Before
    public void setUp() throws ManifoldCFException {
        Map<String, List<String>> args=initArgs();
        String apikey="apikey";
-       rd=initRepoDocument();
+        RepositoryDocument rd=initRepoDocument();
        String docURI = "URI";
        toTest=new SearchBloxDocument(apikey, docURI,rd,args);
    }
@@ -71,11 +67,97 @@ public class SearchBloxDocumentTest {
     }
 
     @Test
-    @Ignore("fails on jdk 8 due to hash order")
-    public void updateJsonString() throws SearchBloxException {
-        String jsonGenerated=toTest.toString(IndexingFormat.JSON, DocumentAction.ADD_UPDATE);
-        String expectedJson="{\"document\":{\"content\":\"I am a nice content in english!\",\"uid\":\"URI\",\"title\":\"I am a nice title\",\"description\":\"I am a little tiny description\",\"contenttype\":\"html\",\"colname\":\"collection1\",\"meta\":{\"meta2\":[\"I am META2!\"],\"meta1\":[\"I am META1!\"],\"share_allow\":[\"user3\",\"user2\",\"user1\"],\"share_deny\":[\"user4\",\"user5\"],\"document_deny\":[\"user52\",\"user42\"],\"document_allow\":[\"user22\",\"user12\",\"user33\"]},\"size\":\"100\"},\"apikey\":\"apikey\"}";
-        assertEquals(expectedJson,jsonGenerated);
+    public void updateJsonString() throws SearchBloxException, JSONException {
+
+        String jsonGenerated = toTest.toString(IndexingFormat.JSON, DocumentAction.ADD_UPDATE);
+
+        JSONObject json = new JSONObject(jsonGenerated);
+        assertTrue(json.has("apikey"));
+        assertTrue(json.has("document"));
+
+        Object apiObject = json.get("apikey");
+        assertTrue(apiObject instanceof String);
+        assertEquals("apikey", apiObject);
+
+        Object documentObject = json.get("document");
+        assertTrue(documentObject instanceof JSONObject);
+        JSONObject document = (JSONObject) documentObject;
+
+        assertTrue(document.has("uid"));
+        assertTrue(document.get("uid") instanceof String);
+        assertEquals("URI", document.get("uid"));
+
+
+        assertTrue(document.has("colname"));
+        assertTrue(document.get("colname") instanceof String);
+        assertEquals("collection1", document.get("colname"));
+
+
+        assertTrue(document.has("size"));
+        assertTrue(document.get("size") instanceof String);
+        assertEquals("100", document.get("size"));
+
+        assertTrue(document.has("meta"));
+        Object metaObject = document.get("meta");
+        assertTrue(metaObject instanceof JSONObject);
+        JSONObject meta = (JSONObject) metaObject;
+        assertEquals(6, meta.length());
+
+        assertTrue(meta.has("meta2"));
+        assertTrue(meta.get("meta2") instanceof JSONArray);
+        assertEquals(1, ((JSONArray) meta.get("meta2")).length());
+        assertEquals("I am META2!", ((JSONArray) meta.get("meta2")).getString(0));
+
+        assertTrue(meta.has("meta1"));
+        assertTrue(meta.get("meta1") instanceof JSONArray);
+        assertEquals(1, ((JSONArray) meta.get("meta1")).length());
+        assertEquals("I am META1!", ((JSONArray) meta.get("meta1")).getString(0));
+
+        assertTrue(meta.has("share_allow"));
+        assertTrue(meta.get("share_allow") instanceof JSONArray);
+        assertEquals(3, ((JSONArray) meta.get("share_allow")).length());
+        assertEquals("user1", ((JSONArray) meta.get("share_allow")).getString(0));
+        assertEquals("user2", ((JSONArray) meta.get("share_allow")).getString(1));
+        assertEquals("user3", ((JSONArray) meta.get("share_allow")).getString(2));
+
+        assertTrue(meta.has("document_deny"));
+        assertTrue(meta.get("document_deny") instanceof JSONArray);
+        assertEquals(2, ((JSONArray) meta.get("document_deny")).length());
+        assertEquals("user42", ((JSONArray) meta.get("document_deny")).getString(0));
+        assertEquals("user52", ((JSONArray) meta.get("document_deny")).getString(1));
+
+
+        assertTrue(meta.has("share_deny"));
+        assertTrue(meta.get("share_deny") instanceof JSONArray);
+        assertEquals(2, ((JSONArray) meta.get("share_deny")).length());
+        assertEquals("user5", ((JSONArray) meta.get("share_deny")).getString(0));
+        assertEquals("user4", ((JSONArray) meta.get("share_deny")).getString(1));
+
+
+        assertTrue(meta.has("document_allow"));
+        assertTrue(meta.get("document_allow") instanceof JSONArray);
+        assertEquals(3, ((JSONArray) meta.get("document_allow")).length());
+        assertEquals("user22", ((JSONArray) meta.get("document_allow")).getString(0));
+        assertEquals("user33", ((JSONArray) meta.get("document_allow")).getString(1));
+        assertEquals("user12", ((JSONArray) meta.get("document_allow")).getString(2));
+
+
+        assertTrue(document.has("description"));
+        assertTrue(document.get("description") instanceof String);
+        assertEquals("I am a little tiny description", document.get("description"));
+
+
+        assertTrue(document.has("title"));
+        assertTrue(document.get("title") instanceof String);
+        assertEquals("I am a nice title", document.get("title"));
+
+        assertTrue(document.has("content"));
+        assertTrue(document.get("content") instanceof String);
+        assertEquals("I am a nice content in english!", document.get("content"));
+
+        assertTrue(document.has("contenttype"));
+        assertTrue(document.get("contenttype") instanceof String);
+        assertEquals("html", document.get("contenttype"));
     }
 
     @Test
@@ -116,12 +198,12 @@ public class SearchBloxDocumentTest {
     }
 
     private Map<String, List<String>> initArgs() {
-        Map<String, List<String>> argMap=new HashMap<String, List<String>>();
-        argMap.put("collection", Lists.newArrayList("collection1"));
-        argMap.put("title_boost", Lists.newArrayList("1"));
-        argMap.put("content_boost", Lists.newArrayList("2"));
-        argMap.put("keywords_boost", Lists.newArrayList("3"));
-        argMap.put("description_boost", Lists.newArrayList("4"));
+        Map<String, List<String>> argMap=new HashMap<>();
+        argMap.put("collection", Collections.singletonList("collection1"));
+        argMap.put("title_boost", Collections.singletonList("1"));
+        argMap.put("content_boost", Collections.singletonList("2"));
+        argMap.put("keywords_boost", Collections.singletonList("3"));
+        argMap.put("description_boost", Collections.singletonList("4"));
         return argMap;
 
     }
