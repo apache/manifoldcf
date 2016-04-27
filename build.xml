@@ -705,6 +705,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="cmis/test-materials/*.war"/>
           <exclude name="alfresco/lib-proprietary/*.jar"/>
           <exclude name="alfresco-webscript/test-materials-proprietary/*.war"/>
+          <exclude name="alfresco-webscript/connector/src/test/resources/*.json"/>
           <exclude name="**/build/"/>
           <exclude name="**/dist/"/>
           <exclude name="**/test-output/"/>
