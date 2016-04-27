@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.manifoldcf.agents.output.searchblox.tests;
+package org.apache.manifoldcf.agents.output.searchblox;
 
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument;
@@ -43,6 +43,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -70,18 +71,18 @@ public class SearchBloxDocumentTest {
 
         Element root = doc.getDocumentElement();
         assertEquals("searchblox", root.getNodeName());
-        assertEquals("apikey", root.getAttribute("apikey"));
+        assertEquals("apikey", root.getAttribute(APIKEY_ATTRIBUTE));
 
         assertEquals(1, root.getElementsByTagName("document").getLength());
         assertEquals(Node.ELEMENT_NODE, root.getElementsByTagName("document").item(0).getNodeType());
 
         Element document = (Element) root.getElementsByTagName("document").item(0);
-        assertEquals("collection1", document.getAttribute("colname"));
+        assertEquals("collection1", document.getAttribute(COLNAME_ATTRIBUTE));
 
         NodeList nList = document.getChildNodes();
         assertEquals(18, nList.getLength());
 
-        nList = document.getElementsByTagName("uid");
+        nList = document.getElementsByTagName(UID_ATTRIBUTE);
         assertEquals(1, nList.getLength());
         assertEquals(Node.ELEMENT_NODE, nList.item(0).getNodeType());
         assertEquals("URI", nList.item(0).getTextContent());
@@ -90,19 +91,19 @@ public class SearchBloxDocumentTest {
         assertEquals(1, nList.getLength());
         assertEquals(Node.ELEMENT_NODE, nList.item(0).getNodeType());
         assertEquals("I am a nice title", nList.item(0).getTextContent());
-        assertEquals("1", ((Element) nList.item(0)).getAttribute("boost"));
+        assertEquals("1", ((Element) nList.item(0)).getAttribute(BOOST_ATTRIBUTE));
 
         nList = document.getElementsByTagName("content");
         assertEquals(1, nList.getLength());
         assertEquals(Node.ELEMENT_NODE, nList.item(0).getNodeType());
         assertEquals("I am a nice content in english!", nList.item(0).getTextContent());
-        assertEquals("2", ((Element) nList.item(0)).getAttribute("boost"));
+        assertEquals("2", ((Element) nList.item(0)).getAttribute(BOOST_ATTRIBUTE));
 
         nList = document.getElementsByTagName("description");
         assertEquals(1, nList.getLength());
         assertEquals(Node.ELEMENT_NODE, nList.item(0).getNodeType());
         assertEquals("I am a little tiny description", nList.item(0).getTextContent());
-        assertEquals("4", ((Element) nList.item(0)).getAttribute("boost"));
+        assertEquals("4", ((Element) nList.item(0)).getAttribute(BOOST_ATTRIBUTE));
 
         nList = document.getElementsByTagName("size");
         assertEquals(1, nList.getLength());
@@ -144,7 +145,7 @@ public class SearchBloxDocumentTest {
             if (node.getNodeType() == Node.ELEMENT_NODE) {
                 Element element = (Element) node;
 
-                if (name.equals(element.getAttribute("name")) && textContent.equals(element.getTextContent()))
+                if (name.equals(element.getAttribute(NAME_ATTRIBUTE)) && textContent.equals(element.getTextContent()))
                     return true;
             }
         }
@@ -157,10 +158,10 @@ public class SearchBloxDocumentTest {
         String jsonGenerated = toTest.toString(IndexingFormat.JSON, DocumentAction.ADD_UPDATE);
 
         JSONObject json = new JSONObject(jsonGenerated);
-        assertTrue(json.has("apikey"));
+        assertTrue(json.has(APIKEY_ATTRIBUTE));
         assertTrue(json.has("document"));
 
-        Object apiObject = json.get("apikey");
+        Object apiObject = json.get(APIKEY_ATTRIBUTE);
         assertTrue(apiObject instanceof String);
         assertEquals("apikey", apiObject);
 
@@ -168,14 +169,14 @@ public class SearchBloxDocumentTest {
         assertTrue(documentObject instanceof JSONObject);
         JSONObject document = (JSONObject) documentObject;
 
-        assertTrue(document.has("uid"));
-        assertTrue(document.get("uid") instanceof String);
-        assertEquals("URI", document.get("uid"));
+        assertTrue(document.has(UID_ATTRIBUTE));
+        assertTrue(document.get(UID_ATTRIBUTE) instanceof String);
+        assertEquals("URI", document.get(UID_ATTRIBUTE));
 
 
-        assertTrue(document.has("colname"));
-        assertTrue(document.get("colname") instanceof String);
-        assertEquals("collection1", document.get("colname"));
+        assertTrue(document.has(COLNAME_ATTRIBUTE));
+        assertTrue(document.get(COLNAME_ATTRIBUTE) instanceof String);
+        assertEquals("collection1", document.get(COLNAME_ATTRIBUTE));
 
 
         assertTrue(document.has("size"));
@@ -250,10 +251,10 @@ public class SearchBloxDocumentTest {
         String jsonGenerated=toTest.toString(IndexingFormat.JSON, DocumentAction.DELETE);
 
         JSONObject json = new JSONObject(jsonGenerated);
-        assertTrue(json.has("apikey"));
+        assertTrue(json.has(APIKEY_ATTRIBUTE));
         assertTrue(json.has("document"));
 
-        Object apiObject = json.get("apikey");
+        Object apiObject = json.get(APIKEY_ATTRIBUTE);
         assertTrue(apiObject instanceof String);
         assertEquals("apikey", apiObject);
 
@@ -261,14 +262,14 @@ public class SearchBloxDocumentTest {
         assertTrue(documentObject instanceof JSONObject);
         JSONObject document = (JSONObject) documentObject;
 
-        assertTrue(document.has("uid"));
-        assertTrue(document.has("colname"));
+        assertTrue(document.has(UID_ATTRIBUTE));
+        assertTrue(document.has(COLNAME_ATTRIBUTE));
 
-        Object uidObject = document.get("uid");
+        Object uidObject = document.get(UID_ATTRIBUTE);
         assertTrue(uidObject instanceof String);
         assertEquals("URI", uidObject);
 
-        Object colObject = document.get("colname");
+        Object colObject = document.get(COLNAME_ATTRIBUTE);
         assertTrue(colObject instanceof String);
         assertEquals("collection1", colObject);
     }
@@ -286,14 +287,14 @@ public class SearchBloxDocumentTest {
 
         Element root = doc.getDocumentElement();
         assertEquals("searchblox", root.getNodeName());
-        assertEquals("apikey", root.getAttribute("apikey"));
+        assertEquals("apikey", root.getAttribute(APIKEY_ATTRIBUTE));
 
         assertEquals(1, root.getElementsByTagName("document").getLength());
         assertEquals(Node.ELEMENT_NODE, root.getElementsByTagName("document").item(0).getNodeType());
 
         Element document = (Element) root.getElementsByTagName("document").item(0);
-        assertEquals("collection1", document.getAttribute("colname"));
-        assertEquals("URI", document.getAttribute("uid"));
+        assertEquals("collection1", document.getAttribute(COLNAME_ATTRIBUTE));
+        assertEquals("URI", document.getAttribute(UID_ATTRIBUTE));
     }
 
     private Map<String, List<String>> initArgs() {
