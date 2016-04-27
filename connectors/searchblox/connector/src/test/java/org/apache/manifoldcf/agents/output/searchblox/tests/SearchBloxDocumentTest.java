@@ -18,7 +18,7 @@ package org.apache.manifoldcf.agents.output.searchblox.tests;
 
 import com.google.common.collect.Lists;
 
-//import junit.framework.TestCase;
+import org.json.*;
 
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
@@ -26,6 +26,8 @@ import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument;
 import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument.DocumentAction;
 import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument.IndexingFormat;
 import org.apache.manifoldcf.agents.output.searchblox.SearchBloxException;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.Ignore;
 import static org.junit.Assert.*;
@@ -38,15 +40,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Alessandro Benedetti
- *         07/03/2015
- *         mcf-searchblox-connector
- */
-public class SearchBloxDocumentTest /*extends TestCase */ {
+public class SearchBloxDocumentTest {
     SearchBloxDocument toTest;
     RepositoryDocument rd;
-
+    @Before
    public void setUp() throws ManifoldCFException {
        Map<String, List<String>> args=initArgs();
        String apikey="apikey";
@@ -82,12 +79,31 @@ public class SearchBloxDocumentTest /*extends TestCase */ {
     }
 
     @Test
-    @Ignore("fails on jdk 8 due to hash order")
-    public void deleteJsonString() throws SearchBloxException {
+    public void deleteJsonString() throws SearchBloxException, JSONException {
         String jsonGenerated=toTest.toString(IndexingFormat.JSON, DocumentAction.DELETE);
-        System.out.println(jsonGenerated);
-        String xmlExpected="{\"document\":{\"uid\":\"URI\",\"colname\":\"collection1\"},\"apikey\":\"apikey\"}";
-        assertEquals(xmlExpected,jsonGenerated);
+
+        JSONObject json = new JSONObject(jsonGenerated);
+        assertTrue(json.has("apikey"));
+        assertTrue(json.has("document"));
+
+        Object apiObject = json.get("apikey");
+        assertTrue(apiObject instanceof String);
+        assertEquals("apikey", apiObject);
+
+        Object documentObject = json.get("document");
+        assertTrue(documentObject instanceof JSONObject);
+        JSONObject document = (JSONObject) documentObject;
+
+        assertTrue(document.has("uid"));
+        assertTrue(document.has("colname"));
+
+        Object uidObject = document.get("uid");
+        assertTrue(uidObject instanceof String);
+        assertEquals("URI", uidObject);
+
+        Object colObject = document.get("colname");
+        assertTrue(colObject instanceof String);
+        assertEquals("collection1", colObject);
     }
 
     @Test
