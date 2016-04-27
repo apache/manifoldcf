@@ -699,8 +699,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <fileset dir="mod-authz-annotate/">
         </fileset>
         <fileset dir="connectors/">
-          <exclude name="**/*"/>
-          <exclude name="elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
+          <!--exclude name="**/*"/ -->
+          <exclude name="elasticsearch/test-materials/elasticsearch-1.0.1/"/>
+          <exclude name="kafka/test-materials/*.jar"/>
+          <exclude name="cmis/test-materials/*.war"/>
+          <exclude name="alfresco/lib-proprietary/*.jar"/>
+          <exclude name="alfresco-webscript/test-materials-proprietary/*.war"/>
           <exclude name="**/build/"/>
           <exclude name="**/dist/"/>
           <exclude name="**/test-output/"/>
