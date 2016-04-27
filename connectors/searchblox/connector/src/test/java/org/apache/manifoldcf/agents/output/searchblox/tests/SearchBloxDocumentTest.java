@@ -26,10 +26,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -49,21 +58,97 @@ public class SearchBloxDocumentTest {
    }
 
     @Test
-    @Ignore("fails on jdk 8 due to hash order")
-    public void updateXmlString() throws SearchBloxException {
-        String xmlGenerated=toTest.toString(IndexingFormat.XML, DocumentAction.ADD_UPDATE);
-        System.out.println(xmlGenerated);
-        String xmlExpected="<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                "<searchblox apikey=\"apikey\"><document colname=\"collection1\">" +
-                "<uid>URI</uid><title boost=\"1\">I am a nice title</title><content boost=\"2\">I am a nice content in english!</content>" +
-                "<description boost=\"4\">I am a little tiny description</description><size>100</size><contenttype>html</contenttype>" +
-                "<meta name=\"meta2\">I am META2!</meta><meta name=\"share_allow\">user3</meta>" +
-                "<meta name=\"share_allow\">user2</meta><meta name=\"share_allow\">user1</meta>" +
-                "<meta name=\"meta1\">I am META1!</meta><meta name=\"share_deny\">user4</meta>" +
-                "<meta name=\"share_deny\">user5</meta><meta name=\"document_deny\">user52</meta>" +
-                "<meta name=\"document_deny\">user42</meta><meta name=\"document_allow\">user22</meta>" +
-                "<meta name=\"document_allow\">user12</meta><meta name=\"document_allow\">user33</meta></document></searchblox>";
-        assertEquals(xmlExpected,xmlGenerated);
+    public void updateXmlString() throws SearchBloxException, ParserConfigurationException, SAXException, IOException {
+        String xmlGenerated = toTest.toString(IndexingFormat.XML, DocumentAction.ADD_UPDATE);
+
+        InputSource is = new InputSource(new ByteArrayInputStream(xmlGenerated.getBytes(StandardCharsets.UTF_8)));
+
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(is);
+        doc.getDocumentElement().normalize();
+
+        Element root = doc.getDocumentElement();
+        assertEquals("searchblox", root.getNodeName());
+        assertEquals("apikey", root.getAttribute("apikey"));
+
+        assertEquals(1, root.getElementsByTagName("document").getLength());
+        assertEquals(Node.ELEMENT_NODE, root.getElementsByTagName("document").item(0).getNodeType());
+
+        Element document = (Element) root.getElementsByTagName("document").item(0);
+        assertEquals("collection1", document.getAttribute("colname"));
+
+        NodeList nList = document.getChildNodes();
+        assertEquals(18, nList.getLength());
+
+        nList = document.getElementsByTagName("uid");
+        assertEquals(1, nList.getLength());
+        assertEquals(Node.ELEMENT_NODE, nList.item(0).getNodeType());
+        assertEquals("URI", nList.item(0).getTextContent());
+
+        nList = document.getElementsByTagName("title");
+        assertEquals(1, nList.getLength());
+        assertEquals(Node.ELEMENT_NODE, nList.item(0).getNodeType());
+        assertEquals("I am a nice title", nList.item(0).getTextContent());
+        assertEquals("1", ((Element) nList.item(0)).getAttribute("boost"));
+
+        nList = document.getElementsByTagName("content");
+        assertEquals(1, nList.getLength());
+        assertEquals(Node.ELEMENT_NODE, nList.item(0).getNodeType());
+        assertEquals("I am a nice content in english!", nList.item(0).getTextContent());
+        assertEquals("2", ((Element) nList.item(0)).getAttribute("boost"));
+
+        nList = document.getElementsByTagName("description");
+        assertEquals(1, nList.getLength());
+        assertEquals(Node.ELEMENT_NODE, nList.item(0).getNodeType());
+        assertEquals("I am a little tiny description", nList.item(0).getTextContent());
+        assertEquals("4", ((Element) nList.item(0)).getAttribute("boost"));
+
+        nList = document.getElementsByTagName("size");
+        assertEquals(1, nList.getLength());
+        assertEquals(Node.ELEMENT_NODE, nList.item(0).getNodeType());
+        assertEquals("100", nList.item(0).getTextContent());
+
+        nList = document.getElementsByTagName("contenttype");
+        assertEquals(1, nList.getLength());
+        assertEquals(Node.ELEMENT_NODE, nList.item(0).getNodeType());
+        assertEquals("html", nList.item(0).getTextContent());
+
+        nList = document.getElementsByTagName("meta");
+        assertEquals(12, nList.getLength());
+
+        assertTrue(find(nList, "meta2", "I am META2!"));
+        assertTrue(find(nList, "meta1", "I am META1!"));
+
+        assertTrue(find(nList, "share_allow", "user1"));
+        assertTrue(find(nList, "share_allow", "user2"));
+        assertTrue(find(nList, "share_allow", "user3"));
+
+        assertTrue(find(nList, "document_deny", "user42"));
+        assertTrue(find(nList, "document_deny", "user52"));
+
+        assertTrue(find(nList, "share_deny", "user5"));
+        assertTrue(find(nList, "share_deny", "user4"));
+
+        assertTrue(find(nList, "document_allow", "user22"));
+        assertTrue(find(nList, "document_allow", "user33"));
+        assertTrue(find(nList, "document_allow", "user12"));
+
+
+    }
+
+    private boolean find(NodeList nList, String name, String textContent) {
+        for (int i = 0; i < nList.getLength(); i++) {
+            Node node = nList.item(i);
+
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                Element element = (Element) node;
+
+                if (name.equals(element.getAttribute("name")) && textContent.equals(element.getTextContent()))
+                    return true;
+            }
+        }
+        return false;
     }
 
     @Test
@@ -189,12 +274,26 @@ public class SearchBloxDocumentTest {
     }
 
     @Test
-    @Ignore("fails on jdk 8 due to hash order")
-    public void deleteXmlString() throws SearchBloxException {
+    public void deleteXmlString() throws SearchBloxException, ParserConfigurationException, SAXException, IOException {
         String xmlGenerated=toTest.toString(IndexingFormat.XML, DocumentAction.DELETE);
-        System.out.println(xmlGenerated);
-        String xmlExpected="<?xml version=\"1.0\" encoding=\"UTF-8\"?><searchblox apikey=\"apikey\"><document colname=\"collection1\" uid=\"URI\"/></searchblox>";
-        assertEquals(xmlExpected,xmlGenerated);
+
+        InputSource is = new InputSource(new ByteArrayInputStream(xmlGenerated.getBytes(StandardCharsets.UTF_8)));
+
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(is);
+        doc.getDocumentElement().normalize();
+
+        Element root = doc.getDocumentElement();
+        assertEquals("searchblox", root.getNodeName());
+        assertEquals("apikey", root.getAttribute("apikey"));
+
+        assertEquals(1, root.getElementsByTagName("document").getLength());
+        assertEquals(Node.ELEMENT_NODE, root.getElementsByTagName("document").item(0).getNodeType());
+
+        Element document = (Element) root.getElementsByTagName("document").item(0);
+        assertEquals("collection1", document.getAttribute("colname"));
+        assertEquals("URI", document.getAttribute("uid"));
     }
 
     private Map<String, List<String>> initArgs() {

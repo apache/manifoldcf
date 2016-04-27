@@ -2,6 +2,8 @@ ManifoldCF Change Log
 $Id$
 
 ======================= 2.5-dev =====================
+CONNECTORS-1189: Fix SearchBlox's test cases so that they don't depend on JDK hash order.
+(Naveen.A.N, Ahmet Arslan)
 
 CONNECTORS-1302: Catch newer version of 'in-use' SmbException in
 JCIFS connector.
