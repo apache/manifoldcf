@@ -17,10 +17,8 @@
 package org.apache.manifoldcf.agents.output.searchblox;
 
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
-import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument;
 import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument.DocumentAction;
 import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument.IndexingFormat;
-import org.apache.manifoldcf.agents.output.searchblox.SearchBloxException;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,6 +41,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static org.apache.manifoldcf.agents.output.searchblox.SearchBloxConfig.*;
 import static org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -299,11 +298,11 @@ public class SearchBloxDocumentTest {
 
     private Map<String, List<String>> initArgs() {
         Map<String, List<String>> argMap=new HashMap<>();
-        argMap.put("collection", Collections.singletonList("collection1"));
-        argMap.put("title_boost", Collections.singletonList("1"));
-        argMap.put("content_boost", Collections.singletonList("2"));
-        argMap.put("keywords_boost", Collections.singletonList("3"));
-        argMap.put("description_boost", Collections.singletonList("4"));
+        argMap.put(ATTRIBUTE_COLLECTION_NAME, Collections.singletonList("collection1"));
+        argMap.put(ATTRIBUTE_TITLEBOOST, Collections.singletonList("1"));
+        argMap.put(ATTRIBUTE_CONTENTBOOST, Collections.singletonList("2"));
+        argMap.put(ATTRIBUTE_KEYWORDSBOOST, Collections.singletonList("3"));
+        argMap.put(ATTRIBUTE_DESCRIPTIONBOOST, Collections.singletonList("4"));
         return argMap;
 
     }
