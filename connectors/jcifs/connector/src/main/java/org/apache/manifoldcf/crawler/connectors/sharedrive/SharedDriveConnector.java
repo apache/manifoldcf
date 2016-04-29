@@ -1075,6 +1075,14 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
               errorDesc = "Not found: "+se.getMessage();
               activities.noDocument(documentIdentifier, versionString);
             }
+            else if (se.getMessage().indexOf("0xC0000205") != -1)
+            {
+              Logging.connectors.warn("JCIFS: Out of resources exception reading document/directory "+documentIdentifier+" - skipping");
+              // We call the delete even if it's a directory; this is harmless and it cleans up the jobqueue row.
+              errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = "Resources: "+se.getMessage();
+              activities.noDocument(documentIdentifier, versionString);
+            }
             else if (se.getMessage().indexOf("is denied") != -1)
             {
               Logging.connectors.warn("JCIFS: Access exception reading document/directory "+documentIdentifier+" - skipping");
