@@ -28,6 +28,7 @@ import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -78,6 +79,7 @@ public class TikaParserTest {
   }
 
   @Test
+  @Ignore
   public void testExtractWithTooShortWriteLimit() {
     for (String doc : docs) {
       String path = doc;
