@@ -85,7 +85,6 @@
             <include name="jackson-databind*.jar"/>
             <include name="jackson-annotations*.jar"/>
             <include name="tika-parsers*.jar"/>
-            <include name="javaee-api*.jar"/>
             <include name="geoapi*.jar"/>
             <include name="sis-metadata*.jar"/>
             <include name="sis-utility*.jar"/>
@@ -1391,7 +1390,6 @@
                 <include name="jackson-databind*.jar"/>
                 <include name="jackson-annotations*.jar"/>
                 <include name="tika-parsers*.jar"/>
-                <include name="javaee-api*.jar"/>
                 <include name="geoapi*.jar"/>
                 <include name="sis-metadata*.jar"/>
                 <include name="sis-utility*.jar"/>
