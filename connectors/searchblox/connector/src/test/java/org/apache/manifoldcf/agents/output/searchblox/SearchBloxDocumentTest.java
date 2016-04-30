@@ -201,30 +201,30 @@ public class SearchBloxDocumentTest {
         assertTrue(meta.has("share_allow"));
         assertTrue(meta.get("share_allow") instanceof JSONArray);
         assertEquals(3, ((JSONArray) meta.get("share_allow")).length());
-        assertEquals("user1", ((JSONArray) meta.get("share_allow")).getString(0));
+        assertEquals("user3", ((JSONArray) meta.get("share_allow")).getString(0));
         assertEquals("user2", ((JSONArray) meta.get("share_allow")).getString(1));
-        assertEquals("user3", ((JSONArray) meta.get("share_allow")).getString(2));
+        assertEquals("user1", ((JSONArray) meta.get("share_allow")).getString(2));
 
         assertTrue(meta.has("document_deny"));
         assertTrue(meta.get("document_deny") instanceof JSONArray);
         assertEquals(2, ((JSONArray) meta.get("document_deny")).length());
-        assertEquals("user42", ((JSONArray) meta.get("document_deny")).getString(0));
-        assertEquals("user52", ((JSONArray) meta.get("document_deny")).getString(1));
+        assertEquals("user52", ((JSONArray) meta.get("document_deny")).getString(0));
+        assertEquals("user42", ((JSONArray) meta.get("document_deny")).getString(1));
 
 
         assertTrue(meta.has("share_deny"));
         assertTrue(meta.get("share_deny") instanceof JSONArray);
         assertEquals(2, ((JSONArray) meta.get("share_deny")).length());
-        assertEquals("user5", ((JSONArray) meta.get("share_deny")).getString(0));
-        assertEquals("user4", ((JSONArray) meta.get("share_deny")).getString(1));
+        assertEquals("user4", ((JSONArray) meta.get("share_deny")).getString(0));
+        assertEquals("user5", ((JSONArray) meta.get("share_deny")).getString(1));
 
 
         assertTrue(meta.has("document_allow"));
         assertTrue(meta.get("document_allow") instanceof JSONArray);
         assertEquals(3, ((JSONArray) meta.get("document_allow")).length());
         assertEquals("user22", ((JSONArray) meta.get("document_allow")).getString(0));
-        assertEquals("user33", ((JSONArray) meta.get("document_allow")).getString(1));
-        assertEquals("user12", ((JSONArray) meta.get("document_allow")).getString(2));
+        assertEquals("user12", ((JSONArray) meta.get("document_allow")).getString(1));
+        assertEquals("user33", ((JSONArray) meta.get("document_allow")).getString(2));
 
 
         assertTrue(document.has("description"));

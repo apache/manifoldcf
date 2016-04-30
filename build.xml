@@ -37,7 +37,7 @@
     <property name="xerces.version" value="2.10.0"/>
     <property name="zookeeper.version" value="3.4.6"/>
     <property name="mongodb.version" value="2.11.3"/>
-    <property name="json.version" value="20090211"/>
+    <property name="json.version" value="20160212"/>
     <property name="postgresql.version" value="9.1-901.jdbc4"/>
     <property name="axis.version" value="1.4"/>
     <property name="saaj-api.version" value="1.3"/>
@@ -49,14 +49,14 @@
     <property name="commons-discovery.version" value="0.5"/>
     <property name="commons-el.version" value="1.0"/>
     <property name="commons-fileupload.version" value="1.2.2"/>
-    <property name="commons-io.version" value="2.4"/>
+    <property name="commons-io.version" value="2.5"/>
     <property name="commons-lang.version" value="2.6"/>
     <property name="commons-logging.version" value="1.2"/>
     <property name="commons-configuration.version" value="1.6"/>
     <property name="commons-cli.version" value="1.2"/>
     <property name="slf4j.version" value="1.7.7"/>
     <property name="xalan.version" value="2.7.1"/>
-    <property name="poi.version" value="3.13-beta1"/>
+    <property name="poi.version" value="3.14"/>
     <property name="activation.version" value="1.1.1"/>
     <property name="avalon.version" value="4.3.1"/>
     <property name="ecj.version" value="4.3.1"/>
@@ -96,23 +96,23 @@
     <property name="jetty-jsp-jdt.version" value="2.3.3"/>
     <property name="jetty-schemas.version" value="3.1.M0"/>
     <property name="alfresco-indexer.version" value="0.8.1"/>
-    <property name="gson.version" value="2.2.4"/>
+    <property name="gson.version" value="2.6.2"/>
     <property name="guava.version" value="18.0"/>
     <property name="mockito.version" value="1.9.5"/>
     <property name="wiremock.version" value="1.34"/>
     <property name="objenesis.version" value="2.1"/>
-    <property name="tika.version" value="1.10"/>
+    <property name="tika.version" value="1.12"/>
     <property name="tagsoup.version" value="1.2.1"/>
     <property name="james.version" value="0.7.2"/>
-    <property name="vorbis.version" value="0.6"/>
-    <property name="metadata-extractor.version" value="2.8.1"/>
+    <property name="vorbis.version" value="0.8"/>
+    <property name="metadata-extractor.version" value="2.9.1"/>
     <property name="aspectjrt.version" value="1.8.6"/>
-    <property name="jhighlight.version" value="1.0.2"/>
+    <property name="jhighlight.version" value="1.0.3"/>
     <property name="xmlbeans.version" value="2.6.0"/>
-    <property name="bc.version" value="1.52"/>
+    <property name="bc.version" value="1.54"/>
     <property name="tukaani.version" value="1.5"/>
-    <property name="pdfbox.version" value="1.8.10"/>
-    <property name="commons-compress.version" value="1.10"/>
+    <property name="pdfbox.version" value="1.8.11"/>
+    <property name="commons-compress.version" value="1.11"/>
     <property name="commons-csv.version" value="1.2"/>
     <property name="commons-exec.version" value="1.3"/>
     <property name="juniversalchardet.version" value="1.0.3"/>
@@ -126,31 +126,33 @@
     <property name="quartz.version" value="2.2.1"/>
     <property name="boilerpipe.version" value="1.1.0"/>
     <property name="dom4j.version" value="1.6.1"/>
-    <property name="asm.version" value="4.1"/>
+    <property name="asm.version" value="5.1"/>
     <property name="xmpcore.version" value="5.1.2"/>
     <property name="jdom.version" value="1.0"/>
-    <property name="rome.version" value="1.0"/>
-    <property name="mp4parser.version" value="1.1.5"/>
+    <property name="rome.version" value="1.6.0"/>
+    <property name="mp4parser.version" value="1.1.18"/>
     <property name="jmatio.version" value="1.0"/>
     <property name="java-libpst.version" value="0.8.1"/>
     <property name="commons-httpclient.version" value="3.1"/>
     <property name="jackson-databind.version" value="2.1.3"/>
     <property name="jackson-annotations.version" value="2.1.2"/>
-    <property name="resteasy.client.version" value="3.0.8.Final"/>
+    <property name="resteasy.client.version" value="3.0.16.Final"/>
     <property name="jsoup.version" value="1.8.1"/>
     <property name="hadoop.version" value="2.6.0"/>
     <property name="aws-sdk.version" value="1.9.0"/>
     <property name="joda-time.version" value="2.8.2"/>
     <property name="junrar.version" value="0.7"/>
-    <property name="jackcess.version" value="2.1.2"/>
-    <property name="jackcess-encrypt.version" value="2.1.0"/>
+    <property name="jackcess.version" value="2.1.3"/>
+    <property name="jackcess-encrypt.version" value="2.1.1"/>
     <property name="opennlp.version" value="1.6.0"/>
-    <property name="sis.version" value="0.5"/>
+    <property name="sis.version" value="0.6"/>
     <property name="opengis.version" value="3.0.0"/>
-    <property name="javaee-api.version" value="6.0"/>
     <property name="commons-vfs2.version" value="2.0"/>
     <property name="c3p0.version" value="0.9.5.1"/>
-    <property name="opennlp.version" value="1.6.0"/>
+    <property name="cxf.version" value="3.1.6"/>
+    <property name="xmlschema.version" value="2.2.1"/>
+    <property name="annotation-api.version" value="1.2"/>
+    <property name="javax.ws.rs-api.version" value="2.0.1"/>
     
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
@@ -779,17 +781,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </java>
     </target>
 
-    <target name="download-opennlp">
-        <mkdir dir="lib"/>
-        <antcall target="download-via-maven">
-            <param name="project-path" value="org/apache/opennlp"/>
-            <param name="artifact-version" value="${opennlp.version}"/>
-            <param name="target" value="lib"/>
-            <param name="artifact-name" value="opennlp-tools"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-    </target>
-    
     <target name="download-resteasy">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
@@ -804,13 +795,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-version" value="${resteasy.client.version}"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="resteasy-client"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven">
-            <param name="project-path" value="org/jboss/resteasy"/>
-            <param name="artifact-version" value="${resteasy.client.version}"/>
-            <param name="target" value="lib"/>
-            <param name="artifact-name" value="jaxrs-api"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -2015,12 +1999,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="javax"/>
-            <param name="artifact-version" value="${javaee-api.version}"/>
-            <param name="artifact-name" value="javaee-api"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/opengis"/>
             <param name="artifact-version" value="${opengis.version}"/>
             <param name="artifact-name" value="geoapi"/>
@@ -2303,7 +2281,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="rome"/>
+            <param name="project-path" value="com/rometools"/>
             <param name="artifact-name" value="rome"/>
             <param name="artifact-version" value="${rome.version}"/>
             <param name="artifact-type" value="jar"/>
@@ -2312,6 +2290,48 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="com/googlecode/mp4parser"/>
             <param name="artifact-name" value="isoparser"/>
             <param name="artifact-version" value="${mp4parser.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-core"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-frontend-jaxrs"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-transports-http"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-rs-client"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/ws/xmlschema"/>
+            <param name="artifact-name" value="xmlschema-core"/>
+            <param name="artifact-version" value="${xmlschema.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="javax/annotation"/>
+            <param name="artifact-name" value="javax.annotation-api"/>
+            <param name="artifact-version" value="${annotation-api.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="javax/ws/rs"/>
+            <param name="artifact-name" value="javax.ws.rs-api"/>
+            <param name="artifact-version" value="${javax.ws.rs-api.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -2344,7 +2364,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
   
-    <target name="make-core-deps" depends="download-opennlp,download-kafka-client,download-joda-time,download-aws-sdk,download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
+    <target name="make-core-deps" depends="download-kafka-client,download-joda-time,download-aws-sdk,download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
