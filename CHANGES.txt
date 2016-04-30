@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1308: Update to Tika 1.12, and all associated downstream
+dependencies.
+(Karl Wright)
+
 CONNECTORS-1305: Skip documents that get server-side resource
 problems in JCIFS connector.
 (Konstantin Avdeev, Karl Wright)

@@ -85,7 +85,6 @@
             <include name="jackson-databind*.jar"/>
             <include name="jackson-annotations*.jar"/>
             <include name="tika-parsers*.jar"/>
-            <include name="javaee-api*.jar"/>
             <include name="geoapi*.jar"/>
             <include name="sis-metadata*.jar"/>
             <include name="sis-utility*.jar"/>
@@ -139,6 +138,13 @@
             <include name="jmatio*.jar"/>
             <include name="java-libpst*.jar"/>
             <include name="xz*.jar"/>
+            <include name="cxf-core*.jar"/>
+            <include name="cxf-rt-frontend-jaxrs*.jar"/>
+            <include name="cxf-rt-transports-http*.jar"/>
+            <include name="cxf-rt-rs-client*.jar"/>
+            <include name="xmlschema-core*.jar"/>
+            <include name="javax.annotation-api*.jar"/>
+            <include name="javax.ws.rs-api*.jar"/>
         </fileset>
         <fileset dir="../lib">
             <include name="castor*.jar"/>
@@ -1384,7 +1390,6 @@
                 <include name="jackson-databind*.jar"/>
                 <include name="jackson-annotations*.jar"/>
                 <include name="tika-parsers*.jar"/>
-                <include name="javaee-api*.jar"/>
                 <include name="geoapi*.jar"/>
                 <include name="sis-metadata*.jar"/>
                 <include name="sis-utility*.jar"/>
@@ -1421,7 +1426,7 @@
                 <include name="fontbox*.jar"/>
                 <include name="jempbox*.jar"/>
                 <include name="kafka*.jar"/>
-		<include name="zookeeper*.jar"/>
+                <include name="zookeeper*.jar"/>
                 <include name="bcmail-jdk15*.jar"/>
                 <include name="bcprov-jdk15*.jar"/>
                 <include name="xmlbeans*.jar"/>
@@ -1443,6 +1448,13 @@
                 <include name="jmatio*.jar"/>
                 <include name="java-libpst*.jar"/>
                 <include name="xz*.jar"/>
+                <include name="cxf-core*.jar"/>
+                <include name="cxf-rt-frontend-jaxrs*.jar"/>
+                <include name="cxf-rt-transports-http*.jar"/>
+                <include name="cxf-rt-rs-client*.jar"/>
+                <include name="xmlschema-core*.jar"/>
+                <include name="javax.annotation-api*.jar"/>
+                <include name="javax.ws.rs-api*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="castor*.jar"/>
