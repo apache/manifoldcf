@@ -77,15 +77,15 @@
     <jstl.version>1.2</jstl.version>
     <glassfish.version>2.1.v20091210</glassfish.version>
     <log4j.version>1.2.16</log4j.version>
-    <json.version>20090211</json.version>
+    <json.version>20160212</json.version>
     <velocity.version>1.7</velocity.version>
     <slf4j.version>1.7.7</slf4j.version>
     <jaxb.version>2.2.6</jaxb.version>
     <zookeeper.version>3.4.6</zookeeper.version>
     <xmlbeans.version>2.6.0</xmlbeans.version>
     <poi.version>3.13-beta1</poi.version>
-    <tika.version>1.10</tika.version>
-    <jhighlight.version>1.0.2</jhighlight.version>
+    <tika.version>1.12</tika.version>
+    <jhighlight.version>1.0.3</jhighlight.version>
     <boilerpipe.version>1.1.0</boilerpipe.version>
     <hadoop.version>2.6.0</hadoop.version>
   </properties>
