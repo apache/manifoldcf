@@ -188,43 +188,22 @@ public class SearchBloxDocumentTest {
         JSONObject meta = (JSONObject) metaObject;
         assertEquals(6, meta.length());
 
-        assertTrue(meta.has("meta2"));
-        assertTrue(meta.get("meta2") instanceof JSONArray);
-        assertEquals(1, ((JSONArray) meta.get("meta2")).length());
-        assertEquals("I am META2!", ((JSONArray) meta.get("meta2")).getString(0));
+        assertTrue(find(meta, "meta2", "I am META2!", 1));
+        assertTrue(find(meta, "meta1", "I am META1!", 1));
 
-        assertTrue(meta.has("meta1"));
-        assertTrue(meta.get("meta1") instanceof JSONArray);
-        assertEquals(1, ((JSONArray) meta.get("meta1")).length());
-        assertEquals("I am META1!", ((JSONArray) meta.get("meta1")).getString(0));
+        assertTrue(find(meta, "share_allow", "user1", 3));
+        assertTrue(find(meta, "share_allow", "user2", 3));
+        assertTrue(find(meta, "share_allow", "user3", 3));
 
-        assertTrue(meta.has("share_allow"));
-        assertTrue(meta.get("share_allow") instanceof JSONArray);
-        assertEquals(3, ((JSONArray) meta.get("share_allow")).length());
-        assertEquals("user3", ((JSONArray) meta.get("share_allow")).getString(0));
-        assertEquals("user2", ((JSONArray) meta.get("share_allow")).getString(1));
-        assertEquals("user1", ((JSONArray) meta.get("share_allow")).getString(2));
+        assertTrue(find(meta, "document_deny", "user42", 2));
+        assertTrue(find(meta, "document_deny", "user52", 2));
 
-        assertTrue(meta.has("document_deny"));
-        assertTrue(meta.get("document_deny") instanceof JSONArray);
-        assertEquals(2, ((JSONArray) meta.get("document_deny")).length());
-        assertEquals("user52", ((JSONArray) meta.get("document_deny")).getString(0));
-        assertEquals("user42", ((JSONArray) meta.get("document_deny")).getString(1));
+        assertTrue(find(meta, "share_deny", "user5", 2));
+        assertTrue(find(meta, "share_deny", "user4", 2));
 
-
-        assertTrue(meta.has("share_deny"));
-        assertTrue(meta.get("share_deny") instanceof JSONArray);
-        assertEquals(2, ((JSONArray) meta.get("share_deny")).length());
-        assertEquals("user4", ((JSONArray) meta.get("share_deny")).getString(0));
-        assertEquals("user5", ((JSONArray) meta.get("share_deny")).getString(1));
-
-
-        assertTrue(meta.has("document_allow"));
-        assertTrue(meta.get("document_allow") instanceof JSONArray);
-        assertEquals(3, ((JSONArray) meta.get("document_allow")).length());
-        assertEquals("user22", ((JSONArray) meta.get("document_allow")).getString(0));
-        assertEquals("user12", ((JSONArray) meta.get("document_allow")).getString(1));
-        assertEquals("user33", ((JSONArray) meta.get("document_allow")).getString(2));
+        assertTrue(find(meta, "document_allow", "user22", 3));
+        assertTrue(find(meta, "document_allow", "user33", 3));
+        assertTrue(find(meta, "document_allow", "user12", 3));
 
 
         assertTrue(document.has("description"));
@@ -243,6 +222,20 @@ public class SearchBloxDocumentTest {
         assertTrue(document.has("contenttype"));
         assertTrue(document.get("contenttype") instanceof String);
         assertEquals("html", document.get("contenttype"));
+    }
+
+    private boolean find(JSONObject meta, String name, String textContent, int size) {
+
+        assertTrue(meta.has(name));
+        assertTrue(meta.get(name) instanceof JSONArray);
+
+        assertEquals(size, ((JSONArray) meta.get(name)).length());
+
+        for (int i = 0; i < size; i++) {
+            if (textContent.equals(((JSONArray) meta.get(name)).getString(i)))
+                return true;
+        }
+        return false;
     }
 
     @Test
