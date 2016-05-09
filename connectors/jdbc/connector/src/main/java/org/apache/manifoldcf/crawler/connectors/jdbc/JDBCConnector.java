@@ -1841,6 +1841,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String dataQuery = "";
     String aclQuery = "";
     
+    final Map<String, String> attributeQueryMap = new HashMap<String, String>();
+    
     int i = 0;
     while (i < ds.getChildCount())
     {
@@ -1869,7 +1871,17 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         if (aclQuery == null)
           aclQuery = "";
       }
+      else if (sn.getType().equals(JDBCConstants.attributeQueryNode))
+      {
+        String attributeName = sn.getAttributeValue(JDBCConstants.attributeName);
+        String attributeQuery = sn.getValue();
+        attributeQueryMap.put(attributeName, attributeQuery);
+      }
     }
+
+    // Sort the attribute query list
+    final String[] attributeNames = attributeQueryMap.keySet().toArray(new String[0]);
+    java.util.Arrays.sort(attributeNames);
 
     out.print(
 "<table class=\"displaytable\">\n"+
@@ -1890,6 +1902,57 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dataQuery)+"</td>\n"+
 "  </tr>\n"+
 "\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AttributeQueries") + "</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AttributeName") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AttributeQuery") + "</nobr></td>\n"+
+"        </tr>\n"
+    );
+    int attributeIndex = 0;
+    for (final String attributeName : attributeNames) {
+      final String attributeQuery = attributeQueryMap.get(attributeName);
+      if (attributeIndex % 2 == 0)
+      {
+        out.print(
+"        <tr class=\"evenformrow\">\n"
+        );
+      }
+      else 
+      {
+        out.print(
+"        <tr class=\"oddformrow\">\n"
+        );
+      }
+      // Attribute name
+      out.print(
+"          <td class=\"formcolumncell\">\n"+
+"            "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(attributeName)+"\n"+
+"          </td>\n"
+      );
+      // Query
+      out.print(
+"          <td class=\"formcolumncell\">\n"+
+"            "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(attributeQuery)+"\n"+
+"          </td>\n"
+      );
+      out.print(
+"        </tr>\n"
+      );
+      attributeIndex++;
+    }
+    if (attributeIndex == 0)
+    {
+      out.print(
+"        <tr><td class=\"formmessage\" colspan=\"2\">"+Messages.getBodyString(locale,"JDBCConnector.NoAttributeQueries")+"</td></tr>\n"
+      );
+    }
+    out.print(
+"      </table>\n"+
+"    </td>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
     // Find whether security is on or off
