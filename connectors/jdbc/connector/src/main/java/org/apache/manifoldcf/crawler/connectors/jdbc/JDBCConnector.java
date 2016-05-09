@@ -1176,7 +1176,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  "+seqPrefix+"SpecOp(\""+seqPrefix+"attr_\"+index+\"_op\", \"Delete\", \""+seqPrefix+"attr_\" + index);\n"+
 "}\n"+
 "\n"+
-"function "+seqPrefix+"AddAttr()\n"+
+"function "+seqPrefix+"AddAttr(index)\n"+
 "{\n"+
 "  if (editjob."+seqPrefix+"attr_name.value == \"\")\n"+
 "  {\n"+
@@ -1208,7 +1208,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "    editjob."+seqPrefix+"attr_query.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"attr_op\", \"Add\", \""+seqPrefix+"attr\");\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"attr_op\", \"Add\", \""+seqPrefix+"attr_\"+(index+1));\n"+
 "}\n"+
 "\n"+
 "function "+seqPrefix+"SpecAddToken(anchorvalue)\n"+
@@ -1456,7 +1456,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // Query
         out.print(
 "          <td class=\"formcolumncell\">\n"+
-"            <textarea name=\""+seqPrefix+"attr_"+attributeIndex+"_query\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dataQuery)+"</textarea>\n"+
+"            <textarea name=\""+seqPrefix+"attr_"+attributeIndex+"_query\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(attributeQuery)+"</textarea>\n"+
 "          </td>\n"
         );
         out.print(
@@ -1477,14 +1477,14 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "          <td class=\"formcolumncell\">\n"+
 "            <a name=\""+seqPrefix+"attr_"+attributeIndex+"\">\n"+
 "              <input type=\"button\" value=\""+Messages.getAttributeString(locale,"JDBCConnector.Add")+"\"\n"+
-"              alt=\""+Messages.getAttributeString(locale,"JDBCConnector.AddAttribute")+"\" onclick=\"javascript:"+seqPrefix+"AddAttr();\"/>\n"+
+"              alt=\""+Messages.getAttributeString(locale,"JDBCConnector.AddAttribute")+"\" onclick=\"javascript:"+seqPrefix+"AddAttr("+attributeIndex+");\"/>\n"+
 "            </a>\n"+
 "            <input type=\"hidden\" name=\""+seqPrefix+"attr_count\" value=\""+attributeIndex+"\"/>\n"+
 "            <input type=\"hidden\" name=\""+seqPrefix+"attr_op\" value=\"Continue\"/>\n"+
 "          </td>\n"+
-"          <td class=\"formcolumncell\"><nobr><input name=\""+seqPrefix+"attr_name\" type=\"text\" size=\"32\" value=\"\"/></nobr></td>\n"+
+"          <td class=\"formcolumncell\"><nobr><input name=\""+seqPrefix+"attr_name\" type=\"text\" size=\"16\" value=\"\"/></nobr></td>\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <textarea name=\""+seqPrefix+"attr_query\" cols=\"64\" rows=\"6\"></textarea>\n"+
+"            <textarea name=\""+seqPrefix+"attr_query\" cols=\"64\" rows=\"6\">SELECT idfield AS $(IDCOLUMN), datafield AS $(DATACOLUMN) FROM attributetable WHERE idfield IN $(IDLIST)</textarea>\n"+
 "          </td>\n"+
 "        </tr>\n"
       );
@@ -1743,7 +1743,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       
       // Now, maybe do add
       final String newAttributeOp = variableContext.getParameter(seqPrefix+"attr_op");
-      if (newAttributeOp.equals("Add"))
+      if (newAttributeOp != null && newAttributeOp.equals("Add"))
       {
         final String attributeName = variableContext.getParameter(seqPrefix+"attr_name");
         final String attributeQuery = variableContext.getParameter(seqPrefix+"attr_query");
