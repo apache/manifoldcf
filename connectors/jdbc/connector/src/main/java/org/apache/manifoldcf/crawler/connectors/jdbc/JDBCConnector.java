@@ -1173,12 +1173,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "\n"+
 "function "+seqPrefix+"DeleteAttr(index)\n"+
 "{\n"+
-"  var tag;\n"+
-"  if (index == 0)\n"+
-"    tag = \""+seqPrefix+"attr\";\n"+
-"  else\n"+
-"    tag = \""+seqPrefix+"attr_\" + (index-1);\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"attr_\"+index+\"_op\", \"Delete\", tag);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"attr_\"+index+\"_op\", \"Delete\", \""+seqPrefix+"attr_\" + index);\n"+
 "}\n"+
 "\n"+
 "function "+seqPrefix+"AddAttr()\n"+
@@ -1207,7 +1202,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "    editjob."+seqPrefix+"attr_query.focus();\n"+
 "    return;\n"+
 "  }\n"+
-"  if (editjob."+seqPrefix+"aclquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
+"  if (editjob."+seqPrefix+"attr_query.value.indexOf(\"$(IDLIST)\") == -1)\n"+
 "  {\n"+
 "    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustUseIDLISTInWHEREClause") + "\");\n"+
 "    editjob."+seqPrefix+"attr_query.focus();\n"+
@@ -1480,7 +1475,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "        <tr><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
 "        <tr class=\"formrow\">\n"+
 "          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+seqPrefix+"attr\">\n"+
+"            <a name=\""+seqPrefix+"attr_"+attributeIndex+"\">\n"+
 "              <input type=\"button\" value=\""+Messages.getAttributeString(locale,"JDBCConnector.Add")+"\"\n"+
 "              alt=\""+Messages.getAttributeString(locale,"JDBCConnector.AddAttribute")+"\" onclick=\"javascript:"+seqPrefix+"AddAttr();\"/>\n"+
 "            </a>\n"+
@@ -1715,7 +1710,51 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       ds.addChild(ds.getChildCount(),sn);
     }
 
-    String xc = variableContext.getParameter(seqPrefix+"specsecurity");
+    String xc;
+    xc = variableContext.getParameter(seqPrefix+"attr_count");
+    if (xc != null)
+    {
+      // Delete all attribute queries first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        sn = ds.getChild(i);
+        if (sn.getType().equals(JDBCConstants.attributeQueryNode))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      int attributeCount = Integer.parseInt(xc);
+      for (int attributeIndex = 0; i < attributeCount; i++)
+      {
+        final String attributeOp = variableContext.getParameter(seqPrefix+"attr_"+attributeIndex+"_op");
+        if (!(attributeOp != null && attributeOp.equals("Delete")))
+        {
+          // Include this!!
+          final String attributeName = variableContext.getParameter(seqPrefix+"attr_"+attributeIndex+"_name");
+          final String attributeQuery = variableContext.getParameter(seqPrefix+"attr_"+attributeIndex+"_query");
+          SpecificationNode node = new SpecificationNode(JDBCConstants.attributeQueryNode);
+          node.setAttribute(JDBCConstants.attributeName, attributeName);
+          node.setValue(attributeQuery);
+          ds.addChild(ds.getChildCount(),node);
+        }
+      }
+      
+      // Now, maybe do add
+      final String newAttributeOp = variableContext.getParameter(seqPrefix+"attr_op");
+      if (newAttributeOp.equals("Add"))
+      {
+        final String attributeName = variableContext.getParameter(seqPrefix+"attr_name");
+        final String attributeQuery = variableContext.getParameter(seqPrefix+"attr_query");
+        SpecificationNode node = new SpecificationNode(JDBCConstants.attributeQueryNode);
+        node.setAttribute(JDBCConstants.attributeName, attributeName);
+        node.setValue(attributeQuery);
+        ds.addChild(ds.getChildCount(),node);
+      }
+    }
+    
+    xc = variableContext.getParameter(seqPrefix+"specsecurity");
     if (xc != null)
     {
       // Delete all security entries first
