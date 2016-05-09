@@ -1303,6 +1303,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String dataQuery = "SELECT idfield AS $(IDCOLUMN), urlfield AS $(URLCOLUMN), datafield AS $(DATACOLUMN) FROM documenttable WHERE idfield IN $(IDLIST)";
     String aclQuery = "SELECT docidfield AS $(IDCOLUMN), aclfield AS $(TOKENCOLUMN) FROM acltable WHERE docidfield IN $(IDLIST)";
     
+    final Map<String, String> attributeQueryMap = new HashMap<String, String>();
     int i = 0;
     while (i < ds.getChildCount())
     {
@@ -1331,8 +1332,18 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         if (aclQuery == null)
           aclQuery = "";
       }
+      else if (sn.getType().equals(JDBCConstants.attributeQueryNode))
+      {
+        String attributeName = sn.getAttributeValue(JDBCConstants.attributeName);
+        String attributeQuery = sn.getValue();
+        attributeQueryMap.put(attributeName, attributeQuery);
+      }
     }
 
+    // Sort the attribute query list
+    final String[] attributeNames = attributeQueryMap.keySet().toArray(new String[0]);
+    java.util.Arrays.sort(attributeNames);
+    
     // The Queries tab
 
     if (tabName.equals(Messages.getString(locale,"JDBCConnector.Queries")) && connectionSequenceNumber == actualSequenceNumber)
@@ -1355,6 +1366,91 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.DataQuery") + "</nobr><br/><nobr>" + Messages.getBodyString(locale,"JDBCConnector.returnIdsUrlsAndDataForASetOfDocuments") + "</nobr></td>\n"+
 "    <td class=\"value\"><textarea name=\""+seqPrefix+"dataquery\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dataQuery)+"</textarea></td>\n"+
+"  </tr>\n");
+      out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AttributeQueries") + "</nobr></td>\n"+
+"    <td class=\"boxcell\">\n"+
+"      <table class=\"formtable\">\n"+
+"        <tr class=\"formheaderrow\">\n"+
+"          <td class=\"formcolumnheader\"></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AttributeName") + "</nobr></td>\n"+
+"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.AttributeQuery") + "</nobr></td>\n"+
+"        </tr>\n"
+      );
+      int attributeIndex = 0;
+      for (final String attributeName : attributeNames) {
+        final String attributeQuery = attributeQueryMap.get(attributeName);
+        if (attributeIndex % 2 == 0)
+        {
+          out.print(
+"        <tr class=\"evenformrow\">\n"
+          );
+        }
+        else 
+        {
+          out.print(
+"        <tr class=\"oddformrow\">\n"
+          );
+        }
+        // Delete button
+        out.print(
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+seqPrefix+"attr_"+attributeIndex+"\">\n"+
+"              <nobr>\n"+
+"                <input type=\"button\" value=\""+Messages.getAttributeString(locale,"JDBCConnector.Delete")+"\"\n"+
+"                alt=\""+Messages.getAttributeString(locale,"JDBCConnector.DeleteAttributeQueryNumber")+attributeIndex+"\" onclick=\"javascript:"+seqPrefix+"deleteAttr("+attributeIndex+");\"/>\n"+
+"              </nobr>\n"+
+"            </a>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"attr_"+attributeIndex+"_op"+"\" value=\"Continue\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"attr_"+attributeIndex+"_name\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attributeName)+"\"/>\n"+
+"          </td>\n"
+        );
+        // Attribute name
+        out.print(
+"          <td class=\"formcolumncell\">\n"+
+"            "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(attributeName)+"\n"+
+"          </td>\n"
+        );
+        // Query
+        out.print(
+"          <td class=\"formcolumncell\">\n"+
+"            <textarea name=\""+seqPrefix+"attr_"+attributeIndex+"_query\" cols=\"64\" rows=\"6\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(dataQuery)+"</textarea>\n"+
+"          </td>\n"
+        );
+        out.print(
+"        </tr>\n"
+        );
+        attributeIndex++;
+      }
+      if (attributeIndex == 0)
+      {
+        out.print(
+"        <tr><td class=\"formmessage\" colspan=\"3\">"+Messages.getBodyString(locale,"JDBCConnector.NoAttributeQueries")+"</td></tr>\n"
+        );
+      }
+      // Add button
+      out.print(
+"        <tr><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
+"        <tr class=\"formrow\">\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <a name=\""+seqPrefix+"attr\">\n"+
+"              <input type=\"button\" value=\""+Messages.getAttributeString(locale,"JDBCConnector.Add")+"\"\n"+
+"              alt=\""+Messages.getAttributeString(locale,"JDBCConnector.AddAttribute")+"\" onclick=\"javascript:"+seqPrefix+"addAttr();\"/>\n"+
+"            </a>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"attr_count\" value=\""+attributeIndex+"\"/>\n"+
+"            <input type=\"hidden\" name=\""+seqPrefix+"attr_op\" value=\"Continue\"/>\n"+
+"          </td>\n"+
+"          <td class=\"formcolumncell\"><nobr><input name=\""+seqPrefix+"attr_name\" type=\"text\" size=\"32\" value=\"\"/></nobr></td>\n"+
+"          <td class=\"formcolumncell\">\n"+
+"            <textarea name=\""+seqPrefix+"attr_query\" cols=\"64\" rows=\"6\"></textarea>\n"+
+"          </td>\n"+
+"        </tr>\n"
+      );
+      out.print(
+"      </table>\n"+
+"    </td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -1366,6 +1462,18 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "<input type=\"hidden\" name=\""+seqPrefix+"versionquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(versionQuery)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+seqPrefix+"aclquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(aclQuery)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+seqPrefix+"dataquery\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(dataQuery)+"\"/>\n"
+      );
+      int attributeIndex = 0;
+      for (final String attributeName : attributeNames) {
+        final String attributeQuery = attributeQueryMap.get(attributeName);
+        out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"attr_"+attributeIndex+"_name\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attributeName)+"\"/>\n"+
+"<input type=\"hidden\" name=\""+seqPrefix+"attr_"+attributeIndex+"_query\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(attributeQuery)+"\"/>\n"
+        );
+        attributeIndex++;
+      }
+      out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"attr_count\" value=\""+attributeIndex+"\"/>\n"
       );
     }
 	
