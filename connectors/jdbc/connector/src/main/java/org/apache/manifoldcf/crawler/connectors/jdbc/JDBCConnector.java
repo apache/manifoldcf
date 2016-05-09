@@ -1171,6 +1171,51 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "  postFormSetAnchor(anchorvalue);\n"+
 "}\n"+
 "\n"+
+"function "+seqPrefix+"DeleteAttr(index)\n"+
+"{\n"+
+"  var tag;\n"+
+"  if (index == 0)\n"+
+"    tag = \""+seqPrefix+"attr\";\n"+
+"  else\n"+
+"    tag = \""+seqPrefix+"attr_\" + (index-1);\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"attr_\"+index+\"_op\", \"Delete\", tag);\n"+
+"}\n"+
+"\n"+
+"function "+seqPrefix+"AddAttr()\n"+
+"{\n"+
+"  if (editjob."+seqPrefix+"attr_name.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.TypeInAnAttributeName") + "\");\n"+
+"    editjob."+seqPrefix+"attr_name.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (editjob."+seqPrefix+"attr_query.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.AttributeQueryCannotBeNull") + "\");\n"+
+"    editjob."+seqPrefix+"attr_query.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (editjob."+seqPrefix+"attr_query.value.indexOf(\"$(IDCOLUMN)\") == -1)\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnIDCOLUMNInTheResult") + "\");\n"+
+"    editjob."+seqPrefix+"attr_query.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (editjob."+seqPrefix+"attr_query.value.indexOf(\"$(DATACOLUMN)\") == -1)\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustReturnDATACOLUMNInTheResult") + "\");\n"+
+"    editjob."+seqPrefix+"attr_query.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (editjob."+seqPrefix+"aclquery.value.indexOf(\"$(IDLIST)\") == -1)\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"JDBCConnector.MustUseIDLISTInWHEREClause") + "\");\n"+
+"    editjob."+seqPrefix+"attr_query.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  "+seqPrefix+"SpecOp(\""+seqPrefix+"attr_op\", \"Add\", \""+seqPrefix+"attr\");\n"+
+"}\n"+
+"\n"+
 "function "+seqPrefix+"SpecAddToken(anchorvalue)\n"+
 "{\n"+
 "  if (editjob."+seqPrefix+"spectoken.value == \"\")\n"+
@@ -1400,7 +1445,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "            <a name=\""+seqPrefix+"attr_"+attributeIndex+"\">\n"+
 "              <nobr>\n"+
 "                <input type=\"button\" value=\""+Messages.getAttributeString(locale,"JDBCConnector.Delete")+"\"\n"+
-"                alt=\""+Messages.getAttributeString(locale,"JDBCConnector.DeleteAttributeQueryNumber")+attributeIndex+"\" onclick=\"javascript:"+seqPrefix+"deleteAttr("+attributeIndex+");\"/>\n"+
+"                alt=\""+Messages.getAttributeString(locale,"JDBCConnector.DeleteAttributeQueryNumber")+attributeIndex+"\" onclick=\"javascript:"+seqPrefix+"DeleteAttr("+attributeIndex+");\"/>\n"+
 "              </nobr>\n"+
 "            </a>\n"+
 "            <input type=\"hidden\" name=\""+seqPrefix+"attr_"+attributeIndex+"_op"+"\" value=\"Continue\"/>\n"+
@@ -1437,7 +1482,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "          <td class=\"formcolumncell\">\n"+
 "            <a name=\""+seqPrefix+"attr\">\n"+
 "              <input type=\"button\" value=\""+Messages.getAttributeString(locale,"JDBCConnector.Add")+"\"\n"+
-"              alt=\""+Messages.getAttributeString(locale,"JDBCConnector.AddAttribute")+"\" onclick=\"javascript:"+seqPrefix+"addAttr();\"/>\n"+
+"              alt=\""+Messages.getAttributeString(locale,"JDBCConnector.AddAttribute")+"\" onclick=\"javascript:"+seqPrefix+"AddAttr();\"/>\n"+
 "            </a>\n"+
 "            <input type=\"hidden\" name=\""+seqPrefix+"attr_count\" value=\""+attributeIndex+"\"/>\n"+
 "            <input type=\"hidden\" name=\""+seqPrefix+"attr_op\" value=\"Continue\"/>\n"+
