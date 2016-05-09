@@ -535,6 +535,99 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
     
+    // We have a primary query and a number of attribute queries to execute.
+    // We execute the attribute queries first because those do not include binary data.
+    final Map<String, Map<String, Set<String>>> attributeValues = new HashMap<String, Map<String, Set<String>>>();
+    int index = 0;
+    while (index < spec.getChildCount())
+    {
+      SpecificationNode sn = spec.getChild(index++);
+      if (sn.getType().equals(JDBCConstants.attributeQueryNode))
+      {
+        final String attributeName = sn.getAttributeValue(JDBCConstants.attributeName);
+        final String attributeQuery = sn.getValue();
+        // Fire off attribute query
+        VariableMap attrVm = new VariableMap();
+        addConstant(attrVm,JDBCConstants.idReturnVariable,JDBCConstants.idReturnColumnName);
+        addConstant(attrVm,JDBCConstants.dataReturnVariable,JDBCConstants.dataReturnColumnName);
+        if (!addIDList(attrVm,JDBCConstants.idListVariable,documentIdentifiers,map.keySet()))
+          continue;
+        
+        // Do the substitution
+        ArrayList paramList = new ArrayList();
+        StringBuilder sb = new StringBuilder();
+        substituteQuery(attributeQuery,attrVm,sb,paramList);
+
+        // Fire off the query!
+        getSession();
+        IDynamicResultSet result;
+        String queryText = sb.toString();
+        long startTime = System.currentTimeMillis();
+        // Get a dynamic resultset.  Contract for dynamic resultset is that if
+        // one is returned, it MUST be closed, or a connection will leak.
+        try
+        {
+          result = connection.executeUncachedQuery(queryText,paramList,-1);
+        }
+        catch (ManifoldCFException e)
+        {
+          // If failure, record the failure.
+          if (e.getErrorCode() != ManifoldCFException.INTERRUPTED)
+            activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+              createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
+          throw e;
+        }
+        try
+        {
+          // If success, record that too.
+          activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+            createQueryString(queryText,paramList), "OK", null, null);
+          // Now, go through resultset
+          while (true)
+          {
+            IDynamicResultRow row = result.getNextRow();
+            if (row == null)
+              break;
+            try
+            {
+              Object o = row.getValue(JDBCConstants.idReturnColumnName);
+              if (o == null)
+                throw new ManifoldCFException("Bad acl query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\", or, for MySQL, select \"by label\" in your repository connection.");
+              String idValue = JDBCConnection.readAsString(o);
+              o = row.getValue(JDBCConstants.dataReturnColumnName);
+              String dataValue;
+              if (o == null)
+                dataValue = "";
+              else
+                dataValue = JDBCConnection.readAsString(o);
+              // Versions that are "", when processed, will have their acls fetched at that time...
+              Map<String, Set<String>> avs = attributeValues.get(idValue);
+              if (avs == null)
+              {
+                avs = new HashMap<String, Set<String>>();
+                attributeValues.put(idValue,avs);
+              }
+              Set<String> dataValues = avs.get(attributeName);
+              if (dataValues == null)
+              {
+                dataValues = new HashSet<String>();
+                avs.put(attributeName, dataValues);
+              }
+              dataValues.add(dataValue);
+            }
+            finally
+            {
+              row.close();
+            }
+          }
+        }
+        finally
+        {
+          result.close();
+        }
+      }
+    }
+    
     // For all the documents not marked "scan only", form a query and pick up the contents.
     // If the contents is not found, then explicitly call the delete action method.
     VariableMap vm = new VariableMap();
@@ -684,7 +777,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
             // An ingestion will take place for this document.
             RepositoryDocument rd = new RepositoryDocument();
             rd.setMimeType(contentType);
-                        
+
+            applyMultiAttributeValues(rd,attributeValues.get(id));
             applyAccessTokens(rd,documentAcls.get(id));
             applyMetadata(rd,row);
 
@@ -2051,6 +2145,29 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         Object metadata = row.getValue(columnName);
         rd.addField(columnName,JDBCConnection.readAsString(metadata));
       }
+    }
+  }
+
+  /** Apply multi-valued attribute values to a repository document.
+  */
+  protected void applyMultiAttributeValues(final RepositoryDocument rd, final Map<String, Set<String>> values)
+    throws ManifoldCFException
+  {
+    if (values == null)
+    {
+      return;
+    }
+    
+    for (final String attributeName : values.keySet())
+    {
+      final Set<String> attributes = values.get(attributeName);
+      final String[] attributeValues = new String[values.size()];
+      int i = 0;
+      for (final String attributeValue : attributes)
+      {
+        attributeValues[i++] = attributeValue;
+      }
+      rd.addField(attributeName, attributeValues);
     }
   }
   
