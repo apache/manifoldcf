@@ -1726,7 +1726,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
 
       int attributeCount = Integer.parseInt(xc);
-      for (int attributeIndex = 0; i < attributeCount; i++)
+      for (int attributeIndex = 0; attributeIndex < attributeCount; attributeIndex++)
       {
         final String attributeOp = variableContext.getParameter(seqPrefix+"attr_"+attributeIndex+"_op");
         if (!(attributeOp != null && attributeOp.equals("Delete")))
