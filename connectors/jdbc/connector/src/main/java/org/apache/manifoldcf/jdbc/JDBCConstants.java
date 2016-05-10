@@ -47,6 +47,10 @@ public class JDBCConstants
   public static String dataQueryNode = "dataquery";
   /** The node containing the acl query */
   public static String aclQueryNode = "aclquery";
+  /** The node containing an attribute query */
+  public static String attributeQueryNode = "attrquery";
+  /** The attribute name for an attribute query */
+  public static String attributeName = "attributename";
 
   /** The name of the id return column */
   public static String idReturnColumnName = "lcf__id";

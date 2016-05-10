@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1313: Add multivalued data support to JDBC connector.
+(Luca Alciata, Karl Wright)
+
 CONNECTORS-1312: Treat "connection reset by peer" same way as "busy"
 in JCIFS connector.
 (Konstantin Avdeev, Karl Wright)

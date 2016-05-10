@@ -1999,15 +1999,16 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/><br/>
                 <figure src="images/en_US/jdbc-job-queries.PNG" alt="Generic Database Job, Queries tab" width="80%"/>
                 <br/><br/>
-                <p>You must supply at least two queries.  (A third and fourth queries are optional.)  The purpose of these queries is to obtain the data needed for the database to be properly crawled.
+                <p>You must supply at least two queries.  (All other queries are optional.)  The purpose of these queries is to obtain the data needed for the database to be properly crawled.
                        But in order for you to write these queries, you must make some decisions first.  Basically, you need to figure out how best to map the constructs within your database
-                       to the requirements of the Framework.</p>
+                       to the requirements of the Framework.  The following are the sorts of queries you can provide:</p>
                 <br/>
                 <ul>
                     <li>Obtain a list of document identifiers corresponding to changes and additions that occurred within a specified time window (see below)</li>
                     <li>Given a set of document identifiers, find the corresponding version strings (see below)</li>
                     <li>Given a set of document identifiers, find the corresponding list of access tokens for each document identifier (see below)</li>
-                    <li>Given a set of document identifiers and version strings, find information about the document, consisting of the document's data, access URL, and metadata</li>
+                    <li>Given a set of document identifiers, find information about the document, consisting of the document's data, access URL, and metadata</li>
+                    <li>Given a set of document identifiers, find multivalued metadata from the document (multiple such queries)</li>
                 </ul>
                 <br/>
                 <p>The Framework uses a unique document identifier to describe every document within the confines of a defined repository connection.  This document identifier is used
@@ -2089,7 +2090,6 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p><code>SELECT id AS $(IDCOLUMN), characterdata AS $(DATACOLUMN), 'http://mydynamicserver.com?id=' || id AS $(URLCOLUMN), 
                   publisher AS metadata_a, distributor AS metadata_b FROM mytable WHERE id IN $(IDLIST)</code></p>
                 <br/>
-                <p>There is currently no support in the JDBC connection type for natively handling multi-valued metadata.</p>
                 <p>The "Security" tab simply allows you to add specific access tokens to all documents indexed with a general database job.  In order for you to know what tokens
                        to add, you must decide with what authority connection these documents will be secured, and understand the form of the access tokens used by that authority connection
                        type.  This is what the "Security" tab looks like:</p>
