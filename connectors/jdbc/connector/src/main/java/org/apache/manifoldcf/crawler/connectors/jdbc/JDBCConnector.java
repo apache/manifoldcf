@@ -1819,6 +1819,24 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
           i++;
       }
 
+      // Now, maybe do add
+      final String newAttributeName;
+      final String newAttributeOp = variableContext.getParameter(seqPrefix+"attr_op");
+      if (newAttributeOp != null && newAttributeOp.equals("Add"))
+      {
+        final String attributeName = variableContext.getParameter(seqPrefix+"attr_name");
+        final String attributeQuery = variableContext.getParameter(seqPrefix+"attr_query");
+        SpecificationNode node = new SpecificationNode(JDBCConstants.attributeQueryNode);
+        node.setAttribute(JDBCConstants.attributeName, attributeName);
+        newAttributeName = attributeName;
+        node.setValue(attributeQuery);
+        ds.addChild(ds.getChildCount(),node);
+      }
+      else
+      {
+        newAttributeName = null;
+      }
+
       int attributeCount = Integer.parseInt(xc);
       for (int attributeIndex = 0; attributeIndex < attributeCount; attributeIndex++)
       {
@@ -1827,25 +1845,16 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           // Include this!!
           final String attributeName = variableContext.getParameter(seqPrefix+"attr_"+attributeIndex+"_name");
-          final String attributeQuery = variableContext.getParameter(seqPrefix+"attr_"+attributeIndex+"_query");
-          SpecificationNode node = new SpecificationNode(JDBCConstants.attributeQueryNode);
-          node.setAttribute(JDBCConstants.attributeName, attributeName);
-          node.setValue(attributeQuery);
-          ds.addChild(ds.getChildCount(),node);
+          if (newAttributeName == null || !attributeName.equals(newAttributeName)) {
+            final String attributeQuery = variableContext.getParameter(seqPrefix+"attr_"+attributeIndex+"_query");
+            SpecificationNode node = new SpecificationNode(JDBCConstants.attributeQueryNode);
+            node.setAttribute(JDBCConstants.attributeName, attributeName);
+            node.setValue(attributeQuery);
+            ds.addChild(ds.getChildCount(),node);
+          }
         }
       }
       
-      // Now, maybe do add
-      final String newAttributeOp = variableContext.getParameter(seqPrefix+"attr_op");
-      if (newAttributeOp != null && newAttributeOp.equals("Add"))
-      {
-        final String attributeName = variableContext.getParameter(seqPrefix+"attr_name");
-        final String attributeQuery = variableContext.getParameter(seqPrefix+"attr_query");
-        SpecificationNode node = new SpecificationNode(JDBCConstants.attributeQueryNode);
-        node.setAttribute(JDBCConstants.attributeName, attributeName);
-        node.setValue(attributeQuery);
-        ds.addChild(ds.getChildCount(),node);
-      }
     }
     
     xc = variableContext.getParameter(seqPrefix+"specsecurity");
