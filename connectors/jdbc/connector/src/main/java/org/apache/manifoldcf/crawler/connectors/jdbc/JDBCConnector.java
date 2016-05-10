@@ -592,7 +592,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
             {
               Object o = row.getValue(JDBCConstants.idReturnColumnName);
               if (o == null)
-                throw new ManifoldCFException("Bad acl query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\", or, for MySQL, select \"by label\" in your repository connection.");
+                throw new ManifoldCFException("Bad attribute query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\", or, for MySQL, select \"by label\" in your repository connection.");
               String idValue = JDBCConnection.readAsString(o);
               o = row.getValue(JDBCConstants.dataReturnColumnName);
               String dataValue;
@@ -600,7 +600,6 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 dataValue = "";
               else
                 dataValue = JDBCConnection.readAsString(o);
-              // Versions that are "", when processed, will have their acls fetched at that time...
               Map<String, Set<String>> avs = attributeValues.get(idValue);
               if (avs == null)
               {
