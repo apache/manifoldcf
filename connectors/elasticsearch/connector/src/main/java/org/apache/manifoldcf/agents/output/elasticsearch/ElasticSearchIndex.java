@@ -362,6 +362,10 @@ public class ElasticSearchIndex extends ElasticSearchConnection
         sb.append('\\').append('b');
       else if (x == '\f')
         sb.append('\\').append('f');
+      else if (x < 32)
+      {
+        sb.append("\\u").append(String.format("%04x", (int)x));
+      }
       else
       {
         if (x == '\"' || x == '\\' || x == '/')
