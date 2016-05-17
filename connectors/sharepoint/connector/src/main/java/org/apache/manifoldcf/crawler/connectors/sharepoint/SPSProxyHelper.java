@@ -2521,14 +2521,16 @@ public class SPSProxyHelper {
               // We're at the /Lists/listname part of the name.  Figure out where the end of it is.
               int index = urlPath.indexOf("/");
               if (index == -1)
-                throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
+                continue;
+                //throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
               String pathpart = urlPath.substring(0,index);
 
               if("Lists".equals(pathpart))
               {
                 int k = urlPath.indexOf("/",index+1);
                 if (k == -1)
-                  throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
+                  continue;
+                  //throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
                 pathpart = urlPath.substring(index+1,k);
               }
 
