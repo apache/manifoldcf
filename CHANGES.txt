@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1309: SharePoint connector would blow up looking for
+lists when SharePoint returned non-list entities.
+(Phil Reithmuller, Karl Wright)
+
 CONNECTORS-1315: Handle control characters in ES connector.
 (Silvio Meier, Karl Wright)
 
