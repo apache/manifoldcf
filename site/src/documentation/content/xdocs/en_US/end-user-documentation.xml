@@ -153,9 +153,9 @@
                 <p>The summary screen contains a line where the connection's status is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.
                       If there was a problem, you will see a connection-type-specific diagnostic message instead.  If this happens, you will need to correct the problem, by either fixing your infrastructure,
                       or by editing the connection configuration appropriately, before the transformation connection will work correctly.</p>
-                <p>Also note that there are five buttons along the bottom of the display: "Refresh", "Edit", and "Delete".  We'll
+                <p>Also note that there are three buttons along the bottom of the display: "Refresh", "Edit", and "Delete".  We'll
                       go into the purpose for each of these buttons in turn.</p>
-                <p>The "Refresh" button simply reloads the view page for the output connection, and updates the connection status.  Use this button when you have made changes to the external system
+                <p>The "Refresh" button simply reloads the view page for the transformation connection, and updates the connection status.  Use this button when you have made changes to the external system
                       your transformation connection is connected to that might affect whether the connection will succeed or not.</p>
                 <p>The "Edit" button allows you to go back and edit the connection parameters.  Use this button if you want to change the connection's characteristics or specifications in any way.</p>
                 <p>The "Delete" button allows you to delete the connection.  Use this button if you no longer want the connection to remain in the available list of transformation connections.  Note that ManifoldCF
