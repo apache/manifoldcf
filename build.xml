@@ -122,7 +122,7 @@
     <property name="jcip-annotations.version" value="1.0"/>
     <property name="ehcache.version" value="2.6.11"/>
     <property name="bzip2.version" value="0.9.1"/>
-    <property name="jdom2.version" value="2.0.4"/>
+    <property name="jdom2.version" value="2.0.6"/>
     <property name="quartz.version" value="2.2.1"/>
     <property name="boilerpipe.version" value="1.1.0"/>
     <property name="dom4j.version" value="1.6.1"/>
