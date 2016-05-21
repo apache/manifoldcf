@@ -376,8 +376,8 @@ License: BSD license.
 This product includes an xmpcore.jar.
 License: BSD license (http://www.adobe.com/devnet/xmp/library/eula-xmp-library-java.html)
 
-This product includes a jdom.jar.
-License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt), without attribution requirement.
+This product includes a jdom2.jar.
+License: Apache 2, without attribution requirement. (https://raw.githubusercontent.com/hunterhacker/jdom/master/LICENSE.txt)
 
 This product includes a rome.jar.
 License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)

@@ -128,8 +128,8 @@
     <property name="dom4j.version" value="1.6.1"/>
     <property name="asm.version" value="5.1"/>
     <property name="xmpcore.version" value="5.1.2"/>
-    <property name="jdom.version" value="1.0"/>
     <property name="rome.version" value="1.6.0"/>
+    <property name="jdom2.version" value="2.0.6"/>
     <property name="mp4parser.version" value="1.1.18"/>
     <property name="jmatio.version" value="1.0"/>
     <property name="java-libpst.version" value="0.8.1"/>
@@ -2280,15 +2280,21 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="jdom"/>
-            <param name="artifact-name" value="jdom"/>
-            <param name="artifact-version" value="${jdom.version}"/>
+            <param name="project-path" value="com/rometools"/>
+            <param name="artifact-name" value="rome"/>
+            <param name="artifact-version" value="${rome.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="com/rometools"/>
-            <param name="artifact-name" value="rome"/>
+            <param name="artifact-name" value="rome-utils"/>
             <param name="artifact-version" value="${rome.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/jdom"/>
+            <param name="artifact-name" value="jdom2"/>
+            <param name="artifact-version" value="${jdom2.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>

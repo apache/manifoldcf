@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1317: Missing JDOM2 dependency for Tika.
+(Karl Wright)
+
 CONNECTORS-1309: SharePoint connector would blow up looking for
 lists when SharePoint returned non-list entities.
 (Phil Reithmuller, Karl Wright)
