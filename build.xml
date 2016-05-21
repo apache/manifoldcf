@@ -1691,10 +1691,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <fileset dir="build/download/apache-manifoldcf-elasticsearch-plugin-bin/elasticsearch-plugin-mcf-2.1"/>
         </copy>
         <mkdir dir="lib/elasticsearch-1.5"/>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.1-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-1.5-plugin-bin.zip"/>
+        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.2/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.2-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-1.5-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-elasticsearch-1.5-plugin-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-1.5-plugin-bin"/>
         <copy todir="lib/elasticsearch-1.5">
-            <fileset dir="build/download/apache-manifoldcf-elasticsearch-1.5-plugin-bin/elasticsearch-1.5-plugin-mcf-2.0.1"/>
+            <fileset dir="build/download/apache-manifoldcf-elasticsearch-1.5-plugin-bin/elasticsearch-1.5-plugin-mcf-2.0.2"/>
         </copy>
     </target>
 	
