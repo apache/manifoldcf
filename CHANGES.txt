@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1318: Documentation errors.
+(KOIZUMI Satoru)
+
 CONNECTORS-1317: Missing JDOM2 dependency for Tika.
 (Karl Wright)
 
