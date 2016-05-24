@@ -237,7 +237,7 @@
                 <br/><br/>
                 <figure src="images/en_US/repository-throttling.PNG" alt="Repository Connection Throttling" width="80%"/>
                 <br/><br/>
-                <p>On this tab, you can specify two things.  The first is how many open connections are allowed at any given time to the system the authority connection talks with.  This restriction helps prevent
+                <p>On this tab, you can specify two things.  The first is how many open connections are allowed at any given time to the system the repository connection talks with.  This restriction helps prevent
                        that system from being overloaded, or in some cases exceeding its license limitations.  Conversely, making this number larger allows for smaller average search latency.  The default
                        value is 10, which may not be optimal for all types of repository connections.  Please refer to the section of the manual describing your authority connection type for more precise
                        recommendations.  The second specifies how rapidly, on average, the crawler will fetch documents via this connection.
@@ -321,7 +321,7 @@
                 <p>The summary screen contains a line where the connection's status is displayed.  If you did everything correctly, the message "Connection working" will be displayed as a status.
                       If there was a problem, you will see a connection-type-specific diagnostic message instead.  If this happens, you will need to correct the problem, by either fixing your infrastructure,
                       or by editing the connection configuration appropriately, before the output connection will work correctly.</p>
-                <p>Also note that there are five buttons along the bottom of the display: "Refresh", "Edit", and "Delete".  We'll
+                <p>Also note that there are three buttons along the bottom of the display: "Refresh", "Edit", and "Delete".  We'll
                       go into the purpose for each of these buttons in turn.</p>
                 <p>The "Refresh" button simply reloads the view page for the notification connection, and updates the connection status.  Use this button when you have made changes to the external system
                       your output connection is connected to that might affect whether the connection will succeed or not.</p>
@@ -375,7 +375,7 @@
                 <br/><br/>
                 <figure src="images/en_US/mapping-throttling.PNG" alt="User Mapping Connection Throttling" width="80%"/>
                 <br/><br/>
-                <p>On this tab, you can specify only one thing: how many open connections are allowed at any given time to the system the authority connection talks with.  This restriction helps prevent
+                <p>On this tab, you can specify only one thing: how many open connections are allowed at any given time to the system the mapping connection talks with.  This restriction helps prevent
                        that system from being overloaded, or in some cases exceeding its license limitations.  Conversely, making this number larger allows for smaller average search latency.  The default
                        value is 10, which may not be optimal for all types of mapping connections.  Please refer to the section of the manual describing your mapping connection type for more precise
                        recommendations.
