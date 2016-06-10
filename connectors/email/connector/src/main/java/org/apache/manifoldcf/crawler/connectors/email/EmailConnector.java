@@ -578,7 +578,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                 for (Address address : from) {
                   fromStr[j] = address.toString();
                 }
-                rd.addField(EmailConfig.EMAIL_TO, fromStr);
+                rd.addField(EmailConfig.EMAIL_FROM, fromStr);
 
               } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_SUBJECT)) {
                 subject = msg.getSubject();
