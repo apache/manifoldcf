@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1322: Fix email connector "from" field.
+(Olivier Tavard)
+
 CONNECTORS-1318: Documentation errors.
 (KOIZUMI Satoru)
 
