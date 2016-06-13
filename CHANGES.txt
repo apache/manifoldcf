@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1323: When there were multiple outputs, the second,
+third, etc outputs would not have their activities properly logged.
+(Karl Wright)
+
 CONNECTORS-1322: Fix email connector "from" field.
 (Olivier Tavard)
 
