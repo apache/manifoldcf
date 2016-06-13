@@ -982,7 +982,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   public void documentDeleteMultiple(
     IPipelineConnections pipelineConnections,
     String[] identifierClasses, String[] identifierHashes,
-    IOutputRemoveActivity activities)
+    IOutputRemoveActivity originalActivities)
     throws ManifoldCFException, ServiceInterruption
   {
     String[] outputConnectionNames = pipelineConnections.getOutputConnectionNames();
@@ -994,7 +994,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       String outputConnectionName = outputConnectionNames[z];
       IOutputConnection connection = outputConnections[z];
 
-      activities = new OutputRemoveActivitiesWrapper(activities,outputConnectionName);
+      IOutputRemoveActivity activities = new OutputRemoveActivitiesWrapper(originalActivities,outputConnectionName);
 
       if (Logging.ingest.isDebugEnabled())
       {
@@ -1039,7 +1039,9 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         for (DeleteInfo uri : uris)
         {
           if (uri.getURI() != null)
+          {
             removeDocument(connection,uri.getURI(),uri.getOutputVersion(),activities);
+          }
         }
 
         // Now, get rid of all rows that match the given uris.
