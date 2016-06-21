@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1324: Fix (again) the SharePoint connector's "use all metadata"
+option.
+(Konstantin Avdeev)
+
 CONNECTORS-1323: When there were multiple outputs, the second,
 third, etc outputs would not have their activities properly logged.
 (Karl Wright)
