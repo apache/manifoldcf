@@ -852,12 +852,15 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               continue;
             }
             
+            // Note well: There's been a lot of back-and forth about this code.
+            // See CONNECTORS-1324.
+            // The fieldNames map returned by proxy.getFieldList() has the internal name as a key, and the display name as a value.
+            // Since we want the complete list of fields here, by *internal* name, we iterate over the keySet(), not the values.
             String[] fields = new String[fieldNames.size()];
             int j = 0;
             for (String field : fieldNames.keySet())
             {
-              String value = fieldNames.get(field);
-              fields[j++] = (value==null)?field:value;
+              fields[j++] = field;
             }
                   
             String[] accessTokens;
@@ -958,6 +961,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 continue;
               }
               
+              // Get the fields we want (internal field names only at this point), given the list of all fields (internal field names again).
               String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,listFields);
                   
               // Sort access tokens so they are comparable in the version string
@@ -1305,12 +1309,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               continue;
             }
             
+            // See CONNECTORS-1324.  We want internal field names only,
+            // which are the keys of the map.
             String[] fields = new String[fieldNames.size()];
             int j = 0;
             for (String field : fieldNames.keySet())
             {
-              String value = fieldNames.get(field);
-              fields[j++] = (value==null)?field:value;
+              fields[j++] = field;
             }
                   
             String[] accessTokens;
@@ -1403,6 +1408,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             }
             
             String encodedSitePath = encodePath(sitePath);
+            // Get the fields we want (internal field names only at this point), given the list of all fields (internal field names again).
             String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,libFields);
                 
             // Sort access tokens
