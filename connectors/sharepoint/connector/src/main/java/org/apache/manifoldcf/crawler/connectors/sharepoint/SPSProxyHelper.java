@@ -132,7 +132,15 @@ public class SPSProxyHelper {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getACLs xml response: "+xmlResponse);
       
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+      
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -352,7 +360,15 @@ public class SPSProxyHelper {
         Logging.connectors.debug("SharePoint: getDocumentACLs xml response: " + xmlResponse);
       }
 
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+      
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -571,7 +587,14 @@ public class SPSProxyHelper {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("SharePoint: getChildren xml response: "+xmlResponse);
 
-        XMLDoc doc = new XMLDoc( xmlResponse );
+        final XMLDoc doc;
+        try
+        {
+          doc = new XMLDoc( xmlResponse );
+        }
+        catch (ManifoldCFException e) {
+          return false;
+        }
 
         doc.processPath(nodeList, "*", null);
         if (nodeList.size() != 1)
@@ -812,7 +835,16 @@ public class SPSProxyHelper {
       final String xmlResponse = lists[0].toString();
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getDocLibID xml response: "+xmlResponse);
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -1015,7 +1047,16 @@ public class SPSProxyHelper {
       final String xmlResponse = lists[0].toString();
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getListID xml response: "+xmlResponse);
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -1215,7 +1256,15 @@ public class SPSProxyHelper {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getVersions response: "+xmlResponse);
       
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -1641,7 +1690,15 @@ public class SPSProxyHelper {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getAttachmentNames response: "+xmlResponse);
 
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -1766,8 +1823,16 @@ public class SPSProxyHelper {
       final String xmlResponse = List[0].toString();
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getFieldList xml response: "+xmlResponse);
+
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
       
-      XMLDoc doc = new XMLDoc( xmlResponse );
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -1967,7 +2032,15 @@ public class SPSProxyHelper {
           Logging.connectors.debug("SharePoint: getFieldValues xml response: '" +xmlResponse+ "'");
         }
 
-        XMLDoc doc = new XMLDoc( xmlResponse );
+        final XMLDoc doc;
+        try
+        {
+          doc = new XMLDoc( xmlResponse );
+        }
+        catch (ManifoldCFException e) {
+          return null;
+        }
+
         ArrayList nodeList = new ArrayList();
 
         doc.processPath(nodeList, "*", null);
@@ -2035,7 +2108,15 @@ public class SPSProxyHelper {
         }
 
         ArrayList nodeList = new ArrayList();
-        XMLDoc doc = new XMLDoc(xmlResponse);
+        
+        final XMLDoc doc;
+        try
+        {
+          doc = new XMLDoc( xmlResponse );
+        }
+        catch (ManifoldCFException e) {
+          return null;
+        }
 
         doc.processPath(nodeList, "*", null);
         if (nodeList.size() != 1)
@@ -2174,7 +2255,16 @@ public class SPSProxyHelper {
       final String xmlResponse = webList[0].toString();
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getSites xml response: "+xmlResponse);
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -2315,7 +2405,15 @@ public class SPSProxyHelper {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getDocumentLibraries xml response: "+xmlResponse);
       
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -2472,7 +2570,15 @@ public class SPSProxyHelper {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getLists xml response: "+xmlResponse);
 
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
