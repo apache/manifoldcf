@@ -977,6 +977,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               // The document path includes the library, with no leading slash, and is decoded.
               String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
               Map<String,String> values = proxy.getFieldValues( metadataDescription.toArray(new String[0]), encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
+              if (values == null) {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because of bad XML characters(?)");
+                activities.deleteDocument(documentIdentifier);
+                continue;
+              }
               String modifiedDate = values.get("Modified");
               String createdDate = values.get("Created");
               String id = values.get("ID");
@@ -1425,6 +1431,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             int cutoff = decodedLibPath.lastIndexOf("/");
             String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff);
             Map<String,String> values = proxy.getFieldValues( metadataDescription.toArray(new String[0]), encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
+            if (values == null)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has bad characters(?)");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
 
             String modifiedDate = values.get("Modified");
             String createdDate = values.get("Created");
