@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1326: Fix URL for Confluence documents.
+(Chalitha Perera)
+
 CONNECTORS-1325: Deal with SharePoint bad XML when document has 
 optional plane utf-16 characters.  Documents with these are skipped
 since Java can't represent them either.

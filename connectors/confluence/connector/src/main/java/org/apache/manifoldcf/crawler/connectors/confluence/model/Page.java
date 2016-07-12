@@ -291,7 +291,7 @@ public class Page extends ConfluenceResource{
           String webUrl = (String) links.optString(KEY_WEBUI, "");
           page.urlContext = (String) links.optString(KEY_CONTEXT, "");
           page.baseUrl = (String) links.optString(KEY_BASE, "");
-          page.webUrl = page.baseUrl + page.urlContext + webUrl;
+          page.webUrl = page.baseUrl + webUrl;
 
         }
 
