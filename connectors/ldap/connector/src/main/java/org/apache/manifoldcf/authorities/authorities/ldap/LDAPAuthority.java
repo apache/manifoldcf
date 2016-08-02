@@ -151,30 +151,39 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     try {
       if (session == null) {
         if (serverName == null || serverName.length() == 0) {
+          Logging.authorityConnectors.error("Server name parameter missing but required");
           throw new ManifoldCFException("Server name parameter missing but required");
         }
         if (serverPort == null || serverPort.length() == 0) {
+          Logging.authorityConnectors.error("Server port parameter missing but required");
           throw new ManifoldCFException("Server port parameter missing but required");
         }
         if (serverBase == null) {
+          Logging.authorityConnectors.error("Server base parameter missing but required");
           throw new ManifoldCFException("Server base parameter missing but required");
         }
         if (userBase == null) {
+          Logging.authorityConnectors.error("User base parameter missing but required");
           throw new ManifoldCFException("User base parameter missing but required");
         }
         if (userSearch == null || userSearch.length() == 0) {
+          Logging.authorityConnectors.error("User search expression missing but required");
           throw new ManifoldCFException("User search expression missing but required");
         }
         if (groupBase == null) {
+          Logging.authorityConnectors.error("Group base parameter missing but required");
           throw new ManifoldCFException("Group base parameter missing but required");
         }
         if (groupSearch == null || groupSearch.length() == 0) {
+          Logging.authorityConnectors.error("Group search expression missing but required");
           throw new ManifoldCFException("Group search expression missing but required");
         }
         if (groupNameAttr == null || groupNameAttr.length() == 0) {
+          Logging.authorityConnectors.error("Group name attribute missing but required");
           throw new ManifoldCFException("Group name attribute missing but required");
         }
         if (userNameAttr == null || userNameAttr.length() == 0) {
+          Logging.authorityConnectors.error("User name attribute missing but required");
           throw new ManifoldCFException("User name attribute missing but required");
         }
 
@@ -217,6 +226,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
           env.put(Context.SECURITY_CREDENTIALS, bindPass);
         }
 
+        Logging.authorityConnectors.info("LDAP Context environment properties: " + Arrays.toString(env.entrySet().toArray()));
         session = new InitialLdapContext(env, null);
         
         if (useTls) {
@@ -235,22 +245,27 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     } catch (AuthenticationException e) {
       session = null;
       sessionExpirationTime = -1L;
+      Logging.authorityConnectors.error("Authentication error: " + e.getMessage() + ", explanation: " + e.getExplanation(), e);
       throw new ManifoldCFException("Authentication error: " + e.getMessage() + ", explanation: " + e.getExplanation(), e);
     } catch (CommunicationException e) {
       session = null;
       sessionExpirationTime = -1L;
+      Logging.authorityConnectors.error("Communication error: " + e.getMessage(), e);
       throw new ManifoldCFException("Communication error: " + e.getMessage(), e);
     } catch (NamingException e) {
       session = null;
       sessionExpirationTime = -1L;
+      Logging.authorityConnectors.error("Naming error: " + e.getMessage(), e);
       throw new ManifoldCFException("Naming error: " + e.getMessage(), e);
     } catch (InterruptedIOException e) {
       session = null;
       sessionExpirationTime = -1L;
+      Logging.authorityConnectors.error("Interrupted IO error: " + e.getMessage());
       throw new ManifoldCFException(e.getMessage(), ManifoldCFException.INTERRUPTED);
     } catch (IOException e) {
       session = null;
       sessionExpirationTime = -1L;
+      Logging.authorityConnectors.error("IO error: " + e.getMessage(), e);
       throw new ManifoldCFException("IO error: " + e.getMessage(), e);
     }
   }
@@ -453,6 +468,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
 
     } catch (NameNotFoundException e) {
       // This means that the user doesn't exist
+      Logging.authorityConnectors.error("Response Unreachable: "+e.getMessage(),e);
       return RESPONSE_USERNOTFOUND;
     } catch (NamingException e) {
       // Unreachable
@@ -787,11 +803,9 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
    *
    * @param ctx is the ldap context to use.
    * @param userName (Domain Logon Name) is the user name or identifier.
-   * @param searchBase (Full Domain Name for the search ie:
    * DC=qa-ad-76,DC=metacarta,DC=com)
    * @return SearchResult for given domain user logon name. (Should throws an
-   * exception if user is not found.)
-   */
+   * exception if user is not found.)   */
   protected SearchResult getUserEntry(LdapContext ctx, String userName)
     throws ManifoldCFException {
     String searchFilter = userSearch.replaceAll("\\{0\\}", escapeDN(userName.split("@")[0]));
