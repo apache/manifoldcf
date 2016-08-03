@@ -149,6 +149,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     throws ManifoldCFException {
 
     try {
+      LDAPProtocolEnum ldapProtocol = retrieveLDAPProtocol();
       if (session == null) {
         if (serverName == null || serverName.length() == 0) {
           Logging.authorityConnectors.error("Server name parameter missing but required");
@@ -192,30 +193,13 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
         } else {
           sslKeystore = KeystoreManagerFactory.make("");
         }
-        
-        // Set thread local for keystore stuff
-        LDAPSSLSocketFactory.setSocketFactoryProducer(sslKeystore);
-
-        final String protocolToUse;
-        final boolean useTls;
-        if (serverProtocol == null || serverProtocol.length() == 0) {
-          protocolToUse = "ldap";
-          useTls = false;
-        } else {
-          int plusIndex = serverProtocol.indexOf("+");
-          if (plusIndex == -1) {
-            plusIndex = serverProtocol.length();
-            useTls = false;
-          } else {
-            useTls = true;
-          }
-          protocolToUse = serverProtocol.substring(0,plusIndex);
-        }
 
         final Hashtable env = new Hashtable();
         env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
         env.put(Context.PROVIDER_URL, "ldap://" + serverName + ":" + serverPort + "/" + serverBase);
-        if (protocolToUse.equals("ldaps")) {
+        if (LDAPProtocolEnum.LDAPS.equals(ldapProtocol)) {
+          // Set thread local for keystore stuff
+          LDAPSSLSocketFactory.setSocketFactoryProducer(sslKeystore);
           env.put(Context.SECURITY_PROTOCOL, "ssl");
           env.put("java.naming.ldap.factory.socket", "org.apache.manifoldcf.core.common.LDAPSSLSocketFactory");
         }
@@ -229,7 +213,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
         Logging.authorityConnectors.info("LDAP Context environment properties: " + Arrays.toString(env.entrySet().toArray()));
         session = new InitialLdapContext(env, null);
         
-        if (useTls) {
+        if (isLDAPTLS(ldapProtocol)) {
           // Start TLS
           StartTlsResponse tls = (StartTlsResponse) session.extendedOperation(new StartTlsRequest());
           tls.negotiate(sslKeystore.getSecureSocketFactory());
@@ -268,6 +252,56 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       Logging.authorityConnectors.error("IO error: " + e.getMessage(), e);
       throw new ManifoldCFException("IO error: " + e.getMessage(), e);
     }
+  }
+
+  /**
+   * Retrieves LDAPProtocol from serverProtocol String
+   *
+   * @return LDAPProtocolEnum
+   */
+  private LDAPProtocolEnum retrieveLDAPProtocol() {
+    if (serverProtocol == null || serverProtocol.length() == 0) {
+      return  LDAPProtocolEnum.LDAP;
+    }
+
+    final LDAPProtocolEnum ldapProtocol;
+    switch (serverProtocol.toUpperCase(Locale.ENGLISH)){
+      case "LDAP":
+        ldapProtocol = LDAPProtocolEnum.LDAP;
+        break;
+      case "LDAPS":
+        ldapProtocol = LDAPProtocolEnum.LDAPS;
+        break;
+      case "LDAP+TLS":
+        ldapProtocol = LDAPProtocolEnum.LDAP_TLS;
+        break;
+      case "LDAPS+TLS":
+        ldapProtocol = LDAPProtocolEnum.LDAPS_TLS;
+        break;
+      default:
+        ldapProtocol = LDAPProtocolEnum.LDAP;
+    }
+    return ldapProtocol;
+  }
+
+  /**
+   * Checks whether TLS is enabled for given LDAP Protocol
+   *
+   * @param ldapProtocol to check
+   * @return whether TLS is enabled or not
+   */
+  private boolean isLDAPTLS (LDAPProtocolEnum ldapProtocol){
+    return LDAPProtocolEnum.LDAP_TLS.equals(ldapProtocol) || LDAPProtocolEnum.LDAPS_TLS.equals(ldapProtocol);
+  }
+
+  /**
+   * Checks whether LDAPS or LDAPS with TLS is enabled for given LDAP Protocol
+   *
+   * @param ldapProtocol to check
+   * @return whether LDAPS or LDAPS with TLS is enabled or not
+   */
+  private boolean isLDAPS (LDAPProtocolEnum ldapProtocol){
+    return LDAPProtocolEnum.LDAPS.equals(ldapProtocol) || LDAPProtocolEnum.LDAPS_TLS.equals(ldapProtocol);
   }
 
   /**
@@ -468,10 +502,11 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
 
     } catch (NameNotFoundException e) {
       // This means that the user doesn't exist
-      Logging.authorityConnectors.error("Response Unreachable: "+e.getMessage(),e);
+      Logging.authorityConnectors.error("User does not exists: "+e.getMessage(), e);
       return RESPONSE_USERNOTFOUND;
     } catch (NamingException e) {
       // Unreachable
+      Logging.authorityConnectors.error("Response Unreachable: "+e.getMessage(), e);
       return RESPONSE_UNREACHABLE;
     }
   }
@@ -805,7 +840,8 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
    * @param userName (Domain Logon Name) is the user name or identifier.
    * DC=qa-ad-76,DC=metacarta,DC=com)
    * @return SearchResult for given domain user logon name. (Should throws an
-   * exception if user is not found.)   */
+   * exception if user is not found.)
+   */
   protected SearchResult getUserEntry(LdapContext ctx, String userName)
     throws ManifoldCFException {
     String searchFilter = userSearch.replaceAll("\\{0\\}", escapeDN(userName.split("@")[0]));

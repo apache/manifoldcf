@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1330: Minor refactoring of LDAP connector.
+(Furkan KAMACI)
+
 CONNECTORS-1329: Add logging to LDAP connector.
 (Furkan KAMACI)
 
