@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1331: Do not set SSL socket factory unless SSL.
+(Furkan KAMACI)
+
 CONNECTORS-1330: Minor refactoring of LDAP connector.
 (Furkan KAMACI)
 

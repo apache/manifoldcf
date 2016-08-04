@@ -220,12 +220,13 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
         }
         
       } else {
-        // Set thread local for keystore stuff
-        LDAPSSLSocketFactory.setSocketFactoryProducer(sslKeystore);
+        if (isLDAPS(ldapProtocol)) {
+          // Set thread local for keystore stuff
+          LDAPSSLSocketFactory.setSocketFactoryProducer(sslKeystore);
+        }
         session.reconnect(null);
       }
-      sessionExpirationTime = System.currentTimeMillis() + 300000L;
-      return session;
+      sessionExpirationTime = System.currentTimeMillis() + 300000L;      return session;
     } catch (AuthenticationException e) {
       session = null;
       sessionExpirationTime = -1L;
