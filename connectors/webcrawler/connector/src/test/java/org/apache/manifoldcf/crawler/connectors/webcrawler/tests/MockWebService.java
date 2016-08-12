@@ -137,20 +137,20 @@ public class MockWebService
           // Generate a bad page.  This is a page with a non-200 return code, and with some content
           // > 1024 characters
           res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-          res.getWriter().printf("This is the error message for a 401 page.");
+          res.getWriter().printf(Locale.ROOT, "This is the error message for a 401 page.");
           for (int i = 0; i < 1000; i++)
           {
-            res.getWriter().printf(" Error message # "+i);
+            res.getWriter().printf(Locale.ROOT, " Error message # "+i);
           }
         }
         else
         {
           res.setStatus(HttpServletResponse.SC_OK);
           res.setContentType("text/html; charset=utf-8");
-          res.getWriter().printf("<html>\n");
-          res.getWriter().printf("  <body>\n");
+          res.getWriter().printf(Locale.ROOT, "<html>\n");
+          res.getWriter().printf(Locale.ROOT, "  <body>\n");
 
-          res.getWriter().printf("This is doc number "+theItem+" and level number "+theLevel+" in site "+site+"\n");
+          res.getWriter().printf(Locale.ROOT, "This is doc number "+theItem+" and level number "+theLevel+" in site "+site+"\n");
 
           // Generate links to all parents
           int parentLevel = theLevel;
@@ -178,8 +178,8 @@ public class MockWebService
             generateLink(res,site,theLevel,i);
           }
           
-          res.getWriter().printf("  </body>\n");
-          res.getWriter().printf("</html>\n");
+          res.getWriter().printf(Locale.ROOT, "  </body>\n");
+          res.getWriter().printf(Locale.ROOT, "</html>\n");
         }
         res.getWriter().flush();
       }
@@ -193,7 +193,7 @@ public class MockWebService
     protected void generateLink(HttpServletResponse res, String site, int level, int item)
       throws IOException
     {
-      res.getWriter().printf("    <a href=\"http://localhost:8191/web/gen.php?site="+site+"&level="+level+"&item="+item+"\"/>\n");
+      res.getWriter().printf(Locale.ROOT, "    <a href=\"http://localhost:8191/web/gen.php?site="+site+"&level="+level+"&item="+item+"\"/>\n");
     }
 
   }

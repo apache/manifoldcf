@@ -94,7 +94,7 @@ public class KafkaMessage {
       pw.print("}");
       pw.flush();
       IOUtils.closeQuietly(pw);
-      finalString = new String(((ByteArrayOutputStream) out).toByteArray());
+      finalString = new String(((ByteArrayOutputStream) out).toByteArray(), StandardCharsets.UTF_8);
       //System.out.println("FINAL: " + finalString);
     } catch (Exception e) {
       e.printStackTrace();

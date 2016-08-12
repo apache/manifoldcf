@@ -118,7 +118,7 @@ try
     else
     {
       // Convert the specified times to a long.
-      Calendar c = new GregorianCalendar();
+      Calendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ROOT);
       c.set(Calendar.YEAR,Integer.parseInt(startYear));
       c.set(Calendar.MONTH,Integer.parseInt(startMonth));
       c.set(Calendar.DAY_OF_MONTH,Integer.parseInt(startDay) + 1);
@@ -134,7 +134,7 @@ try
     else
     {
       // Convert the specified times to a long.
-      Calendar c = new GregorianCalendar();
+      Calendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ROOT);
       c.set(Calendar.YEAR,Integer.parseInt(endYear));
       c.set(Calendar.MONTH,Integer.parseInt(endMonth));
       c.set(Calendar.DAY_OF_MONTH,Integer.parseInt(endDay) + 1);
@@ -156,7 +156,7 @@ try
   else
   {
     // Do the conversion
-    Calendar c = new GregorianCalendar();
+    Calendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ROOT);
     c.setTimeInMillis(startTime.longValue());
     startYear = Integer.toString(c.get(Calendar.YEAR));
     startMonth = Integer.toString(c.get(Calendar.MONTH));
@@ -176,7 +176,7 @@ try
   else
   {
     // Do the conversion
-    Calendar c = new GregorianCalendar();
+    Calendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ROOT);
     c.setTimeInMillis(endTime.longValue());
     endYear = Integer.toString(c.get(Calendar.YEAR));
     endMonth = Integer.toString(c.get(Calendar.MONTH));

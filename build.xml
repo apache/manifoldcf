@@ -494,7 +494,7 @@
         <ant dir="framework" target="clean"/>
     </target>
 
-    <target name="build" depends="deliver-connectors"/>
+    <target name="build" depends="deliver-connectors, forbidden-checks"/>
     <target name="tmpclean" depends="cleanup-afterbuild"/>
     <target name="buildcln" depends="build,tmpclean"/>
     <target name="javadoc" depends="deliver-connectors-doc"/>
@@ -2374,8 +2374,19 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
-  
-    <target name="make-core-deps" depends="download-kafka-client,download-joda-time,download-aws-sdk,download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
+
+    <target name="download-forbidden-checks">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="de/thetaphi"/>
+            <param name="artifact-version" value="2.2"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="forbiddenapis"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="make-core-deps" depends="download-forbidden-checks,download-kafka-client,download-joda-time,download-aws-sdk,download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>
@@ -2429,6 +2440,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
 
     <target name="clean-deps" depends="download-proprietary-cleanup,cleanup-connectors-dependencies">
         <ant dir="site" target="download-cleanup"/>
+    </target>
+
+    <target name="forbidden-checks">
+        <ant dir="framework" target="forbidden-checks"/>
     </target>
     
 </project>

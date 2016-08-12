@@ -95,7 +95,7 @@ public class SearchBloxDocument {
   public SearchBloxDocument(String apikey, String documentURI,
       RepositoryDocument rd, Map<String, List<String>> args) {
     this(apikey);
-    SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
+    SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.ROOT);
 
     this.uid = documentURI;
     this.colName = args.get(SEARCHBLOX_COLLECTION).get(0);
@@ -143,7 +143,7 @@ public class SearchBloxDocument {
       try {
         String[] values = rd.getFieldAsStrings(name);
         for (String value : values) {
-          String key = name.toLowerCase();
+          String key = name.toLowerCase(Locale.ROOT);
           int indexOf = xmlElements.indexOf(key);
           if(indexOf != 5)
             if (indexOf != -1 &&

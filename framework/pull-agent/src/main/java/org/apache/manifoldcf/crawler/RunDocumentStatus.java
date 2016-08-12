@@ -170,7 +170,7 @@ public class RunDocumentStatus
     while (i < rval.length)
     {
       String state = states[i].trim();
-      Integer value = (Integer)stateMap.get(state.toLowerCase());
+      Integer value = (Integer)stateMap.get(state.toLowerCase(Locale.ROOT));
       if (value == null)
         throw new ManifoldCFException("State value of '"+state+"' is illegal");
       rval[i++] = value.intValue();
@@ -202,7 +202,7 @@ public class RunDocumentStatus
     while (i < rval.length)
     {
       String status = statuses[i].trim();
-      Integer value = (Integer)statusMap.get(status.toLowerCase());
+      Integer value = (Integer)statusMap.get(status.toLowerCase(Locale.ROOT));
       if (value == null)
         throw new ManifoldCFException("Status value of '"+status+"' is illegal");
       rval[i++] = value.intValue();

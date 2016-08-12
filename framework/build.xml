@@ -160,6 +160,27 @@
         </fileset>
     </path>
 
+    <path id="all-classpath">
+        <fileset dir="../lib">
+            <include name="**/*.jar"/>
+        </fileset>
+        <fileset dir="../lib-proprietary">
+            <include name="**/*.jar"/>
+        </fileset>
+        <fileset dir="../connectors/alfresco/lib-proprietary">
+            <include name="**/*.jar"/>
+        </fileset>
+        <fileset dir="../connectors/jcifs/lib-proprietary">
+            <include name="**/*.jar"/>
+        </fileset>
+        <fileset dir="../connectors/kafka/test-materials">
+            <include name="**/*.jar"/>
+        </fileset>
+        <fileset dir="../connectors/elasticsearch/test-materials/elasticsearch-1.0.1/lib">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
     <target name="file-resources">
         <mkdir dir="dist/file-resources"/>
         <copy todir="dist/file-resources">
@@ -2018,7 +2039,23 @@
           </classpath>
         </java>
     </target>
-    
+
+    <taskdef name="forbiddenapis" classname="de.thetaphi.forbiddenapis.ant.AntTask" classpath="../lib/forbiddenapis-2.2.jar"/>
+
+    <target name="forbidden-checks" depends="build">
+        <forbiddenapis failOnMissingClasses="false" targetVersion="1.7">
+            <classpath>
+                <path refid="all-classpath"/>
+            </classpath>
+            <bundledsignatures name="jdk-unsafe"/>
+            <!--<bundledsignatures name="jdk-deprecated"/>-->
+            <bundledsignatures name="jdk-non-portable"/>
+            <fileset dir="../">
+                <exclude name="**/target/**"/>
+            </fileset>
+        </forbiddenapis>
+    </target>
+
     <target name="build" depends="multi-process-zk-example,multi-process-zk-example-proprietary,multi-process-file-example,multi-process-file-example-proprietary,single-process-example,single-process-example-proprietary,example-common,script-engine,obfuscation-utility,file-resources,buildfiles,test-lib"/>
     
     <target name="all" depends="build,doc,build-tests,run-tests,run-tests-HSQLDB,run-tests-HSQLDBext"/>

@@ -234,13 +234,13 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     paramMap.put("MIMETYPES",allowedMimeTypes);
     paramMap.put("EXTENSIONS",allowedFileExtensions);
     
-    Calendar c = new GregorianCalendar();
+    Calendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ROOT);
     c.setTimeInMillis((minDate==null)?0L:minDate.longValue());
     paramMap.put("MINDATEYEAR",Integer.toString(c.get(Calendar.YEAR)));
     paramMap.put("MINDATEMONTH",Integer.toString(c.get(Calendar.MONTH)));
     paramMap.put("MINDATEDAY",Integer.toString(c.get(Calendar.DAY_OF_MONTH)));
     paramMap.put("MINDATEHOUR",Integer.toString(c.get(Calendar.HOUR_OF_DAY)));
-    paramMap.put("MINDATEMINUTE",String.format("%02d",c.get(Calendar.MINUTE)));
+    paramMap.put("MINDATEMINUTE",String.format(Locale.ROOT, "%02d",c.get(Calendar.MINUTE)));
   }
   
   /** Obtain the name of the form check javascript method to call.
@@ -339,7 +339,7 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     String minDateMinute = variableContext.getParameter(seqPrefix + "mindateminute");
     if (minDateYear != null && minDateMonth != null && minDateDay != null && minDateHour != null && minDateMinute != null)
     {
-      Calendar c = new GregorianCalendar();
+      Calendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ROOT);
       try
       {
         c.set(Integer.parseInt(minDateYear),Integer.parseInt(minDateMonth),Integer.parseInt(minDateDay),Integer.parseInt(minDateHour),Integer.parseInt(minDateMinute));

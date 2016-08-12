@@ -203,7 +203,7 @@ public class GenericConnector extends BaseRepositoryConnector {
     }
 
     HttpClient client = getClient();
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ROOT);
 
     StringBuilder url = new StringBuilder(genericEntryPoint);
     url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_SEED);

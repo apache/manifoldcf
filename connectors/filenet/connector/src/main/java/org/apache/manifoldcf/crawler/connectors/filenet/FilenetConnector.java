@@ -756,7 +756,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     StringBuilder sqlBuffer = new StringBuilder(" WHERE ([IsCurrentVersion] = TRUE AND (");
     sqlBuffer.append(mimeTypesClause);
     sqlBuffer.append(")");
-    Calendar c = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+    Calendar c = new GregorianCalendar(TimeZone.getTimeZone("GMT"), Locale.ROOT);
 
     // FileNet can apparently take a while to make documents available for searching, so throw in a bias of 15 minutes
     long biasTime = 15L * 60000L;

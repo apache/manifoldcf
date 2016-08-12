@@ -5387,7 +5387,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String rval = hostName + ":" + port;
     // For backwards compatibility, only tack on the protocol if the protocol is not http
     if (!protocol.equalsIgnoreCase("http"))
-      rval = protocol.toLowerCase()+":"+rval;
+      rval = protocol.toLowerCase(Locale.ROOT)+":"+rval;
     return rval;
   }
 
@@ -6152,12 +6152,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException
     {
       String name = (String)metaAttributes.get("name");
-      if (name != null && name.toLowerCase().equals("robots"))
+      if (name != null && name.toLowerCase(Locale.ROOT).equals("robots"))
       {
         String contentValue = (String)metaAttributes.get("content");
         if (contentValue != null)
         {
-          contentValue = contentValue.toLowerCase();
+          contentValue = contentValue.toLowerCase(Locale.ROOT);
           // Parse content value
           try
           {
@@ -7749,16 +7749,16 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             sb.append(groupValue);
             break;
           case EvaluatorToken.GROUPSTYLE_LOWER:
-            sb.append(groupValue.toLowerCase());
+            sb.append(groupValue.toLowerCase(Locale.ROOT));
             break;
           case EvaluatorToken.GROUPSTYLE_UPPER:
-            sb.append(groupValue.toUpperCase());
+            sb.append(groupValue.toUpperCase(Locale.ROOT));
             break;
           case EvaluatorToken.GROUPSTYLE_MIXED:
             if (groupValue.length() > 0)
             {
-              sb.append(groupValue.substring(0,1).toUpperCase());
-              sb.append(groupValue.substring(1).toLowerCase());
+              sb.append(groupValue.substring(0,1).toUpperCase(Locale.ROOT));
+              sb.append(groupValue.substring(1).toLowerCase(Locale.ROOT));
             }
             break;
           default:

@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1332: Add check for forbidden api's to ant build.
+(Furkan KAMACI)
+
 CONNECTORS-1238: Update to use SolrJ 5.5.2, ZooKeeper 3.4.8.
 (Karl Wright)
 

@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.Date;
 
@@ -288,7 +289,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
   {
     String ISO_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     TimeZone UTC = TimeZone.getTimeZone("UTC");
-    DATE_FORMATTER = new SimpleDateFormat(ISO_FORMAT);
+    DATE_FORMATTER = new SimpleDateFormat(ISO_FORMAT, Locale.ROOT);
     DATE_FORMATTER.setTimeZone(UTC);
   }
   
@@ -364,7 +365,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
         sb.append('\\').append('f');
       else if (x < 32)
       {
-        sb.append("\\u").append(String.format("%04x", (int)x));
+        sb.append("\\u").append(String.format(Locale.ROOT, "%04x", (int)x));
       }
       else
       {

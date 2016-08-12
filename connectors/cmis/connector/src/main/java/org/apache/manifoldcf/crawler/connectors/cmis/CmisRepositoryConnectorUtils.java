@@ -21,11 +21,8 @@ package org.apache.manifoldcf.crawler.connectors.cmis;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
+
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Property;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -139,7 +136,7 @@ public class CmisRepositoryConnectorUtils {
    */
   public static boolean existsInSelectClause(String cmisQuery, String propertyId) {
         String selectClause = getSelectClause(cmisQuery);
-        if (selectClause.toLowerCase().startsWith(SELECT_STAR_CLAUSE)) {
+        if (selectClause.toLowerCase(Locale.ROOT).startsWith(SELECT_STAR_CLAUSE)) {
             return true;
         } else {
             StringTokenizer cmisQueryTokenized = new StringTokenizer(cmisQuery.trim());
@@ -354,7 +351,7 @@ public class CmisRepositoryConnectorUtils {
 
         int idx = orig.indexOf(sep);
         if (idx < 0) {
-            idx = orig.indexOf(sep.toUpperCase());
+            idx = orig.indexOf(sep.toUpperCase(Locale.ROOT));
         }
 
         if (idx > 1) {
@@ -377,6 +374,6 @@ public class CmisRepositoryConnectorUtils {
 
     //check if the query is a select *
     public static boolean isWildcardQuery(String selectClause) {
-        return selectClause.toLowerCase().startsWith(SELECT_STAR_CLAUSE);
+        return selectClause.toLowerCase(Locale.ROOT).startsWith(SELECT_STAR_CLAUSE);
     }
 }

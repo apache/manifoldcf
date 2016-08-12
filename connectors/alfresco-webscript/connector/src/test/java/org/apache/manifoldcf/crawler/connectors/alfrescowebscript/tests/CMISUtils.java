@@ -27,6 +27,7 @@ import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,7 @@ public class CMISUtils {
     properties.put(PropertyIds.IS_LATEST_MAJOR_VERSION, true);
 
     String docText = "Lorem ipsum";
-    byte[] content = docText.getBytes();
+    byte[] content = docText.getBytes(StandardCharsets.UTF_8);
     InputStream stream = new ByteArrayInputStream(content);
     ContentStream contentStream = session.getObjectFactory().createContentStream(
         filename,
