@@ -35,7 +35,7 @@
     <property name="httpmime.version" value="4.5.1"/>
     <property name="httpcore.version" value="4.4.4"/>
     <property name="xerces.version" value="2.10.0"/>
-    <property name="zookeeper.version" value="3.4.6"/>
+    <property name="zookeeper.version" value="3.4.8"/>
     <property name="mongodb.version" value="2.11.3"/>
     <property name="json.version" value="20160212"/>
     <property name="postgresql.version" value="9.1-901.jdbc4"/>
@@ -1922,7 +1922,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/solr"/>
-            <param name="artifact-version" value="5.1.0"/>
+            <param name="artifact-version" value="5.5.2"/>
             <param name="artifact-name" value="solr-solrj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
