@@ -55,7 +55,7 @@ public class FormDataAccumulator implements FormData
     String name = (String)attributes.get("name");
     if (name != null)
     {
-      String lowerType = type.toLowerCase();
+      String lowerType = type.toLowerCase(Locale.ROOT);
       if (lowerType.equals("submit"))
       {
         String value = (String)attributes.get("value");

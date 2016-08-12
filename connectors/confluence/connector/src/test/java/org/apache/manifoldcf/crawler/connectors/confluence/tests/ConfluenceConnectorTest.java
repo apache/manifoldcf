@@ -28,12 +28,7 @@ import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.core.interfaces.Specification;
@@ -112,7 +107,7 @@ public class ConfluenceConnectorTest {
 		Page fakePage = mock(Page.class);
 		
 		Date date = new Date();
-		DateFormat df = DateFormat.getDateTimeInstance();
+		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, Locale.ROOT);
 		String content = "A";
 		String uri = "http://test";
 		byte[] documentBytes = content
@@ -173,7 +168,7 @@ public class ConfluenceConnectorTest {
 		Page fakePage = mock(Page.class);
 		when(fakePage.hasContent()).thenReturn(true);
 		Date date = new Date();
-		DateFormat df = DateFormat.getDateTimeInstance();
+		DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, Locale.ROOT);
 		String version = df.format(date);
 		when(fakePage.getLastModifiedDate()).thenReturn(df.parse(version));
 		

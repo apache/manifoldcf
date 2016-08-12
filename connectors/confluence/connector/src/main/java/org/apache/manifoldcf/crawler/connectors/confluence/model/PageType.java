@@ -19,6 +19,8 @@ package org.apache.manifoldcf.crawler.connectors.confluence.model;
 
 import org.apache.commons.lang.WordUtils;
 
+import java.util.Locale;
+
 /**
  * <p>PageType class</p>
  * <p>Represents the kind of pages we can have in Confluence</p>
@@ -41,6 +43,6 @@ public enum PageType {
   }
   
   public String toString() {
-    return WordUtils.capitalize(name().toLowerCase());
+    return WordUtils.capitalize(name().toLowerCase(Locale.ROOT));
   }
 }

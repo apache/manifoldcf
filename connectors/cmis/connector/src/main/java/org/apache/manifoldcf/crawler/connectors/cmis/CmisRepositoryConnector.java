@@ -85,7 +85,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   private static final String CMIS_FOLDER_BASE_TYPE = "cmis:folder";
   private static final String CMIS_DOCUMENT_BASE_TYPE = "cmis:document";
   private static final SimpleDateFormat ISO8601_DATE_FORMATTER = new SimpleDateFormat(
-      "yyyy-MM-dd'T'HH:mm:ssZ");
+      "yyyy-MM-dd'T'HH:mm:ssZ", Locale.ROOT);
 
   // Tab name properties
 

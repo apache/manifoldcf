@@ -5669,7 +5669,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
             int index = includeMatch.lastIndexOf(".");
             if (index != -1)
             {
-              String type = includeMatch.substring(index+1).toLowerCase().replace('*','%');
+              String type = includeMatch.substring(index+1).toLowerCase(Locale.ROOT).replace('*','%');
               if (first)
                 first = false;
               else

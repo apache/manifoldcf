@@ -17,6 +17,7 @@
 package org.apache.manifoldcf.crawler.connectors.amazons3;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -68,7 +69,7 @@ public class AmazonS3DocumentProcessUtility {
    * @return
    */
   protected String getDocumentURI(S3Artifact s3Artifact) {
-    return String.format(AmazonS3Config.DOCUMENT_URI_FORMAT,
+    return String.format(Locale.ROOT, AmazonS3Config.DOCUMENT_URI_FORMAT,
         s3Artifact.getBucketName(), s3Artifact.getKey());
   }
 

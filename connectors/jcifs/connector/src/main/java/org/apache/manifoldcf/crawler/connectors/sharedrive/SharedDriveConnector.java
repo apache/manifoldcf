@@ -309,7 +309,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             x == '$' || x == ',')
           {
             output.append('%');
-            String hexValue = Integer.toHexString((int)x).toUpperCase();
+            String hexValue = Integer.toHexString((int)x).toUpperCase(Locale.ROOT);
             if (hexValue.length() == 1)
               output.append('0');
             output.append(hexValue);

@@ -340,7 +340,7 @@ public class Page extends ConfluenceResource{
           JSONObject view = (JSONObject) body.optJSONObject(KEY_VIEW);
           if (view != null) {
             page.content = view.optString(KEY_VALUE, null);
-            page.length = page.content.getBytes().length;
+            page.length = page.content.getBytes(StandardCharsets.UTF_8).length;
           }
         }
 

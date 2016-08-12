@@ -713,7 +713,7 @@ public class ManifoldCF
     try
     {
       SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-      KeySpec keySpec = new PBEKeySpec(passCode.toCharArray(), saltValue.getBytes(), 1024, 128);
+      KeySpec keySpec = new PBEKeySpec(passCode.toCharArray(), saltValue.getBytes(StandardCharsets.UTF_8), 1024, 128);
       SecretKey secretKey = factory.generateSecret(keySpec);
 
       Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -1169,7 +1169,7 @@ public class ManifoldCF
           InputStream is = p.getErrorStream();
           try
           {
-            Reader r = new InputStreamReader(is);
+            Reader r = new InputStreamReader(is, StandardCharsets.UTF_8);
             try
             {
               BufferedReader br = new BufferedReader(r);

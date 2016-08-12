@@ -18,6 +18,7 @@ package org.apache.manifoldcf.agents.output.searchblox;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -170,7 +171,7 @@ public class SearchBloxClient {
   private ResponseCode post(SearchBloxDocument document, String format, SearchBloxDocument.DocumentAction action)
       throws SearchBloxException {
     
-    SearchBloxDocument.IndexingFormat iFormat = SearchBloxDocument.IndexingFormat.valueOf(format.toUpperCase());
+    SearchBloxDocument.IndexingFormat iFormat = SearchBloxDocument.IndexingFormat.valueOf(format.toUpperCase(Locale.ROOT));
       
     if (iFormat == null) {
       Logging.connectors.error("[Post request] Format not recognized " +format);

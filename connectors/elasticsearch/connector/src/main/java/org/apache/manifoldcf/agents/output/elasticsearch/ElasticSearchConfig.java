@@ -22,6 +22,8 @@ package org.apache.manifoldcf.agents.output.elasticsearch;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 
+import java.util.Locale;
+
 public class ElasticSearchConfig extends ElasticSearchParam
 {
 
@@ -78,7 +80,7 @@ public class ElasticSearchConfig extends ElasticSearchParam
   {
     for (ParameterEnum param : CONFIGURATIONLIST)
     {
-      String p = variableContext.getParameter(param.name().toLowerCase());
+      String p = variableContext.getParameter(param.name().toLowerCase(Locale.ROOT));
       if (p != null)
         parameters.setParameter(param.name(), p);
     }
@@ -86,7 +88,7 @@ public class ElasticSearchConfig extends ElasticSearchParam
     String useMapperAttachmentsPresent = variableContext.getParameter("usemapperattachments_present");
     if (useMapperAttachmentsPresent != null)
     {
-      String useMapperAttachments = variableContext.getParameter(ParameterEnum.USEMAPPERATTACHMENTS.name().toLowerCase());
+      String useMapperAttachments = variableContext.getParameter(ParameterEnum.USEMAPPERATTACHMENTS.name().toLowerCase(Locale.ROOT));
       if (useMapperAttachments == null || useMapperAttachments.length() == 0)
         useMapperAttachments = "false";
       parameters.setParameter(ParameterEnum.USEMAPPERATTACHMENTS.name(), useMapperAttachments);

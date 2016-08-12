@@ -816,7 +816,7 @@ public class FileOutputConnector extends BaseOutputConnector {
      */
     public static void contextToSpecNode(IPostParameters variableContext, ConfigurationNode specNode, int sequenceNumber) {
       for (ParameterEnum param : SPECIFICATIONLIST) {
-        String p = variableContext.getParameter("s"+sequenceNumber+"_"+param.name().toLowerCase());
+        String p = variableContext.getParameter("s"+sequenceNumber+"_"+param.name().toLowerCase(Locale.ROOT));
         if (p != null) {
           specNode.setAttribute(param.name(), p);
         }

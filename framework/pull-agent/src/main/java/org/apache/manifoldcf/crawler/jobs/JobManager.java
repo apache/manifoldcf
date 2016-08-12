@@ -6246,11 +6246,11 @@ public class JobManager implements IJobManager
     Calendar c;
     if (timezone == null)
     {
-      c = Calendar.getInstance();
+      c = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.ROOT);
     }
     else
     {
-      c = Calendar.getInstance(TimeZone.getTimeZone(timezone));
+      c = Calendar.getInstance(TimeZone.getTimeZone(timezone), Locale.ROOT);
     }
 
     // Get the current starting time

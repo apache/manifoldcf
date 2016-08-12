@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -200,7 +201,7 @@ public class ConfluenceClient {
         connect();
       }
 
-      String url = String.format("%s://%s:%s/%s/%s?limit=1", protocol, host,
+      String url = String.format(Locale.ROOT, "%s://%s:%s/%s/%s?limit=1", protocol, host,
           port, path, CONTENT_PATH);
       logger.debug(
           "[Processing] Hitting url: {} for confluence status check fetching : ",
@@ -261,7 +262,7 @@ public class ConfluenceClient {
       httpGet.addHeader(
           "Authorization",
           "Basic "
-              + Base64.encodeBase64String(String.format("%s:%s",
+              + Base64.encodeBase64String(String.format(Locale.ROOT, "%s:%s",
                   this.username, this.password).getBytes(
                   Charset.forName("UTF-8"))));
     }
@@ -295,10 +296,10 @@ public class ConfluenceClient {
   @SuppressWarnings("unchecked")
   public ConfluenceResponse<Page> getPages(int start, int limit,
       Optional<String> space) throws Exception {
-    String url = String.format("%s://%s:%s/%s/%s?limit=%s&start=%s", protocol,
+    String url = String.format(Locale.ROOT, "%s://%s:%s/%s/%s?limit=%s&start=%s", protocol,
         host, port, path, CONTENT_PATH, limit, start);
     if (space.isPresent()) {
-      url = String.format("%s&spaceKey=%s", url, space.get());
+      url = String.format(Locale.ROOT, "%s&spaceKey=%s", url, space.get());
     }
     return (ConfluenceResponse<Page>) getConfluenceResources(url, Page.builder());
   }
@@ -374,7 +375,7 @@ public class ConfluenceClient {
    */
   public ConfluenceResponse<Attachment> getPageAttachments(String pageId, int start,
       int limit) throws Exception {
-    String url = String.format("%s://%s:%s/%s/%s/%s%s?limit=%s&start=%s",
+    String url = String.format(Locale.ROOT, "%s://%s:%s/%s/%s/%s%s?limit=%s&start=%s",
         protocol, host, port, path, CONTENT_PATH, pageId, CHILD_ATTACHMENTS_PATH,
         limit, start);
     @SuppressWarnings("unchecked")
@@ -393,7 +394,7 @@ public class ConfluenceClient {
    */
   public Attachment getAttachment(String attachmentId) {
     String url = String
-        .format("%s://%s:%s/%s/%s/%s?%s",
+        .format(Locale.ROOT, "%s://%s:%s/%s/%s/%s?%s",
             protocol, host, port, path, CONTENT_PATH, attachmentId, EXPANDABLE_PARAMETERS);
     logger.debug(
         "[Processing] Hitting url for getting document content : {}",
@@ -460,7 +461,7 @@ public class ConfluenceClient {
    */
   public Page getPage(String pageId) {
     String url = String
-        .format("%s://%s:%s/%s/%s/%s?%s",
+        .format(Locale.ROOT, "%s://%s:%s/%s/%s/%s?%s",
             protocol, host, port, path, CONTENT_PATH, pageId, EXPANDABLE_PARAMETERS);
     url = sanitizeUrl(url);
     logger.debug(
@@ -496,7 +497,7 @@ public class ConfluenceClient {
     boolean isLast = false;
     do {
       String url = String
-          .format("%s://%s:%s/%s/%s/%s/%s?start=%s&limit=%s",
+          .format(Locale.ROOT, "%s://%s:%s/%s/%s/%s/%s?start=%s&limit=%s",
               protocol, host, port, path, CONTENT_PATH, pageId, LABEL_PATH, lastStart, limit);
       url = sanitizeUrl(url);
       logger.debug(
@@ -545,7 +546,7 @@ public class ConfluenceClient {
       httpPost.addHeader(
           "Authorization",
           "Basic "
-              + Base64.encodeBase64String(String.format("%s:%s",
+              + Base64.encodeBase64String(String.format(Locale.ROOT, "%s:%s",
                   this.username, this.password).getBytes(
                   Charset.forName("UTF-8"))));
     }
@@ -650,7 +651,7 @@ public class ConfluenceClient {
   }
   
   private Spaces getSpaces() throws Exception {
-    String url = String.format("%s://%s:%s%s%sgetSpaces", protocol, host,
+    String url = String.format(Locale.ROOT, "%s://%s:%s%s%sgetSpaces", protocol, host,
         port, path, AUTHORITY_PATH);
 
     logger.debug(
@@ -672,7 +673,7 @@ public class ConfluenceClient {
   }
   
   private List<String> getSpacePermissionsForUser(Space space, String username) throws Exception {
-    String url = String.format("%s://%s:%s%s%sgetPermissionsForUser", protocol, host,
+    String url = String.format(Locale.ROOT, "%s://%s:%s%s%sgetPermissionsForUser", protocol, host,
         port, path, AUTHORITY_PATH);
 
     logger.debug(

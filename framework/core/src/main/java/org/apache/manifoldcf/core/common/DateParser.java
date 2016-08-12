@@ -69,7 +69,7 @@ public class DateParser
       }
       formatString = isoFormatString.toString();
     }
-    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat(formatString);
+    java.text.DateFormat iso8601Format = new java.text.SimpleDateFormat(formatString, Locale.ROOT);
     try
     {
       return iso8601Format.parse(isoDateValue);
@@ -89,7 +89,7 @@ public class DateParser
   */
   public static String formatISO8601Date(Date dateValue)
   {
-    java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    java.text.DateFormat df = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ROOT);
     df.setTimeZone(TimeZone.getTimeZone("GMT"));
     return df.format(dateValue);
   }
@@ -151,7 +151,7 @@ public class DateParser
     index = usable.indexOf(" ");
     if (index == -1)
       return null;
-    String month = usable.substring(0,index).toLowerCase();
+    String month = usable.substring(0,index).toLowerCase(Locale.ROOT);
     usable = usable.substring(index+1).trim();
 
     String year;
@@ -226,7 +226,7 @@ public class DateParser
 
     tz = TimeZone.getTimeZone(timezone);
 
-    Calendar c = new GregorianCalendar(tz);
+    Calendar c = new GregorianCalendar(tz, Locale.ROOT);
     try
     {
       int value = Integer.parseInt(year);
@@ -315,7 +315,7 @@ public class DateParser
         minute = dateValue;
     }
     TimeZone tz = TimeZone.getTimeZone("GMT");
-    Calendar c = new GregorianCalendar(tz);
+    Calendar c = new GregorianCalendar(tz, Locale.ROOT);
     try
     {
       int value = Integer.parseInt(year);

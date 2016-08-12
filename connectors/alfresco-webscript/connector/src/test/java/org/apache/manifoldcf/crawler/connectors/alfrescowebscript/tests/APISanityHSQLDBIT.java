@@ -29,10 +29,11 @@ import org.junit.Test;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class APISanityHSQLDBIT extends BaseITHSQLDB
 {
-  private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHss");
+  private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHss", Locale.ROOT);
 
   //@TODO - Should be moved into AlfrescoConnector.java
   public static final String ALFRESCO_PROTOCOL_PARAM = "protocol";

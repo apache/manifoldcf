@@ -179,7 +179,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
       }
 
       if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug(MessageFormat.format("Starting from transaction id: {0} and acl changeset id: {1}", new Object[]{lastTransactionId, lastAclChangesetId}));
+        Logging.connectors.debug(new MessageFormat("Starting from transaction id: {0} and acl changeset id: {1}", Locale.ROOT)
+            .format(new Object[]{lastTransactionId, lastAclChangesetId}));
 
       long transactionIdsProcessed;
       long aclChangesetsProcessed;
@@ -197,7 +198,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           count++;
         }
         if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug(MessageFormat.format("Fetched and added {0} seed documents", new Object[]{new Integer(count)}));
+          Logging.connectors.debug(new MessageFormat("Fetched and added {0} seed documents", Locale.ROOT)
+              .format(new Object[]{new Integer(count)}));
 
         transactionIdsProcessed = response.getLastTransactionId() - lastTransactionId;
         aclChangesetsProcessed = response.getLastAclChangesetId() - lastAclChangesetId;
@@ -206,11 +208,13 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         lastAclChangesetId = response.getLastAclChangesetId();
 
         if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug(MessageFormat.format("transaction_id={0}, acl_changeset_id={1}", new Object[]{lastTransactionId, lastAclChangesetId}));
+          Logging.connectors.debug(new MessageFormat("transaction_id={0}, acl_changeset_id={1}", Locale.ROOT)
+              .format(new Object[]{lastTransactionId, lastAclChangesetId}));
       } while (transactionIdsProcessed > 0 || aclChangesetsProcessed > 0);
 
       if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug(MessageFormat.format("Recording {0} as last transaction id and {1} as last changeset id", new Object[]{lastTransactionId, lastAclChangesetId}));
+        Logging.connectors.debug(new MessageFormat("Recording {0} as last transaction id and {1} as last changeset id", Locale.ROOT)
+            .format(new Object[]{lastTransactionId, lastAclChangesetId}));
       return lastTransactionId + "|" + lastAclChangesetId;
     } catch (AlfrescoDownException e) {
       handleAlfrescoDownException(e,"seeding");
@@ -239,7 +243,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         AlfrescoResponse response = alfrescoClient.fetchNode(doc);
         if(response.getDocumentList().isEmpty()){ // Not found seeded document. Could reflect an error in Alfresco
           if (Logging.connectors != null)
-            Logging.connectors.warn(MessageFormat.format("Invalid Seeded Document from Alfresco with ID {0}", new Object[]{doc}));
+            Logging.connectors.warn(new MessageFormat("Invalid Seeded Document from Alfresco with ID {0}", Locale.ROOT)
+                .format(new Object[]{doc}));
           activities.deleteDocument(doc);
           continue;
         }
@@ -402,7 +407,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         try {
           rd.setBinary(stream, length);
           if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug(MessageFormat.format("Ingesting with id: {0}, URI {1} and rd {2}", new Object[]{uuid, nodeRef, rd.getFileName()}));
+            Logging.connectors.debug(new MessageFormat("Ingesting with id: {0}, URI {1} and rd {2}", Locale.ROOT)
+                .format(new Object[]{uuid, nodeRef, rd.getFileName()}));
           activities.ingestDocumentWithException(doc, documentVersion, contentUrlPath, rd);
           errorCode = "OK";
           fileLengthLong = new Long(length);
