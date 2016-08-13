@@ -494,7 +494,7 @@
         <ant dir="framework" target="clean"/>
     </target>
 
-    <target name="build" depends="deliver-connectors, forbidden-checks"/>
+    <target name="build" depends="deliver-connectors"/>
     <target name="tmpclean" depends="cleanup-afterbuild"/>
     <target name="buildcln" depends="build,tmpclean"/>
     <target name="javadoc" depends="deliver-connectors-doc"/>
@@ -2445,5 +2445,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="forbidden-checks">
         <ant dir="framework" target="forbidden-checks"/>
     </target>
-    
+
+    <target name="precommit" description="Run basic checks before committing" depends="forbidden-checks,rat-sources"/>
+
 </project>

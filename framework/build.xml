@@ -2052,6 +2052,7 @@
             <bundledsignatures name="jdk-non-portable"/>
             <fileset dir="../">
                 <exclude name="**/target/**"/>
+                <exclude name="test-materials/**"/>
             </fileset>
         </forbiddenapis>
     </target>

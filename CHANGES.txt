@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.5-dev =====================
 
+CONNECTORS-1334: Break out forbidden api check into separate
+precommit target.
+(Furkan KAMACI)
+
 CONNECTORS-1332: Add check for forbidden api's to ant build.
 (Furkan KAMACI)
 
