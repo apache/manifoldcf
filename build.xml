@@ -154,6 +154,49 @@
     <property name="annotation-api.version" value="1.2"/>
     <property name="javax.ws.rs-api.version" value="2.0.1"/>
     
+    <property name="rat.bootstrap.version" value="0.12"/>
+    <property name="rat_checksum_sha1" value="16398550402b27f81cd0d508cef54b3e47a4a6da"/>
+    <property name="rat_install_path" location="${user.home}/.ant/lib" />
+    <property name="rat_bootstrap_url1" value="http://repo1.maven.org/maven2"/>
+    <!-- you might need to tweak this from china so it works -->
+    <property name="rat_bootstrap_url2" value="http://uk.maven.org/maven2"/>
+  
+  
+    <macrodef name="rat-download">
+      <attribute name="src"/>
+      <attribute name="dest"/>
+    <sequential>
+      <mkdir dir="@{dest}"/>
+      <echo message="installing rat ${rat.bootstrap.version} to ${rat_install_path}"/>
+      <get src="@{src}/org/apache/rat/apache-rat/${rat.bootstrap.version}/apache-rat-${rat.bootstrap.version}.jar"
+           dest="@{dest}/apache-rat-${rat.bootstrap.version}.jar" usetimestamp="true" ignoreerrors="true"/>
+    </sequential>
+    </macrodef>
+  
+    <target name="rat-bootstrap" description="Download and install rat in the users ant lib dir" depends="rat-bootstrap1,rat-bootstrap2,rat-checksum"/>
+
+    <!-- try to download from repo1.maven.org -->
+    <target name="rat-bootstrap1">
+      <rat-download src="${rat_bootstrap_url1}" dest="${rat_install_path}"/>
+      <available file="${rat_install_path}/apache-rat-${rat.bootstrap.version}.jar" property="rat.bootstrap1.success" />
+    </target> 
+
+    <target name="rat-bootstrap2" unless="rat.bootstrap1.success">
+      <rat-download src="${rat_bootstrap_url2}" dest="${rat_install_path}"/>
+    </target>
+
+    <target name="rat-checksum">
+      <checksum file="${rat_install_path}/apache-rat-${rat.bootstrap.version}.jar"
+              property="${rat_checksum_sha1}"
+              algorithm="SHA"
+              verifyproperty="rat.checksum.success"/>
+      <fail message="Checksum mismatch for apache-rat-${rat.bootstrap.version}.jar. Please download this file manually">
+        <condition>
+          <isfalse value="${rat.checksum.success}"/>
+        </condition>
+      </fail>
+    </target>
+    
     <target name="downloaded-condition">
         <!-- Spot check a few of the dependent jars; no point including ALL of them here... -->
         <available file="lib/hsqldb-${hsqldb.version}.jar" property="hsqldb-found"/>
