@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= 2.6-dev =====================
+
+
 ======================= Release 2.5 =====================
 
 CONNECTORS-1316: Upgrade to Tika 1.13.
