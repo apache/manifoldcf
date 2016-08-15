@@ -461,8 +461,41 @@ License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 This product includes a snappy-java.jar.
 License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
+This product includes fontbox jar: http://pdfbox.apache.org/
+License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes fontbox jempbox jar: http://www.apache.org/pdfbox-parent/jempbox/
+License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes fontbox pdfbox jar: http://www.apache.org/pdfbox-parent/pdfbox/
+License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a pdfbox-debugger.jar: http://www.apache.org/pdfbox-parent/pdfbox-debugger/
+License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a pdfbox-tools.jar: http://www.apache.org/pdfbox-parent/pdfbox-debugger
+License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a sis-metadata.jar: http://sis.apache.org/core/sis-metadata
+License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a sis-referencing.jar: http://sis.apache.org/core/sis-referencing
+License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a sis-utility.jar: http://sis.apache.org/core/sis-utility
+License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a sis-netcdf.jar: http://sis.apache.org/storage/sis-netcdf
+License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a sis-storage.jar: http://sis.apache.org/storage/sis-storage
+License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
 This product may include pdf files that embed IPA-licensed fonts.
 License: IPA Font License Agreement v1.0 (http://ossipedia.ipa.go.jp/ipafont/index.html#LicenseEng)
+
+This product includes a curvesapi.jar: https://github.com/virtuald/curvesapi
+License: BSD License (http://opensource.org/licenses/BSD-3-Clause)
 
 ==========================================================================
 The following license applies to json.jar, which is generated from the json
@@ -2182,6 +2215,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The following license applies to:
 bcprov-jdk15on.jar
 bcmail-jdk15on.jar
+bcpkix-jdk15on:jar
+bcprov-jdk15on:jar
 --------------------------------------------------------------------------
 
 Copyright (c) 2000 - 2015 The Legion of the Bouncy Castle Inc. (http://www.bouncycastle.org)
