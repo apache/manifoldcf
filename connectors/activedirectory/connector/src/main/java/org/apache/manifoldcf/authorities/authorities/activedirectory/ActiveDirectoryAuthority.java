@@ -955,11 +955,11 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     /**
      * Stringifies LDAP Context environment variable
      * @param env LDAP Context environment variable
-     * @return Stringified LDAP Context environment. Password is masked if exists.
+     * @return Stringified LDAP Context environment. Password is masked if set.
      */
     private String printLdapContextEnvironment(Hashtable env) {
       Hashtable copyEnv = new Hashtable<>(env);
-      if (copyEnv.contains(Context.SECURITY_CREDENTIALS)){
+      if (copyEnv.containsKey(Context.SECURITY_CREDENTIALS)){
         copyEnv.put(Context.SECURITY_CREDENTIALS, "********");
       }
       return Arrays.toString(copyEnv.entrySet().toArray());
