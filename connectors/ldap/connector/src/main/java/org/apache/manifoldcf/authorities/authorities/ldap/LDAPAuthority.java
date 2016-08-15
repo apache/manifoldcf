@@ -210,7 +210,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
           env.put(Context.SECURITY_CREDENTIALS, bindPass);
         }
 
-        Logging.authorityConnectors.info("LDAP Context environment properties: " + Arrays.toString(env.entrySet().toArray()));
+        Logging.authorityConnectors.info("LDAP Context environment properties: " + printLdapContextEnvironment(env));
         session = new InitialLdapContext(env, null);
         
         if (isLDAPTLS(ldapProtocol)) {
@@ -226,7 +226,8 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
         }
         session.reconnect(null);
       }
-      sessionExpirationTime = System.currentTimeMillis() + 300000L;      return session;
+      sessionExpirationTime = System.currentTimeMillis() + 300000L;
+      return session;
     } catch (AuthenticationException e) {
       session = null;
       sessionExpirationTime = -1L;
@@ -240,8 +241,8 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
     } catch (NamingException e) {
       session = null;
       sessionExpirationTime = -1L;
-      Logging.authorityConnectors.error("Naming error: " + e.getMessage(), e);
-      throw new ManifoldCFException("Naming error: " + e.getMessage(), e);
+      Logging.authorityConnectors.error("Naming exception: " + e.getMessage(), e);
+      throw new ManifoldCFException("Naming exception: " + e.getMessage(), e);
     } catch (InterruptedIOException e) {
       session = null;
       sessionExpirationTime = -1L;
@@ -503,11 +504,11 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
 
     } catch (NameNotFoundException e) {
       // This means that the user doesn't exist
-      Logging.authorityConnectors.error("User does not exists: "+e.getMessage(), e);
+      Logging.authorityConnectors.error("User does not exists: "+ e.getMessage(), e);
       return RESPONSE_USERNOTFOUND;
     } catch (NamingException e) {
       // Unreachable
-      Logging.authorityConnectors.error("Response Unreachable: "+e.getMessage(), e);
+      Logging.authorityConnectors.error("Response Unreachable: "+ e.getMessage(), e);
       return RESPONSE_UNREACHABLE;
     }
   }
@@ -523,6 +524,19 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
   public AuthorizationResponse getDefaultAuthorizationResponse(String userName) {
     // The default response if the getConnection method fails
     return RESPONSE_UNREACHABLE;
+  }
+
+  /**
+   * Stringifies LDAP Context environment variable
+   * @param env LDAP Context environment variable
+   * @return Stringified LDAP Context environment. Password is masked if set.
+   */
+  private String printLdapContextEnvironment(Hashtable env) {
+    Hashtable copyEnv = new Hashtable<>(env);
+    if (copyEnv.containsKey(Context.SECURITY_CREDENTIALS)){
+      copyEnv.put(Context.SECURITY_CREDENTIALS, "********");
+    }
+    return Arrays.toString(copyEnv.entrySet().toArray());
   }
 
   // UI support methods.
@@ -825,7 +839,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       }
     } catch (ManifoldCFException e) {
       message = e.getMessage();
-      org.apache.manifoldcf.authorities.system.Logging.authorityConnectors.warn(e);
+      Logging.authorityConnectors.warn(e);
     }
 
     if(sslCertificatesMap != null)
