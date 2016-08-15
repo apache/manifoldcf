@@ -661,6 +661,8 @@ uitest   - Compile and run all UI tests (needs Python)
 ldtest   - Compile and run all local load tests (HSQLDB)
 doc      - Build html site, under the 'dist/doc' directory
            (requires Apache Forrest)
+precommit- Run this target before committing, to check for policy
+           violations
 tmpclean - Clean up temporary files used during build and testing
 image    - Build release image, under the '.' directory (requires
            Apache Forrest)
@@ -2442,10 +2444,35 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="site" target="download-cleanup"/>
     </target>
 
-    <target name="forbidden-checks">
-        <ant dir="framework" target="forbidden-checks"/>
-    </target>
+    <!-- taskdef name="forbiddenapis" classname="de.thetaphi.forbiddenapis.ant.AntTask" classpath="lib/forbiddenapis-2.2.jar"/ -->
 
-    <target name="precommit" description="Run basic checks before committing" depends="forbidden-checks,rat-sources"/>
+    <!-- target name="forbidden-checks" depends="build">
+        <forbiddenapis failOnMissingClasses="false" targetVersion="1.7">
+            <classpath>
+                <fileset dir="dist/lib">
+                    <include name="**/*.jar"/>
+                </fileset>
+            </classpath>
+            <bundledsignatures name="jdk-unsafe"/>
+            <bundledsignatures name="jdk-non-portable"/>
+            <fileset dir="dist/lib">
+                <include name="**/*.jar"/>
+            </fileset>
+            <fileset dir="dist/lib-proprietary">
+                <include name="**/*.jar"/>
+            </fileset>
+            <fileset dir="dist/connector-common-lib">
+                <include name="**/*.jar"/>
+            </fileset>
+            <fileset dir="dist/connector-lib">
+                <include name="**/*.jar"/>
+            </fileset>
+            <fileset dir="dist/connector-lib-proprietary">
+                <include name="**/*.jar"/>
+            </fileset>
+        </forbiddenapis>
+    </target -->
+
+    <target name="precommit" description="Run basic checks before committing" depends="rat-sources"/>
 
 </project>
