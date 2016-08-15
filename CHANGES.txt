@@ -6,6 +6,9 @@ $Id$
 
 ======================= Release 2.5 =====================
 
+CONNECTORS-1335: Log message cleanup.
+(Furkan KAMACI)
+
 CONNECTORS-1316: Upgrade to Tika 1.13.
 (Furkan KAMACI)
 
