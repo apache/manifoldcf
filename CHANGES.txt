@@ -4,6 +4,10 @@ $Id$
 ======================= 2.6-dev =====================
 
 
+CONNECTORS-1337: Update POI jars to make them consistent with
+Tika 1.13.
+(Olivier Tavard)
+
 ======================= Release 2.5 =====================
 
 CONNECTORS-1335: Log message cleanup.
