@@ -52,8 +52,7 @@
     
     <section id="Bugs">
           <title>Reporting a Bug, Problem, or Feature Request</title>
-          <p>If you think you've found a problem, or you just have a good idea for an improvement, you can create a JIRA ticket <a href="http://issues.apache.org/jira">here</a>.  You may need to create yourself an account.  Be sure to select the "Lucene Connector Framework" project.
-	  (This project name may change in the future to Apache Connectors Framework.)
+          <p>If you think you've found a problem, or you just have a good idea for an improvement, you can create a JIRA ticket <a href="https://issues.apache.org/jira/browse/CONNECTORS/">here</a>.  You may need to create yourself an account.
           </p>
           <p>Please make every effort to search through the current issues list before creating a new ticket.  Your problem might already have been logged!</p>
     </section>
