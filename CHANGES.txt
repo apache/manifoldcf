@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.6-dev =====================
 
+CONNECTORS-1340: Revise connection strings for sybase and for
+Oracle.  It's not clear why these were working before, given the change.
+(Julien Massiera)
 
 CONNECTORS-1337: Update POI jars to make them consistent with
 Tika 1.13.
