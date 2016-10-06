@@ -228,6 +228,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       currentTime = System.currentTimeMillis();
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
@@ -448,6 +453,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       currentTime = System.currentTimeMillis();
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
@@ -709,6 +719,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return false;
+      }
       currentTime = System.currentTimeMillis();
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
@@ -1141,6 +1156,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       currentTime = System.currentTimeMillis();
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
@@ -1294,6 +1314,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       currentTime = System.currentTimeMillis();
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
@@ -1746,6 +1771,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
         org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
@@ -1888,6 +1918,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
         org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
@@ -2182,6 +2217,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
         org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
@@ -2326,6 +2366,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
         org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
@@ -2496,6 +2541,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
         org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
@@ -2672,6 +2722,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
         org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));

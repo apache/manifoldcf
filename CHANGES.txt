@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.6-dev =====================
 
+CONNECTORS-1325: Another example of bad XML from Microsoft has
+been found and worked around.
+(Konstantin Avdeev, Karl Wright)
+
 CONNECTORS-1340: Revise connection strings for sybase and for
 Oracle.  It's not clear why these were working before, given the change.
 (Julien Massiera)
