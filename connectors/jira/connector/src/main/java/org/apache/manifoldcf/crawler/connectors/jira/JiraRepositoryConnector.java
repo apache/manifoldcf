@@ -978,7 +978,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
         
         versionString = sb.toString();
 
-        if (activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+        if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
           continue;
 
         if (Logging.connectors.isDebugEnabled()) {
@@ -1040,6 +1040,7 @@ public class JiraRepositoryConnector extends BaseRepositoryConnector {
           if (modifiedDate != null)
             rd.setModifiedDate(modifiedDate);
             
+          rd.addField("webUrl", documentURI);
           rd.addField("key", jiraFile.getKey());
           rd.addField("self", jiraFile.getSelf());
           rd.addField("description", jiraFile.getDescription());
