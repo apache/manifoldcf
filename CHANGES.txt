@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.6-dev =====================
 
+CONNECTORS-1341: Bad logic in jira connector disables document
+indexing.
+(Chalitha Perera)
+
 CONNECTORS-1325: Another example of bad XML from Microsoft has
 been found and worked around.
 (Konstantin Avdeev, Karl Wright)
