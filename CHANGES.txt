@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.6-dev =====================
 
+CONNECTORS-1342: Bad UI logic for "path" field in livelink connector.
+(Lena Gurevich, Karl Wright)
+
 CONNECTORS-1341: Bad logic in jira connector disables document
 indexing.
 (Chalitha Perera)
