@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.6-dev =====================
 
+CONNETORS-1343: Allow maximum year in report UI to be set based
+on current year.
+(Markus Schuch)
+
 CONNECTORS-1342: Bad UI logic for "path" field in livelink connector.
 (Lena Gurevich, Karl Wright)
 
