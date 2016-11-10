@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.6-dev =====================
 
+CONNECTORS-1338: Upgrade to SolrJ 6.3.0.
+(Shinichiro Abe)
+
 CONNETORS-1343: Allow maximum year in report UI to be set based
 on current year.
 (Markus Schuch)
