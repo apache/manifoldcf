@@ -46,7 +46,6 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 
-import org.apache.manifoldcf.core.util.URLEncoder;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
@@ -161,7 +160,10 @@ public class HttpPoster
     
     try
     {
-      CloudSolrClient cloudSolrServer = new CloudSolrClient(zookeeperHosts, new ModifiedLBHttpSolrClient(HttpClientUtil.createClient(null)));
+      CloudSolrClient cloudSolrServer = new CloudSolrClient.Builder()
+        .withZkHost(zookeeperHosts)
+        .withLBHttpSolrClient(new ModifiedLBHttpSolrClient(HttpClientUtil.createClient(null)))
+        .build();
       cloudSolrServer.setZkClientTimeout(zkClientTimeout);
       cloudSolrServer.setZkConnectTimeout(zkConnectTimeout);
       cloudSolrServer.setDefaultCollection(collection);

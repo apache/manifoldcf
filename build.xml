@@ -1968,7 +1968,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/solr"/>
-            <param name="artifact-version" value="5.5.2"/>
+            <param name="artifact-version" value="6.3.0"/>
             <param name="artifact-name" value="solr-solrj"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
