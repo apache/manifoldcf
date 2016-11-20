@@ -1109,7 +1109,7 @@ public class HttpPoster
         Long size = document.getOriginalSize();
         if (size != null)
           // Write value
-          writeField(out,LITERAL+modifiedDateAttributeName,size.toString());
+          writeField(out,LITERAL+originalSizeAttributeName,size.toString());
       }
       if (modifiedDateAttributeName != null)
       {
