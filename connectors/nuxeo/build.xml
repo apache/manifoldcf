@@ -51,6 +51,10 @@
             <param name="connector-label" value="Nuxeo"/>
             <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.NuxeoRepositoryConnector"/>
         </antcall>
+        <antcall target="general-add-authority-connector">
+            <param name="connector-label" value="Nuxeo"/>
+            <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.NuxeoAuthorityConnector"/>
+        </antcall>
     </target>
 
 </project>
