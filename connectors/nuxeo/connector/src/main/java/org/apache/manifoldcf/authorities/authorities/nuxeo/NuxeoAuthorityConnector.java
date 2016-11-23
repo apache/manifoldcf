@@ -1,4 +1,4 @@
-/* $Id: DefaultAuthenticator.java 1688076 2015-06-28 23:04:30Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
