@@ -23,12 +23,17 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.EntityBuilder;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,6 +43,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 */
 public class SlackSession
 {
+
+  private CloseableHttpClient httpClient;
   private ObjectMapper objectMapper;
   private final String webHookUrl;
 
@@ -47,11 +54,39 @@ public class SlackSession
     this.webHookUrl = webHookUrl;
     this.objectMapper = new ObjectMapper();
     this.objectMapper.setSerializationInclusion(Include.NON_NULL);
+
+    int connectionTimeout = 60000;
+    int socketTimeout = 900000;
+
+    RequestConfig requestConfig = RequestConfig.custom()
+        .setSocketTimeout(socketTimeout)
+        .setConnectTimeout(connectionTimeout)
+        .setConnectionRequestTimeout(socketTimeout)
+        .build();
+
+    httpClient = HttpClientBuilder.create()
+        .setDefaultRequestConfig(requestConfig)
+        .build();
   }
 
-  public void checkConnection()
+  public void checkConnection() throws IOException
   {
-    // Need something here...
+    HttpPost headRequest = new HttpPost(webHookUrl);
+    int statusCode = -1;
+    String responseBody = null;
+
+    try (CloseableHttpResponse response = httpClient.execute(headRequest)) {
+      responseBody = EntityUtils.toString(response.getEntity());
+      StatusLine statusLine = response.getStatusLine();
+      if (statusLine != null) {
+        statusCode = statusLine.getStatusCode();
+      }
+    }
+
+    boolean connectionOk = "invalid_payload".equals(responseBody) && statusCode == HttpStatus.SC_BAD_REQUEST;
+    if (!connectionOk) {
+      throw new HttpResponseException(statusCode, "unexpected status or payload");
+    }
   }
 
   public void send(String channel, String message) throws IOException
@@ -72,24 +107,16 @@ public class SlackSession
       .setText(json)
       .build();
 
-    int connectionTimeout = 60000;
-    int socketTimeout = 900000;
-
-    RequestConfig requestConfig = RequestConfig.custom()
-        .setSocketTimeout(socketTimeout)
-        .setConnectTimeout(connectionTimeout)
-        .setConnectionRequestTimeout(socketTimeout)
-        .build();
-
     messagePost.setEntity(entity);
-    try (CloseableHttpClient httpClient = HttpClientBuilder.create()
-        .setDefaultRequestConfig(requestConfig)
-        .build()) {
-      httpClient.execute(messagePost);
+    try (CloseableHttpResponse response = httpClient.execute(messagePost)) {
+      EntityUtils.consume(response.getEntity());
     }
   }
 
-  public void close()
+  public void close() throws IOException
   {
+    httpClient.close();
+    httpClient = null;
+    objectMapper = null;
   }
 }
