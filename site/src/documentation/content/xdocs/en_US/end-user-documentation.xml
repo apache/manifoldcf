@@ -84,7 +84,7 @@
                        recommendations.
                 </p>
                 <p>Please refer to the section of the manual describing your chosen output connection type for a description of the tabs appropriate for that connection type.</p>
-                
+
                 <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This looks something like this (although the details will differ
                       somewhat based on what connection type you chose):</p>
                 <br/><br/>
@@ -144,7 +144,7 @@
                        recommendations.
                 </p>
                 <p>Please refer to the section of the manual describing your chosen transformation connection type for a description of the tabs appropriate for that connection type.</p>
-                
+
                 <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This looks something like this (although the details will differ
                       somewhat based on what connection type you chose):</p>
                 <br/><br/>
@@ -196,7 +196,7 @@
                       connections that belong to the authority group, or repository connections that refer to the authority group.</p>
 
             </section>
-            
+
             <section id="connections">
                 <title>Defining Repository Connections</title>
                 <p>The Framework UI's left-hand menu contains a link for listing repository connections.  A repository connection is a connection to the repository system that contains the documents
@@ -312,7 +312,7 @@
                        recommendations.
                 </p>
                 <p>Please refer to the section of the manual describing your chosen notification connection type for a description of the tabs appropriate for that connection type.</p>
-                
+
                 <p>After you save your connection, a summary screen will be displayed that describes your connection's configuration.  This looks something like this (although the details will differ
                       somewhat based on what connection type you chose):</p>
                 <br/><br/>
@@ -563,7 +563,7 @@
                 <p>The rest of the job tabs depend on the types of the connections you selected.  Please refer to the section of the manual
                        describing the appropriate connection types corresponding to your chosen repository and output connections for a description of the job tabs that will appear for
                        those connections.</p>
-                
+
                 <p>After you save your job, a summary screen will be displayed that describes your job's specification.  This looks something like this (although the details will differ
                       somewhat based on what connections you chose):</p>
                 <br/><br/>
@@ -727,7 +727,7 @@
                     <p>A result histogram report is an aggregate report is used to count the occurrences of each kind of matching result for all matching events.  MHL</p>
                 </section>
             </section>
-            
+
             <section id="credentials">
                 <title>A Note About Credentials</title>
                 <p>If any of your selected connection types require credentials, you may find it necessary to approach your system administrator to obtain an appropriate set.  System administrators
@@ -738,7 +738,7 @@
             </section>
 
         </section>
-        
+
         <section id="outputconnectiontypes">
             <title>Output Connection Types</title>
 
@@ -766,7 +766,7 @@
                       <a href="http://docs.aws.amazon.com/cloudsearch/latest/developerguide/configuring-index-fields.html">this document</a> for details of how to set up an Amazon Cloud Search
                       schema.</p>
             </section>
-            
+
             <section id="elasticsearchoutputconnector">
                 <title>ElasticSearch Output Connection</title>
                 <p>The ElasticSearch Output Connection type allows ManifoldCF to submit documents to an ElasticSearch instance, via the XML over HTTP API. The connector has been designed
@@ -857,7 +857,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>Fill in the path you want the connection type to use to write the documents to.  Then, click the "Save" button.</p>
             </section>
 
-            
+
             <section id="gtsoutputconnector">
                 <title>MetaCarta GTS Output Connection</title>
                 <p>The MetaCarta GTS output connection type is designed to allow ManifoldCF to submit documents to an appropriate MetaCarta GTS search
@@ -868,7 +868,7 @@ curl -XGET http://localhost:9200/index/_mapping
                        tabs allow per-job specification of these GTS-specific features.</p>
                 <p>More here later</p>
             </section>
-            
+
             <section id="nulloutputconnector">
                 <title>Null Output Connection</title>
                 <p>The null output connection type is meant primarily to function as an aid for people writing repository connection types.  It is not expected to be useful in practice.</p>
@@ -904,7 +904,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <figure src="images/en_US/opensearchserver-history-report.PNG" alt="OpenSearchServer, history report" width="80%"/>
                 <p>You may also refer to the <a href="http://www.open-search-server.com/documentation">OpenSearchServer's user documentation</a>.</p>
             </section>
-            
+
             <section id="solroutputconnector">
                 <title>Solr Output Connection</title>
                 <p>The Solr output connection type is designed to allow ManifoldCF to submit documents to either an appropriate Apache Solr instance,
@@ -1060,10 +1060,10 @@ curl -XGET http://localhost:9200/index/_mapping
             </section>
 
         </section>
-        
+
         <section id="mappingconnectiontypes">
             <title>User Mapping Connection Types</title>
-            
+
             <section id="regexpmapper">
                 <title>Regular Expression User Mapping Connection</title>
                 <p>The Regular Expression user mapping connection type is very helpful for rote user name conversions of all sorts.  For example, it can easily be configured to map the standard "user@domain" form
@@ -1091,7 +1091,7 @@ curl -XGET http://localhost:9200/index/_mapping
 
         <section id="authorityconnectiontypes">
             <title>Authority Connection Types</title>
-            
+
             <section id="adauthority">
                 <title>Active Directory Authority Connection</title>
                 <p>An active directory authority connection is essential for enforcing security for documents from Windows shares, Microsoft SharePoint (in ActiveDirectory mode), and IBM FileNet repositories.
@@ -1128,7 +1128,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>Independently of how the permissions schema is finally configured within the Alfresco instance, the Alfresco Webscript Autorithy service can retrieve the ACLs tokens associated to the users
                   at request time. The connector is based on a single, secured service that directly enquires the Alfresco instance for the users permissions at all levels. The permissions tokens returned will be
                   consistent with the Alfresco permissions model, therefore this Authority Connector makes sense to work only with the Alfresco Webscript Repository Connector and not any other connector</p>
-                <p>IMPORTANT: in order to put available the required services within Alfresco, it is necessary FIRST to install and deploy within the Alfresco instance the 
+                <p>IMPORTANT: in order to put available the required services within Alfresco, it is necessary FIRST to install and deploy within the Alfresco instance the
                   following <a href="https://github.com/maoo/alfresco-indexer">Alfresco Webscript</a> </p>. Please follow the instructions in the README file.
                 <p>The Alfresco Webscript Authority Connection has a single configuration tab in the authority connection editing screen called "Server" where one needs to configure the Alfresco's services endpoint:</p>
                 <br/><br/>
@@ -1144,7 +1144,7 @@ curl -XGET http://localhost:9200/index/_mapping
                   <li><strong>Password:</strong> password of the above user in Alfresco</li>
                 </ul>
             </section>
-            
+
             <section id="cmisauthority">
               <title>CMIS Authority Connection</title>
               <p>A CMIS authority connection is required for enforcing security for documents retrieved from CMIS repositories.</p>
@@ -1216,7 +1216,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <p><b>[entrypoint]?action=check</b></p>
               <p>Should return HTTP status code 200 providing information that entrypoint is working properly. Any content returned will be ignored, only the status code matters.</p>
               <br/><br/>
-			  
+
               <p><b>[entrypoint]?action=auth&amp;username=UserName@Domain</b></p>
               <p>Parameters:</p>
               <ul>
@@ -1373,7 +1373,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>We suggest that you examine the status carefully and correct any reported errors before proceeding.  Note that in this example, the LiveLink server would
                     not accept connections, which is leading to an error status message instead of "Connection working".</p>
             </section>
-            
+
 
             <section id="meridioauthority">
                 <title>Autonomy Meridio Authority Connection</title>
@@ -1431,7 +1431,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/>
                 <p>If you need specific ManifoldCF logging information, contact your system integrator.</p>
             </section>
-            
+
             <section id="sharepointadauthority">
                 <title>Microsoft SharePoint ActiveDirectory Authority Connection</title>
                 <p>A Microsoft SharePoint ActiveDirectory authority connection is meant to furnish access tokens from Active Directory for a SharePoint instance that is configured
@@ -1471,7 +1471,7 @@ curl -XGET http://localhost:9200/index/_mapping
             <section id="sharepointnativeauthority">
                 <title>Microsoft SharePoint Native Authority Connection</title>
                 <p>A Microsoft SharePoint Native authority connection is meant to furnish access tokens from the same SharePoint instance that the documents are coming from.
-                    You should use this authority type whenever you are trying to secure documents using a SharePoint repository connection that is configured to the use "Native" 
+                    You should use this authority type whenever you are trying to secure documents using a SharePoint repository connection that is configured to the use "Native"
                     authority type.</p>
                 <p>If your SharePoint instance is configured to use the Claims Based authorization model, you may combine a SharePoint Native authority connection with other
                     SharePoint authority types, such as the SharePoint ActiveDirectory authority type, to furnish complete authorization support.  However, if Claims Based authorization is not
@@ -1485,7 +1485,7 @@ curl -XGET http://localhost:9200/index/_mapping
                     what to select.</p>
                 <p>Select whether your SharePoint server is configured for Claims Based authorization or not.  Check with your SharePoint system administrator if you are
                     not sure what to select.</p>
-                <p>SharePoint uses a web URL model for addressing sites, subsites, libraries, and files.  The best way to figure out how to set up a SharePoint connection 
+                <p>SharePoint uses a web URL model for addressing sites, subsites, libraries, and files.  The best way to figure out how to set up a SharePoint connection
                     type is therefore to start with your web browser, and visit the topmost root of the site you wish to crawl.  Then, record the URL you see in your browser.</p>
                 <p>Select the server protocol, and enter the server name and port, based on what you recorded from the URL for your SharePoint site.  For the "Site path"
                     field, type in the portion of the root site URL that includes everything after the server and port, except for the final "aspx" file.  For example, if the SharePoint
@@ -1507,10 +1507,10 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>Note that in this example, the SharePoint connection is not actually referencing a SharePoint instance, which is leading to an error status message instead of
                     "Connection working".</p>
             </section>
-            
-            
+
+
        </section>
-        
+
         <section id="repositoryconnectiontypes">
             <title>Repository Connection Types</title>
 
@@ -1588,7 +1588,7 @@ curl -XGET http://localhost:9200/index/_mapping
                   <li><strong>Metadata Filtering:</strong> index only those documents that at least have the specified value for one of the configured metadata field</li>
                 </ul>
             </section>
-            
+
             <section id="cmisrepository">
               <title>CMIS Repository Connection</title>
               <p>The CMIS Repository Connection type allows you to index content from any CMIS-compliant repository.</p>
@@ -1631,7 +1631,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <figure src="images/en_US/cmis-repository-connection-job-save.png" alt="CMIS Repository Connection, saving job" width="80%"/>
               <br/><br/>
             </section>
-            
+
             <section id="documentumrepository">
                 <title>EMC Documentum Repository Connection</title>
                 <p>The EMC Documentum connection type allows you index content from a Documentum Content Server instance.  A single connection allows you
@@ -1679,7 +1679,7 @@ curl -XGET http://localhost:9200/index/_mapping
                     <code>Project/Folder_1/Folder_2/Filename</code>, it would output the string <code>Folder_1 Folder_2</code>.</p>
                 <p>If more than one rule is present, the rules are all executed in sequence.  That is, the output of the first rule is modified by the second rule, etc.</p>
             </section>
-            
+
             <section id="dropboxrepository">
               <title>Dropbox Repository Connection</title>
               <p>The Dropbox Repository Connection type allows you to index content from <a href="https://www.dropbox.com/home">Dropbox</a>.</p>
@@ -1691,7 +1691,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <br/><br/>
               <figure src="images/en_US/dropbox-repository-connection-configuration.PNG" alt="Dropbox Repository Connection, configuration parameters" width="80%"/>
               <br/><br/>
-              <p>As we can see there are 4 pieces of information which are needed to create a succesful connection. The application key and secret are given by dropbox 
+              <p>As we can see there are 4 pieces of information which are needed to create a succesful connection. The application key and secret are given by dropbox
                 when you register your application for a development license. This is typically done through the application developer <a href="https://www.dropbox.com/developers/apps">Dropbox website</a>.</p>
               <br/><br/>
               <figure src="images/en_US/dropbox-repository-create-application.PNG" alt="Dropbox create application" width="80%"/>
@@ -1810,7 +1810,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/><br/>
                 <p>More here later</p>
             </section>
-            
+
             <section id="filesystemrepository">
                 <title>Generic WGET-Compatible File System Repository Connection</title>
                 <p>The generic file system repository connection type was developed in part as an example, demonstration, and testing tool, which reads simple
@@ -1845,7 +1845,7 @@ curl -XGET http://localhost:9200/index/_mapping
                        for the operating system the Framework is running on.</p>
                 <p>Each root path has a set of rules which determines whether a document is included or not in the set for the job.  Once you have added the root path to the list, you
                        may then add rules to it.  Each rule has a match expression, an indication of whether the rule is intended to match files or directories, and an action (include or exclude).
-                       Rules are evaluated from top to bottom, and the first rule that matches the file name is the one that is chosen.  To add a rule, select the desired pulldowns, type in 
+                       Rules are evaluated from top to bottom, and the first rule that matches the file name is the one that is chosen.  To add a rule, select the desired pulldowns, type in
                        a match file specification (e.g. "*.txt"), and click the "Add" button.</p>
             </section>
 
@@ -1868,7 +1868,7 @@ curl -XGET http://localhost:9200/index/_mapping
               <p><b>[entrypoint]?action=check</b></p>
               <p>Should return HTTP status code 200 providing information that entrypoint is working properly. Any content returned will be ignored, only the status code matters.</p>
               <br/><br/>
-			  
+
               <p><b>[entrypoint]?action=seed&amp;startDate=YYYY-MM-DDTHH:mm:ssZ&amp;endDate=YYYY-MM-DDTHH:mm:ssZ</b></p>
               <p>Parameters:</p>
               <ul>
@@ -2016,7 +2016,7 @@ curl -XGET http://localhost:9200/index/_mapping
                        concept.  If you pick the wrong thing for a document identifier, at the very least you could find that the crawler runs very slowly.</p>
                 <p>Obtaining the list of document identifiers that represents the changes that occurred over the given time frame must return <b>at least</b> all such changes.  It is
                         acceptable (although not ideal) for the returned list to be bigger than that.</p>
-                <p>If you want your database connection to function in an incremental manner, you must also come up with the format of a "version string".  This string is used by the 
+                <p>If you want your database connection to function in an incremental manner, you must also come up with the format of a "version string".  This string is used by the
                        Framework to determine if a document has changed.  It must change whenever anything that might affect the document's indexing changes.  (It is not a problem if
                        it changes for other reasons, as long as it fulfills that principle criteria.)</p>
                 <p>The queries you provide get substituted before they are used by the connection.  The example queries, which are present when the queries tab is first opened for a
@@ -2087,7 +2087,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>For example, the following file data query (written for PostgreSQL) will return documents with the metadata fields "metadata_a" and "metadata_b", in addition to the required primary
                         document body and URL:</p>
                 <br/>
-                <p><code>SELECT id AS $(IDCOLUMN), characterdata AS $(DATACOLUMN), 'http://mydynamicserver.com?id=' || id AS $(URLCOLUMN), 
+                <p><code>SELECT id AS $(IDCOLUMN), characterdata AS $(DATACOLUMN), 'http://mydynamicserver.com?id=' || id AS $(URLCOLUMN),
                   publisher AS metadata_a, distributor AS metadata_b FROM mytable WHERE id IN $(IDLIST)</code></p>
                 <br/>
                 <p>The "Security" tab simply allows you to add specific access tokens to all documents indexed with a general database job.  In order for you to know what tokens
@@ -2197,7 +2197,7 @@ curl -XGET http://localhost:9200/index/_mapping
                        behave as an WGET repository or not, and click the "Add" button to add it to the list.</p>
                 <p>Each root path has a set of rules which determines whether a document is included or not in the set for the job.  Once you have added the root path to the list, you
                        may then add rules to it.  Each rule has a match expression, an indication of whether the rule is intended to match files or directories, and an action (include or exclude).
-                       Rules are evaluated from top to bottom, and the first rule that matches the file name is the one that is chosen.  To add a rule, select the desired pulldowns, type in 
+                       Rules are evaluated from top to bottom, and the first rule that matches the file name is the one that is chosen.  To add a rule, select the desired pulldowns, type in
                        a match file specification (e.g. "*.txt"), and click the "Add" button.</p>
             </section>
 
@@ -2318,7 +2318,7 @@ curl -XGET http://localhost:9200/index/_mapping
                     <code>Project/Folder_1/Folder_2/Filename</code>, it would output the string <code>Folder_1 Folder_2</code>.</p>
                 <p>If more than one rule is present, the rules are all executed in sequence.  That is, the output of the first rule is modified by the second rule, etc.</p>
             </section>
-            
+
             <section id="meridiorepository">
                 <title>Autonomy Meridio Repository Connection</title>
                 <p>An Autonomy Meridio connection allows you to index documents from a set of Meridio servers.  Meridio's architecture allows you to separate services on multiple machines -
@@ -2552,7 +2552,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p>Select your SharePoint server version from the pulldown.  If you do not select the correct server version, your documents may either be indexed with
                     insufficient security protection, or you may not be able to index any documents.  Check with your SharePoint system administrator if you are not sure
                     what to select.</p>
-                <p>SharePoint uses a web URL model for addressing sites, subsites, libraries, and files.  The best way to figure out how to set up a SharePoint connection 
+                <p>SharePoint uses a web URL model for addressing sites, subsites, libraries, and files.  The best way to figure out how to set up a SharePoint connection
                     type is therefore to start with your web browser, and visit the topmost root of the site you wish to crawl.  Then, record the URL you see in your browser.</p>
                 <p>Select the server protocol, and enter the server name and port, based on what you recorded from the URL for your SharePoint site.  For the "Site path"
                     field, type in the portion of the root site URL that includes everything after the server and port, except for the final "aspx" file.  For example, if the SharePoint
@@ -2644,8 +2644,8 @@ curl -XGET http://localhost:9200/index/_mapping
                 <figure src="images/en_US/documents-library-all-metadata.png" alt="Documents Library All Metadata"/>
                 <p>ManifoldCF's UI also displays all available Document Libraries and their associated metadata too. Using this pulldown, you can select which fields you want to index.</p>
                 <figure src="images/en_US/documents-library-metadata.png" alt="Documents Library Selected Metadata"/>
-                <p>To create the metadata rule below, click Metadata tab in Job settings. Select Documents from --Select library-- and "Add Library" button. As soon as you have done this, all available metadata will be listed. 
-                     Enter * in the textbox which is right of the Add Text button. And click Add Text button. When you have done this Path Match becomes /Documents/*. After this you can multi select list of metadata. 
+                <p>To create the metadata rule below, click Metadata tab in Job settings. Select Documents from --Select library-- and "Add Library" button. As soon as you have done this, all available metadata will be listed.
+                     Enter * in the textbox which is right of the Add Text button. And click Add Text button. When you have done this Path Match becomes /Documents/*. After this you can multi select list of metadata.
                      This action will populate Fields with CheckoutUser, Created, etc. Click Add New Rule button. This action will add this new rule to your Metadata rules.</p>
                 <figure src="images/en_US/documents-library-metadata-rule.png" alt="Documents Library Metadata Rule"/>
                 <p>Finally click the "Save" button at the bottom of the page. You will see a page looking something like this:</p>
@@ -2658,10 +2658,10 @@ curl -XGET http://localhost:9200/index/_mapping
                     <li>If we were to index only docx files, our Patch match rule would be <b>/Documents/*.docx</b></li>
                 </ul>
                 <br/>
-                
+
                 <p><b>Example: How to index SharePoint 2010 Lists</b></p>
                 <p></p>
-                <p>Lists are a key part of the architecture of Windows SharePoint Services. A document library is another form of a list, and while it has many similar properties to a standard list, it also includes additional 
+                <p>Lists are a key part of the architecture of Windows SharePoint Services. A document library is another form of a list, and while it has many similar properties to a standard list, it also includes additional
                      functions to enable document uploads, retrieval, and other functions to support document management and collaboration. <a href="http://msdn.microsoft.com/en-us/library/dd490727%28v=office.12%29.aspx">[1]</a> </p>
             	<p>An item added to a document library (and other libraries) must be a file. You can't have a library without a file. A list on the other hand doesn't have a file, it is just a piece of data, just like SQL Table.</p>
                 <p>Let's say we want to index a List named IKGeneralFAQ. The following URL displays contents of the list : http://iknow/Lists/IKGeneralFAQ/AllItems.aspx</p>
@@ -2670,12 +2670,12 @@ curl -XGET http://localhost:9200/index/_mapping
                 <figure src="images/en_US/add-list.png" alt="Add List"/>
                 <p>After we select IKGeneralFAQ, hit Add List button and Save button, we have the following Path Rule:</p>
                 <figure src="images/en_US/faq-list-path-rule.png" alt="IKGeneralFAQ List Path Rule"/>
-                <p>The above <b>single</b> Path Rule is sufficient to index content of IKGeneralFAQ List. Note that unlike the document libraries, we don't need * here.</p> 
+                <p>The above <b>single</b> Path Rule is sufficient to index content of IKGeneralFAQ List. Note that unlike the document libraries, we don't need * here.</p>
                 <p>If we click List Tools > List > Modify View we will see complete list of all available metadata.</p>
                 <figure src="images/en_US/faq-list-all-metadata.png" alt="IKGeneralFAQ List All Metadata"/>
                 <p>ManifoldCF's Metadata UI also displays all available Lists and their associated metadata too. Using this pulldown, you can select which fields you want to index.</p>
                 <figure src="images/en_US/faq-list-metadata.png" alt="IKGeneralFAQ List Selected Metadata"/>
-                <p>To create the metadata rule below, click Metadata tab in Job settings. Select IKGeneralFAQ from --Select list-- and "Add List" button. As soon as you have done this, all available metadata will be listed. 
+                <p>To create the metadata rule below, click Metadata tab in Job settings. Select IKGeneralFAQ from --Select list-- and "Add List" button. As soon as you have done this, all available metadata will be listed.
                      After this you can multi select list of metadata. This action will populate Fields with ID, IKFAQAnswer, IKFAQPage, IKFAQPageID, etc. Click Add New Rule button. This action will add this new rule to your Metadata rules.</p>
                 <figure src="images/en_US/faq-list-metadata-rule.png" alt="IKGeneralFAQ List Metadata Rule"/>
                 <p>Finally click the "Save" button at the bottom of the page. You will see a page looking something like this:</p>
@@ -2684,10 +2684,10 @@ curl -XGET http://localhost:9200/index/_mapping
                 <p><b>Some Final Notes</b></p>
                 <ul>
                     <li>Note that, when specifying Metadata rules, UI automatically adds * to Path match rule for Lists. This is not the case with Document Libraries.</li>
-                    <li>We can include all metadata using the checkbox. (without selecting from the pulldown list)</li>                    
+                    <li>We can include all metadata using the checkbox. (without selecting from the pulldown list)</li>
                 </ul>
             </section>
-                        
+
             <section id="webrepository">
                 <title>Generic Web Repository Connection</title>
                 <p>The Web connection type is effectively a reasonably full-featured web crawler.  It is capable of handling most kinds of authentication (basic, all forms of NTLM,
@@ -2793,7 +2793,7 @@ curl -XGET http://localhost:9200/index/_mapping
                             and not related to this specific login.</td>
                         <td>Often set to several minutes or hours from the
                             the last login in current browser session.
-                            A long spider run might need to re-login several times.</td> 
+                            A long spider run might need to re-login several times.</td>
                     </tr>
                     <tr>
                         <td><b>HTTP Header Fields</b></td>
@@ -2863,7 +2863,7 @@ curl -XGET http://localhost:9200/index/_mapping
                       implicit flow to a subsequent page.  In this case you must supply an <em>override URL</em>,
                       which describes which page to go to to continue the login sequence.  In fact, you are allowed to provide an override URL for all four cases above,
                       but this is only recommended when the web connector would not automatically find the right subsequent page URL on its own.</p>
-      
+
                 <p>To add a session authentication rule, fill in a regular expression describing the site pages that are being protected, and click the "Add" button:</p>
                 <br/><br/>
                 <figure src="images/en_US/web-configure-access-credentials-session.PNG" alt="Web Connection, Access Credentials tab" width="80%"/>
@@ -3023,7 +3023,7 @@ curl -XGET http://localhost:9200/index/_mapping
                        will be evaluated from top to bottom, in order.  Whichever rule first matches a given path is the one that will be used for that path.</p>
                 <p>Each rule describes the path matching criteria.  This consists of the file specification (e.g. "*.txt"), whether the path is a file or folder name, and whether a file is
                        considered indexable or not by the output connection.  The rule also describes the action to take should the rule be matched: include or exclude.  The file specification
-                       character "*" is a wildcard which matches zero or more characters, while the character "?" matches exactly one character.  All other characters must match 
+                       character "*" is a wildcard which matches zero or more characters, while the character "?" matches exactly one character.  All other characters must match
                        exactly.</p>
                 <p>Remember that your specification must match <strong>all</strong> characters included in the file's path.  That includes all path separator characters ("/").
                       The path you must match always begins with an initial path separator.  Thus, if you want to exclude the file "foo.txt" at the root level, your exclude rule must
@@ -3094,9 +3094,29 @@ curl -XGET http://localhost:9200/index/_mapping
                       The server port must be provided in the "Port" field.  Finally, the path part of the Wiki URL must be provided in the "Path name" field and must start with a "/" character.</p>
                 <p>When you configure a job to use a repository connection of the Wiki type, no additional tabs are currently presented.</p>
             </section>
-            
-            
-            
+
+        </section>
+
+        <section id="notificationconnectiontypes">
+            <title>Output Connection Types</title>
+
+            <section>
+                <title>Slack Notifications</title>
+	            <p>The Slack notification connection allows you to send job notifications to a Slack channel. The connection type uses the Slack Incoming WebHook API in order to deliver messages to Slack.</p>
+	            <p>A Slack notification connection has only one special tab on the notification connection editing screen: the "Slack WebHook" tab.  The "Slack WebHook" tab looks like this:</p>
+	            <br/><br/>
+	            <figure src="images/en_US/slack-configure-slack-webhook.PNG" alt="Slack Notification Connection, Slack WebHook tab" width="80%"/>
+	            <br/><br/>
+	            <p>When you configure a job to use a notification connection of the Slack notification type, an additional tab "Message" is presented.</p>
+	            <p>The "Messages" tab looks like this:</p>
+	            <br/><br/>
+	            <figure src="images/en_US/slack-job-message.PNG" alt="Slack Notification Job, Message tab" width="80%"/>
+	            <br/><br/>
+	            <p>This tab allows you to set the notification messages for the different job statuses. The "Channel" specifies the name of the Slack channel, where the message will be sent to.
+	                    If no channel is defined, the message is sent to the default channel of the Slack Incoming WebHook.</p>
+	            <p>The "Message" supports Markdown formatting. Refer to the <a href="https://api.slack.com/custom-integrations">Slack Custom Integrations</a> documentation for more information.</p>
+            </section>
+
         </section>
 
 </body>
