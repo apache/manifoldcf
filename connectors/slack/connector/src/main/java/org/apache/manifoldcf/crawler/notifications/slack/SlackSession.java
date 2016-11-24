@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -71,8 +72,19 @@ public class SlackSession
       .setText(json)
       .build();
 
+    int connectionTimeout = 60000;
+    int socketTimeout = 900000;
+
+    RequestConfig requestConfig = RequestConfig.custom()
+        .setSocketTimeout(socketTimeout)
+        .setConnectTimeout(connectionTimeout)
+        .setConnectionRequestTimeout(socketTimeout)
+        .build();
+
     messagePost.setEntity(entity);
-    try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+    try (CloseableHttpClient httpClient = HttpClientBuilder.create()
+        .setDefaultRequestConfig(requestConfig)
+        .build()) {
       httpClient.execute(messagePost);
     }
   }
