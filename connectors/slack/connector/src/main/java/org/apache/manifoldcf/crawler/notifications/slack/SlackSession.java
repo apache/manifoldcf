@@ -29,19 +29,23 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /** This class represents a slack web hook session, without any protection
 * from threads waiting on sockets, etc.
 */
 public class SlackSession
 {
-  protected final String webHookUrl;
+  private ObjectMapper objectMapper;
+  private final String webHookUrl;
 
   /** Create a session */
   public SlackSession(final String webHookUrl)
   {
     this.webHookUrl = webHookUrl;
+    this.objectMapper = new ObjectMapper();
+    this.objectMapper.setSerializationInclusion(Include.NON_NULL);
   }
 
   public void checkConnection()
@@ -59,8 +63,7 @@ public class SlackSession
     }
     slackMessage.setText(message);
 
-    Gson gson = new Gson();
-    String json = gson.toJson(slackMessage);
+    String json = objectMapper.writeValueAsString(slackMessage);
 
     HttpEntity entity = EntityBuilder.create()
       .setContentType(ContentType.APPLICATION_JSON)
