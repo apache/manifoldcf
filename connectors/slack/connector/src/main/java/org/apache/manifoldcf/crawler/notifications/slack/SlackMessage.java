@@ -24,6 +24,8 @@ public class SlackMessage {
 
   private String text;
 
+  private boolean mrkdwn = true;
+
   public String getChannel() {
     return channel;
   }
@@ -38,6 +40,14 @@ public class SlackMessage {
 
   public void setText(String text) {
     this.text = text;
+  }
+
+  public boolean isMrkdwn() {
+    return mrkdwn;
+  }
+
+  public void setMrkdwn(boolean mrkdwn) {
+    this.mrkdwn = mrkdwn;
   }
 
 }
