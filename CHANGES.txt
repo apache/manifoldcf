@@ -2,6 +2,8 @@ ManifoldCF Change Log
 $Id$
 
 ======================= 2.6-dev =====================
+CONNECTORS-1344: Adds Slack Notification Connector
+(Odilo Oehmichen, Markus Schuch, Rüdiger Kurz)
 
 CONNECTORS-1338: Upgrade to SolrJ 6.3.0.
 (Shinichiro Abe)
