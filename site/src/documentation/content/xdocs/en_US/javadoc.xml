@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN"
           "http://forrest.apache.org/dtd/document-v20.dtd">
 
 <!--
@@ -20,13 +20,13 @@
  limitations under the License.
 -->
 
-<document> 
+<document>
 
-  <header> 
-    <title>ManifoldCF Javadoc</title> 
-  </header> 
+  <header>
+    <title>ManifoldCF Javadoc</title>
+  </header>
 
-  <body> 
+  <body>
     <section>
       <title>ManifoldCF Javadoc</title>
       <p></p>
@@ -66,6 +66,7 @@
       <p><a href="../api/rss/index.html">RSS connector</a></p>
       <p><a href="../api/searchblox/index.html">Searchblox output connector</a></p>
       <p><a href="../api/sharepoint/index.html">SharePoint connector</a></p>
+      <p><a href="../api/slack/index.html">Slack notification connector</a></p>
       <p><a href="../api/solr/index.html">Solr output connector</a></p>
       <p><a href="../api/tika/index.html">Tika transformation connector</a></p>
       <p><a href="../api/webcrawler/index.html">Web connector</a></p>
