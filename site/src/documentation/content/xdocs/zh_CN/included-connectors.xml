@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN"
           "http://forrest.apache.org/dtd/document-v20.dtd">
 
 <!--
@@ -20,13 +20,13 @@
  limitations under the License.
 -->
 
-<document> 
+<document>
 
-  <header> 
-    <title></title> 
-  </header> 
+  <header>
+    <title></title>
+  </header>
 
-  <body> 
+  <body>
     <section>
       <title>连接器一览</title>
       <p>ManifoldCF提供如下连接器：</p>
@@ -54,8 +54,9 @@
         <tr><td>SharePoint (MSFT)</td><td>Java </td><td>Win</td><td> N/A </td><td>SharePoint 2003 (2.0), 2007 (3.0)通过验证, 无Claim Space Auth条件下验证2010 (4.0)</td></tr>
         <tr><td>Meridio (Autonomy)</td><td>Java </td><td> Win </td><td> N/A </td><td>Meridio 4.1, 5.0通过验证</td></tr>
         <tr><td>FileNet (IBM)</td><td>Java</td><td>Win, RedHat</td><td>P8 V4.1, V4.5通过验证</td><td>P8 V4.1, V4.5通过验证</td></tr>
+        <tr><td>Slack</td><td>Pure Java</td><td> N/A </td><td> N/A </td><td>Slack API November 2016通过验证</td></tr>
       </table>
     </section>
   </body>
 </document>
-  
+
