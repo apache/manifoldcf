@@ -3098,7 +3098,7 @@ curl -XGET http://localhost:9200/index/_mapping
         </section>
 
         <section id="notificationconnectiontypes">
-            <title>Output Connection Types</title>
+            <title>Notification Connection Types</title>
 
             <section>
                 <title>Slack Notifications</title>
