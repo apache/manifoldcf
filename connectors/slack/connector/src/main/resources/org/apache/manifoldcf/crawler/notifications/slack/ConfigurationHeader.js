@@ -16,6 +16,16 @@
 -->
 
 <script type="text/javascript">
+function checkConfig()
+{
+  if (editconnection.proxyPort.value != "" && !isInteger(editconnection.proxyPort.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SlackConnector.ProxyPortMustBeAnInteger'))");
+    editconnection.proxyPort.focus();
+    return false;
+  }
+  return true;
+}
 
 function checkConfigForSave()
 {
