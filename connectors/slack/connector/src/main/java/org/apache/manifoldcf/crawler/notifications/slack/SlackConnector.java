@@ -523,7 +523,6 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
       }
     }
     // If ANY of the above are non-empty, we create a new dummy record
-    // TODO check if channel check is right
     if (channel.length() > 0) {
       // Add the dummy records
       addRecord(paramMap, SlackConfig.NODE_FINISHED, channel, message);

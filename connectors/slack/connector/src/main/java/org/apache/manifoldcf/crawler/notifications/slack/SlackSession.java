@@ -21,6 +21,8 @@ package org.apache.manifoldcf.crawler.notifications.slack;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import javax.net.ssl.SSLSocketFactory;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -34,15 +36,20 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
+import org.apache.manifoldcf.connectorcommon.interfaces.KeystoreManagerFactory;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.crawler.system.Logging;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.manifoldcf.crawler.system.Logging;
 
 /** This class represents a slack web hook session, without any protection
 * from threads waiting on sockets, etc.
@@ -75,8 +82,9 @@ public class SlackSession
    * Create a session.
    * @param webHookUrl - the webHookUrl to use for slack messages.
    * @param proxySettingsOrNull - the proxy settings or null if not necessary.
+   * @throws ManifoldCFException 
    */
-  public SlackSession(final String webHookUrl, final ProxySettings proxySettingsOrNull)
+  public SlackSession(final String webHookUrl, final ProxySettings proxySettingsOrNull) throws ManifoldCFException
   {
     this.webHookUrl = webHookUrl;
     this.objectMapper = new ObjectMapper();
@@ -94,8 +102,18 @@ public class SlackSession
       addProxySettings(requestBuilder, proxySettingsOrNull);
     }
 
+    // Create a ssl socket factory trusting everything.
+    // Reason: manifoldcf wishes connectors to encapsulate certificate handling
+    //         per connection and not rely on the global keystore.
+    //         A configurable keystore seems overkill for the slack notification use case
+    //         so we trust everything.
+    SSLSocketFactory httpsSocketFactory = KeystoreManagerFactory.getTrustingSecureSocketFactory();
+    SSLConnectionSocketFactory myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeout),
+        NoopHostnameVerifier.INSTANCE);
+    
     httpClient = HttpClientBuilder.create()
         .setDefaultRequestConfig(requestBuilder.build())
+        .setSSLSocketFactory(myFactory)
         .build();
   }
 
