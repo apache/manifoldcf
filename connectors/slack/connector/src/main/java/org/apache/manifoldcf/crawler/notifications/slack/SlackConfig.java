@@ -30,6 +30,32 @@ public class SlackConfig {
   public static final String WEBHOOK_URL_PARAM = "webHookUrl";
 
   /**
+   * Proxy Host
+   */
+  public static final String PROXY_HOST_PARAM = "proxyHost";
+
+  /**
+   * Proxy Port
+   */
+
+  public static final String PROXY_PORT_PARAM = "proxyPort";
+
+  /**
+   * Proxy Username
+   */
+  public static final String PROXY_USERNAME_PARAM = "proxyUsername";
+
+  /**
+   * Proxy Password
+   */
+  public static final String PROXY_PASSWORD_PARAM = "proxyPassword";
+
+  /**
+   * Proxy Domain
+   */
+  public static final String PROXY_DOMAIN_PARAM = "proxyDomain";
+
+  /**
   * URL template
   */
   public static final String URL_PARAM = "url";
