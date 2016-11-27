@@ -94,9 +94,9 @@ public class SlackSession
     int socketTimeout = 900000;
 
     final RequestConfig.Builder requestBuilder = RequestConfig.custom()
-            .setSocketTimeout(socketTimeout)
-            .setConnectTimeout(connectionTimeout)
-            .setConnectionRequestTimeout(socketTimeout);
+        .setSocketTimeout(socketTimeout)
+        .setConnectTimeout(connectionTimeout)
+        .setConnectionRequestTimeout(socketTimeout);
 
     if(proxySettingsOrNull != null) {
       addProxySettings(requestBuilder, proxySettingsOrNull);
@@ -110,7 +110,7 @@ public class SlackSession
     SSLSocketFactory httpsSocketFactory = KeystoreManagerFactory.getTrustingSecureSocketFactory();
     SSLConnectionSocketFactory myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeout),
         NoopHostnameVerifier.INSTANCE);
-    
+
     httpClient = HttpClientBuilder.create()
         .setDefaultRequestConfig(requestBuilder.build())
         .setSSLSocketFactory(myFactory)
@@ -119,18 +119,18 @@ public class SlackSession
 
   private void addProxySettings(RequestConfig.Builder requestBuilder, ProxySettings proxySettingsOrNull)
   {
-      if (proxySettingsOrNull.hasUsername()) {
-        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(
-                new AuthScope(proxySettingsOrNull.getHost(), proxySettingsOrNull.getPort()),
-                new NTCredentials(proxySettingsOrNull.getUsername(),
-                        (proxySettingsOrNull.getPassword() == null) ? "" : proxySettingsOrNull.getPassword(),
-                        currentHost,
-                        (proxySettingsOrNull.getDomain() == null) ? "" : proxySettingsOrNull.getDomain()));
-      }
+    if (proxySettingsOrNull.hasUsername()) {
+      CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+      credentialsProvider.setCredentials(
+          new AuthScope(proxySettingsOrNull.getHost(), proxySettingsOrNull.getPort()),
+          new NTCredentials(proxySettingsOrNull.getUsername(),
+              (proxySettingsOrNull.getPassword() == null) ? "" : proxySettingsOrNull.getPassword(),
+                  currentHost,
+                  (proxySettingsOrNull.getDomain() == null) ? "" : proxySettingsOrNull.getDomain()));
+    }
 
-      HttpHost proxy = new HttpHost(proxySettingsOrNull.getHost(), proxySettingsOrNull.getPort());
-      requestBuilder.setProxy(proxy);
+    HttpHost proxy = new HttpHost(proxySettingsOrNull.getHost(), proxySettingsOrNull.getPort());
+    requestBuilder.setProxy(proxy);
   }
 
   public void checkConnection() throws IOException
@@ -166,10 +166,10 @@ public class SlackSession
     String json = objectMapper.writeValueAsString(slackMessage);
 
     HttpEntity entity = EntityBuilder.create()
-      .setContentType(ContentType.APPLICATION_JSON)
-      .setContentEncoding(StandardCharsets.UTF_8.name())
-      .setText(json)
-      .build();
+        .setContentType(ContentType.APPLICATION_JSON)
+        .setContentEncoding(StandardCharsets.UTF_8.name())
+        .setText(json)
+        .build();
 
     messagePost.setEntity(entity);
     try (CloseableHttpResponse response = httpClient.execute(messagePost)) {
