@@ -49,6 +49,9 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
 
   protected String webHookUrl = null;
 
+  // Parameters for proxy connection
+  protected SlackSession.ProxySettings proxySettings = null;
+
   // Local session handle
   protected SlackSession session = null;
 
@@ -64,6 +67,17 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
   public void connect(ConfigParams configParameters) {
     super.connect(configParameters);
     this.webHookUrl = configParameters.getParameter(SlackConfig.WEBHOOK_URL_PARAM);
+
+    String proxyHost = configParameters.getParameter(SlackConfig.PROXY_HOST_PARAM);
+    String proxyPortString = configParameters.getParameter(SlackConfig.PROXY_PORT_PARAM);
+    if(StringUtils.isNotEmpty(proxyHost) && StringUtils.isNotEmpty(proxyPortString)) {
+      String proxyUsername = configParameters.getParameter(SlackConfig.PROXY_USERNAME_PARAM);
+      String proxyPassword = configParameters.getObfuscatedParameter(SlackConfig.PROXY_PASSWORD_PARAM);
+      String proxyDomain = configParameters.getParameter(SlackConfig.PROXY_DOMAIN_PARAM);
+      this.proxySettings = new SlackSession.ProxySettings(proxyHost, proxyPortString, proxyUsername, proxyPassword, proxyDomain);
+    } else {
+      Logging.connectors.info("Using no proxy settings - no proxyHost and no proxyPort found.");
+    }
   }
 
   /**
@@ -74,6 +88,7 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
   public void disconnect()
     throws ManifoldCFException {
     this.webHookUrl = null;
+    this.proxySettings = null;
     finalizeConnection();
     super.disconnect();
   }
@@ -134,7 +149,7 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
 
       // Create a session.
       try {
-        ConnectThread connectThread = new ConnectThread(webHookUrl);
+        ConnectThread connectThread = new ConnectThread(webHookUrl, proxySettings);
         connectThread.start();
         session = connectThread.finishUp();
       } catch (InterruptedException e) {
@@ -315,11 +330,34 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
   }
 
   private static void fillInServerConfigurationMap(Map<String, Object> paramMap, IPasswordMapperActivity mapper, ConfigParams parameters) {
-    String webHookUrl = parameters.getParameter(SlackConfig.WEBHOOK_URL_PARAM);
-    if (webHookUrl == null)
-      webHookUrl = StringUtils.EMPTY;
+    String webHookUrl = getEmptyOnNull(parameters, SlackConfig.WEBHOOK_URL_PARAM);
+    String proxyHost = getEmptyOnNull(parameters, SlackConfig.PROXY_HOST_PARAM);
+    String proxyPort = getEmptyOnNull(parameters, SlackConfig.PROXY_PORT_PARAM);
+    String proxyUsername = getEmptyOnNull(parameters, SlackConfig.PROXY_USERNAME_PARAM);
+
+    String proxyPassword = parameters.getObfuscatedParameter(SlackConfig.PROXY_PASSWORD_PARAM);
+    if(proxyPassword == null) {
+      proxyPassword = StringUtils.EMPTY;
+    } else {
+      mapper.mapPasswordToKey(proxyPassword);
+    }
+
+    String proxyDomain = getEmptyOnNull(parameters, SlackConfig.PROXY_DOMAIN_PARAM);
 
     paramMap.put("WEBHOOK_URL", webHookUrl);
+    paramMap.put("PROXY_HOST", proxyHost);
+    paramMap.put("PROXY_PORT", proxyPort);
+    paramMap.put("PROXY_USERNAME", proxyUsername);
+    paramMap.put("PROXY_PASSWORD", proxyPassword);
+    paramMap.put("PROXY_DOMAIN", proxyDomain);
+  }
+
+  private static String getEmptyOnNull(ConfigParams parameters, String key) {
+    String value = parameters.getParameter(key);
+    if (value == null) {
+      value = StringUtils.EMPTY;
+    }
+    return value;
   }
 
   /**
@@ -340,9 +378,43 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
     ConfigParams parameters) throws ManifoldCFException {
 
-    String webHookUrl = variableContext.getParameter("webHookUrl");
-    if (webHookUrl != null)
+    final String webHookUrl = variableContext.getParameter("webHookUrl");
+    if (webHookUrl != null) {
       parameters.setParameter(SlackConfig.WEBHOOK_URL_PARAM, webHookUrl);
+    }
+
+    final String proxyHost = variableContext.getParameter("proxyHost");
+    if (proxyHost != null) {
+      parameters.setParameter(SlackConfig.PROXY_HOST_PARAM, proxyHost);
+    }
+
+    final String proxyPort = variableContext.getParameter("proxyPort");
+    if (StringUtils.isNotEmpty(proxyPort)) {
+      try {
+        Integer.parseInt(proxyPort);
+      } catch (NumberFormatException e) {
+        Logging.connectors.warn("Proxy port must be a number. Found " + proxyPort);
+        throw new ManifoldCFException("Proxy Port must be a number: " + e.getMessage(), e);
+      }
+      parameters.setParameter(SlackConfig.PROXY_PORT_PARAM, proxyPort);
+    } else if(proxyPort != null){
+      parameters.setParameter(SlackConfig.PROXY_PORT_PARAM, proxyPort);
+    }
+
+    final String proxyUsername = variableContext.getParameter("proxyUsername");
+    if (proxyUsername != null) {
+      parameters.setParameter(SlackConfig.PROXY_USERNAME_PARAM, proxyUsername);
+    }
+
+    final String proxyPassword = variableContext.getParameter("proxyPassword");
+    if (proxyPassword != null) {
+      parameters.setObfuscatedParameter(SlackConfig.PROXY_PASSWORD_PARAM, variableContext.mapKeyToPassword(proxyPassword));
+    }
+
+    final String proxyDomain = variableContext.getParameter("proxyDomain");
+    if (proxyDomain != null) {
+      parameters.setParameter(SlackConfig.PROXY_DOMAIN_PARAM, proxyDomain);
+    }
 
     return null;
   }
@@ -613,14 +685,16 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
   protected static class ConnectThread extends Thread
   {
     protected final String webHookUrl;
+    protected final SlackSession.ProxySettings proxySettings;
 
     // Local session handle
     protected SlackSession session = null;
     protected Throwable exception = null;
 
-    public ConnectThread(String webHookUrl)
+    public ConnectThread(String webHookUrl, SlackSession.ProxySettings proxySettings)
     {
       this.webHookUrl = webHookUrl;
+      this.proxySettings = proxySettings;
       setDaemon(true);
     }
 
@@ -628,7 +702,7 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
     {
       try
       {
-        session = new SlackSession(webHookUrl);
+        session = new SlackSession(webHookUrl, proxySettings);
       }
       catch (Throwable e)
       {
@@ -814,5 +888,4 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
       }
     }
   }
-
 }

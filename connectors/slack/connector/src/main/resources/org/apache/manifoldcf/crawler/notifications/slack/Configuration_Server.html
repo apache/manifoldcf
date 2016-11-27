@@ -27,10 +27,55 @@ limitations under the License.
       <input id="webHookUrl" name="webHookUrl" type="text" size="80" value="$Encoder.attributeEscape($WEBHOOK_URL)"/>
     </td>
   </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('SlackConnector.ProxyHostColon'))</nobr>
+    </td>
+    <td class="value">
+      <input id="proxyHost" name="proxyHost" type="text" size="32" value="$Encoder.attributeEscape($PROXY_HOST)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('SlackConnector.ProxyPortColon'))</nobr>
+    </td>
+    <td class="value">
+      <input id="proxyPort" name="proxyPort" type="text" size="5" value="$Encoder.attributeEscape($PROXY_PORT)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('SlackConnector.ProxyUsernameColon'))</nobr>
+    </td>
+    <td class="value">
+      <input id="proxyUsername" name="proxyUsername" type="text" size="32" value="$Encoder.attributeEscape($PROXY_USERNAME)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('SlackConnector.ProxyPasswordColon'))</nobr>
+    </td>
+    <td class="value">
+      <input id="proxyPassword" name="proxyPassword" type="password" size="32" value="$Encoder.attributeEscape($PROXY_PASSWORD)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('SlackConnector.ProxyDomainColon'))</nobr>
+    </td>
+    <td class="value">
+      <input id="proxyDomain" name="proxyDomain" type="text" size="32" value="$Encoder.attributeEscape($PROXY_DOMAIN)"/>
+    </td>
+  </tr>
 </table>
 
 #else
 
 <input type="hidden" name="webHookUrl" value="$Encoder.attributeEscape($WEBHOOK_URL)"/>
+<input type="hidden" name="proxyHost" value="$Encoder.attributeEscape($PROXY_HOST)"/>
+<input type="hidden" name="proxyPort" value="$Encoder.attributeEscape($PROXY_PORT)"/>
+<input type="hidden" name="proxyUsername" value="$Encoder.attributeEscape($PROXY_USERNAME)"/>
+<input type="hidden" name="proxyPassword" value="$Encoder.attributeEscape($PROXY_PASSWORD)"/>
+<input type="hidden" name="proxyDomain" value="$Encoder.attributeEscape($PROXY_DOMAIN)"/>
 
 #end

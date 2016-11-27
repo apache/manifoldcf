@@ -25,6 +25,46 @@ limitations under the License.
       <nobr>$Encoder.bodyEscape($WEBHOOK_URL)</nobr>
     </td>
   </tr>
-
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('SlackConnector.ProxyHostColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($PROXY_HOST)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('SlackConnector.ProxyPortColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($PROXY_PORT)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('SlackConnector.ProxyUsernameColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($PROXY_USERNAME)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('SlackConnector.ProxyPasswordColon'))</nobr>
+    </td>
+    <td class="value">
+      #if($PROXY_PASSWORD && !$PROXY_PASSWORD.empty)
+      <nobr>********</nobr>
+      #end
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('SlackConnector.ProxyDomainColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>$Encoder.bodyEscape($PROXY_DOMAIN)</nobr>
+    </td>
 </table>
 

@@ -16,7 +16,6 @@
 -->
 
 <script type="text/javascript">
-<!--
 
 function checkConfigForSave()
 {
@@ -25,6 +24,20 @@ function checkConfigForSave()
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SlackConnector.EnterAWebHookUrl'))");
     SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SlackConnector.WebHook'))");
     editconnection.webHookUrl.focus();
+    return false;
+  }
+  if (editconnection.proxyHost.value != "" && editconnection.proxyPort.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SlackConnector.ProxyPortMustBeGivenWithHost'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SlackConnector.WebHook'))");
+    editconnection.proxyPort.focus();
+    return false;
+  }
+  if (editconnection.proxyPort.value != "" && !isInteger(editconnection.proxyPort.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SlackConnector.ProxyPortMustBeAnInteger'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('SlackConnector.WebHook'))");
+    editconnection.proxyPort.focus();
     return false;
   }
   return true;
