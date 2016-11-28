@@ -4314,6 +4314,46 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     return DELETERESULT_FOUND;
   }
+  
+  /** Delete mapping connection.
+  */
+  protected static int apiDeleteMappingConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
+    throws ManifoldCFException
+  {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
+    try
+    {
+      IMappingConnectionManager connectionManager = MappingConnectionManagerFactory.make(tc);
+      connectionManager.delete(connectionName);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return DELETERESULT_FOUND;
+  }
+
+  /** Delete transformation connection.
+  */
+  protected static int apiDeleteTransformationConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
+    throws ManifoldCFException
+  {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
+    try
+    {
+      ITransformationConnectionManager connectionManager = TransformationConnectionManagerFactory.make(tc);
+      connectionManager.delete(connectionName);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return DELETERESULT_FOUND;
+  }
 
   /** Delete repository connection.
   */
@@ -4379,10 +4419,20 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
       return apiDeleteOutputConnection(tc,output,connectionName,authorizer);
     }
+    else if (path.startsWith("mappingconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("mappingconnections/".length()));
+      return apiDeleteAuthorityConnection(tc,output,connectionName,authorizer);
+    }
     else if (path.startsWith("authorityconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("authorityconnections/".length()));
       return apiDeleteAuthorityConnection(tc,output,connectionName,authorizer);
+    }
+    else if (path.startsWith("transformationconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("transformationconnections/".length()));
+      return apiDeleteTransformationConnection(tc,output,connectionName,authorizer);
     }
     else if (path.startsWith("repositoryconnections/"))
     {
