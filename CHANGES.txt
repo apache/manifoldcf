@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.6-dev =====================
 
+CONNECTORS-1355: Missing code for API deletion of mapping and
+transformation connections.
+(Julien Massiera, Karl Wright)
+
 CONNECTORS-1344: Adds Slack Notification Connector
 (Odilo Oehmichen, Markus Schuch, Rüdiger Kurz)
 
