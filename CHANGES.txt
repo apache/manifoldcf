@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.6-dev =====================
 
+CONNECTORS-1336: Update the Compatibility Matrix
+(Piergiorgio Lucidi)
+
 CONNECTORS-1355: Missing code for API deletion of mapping and
 transformation connections.
 (Julien Massiera, Karl Wright)
