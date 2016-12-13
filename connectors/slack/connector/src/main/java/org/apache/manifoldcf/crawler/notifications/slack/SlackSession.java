@@ -20,6 +20,7 @@ package org.apache.manifoldcf.crawler.notifications.slack;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
 
 import javax.net.ssl.SSLSocketFactory;
 
@@ -27,11 +28,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -82,7 +82,7 @@ public class SlackSession
    * Create a session.
    * @param webHookUrl - the webHookUrl to use for slack messages.
    * @param proxySettingsOrNull - the proxy settings or null if not necessary.
-   * @throws ManifoldCFException 
+   * @throws ManifoldCFException
    */
   public SlackSession(final String webHookUrl, final ProxySettings proxySettingsOrNull) throws ManifoldCFException
   {
@@ -135,21 +135,28 @@ public class SlackSession
 
   public void checkConnection() throws IOException
   {
-    HttpPost headRequest = new HttpPost(webHookUrl);
-    int statusCode = -1;
+    HttpPost postRequest = new HttpPost(webHookUrl);
+    int statusCode;
     String responseBody = null;
 
-    try (CloseableHttpResponse response = httpClient.execute(headRequest)) {
+    try (CloseableHttpResponse response = httpClient.execute(postRequest)) {
       responseBody = EntityUtils.toString(response.getEntity());
-      StatusLine statusLine = response.getStatusLine();
-      if (statusLine != null) {
-        statusCode = statusLine.getStatusCode();
-      }
+      statusCode = response.getStatusLine().getStatusCode();
     }
 
-    boolean connectionOk = "invalid_payload".equals(responseBody) && statusCode == HttpStatus.SC_BAD_REQUEST;
-    if (!connectionOk) {
-      throw new HttpResponseException(statusCode, "unexpected status or payload");
+    // the API responds with error 400 and payload "invalid_payload"
+    // when called without proper payload. We use this
+    // as a connection check, since there is no specific method to
+    // check if there is a working webhook endpoint.
+    boolean isExpectedStatus = statusCode == HttpStatus.SC_BAD_REQUEST;
+    boolean isExpectedPayload = "invalid_payload".equals(responseBody);
+    boolean isConnectionOk = isExpectedStatus && isExpectedPayload;
+    if (!isConnectionOk) {
+      String messageTemplate = "connection failed: status {0}, payload {1}";
+      String statusInfo = isExpectedStatus ? "ok" : statusCode + " is unexpected";
+      String payloadInfo = isExpectedPayload ? "ok" : "is unexpected";
+      String message = MessageFormat.format(messageTemplate, statusInfo, payloadInfo);
+      throw new ClientProtocolException(message);
     }
   }
 
@@ -173,7 +180,13 @@ public class SlackSession
 
     messagePost.setEntity(entity);
     try (CloseableHttpResponse response = httpClient.execute(messagePost)) {
-      EntityUtils.consume(response.getEntity());
+      int statusCode = response.getStatusLine().getStatusCode();
+      if (statusCode == HttpStatus.SC_OK || statusCode == HttpStatus.SC_CREATED) {
+        EntityUtils.consume(response.getEntity());
+      } else {
+        Logging.connectors.error("Sending slack message failed with statusline " + response.getStatusLine());
+        Logging.connectors.debug("  Response was: " + EntityUtils.toString(response.getEntity()));
+      }
     }
   }
 
