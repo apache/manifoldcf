@@ -17,10 +17,8 @@
 
 package org.apache.manifoldcf.agents.output.opensearchserver;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -166,7 +164,7 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection
     public void writeTo(OutputStream out)
         throws IOException
     {
-      PrintWriter pw = new PrintWriter(out);
+      PrintWriter pw = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8), false);
       try
       {
         pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");

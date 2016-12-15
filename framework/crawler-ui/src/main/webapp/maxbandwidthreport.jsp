@@ -118,7 +118,7 @@ try
     else
     {
       // Convert the specified times to a long.
-      Calendar c = new GregorianCalendar();
+      Calendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ROOT);
       c.set(Calendar.YEAR,Integer.parseInt(startYear));
       c.set(Calendar.MONTH,Integer.parseInt(startMonth));
       c.set(Calendar.DAY_OF_MONTH,Integer.parseInt(startDay) + 1);
@@ -134,7 +134,7 @@ try
     else
     {
       // Convert the specified times to a long.
-      Calendar c = new GregorianCalendar();
+      Calendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ROOT);
       c.set(Calendar.YEAR,Integer.parseInt(endYear));
       c.set(Calendar.MONTH,Integer.parseInt(endMonth));
       c.set(Calendar.DAY_OF_MONTH,Integer.parseInt(endDay) + 1);
@@ -156,7 +156,7 @@ try
   else
   {
     // Do the conversion
-    Calendar c = new GregorianCalendar();
+    Calendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ROOT);
     c.setTimeInMillis(startTime.longValue());
     startYear = Integer.toString(c.get(Calendar.YEAR));
     startMonth = Integer.toString(c.get(Calendar.MONTH));
@@ -177,7 +177,7 @@ try
   else
   {
     // Do the conversion
-    Calendar c = new GregorianCalendar();
+    Calendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ROOT);
     c.setTimeInMillis(endTime.longValue());
     endYear = Integer.toString(c.get(Calendar.YEAR));
     endMonth = Integer.toString(c.get(Calendar.MONTH));
@@ -524,20 +524,10 @@ function isInteger(value)
                 </select><nobr/>,<nobr/>
                 <select class="schedulepulldown" name='reportstartyear' size="3">
                   <option value="" <%=(startYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
-                  <option value="2005" <%=(startYear.equals("2005"))?"selected=\"selected\"":""%>>2005</option>
-                  <option value="2006" <%=(startYear.equals("2006"))?"selected=\"selected\"":""%>>2006</option>
-                  <option value="2007" <%=(startYear.equals("2007"))?"selected=\"selected\"":""%>>2007</option>
-                  <option value="2008" <%=(startYear.equals("2008"))?"selected=\"selected\"":""%>>2008</option>
-                  <option value="2009" <%=(startYear.equals("2009"))?"selected=\"selected\"":""%>>2009</option>
-                  <option value="2010" <%=(startYear.equals("2010"))?"selected=\"selected\"":""%>>2010</option>
-                  <option value="2011" <%=(startYear.equals("2011"))?"selected=\"selected\"":""%>>2011</option>
-                  <option value="2012" <%=(startYear.equals("2012"))?"selected=\"selected\"":""%>>2012</option>
-                  <option value="2013" <%=(startYear.equals("2013"))?"selected=\"selected\"":""%>>2013</option>
-                  <option value="2014" <%=(startYear.equals("2014"))?"selected=\"selected\"":""%>>2014</option>
-                  <option value="2015" <%=(startYear.equals("2015"))?"selected=\"selected\"":""%>>2015</option>
-                  <option value="2016" <%=(startYear.equals("2016"))?"selected=\"selected\"":""%>>2016</option>
-                  <option value="2017" <%=(startYear.equals("2017"))?"selected=\"selected\"":""%>>2017</option>
-                  <option value="2018" <%=(startYear.equals("2018"))?"selected=\"selected\"":""%>>2018</option>
+                  <% for(int year=2005; year <= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); year++) {
+                      String selected = (startYear.equals(""+year))?"selected=\"selected\"":""; %>
+                  <option value="<%= year %>" <%= selected %>><%= year %></option>
+                  <% } %>
                 </select>
               </td>
             </tr>
@@ -622,20 +612,10 @@ function isInteger(value)
                 </select><nobr/>,<nobr/>
                 <select class="schedulepulldown" name='reportendyear' size="3">
                   <option value="" <%=(endYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.NotSpecified")%> --</option>
-                  <option value="2005" <%=(endYear.equals("2005"))?"selected=\"selected\"":""%>>2005</option>
-                  <option value="2006" <%=(endYear.equals("2006"))?"selected=\"selected\"":""%>>2006</option>
-                  <option value="2007" <%=(endYear.equals("2007"))?"selected=\"selected\"":""%>>2007</option>
-                  <option value="2008" <%=(endYear.equals("2008"))?"selected=\"selected\"":""%>>2008</option>
-                  <option value="2009" <%=(endYear.equals("2009"))?"selected=\"selected\"":""%>>2009</option>
-                  <option value="2010" <%=(endYear.equals("2010"))?"selected=\"selected\"":""%>>2010</option>
-                  <option value="2011" <%=(endYear.equals("2011"))?"selected=\"selected\"":""%>>2011</option>
-                  <option value="2012" <%=(endYear.equals("2012"))?"selected=\"selected\"":""%>>2012</option>
-                  <option value="2013" <%=(endYear.equals("2013"))?"selected=\"selected\"":""%>>2013</option>
-                  <option value="2014" <%=(endYear.equals("2014"))?"selected=\"selected\"":""%>>2014</option>
-                  <option value="2015" <%=(endYear.equals("2015"))?"selected=\"selected\"":""%>>2015</option>
-                  <option value="2016" <%=(endYear.equals("2016"))?"selected=\"selected\"":""%>>2016</option>
-                  <option value="2017" <%=(endYear.equals("2017"))?"selected=\"selected\"":""%>>2017</option>
-                  <option value="2018" <%=(endYear.equals("2018"))?"selected=\"selected\"":""%>>2018</option>
+                  <% for(int year=2005; year <= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); year++) {
+                      String selected = (startYear.equals(""+year))?"selected=\"selected\"":""; %>
+                  <option value="<%= year %>" <%= selected %>><%= year %></option>
+                  <% } %>
                 </select>
               </td>
             </tr>

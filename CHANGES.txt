@@ -1,7 +1,307 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.2-dev =====================
+======================= 2.6-dev =====================
+
+CONNECTORS-1336: Update the Compatibility Matrix
+(Piergiorgio Lucidi)
+
+CONNECTORS-1355: Missing code for API deletion of mapping and
+transformation connections.
+(Julien Massiera, Karl Wright)
+
+CONNECTORS-1344: Adds Slack Notification Connector
+(Odilo Oehmichen, Markus Schuch, Rüdiger Kurz)
+
+CONNECTORS-1349: Fix the modified_date and original_size Solr 
+attributes.
+(Cihad Guzel)
+
+CONNECTORS-1338: Upgrade to SolrJ 6.3.0.
+(Shinichiro Abe)
+
+CONNECTORS-1343: Allow maximum year in report UI to be set based
+on current year.
+(Markus Schuch)
+
+CONNECTORS-1342: Bad UI logic for "path" field in livelink connector.
+(Lena Gurevich, Karl Wright)
+
+CONNECTORS-1341: Bad logic in jira connector disables document
+indexing.
+(Chalitha Perera)
+
+CONNECTORS-1325: Another example of bad XML from Microsoft has
+been found and worked around.
+(Konstantin Avdeev, Karl Wright)
+
+CONNECTORS-1340: Revise connection strings for sybase and for
+Oracle.  It's not clear why these were working before, given the change.
+(Julien Massiera)
+
+CONNECTORS-1337: Update POI jars to make them consistent with
+Tika 1.13.
+(Olivier Tavard)
+
+======================= Release 2.5 =====================
+
+CONNECTORS-1335: Log message cleanup.
+(Furkan KAMACI)
+
+CONNECTORS-1316: Upgrade to Tika 1.13.
+(Furkan KAMACI)
+
+CONNECTORS-1334: Break out forbidden api check into separate
+precommit target.
+(Furkan KAMACI)
+
+CONNECTORS-1332: Add check for forbidden api's to ant build.
+(Furkan KAMACI)
+
+CONNECTORS-1238: Update to use SolrJ 5.5.2, ZooKeeper 3.4.8.
+(Karl Wright)
+
+CONNECTORS-1331: Do not set SSL socket factory unless SSL.
+(Furkan KAMACI)
+
+CONNECTORS-1330: Minor refactoring of LDAP connector.
+(Furkan KAMACI)
+
+CONNECTORS-1329: Add logging to LDAP connector.
+(Furkan KAMACI)
+
+CONNECTORS-1326: Fix URL for Confluence documents.
+(Chalitha Perera)
+
+CONNECTORS-1325: Deal with SharePoint bad XML when document has 
+optional plane utf-16 characters.  Documents with these are skipped
+since Java can't represent them either.
+(Karl Wright)
+
+CONNECTORS-1324: Fix (again) the SharePoint connector's "use all metadata"
+option.
+(Konstantin Avdeev)
+
+CONNECTORS-1323: When there were multiple outputs, the second,
+third, etc outputs would not have their activities properly logged.
+(Karl Wright)
+
+CONNECTORS-1322: Fix email connector "from" field.
+(Olivier Tavard)
+
+CONNECTORS-1318: Documentation errors.
+(KOIZUMI Satoru)
+
+CONNECTORS-1317: Missing JDOM2 dependency for Tika.
+(Karl Wright)
+
+CONNECTORS-1309: SharePoint connector would blow up looking for
+lists when SharePoint returned non-list entities.
+(Phil Reithmuller, Karl Wright)
+
+CONNECTORS-1315: Handle control characters in ES connector.
+(Silvio Meier, Karl Wright)
+
+CONNECTORS-1313: Add multivalued data support to JDBC connector.
+(Luca Alciata, Karl Wright)
+
+CONNECTORS-1312: Treat "connection reset by peer" same way as "busy"
+in JCIFS connector.
+(Konstantin Avdeev, Karl Wright)
+
+CONNECTORS-1308: Update to Tika 1.12, and all associated downstream
+dependencies.
+(Karl Wright)
+
+CONNECTORS-1305: Skip documents that get server-side resource
+problems in JCIFS connector.
+(Konstantin Avdeev, Karl Wright)
+
+CONNECTORS-1189: Fix SearchBlox's test cases so that they don't depend on JDK hash order.
+(Naveen.A.N, Ahmet Arslan)
+
+CONNECTORS-1302: Catch newer version of 'in-use' SmbException in
+JCIFS connector.
+(Vince McNamara, Karl Wright)
+
+CONNECTORS-1301: Addition of SSL to LDAP connector broke non-SSL
+functionality.
+(Yulin He, Karl Wright)
+
+CONNECTORS-1297: Detect symlink in JCifs connector and explicitly
+skip in that case.
+(Konstantin Avdeev, Karl Wright)
+
+======================= Release 2.4 =====================
+
+CONNECTORS-1296: Revamp email notification connector to do
+SMTP and be more configurable.
+(Markus Schuch, Karl Wright)
+
+CONNECTORS-1295: JCIFS connector ignoring max file length value
+sometimes.
+(Konstantin Avdeev, Karl Wright)
+
+CONNECTORS-1293: Duplication of attribute names in the UI when
+multiple languages are installed in Documentum.
+(Radek Sklenicka, Karl Wright)
+
+CONNECTORS-1288: SharePoint connector proxy password obfuscation
+was breaking this feature.
+(Markus Schuch, Karl Wright)
+
+CONNECTORS-1284: SharePoint fields that do not have a different
+display name from their field name (or which are defined in some way
+as yet not well understood) were being overlooked in SharePoint crawling.
+(Markus Schuch, Karl Wright)
+
+CONNECTORS-1283: "Document has no version" signal was not working.
+This problem has been around since MCF 1.8/2.0.  The fix is simple but
+may change the functioning of some custom repository connectors.  This
+fix also restores broken functionality in the MCF JDBC connector, when
+no document version query is provided.
+(Markus Schuch, Karl Wright)
+
+CONNECTORS-1282: Missing translation for Metadata Adjuster.
+(Markus Schuch, Karl Wright)
+
+CONNECTORS-1281: SQLServer under JTDS throws AbstractMethodException.
+(Olivier Tavard, Karl Wright)
+
+CONNECTORS-1275: Help ES deal with dates properly.  Also added
+support for built-in Repository Document attributes.
+(Andrey Leybovich, Karl Wright)
+
+CONNECTORS-1272: Update _status command for Elastic Search to _stats.
+(Andrey Leybovich, Karl Wright)
+
+CONNECTORS-1271: Broken AmazonCloudSearch connector.
+(Juan Pablo Diaz-Vaz, Karl Wright)
+
+CONNECTORS-1270: Contribute OpenNLP transformation connector.
+(Chalitha Perera, Rafa Haro, Karl Wright)
+
+CONNECTORS-1268: Add missing mime types to FileNet connector.
+(Damien Picard)
+
+CONNECTORS-1267: Added enter key pressed event to the login page
+(Muhammed Olgun)
+
+======================= Release 2.3 =====================
+
+CONNECTORS-1266: Fix an infinite loop in email notification connector.
+(Markus Schuch)
+
+CONNECTORS-1265: Adjust interval for checking validity of http connection.
+(Shinichiro Abe, Karl Wright)
+
+CONNECTORS-1263: New version of Alfresco-indexer package. 
+(Maurizio Pillitu)
+
+CONNECTORS-1262: Fix Alfresco-webscript connector's version string,
+so changes to ACLs will be detected as document changes.
+(Chalitha Perera)
+
+CONNECTORS-1264: Fix handling of slashes in unquoted attribute values
+in html parsing.
+(Issei Nishigata, Karl Wright)
+
+CONNECTORS-1249: Independent priority setting for different
+connectors, and bring individual connectors up to speed with proper
+document bin names.
+(Karl Wright)
+
+CONNECTORS-1261: Supply commit-within argument for /update
+handler in Solr connector.
+(Karl Wright, Shinichiro Abe, Adrian Conlon)
+
+CONNECTORS-1251: Confluence connector encoding issue.
+(Karl Wright, Jens Grassel)
+
+CONNECTORS-1260: Fix completely broken email connector.
+(Karl Wright, Julien Massiera)
+
+CONNECTORS-1259: Use Travis CI.
+(Shinichiro Abe)
+
+CONNECTORS-1258: Update Japanese translations.
+(KOIZUMI Satoru)
+
+CONNECTORS-1256: Spanish translations.
+(Gladys Carrizales)
+
+CONNECTORS-1254: Some Jetty dependencies are missing in jetty-runner.
+(Shinichiro Abe)
+
+CONNECTORS-1255: Ignore CheckObjectIDTest.
+(Shinichiro Abe)
+
+CONNECTORS-1252: jetty.xml is missing in jetty-runner QuickStart.
+(Shinichiro Abe)
+
+CONNECTORS-1250: Fix Confluence specification UI.
+(Jens Grassel, Karl Wright)
+
+CONNECTORS-1246: Get Kafka integration test running.
+(Karl Wright)
+
+CONNECTORS-1162: Kafka connector.
+(Tugba Dogan)
+
+CONNECTORS-1245: Using wrong logger for confluence authority.
+(Jens Grassel, Karl Wright)
+
+CONNECTORS-1237: Upgrade the CMIS Connector to OpenCMIS 0.13.0
+(Piergiorgio Lucidi)
+
+CONNECTORS-1235: Indexing all properties fetched with the cmis query
+(Piergiorgio Lucidi, Christian Tiralosi, Deanna Delapasse, Elisa Croci)
+
+CONNECTORS-1244: Add support for LDAPS and TLS to LDAP
+authority connector.
+(Karl Wright)
+
+CONNECTORS-1234: Add use-mapper-attachments option
+to Elasticsearch connector.
+(Shinichiro Abe)
+
+CONNECTORS-1242: Fix document reprioritization on job resume.
+(Niall Colreavy, Karl Wright)
+
+CONNECTORS-1241: Documentum connector not handling subtypes
+properly.
+(Bipul Podder)
+
+CONNECTORS-1231: Upgrade to JUnit 4.12.
+(Shinichiro Abe)
+
+CONNECTORS-1239: Handle code 401 from Solr more appropriately.
+(Cathal McGuinness, Karl Wright)
+
+CONNECTORS-1236: Upgrade to Tika 1.10.
+(Karl Wright)
+
+CONNECTORS-1233: Add Amazon S3 connector.
+(Gunaratnam Kuhajeyan, Karl Wright)
+
+CONNECTORS-1230: Add writeLimit option on Tika extractor.
+(Shinichiro Abe)
+
+======================= Release 2.2 =====================
+
+CONNECTORS-1229: Fix NPE in metadata adjuster.
+(Mike Caceres, Karl Wright)
+
+CONNECTORS-1226: PostgreSQL does not implement the isValid()
+JDBC method in the driver we include, so make sure when we call it
+we don't fail if we get an exception.  Related to CONNECTORS-1202.
+(Karl Wright)
+
+CONNECTORS-1224: Upgrade to Hadoop 2.6.0.
+(Shinichiro Abe)
+
+CONNECTORS-1222: Handle unregistered connector class in getActivitiesList().
+(Thomas Daniel, Karl Wright)
 
 CONNECTORS-1221: Update documentation for properties.xml to
 include new ldap authentication properties.

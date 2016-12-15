@@ -126,7 +126,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
   
       //write the content in the new node
       ContentServiceSoapBindingStub contentService = WebServiceFactory.getContentService();
-      contentService.write(reference, Constants.PROP_CONTENT, content.getBytes(), contentFormat);
+      contentService.write(reference, Constants.PROP_CONTENT, content.getBytes(StandardCharsets.UTF_8), contentFormat);
       
     } finally{
       AuthenticationUtils.endSession();
@@ -165,7 +165,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       contentFormat.setMimetype("text/plain");
       
       ContentServiceSoapBindingStub contentService = WebServiceFactory.getContentService();
-      contentService.write(reference, Constants.PROP_CONTENT, newContent.getBytes(), contentFormat);
+      contentService.write(reference, Constants.PROP_CONTENT, newContent.getBytes(StandardCharsets.UTF_8), contentFormat);
       
     } finally {
       AuthenticationUtils.endSession();

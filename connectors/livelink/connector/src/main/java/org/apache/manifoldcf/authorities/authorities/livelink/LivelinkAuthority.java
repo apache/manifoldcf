@@ -750,31 +750,27 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     String serverHTTPNTLMPassword = variableContext.getParameter("serverhttpntlmpassword");
     if (serverHTTPNTLMPassword != null)
       parameters.setObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword,variableContext.mapKeyToPassword(serverHTTPNTLMPassword));
+    
     String serverHTTPSKeystoreValue = variableContext.getParameter("serverhttpskeystoredata");
-    if (serverHTTPSKeystoreValue != null)
-      parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
-
-    String serverConfigOp = variableContext.getParameter("serverconfigop");
+    final String serverConfigOp = variableContext.getParameter("serverconfigop");
     if (serverConfigOp != null)
     {
       if (serverConfigOp.equals("Delete"))
       {
         String alias = variableContext.getParameter("serverkeystorealias");
-        serverHTTPSKeystoreValue = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
-        IKeystoreManager mgr;
+        final IKeystoreManager mgr;
         if (serverHTTPSKeystoreValue != null)
           mgr = KeystoreManagerFactory.make("",serverHTTPSKeystoreValue);
         else
           mgr = KeystoreManagerFactory.make("");
         mgr.remove(alias);
-        parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,mgr.getString());
+        serverHTTPSKeystoreValue = mgr.getString();
       }
       else if (serverConfigOp.equals("Add"))
       {
         String alias = IDFactory.make(threadContext);
         byte[] certificateValue = variableContext.getBinaryBytes("servercertificate");
-        serverHTTPSKeystoreValue = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
-        IKeystoreManager mgr;
+        final IKeystoreManager mgr;
         if (serverHTTPSKeystoreValue != null)
           mgr = KeystoreManagerFactory.make("",serverHTTPSKeystoreValue);
         else
@@ -805,9 +801,11 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         {
           return "Illegal certificate: "+certError;
         }
-        parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,mgr.getString());
+        
+        serverHTTPSKeystoreValue = mgr.getString();
       }
     }
+    parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore, serverHTTPSKeystoreValue);
 
     // Cache parameters
     String cacheLifetime = variableContext.getParameter("cachelifetime");

@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.manifoldcf</groupId>
         <artifactId>mcf-connectors</artifactId>
-        <version>2.2-SNAPSHOT</version>
+        <version>2.6-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -146,7 +146,8 @@
                   <exclude>**/*Postgresql*.java</exclude>
                   <exclude>**/*MySQL*.java</exclude>
                 </excludes>
-                <forkMode>always</forkMode>
+                <forkCount>1</forkCount>
+                <reuseForks>false</reuseForks>
                 <workingDirectory>target/test-output</workingDirectory>
               </configuration>
             </plugin>
@@ -154,7 +155,7 @@
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-failsafe-plugin</artifactId>
-              <version>2.12.3</version>
+              <version>2.18.1</version>
               <configuration>
                 <skipTests>${skipITs}</skipTests>
                 <systemPropertyVariables>
@@ -166,7 +167,8 @@
                   <exclude>**/*Postgresql*.java</exclude>
                   <exclude>**/*MySQL*.java</exclude>
                 </excludes>
-                <forkMode>always</forkMode>
+                <forkCount>1</forkCount>
+                <reuseForks>false</reuseForks>
                 <workingDirectory>target/test-output</workingDirectory>
               </configuration>
               <executions>

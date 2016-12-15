@@ -30,7 +30,7 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
     
-    <property name="chemistry.version" value="0.11.0"/>
+    <property name="chemistry.version" value="0.13.0"/>
     
     <target name="download-dependencies">
         <property name="chemistry-package" value="org/apache/chemistry/opencmis"/>
@@ -67,6 +67,7 @@
             <include name="resolver*.jar"/>
             <include name="org.osgi.core*.jar"/>
             <include name="commons-lang*.jar"/>
+        	  <include name="joda*.jar"/>
         </fileset>
     </path>
 
@@ -83,6 +84,7 @@
                 <include name="mimepull*.jar"/>
                 <include name="resolver*.jar"/>
                 <include name="org.osgi.core*.jar"/>
+            	  <include name="joda*.jar"/>
             </fileset>
         </copy>
     </target>

@@ -46,7 +46,6 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 
-import org.apache.manifoldcf.core.util.URLEncoder;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
@@ -161,7 +160,10 @@ public class HttpPoster
     
     try
     {
-      CloudSolrClient cloudSolrServer = new CloudSolrClient(zookeeperHosts, new ModifiedLBHttpSolrClient(HttpClientUtil.createClient(null)));
+      CloudSolrClient cloudSolrServer = new CloudSolrClient.Builder()
+        .withZkHost(zookeeperHosts)
+        .withLBHttpSolrClient(new ModifiedLBHttpSolrClient(HttpClientUtil.createClient(null)))
+        .build();
       cloudSolrServer.setZkClientTimeout(zkClientTimeout);
       cloudSolrServer.setZkConnectTimeout(zkConnectTimeout);
       cloudSolrServer.setDefaultCollection(collection);
@@ -237,7 +239,7 @@ public class HttpPoster
       .register("https", myFactory)
       .build());
     connectionManager.setDefaultMaxPerRoute(1);
-    connectionManager.setValidateAfterInactivity(60000);
+    connectionManager.setValidateAfterInactivity(2000);
     connectionManager.setDefaultSocketConfig(SocketConfig.custom()
       .setTcpNoDelay(true)
       .setSoTimeout(socketTimeout)
@@ -282,8 +284,17 @@ public class HttpPoster
   public void shutdown()
   {
     if (solrServer != null)
-      solrServer.shutdown();
-    solrServer = null;
+    {
+      try
+      {
+        solrServer.close();
+      }
+      catch (IOException ioe)
+      {
+        // Eat this exception
+      }
+      solrServer = null;
+    }
     if (connectionManager != null)
       connectionManager.shutdown();
     connectionManager = null;
@@ -408,6 +419,14 @@ public class HttpPoster
       // Can't process the document, so don't keep trying.
       return;
 
+    // If code is 401, we should abort the job because security credentials are incorrect
+    if (code == 401)
+    {
+      String message = "Solr authorization failure, code "+code+": aborting job";
+      Logging.ingest.error(message);
+      throw new ManifoldCFException(message);
+    }
+    
     // If the code is in the 400 range, the document will never be accepted, so indicate that.
     if (code >= 400 && code < 500)
       return;
@@ -905,7 +924,14 @@ public class HttpPoster
             }
             else
             {
-              response = solrServer.add( currentSolrDoc );
+              if (commitWithin != null)
+              {
+                response = solrServer.add( currentSolrDoc, Integer.parseInt(commitWithin) );
+              }
+              else
+              {
+                response = solrServer.add( currentSolrDoc );
+              }
             }
 
             // Successful completion
@@ -1083,7 +1109,7 @@ public class HttpPoster
         Long size = document.getOriginalSize();
         if (size != null)
           // Write value
-          writeField(out,LITERAL+modifiedDateAttributeName,size.toString());
+          writeField(out,LITERAL+originalSizeAttributeName,size.toString());
       }
       if (modifiedDateAttributeName != null)
       {

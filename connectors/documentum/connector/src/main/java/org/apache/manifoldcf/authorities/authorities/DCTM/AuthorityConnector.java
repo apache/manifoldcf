@@ -845,7 +845,7 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       sb.append(field);
     sb.append("=");
     if (insensitive)
-      sb.append(quoteDQLString(value.toUpperCase()));
+      sb.append(quoteDQLString(value.toUpperCase(Locale.ROOT)));
     else
       sb.append(quoteDQLString(value));
     return sb.toString();

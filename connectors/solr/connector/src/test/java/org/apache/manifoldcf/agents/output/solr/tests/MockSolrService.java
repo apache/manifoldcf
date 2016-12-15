@@ -108,8 +108,8 @@ public class MockSolrService
     {
       res.setStatus(HttpServletResponse.SC_OK);
       res.setContentType("application/xml; charset=utf-8");
-      res.getWriter().printf("<solr>\n");
-      res.getWriter().printf("</solr>\n");
+      res.getWriter().printf(Locale.ROOT, "<solr>\n");
+      res.getWriter().printf(Locale.ROOT, "</solr>\n");
       res.getWriter().flush();
     }
     
@@ -118,9 +118,9 @@ public class MockSolrService
     {
       res.setStatus(HttpServletResponse.SC_OK);
       res.setContentType("application/xml; charset=utf-8");
-      res.getWriter().printf("<result>\n");
-      res.getWriter().printf("  <doc name=\"something\"/>\n");
-      res.getWriter().printf("</result>\n");
+      res.getWriter().printf(Locale.ROOT, "<result>\n");
+      res.getWriter().printf(Locale.ROOT, "  <doc name=\"something\"/>\n");
+      res.getWriter().printf(Locale.ROOT, "</result>\n");
       res.getWriter().flush();
     }
     
@@ -129,9 +129,9 @@ public class MockSolrService
     {
       res.setStatus(HttpServletResponse.SC_OK);
       res.setContentType("application/xml; charset=utf-8");
-      res.getWriter().printf("<result>\n");
-      res.getWriter().printf("  <doc name=\"something\"/>\n");
-      res.getWriter().printf("</result>\n");
+      res.getWriter().printf(Locale.ROOT, "<result>\n");
+      res.getWriter().printf(Locale.ROOT, "  <doc name=\"something\"/>\n");
+      res.getWriter().printf(Locale.ROOT, "</result>\n");
       res.getWriter().flush();
     }
     

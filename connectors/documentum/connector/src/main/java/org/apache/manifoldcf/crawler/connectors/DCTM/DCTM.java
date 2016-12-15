@@ -285,7 +285,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   protected List<String> getAttributesForType(String typeName)
     throws DocumentumException, ManifoldCFException, ServiceInterruption
   {
-    String strDQL = "select attr_name FROM dmi_dd_attr_info where type_name = '" + typeName + "'";
+    String strDQL = "select distinct attr_name FROM dmi_dd_attr_info where type_name = '" + typeName + "'";
 
     while (true)
     {
@@ -4201,7 +4201,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     //  return new String[]{"attribute1","attribute2","attribute3"};
     try
     {
-      String strDQL = "select attr_name FROM dmi_dd_attr_info where type_name = '" + docType + "' order by attr_name asc";
+      String strDQL = "select distinct attr_name FROM dmi_dd_attr_info where type_name = '" + docType + "' order by attr_name asc";
       while (true)
       {
         boolean noSession = (session==null);

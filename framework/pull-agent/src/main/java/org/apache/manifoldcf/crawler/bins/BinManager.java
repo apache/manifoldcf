@@ -45,6 +45,7 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
   public static final String _rcsid = "@(#)$Id$";
 
   // Field names
+  public final static String connectorClassField = "connectorclass";
   public final static String binNameField = "binname";
   public final static String binCounterField = "bincounter";
   
@@ -71,17 +72,23 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
       {
         HashMap map = new HashMap();
         // HSQLDB does not like null primary keys!!
+        map.put(connectorClassField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
         map.put(binNameField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
         map.put(binCounterField,new ColumnDescription("FLOAT",false,false,null,null,false));
         performCreate(map,null);
       }
       else
       {
-        // Upgrade goes here if needed
+        // Upgrade
+        if (existing.get(connectorClassField) == null) {
+          HashMap map = new HashMap();
+          map.put(connectorClassField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
+          performAlter(map,null,null,null);
+        }
       }
 
       // Index management goes here
-      IndexDescription binIndex = new IndexDescription(true,new String[]{binNameField});
+      IndexDescription binIndex = new IndexDescription(true,new String[]{connectorClassField,binNameField});
 
       // Get rid of indexes that shouldn't be there
       Map indexes = getTableIndexes(null,null);
@@ -125,19 +132,22 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
 
   /** Get N bin values (and set next one).  If the record does not yet exist, create it with a starting value.
   * We expect this to happen within a transaction!!.
+  *@param connectorClass is the class name of the connector
   *@param binName is the name of the bin (256 char max)
   *@param newBinValue is the value to use if there is no such bin yet.  This is the value that will be
   * returned; what will be stored will be that value + 1.
   *@param count is the number of values desired.
   *@return the counter values.
   */
-  public double[] getIncrementBinValues(String binName, double newBinValue, int count)
+  @Override
+  public double[] getIncrementBinValues(String connectorClass, String binName, double newBinValue, int count)
     throws ManifoldCFException
   {
     double[] returnValues = new double[count];
     // SELECT FOR UPDATE/MODIFY is the most common path
     ArrayList params = new ArrayList();
     String query = buildConjunctionClause(params,new ClauseDescription[]{
+      new UnitaryClause(connectorClassField,connectorClass),
       new UnitaryClause(binNameField,binName)});
     IResultSet result = performQuery("SELECT "+binCounterField+" FROM "+getTableName()+" WHERE "+query+" FOR UPDATE",params,null,null);
     if (result.getRowCount() > 0)
@@ -165,6 +175,7 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
         newBinValue += 1.0;
       }
       HashMap map = new HashMap();
+      map.put(connectorClassField,connectorClass);
       map.put(binNameField,binName);
       map.put(binCounterField,new Double(newBinValue));
       performInsert(map,null);
@@ -174,6 +185,7 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
 
   /** Get N bin values (and set next one).  If the record does not yet exist, create it with a starting value.
   * This method invokes its own retry-able transaction.
+  *@param connectorClass is the class name of the connector
   *@param binName is the name of the bin (256 char max)
   *@param newBinValue is the value to use if there is no such bin yet.  This is the value that will be
   * returned; what will be stored will be that value + 1.
@@ -181,7 +193,7 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
   *@return the counter values.
   */
   @Override
-  public double[] getIncrementBinValuesInTransaction(String binName, double newBinValue, int count)
+  public double[] getIncrementBinValuesInTransaction(String connectorClass, String binName, double newBinValue, int count)
     throws ManifoldCFException
   {
     while (true)
@@ -190,7 +202,7 @@ public class BinManager extends org.apache.manifoldcf.core.database.BaseTable im
       beginTransaction();
       try
       {
-        return getIncrementBinValues(binName, newBinValue, count);
+        return getIncrementBinValues(connectorClass, binName, newBinValue, count);
       }
       catch (Error e)
       {

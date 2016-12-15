@@ -756,7 +756,7 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
     StringBuilder sqlBuffer = new StringBuilder(" WHERE ([IsCurrentVersion] = TRUE AND (");
     sqlBuffer.append(mimeTypesClause);
     sqlBuffer.append(")");
-    Calendar c = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
+    Calendar c = new GregorianCalendar(TimeZone.getTimeZone("GMT"), Locale.ROOT);
 
     // FileNet can apparently take a while to make documents available for searching, so throw in a bias of 15 minutes
     long biasTime = 15L * 60000L;
@@ -3168,7 +3168,10 @@ public class FilenetConnector extends org.apache.manifoldcf.crawler.connectors.B
         "application/MSWORD",
         "application/PDF",
         "application/MSEXCEL",
-        "application/MSPOWERPOINT"
+        "application/MSPOWERPOINT",
+        "application/vnd.oasis.opendocument.presentation",
+        "application/vnd.oasis.opendocument.spreadsheet",
+        "application/vnd.oasis.opendocument.text"
     };
   }
 

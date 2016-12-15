@@ -269,7 +269,7 @@ public class MeridioWrapper
         .register("https", myFactory)
         .build());
     poolingDmwsConnectionManager.setDefaultMaxPerRoute(1);
-    poolingDmwsConnectionManager.setValidateAfterInactivity(60000);
+    poolingDmwsConnectionManager.setValidateAfterInactivity(2000);
     poolingDmwsConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
       .setTcpNoDelay(true)
       .setSoTimeout(socketTimeout)
@@ -281,7 +281,7 @@ public class MeridioWrapper
         .register("https", myFactory)
         .build());
     poolingRmwsConnectionManager.setDefaultMaxPerRoute(1);
-    poolingRmwsConnectionManager.setValidateAfterInactivity(60000);
+    poolingRmwsConnectionManager.setValidateAfterInactivity(2000);
     poolingRmwsConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
       .setTcpNoDelay(true)
       .setSoTimeout(socketTimeout)
@@ -293,7 +293,7 @@ public class MeridioWrapper
         .register("https", myFactory)
         .build());
     poolingMcwsConnectionManager.setDefaultMaxPerRoute(1);
-    poolingMcwsConnectionManager.setValidateAfterInactivity(60000);
+    poolingMcwsConnectionManager.setValidateAfterInactivity(2000);
     poolingMcwsConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
       .setTcpNoDelay(true)
       .setSoTimeout(socketTimeout)

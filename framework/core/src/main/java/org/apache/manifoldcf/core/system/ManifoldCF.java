@@ -106,10 +106,6 @@ public class ManifoldCF
   protected static Integer initializeFlagLock = new Integer(0);
 
   // Local member variables
-  protected static String loginUserName = null;
-  protected static String loginPassword = null;
-  protected static String apiLoginUserName = null;
-  protected static String apiLoginPassword = null;
   protected static String masterDatabaseName = null;
   protected static String masterDatabaseUsername = null;
   protected static String masterDatabasePassword = null;
@@ -151,6 +147,10 @@ public class ManifoldCF
   // Log configuration properties
   /** Location of log configuration file */
   public static final String logConfigFileProperty = "org.apache.manifoldcf.logconfigfile";
+  
+  // File resources property
+  /** Location of file resources */
+  public static final String fileResourcesProperty = "org.apache.manifoldcf.fileresources";
   
   // Implementation class properties
   /** Lock manager implementation class */
@@ -713,7 +713,7 @@ public class ManifoldCF
     try
     {
       SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-      KeySpec keySpec = new PBEKeySpec(passCode.toCharArray(), saltValue.getBytes(), 1024, 128);
+      KeySpec keySpec = new PBEKeySpec(passCode.toCharArray(), saltValue.getBytes(StandardCharsets.UTF_8), 1024, 128);
       SecretKey secretKey = factory.generateSecret(keySpec);
 
       Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -1169,7 +1169,7 @@ public class ManifoldCF
           InputStream is = p.getErrorStream();
           try
           {
-            Reader r = new InputStreamReader(is);
+            Reader r = new InputStreamReader(is, StandardCharsets.UTF_8);
             try
             {
               BufferedReader br = new BufferedReader(r);

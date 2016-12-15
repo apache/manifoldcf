@@ -309,7 +309,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             x == '$' || x == ',')
           {
             output.append('%');
-            String hexValue = Integer.toHexString((int)x).toUpperCase();
+            String hexValue = Integer.toHexString((int)x).toUpperCase(Locale.ROOT);
             if (hexValue.length() == 1)
               output.append('0');
             output.append(hexValue);
@@ -1035,7 +1035,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
               throw new ServiceInterruption("Timeout or other service interruption: "+cause.getMessage(),cause,currentTime + 300000L,
                 currentTime + 12 * 60 * 60000L,-1,false);
             }
-            if (se.getMessage().indexOf("busy") != -1)
+            if (se.getMessage().indexOf("reset by peer") != -1 || se.getMessage().indexOf("busy") != -1 || se.getMessage().toLowerCase(Locale.ROOT).indexOf("file in use") != -1 || se.getMessage().toLowerCase(Locale.ROOT).indexOf("is being used") != -1)
             {
               Logging.connectors.warn("JCIFS: 'Busy' response when processing document/directory for "+documentIdentifier+": retrying...",se);
               errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
@@ -1073,6 +1073,14 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                 Logging.connectors.debug("JCIFS: Skipping document/directory "+documentIdentifier+" because it cannot be found");
               errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
               errorDesc = "Not found: "+se.getMessage();
+              activities.noDocument(documentIdentifier, versionString);
+            }
+            else if (se.getMessage().indexOf("0xC0000205") != -1)
+            {
+              Logging.connectors.warn("JCIFS: Out of resources exception reading document/directory "+documentIdentifier+" - skipping");
+              // We call the delete even if it's a directory; this is harmless and it cleans up the jobqueue row.
+              errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = "Resources: "+se.getMessage();
               activities.noDocument(documentIdentifier, versionString);
             }
             else if (se.getMessage().indexOf("is denied") != -1)
@@ -1292,7 +1300,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
         currentTime + 3 * 60 * 60000L,-1,false);
     }
-    else if (se.getMessage().toLowerCase(Locale.ROOT).indexOf("file in use") != -1)
+    else if (se.getMessage().toLowerCase(Locale.ROOT).indexOf("busy") != -1 || se.getMessage().toLowerCase(Locale.ROOT).indexOf("file in use") != -1 || se.getMessage().toLowerCase(Locale.ROOT).indexOf("is being used") != -1)
     {
       Logging.connectors.warn("JCIFS: 'File in Use' response when "+activity+" for "+documentIdentifier+": retrying...",se);
       // 'File in Use' skip the document and keep going
@@ -1418,7 +1426,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     long maxFileLength = Long.MAX_VALUE;
     for (int i = 0; i < documentSpecification.getChildCount(); i++)
     {
-      SpecificationNode sn = documentSpecification.getChild(i++);
+      SpecificationNode sn = documentSpecification.getChild(i);
       if (sn.getType().equals(NODE_MAXLENGTH))
       {
         try
@@ -2305,7 +2313,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           if (te.getRootCause() != null && te.getRootCause() instanceof java.lang.InterruptedException)
             throw e;
         }
-
+        if (e.getMessage().equals("0x8000002D")) {
+          // Symlink
+          Logging.connectors.warn("JCIFS: Symlink detected: "+file);
+          return new SmbFile[0];
+        }
         Logging.connectors.warn("JCIFS: Possibly transient exception detected on attempt "+Integer.toString(totalTries)+" while listing files: "+e.getMessage(),e);
         if (currentException != null)
         {

@@ -43,11 +43,11 @@ public class JDBCConnectionFactory
   static
   {
     driverMap = new HashMap<String,String>();
-    driverMap.put("oracle:thin:@","oracle.jdbc.OracleDriver");
-    driverMap.put("postgresql:","org.postgresql.Driver");
-    driverMap.put("jtds:sqlserver:","net.sourceforge.jtds.jdbc.Driver");
-    driverMap.put("jtds:sybase:","net.sourceforge.jtds.jdbc.Driver");
-    driverMap.put("mysql:","com.mysql.jdbc.Driver");
+    driverMap.put("oracle:thin:@", "oracle.jdbc.OracleDriver");
+    driverMap.put("postgresql://", "org.postgresql.Driver");
+    driverMap.put("jtds:sqlserver://", "net.sourceforge.jtds.jdbc.Driver");
+    driverMap.put("jtds:sybase:", "net.sourceforge.jtds.jdbc.Driver");
+    driverMap.put("mysql://", "com.mysql.jdbc.Driver");
     try
     {
       _pool = new ConnectionPoolManager(120,false);
@@ -97,7 +97,7 @@ public class JDBCConnectionFactory
     if (driverClassName == null)
       throw new ManifoldCFException("Unrecognized jdbc provider: '"+providerName+"'");
 
-    String dburl = "jdbc:" + providerName + "//" + jdbcDriverString;
+    String dburl = "jdbc:" + providerName + jdbcDriverString;
     if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
       Logging.connectors.debug("JDBC: The connect string is '"+dburl+"'");
     try

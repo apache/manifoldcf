@@ -339,7 +339,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     Iterator<Map.Entry<String,String>> it = findMap.entrySet().iterator();
     while (it.hasNext()) {
       Map.Entry<String,String> pair = it.next();
-      findParameterName = pair.getKey().toLowerCase();
+      findParameterName = pair.getKey().toLowerCase(Locale.ROOT);
       findParameterValue = pair.getValue();
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("Email: Finding emails where '" + findParameterName +
@@ -520,14 +520,14 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
             }
             if (msg == null) {
               // email was not found
-              activities.deleteDocument(id);
+              activities.deleteDocument(documentIdentifier);
               continue;
             }
               
             if (!activities.checkURLIndexable(msgURL)) {
               errorCode = activities.EXCLUDED_URL;
               errorDesc = "Excluded because of URL ('"+msgURL+"')";
-              activities.noDocument(id, version);
+              activities.noDocument(documentIdentifier, version);
               continue;
             }
               
@@ -535,7 +535,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
             if (!activities.checkLengthIndexable(fileLength)) {
               errorCode = activities.EXCLUDED_LENGTH;
               errorDesc = "Excluded because of length ("+fileLength+")";
-              activities.noDocument(id, version);
+              activities.noDocument(documentIdentifier, version);
               continue;
             }
               
@@ -543,7 +543,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
             if (!activities.checkDateIndexable(sentDate)) {
               errorCode = activities.EXCLUDED_DATE;
               errorDesc = "Excluded because of date ("+sentDate+")";
-              activities.noDocument(id, version);
+              activities.noDocument(documentIdentifier, version);
               continue;
             }
             
@@ -551,7 +551,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
             if (!activities.checkMimeTypeIndexable(mimeType)) {
               errorCode = activities.EXCLUDED_DATE;
               errorDesc = "Excluded because of mime type ('"+mimeType+"')";
-              activities.noDocument(id, version);
+              activities.noDocument(documentIdentifier, version);
               continue;
             }
             
@@ -563,7 +563,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
             
             String subject = StringUtils.EMPTY;
             for (String metadata : requiredMetadata) {
-              if (metadata.toLowerCase().equals(EmailConfig.EMAIL_TO)) {
+              if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_TO)) {
                 Address[] to = msg.getRecipients(Message.RecipientType.TO);
                 String[] toStr = new String[to.length];
                 int j = 0;
@@ -571,35 +571,40 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                   toStr[j] = address.toString();
                 }
                 rd.addField(EmailConfig.EMAIL_TO, toStr);
-              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_FROM)) {
+              } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_FROM)) {
                 Address[] from = msg.getFrom();
                 String[] fromStr = new String[from.length];
                 int j = 0;
                 for (Address address : from) {
                   fromStr[j] = address.toString();
                 }
-                rd.addField(EmailConfig.EMAIL_TO, fromStr);
+                rd.addField(EmailConfig.EMAIL_FROM, fromStr);
 
-              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_SUBJECT)) {
+              } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_SUBJECT)) {
                 subject = msg.getSubject();
                 rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
-              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_BODY)) {
-                Multipart mp = (Multipart) msg.getContent();
-                for (int k = 0, n = mp.getCount(); k < n; k++) {
-                  Part part = mp.getBodyPart(k);
-                  String disposition = part.getDisposition();
-                  if ((disposition == null)) {
-                    MimeBodyPart mbp = (MimeBodyPart) part;
-                    if (mbp.isMimeType(EmailConfig.MIMETYPE_TEXT_PLAIN)) {
-                      rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString());
-                    } else if (mbp.isMimeType(EmailConfig.MIMETYPE_HTML)) {
-                      rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString()); //handle html accordingly. Returns content with html tags
+              } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_BODY)) {
+                Object o = msg.getContent();
+                if (o instanceof Multipart) {
+                  Multipart mp = (Multipart) msg.getContent();
+                  for (int k = 0, n = mp.getCount(); k < n; k++) {
+                    Part part = mp.getBodyPart(k);
+                    String disposition = part.getDisposition();
+                    if ((disposition == null)) {
+                      MimeBodyPart mbp = (MimeBodyPart) part;
+                      if (mbp.isMimeType(EmailConfig.MIMETYPE_TEXT_PLAIN)) {
+                        rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString());
+                      } else if (mbp.isMimeType(EmailConfig.MIMETYPE_HTML)) {
+                        rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString()); //handle html accordingly. Returns content with html tags
+                      }
                     }
                   }
+                } else if (o instanceof String) {
+                  rd.addField(EmailConfig.EMAIL_BODY, (String)o);
                 }
-              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_DATE)) {
+              } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_DATE)) {
                 rd.addField(EmailConfig.EMAIL_DATE, sentDate.toString());
-              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_ENCODING)) {
+              } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_ATTACHMENT_ENCODING)) {
                 Multipart mp = (Multipart) msg.getContent();
                 if (mp != null) {
                   String[] encoding = new String[mp.getCount()];
@@ -615,7 +620,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                   }
                   rd.addField(EmailConfig.ENCODING_FIELD, encoding);
                 }
-              } else if (metadata.toLowerCase().equals(EmailConfig.EMAIL_ATTACHMENT_MIMETYPE)) {
+              } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_ATTACHMENT_MIMETYPE)) {
                 Multipart mp = (Multipart) msg.getContent();
                 String[] MIMEType = new String[mp.getCount()];
                 for (int k = 0, n = mp.getCount(); k < n; k++) {
@@ -635,7 +640,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
             InputStream is = msg.getInputStream();
             try {
               rd.setBinary(is, fileLength);
-              activities.ingestDocumentWithException(id, version, msgURL, rd);
+              activities.ingestDocumentWithException(documentIdentifier, version, msgURL, rd);
               errorCode = "OK";
               fileLengthLong = new Long(fileLength);
             } finally {
