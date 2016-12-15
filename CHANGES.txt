@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.6-dev =====================
+======================= Release 2.6 =====================
 
 CONNECTORS-1336: Update the Compatibility Matrix
 (Piergiorgio Lucidi)
