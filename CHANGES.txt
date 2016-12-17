@@ -3,10 +3,11 @@ $Id$
 
 ======================= 2.7-dev =====================
 
-CONNECTORS-1357: Delete button doesn't work on listnotifications
-(Markus Schuch)
 
 ======================= Release 2.6 =====================
+
+CONNECTORS-1357: Delete button doesn't work on listnotifications
+(Markus Schuch)
 
 CONNECTORS-1336: Update the Compatibility Matrix
 (Piergiorgio Lucidi)
