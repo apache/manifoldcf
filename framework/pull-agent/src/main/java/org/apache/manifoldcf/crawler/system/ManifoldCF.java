@@ -4881,9 +4881,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       child = new ConfigurationNode(JOBNODE_NOTIFICATIONSTAGE);
       ConfigurationNode stage;
-      stage = new ConfigurationNode(JOBNODE_STAGEID);
-      stage.setValue(Integer.toString(j));
-      child.addChild(child.getChildCount(),stage);
       stage = new ConfigurationNode(JOBNODE_STAGECONNECTIONNAME);
       stage.setValue(job.getNotificationConnectionName(j));
       child.addChild(child.getChildCount(),stage);
