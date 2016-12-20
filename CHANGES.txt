@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 2.6 =====================
 
+CONNECTORS-1360: Fix MySQL and Sybase handling in the JDBC
+connector and authority connector.
+(Furkan KAMACI)
+
 CONNECTORS-1362: Don't output the stage_id field for jobs in the API.
 It's not accepted for readback.
 (Cathal Mcguinness, Karl Wright)

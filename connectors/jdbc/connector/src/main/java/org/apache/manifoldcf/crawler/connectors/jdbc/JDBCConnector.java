@@ -1060,10 +1060,10 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"JDBCConnector.DatabaseType2") + "</nobr></td><td class=\"value\">\n"+
 "      <select multiple=\"false\" name=\"databasetype\" size=\"2\">\n"+
 "        <option value=\"oracle:thin:@\" "+(jdbcProvider.equals("oracle:thin:@")?"selected=\"selected\"":"")+">Oracle</option>\n"+
-"        <option value=\"postgresql:\" "+(jdbcProvider.equals("postgresql:")?"selected=\"selected\"":"")+">Postgres SQL</option>\n"+
-"        <option value=\"jtds:sqlserver:\" "+(jdbcProvider.equals("jtds:sqlserver:")?"selected=\"selected\"":"")+">MS SQL Server (&gt; V6.5)</option>\n"+
-"        <option value=\"jtds:sybase:\" "+(jdbcProvider.equals("jtds:sybase:")?"selected=\"selected\"":"")+">Sybase (&gt;= V10)</option>\n"+
-"        <option value=\"mysql:\" "+(jdbcProvider.equals("mysql:")?"selected=\"selected\"":"")+">MySQL (&gt;= V5)</option>\n"+
+"        <option value=\"postgresql://\" "+(jdbcProvider.equals("postgresql:")?"selected=\"selected\"":"")+">Postgres SQL</option>\n"+
+"        <option value=\"jtds:sqlserver://\" "+(jdbcProvider.equals("jtds:sqlserver:")?"selected=\"selected\"":"")+">MS SQL Server (&gt; V6.5)</option>\n"+
+"        <option value=\"jtds:sybase://\" "+(jdbcProvider.equals("jtds:sybase:")?"selected=\"selected\"":"")+">Sybase (&gt;= V10)</option>\n"+
+"        <option value=\"mysql://\" "+(jdbcProvider.equals("mysql:")?"selected=\"selected\"":"")+">MySQL (&gt;= V5)</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+

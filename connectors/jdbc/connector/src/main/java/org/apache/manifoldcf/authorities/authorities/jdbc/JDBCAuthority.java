@@ -445,10 +445,10 @@ public class JDBCAuthority extends BaseAuthorityConnector {
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "JDBCAuthority.DatabaseType2") + "</nobr></td><td class=\"value\">\n"+
 "      <select multiple=\"false\" name=\"databasetype\" size=\"2\">\n"+
 "        <option value=\"oracle:thin:@\" " + (lJdbcProvider.equals("oracle:thin:@") ? "selected=\"selected\"" : "") + ">Oracle</option>\n"+
-"        <option value=\"postgresql:\" " + (lJdbcProvider.equals("postgresql:") ? "selected=\"selected\"" : "") + ">Postgres SQL</option>\n"+
-"        <option value=\"jtds:sqlserver:\" " + (lJdbcProvider.equals("jtds:sqlserver:") ? "selected=\"selected\"" : "") + ">MS SQL Server (&gt; V6.5)</option>\n"+
-"        <option value=\"jtds:sybase:\" " + (lJdbcProvider.equals("jtds:sybase:") ? "selected=\"selected\"" : "") + ">Sybase (&gt;= V10)</option>\n"+
-"        <option value=\"mysql:\" " + (lJdbcProvider.equals("mysql:") ? "selected=\"selected\"" : "") + ">MySQL (&gt;= V5)</option>\n"+
+"        <option value=\"postgresql://\" " + (lJdbcProvider.equals("postgresql:") ? "selected=\"selected\"" : "") + ">Postgres SQL</option>\n"+
+"        <option value=\"jtds:sqlserver://\" " + (lJdbcProvider.equals("jtds:sqlserver:") ? "selected=\"selected\"" : "") + ">MS SQL Server (&gt; V6.5)</option>\n"+
+"        <option value=\"jtds:sybase://\" " + (lJdbcProvider.equals("jtds:sybase:") ? "selected=\"selected\"" : "") + ">Sybase (&gt;= V10)</option>\n"+
+"        <option value=\"mysql://\" " + (lJdbcProvider.equals("mysql:") ? "selected=\"selected\"" : "") + ">MySQL (&gt;= V5)</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+
