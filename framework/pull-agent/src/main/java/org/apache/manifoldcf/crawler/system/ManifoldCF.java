@@ -4464,6 +4464,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String JOBNODE_HOPCOUNTMODE = "hopcount_mode";
   protected static final String JOBNODE_PRIORITY = "priority";
   protected static final String JOBNODE_RECRAWLINTERVAL = "recrawl_interval";
+  protected static final String JOBNODE_MAXRECRAWLINTERVAL = "max_recrawl_interval";
   protected static final String JOBNODE_EXPIRATIONINTERVAL = "expiration_interval";
   protected static final String JOBNODE_RESEEDINTERVAL = "reseed_interval";
   protected static final String JOBNODE_HOPCOUNT = "hopcount";
@@ -4625,6 +4626,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       else if (childType.equals(JOBNODE_RECRAWLINTERVAL))
       {
         jobDescription.setInterval(interpretInterval(child.getValue()));
+      }
+      else if (childType.equals(JOBNODE_MAXRECRAWLINTERVAL))
+      {
+        jobDescription.setMaxInterval(interpretInterval(child.getValue()));
       }
       else if (childType.equals(JOBNODE_EXPIRATIONINTERVAL))
       {
@@ -4923,6 +4928,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Recrawl interval
     child = new ConfigurationNode(JOBNODE_RECRAWLINTERVAL);
     child.setValue((job.getInterval()==null)?"infinite":job.getInterval().toString());
+    jobNode.addChild(jobNode.getChildCount(),child);
+
+    // Max recrawl interval
+    child = new ConfigurationNode(JOBNODE_MAXRECRAWLINTERVAL);
+    child.setValue((job.getMaxInterval()==null)?"infinite":job.getMaxInterval().toString());
     jobNode.addChild(jobNode.getChildCount(),child);
 
     child = new ConfigurationNode(JOBNODE_EXPIRATIONINTERVAL);
