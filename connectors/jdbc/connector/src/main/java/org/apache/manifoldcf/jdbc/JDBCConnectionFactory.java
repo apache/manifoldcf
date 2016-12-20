@@ -46,7 +46,7 @@ public class JDBCConnectionFactory
     driverMap.put("oracle:thin:@", "oracle.jdbc.OracleDriver");
     driverMap.put("postgresql://", "org.postgresql.Driver");
     driverMap.put("jtds:sqlserver://", "net.sourceforge.jtds.jdbc.Driver");
-    driverMap.put("jtds:sybase:", "net.sourceforge.jtds.jdbc.Driver");
+    driverMap.put("jtds:sybase://", "net.sourceforge.jtds.jdbc.Driver");
     driverMap.put("mysql://", "com.mysql.jdbc.Driver");
     try
     {
