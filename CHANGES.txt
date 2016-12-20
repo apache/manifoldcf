@@ -4,6 +4,10 @@ $Id$
 
 ======================= Release 2.6 =====================
 
+CONNECTORS-1362: Don't output the stage_id field for jobs in the API.
+It's not accepted for readback.
+(Cathal Mcguinness, Karl Wright)
+
 CONNECTORS-1361: The max_interval job field was missing from the API.
 (Cathal Mcguinness, Karl Wright)
 
