@@ -340,9 +340,11 @@ public class DocumentFilter extends org.apache.manifoldcf.agents.transformation.
     if (minDateYear != null && minDateMonth != null && minDateDay != null && minDateHour != null && minDateMinute != null)
     {
       Calendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ROOT);
+      c.set(Calendar.SECOND, 0);
+      c.set(Calendar.MILLISECOND, 0);
       try
       {
-        c.set(Integer.parseInt(minDateYear),Integer.parseInt(minDateMonth),Integer.parseInt(minDateDay),Integer.parseInt(minDateHour),Integer.parseInt(minDateMinute));
+        c.set(Integer.parseInt(minDateYear),Integer.parseInt(minDateMonth),Integer.parseInt(minDateDay),Integer.parseInt(minDateHour),Integer.parseInt(minDateMinute),0);
       }
       catch (Exception e)
       {
