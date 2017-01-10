@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1365: Use zero seconds and milliseconds when evaluating
+DocumentFilter.
+(Furkan KAMACI)
 
 ======================= Release 2.6 =====================
 
