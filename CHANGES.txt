@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1364: Add support in the JCIFS connector for allowing user-
+settable bin names.  This allows for better resource balancing since it
+is not possible to discover the correct resource balancing empirically.
+(Aeham Abushwashi, Karl Wright)
+
 CONNECTORS-1365: Use zero seconds and milliseconds when evaluating
 DocumentFilter.
 (Furkan KAMACI)

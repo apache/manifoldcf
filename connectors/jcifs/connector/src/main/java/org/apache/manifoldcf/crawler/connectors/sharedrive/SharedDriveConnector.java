@@ -117,7 +117,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   private String username = null;
   private String password = null;
   private boolean useSIDs = true;
-
+  private String binName = null;
+  
   private NtlmPasswordAuthentication pa;
   
   /** Deny access token for default authority */
@@ -206,6 +207,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     password = null;
     pa = null;
     smbconnectionPath = null;
+    binName = null;
     super.disconnect();
   }
 
@@ -231,6 +233,14 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     if (useSIDsString == null)
       useSIDsString = "true";
     useSIDs = "true".equals(useSIDsString);
+
+    
+    String configBinName = configParameters.getParameter(SharedDriveParameters.binName);
+    
+    binName = (configBinName == null || configBinName.length() == 0) ? server : configBinName;
+
+    if (binName.length() > 255) // trim the bin name to fit in the database
+      binName = binName.substring(0, 255);
 
     // Rejigger the username/domain to be sure we PASS in a domain and we do not include the domain attached to the user!
     // (This became essential at jcifs 1.3.0)
@@ -265,7 +275,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   @Override
   public String[] getBinNames(String documentIdentifier)
   {
-    return new String[]{server};
+    return new String[]{binName};
   }
 
   /**
@@ -2599,6 +2609,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       password = out.mapPasswordToKey(password);
     String resolvesids = parameters.getParameter(SharedDriveParameters.useSIDs);
     if (resolvesids==null) resolvesids = "true";
+    String binName = parameters.getParameter(SharedDriveParameters.binName);
+    if (binName == null) binName = "";
 
     // "Server" tab
     if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.Server")))
@@ -2627,6 +2639,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.UseSIDSForSecurity") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"hidden\" name=\"resolvesidspresent\" value=\"true\"/><input type=\"checkbox\" value=\"true\" name=\"resolvesids\" "+("true".equals(resolvesids)?"checked=\"true\"":"")+"/></td>\n"+
 "  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.BinName") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"binname\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(binName)+"\"/></td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
@@ -2638,7 +2655,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "<input type=\"hidden\" name=\"username\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(username)+"\"/>\n"+
 "<input type=\"hidden\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"+
 "<input type=\"hidden\" name=\"resolvesidspresent\" value=\"true\"/>\n"+
-"<input type=\"hidden\" name=\"resolvesids\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(resolvesids)+"\"/>\n"
+"<input type=\"hidden\" name=\"resolvesids\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(resolvesids)+"\"/>\n"+
+"<input type=\"hidden\" name=\"binname\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(binName)+"\"/>\n"
       );
     }
   }
@@ -2681,6 +2699,10 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       if (resolvesids != null)
         parameters.setParameter(SharedDriveParameters.useSIDs, resolvesids);
     }
+    String binName = variableContext.getParameter("binname");
+    if (binName != null)
+    	parameters.setParameter(SharedDriveParameters.binName, binName);
+
     return null;
   }
   
