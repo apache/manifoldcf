@@ -549,7 +549,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
             
             String mimeType = "text/plain";
             if (!activities.checkMimeTypeIndexable(mimeType)) {
-              errorCode = activities.EXCLUDED_DATE;
+              errorCode = activities.EXCLUDED_MIMETYPE;
               errorDesc = "Excluded because of mime type ('"+mimeType+"')";
               activities.noDocument(documentIdentifier, version);
               continue;
