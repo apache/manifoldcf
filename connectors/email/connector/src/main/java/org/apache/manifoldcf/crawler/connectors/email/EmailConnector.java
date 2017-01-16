@@ -28,6 +28,8 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 import java.io.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.mail.*;
 import javax.mail.internet.MimeBodyPart;
@@ -345,6 +347,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         Logging.connectors.debug("Email: Finding emails where '" + findParameterName +
             "' = '" + findParameterValue + "'");
       SearchTerm searchClause = null;
+      Integer comparisonTerm = null;
       if (findParameterName.equals(EmailConfig.EMAIL_SUBJECT)) {
         searchClause = new SubjectTerm(findParameterValue);
       } else if (findParameterName.equals(EmailConfig.EMAIL_FROM)) {
@@ -353,8 +356,22 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         searchClause = new RecipientStringTerm(Message.RecipientType.TO, findParameterValue);
       } else if (findParameterName.equals(EmailConfig.EMAIL_BODY)) {
         searchClause = new BodyTerm(findParameterValue);
+      } else if (findParameterName.equals(EmailConfig.EMAIL_START_DATE)) {
+        comparisonTerm = ComparisonTerm.LT;
+      } else if (findParameterName.equals(EmailConfig.EMAIL_END_DATE)) {
+        comparisonTerm = ComparisonTerm.GT;
       }
-      
+
+      if (comparisonTerm != null) {
+        SimpleDateFormat date = new SimpleDateFormat(EmailConfig.EMAIL_FILTERING_DATE_FORMAT);
+        try {
+          searchClause = new ReceivedDateTerm(comparisonTerm, date.parse(findParameterValue));
+        } catch (ParseException e) {
+          Logging.connectors.warn("Email: Unknown date format: '" + findParameterValue + "'for filter parameter name: '" + findParameterName + "'");
+        }
+      }
+
+
       if (searchClause != null)
       {
         if (searchTerm == null)
