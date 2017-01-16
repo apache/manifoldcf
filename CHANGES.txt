@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1368: Add date range support to email connector.
+(Cihad Guzel)
+
 CONNECTORS-1366: Wrong report code in email connector when mime
 type is rejected.
 (Furkan KAMACI)
