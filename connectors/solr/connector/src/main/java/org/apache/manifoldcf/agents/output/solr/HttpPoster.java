@@ -1194,8 +1194,9 @@ public class HttpPoster
       Iterator<String> iter = document.getFields();
       while (iter.hasNext())
       {
-        String fieldName = makeSafeLuceneField(iter.next());
-        applySingleMapping(fieldName, out, fieldName);
+        String originalFieldName = iter.next();
+        String fieldName = makeSafeLuceneField(originalFieldName);
+        applySingleMapping(originalFieldName, out, fieldName);
       }
     }
 
@@ -1204,8 +1205,9 @@ public class HttpPoster
       Iterator<String> iter = document.getFields();
       while (iter.hasNext())
       {
-        String fieldName = makeSafeLuceneField(iter.next());
-        applySingleMapping(fieldName, outputDocument, fieldName);
+        String originalFieldName = iter.next();
+        String fieldName = makeSafeLuceneField(originalFieldName);
+        applySingleMapping(originalFieldName, outputDocument, fieldName);
       }
     }
 
