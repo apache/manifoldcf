@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1371: Fix RSS connector to use same SSL support as
+the web connector.
+(Karl Wright)
+
 CONNECTORS-1370: Fix bug in Solr Connector so when an illegal
 metadata field name is mapped to a legal one, the metadata values
 are not lost.
