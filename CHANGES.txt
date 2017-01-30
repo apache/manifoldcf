@@ -3,6 +3,8 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1356: Initial implementation of the CMIS Output Connector
+(Piergiorgio Lucidi)
 
 ======================= Release 2.6 =====================
 
