@@ -495,8 +495,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     try {
 
       for (String documentIdentifier : documentIdentifiers) {
-        final int attachmentIndex = documentIdentifier.indexOf("/");
-        if (attachmentIndex == -1) {
+        final Integer attachmentIndex = extractAttachmentNumberFromDocumentIdentifier(documentIdentifier);
+        if (attachmentIndex == null) {
           // It's an email
           String versionString = "_" + urlTemplate;   // NOT empty; we need to make ManifoldCF understand that this is a document that never will change.
           
@@ -702,16 +702,15 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
           }
         } else {
           // It's a specific attachment
-          final int attachmentNumber = Integer.parseInt(documentIdentifier.substring(attachmentIndex + 1));
-          final String origDocumentIdentifier = documentIdentifier.substring(0, attachmentIndex);
-
+          final int attachmentNumber = attachmentIndex;
+          
           String versionString = "_" + attachmentUrlTemplate;   // NOT empty; we need to make ManifoldCF understand that this is a document that never will change.
           
           // Check if we need to index
           if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
             continue;
           
-          String compositeID = origDocumentIdentifier;
+          String compositeID = documentIdentifier;
           String version = versionString;
           String folderName = extractFolderNameFromDocumentIdentifier(compositeID);
           String id = extractEmailIDFromDocumentIdentifier(compositeID);
@@ -1477,6 +1476,18 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     return makeSafeFolderName(folderName) + ":" + emailID;
   }
   
+  /** Find an attachment number in a document identifier */
+  protected static Integer extractAttachmentNumberFromDocumentIdentifier(String di)
+  {
+    int index1 = di.indexOf(":");
+    if (index1 == -1)
+      throw new RuntimeException("Bad document identifier: '"+di+"'");
+    int index2 = di.indexOf(":", index1 + 1);
+    if (index2 == -1)
+      return null;
+    return new Integer(di.substring(index2 + 1));
+  }
+  
   /** Find a folder name in a document identifier */
   protected static String extractFolderNameFromDocumentIdentifier(String di)
   {
@@ -1489,10 +1500,13 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   /** Find an email ID in a document identifier */
   protected static String extractEmailIDFromDocumentIdentifier(String di)
   {
-    int index = di.indexOf(":");
-    if (index == -1)
+    int index1 = di.indexOf(":");
+    if (index1 == -1)
       throw new RuntimeException("Bad document identifier: '"+di+"'");
-    return di.substring(index+1);
+    int index2 = di.indexOf(":", index1 + 1);
+    if (index2 == -1)
+      return di.substring(index1+1);
+    return di.substring(index1 + 1, index2);
   }
   
   /** Create a safe folder name (which doesn't contain colons) */
