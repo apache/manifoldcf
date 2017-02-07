@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1375: Add email attachment support, done as separate
+documents.
+(Cihad Guzel, Karl Wright)
+
 CONNECTORS-1371: Fix RSS connector to use same SSL support as
 the web connector.
 (Karl Wright)

@@ -1100,7 +1100,8 @@ public class HttpPoster
       throws IOException
     {
       ModifiableSolrParams out = new ModifiableSolrParams();
-          
+      Logging.ingest.debug("Solr: Writing document '"+documentURI);
+      
       // Write the id field
       writeField(out,LITERAL+idAttributeName,documentURI);
       // Write the rest of the attributes
@@ -1179,6 +1180,8 @@ public class HttpPoster
       contentStreamUpdateRequest.setParams(out);
           
       contentStreamUpdateRequest.addContentStream(new RepositoryDocumentStream(is,length,contentType,contentName));
+      
+      Logging.ingest.debug("Solr: Done writing '"+documentURI+"'");
     }
 
     /**
@@ -1196,6 +1199,7 @@ public class HttpPoster
       {
         String originalFieldName = iter.next();
         String fieldName = makeSafeLuceneField(originalFieldName);
+        Logging.ingest.debug("Solr: Saw field '"+originalFieldName+"'; converted to '"+fieldName+"'");
         applySingleMapping(originalFieldName, out, fieldName);
       }
     }
