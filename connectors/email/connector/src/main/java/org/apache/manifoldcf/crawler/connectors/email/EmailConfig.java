@@ -53,6 +53,11 @@ public class EmailConfig {
   */
   public static final String URL_PARAM = "url";
   
+  /**
+  * Attachment URL template
+  */
+  public static final String ATTACHMENT_URL_PARAM = "attachmenturl";
+  
   // Protocol options
   
   public static final String PROTOCOL_IMAP = "IMAP";
