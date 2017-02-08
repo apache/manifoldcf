@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1372: Bizarre errors while reading data out of a RepositoryDocument
+in some cases.  This was due to the implicit conversion of Readers to
+Strings.
+(Karl Wright)
+
 CONNECTORS-1375: Add email attachment support, done as separate
 documents.
 (Cihad Guzel, Karl Wright)
