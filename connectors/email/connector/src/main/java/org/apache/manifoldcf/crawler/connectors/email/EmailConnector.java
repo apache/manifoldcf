@@ -675,7 +675,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                 final Multipart mp = (Multipart) msg.getContent();
                 final int numAttachments = mp.getCount();
                 for (int i = 0; i < numAttachments; i++) {
-                  activities.addDocumentReference(documentIdentifier + "/" + i);
+                  activities.addDocumentReference(documentIdentifier + ":" + i);
                 }
               }
               
@@ -769,7 +769,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
               }
 
               final Multipart mp = (Multipart) msg.getContent();
-              if (mp.getCount() >= attachmentNumber) {
+              if (mp.getCount() <= attachmentNumber) {
                 activities.deleteDocument(documentIdentifier);
                 continue;
               }
