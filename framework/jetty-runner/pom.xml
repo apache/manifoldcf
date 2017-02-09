@@ -292,11 +292,26 @@
       <groupId>org.mortbay.jetty</groupId>
       <artifactId>jsp-api-2.1-glassfish</artifactId>
       <version>${glassfish.version}</version>
-    </dependency>    
+    </dependency>
     <dependency>
-      <groupId>org.mortbay.jetty</groupId>
-      <artifactId>jsp-2.1-glassfish</artifactId>
-      <version>${glassfish.version}</version>
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>jasper</artifactId>
+      <version>${tomcat.jasper.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>jasper-el</artifactId>
+      <version>${tomcat.jasper.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>juli</artifactId>
+      <version>${tomcat.juli.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jdt.core.compiler</groupId>
+      <artifactId>ecj</artifactId>
+      <version>${ecj.version}</version>
     </dependency>
 
     <!-- databases -->

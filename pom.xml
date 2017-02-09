@@ -88,6 +88,9 @@
     <jhighlight.version>1.0.3</jhighlight.version>
     <boilerpipe.version>1.1.0</boilerpipe.version>
     <hadoop.version>2.6.0</hadoop.version>
+    <tomcat.jasper.version>6.0.35</tomcat.jasper.version>
+    <tomcat.juli.version>6.0.35</tomcat.juli.version>
+    <ecj.version>4.3.1</ecj.version>
   </properties>
 
   <modules>
