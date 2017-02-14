@@ -113,6 +113,7 @@ public class RepositoryDocument
   */
   public void clearFields()
   {
+    fieldSet.clear();
     fields.clear();
     stringFields.clear();
     dateFields.clear();
