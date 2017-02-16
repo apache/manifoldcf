@@ -569,7 +569,7 @@ function isInteger(value)
                 <select class="schedulepulldown" name='reportendyear' size="3">
                   <option value="" <%=(endYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%> --</option>
                   <% for(int year=2005; year <= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); year++) {
-                      String selected = (startYear.equals(""+year))?"selected=\"selected\"":""; %>
+                      String selected = (endYear.equals(""+year))?"selected=\"selected\"":""; %>
                   <option value="<%= year %>" <%= selected %>><%= year %></option>
                   <% } %>
                 </select>
