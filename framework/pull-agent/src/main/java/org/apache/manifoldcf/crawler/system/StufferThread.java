@@ -376,6 +376,16 @@ public class StufferThread extends Thread
             set.add(qd);
 
             // Note the queuing activity
+            if (Logging.scheduling.isDebugEnabled())
+            {
+              StringBuilder sb = new StringBuilder();
+              int j = 0;
+              while (j < binNames.length)
+              {
+                sb.append(binNames[j++]).append(" ");
+              }
+              Logging.scheduling.debug("Putting document '"+descs[i].getDocumentIdentifier()+"' with bins ["+sb.toString()+"] onto active queue");
+            }
             queueTracker.addRecord(binNames);
 
             if (set.size() >= maxDocuments)

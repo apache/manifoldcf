@@ -1,3 +1,4 @@
+<%@ page import="java.text.DateFormat" %>
 <%@ include file="adminDefaults.jsp" %>
 
 <%
@@ -25,7 +26,7 @@
 <%
   // This module is meant to be called within a table cell, and will drop the
   // lcf banner into the cell
-  String dateString = java.text.DateFormat.getDateTimeInstance().format(new java.util.Date());
+  String dateString = java.text.DateFormat.getDateTimeInstance(DateFormat.MEDIUM,DateFormat.MEDIUM, Locale.ROOT).format(new java.util.Date());
 %>
 
 <table class="bannertable">

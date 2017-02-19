@@ -606,29 +606,29 @@ public class SearchBloxConnector extends BaseOutputConnector {
         if (collection == null)
           collection = DEFAULT_COLLECTION;
         
-        paramMap.put(SearchBloxConfig.ATTRIBUTE_TITLEBOOST.toUpperCase(),
+        paramMap.put(SearchBloxConfig.ATTRIBUTE_TITLEBOOST.toUpperCase(Locale.ROOT),
             titleBoost);
-        paramMap.put(SearchBloxConfig.ATTRIBUTE_CONTENTBOOST.toUpperCase(),
+        paramMap.put(SearchBloxConfig.ATTRIBUTE_CONTENTBOOST.toUpperCase(Locale.ROOT),
             contentBoost);
-        paramMap.put(SearchBloxConfig.ATTRIBUTE_KEYWORDSBOOST.toUpperCase(),
+        paramMap.put(SearchBloxConfig.ATTRIBUTE_KEYWORDSBOOST.toUpperCase(Locale.ROOT),
             keywordsBoost);
-        paramMap.put(SearchBloxConfig.ATTRIBUTE_DESCRIPTIONBOOST.toUpperCase(),
+        paramMap.put(SearchBloxConfig.ATTRIBUTE_DESCRIPTIONBOOST.toUpperCase(Locale.ROOT),
             descriptionBoost);
         paramMap.put(SearchBloxConfig.ATTRIBUTE_COLLECTION_NAME
-            .toUpperCase(), collection);
+            .toUpperCase(Locale.ROOT), collection);
 
         return;
       }
 
     }
 
-    paramMap.put(SearchBloxConfig.ATTRIBUTE_TITLEBOOST.toUpperCase(), 0);
-    paramMap.put(SearchBloxConfig.ATTRIBUTE_CONTENTBOOST.toUpperCase(), 0);
-    paramMap.put(SearchBloxConfig.ATTRIBUTE_KEYWORDSBOOST.toUpperCase(), 0);
-    paramMap.put(SearchBloxConfig.ATTRIBUTE_DESCRIPTIONBOOST.toUpperCase(), 0);
-    paramMap.put(SearchBloxConfig.ATTRIBUTE_INDEX_FORMAT.toUpperCase(),
+    paramMap.put(SearchBloxConfig.ATTRIBUTE_TITLEBOOST.toUpperCase(Locale.ROOT), 0);
+    paramMap.put(SearchBloxConfig.ATTRIBUTE_CONTENTBOOST.toUpperCase(Locale.ROOT), 0);
+    paramMap.put(SearchBloxConfig.ATTRIBUTE_KEYWORDSBOOST.toUpperCase(Locale.ROOT), 0);
+    paramMap.put(SearchBloxConfig.ATTRIBUTE_DESCRIPTIONBOOST.toUpperCase(Locale.ROOT), 0);
+    paramMap.put(SearchBloxConfig.ATTRIBUTE_INDEX_FORMAT.toUpperCase(Locale.ROOT),
         IndexingFormat.XML.name());
-    paramMap.put(SearchBloxConfig.ATTRIBUTE_COLLECTION_NAME.toUpperCase(),
+    paramMap.put(SearchBloxConfig.ATTRIBUTE_COLLECTION_NAME.toUpperCase(Locale.ROOT),
         "");
 
   }

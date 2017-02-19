@@ -146,7 +146,8 @@ public interface IProcessActivity extends IHistoryActivity, IEventActivity, IAbo
   /** Ingest the current document.
   *@param documentIdentifier is the document's identifier.
   *@param version is the version of the document, as reported by the getDocumentVersions() method of the
-  *       corresponding repository connector.
+  *       corresponding repository connector.  An empty version string signals that there is no calculable
+  *       document version string, and that the document should always be indexed.
   *@param documentURI is the URI to use to retrieve this document from the search interface (and is
   *       also the unique key in the index).
   *@param data is the document data.  The data is closed after ingestion is complete.

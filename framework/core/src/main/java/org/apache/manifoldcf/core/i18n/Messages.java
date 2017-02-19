@@ -221,7 +221,7 @@ public class Messages
     String formatMessage;
     if (args != null)
     {
-      MessageFormat fm = new MessageFormat(message);
+      MessageFormat fm = new MessageFormat(message, Locale.ROOT);
       fm.setLocale(locale);
       formatMessage = fm.format(args);
     }
@@ -245,8 +245,10 @@ public class Messages
     String formatMessage;
     if (args != null)
     {
-      MessageFormat fm = new MessageFormat(message);
-      fm.setLocale(locale);
+      if (locale == null) {
+        locale = Locale.ROOT;
+      }
+      MessageFormat fm = new MessageFormat(message, locale);
       formatMessage = fm.format(args);
     }
     else

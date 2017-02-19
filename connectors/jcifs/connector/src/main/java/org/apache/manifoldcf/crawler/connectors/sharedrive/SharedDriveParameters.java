@@ -38,4 +38,6 @@ public class SharedDriveParameters
   /* SIDs handling */
   public final static String useSIDs = "Use SIDs";
 
+  /* User-settable bin name */
+  public final static String binName = "Bin Name";
 }

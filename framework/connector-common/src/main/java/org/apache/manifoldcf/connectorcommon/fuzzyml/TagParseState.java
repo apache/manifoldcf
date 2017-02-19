@@ -75,7 +75,8 @@ public class TagParseState extends SingleCharacterReceiver
   protected static final int TAGPARSESTATE_IN_CDATA_BODY = 27;
   protected static final int TAGPARSESTATE_SAWRIGHTBRACKET = 28;
   protected static final int TAGPARSESTATE_SAWSECONDRIGHTBRACKET = 29;
-
+  protected static final int TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE_SAW_SLASH = 30;
+  
   protected int currentState = TAGPARSESTATE_NORMAL;
 
   /** The btag depth, which indicates btag behavior when > 0. */
@@ -724,6 +725,8 @@ public class TagParseState extends SingleCharacterReceiver
         currentState = TAGPARSESTATE_IN_SINGLE_QUOTES_ATTR_VALUE;
       else if (thisChar == '"')
         currentState = TAGPARSESTATE_IN_DOUBLE_QUOTES_ATTR_VALUE;
+      else if (thisChar == '/')
+        currentState = TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE_SAW_SLASH;
       else if (!isWhitespace(thisChar))
       {
         currentState = TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE;
@@ -864,6 +867,40 @@ public class TagParseState extends SingleCharacterReceiver
         currentValueBuffer.append(thisChar);
       break;
 
+    case TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE_SAW_SLASH:
+      if (isWhitespace(thisChar))
+      {
+        currentValueBuffer.append('/');
+        currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
+        currentAttrName = null;
+        currentValueBuffer = null;
+        currentState = TAGPARSESTATE_IN_ATTR_NAME;
+        currentAttrNameBuffer = newBuffer();
+      }
+      else if (thisChar == '/')
+      {
+        currentValueBuffer.append('/');
+      }
+      else if (thisChar == '>')
+      {
+        currentValueBuffer.append('/');
+        currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
+        currentAttrName = null;
+        currentValueBuffer = null;
+        currentState = TAGPARSESTATE_NORMAL;
+        if (noteTag(currentTagName,currentAttrList))
+          return true;
+        currentTagName = null;
+        currentAttrList = null;
+      }
+      else
+      {
+        currentValueBuffer.append('/');
+        currentValueBuffer.append(thisChar);
+        currentState = TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE;
+      }
+      break;
+
     case TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE:
       if (isWhitespace(thisChar))
       {
@@ -875,10 +912,7 @@ public class TagParseState extends SingleCharacterReceiver
       }
       else if (thisChar == '/')
       {
-        currentAttrList.add(new AttrNameValue(currentAttrName,attributeDecode(currentValueBuffer.toString())));
-        if (noteTag(currentTagName,currentAttrList))
-          return true;
-        currentState = TAGPARSESTATE_IN_TAG_SAW_SLASH;
+        currentState = TAGPARSESTATE_IN_UNQUOTED_ATTR_VALUE_SAW_SLASH;
       }
       else if (thisChar == '>')
       {

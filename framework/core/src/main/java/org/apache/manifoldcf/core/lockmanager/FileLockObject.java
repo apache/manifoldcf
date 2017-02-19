@@ -22,6 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.core.system.Logging;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 /** One instance of this object exists for each lock on each JVM!
 * This is the file-system version of the lock.
@@ -324,10 +325,10 @@ public class FileLockObject extends LockObject
   {
     try
     {
-      FileReader fr = new FileReader(lockFileName);
+      InputStreamReader isr = new InputStreamReader(new FileInputStream(lockFileName), StandardCharsets.UTF_8);
       try
       {
-        BufferedReader x = new BufferedReader(fr);
+        BufferedReader x = new BufferedReader(isr);
         try
         {
           StringBuilder sb = new StringBuilder();
@@ -375,7 +376,7 @@ public class FileLockObject extends LockObject
       }
       finally
       {
-        fr.close();
+        isr.close();
       }
     }
     catch (InterruptedIOException e)
@@ -401,10 +402,10 @@ public class FileLockObject extends LockObject
       }
       else
       {
-        FileWriter fw = new FileWriter(lockFileName);
+        OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(lockFileName), StandardCharsets.UTF_8);
         try
         {
-          BufferedWriter x = new BufferedWriter(fw);
+          BufferedWriter x = new BufferedWriter(osw);
           try
           {
             x.write(Integer.toString(value));
@@ -416,7 +417,7 @@ public class FileLockObject extends LockObject
         }
         finally
         {
-          fw.close();
+          osw.close();
         }
       }
     }

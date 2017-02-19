@@ -117,7 +117,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   private String username = null;
   private String password = null;
   private boolean useSIDs = true;
-
+  private String binName = null;
+  
   private NtlmPasswordAuthentication pa;
   
   /** Deny access token for default authority */
@@ -206,6 +207,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     password = null;
     pa = null;
     smbconnectionPath = null;
+    binName = null;
     super.disconnect();
   }
 
@@ -231,6 +233,14 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     if (useSIDsString == null)
       useSIDsString = "true";
     useSIDs = "true".equals(useSIDsString);
+
+    
+    String configBinName = configParameters.getParameter(SharedDriveParameters.binName);
+    
+    binName = (configBinName == null || configBinName.length() == 0) ? server : configBinName;
+
+    if (binName.length() > 255) // trim the bin name to fit in the database
+      binName = binName.substring(0, 255);
 
     // Rejigger the username/domain to be sure we PASS in a domain and we do not include the domain attached to the user!
     // (This became essential at jcifs 1.3.0)
@@ -265,7 +275,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   @Override
   public String[] getBinNames(String documentIdentifier)
   {
-    return new String[]{server};
+    return new String[]{binName};
   }
 
   /**
@@ -309,7 +319,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
             x == '$' || x == ',')
           {
             output.append('%');
-            String hexValue = Integer.toHexString((int)x).toUpperCase();
+            String hexValue = Integer.toHexString((int)x).toUpperCase(Locale.ROOT);
             if (hexValue.length() == 1)
               output.append('0');
             output.append(hexValue);
@@ -1035,7 +1045,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
               throw new ServiceInterruption("Timeout or other service interruption: "+cause.getMessage(),cause,currentTime + 300000L,
                 currentTime + 12 * 60 * 60000L,-1,false);
             }
-            if (se.getMessage().indexOf("busy") != -1)
+            if (se.getMessage().indexOf("reset by peer") != -1 || se.getMessage().indexOf("busy") != -1 || se.getMessage().toLowerCase(Locale.ROOT).indexOf("file in use") != -1 || se.getMessage().toLowerCase(Locale.ROOT).indexOf("is being used") != -1)
             {
               Logging.connectors.warn("JCIFS: 'Busy' response when processing document/directory for "+documentIdentifier+": retrying...",se);
               errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
@@ -1073,6 +1083,14 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                 Logging.connectors.debug("JCIFS: Skipping document/directory "+documentIdentifier+" because it cannot be found");
               errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
               errorDesc = "Not found: "+se.getMessage();
+              activities.noDocument(documentIdentifier, versionString);
+            }
+            else if (se.getMessage().indexOf("0xC0000205") != -1)
+            {
+              Logging.connectors.warn("JCIFS: Out of resources exception reading document/directory "+documentIdentifier+" - skipping");
+              // We call the delete even if it's a directory; this is harmless and it cleans up the jobqueue row.
+              errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+              errorDesc = "Resources: "+se.getMessage();
               activities.noDocument(documentIdentifier, versionString);
             }
             else if (se.getMessage().indexOf("is denied") != -1)
@@ -1292,7 +1310,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
         currentTime + 3 * 60 * 60000L,-1,false);
     }
-    else if (se.getMessage().toLowerCase(Locale.ROOT).indexOf("file in use") != -1)
+    else if (se.getMessage().toLowerCase(Locale.ROOT).indexOf("busy") != -1 || se.getMessage().toLowerCase(Locale.ROOT).indexOf("file in use") != -1 || se.getMessage().toLowerCase(Locale.ROOT).indexOf("is being used") != -1)
     {
       Logging.connectors.warn("JCIFS: 'File in Use' response when "+activity+" for "+documentIdentifier+": retrying...",se);
       // 'File in Use' skip the document and keep going
@@ -1418,7 +1436,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     long maxFileLength = Long.MAX_VALUE;
     for (int i = 0; i < documentSpecification.getChildCount(); i++)
     {
-      SpecificationNode sn = documentSpecification.getChild(i++);
+      SpecificationNode sn = documentSpecification.getChild(i);
       if (sn.getType().equals(NODE_MAXLENGTH))
       {
         try
@@ -2305,7 +2323,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           if (te.getRootCause() != null && te.getRootCause() instanceof java.lang.InterruptedException)
             throw e;
         }
-
+        if (e.getMessage().equals("0x8000002D")) {
+          // Symlink
+          Logging.connectors.warn("JCIFS: Symlink detected: "+file);
+          return new SmbFile[0];
+        }
         Logging.connectors.warn("JCIFS: Possibly transient exception detected on attempt "+Integer.toString(totalTries)+" while listing files: "+e.getMessage(),e);
         if (currentException != null)
         {
@@ -2587,6 +2609,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       password = out.mapPasswordToKey(password);
     String resolvesids = parameters.getParameter(SharedDriveParameters.useSIDs);
     if (resolvesids==null) resolvesids = "true";
+    String binName = parameters.getParameter(SharedDriveParameters.binName);
+    if (binName == null) binName = "";
 
     // "Server" tab
     if (tabName.equals(Messages.getString(locale,"SharedDriveConnector.Server")))
@@ -2615,6 +2639,11 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.UseSIDSForSecurity") + "</nobr></td>\n"+
 "    <td class=\"value\"><input type=\"hidden\" name=\"resolvesidspresent\" value=\"true\"/><input type=\"checkbox\" value=\"true\" name=\"resolvesids\" "+("true".equals(resolvesids)?"checked=\"true\"":"")+"/></td>\n"+
 "  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"SharedDriveConnector.BinName") + "</nobr></td>\n"+
+"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"binname\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(binName)+"\"/></td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
@@ -2626,7 +2655,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 "<input type=\"hidden\" name=\"username\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(username)+"\"/>\n"+
 "<input type=\"hidden\" name=\"password\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(password)+"\"/>\n"+
 "<input type=\"hidden\" name=\"resolvesidspresent\" value=\"true\"/>\n"+
-"<input type=\"hidden\" name=\"resolvesids\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(resolvesids)+"\"/>\n"
+"<input type=\"hidden\" name=\"resolvesids\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(resolvesids)+"\"/>\n"+
+"<input type=\"hidden\" name=\"binname\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(binName)+"\"/>\n"
       );
     }
   }
@@ -2669,6 +2699,10 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       if (resolvesids != null)
         parameters.setParameter(SharedDriveParameters.useSIDs, resolvesids);
     }
+    String binName = variableContext.getParameter("binname");
+    if (binName != null)
+    	parameters.setParameter(SharedDriveParameters.binName, binName);
+
     return null;
   }
   

@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -101,7 +102,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
   
     // content
     String contentString = "CMIS Testdata "+name;
-    byte[] content = contentString.getBytes();
+    byte[] content = contentString.getBytes(StandardCharsets.UTF_8);
     InputStream stream = new ByteArrayInputStream(content);
     ContentStream contentStream = new ContentStreamImpl(name, new BigInteger(content), "text/plain", stream);
   
@@ -124,7 +125,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       objectId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
     }
 
-    byte[] newContentByteArray = newContent.getBytes();
+    byte[] newContentByteArray = newContent.getBytes(StandardCharsets.UTF_8);
     InputStream stream = new ByteArrayInputStream(newContentByteArray);
     ContentStream contentStream = new ContentStreamImpl(name, new BigInteger(newContentByteArray), "text/plain", stream);
     Document documentToUpdate = (Document) session.getObject(objectId);

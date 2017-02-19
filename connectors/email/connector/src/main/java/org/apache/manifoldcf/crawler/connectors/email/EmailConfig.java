@@ -53,6 +53,11 @@ public class EmailConfig {
   */
   public static final String URL_PARAM = "url";
   
+  /**
+  * Attachment URL template
+  */
+  public static final String ATTACHMENT_URL_PARAM = "attachmenturl";
+  
   // Protocol options
   
   public static final String PROTOCOL_IMAP = "IMAP";
@@ -72,7 +77,7 @@ public class EmailConfig {
   public static final String PROTOCOL_DEFAULT_VALUE = "IMAP";
   public static final String PORT_DEFAULT_VALUE = "";
   public static final String[] BASIC_METADATA = {"To","From","Subject","Body","Date","Encoding of Attachment","MIME type of attachment"};
-  public static final String[] BASIC_SEARCHABLE_ATTRIBUTES = {"To","From","Subject","Body","Date"};
+  public static final String[] BASIC_SEARCHABLE_ATTRIBUTES = {"To","From","Subject","Body","Start Date", "End Date"};
 
   // Specification nodes
   
@@ -94,7 +99,12 @@ public class EmailConfig {
   public static final String EMAIL_ATTACHMENT_ENCODING = "encoding of attachment";
   public static final String EMAIL_ATTACHMENT_MIMETYPE = "mime type of attachment";
   public static final String EMAIL_VERSION = "1.0";
-  
+
+  // Date field names for filtering
+  public static final String EMAIL_FILTERING_DATE_FORMAT = "dd/MM/yy";
+  public static final String EMAIL_START_DATE = "start date";
+  public static final String EMAIL_END_DATE = "end date";
+
   // Mime types
   
   public static final String MIMETYPE_TEXT_PLAIN = "text/plain";

@@ -263,7 +263,7 @@
 
     <target name="download-dejavu-fonts" depends="calculate-dejavu-condition-before" unless="dejavuAvailableBefore">
       <mkdir dir="fonts"/>
-      <get src="http://downloads.sourceforge.net/project/dejavu/dejavu/2.33/dejavu-fonts-ttf-2.33.zip?r=&amp;ts=1327734867&amp;use_mirror=cdnetworks-us-2" dest="fonts"/>
+      <get src="http://superb-sea2.dl.sourceforge.net/project/dejavu/dejavu/2.33/dejavu-fonts-ttf-2.33.zip" dest="fonts"/>
     </target>
     
     <target name="calculate-ipa-condition-before">

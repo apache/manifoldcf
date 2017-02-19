@@ -21,36 +21,6 @@ limitations under the License.
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ProtocolColon'))</nobr>
-    </td>
-    <td class="value">
-      <select id="protocol" name="protocol" size="2">
-  #if($PROTOCOL == 'IMAP')
-        <option value="IMAP" selected="selected">IMAP</option>
-  #else
-        <option value="IMAP">IMAP</option>
-  #end
-  #if($PROTOCOL == 'IMAP-SSL')
-        <option value="IMAP-SSL" selected="selected">IMAP-SSL</option>
-  #else
-        <option value="IMAP-SSL">IMAP-SSL</option>
-  #end
-  #if($PROTOCOL == 'POP3')
-        <option value="POP3" selected="selected">POP3</option>
-  #else
-        <option value="POP3">POP3</option>
-  #end
-  #if($PROTOCOL == 'POP3-SSL')
-        <option value="POP3-SSL" selected="selected">POP3-SSL</option>
-  #else
-        <option value="POP3-SSL">POP3-SSL</option>
-  #end
-      </select>
-    </td>
-  </tr>
-  
-  <tr>
-    <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.HostNameColon'))</nobr>
     </td>
     <td class="value">
@@ -171,7 +141,6 @@ limitations under the License.
 
 <input type="hidden" name="username" value="$Encoder.attributeEscape($USERNAME)"/>
 <input type="hidden" name="password" value="$Encoder.attributeEscape($PASSWORD)"/>
-<input type="hidden" name="protocol" value="$Encoder.attributeEscape($PROTOCOL)"/>
 <input type="hidden" name="server" value="$Encoder.attributeEscape($SERVER)"/>
 <input type="hidden" name="port" value="$Encoder.attributeEscape($PORT)"/>
 

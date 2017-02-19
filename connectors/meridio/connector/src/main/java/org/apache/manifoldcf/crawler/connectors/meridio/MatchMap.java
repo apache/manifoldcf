@@ -348,11 +348,11 @@ public class MatchMap
                 int groupnum = Integer.parseInt(number);
                 String groupValue = m.group(groupnum);
                 if (upper)
-                  outputBuffer.append(groupValue.toUpperCase());
+                  outputBuffer.append(groupValue.toUpperCase(Locale.ROOT));
                 else if (lower)
-                  outputBuffer.append(groupValue.toLowerCase());
+                  outputBuffer.append(groupValue.toLowerCase(Locale.ROOT));
                 else if (mixed && groupValue.length() > 0)
-                  outputBuffer.append(groupValue.substring(0,1).toUpperCase()).append(groupValue.substring(1).toLowerCase());
+                  outputBuffer.append(groupValue.substring(0,1).toUpperCase(Locale.ROOT)).append(groupValue.substring(1).toLowerCase(Locale.ROOT));
                 else
                   outputBuffer.append(groupValue);
 

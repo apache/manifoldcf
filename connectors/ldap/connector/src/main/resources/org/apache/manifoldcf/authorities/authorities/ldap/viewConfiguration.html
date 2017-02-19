@@ -1,0 +1,130 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.LDAPServerNameColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($FSERVERNAME)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.LDAPServerPortColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($FSERVERPORT)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.LDAPServerBaseColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($FSERVERBASE)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.LDAPBindUserColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($FBINDUSER)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.LDAPBindPasswordColon'))</nobr></td>
+    <td class="value">*******</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.UserSearchBaseColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($FUSERBASE)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.UserSearchFilterColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($FUSERSEARCH)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.AddUserAuthColon'))</nobr></td>
+    <td class="value">
+#if($FADDUSERRECORD == '1')
+    $Encoder.bodyEscape($ResourceBundle.getString('LDAP.Yes'))
+#else
+    $Encoder.bodyEscape($ResourceBundle.getString('LDAP.No'))
+#end
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.UserNameAttrColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($FUSERNAMEATTR)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.GroupSearchBaseColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($FGROUPBASE)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.GroupSearchFilterColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($FGROUPSEARCH)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.GroupNameAttributeColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($FGROUPNAMEATTR)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.GroupMemberDnColon'))</nobr></td>
+    <td class="value">
+#if($FGROUPMEMBERDN == '1')
+    $Encoder.bodyEscape($ResourceBundle.getString('LDAP.Yes'))
+#else
+    $Encoder.bodyEscape($ResourceBundle.getString('LDAP.No'))
+#end
+    </td>
+  </tr>
+
+  <tr><td class="separator" colspan="4"><hr/></td></tr>
+
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.SSLCertificateList'))</nobr>
+    </td>
+    <td class="value">
+      <table class="displaytable">
+        #if($SSLCERTIFICATESMAP)
+          #foreach($cert in $SSLCERTIFICATESMAP.entrySet())
+        <tr>
+          <td class="value">
+            $Encoder.bodyEscape($cert.Value)
+          </td>
+        </tr>
+          #end
+        #else
+        <tr>
+          <td class="message" colspan="2">
+            <nobr>$ResourceBundle.getString('LDAP.NoCertificatesPresent')</nobr>
+          </td>
+        </tr>
+        #end
+      </table>
+    </td>
+  </tr>
+
+  <tr><td class="separator" colspan="4"><hr/></td></tr>
+  
+#set($seenany = false)
+#foreach($forcedtoken in $FORCEDTOKENS)
+  #if(!$seenany)
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.ForcedTokensColon'))</nobr></td>
+    <td class="value">
+  #end
+  #set($seenany = true)
+        $Encoder.bodyEscape($forcedtoken)<br/>
+#end
+#if($seenany)
+    </td>
+  </tr>
+#else
+  <tr><td class="message" colspan="4"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.NoTokensSpecified'))</nobr></td></tr>
+#end
+</table>

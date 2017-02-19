@@ -1307,7 +1307,7 @@ public class ScriptParser
       }
       else
       {
-        reader = new InputStreamReader(System.in);
+        reader = new InputStreamReader(System.in, StandardCharsets.UTF_8);
       
         while (true)
         {

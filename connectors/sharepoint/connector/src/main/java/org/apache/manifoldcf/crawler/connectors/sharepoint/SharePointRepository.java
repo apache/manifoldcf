@@ -235,7 +235,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         }
       }
       String proxyUsername = params.getParameter(SharePointConfig.PARAM_PROXYUSER);
-      String proxyPassword = params.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+      String proxyPassword = params.getObfuscatedParameter(SharePointConfig.PARAM_PROXYPASSWORD);
       String proxyDomain = params.getParameter(SharePointConfig.PARAM_PROXYDOMAIN);
       
       serverUrl = serverProtocol + "://" + serverName;
@@ -274,7 +274,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
         .register("https", myFactory)
         .build());
       poolingConnectionManager.setDefaultMaxPerRoute(1);
-      poolingConnectionManager.setValidateAfterInactivity(60000);
+      poolingConnectionManager.setValidateAfterInactivity(2000);
       poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
         .setTcpNoDelay(true)
         .setSoTimeout(socketTimeout)
@@ -852,9 +852,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               continue;
             }
             
+            // Note well: There's been a lot of back-and forth about this code.
+            // See CONNECTORS-1324.
+            // The fieldNames map returned by proxy.getFieldList() has the internal name as a key, and the display name as a value.
+            // Since we want the complete list of fields here, by *internal* name, we iterate over the keySet(), not the values.
             String[] fields = new String[fieldNames.size()];
             int j = 0;
-            for (String field : fieldNames.values())
+            for (String field : fieldNames.keySet())
             {
               fields[j++] = field;
             }
@@ -957,6 +961,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
                 continue;
               }
               
+              // Get the fields we want (internal field names only at this point), given the list of all fields (internal field names again).
               String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,listFields);
                   
               // Sort access tokens so they are comparable in the version string
@@ -972,6 +977,12 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               // The document path includes the library, with no leading slash, and is decoded.
               String decodedItemPathWithoutSite = decodedItemPath.substring(cutoff+1);
               Map<String,String> values = proxy.getFieldValues( metadataDescription.toArray(new String[0]), encodedSitePath, listID, "/Lists/" + decodedItemPathWithoutSite, dspStsWorks );
+              if (values == null) {
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because of bad XML characters(?)");
+                activities.deleteDocument(documentIdentifier);
+                continue;
+              }
               String modifiedDate = values.get("Modified");
               String createdDate = values.get("Created");
               String id = values.get("ID");
@@ -1304,9 +1315,11 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
               continue;
             }
             
+            // See CONNECTORS-1324.  We want internal field names only,
+            // which are the keys of the map.
             String[] fields = new String[fieldNames.size()];
             int j = 0;
-            for (String field : fieldNames.values())
+            for (String field : fieldNames.keySet())
             {
               fields[j++] = field;
             }
@@ -1401,6 +1414,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             }
             
             String encodedSitePath = encodePath(sitePath);
+            // Get the fields we want (internal field names only at this point), given the list of all fields (internal field names again).
             String[] sortedMetadataFields = getInterestingFieldSetSorted(metadataInfo,libFields);
                 
             // Sort access tokens
@@ -1417,6 +1431,13 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
             int cutoff = decodedLibPath.lastIndexOf("/");
             String decodedDocumentPathWithoutSite = decodedDocumentPath.substring(cutoff);
             Map<String,String> values = proxy.getFieldValues( metadataDescription.toArray(new String[0]), encodedSitePath, libID, decodedDocumentPathWithoutSite, dspStsWorks );
+            if (values == null)
+            {
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("SharePoint: Can't get version of '"+documentIdentifier+"' because it has bad characters(?)");
+              activities.deleteDocument(documentIdentifier);
+              continue;
+            }
 
             String modifiedDate = values.get("Modified");
             String createdDate = values.get("Created");
@@ -2467,7 +2488,7 @@ public class SharePointRepository extends org.apache.manifoldcf.crawler.connecto
     if (proxyUser == null)
       proxyUser = "";
     
-    String proxyPassword = parameters.getParameter(SharePointConfig.PARAM_PROXYPASSWORD);
+    String proxyPassword = parameters.getObfuscatedParameter(SharePointConfig.PARAM_PROXYPASSWORD);
     if (proxyPassword == null)
       proxyPassword = "";
     else

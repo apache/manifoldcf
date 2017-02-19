@@ -22,6 +22,8 @@ package org.apache.manifoldcf.agents.output.filesystem;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 
+import java.util.Locale;
+
 
 public class FileOutputConfig extends FileOutputParam {
 
@@ -37,7 +39,6 @@ public class FileOutputConfig extends FileOutputParam {
    * value returned by ConfigParams.getParameter is null, the default value is
    * set.
    * 
-   * @param paramList
    * @param params
    */
   public FileOutputConfig(ConfigParams params)
@@ -58,7 +59,7 @@ public class FileOutputConfig extends FileOutputParam {
    */
   public final static void contextToConfig(IPostParameters variableContext, ConfigParams parameters) {
     for (ParameterEnum param : CONFIGURATIONLIST) {
-      String p = variableContext.getParameter(param.name().toLowerCase());
+      String p = variableContext.getParameter(param.name().toLowerCase(Locale.ROOT));
       if (p != null) {
         parameters.setParameter(param.name(), p);
       }
