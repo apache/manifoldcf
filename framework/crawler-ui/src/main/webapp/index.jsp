@@ -81,8 +81,8 @@
         </section>
       </div>
       <footer class="main-footer">
-        <div class="pull-right hidden-xs"><b>Version</b> 2.2</div>
-        <strong>Copyright &copy; 2009-2015&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" href="http://manifoldcf.apache.org/">Apache ManifoldCF&trade;</a>.</strong>
+        <div class="pull-right hidden-xs"><b>Version</b> 2.6</div>
+        <strong>Copyright &copy; 2009-<%= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR) %>&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" href="http://manifoldcf.apache.org/">Apache ManifoldCF&trade;</a></strong>
       </footer>
     </div>
     <script src="javascript/jquery.min.js"></script>
