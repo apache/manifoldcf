@@ -22,43 +22,26 @@
 */
 %>
 
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html>
-<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
-  <title>
-    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"error.Unauthorized")%>
-  </title>
-
-</head>
-
-<body class="standardbody">
-
-    <table class="page">
-      <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-      <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
-       <td class="window">
-          <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"error.Unauthorized")%></p>
+<script type="text/javascript">
+    <!--
+    $.ManifoldCF.setTitle(
+        '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "error.Unauthorized")%>',
+        '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "error.Unauthorized")%>'
+    );
+    //-->
+</script>
 
 <%
   // These have to be fetched from request rather than variableContext since error
   // forwards screw up the multipart wrapper
   String target = variableContext.getParameter("target");
 %>
-          <table class="displaytable">
-            <tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"error.UnauthorizedAccess")%></td></tr>
-            <tr><td class="separator"><hr/></td></tr>
-            <tr><td class="message"><a href='<%=org.apache.manifoldcf.core.util.URLEncoder.encode(target)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"error.Return")%>">OK</a></td></tr>
-          </table>
 
-       </td>
-      </tr>
-    </table>
 
-</body>
-
-</html>
+<div class="alert alert-danger">
+  <h4><i class="icon fa fa-ban"></i> Error!</h4>
+  <%=Messages.getBodyString(pageContext.getRequest().getLocale(), "error.Unauthorized")%>
+</div>
+<a class="btn btn-primary btn-sm"
+   href='<%=org.apache.manifoldcf.core.util.URLEncoder.encode(target)%>'
+   alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"error.Return")%>">OK</a>
