@@ -22,6 +22,8 @@ package org.apache.manifoldcf.agents.output.elasticsearch;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 
+import java.util.Locale;
+
 public class ElasticSearchConfig extends ElasticSearchParam
 {
 
@@ -32,8 +34,17 @@ public class ElasticSearchConfig extends ElasticSearchParam
 
   /** Parameters used for the configuration */
   final private static ParameterEnum[] CONFIGURATIONLIST =
-  { ParameterEnum.SERVERLOCATION, ParameterEnum.INDEXNAME,
-      ParameterEnum.INDEXTYPE};
+  {
+    ParameterEnum.SERVERLOCATION,
+    ParameterEnum.INDEXNAME,
+    ParameterEnum.INDEXTYPE,
+    ParameterEnum.USEMAPPERATTACHMENTS,
+    ParameterEnum.CONTENTATTRIBUTENAME,
+    ParameterEnum.CREATEDDATEATTRIBUTENAME,
+    ParameterEnum.MODIFIEDDATEATTRIBUTENAME,
+    ParameterEnum.INDEXINGDATEATTRIBUTENAME,
+    ParameterEnum.MIMETYPEATTRIBUTENAME
+  };
 
   /** Build a set of ElasticSearchParameters by reading ConfigParams. If the
    * value returned by ConfigParams.getParameter is null, the default value is
@@ -69,9 +80,18 @@ public class ElasticSearchConfig extends ElasticSearchParam
   {
     for (ParameterEnum param : CONFIGURATIONLIST)
     {
-      String p = variableContext.getParameter(param.name().toLowerCase());
+      String p = variableContext.getParameter(param.name().toLowerCase(Locale.ROOT));
       if (p != null)
         parameters.setParameter(param.name(), p);
+    }
+
+    String useMapperAttachmentsPresent = variableContext.getParameter("usemapperattachments_present");
+    if (useMapperAttachmentsPresent != null)
+    {
+      String useMapperAttachments = variableContext.getParameter(ParameterEnum.USEMAPPERATTACHMENTS.name().toLowerCase(Locale.ROOT));
+      if (useMapperAttachments == null || useMapperAttachments.length() == 0)
+        useMapperAttachments = "false";
+      parameters.setParameter(ParameterEnum.USEMAPPERATTACHMENTS.name(), useMapperAttachments);
     }
   }
 
@@ -88,6 +108,36 @@ public class ElasticSearchConfig extends ElasticSearchParam
   final public String getIndexType()
   {
     return get(ParameterEnum.INDEXTYPE);
+  }
+
+  final public Boolean getUseMapperAttachments()
+  {
+    return Boolean.valueOf(get(ParameterEnum.USEMAPPERATTACHMENTS));
+  }
+
+  final public String getContentAttributeName()
+  {
+    return get(ParameterEnum.CONTENTATTRIBUTENAME);
+  }
+
+  final public String getCreatedDateAttributeName()
+  {
+    return get(ParameterEnum.CREATEDDATEATTRIBUTENAME);
+  }
+
+  final public String getModifiedDateAttributeName()
+  {
+    return get(ParameterEnum.MODIFIEDDATEATTRIBUTENAME);
+  }
+
+  final public String getIndexingDateAttributeName()
+  {
+    return get(ParameterEnum.INDEXINGDATEATTRIBUTENAME);
+  }
+
+  final public String getMimeTypeAttributeName()
+  {
+    return get(ParameterEnum.MIMETYPEATTRIBUTENAME);
   }
 
 }

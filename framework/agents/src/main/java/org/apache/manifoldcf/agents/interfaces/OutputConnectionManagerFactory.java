@@ -71,10 +71,13 @@ public class OutputConnectionManagerFactory
     {
       String connectionName = connection.getName();
       String[] activities = OutputConnectorFactory.getActivitiesList(tc,connection.getClassName());
-      for (String activityName : activities)
+      if (activities != null)
       {
-        String activity = ManifoldCF.qualifyOutputActivityName(activityName,connectionName);
-        map.add(activity);
+        for (String activityName : activities)
+        {
+          String activity = ManifoldCF.qualifyOutputActivityName(activityName,connectionName);
+          map.add(activity);
+        }
       }
     }
     String[] rval = new String[map.size()];

@@ -22,6 +22,8 @@ package org.apache.manifoldcf.agents.output.hdfs;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 
+import java.util.Locale;
+
 
 public class HDFSOutputConfig extends HDFSOutputParam {
 
@@ -42,7 +44,6 @@ public class HDFSOutputConfig extends HDFSOutputParam {
    * value returned by ConfigParams.getParameter is null, the default value is
    * set.
    * 
-   * @param paramList
    * @param params
    */
   public HDFSOutputConfig(ConfigParams params)
@@ -63,7 +64,7 @@ public class HDFSOutputConfig extends HDFSOutputParam {
    */
   public final static void contextToConfig(IPostParameters variableContext, ConfigParams parameters) {
     for (ParameterEnum param : CONFIGURATIONLIST) {
-      String p = variableContext.getParameter(param.name().toLowerCase());
+      String p = variableContext.getParameter(param.name().toLowerCase(Locale.ROOT));
       if (p != null) {
         parameters.setParameter(param.name(), p);
       }

@@ -37,6 +37,7 @@ public class PriorityCalculator implements IPriorityCalculator
 
   protected final IRepositoryConnection connection;
   protected final String[] binNames;
+  protected final String documentIdentifier;
   protected final IReprioritizationTracker rt;
   
   protected final double[] binCountScaleFactors;
@@ -45,15 +46,16 @@ public class PriorityCalculator implements IPriorityCalculator
   protected Double cachedValue = null;
   
   /** Constructor. */
-  public PriorityCalculator(IReprioritizationTracker rt, IRepositoryConnection connection, String[] documentBins)
+  public PriorityCalculator(IReprioritizationTracker rt, IRepositoryConnection connection, String[] documentBins, String documentIdentifier)
     throws ManifoldCFException
   {
-    this(rt,rt.getMinimumDepth(),connection,documentBins);
+    this(rt,rt.getMinimumDepth(),connection,documentBins,documentIdentifier);
   }
   
-  public PriorityCalculator(IReprioritizationTracker rt, double currentMinimumDepth, IRepositoryConnection connection, String[] documentBins)
+  public PriorityCalculator(IReprioritizationTracker rt, double currentMinimumDepth, IRepositoryConnection connection, String[] documentBins, String documentIdentifier)
     throws ManifoldCFException
   {
+    this.documentIdentifier = documentIdentifier;
     this.connection = connection;
     this.binNames = documentBins;
     this.rt = rt;
@@ -118,7 +120,7 @@ public class PriorityCalculator implements IPriorityCalculator
     for (int i = 0; i < binNames.length; i++)
     {
       String binName = binNames[i];
-      rt.addPreloadRequest(binName, weightedMinimumDepths[i]);
+      rt.addPreloadRequest(connection.getClassName(), binName, weightedMinimumDepths[i]);
     }
 
   }
@@ -146,7 +148,7 @@ public class PriorityCalculator implements IPriorityCalculator
       double binCountScaleFactor = binCountScaleFactors[i];
       double weightedMinimumDepth = weightedMinimumDepths[i];
 
-      double thisCount = rt.getIncrementBinValue(binName,weightedMinimumDepth);
+      double thisCount = rt.getIncrementBinValue(connection.getClassName(),binName,weightedMinimumDepth);
       double adjustedCount;
       // Use the scale factor already calculated above to yield a priority that is adjusted for the fetch rate.
       if (binCountScaleFactor == Double.POSITIVE_INFINITY)
@@ -173,7 +175,7 @@ public class PriorityCalculator implements IPriorityCalculator
       {
         sb.append(binNames[k++]).append(" ");
       }
-      Logging.scheduling.debug("Document with bins ["+sb.toString()+"] given priority value "+new Double(returnValue).toString());
+      Logging.scheduling.debug("Document '"+documentIdentifier+"' with bins ["+sb.toString()+"] given priority value "+new Double(returnValue).toString());
     }
 
     cachedValue = new Double(returnValue);

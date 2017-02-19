@@ -222,15 +222,15 @@ public class MockSessionWebService
       res.setStatus(HttpServletResponse.SC_OK);
       res.setContentType("text/html; charset=utf-8");
 
-      res.getWriter().printf("<html>\n");
-      res.getWriter().printf("  <body>\n");
-      res.getWriter().printf("    <form name=\"login\" action=\""+actionURI+"\">\n");
-      res.getWriter().printf("      User name: <input type=\"text\" name=\"user\" value=\"\" size=\"20\"/>\n");
-      res.getWriter().printf("      Password: <input type=\"password\" name=\"password\" value=\"\" size=\"20\"/>\n");
-      res.getWriter().printf("      <input type=\"submit\"/>\n");
-      res.getWriter().printf("    </form>\n");
-      res.getWriter().printf("  </body>\n");
-      res.getWriter().printf("</html>\n");
+      res.getWriter().printf(Locale.ROOT, "<html>\n");
+      res.getWriter().printf(Locale.ROOT, "  <body>\n");
+      res.getWriter().printf(Locale.ROOT, "    <form name=\"login\" action=\""+actionURI+"\">\n");
+      res.getWriter().printf(Locale.ROOT, "      User name: <input type=\"text\" name=\"user\" value=\"\" size=\"20\"/>\n");
+      res.getWriter().printf(Locale.ROOT, "      Password: <input type=\"password\" name=\"password\" value=\"\" size=\"20\"/>\n");
+      res.getWriter().printf(Locale.ROOT, "      <input type=\"submit\"/>\n");
+      res.getWriter().printf(Locale.ROOT, "    </form>\n");
+      res.getWriter().printf(Locale.ROOT, "  </body>\n");
+      res.getWriter().printf(Locale.ROOT, "</html>\n");
       
       res.getWriter().flush();
 
@@ -249,9 +249,9 @@ public class MockSessionWebService
       res.setStatus(HttpServletResponse.SC_OK);
       res.setContentType("text/html; charset=utf-8");
 
-      res.getWriter().printf("<html>\n");
-      res.getWriter().printf("  <body>This is the document content for item "+itemNumber+"</body>");
-      res.getWriter().printf("</html>\n");
+      res.getWriter().printf(Locale.ROOT, "<html>\n");
+      res.getWriter().printf(Locale.ROOT, "  <body>This is the document content for item "+itemNumber+"</body>");
+      res.getWriter().printf(Locale.ROOT, "</html>\n");
       
       res.getWriter().flush();
     }
@@ -269,16 +269,16 @@ public class MockSessionWebService
       res.setStatus(HttpServletResponse.SC_OK);
       res.setContentType("text/html; charset=utf-8");
 
-      res.getWriter().printf("<html>\n");
-      res.getWriter().printf("  <body>\n");
+      res.getWriter().printf(Locale.ROOT, "<html>\n");
+      res.getWriter().printf(Locale.ROOT, "  <body>\n");
 
       for (int i = 0; i < countItems; i++)
       {
         generateContentLink(res,i);
       }
       
-      res.getWriter().printf("  </body>\n");
-      res.getWriter().printf("</html>\n");
+      res.getWriter().printf(Locale.ROOT, "  </body>\n");
+      res.getWriter().printf(Locale.ROOT, "</html>\n");
       res.getWriter().flush();
 
     }
@@ -286,7 +286,7 @@ public class MockSessionWebService
     protected static void generateContentLink(HttpServletResponse res, int itemNumber)
       throws IOException
     {
-      res.getWriter().printf("    <a href=\"/web/protectedcontent.html?id="+itemNumber+"\">Item "+itemNumber+"</a>\n");
+      res.getWriter().printf(Locale.ROOT, "    <a href=\"/web/protectedcontent.html?id="+itemNumber+"\">Item "+itemNumber+"</a>\n");
     }
 
   }

@@ -2724,7 +2724,7 @@ public class JobManager implements IJobManager
     ThrottleLimit vList = new ThrottleLimit(n);
 
     IResultSet jobconnections = jobs.getActiveJobConnections();
-    HashMap connectionSet = new HashMap();
+    Set<String> connectionSet = new HashSet<String>();
     int i = 0;
     while (i < jobconnections.getRowCount())
     {
@@ -2732,29 +2732,26 @@ public class JobManager implements IJobManager
       Long jobid = (Long)row.getValue("jobid");
       String connectionName = (String)row.getValue("connectionname");
       vList.addJob(jobid,connectionName);
-      connectionSet.put(connectionName,connectionName);
+      connectionSet.add(connectionName);
     }
 
     // Find the active connection names.  We'll load these, and then get throttling info
     // from each one.
     String[] activeConnectionNames = new String[connectionSet.size()];
-    Iterator iter = connectionSet.keySet().iterator();
     i = 0;
-    while (iter.hasNext())
+    for (String connectionName : connectionSet)
     {
-      activeConnectionNames[i++] = (String)iter.next();
+      activeConnectionNames[i++] = connectionName;
     }
     IRepositoryConnection[] connections = connectionMgr.loadMultiple(activeConnectionNames);
 
 
     // Accumulate a sum of the max_connection_count * avg_connection_rate values, so we can calculate the appropriate adjustment
     // factor and set the connection limits.
-    HashMap rawFetchCounts = new HashMap();
+    Map<String,Double> rawFetchCounts = new HashMap<String,Double>();
     double rawFetchCountTotal = 0.0;
-    i = 0;
-    while (i < connections.length)
+    for (IRepositoryConnection connection : connections)
     {
-      IRepositoryConnection connection = connections[i++];
       String connectionName = connection.getName();
       int maxConnections = connection.getMaxConnections();
       double avgFetchRate = statistics.calculateConnectionFetchRate(connectionName);
@@ -2771,18 +2768,14 @@ public class JobManager implements IJobManager
     // and also randomly select an extra fetch based on the fractional probability.  (This latter is
     // necessary for the case where the maximum fetch rate is specified to be pretty low.)
     //
-    i = 0;
-    while (i < connections.length)
+    for (IRepositoryConnection connection : connections)
     {
-      IRepositoryConnection connection = connections[i++];
       String connectionName = connection.getName();
       // Check if throttled...
       String[] throttles = connection.getThrottles();
-      int k = 0;
-      while (k < throttles.length)
+      for (String throttle : throttles)
       {
         // The key is the regexp value itself
-        String throttle = throttles[k++];
         float throttleValue = connection.getThrottleValue(throttle);
         // For the given connection, set the fetch limit per bin.  This is calculated using the time interval
         // and the desired fetch rate.  The fractional remainder is used to conditionally provide an "extra fetch"
@@ -2801,7 +2794,7 @@ public class JobManager implements IJobManager
         vList.addLimit(connectionName,throttle,fetches);
       }
       // For the overall connection, we also have a limit which is based on the number of connections there are actually available.
-      Double weightedRawFetchCount = (Double)rawFetchCounts.get(connectionName);
+      Double weightedRawFetchCount = rawFetchCounts.get(connectionName);
       double adjustedFetchCount = weightedRawFetchCount.doubleValue() * fetchCountAdjustmentFactor;
 
       // Note well: Queuing starvation that results from there being very few available documents for high-priority connections is dealt with here by simply allowing
@@ -2856,7 +2849,7 @@ public class JobManager implements IJobManager
     // have any chance of getting returned twice.
 
     // Accumulate the answers here
-    ArrayList answers = new ArrayList();
+    List<DocumentDescription> answers = new ArrayList<DocumentDescription>();
 
     // The current time value
     Long currentTimeValue = new Long(currentTime);
@@ -2887,10 +2880,9 @@ public class JobManager implements IJobManager
     // Convert the saved answers to an array
     DocumentDescription[] rval = new DocumentDescription[answers.size()];
     i = 0;
-    while (i < rval.length)
+    for (DocumentDescription answer : answers)
     {
-      rval[i] = (DocumentDescription)answers.get(i);
-      i++;
+      rval[i++] = answer;
     }
 
     // After we're done pulling stuff from the queue, find the eligible row with the best priority on the queue, and save the bins for assessment.
@@ -2983,7 +2975,7 @@ public class JobManager implements IJobManager
   }
 
   /** Fetch and process documents matching the passed-in criteria */
-  protected void fetchAndProcessDocuments(ArrayList answers, Long currentTimeValue, Long currentPriorityValue,
+  protected void fetchAndProcessDocuments(List<DocumentDescription> answers, Long currentTimeValue, Long currentPriorityValue,
     ThrottleLimit vList, IRepositoryConnection[] connections, String processID)
     throws ManifoldCFException
   {
@@ -3111,8 +3103,7 @@ public class JobManager implements IJobManager
             Map<String,DocumentDescription> storageMap = new HashMap<String,DocumentDescription>();
             Map<String,Integer> statusMap = new HashMap<String,Integer>();
 
-            int i = 0;
-            while (i < set.getRowCount())
+            for (int i = 0; i < set.getRowCount(); i++)
             {
               IResultRow row = set.getRow(i);
               Long id = (Long)row.getValue(jobQueue.idField);
@@ -3142,26 +3133,21 @@ public class JobManager implements IJobManager
                 Double docPriority = (Double)row.getValue(jobQueue.docPriorityField);
                 Logging.scheduling.debug("Stuffing document '"+docID+"' that has priority "+docPriority.toString()+" onto active list");
               }
-              i++;
             }
 
             // No duplicates are possible here
             java.util.Arrays.sort(docIDHashes);
 
-            i = 0;
-            while (i < docIDHashes.length)
+            for (String docIDHash : docIDHashes)
             {
-              String docIDHash = docIDHashes[i];
-              DocumentDescription dd = (DocumentDescription)storageMap.get(docIDHash);
+              DocumentDescription dd = storageMap.get(docIDHash);
               Long id = dd.getID();
-              int status = ((Integer)statusMap.get(docIDHash)).intValue();
+              int status = statusMap.get(docIDHash).intValue();
 
               // Set status to "ACTIVE".
               jobQueue.updateActiveRecord(id,status,processID);
 
               answers.add(dd);
-
-              i++;
             }
             TrackerClass.notePrecommit();
             database.performCommit();
@@ -6019,6 +6005,7 @@ public class JobManager implements IJobManager
               matchTime = thisMatchTime;
               duration = thisDuration;
               requestMinimum = sr.getRequestMinimum();
+              //System.out.println("Scheduled job start; requestMinimum = "+requestMinimum);
             }
           }
 
@@ -6048,6 +6035,7 @@ public class JobManager implements IJobManager
             // If job was formerly "inactive", do the full startup.
             // Start this job!  but with no end time.
             // This does not get logged because the startup thread does the logging.
+            //System.out.println("Starting job with requestMinimum = "+requestMinimum);
             jobs.startJob(jobID,windowEnd,requestMinimum);
             jobQueue.clearFailTimes(jobID);
             Logging.jobs.info("Signalled for job start for job "+jobID);
@@ -6258,11 +6246,11 @@ public class JobManager implements IJobManager
     Calendar c;
     if (timezone == null)
     {
-      c = Calendar.getInstance();
+      c = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.ROOT);
     }
     else
     {
-      c = Calendar.getInstance(TimeZone.getTimeZone(timezone));
+      c = Calendar.getInstance(TimeZone.getTimeZone(timezone), Locale.ROOT);
     }
 
     // Get the current starting time
@@ -7227,6 +7215,7 @@ public class JobManager implements IJobManager
             failRetryCount = (int)failRetryCountLong.longValue();
 
           boolean requestMinimum = (status == jobs.STATUS_READYFORSTARTUPMINIMAL);
+          //System.out.println("When starting the job, requestMinimum = "+requestMinimum);
           
           // Mark status of job as "starting"
           jobs.writeTransientStatus(jobID,requestMinimum?jobs.STATUS_STARTINGUPMINIMAL:jobs.STATUS_STARTINGUP,processID);
@@ -8205,6 +8194,9 @@ public class JobManager implements IJobManager
         IJobDescription jobDesc = jobs.load(jobID,true);
         modifiedJobs.add(jobDesc);
 
+        // Note that all the documents that are alive need priorities
+        jobQueue.prioritizeQueuedDocuments(jobID);
+        // Now, resume the job
         jobs.finishResumeJob(jobID,timestamp);
             
         Logging.jobs.info("Resumed job "+jobID);

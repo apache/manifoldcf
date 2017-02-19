@@ -408,7 +408,7 @@ public class DocumentumImpl extends UnicastRemoteObject implements IDocumentum
         String matchType = matchTypeSet[i++];
         if (matchType.equalsIgnoreCase(theType))
           return true;
-        if (typeDescription.isSubTypeOf(theType))
+        if (typeDescription.isSubTypeOf(matchType))
           return true;
       }
       return false;

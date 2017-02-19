@@ -66,7 +66,9 @@ public class FormParseState extends LinkParseState
       {
         String type = (String)attributes.get("type");
         // We're only interested in form elements that can actually transmit data
-        if (type == null || (!type.toLowerCase().equals("button") && !type.toLowerCase().equals("reset") && !type.toLowerCase().equals("image")))
+        if (type == null || (!type.toLowerCase(Locale.ROOT).equals("button")
+            && !type.toLowerCase(Locale.ROOT).equals("reset")
+            && !type.toLowerCase(Locale.ROOT).equals("image")))
           handler.noteFormInput(attributes);
       }
       else if (tagName.equals("select"))
@@ -87,7 +89,7 @@ public class FormParseState extends LinkParseState
       else if (tagName.equals("button"))
       {
         String type = (String)attributes.get("type");
-        if (type == null || type.toLowerCase().equals("submit"))
+        if (type == null || type.toLowerCase(Locale.ROOT).equals("submit"))
         {
           // Same as input type="submit"
           handler.noteFormInput(attributes);

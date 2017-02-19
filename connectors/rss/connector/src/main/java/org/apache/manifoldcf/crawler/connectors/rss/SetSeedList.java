@@ -22,6 +22,8 @@ import java.io.*;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.*;
+
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /** This class is used to set the seed list for a specified RSS job.
@@ -66,7 +68,7 @@ public class SetSeedList
           i++;
       }
 
-      java.io.Reader str = new java.io.InputStreamReader(System.in);
+      java.io.Reader str = new java.io.InputStreamReader(System.in, StandardCharsets.UTF_8);
       try
       {
         java.io.BufferedReader is = new java.io.BufferedReader(str);

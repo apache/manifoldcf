@@ -1053,7 +1053,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       DocumentDescription dd = requeueCandidates[q];
       String[] bins = calculateBins(connector,dd.getDocumentIdentifier());
       binNames[q] = bins;
-      docPriorities[q] = new PriorityCalculator(rt,connection,bins);
+      docPriorities[q] = new PriorityCalculator(rt,connection,bins,dd.getDocumentIdentifier());
       q++;
     }
 
@@ -1242,7 +1242,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
         else
           // Get the bins for the document identifier
           binNames = connector.getBinNames(descs[i].getDocumentIdentifier());
-        PriorityCalculator p = new PriorityCalculator(rt,minimumDepth,connection,binNames);
+        PriorityCalculator p = new PriorityCalculator(rt,minimumDepth,connection,binNames,descs[i].getDocumentIdentifier());
         priorities[i] = p;
         p.makePreloadRequest();
       }
@@ -4314,6 +4314,46 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     }
     return DELETERESULT_FOUND;
   }
+  
+  /** Delete mapping connection.
+  */
+  protected static int apiDeleteMappingConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
+    throws ManifoldCFException
+  {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
+    try
+    {
+      IMappingConnectionManager connectionManager = MappingConnectionManagerFactory.make(tc);
+      connectionManager.delete(connectionName);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return DELETERESULT_FOUND;
+  }
+
+  /** Delete transformation connection.
+  */
+  protected static int apiDeleteTransformationConnection(IThreadContext tc, Configuration output, String connectionName, IAuthorizer authorizer)
+    throws ManifoldCFException
+  {
+    if (!authorizer.checkAllowed(tc, IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+      return READRESULT_NOTALLOWED;
+
+    try
+    {
+      ITransformationConnectionManager connectionManager = TransformationConnectionManagerFactory.make(tc);
+      connectionManager.delete(connectionName);
+    }
+    catch (ManifoldCFException e)
+    {
+      createErrorNode(output,e);
+    }
+    return DELETERESULT_FOUND;
+  }
 
   /** Delete repository connection.
   */
@@ -4379,10 +4419,20 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       String connectionName = decodeAPIPathElement(path.substring("outputconnections/".length()));
       return apiDeleteOutputConnection(tc,output,connectionName,authorizer);
     }
+    else if (path.startsWith("mappingconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("mappingconnections/".length()));
+      return apiDeleteAuthorityConnection(tc,output,connectionName,authorizer);
+    }
     else if (path.startsWith("authorityconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("authorityconnections/".length()));
       return apiDeleteAuthorityConnection(tc,output,connectionName,authorizer);
+    }
+    else if (path.startsWith("transformationconnections/"))
+    {
+      String connectionName = decodeAPIPathElement(path.substring("transformationconnections/".length()));
+      return apiDeleteTransformationConnection(tc,output,connectionName,authorizer);
     }
     else if (path.startsWith("repositoryconnections/"))
     {
@@ -4414,6 +4464,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   protected static final String JOBNODE_HOPCOUNTMODE = "hopcount_mode";
   protected static final String JOBNODE_PRIORITY = "priority";
   protected static final String JOBNODE_RECRAWLINTERVAL = "recrawl_interval";
+  protected static final String JOBNODE_MAXRECRAWLINTERVAL = "max_recrawl_interval";
   protected static final String JOBNODE_EXPIRATIONINTERVAL = "expiration_interval";
   protected static final String JOBNODE_RESEEDINTERVAL = "reseed_interval";
   protected static final String JOBNODE_HOPCOUNT = "hopcount";
@@ -4575,6 +4626,10 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       else if (childType.equals(JOBNODE_RECRAWLINTERVAL))
       {
         jobDescription.setInterval(interpretInterval(child.getValue()));
+      }
+      else if (childType.equals(JOBNODE_MAXRECRAWLINTERVAL))
+      {
+        jobDescription.setMaxInterval(interpretInterval(child.getValue()));
       }
       else if (childType.equals(JOBNODE_EXPIRATIONINTERVAL))
       {
@@ -4826,9 +4881,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     {
       child = new ConfigurationNode(JOBNODE_NOTIFICATIONSTAGE);
       ConfigurationNode stage;
-      stage = new ConfigurationNode(JOBNODE_STAGEID);
-      stage.setValue(Integer.toString(j));
-      child.addChild(child.getChildCount(),stage);
       stage = new ConfigurationNode(JOBNODE_STAGECONNECTIONNAME);
       stage.setValue(job.getNotificationConnectionName(j));
       child.addChild(child.getChildCount(),stage);
@@ -4873,6 +4925,11 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Recrawl interval
     child = new ConfigurationNode(JOBNODE_RECRAWLINTERVAL);
     child.setValue((job.getInterval()==null)?"infinite":job.getInterval().toString());
+    jobNode.addChild(jobNode.getChildCount(),child);
+
+    // Max recrawl interval
+    child = new ConfigurationNode(JOBNODE_MAXRECRAWLINTERVAL);
+    child.setValue((job.getMaxInterval()==null)?"infinite":job.getMaxInterval().toString());
     jobNode.addChild(jobNode.getChildCount(),child);
 
     child = new ConfigurationNode(JOBNODE_EXPIRATIONINTERVAL);

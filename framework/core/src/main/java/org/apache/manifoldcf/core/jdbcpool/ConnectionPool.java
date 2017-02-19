@@ -73,58 +73,79 @@ public class ConnectionPool
     else
       instantiationException = null;
     Connection rval = null;
-    while (true)
-    {
-      synchronized (this)
-      {
-        if (freePointer > 0)
-        {
-          if (closed)
-            throw new InterruptedException("Pool already closed");
-          rval = freeConnections[--freePointer];
-          freeConnections[freePointer] = null;
-          if (!rval.isValid(1)) {
-            // If the connection is invalid, drop it on the floor, and get a new one.
-            activeConnections--;
-            rval.close();
-            rval = null;
-            continue;
-          }
-          break;
-        }
-        if (activeConnections == freeConnections.length)
-        {
-          // If properly configured, we really shouldn't be getting here.
-          if (debug)
-          {
-            synchronized (outstandingConnections)
-            {
-              Logging.db.warn("Out of db connections, list of outstanding ones follows.");
-              for (WrappedConnection c : outstandingConnections)
-              {
-                Logging.db.warn("Found a possibly leaked db connection",c.getInstantiationException());
-              }
-            }
-          }
-          // Wait until kicked; we hope something will free up...
-          this.wait();
-          continue;
-        }
-        // Increment active connection counter, because we're about to mint a new connection, and break out of our loop
-        activeConnections++;
-        break;
-      }
-    }
-
     boolean returnedValue = true;
     try
     {
-      if (rval == null)
+      while (true)
       {
-        if (userName != null)
-          rval = DriverManager.getConnection(dbURL, userName, password);
-        else
-          rval = DriverManager.getConnection(dbURL);
+        synchronized (this)
+        {
+          if (freePointer > 0)
+          {
+            if (closed)
+              throw new InterruptedException("Pool already closed");
+            rval = freeConnections[--freePointer];
+            freeConnections[freePointer] = null;
+            boolean isValid = true;
+            try
+            {
+              isValid = rval.isValid(1);
+            }
+            catch (SQLException e)
+            {
+              // Ignore this; we just can't check if handle is valid I guess.
+              // (Postgresql doesn't implement this method so it fails always)
+            }
+            catch (java.lang.AbstractMethodError e)
+            {
+              // Ignore this; we just can't check if handle is valid I guess.
+              // (SQLServer doesn't implement this method so it fails always)
+            }
+            if (!isValid) {
+              // If the connection is invalid, drop it on the floor, and get a new one.
+              // Note: Order of operations is terribly important here!!
+              final Connection closeValue = rval;
+              rval = null;
+              activeConnections--;
+              try
+              {
+                closeValue.close();
+              }
+              catch (SQLException e)
+              {
+                // Ignore SQL errors on close, and drop the connection on the floor
+              }
+              continue;
+            }
+            break;
+          }
+          if (activeConnections == freeConnections.length)
+          {
+            // If properly configured, we really shouldn't be getting here.
+            if (debug)
+            {
+              synchronized (outstandingConnections)
+              {
+                Logging.db.warn("Out of db connections, list of outstanding ones follows.");
+                for (WrappedConnection c : outstandingConnections)
+                {
+                  Logging.db.warn("Found a possibly leaked db connection",c.getInstantiationException());
+                }
+              }
+            }
+            // Wait until kicked; we hope something will free up...
+            this.wait();
+            continue;
+          }
+          // Increment active connection counter, because we're about to mint a new connection, and break out of our loop
+          // Note: order is terribly important here!
+          activeConnections++;
+          if (userName != null)
+            rval = DriverManager.getConnection(dbURL, userName, password);
+          else
+            rval = DriverManager.getConnection(dbURL);
+          break;
+        }
       }
 
       WrappedConnection wc = new WrappedConnection(this,rval,instantiationException);
@@ -176,6 +197,27 @@ public class ConnectionPool
         }
       }
     }
+  }
+  
+  /** Flush the pool.
+  */
+  public synchronized void flushPool()
+  {
+    for (int i = 0 ; i < freePointer ; i++)
+    {
+      try
+      {
+        freeConnections[i].close();
+      }
+      catch (SQLException e)
+      {
+        Logging.db.warn("Error closing pooled connection: "+e.getMessage(),e);
+      }
+      freeConnections[i] = null;
+      activeConnections--;
+    }
+    freePointer = 0;
+    notifyAll();
   }
   
   /** Close down the pool.
@@ -243,6 +285,8 @@ public class ConnectionPool
     {
       synchronized (outstandingConnections)
       {
+        if (!outstandingConnections.contains(connection))
+          Logging.db.warn("Released a connection that wasn't tracked!!");
         outstandingConnections.remove(connection);
       }
     }

@@ -184,7 +184,7 @@ public class Messages extends org.apache.manifoldcf.core.i18n.Messages
         String key = i.next();
         String value = substitutionParameters.get(key);
         if (mapToUpperCase)
-          key = key.toUpperCase();
+          key = key.toUpperCase(Locale.ROOT);
         if (value == null)
           value = "";
              
@@ -263,7 +263,7 @@ public class Messages extends org.apache.manifoldcf.core.i18n.Messages
               String key = i.next();
               String value = substitutionParameters.get(key);
               if (mapToUpperCase)
-                key = key.toUpperCase();
+                key = key.toUpperCase(Locale.ROOT);
               if (value == null)
                 value = "";
               //System.out.println("Processed key = '"+key+"', processed value = '"+value+"'");

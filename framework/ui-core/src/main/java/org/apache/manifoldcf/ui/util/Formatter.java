@@ -32,7 +32,7 @@ public class Formatter
   */
   public static String formatTime(long time)
   {
-    Calendar c = new GregorianCalendar();
+    Calendar c = new GregorianCalendar(TimeZone.getTimeZone("UTC"), Locale.ROOT);
     c.setTimeInMillis(time);
     // We want to format this string in a compact way:
     // mm-dd-yyyy hh:mm:ss.mmm
