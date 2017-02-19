@@ -598,4 +598,3 @@ catch (ManifoldCFException e)
 %>
   </div>
 </div>
-</div>
