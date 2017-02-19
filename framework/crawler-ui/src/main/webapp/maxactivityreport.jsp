@@ -237,162 +237,147 @@ try
 
 %>
 
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html>
-<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
-  <title>
-    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.ApacheManifoldCFMaximumActivityReport")%>
-  </title>
-
-  <script type="text/javascript">
+<script type="text/javascript">
   <!--
+  $.ManifoldCF.setTitle(
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "maxactivityreport.ApacheManifoldCFMaximumActivityReport")%>',
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "maxactivityreport.MaximumActivityReport")%>',
+      'historyreports'
+  );
+  function Go()
+  {
+    if (!isInteger(report.rowcount.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.EnterALegalNumberForRowsPerPage")%>");
+      report.rowcount.focus();
+      return;
+    }
+    if (!isInteger(report.reportinterval.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.EnterALegalIntervalSizeInMinutes")%>");
+      report.reportinterval.focus();
+      return;
+    }
+    if (report.reportbucketdesc.value == "")
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionCannotBeEmpty")%>");
+      report.reportbucketdesc.focus();
+      return;
+    }
+    if (!isRegularExpression(report.reportbucketdesc.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
+      report.reportbucketdesc.focus();
+      return;
+    }
+    if (report.reportbucketdesc.value.indexOf("(") == -1 || report.reportbucketdesc.value.indexOf(")") == -1)
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
+      report.reportbucketdesc.focus();
+      return;
+    }
+    if (!isRegularExpression(report.reportentitymatch.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.EntityMatchMustBeAValidRegularExpression")%>");
+      report.reportentitymatch.focus();
+      return;
+    }
+    if (!isRegularExpression(report.reportresultcodematch.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.ResultCodeMatchMustBeAValidRegularExpression")%>");
+      report.reportresultcodematch.focus();
+      return;
+    }
 
-function Go()
-{
-  if (!isInteger(report.rowcount.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.EnterALegalNumberForRowsPerPage")%>");
-    report.rowcount.focus();
-    return;
-  }
-  if (!isInteger(report.reportinterval.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.EnterALegalIntervalSizeInMinutes")%>");
-    report.reportinterval.focus();
-    return;
-  }
-  if (report.reportbucketdesc.value == "")
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionCannotBeEmpty")%>");
-    report.reportbucketdesc.focus();
-    return;
-  }
-  if (!isRegularExpression(report.reportbucketdesc.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
-    report.reportbucketdesc.focus();
-    return;
-  }
-  if (report.reportbucketdesc.value.indexOf("(") == -1 || report.reportbucketdesc.value.indexOf(")") == -1)
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
-    report.reportbucketdesc.focus();
-    return;
-  }
-  if (!isRegularExpression(report.reportentitymatch.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.EntityMatchMustBeAValidRegularExpression")%>");
-    report.reportentitymatch.focus();
-    return;
-  }
-  if (!isRegularExpression(report.reportresultcodematch.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.ResultCodeMatchMustBeAValidRegularExpression")%>");
-    report.reportresultcodematch.focus();
-    return;
-  }
-
-  document.report.op.value="Report";
-  document.report.action = document.report.action + "#MainButton";
-  document.report.submit();
-}
-
-function Continue()
-{
-  if (!isRegularExpression(report.reportentitymatch.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.EntityMatchMustBeAValidRegularExpression")%>");
-    report.reportentitymatch.focus();
-    return;
-  }
-  if (!isRegularExpression(report.reportresultcodematch.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.ResultCodeMatchMustBeAValidRegularExpression")%>");
-    report.reportresultcodematch.focus();
-    return;
-  }
-  if (!isRegularExpression(report.reportbucketdesc.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
-    report.reportbucketdesc.focus();
-    return;
-  }
-  if (report.reportbucketdesc.value.indexOf("(") == -1 || report.reportbucketdesc.value.indexOf(")") == -1)
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
-    report.reportbucketdesc.focus();
-    return;
+    document.report.op.value="Report";
+    document.report.action=document.report.action + "#MainButton";
+    $.ManifoldCF.submit(document.report);
   }
 
-  document.report.op.value="Continue";
-  document.report.action = document.report.action + "#MainButton";
-  document.report.submit();
-}
-
-function ColumnClick(colname)
-{
-  document.report.clickcolumn.value = colname;
-  Go();
-}
-
-function SetPosition(amt)
-{
-  if (amt < 0)
-    amt = 0;
-  document.report.startrow.value = amt;
-  Go();
-}
-
-function isRegularExpression(value)
-{
-  try
+  function Continue()
   {
-    var foo = "teststring";
-    foo.search(value.replace(/\(\?i\)/,""));
-    return true;
+    if (!isRegularExpression(report.reportentitymatch.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.EntityMatchMustBeAValidRegularExpression")%>");
+      report.reportentitymatch.focus();
+      return;
+    }
+    if (!isRegularExpression(report.reportresultcodematch.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.ResultCodeMatchMustBeAValidRegularExpression")%>");
+      report.reportresultcodematch.focus();
+      return;
+    }
+    if (!isRegularExpression(report.reportbucketdesc.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
+      report.reportbucketdesc.focus();
+      return;
+    }
+    if (report.reportbucketdesc.value.indexOf("(") == -1 || report.reportbucketdesc.value.indexOf(")") == -1)
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
+      report.reportbucketdesc.focus();
+      return;
+    }
+
+    document.report.op.value="Continue";
+    document.report.action=document.report.action + "#MainButton";
+    $.ManifoldCF.submit(document.report);
   }
-  catch (e)
+
+  function ColumnClick(colname)
   {
-    return false;
+    document.report.clickcolumn.value=colname;
+    Go();
   }
 
-}
+  function SetPosition(amt)
+  {
+    if (amt < 0)
+      amt=0;
+    document.report.startrow.value=amt;
+    Go();
+  }
 
-function isInteger(value)
-{
-  var anum=/(^\d+$)/;
-  return anum.test(value);
-}
+  function isRegularExpression(value)
+  {
+    try
+    {
+      var foo="teststring";
+      foo.search(value.replace(/\(\?i\)/,""));
+      return true;
+    }
+    catch (e)
+    {
+      return false;
+    }
+
+  }
+
+  function isInteger(value)
+  {
+    var anum=/(^\d+$)/;
+    return anum.test(value);
+  }
 
   //-->
-  </script>
+</script>
 
 
-</head>
+<div class="row">
+  <div class="col-md-12">
+    <form class="standardform" name="report" action="execute.jsp" method="POST">
+      <input type="hidden" name="op" value="Continue"/>
+      <input type="hidden" name="type" value="maxactivityreport"/>
 
-<body class="standardbody">
-
-  <table class="page">
-    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-    <tr>
-      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
-      <td class="window">
-        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.MaximumActivityReport")%></p>
-        <form class="standardform" name="report" action="execute.jsp" method="POST">
-          <input type="hidden" name="op" value="Continue"/>
-          <input type="hidden" name="type" value="maxactivityreport"/>
-          <table class="displaytable">
+      <div class="box box-primary">
+        <div class="box-body">
+          <table class="table table-bordered">
             <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-            <tr>
-              <td class="description" colspan="1"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Connection")%></td><td class="value" colspan="1">
-                <select name="reportconnection" size="3">
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Connection")%></th>
+              <td colspan="1">
+                <select name="reportconnection" class="form-control">
                   <option <%=(reportConnection.length()==0)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
 <%
   int i = 0;
@@ -414,18 +399,19 @@ function isInteger(value)
   if (reportConnection.length() > 0)
   {
 %>
-              <td class="description" colspan="1"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Activities")%></td><td class="value" colspan="1">
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Activities")%></th>
+              <td colspan="1">
                 <input type="hidden" name="reportactivities_posted" value="true"/>
-                <select multiple="true" name="reportactivities" size="3">
+                <select multiple="true" class="selectpicker" name="reportactivities">
 <%
-    i = 0;
-    while (i < activityList.length)
-    {
-      String activity = activityList[i++];
+  i = 0;
+  while (i < activityList.length)
+  {
+    String activity = activityList[i++];
 %>
-                  <option <%=((selectedActivities.get(activity)==null)?"":"selected=\"selected\"")%> value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(activity)%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(activity)%></option>
+                  <option <%=((selectedActivities.get(activity) == null)?"":"selected=\"selected\"")%> value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(activity)%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(activity)%></option>
 <%
-    }
+  }
 %>
                 </select>
               </td>
@@ -434,20 +420,18 @@ function isInteger(value)
   else
   {
 %>
-              <td class="value" colspan="2"></td>
+              <td colspan="2"></td>
 <%
   }
 %>
 
             </tr>
             <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-            <tr>
-              <td class="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.StartTime")%></td>
-              <td class="value" colspan="3">
-                <select class="schedulepulldown" name='reportstarthour' size="3">
-                  <option value="" <%=(startHour.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.StartTime")%></th>
+              <td colspan="3">
+                <div class="input-group">
+                  <select class="schedulepulldown" name='reportstarthour'>
+                    <option value="" <%=(startHour.length() == 0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
 <%
   k = 0;
   while (k < 24)
@@ -465,42 +449,45 @@ function isInteger(value)
     if (q == 0)
       q = 12;
 %>
-                  <option value='<%=k%>' <%=(startHour.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(q)+" "+ampm%></option>
-<%						
+                    <option value='<%=k%>' <%=(startHour.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(q)+" "+ampm%></option>
+<%
     k++;
   }
 %>
-                </select><nobr/>:<nobr/>
-                <select class="schedulepulldown" name='reportstartminute' size="3">
-                  <option value="" <%=(startMinute.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
+                  </select>
+                  <span class="label">:</span>
+                  <select class="schedulepulldown" name='reportstartminute'>
+                    <option value="" <%=(startMinute.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
 <%
   k = 0;
   while (k < 60)
   {
 %>
-                  <option value='<%=k%>' <%=(startMinute.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k)%></option>
+                    <option value='<%=k%>' <%=(startMinute.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k)%></option>
 <%
     k++;
   }
 %>
-                </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.on")%>
-                <select class="schedulepulldown" name='reportstartmonth' size="3">
-                  <option value="" <%=(startMonth.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
-                  <option value="0" <%=(startMonth.equals("0"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.January")%></option>
-                  <option value="1" <%=(startMonth.equals("1"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.February")%></option>
-                  <option value="2" <%=(startMonth.equals("2"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.March")%></option>
-                  <option value="3" <%=(startMonth.equals("3"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.April")%></option>
-                  <option value="4" <%=(startMonth.equals("4"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.May")%></option>
-                  <option value="5" <%=(startMonth.equals("5"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.June")%></option>
-                  <option value="6" <%=(startMonth.equals("6"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.July")%></option>
-                  <option value="7" <%=(startMonth.equals("7"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.August")%></option>
-                  <option value="8" <%=(startMonth.equals("8"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.September")%></option>
-                  <option value="9" <%=(startMonth.equals("9"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.October")%></option>
-                  <option value="10" <%=(startMonth.equals("10"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.November")%></option>
-                  <option value="11" <%=(startMonth.equals("11"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.December")%></option>
-                </select><nobr/>
-                <select class="schedulepulldown" name='reportstartday' size="3">
-                  <option value="" <%=(startDay.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
+                  </select>
+                  <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.on")%></span>
+                  <select class="schedulepulldown" name='reportstartmonth'>
+                    <option value="" <%=(startMonth.length() == 0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
+                    <option value="0" <%=(startMonth.equals("0"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.January")%></option>
+                    <option value="1" <%=(startMonth.equals("1"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.February")%></option>
+                    <option value="2" <%=(startMonth.equals("2"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.March")%></option>
+                    <option value="3" <%=(startMonth.equals("3"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.April")%></option>
+                    <option value="4" <%=(startMonth.equals("4"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.May")%></option>
+                    <option value="5" <%=(startMonth.equals("5"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.June")%></option>
+                    <option value="6" <%=(startMonth.equals("6"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.July")%></option>
+                    <option value="7" <%=(startMonth.equals("7"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.August")%></option>
+                    <option value="8" <%=(startMonth.equals("8"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.September")%></option>
+                    <option value="9" <%=(startMonth.equals("9"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.October")%></option>
+                    <option value="10" <%=(startMonth.equals("10"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.November")%></option>
+                    <option value="11" <%=(startMonth.equals("11"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.December")%></option>
+                  </select>
+                  <span class="label">-</span>
+                  <select class="schedulepulldown" name='reportstartday'>
+                    <option value="" <%=(startDay.length() == 0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
 <%
   k = 0;
   while (k < 31)
@@ -516,26 +503,34 @@ function isInteger(value)
     else
       suffix = "th";
 %>
-                  <option value='<%=Integer.toString(k)%>' <%=(startDay.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix%></option>
+                    <option value='<%=Integer.toString(k)%>' <%=(startDay.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix%></option>
 <%
     k++;
   }
 %>
-                </select><nobr/>,<nobr/>
-                <select class="schedulepulldown" name='reportstartyear' size="3">
-                  <option value="" <%=(startYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
-                  <% for(int year=2005; year <= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); year++) {
-                      String selected = (startYear.equals(""+year))?"selected=\"selected\"":""; %>
-                  <option value="<%= year %>" <%= selected %>><%= year %></option>
-                  <% } %>
-                </select>
+                  </select>
+                  <span class="label">,</span>
+                  <select class="schedulepulldown" name='reportstartyear'>
+                    <option value="" <%=(startYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
+<% 
+  for(int year=2005; year <= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); year++)
+  {
+    String selected = (startYear.equals(""+year))?"selected=\"selected\"":""; 
+%>
+                    <option value="<%= year %>" <%= selected %>><%= year %></option>
+<% 
+  } 
+%>
+                  </select>
+                </div>
               </td>
             </tr>
             <tr>
-              <td class="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.EndTime")%></td>
-              <td class="value" colspan="3">
-                <select class="schedulepulldown" name='reportendhour' size="3">
-                  <option value="" <%=(endHour.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.EndTime")%></th>
+              <td colspan="3">
+                <div class="input-group">
+                  <select class="schedulepulldown" name='reportendhour'>
+                    <option value="" <%=(endHour.length() == 0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
 <%
   k = 0;
   while (k < 24)
@@ -553,42 +548,45 @@ function isInteger(value)
     if (q == 0)
       q = 12;
 %>
-                  <option value='<%=k%>' <%=(endHour.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(q)+" "+ampm%></option>
-<%						
+                    <option value='<%=k%>' <%=(endHour.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(q)+" "+ampm%></option>
+<%
     k++;
   }
 %>
-                </select><nobr/>:<nobr/>
-                <select class="schedulepulldown" name='reportendminute' size="3">
-                  <option value="" <%=(endMinute.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
+                  </select>
+                  <span class="label">:</span>
+                  <select class="schedulepulldown" name='reportendminute'>
+                    <option value="" <%=(endMinute.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%>--</option>
 <%
   k = 0;
   while (k < 60)
   {
 %>
-                  <option value='<%=k%>' <%=(endMinute.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k)%></option>
+                    <option value='<%=k%>' <%=(endMinute.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k)%></option>
 <%
     k++;
   }
 %>
-                </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.on")%>
-                <select class="schedulepulldown" name='reportendmonth' size="3">
-                  <option value="" <%=(endMonth.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
-                  <option value="0" <%=(endMonth.equals("0"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.January")%></option>
-                  <option value="1" <%=(endMonth.equals("1"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.February")%></option>
-                  <option value="2" <%=(endMonth.equals("2"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.March")%></option>
-                  <option value="3" <%=(endMonth.equals("3"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.April")%></option>
-                  <option value="4" <%=(endMonth.equals("4"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.May")%></option>
-                  <option value="5" <%=(endMonth.equals("5"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.June")%></option>
-                  <option value="6" <%=(endMonth.equals("6"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.July")%></option>
-                  <option value="7" <%=(endMonth.equals("7"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.August")%></option>
-                  <option value="8" <%=(endMonth.equals("8"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.September")%></option>
-                  <option value="9" <%=(endMonth.equals("9"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.October")%></option>
-                  <option value="10" <%=(endMonth.equals("10"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.November")%></option>
-                  <option value="11" <%=(endMonth.equals("11"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.December")%></option>
-                </select><nobr/>
-                <select class="schedulepulldown" name='reportendday' size="3">
-                  <option value="" <%=(endDay.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
+                  </select>
+                  <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.on")%></span>
+                  <select class="schedulepulldown" name='reportendmonth'>
+                    <option value="" <%=(endMonth.length() == 0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%>--</option>
+                    <option value="0" <%=(endMonth.equals("0"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.January")%></option>
+                    <option value="1" <%=(endMonth.equals("1"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.February")%></option>
+                    <option value="2" <%=(endMonth.equals("2"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.March")%></option>
+                    <option value="3" <%=(endMonth.equals("3"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.April")%></option>
+                    <option value="4" <%=(endMonth.equals("4"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.May")%></option>
+                    <option value="5" <%=(endMonth.equals("5"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.June")%></option>
+                    <option value="6" <%=(endMonth.equals("6"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.July")%></option>
+                    <option value="7" <%=(endMonth.equals("7"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.August")%></option>
+                    <option value="8" <%=(endMonth.equals("8"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.September")%></option>
+                    <option value="9" <%=(endMonth.equals("9"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.October")%></option>
+                    <option value="10" <%=(endMonth.equals("10"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.November")%></option>
+                    <option value="11" <%=(endMonth.equals("11"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.December")%></option>
+                  </select>
+                  <span class="label">-</span>
+                  <select class="schedulepulldown" name='reportendday'>
+                    <option value="" <%=(endDay.length() == 0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%>--</option>
 <%
   k = 0;
   while (k < 31)
@@ -604,64 +602,66 @@ function isInteger(value)
     else
       suffix = "th";
 %>
-                  <option value='<%=Integer.toString(k)%>' <%=(endDay.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix%></option>
+                    <option value='<%=Integer.toString(k)%>' <%=(endDay.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix%></option>
 <%
     k++;
   }
 %>
-                </select><nobr/>,<nobr/>
-                <select class="schedulepulldown" name='reportendyear' size="3">
-                  <option value="" <%=(endYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%> --</option>
-                  <% for(int year=2005; year <= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); year++) {
-                      String selected = (endYear.equals(""+year))?"selected=\"selected\"":""; %>
-                  <option value="<%= year %>" <%= selected %>><%= year %></option>
-                  <% } %>
-                </select>
+                  </select><span class="label">,</span>
+                  <select class="schedulepulldown" name='reportendyear'>
+                    <option value="" <%=(endYear.length() == 0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.NotSpecified")%>--</option>
+<% 
+  for(int year=2005; year <= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); year++)
+  {
+    String selected = (endYear.equals(""+year))?"selected=\"selected\"":"";
+%>
+                    <option value="<%= year %>" <%= selected %>><%= year %></option>
+<% 
+  }
+%>
+                  </select>
+                </div>
               </td>
             </tr>
             <tr>
-              <td class="separator" colspan="4"><hr/></td>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.EntityMatch")%></nobr></th>
+              <td><input type="text" class="form-control" name="reportentitymatch" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(entityMatch)%>'/></td>
+              <th class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.ResultCodeMatch")%></nobr></th>
+              <td><input type="text" class="form-control" name="reportresultcodematch" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(resultCodeMatch)%>'/></td>
             </tr>
             <tr>
-              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.EntityMatch")%></nobr></td>
-              <td class="value"><input type="text" name="reportentitymatch" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(entityMatch)%>'/></td>
-              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.ResultCodeMatch")%></nobr></td>
-              <td class="value"><input type="text" name="reportresultcodematch" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(resultCodeMatch)%>'/></td>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescription")%></nobr></th>
+              <td><input type="text" class="form-control" name="reportbucketdesc" size="20" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(reportBucketDesc)%>'/></td>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.SlidingWindowSize")%></nobr></th>
+              <td><input type="text" class="form-control" name="reportinterval" size="5" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(Integer.toString(interval))%>'/></td>
             </tr>
-            <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-
-            <tr>
-              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClassDescription")%></nobr></td>
-              <td class="value"><input type="text" name="reportbucketdesc" size="20" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(reportBucketDesc)%>'/></td>
-              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.SlidingWindowSize")%></nobr></td>
-              <td class="value"><input type="text" name="reportinterval" size="5" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(Integer.toString(interval))%>'/></td>
-            </tr>
-            <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-              <td class="message" colspan="4">
+          </table>
+        </div>
+        <div class="box-footer clearfix">
+          <div class="btn-group">
 <%
   if (reportConnection.length() > 0)
   {
 %>
-                <a name="MainButton"><input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.Go")%>" onClick="javascript:Go()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.ExecuteThisQuery")%>"/></a>
+            <a name="MainButton"><input class="btn btn-primary" type="button"
+                    value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.Go")%>"
+                    onClick="javascript:Go()"
+                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.ExecuteThisQuery")%>"/></a>
 <%
   }
   else
   {
 %>
-                <a name="MainButton"><input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.Continue")%>"/></a>
+            <a name="MainButton"><input class="btn btn-primary" type="button"
+                    value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.Continue")%>"
+                    onClick="javascript:Continue()"
+                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.Continue")%>"/></a>
 <%
   }
 %>
-              </td>
-            <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-
-          </table>
+          </div>
+        </div>
+      </div>
 <%
   if (reportConnection.length() > 0)
   {
@@ -708,9 +708,9 @@ function isInteger(value)
       resultCodeMatchObject = new RegExpCriteria(resultCodeMatch,true);
     FilterCriteria criteria = new FilterCriteria(ourActivities,startTime,endTime,entityMatchObject,resultCodeMatchObject);
 %>
-          <input type="hidden" name="clickcolumn" value=""/>
-          <input type="hidden" name="startrow" value='<%=Integer.toString(startRow)%>'/>
-          <input type="hidden" name="sortorder" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
+      <input type="hidden" name="clickcolumn" value=""/>
+      <input type="hidden" name="startrow" value='<%=Integer.toString(startRow)%>'/>
+      <input type="hidden" name="sortorder" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
 <%
     long count = connMgr.countHistoryRows(reportConnection,criteria);
     long maxCount = connMgr.getMaxRows();
@@ -719,7 +719,9 @@ function isInteger(value)
     {
       hasMoreRows = false;
 %>
-          <table class="displaytable"><tr><td class="message">You have selected <%=new Long(count).toString()%> rows.  Maximum allowed is <%=new Long(maxCount).toString()%>.</td></tr></table>
+      <div class="callout callout-warning">
+        You have selected <%=new Long(count).toString()%> rows. Maximum allowed is <%=new Long(maxCount).toString()%>.
+      </div>
 <%
     }
     else
@@ -731,12 +733,14 @@ function isInteger(value)
 
 %>
 
-          <table class="displaytable">
-            <tr class="headerrow">
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("idbucket");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClass")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("activitycount");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.HighestActivityRate")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("starttime");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.StartTime")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("endtime");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.EndTime")%></nobr></a></td>
+      <div class="box box-primary">
+        <div class="box-body">
+          <table class="table table-bordered">
+            <tr>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("idbucket");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.IdentifierClass")%></nobr></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("activitycount");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.HighestActivityRate")%></nobr></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("starttime");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.StartTime")%></nobr></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("endtime");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.EndTime")%></nobr></a></th>
             </tr>
 <%
       zz = 0;
@@ -758,77 +762,82 @@ function isInteger(value)
         double activityRate = activityCount * 60000.0 / intervalMilliseconds;
 
 %>
-            <tr <%="class=\""+((zz%2==0)?"evendatarow":"odddatarow")+"\""%>>
-              <td class="reportcolumncell"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(idBucketString)%></nobr></td>
-              <td class="reportcolumncell"><%=new Double(activityRate).toString()%></td>
-              <td class="reportcolumncell"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(startTimeString)%></nobr></td>
-              <td class="reportcolumncell"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(endTimeString)%></nobr></td>
+            <tr>
+              <td><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(idBucketString)%></nobr></td>
+              <td><%=new Double(activityRate).toString()%></td>
+              <td><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(startTimeString)%></nobr></td>
+              <td><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(endTimeString)%></nobr></td>
             </tr>
 <%
         zz++;
       }
 %>
           </table>
-<%
-    }
-%>
-          <table class="reportfootertable">
-            <tr class="reportfooterrow">
-              <td class="reportfootercell">
-                <nobr>
+        </div>
+        <%
+          }
+        %>
+        <div class="box-footer clearfix">
+          <ul class="pagination pagination-sm no-margin pull-left">
 <%
     if (startRow == 0)
     {
 %>
-                  <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Previous")%>
+            <li><a href="#"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Previous")%></a></li>
 <%
     }
     else
     {
 %>
-                  <a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Previous")%></a>
+            <li>
+              <a href="javascript:void(0);"
+                      onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>'
+                      alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Previous")%></a>
+            </li>
 <%
     }
-%>
-                </nobr>
-                <nobr>
-<%
     if (hasMoreRows == false)
     {
 %>
-                  <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Next")%>
+            <li><a href="#"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Next")%></a></li>
 <%
     }
     else
     {
 %>
-                  <a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Next")%></a>
+            <li>
+              <a href="javascript:void(0);"
+                      onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>'
+                      alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Next")%></a>
+            </li>
 <%
     }
 %>
-                </nobr>
-              </td>
-              <td class="reportfootercell">
-                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Rows")%></nobr>
-                <nobr><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></nobr>
-              </td>
-              <td class="reportfootercell">
-                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.RowsPerPage")%></nobr>
-                <nobr><input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/></nobr>
-              </td>
-            </tr>
-          </table>
+          </ul>
+          <ul class="pagination pagination-sm no-margin pull-right">
+            <li class="pad">
+              <span class="label label-primary"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Rows")%><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></span>
+            </li>
+            <li class="form-inline">
+              <div class="input-group input-group-sm">
+                <span class="input-group-addon"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.RowsPerPage")%></span>
+                <input type="text" class="form-control" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
 
 <%
   }
   else
   {
 %>
-          <table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.PleaseSelectAConnection")%></td></tr></table>
+      <div class="callout callout-info"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.PleaseSelectAConnection")%></div>
 <%
   }
 %>
-        </form>
+    </form>
 <%
 }
 catch (ManifoldCFException e)
@@ -841,10 +850,5 @@ catch (ManifoldCFException e)
 <%
 }
 %>
-      </td>
-    </tr>
-  </table>
-
-</body>
-
-</html>
+  </div>
+</div>
