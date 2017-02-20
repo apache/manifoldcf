@@ -144,15 +144,15 @@ try
         <div class="box-footer clearfix">
           <div class="btn-group">
             <a href='<%="viewnotification.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewnotification.Refresh")%>"
-                    class="link btn btn-primary" role="button"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewnotification.Refresh")%></a>
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewnotification.Refresh")%>"
+                    class="link btn btn-success" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
             <a href='<%="editnotification.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewnotification.EditThisNotificationConnection")%>"
-                    class="link btn btn-primary" role="button"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewnotification.Edit")%></a>
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewnotification.EditThisNotificationConnection")%>"
+                    class="link btn btn-primary" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
             <a href="javascript:void(0);"
                     onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>'
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewnotification.DeleteThisNotificationConnection")%>"
-                    class="btn btn-danger" role="button"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewnotification.Delete")%></a>
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewnotification.DeleteThisNotificationConnection")%>"
+                    class="btn btn-danger" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
           </div>
         </div>
       </form>

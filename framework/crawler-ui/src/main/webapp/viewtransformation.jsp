@@ -150,7 +150,7 @@ try
           <div class="btn-group">
             <a href='<%="viewtransformation.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewtransformation.Refresh")%>"
-                    class="link btn btn-primary" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
+                    class="link btn btn-success" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
             <a href='<%="edittransformation.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewtransformation.EditThisTransformationConnection")%>"
                     class="link btn btn-primary" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>

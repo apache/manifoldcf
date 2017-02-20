@@ -162,7 +162,7 @@ try
           <div class="btn-group">
             <a href='<%="viewmapper.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.Refresh")%>"
-                    class="link btn btn-primary" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
+                    class="link btn btn-success" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
             <a href='<%="editmapper.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.EditThisMappingConnection")%>"
                     class="link btn btn-primary" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>

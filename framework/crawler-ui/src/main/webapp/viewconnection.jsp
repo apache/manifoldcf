@@ -204,19 +204,19 @@ try
         <div class="box-footer clearfix">
           <div class="btn-group">
             <a href='<%="viewconnection.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.Refresh")%>"
-                    class="link btn btn-primary" role="button"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Refresh")%></a>
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.Refresh")%>"
+                    class="link btn btn-success" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
             <a href='<%="editconnection.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.EditThisConnection")%>"
-                    class="link btn btn-primary" role="button"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Edit")%></a>
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.EditThisConnection")%>"
+                    class="link btn btn-primary" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
             <a href="javascript:void(0);"
                     onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>'
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.Deletethisconnection")%>"
-                    class="btn btn-danger" role="button"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.Delete")%></a>
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.Deletethisconnection")%>"
+                    class="btn btn-danger" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
             <a href="javascript:void(0);"
                     onclick='<%="javascript:ClearHistory(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>'
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.ClearHistoryAssociatedWithThisConnection")%>"
-                    class="btn btn-primary" role="button"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewconnection.ClearAllRelatedHistory")%></a>
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.ClearHistoryAssociatedWithThisConnection")%>"
+                    class="btn btn-warning" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
           </div>
         </div>
       </form>
