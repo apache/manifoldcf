@@ -292,7 +292,7 @@ try
         <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
         <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
 
-        <div class="box-body">
+        <div class="box-header">
           <ul class="nav nav-tabs" role="tablist">
 <%
     int tabNum = 0;
@@ -319,6 +319,9 @@ try
     }
 %>
           </ul>
+        </div>
+        <div class="box-body">
+          <div class="tab-content">
 <%
 
     // Name tab
@@ -550,6 +553,7 @@ try
     if (className.length() > 0)
       AuthorityConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabName);
 %>
+          </div>
         </div>
 
         <div class="box-footer clearfix">

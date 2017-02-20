@@ -30,7 +30,7 @@
   &.box-default {
     border-top-color: @gray;
   }
-  
+
   // collapsed mode
   &.collapsed-box {
     .box-body,
@@ -38,7 +38,7 @@
       display: none;
     }
   }
-  
+
   .nav-stacked {
     > li {
       border-bottom: 1px solid @box-border-color;
@@ -69,12 +69,12 @@
   //use this class to get a colored header and borders
 
   &.box-solid {
-    border-top: 0px;
+    border-top: 0;
     > .box-header {
       .btn.btn-default {
         background: transparent;
       }
-      .btn, 
+      .btn,
       a {
         &:hover {
           background: rgba(0,0,0,0.1)!important;
@@ -105,7 +105,7 @@
     > .box-header > .box-tools .btn {
       border: 0;
       box-shadow: none;
-    }    
+    }
 
     // Fix font color for tiles
     &[class*='bg'] {
@@ -122,7 +122,6 @@
       margin-bottom: 5px;
     }
   }
-
 
   // jQuery Knob in a box
   .knob-label {
@@ -161,7 +160,6 @@
   .overlay.dark {
     background: rgba(0, 0, 0, 0.5);
   }
-
 }
 
 //Add clearfix to header, body and footer
@@ -172,10 +170,10 @@
 }
 
 //Box header
-.box-header {  
+.box-header {
   color: #444;
   display: block;
-  padding: @box-padding;
+  padding-top: @box-padding;
   position: relative;
 
   //Add bottom border
@@ -244,7 +242,7 @@
   // Tables within the box body
   > .table {
     margin-bottom: 0;
-  }    
+  }
 
   // Calendar within the box body
   .fc {
@@ -288,4 +286,3 @@
 .box-input {
   max-width: 200px;
 }
-

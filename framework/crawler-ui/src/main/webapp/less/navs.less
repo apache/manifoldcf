@@ -43,12 +43,7 @@
   }
 
   > li:first-of-type {
-    margin-left: 0;
-    &.active {
-      > a {
-        border-left-width: 0;
-      }
-    }
+    margin-left: 10px;
   }
 
   //Pulled to the right
@@ -105,6 +100,7 @@
 }
 
 .tab-group{
+  border-bottom: 1px solid @box-border-color;
   padding-bottom: 0px;
   
   .btn-group{
@@ -130,6 +126,10 @@
         .box-shadow(none);
       }
     }
+  }
+  
+  > .btn-group:first-of-type{
+    margin-left:10px;
   }
 }
 

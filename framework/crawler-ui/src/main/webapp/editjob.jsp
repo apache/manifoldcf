@@ -795,7 +795,8 @@ function isRegularExpression(value)
 <%
   }
 %>
-        <div class="box-header with-border tab-group">
+        <div class="box-header">
+          <div class="tab-group">
 <%
   int activeTab = 0;
   int lastTabSeq = -1;
@@ -874,6 +875,7 @@ function isRegularExpression(value)
   }
   // Missing remainder tab ON PURPOSE -- comes from rowspan=2 tab above
 %>
+          </div>
         </div>
         <div class="box-body">
           <div class="tab-content">
