@@ -256,7 +256,7 @@ try
         <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
         <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
 
-        <div class="box-body">
+        <div class="box-header">
           <ul class="nav nav-tabs" role="tablist">
 
 <%
@@ -284,6 +284,8 @@ try
     }
 %>
           </ul>
+        </div>
+        <div class="box-body">
           <div class="tab-content">
 <%
 

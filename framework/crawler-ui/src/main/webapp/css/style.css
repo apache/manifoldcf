@@ -1162,7 +1162,7 @@ a:focus {
   border-left: 1px solid #f4f4f4;
 }
 .box.box-solid {
-  border-top: 0px;
+  border-top: 0;
 }
 .box.box-solid > .box-header .btn.btn-default {
   background: transparent;
@@ -1302,7 +1302,7 @@ a:focus {
 .box-header {
   color: #444;
   display: block;
-  padding: 10px;
+  padding-top: 10px;
   position: relative;
 }
 .box-header.with-border {
@@ -1729,10 +1729,7 @@ a:focus {
   border-top: 0;
 }
 .nav-tabs > li:first-of-type {
-  margin-left: 0;
-}
-.nav-tabs > li:first-of-type.active > a {
-  border-left-width: 0;
+  margin-left: 10px;
 }
 .nav-tabs.pull-right {
   float: none!important;
@@ -1772,6 +1769,7 @@ a:focus {
   border: 0;
 }
 .tab-group {
+  border-bottom: 1px solid #f4f4f4;
   padding-bottom: 0px;
 }
 .tab-group .btn-group {
@@ -1796,6 +1794,9 @@ a:focus {
 .tab-group .btn-group .btn:active {
   -webkit-box-shadow: none;
   box-shadow: none;
+}
+.tab-group > .btn-group:first-of-type {
+  margin-left: 10px;
 }
 /* PAGINATION */
 .pagination > li > a {
