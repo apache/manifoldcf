@@ -288,8 +288,8 @@ try
         <div class="box-footer clearfix">
           <div class="btn-group">
             <a href="showjobstatus.jsp"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.RefreshStatus")%>"
-                    class="link btn btn-primary" role="button"><span class="fa fa-refresh" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Refresh")%></a>
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.RefreshStatus")%>"
+                    class="link btn btn-primary" role="button" data-toggle="tooltip"><span class="fa fa-refresh" aria-hidden="true"></span></a>
           </div>
           
 <%
