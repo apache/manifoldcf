@@ -431,6 +431,11 @@ $.ManifoldCF.submit=function(form){
         else
             History.replaceState({urlPath: encodeURI(action)}, null, '#execute_'+form.name);
         console.log("textStatus: " + textStatus)
+        //Temporary fix for Javascript bug, when loading connector javascript.
+        if(window.checkConfig)
+            window.checkConfig = null;
+        if(window.checkConfigForSave)
+            window.checkConfigForSave = null;
         $('#content').html(data);
     }).fail(function(xhr, opts, error){
         displayError(xhr);
