@@ -101,20 +101,14 @@ try
                 <div class="btn-group">
                   <a href='<%="viewtransformation.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listtransformations.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          class="link btn btn-success btn-xs" role="button" data-toggle="tooltip">
-                    <span class="fa fa-eye" aria-hidden="true"></span>
-                  </a>
+                          class="link btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-eye fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listtransformations.View")%></a>
                   <a href='<%="edittransformation.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listtransformations.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip">
-                    <span class="fa fa-pencil-square-o" aria-hidden="true"></span>
-                  </a>
-                  <a href="javascript:void()"
+                          class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-pencil-square-o fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listtransformations.Edit")%></a>
+                  <a href="javascript:void(0);"
                           onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listtransformations.Delete")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          class="btn btn-danger btn-xs" role="button" data-toggle="tooltip">
-                    <span class="fa fa-trash" aria-hidden="true"></span>
-                  </a>
+                          class="btn btn-danger btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-trash fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listtransformations.Delete")%></a>
                 </div>
               </td>
               <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)%></td>
@@ -128,14 +122,13 @@ try
           </table>
         </div>
         <div class="box-footer clearfix">
-          <div class="btn-group">
-            <a href="edittransformation.jsp"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listtransformations.AddATransformationConnection")%>"
-                    class="link btn btn-primary" role="button">
-              <span class="fa fa-plus-circle" aria-hidden="true"></span>
-              <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listtransformations.AddaNewTransformationConnection")%>
-            </a>
-          </div>
+          <a href="edittransformation.jsp" class="link btn btn-primary" role="button" 
+                  title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listtransformations.AddaNewTransformationConnection")%>" data-toggle="tooltip"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listtransformations.Add")%></a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>        
 <%
 }
 catch (ManifoldCFException e)
@@ -148,8 +141,3 @@ catch (ManifoldCFException e)
 <%
 }
 %>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>

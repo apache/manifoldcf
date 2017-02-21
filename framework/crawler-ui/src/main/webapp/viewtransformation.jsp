@@ -150,14 +150,14 @@ try
           <div class="btn-group">
             <a href='<%="viewtransformation.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewtransformation.Refresh")%>"
-                    class="link btn btn-success" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
+                    class="link btn btn-success" role="button" data-toggle="tooltip"><i class="fa fa-refresh fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewtransformation.Refresh")%></a>
             <a href='<%="edittransformation.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewtransformation.EditThisTransformationConnection")%>"
-                    class="link btn btn-primary" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+                    class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-pencil fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewtransformation.Edit")%></a>
             <a href="javascript:void(0);"
                     onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewtransformation.DeleteThisTransformationConnection")%>"
-                    class="btn btn-danger" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+                    class="btn btn-danger" role="button" data-toggle="tooltip"><i class="fa fa-trash fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewtransformation.Delete")%></a>
           </div>
         </div>
       </form>

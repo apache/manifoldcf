@@ -373,19 +373,15 @@ try
   if (statusConnection.length() > 0 && statusJobIdentifiers.length > 0)
   {
 %>
-            <a name="MainButton"><input class="btn btn-primary btn-sm" type="button"
-                    value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"documentstatus.Go")%>"
-                    onClick="javascript:Go()"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"documentstatus.ExecuteThisQuery")%>" /></a>
+            <a class="btn btn-primary" type="button" onClick="javascript:Go()" 
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"documentstatus.ExecuteThisQuery")%>"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"documentstatus.ExecuteThisQuery")%></a>
 <%
   }
   else
   {
 %>
-            <a name="MainButton"><input class="btn btn-primary btn-sm" type="button"
-                    value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"documentstatus.Continue")%>"
-                    onClick="javascript:Continue()"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"documentstatus.Continue")%>" /></a>
+            <a class="btn btn-primary" type="button" onClick="javascript:Continue()"
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"documentstatus.Continue")%>"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"documentstatus.Continue")%></a>
 <%
   }
 %>
