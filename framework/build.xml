@@ -34,7 +34,7 @@
             <include name="zookeeper*.jar"/>
             <include name="json*.jar"/>
             <include name="commons-codec*.jar"/>
-            <include name="commons-collections*.jar"/>
+            <include name="commons-collections-*.jar"/>
             <include name="commons-el*.jar"/>
             <include name="commons-fileupload*.jar"/>
             <include name="httpcore*.jar"/>
@@ -86,6 +86,7 @@
             <include name="jackson-annotations*.jar"/>
             <include name="tika-parsers*.jar"/>
             <include name="geoapi*.jar"/>
+            <include name="jsr-275*.jar"/>
             <include name="sis-metadata*.jar"/>
             <include name="sis-utility*.jar"/>
             <include name="sis-netcdf*.jar"/>
@@ -99,6 +100,7 @@
             <include name="netcdf4*.jar"/>
             <include name="httpservices*.jar"/>
             <include name="grib*.jar"/>
+            <include name="jna*.jar"/>
             <include name="cdm*.jar"/>
             <include name="udunits*.jar"/>
             <include name="jcommander*.jar"/>
@@ -1393,6 +1395,7 @@
                 <include name="jackson-annotations*.jar"/>
                 <include name="tika-parsers*.jar"/>
                 <include name="geoapi*.jar"/>
+                <include name="jsr-275*.jar"/>
                 <include name="sis-metadata*.jar"/>
                 <include name="sis-utility*.jar"/>
                 <include name="sis-netcdf*.jar"/>
@@ -1406,6 +1409,8 @@
                 <include name="netcdf4*.jar"/>
                 <include name="httpservices*.jar"/>
                 <include name="grib*.jar"/>
+                <include name="jna*.jar"/>
+                <include name="jj2000*.jar"/>
                 <include name="cdm*.jar"/>
                 <include name="udunits*.jar"/>
                 <include name="jcommander*.jar"/>

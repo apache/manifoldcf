@@ -83,11 +83,6 @@
       <artifactId>tika-core</artifactId>
       <version>${tika.version}</version>
     </dependency>
-    <!-- dependency>
-      <groupId>org.codelibs</groupId>
-      <artifactId>jhighlight</artifactId>
-      <version>${jhighlight.version}</version>
-    </dependency -->
     <dependency>
       <groupId>javax.activation</groupId>
       <artifactId>activation</artifactId>
