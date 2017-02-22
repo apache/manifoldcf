@@ -107,7 +107,7 @@
     <property name="vorbis.version" value="0.8"/>
     <property name="metadata-extractor.version" value="2.8.1"/>
     <property name="aspectjrt.version" value="1.8.6"/>
-    <property name="jhighlight.version" value="1.0.3"/>
+    <property name="jhighlight.version" value="1.0.2"/>
     <property name="xmlbeans.version" value="2.6.0"/>
     <property name="bc.version" value="1.54"/>
     <property name="tukaani.version" value="1.5"/>
