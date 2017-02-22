@@ -95,6 +95,9 @@
             <include name="jackcess*.jar"/>
             <include name="junrar*.jar"/>
             <include name="commons-vfs2*.jar"/>
+            <include name="maven-scm*.jar"/>
+            <include name="plexus-utils*.jar"/>
+            <include name="regexp*.jar"/>
             <include name="commons-csv*.jar"/>
             <include name="commons-exec*.jar"/>
             <include name="netcdf4*.jar"/>
@@ -1404,6 +1407,9 @@
                 <include name="jackcess*.jar"/>
                 <include name="junrar*.jar"/>
                 <include name="commons-vfs2*.jar"/>
+                <include name="maven-scm*.jar"/>
+                <include name="plexus-utils*.jar"/>
+                <include name="regexp*.jar"/>
                 <include name="commons-csv*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="netcdf4*.jar"/>
