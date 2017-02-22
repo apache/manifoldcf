@@ -136,7 +136,20 @@ public class NullConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   {
     // Establish a session
     getSession();
-    activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,"OK",null);
+    final StringBuffer sb = new StringBuffer();
+    final Iterator<String> metadataKeys = document.getFields();
+    boolean needComma = false;
+    while (metadataKeys.hasNext()) {
+      final String key = metadataKeys.next();
+      final String[] values = document.getFieldAsStrings(key);
+      if (needComma) {
+        sb.append(",");
+      } else {
+        needComma = true;
+      }
+      sb.append("\"").append(key).append("\":").append(Integer.toString(values.length));
+    }
+    activities.recordActivity(null,INGEST_ACTIVITY,new Long(document.getBinaryLength()),documentURI,"OK",sb.toString());
     return DOCUMENTSTATUS_ACCEPTED;
   }
 
