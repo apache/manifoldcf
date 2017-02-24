@@ -3,9 +3,12 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1381: Fix slack notification connector not to send the proxy
+password to the client in plaintext
+(Markus Schuch)
+
 CONNECTORS-1380: DropBox connector editSpecification.js velocity template incorrect variable
 (Kishore Kumar)
-
 CONNECTORS-1378: History reports End time year resets to Start Time year
 (Kishore Kumar)
 

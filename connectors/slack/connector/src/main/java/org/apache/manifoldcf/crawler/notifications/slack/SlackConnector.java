@@ -339,7 +339,7 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
     if(proxyPassword == null) {
       proxyPassword = StringUtils.EMPTY;
     } else {
-      mapper.mapPasswordToKey(proxyPassword);
+      proxyPassword = mapper.mapPasswordToKey(proxyPassword);
     }
 
     String proxyDomain = getEmptyOnNull(parameters, SlackConfig.PROXY_DOMAIN_PARAM);
