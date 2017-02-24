@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1385: Confluence connector was constructing bad paths
+which confused CF 6.4.
+(Andrew Shumway, Karl Wright)
+
 CONNECTORS-1382: Slack notification connector now treats the webhook url
 as sensitive information
 (Markus Schuch)
@@ -16,6 +20,7 @@ CONNECTORS-1380: DropBox connector editSpecification.js velocity template incorr
 CONNECTORS-1378: History reports End time year resets to Start Time year
 (Kishore Kumar)
 
+>>>>>>> .r1784297
 CONNECTORS-1372: Bizarre errors while reading data out of a RepositoryDocument
 in some cases.  This was due to the implicit conversion of Readers to
 Strings.
