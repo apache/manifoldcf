@@ -372,7 +372,7 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
     String login = getParam(parameters, "genericLogin", "");
     String password = "";
     try {
-      password = ManifoldCF.deobfuscate(getParam(parameters, "genericPassword", ""));
+      password = out.mapPasswordToKey(ManifoldCF.deobfuscate(getParam(parameters, "genericPassword", "")));
     } catch (ManifoldCFException ignore) {
     }
     String conTimeout = getParam(parameters, "genericConnectionTimeout", "60000");
@@ -433,7 +433,7 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
     if (password == null) {
       password = "";
     }
-    parameters.setParameter("genericPassword", org.apache.manifoldcf.core.system.ManifoldCF.obfuscate(password));
+    parameters.setParameter("genericPassword", org.apache.manifoldcf.core.system.ManifoldCF.obfuscate(variableContext.mapKeyToPassword(password)));
     return null;
   }
 

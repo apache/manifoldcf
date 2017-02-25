@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1383: Fix Generic connector not to send the password
+to the client in plaintext
+(Markus Schuch)
+
 CONNECTORS-1384: Fix GridFS connector not to send the password
 to the client in plaintext and enabled password obfuscation
 (Markus Schuch)
