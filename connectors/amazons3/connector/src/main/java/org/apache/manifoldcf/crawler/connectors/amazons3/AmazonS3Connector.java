@@ -265,7 +265,7 @@ public class AmazonS3Connector extends BaseRepositoryConnector {
     String amazons3AccessKey = parameters
         .getParameter(AmazonS3Config.AWS_ACCESS_KEY);
     String amazons3SecretKey = parameters
-        .getParameter(AmazonS3Config.AWS_SECRET_KEY);
+        .getObfuscatedParameter(AmazonS3Config.AWS_SECRET_KEY);
 
     // default values
     if (amazons3AccessKey == null)
@@ -415,7 +415,7 @@ public class AmazonS3Connector extends BaseRepositoryConnector {
     if (awsSecretKey != null) {
       // set as obfuscated parameter
       parameters.setObfuscatedParameter(AmazonS3Config.AWS_SECRET_KEY,
-          awsSecretKey);
+          variableContext.mapKeyToPassword(awsSecretKey));
     }
 
     // proxy tab
@@ -448,8 +448,8 @@ public class AmazonS3Connector extends BaseRepositoryConnector {
     if (amazons3ProxyPassword != null) {
       // set as obfuscated parameter
       parameters.setObfuscatedParameter(
-          AmazonS3Config.AMAZONS3_PROXY_USERNAME,
-          amazons3ProxyUserName);
+          AmazonS3Config.AMAZONS3_PROXY_PASSWORD,
+          variableContext.mapKeyToPassword(amazons3ProxyPassword));
     }
 
     return null;
