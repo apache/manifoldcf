@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1388: The User ID field is now focused when the login
+page is loaded
+(Markus Schuch)
+
 CONNECTORS-1387: Fix Amazon S3 connector not storing secret key
 and proxy credentials properly
 (Markus Schuch)
