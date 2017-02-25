@@ -33,10 +33,10 @@ password to the client in plaintext
 
 CONNECTORS-1380: DropBox connector editSpecification.js velocity template incorrect variable
 (Kishore Kumar)
+
 CONNECTORS-1378: History reports End time year resets to Start Time year
 (Kishore Kumar)
 
->>>>>>> .r1784297
 CONNECTORS-1372: Bizarre errors while reading data out of a RepositoryDocument
 in some cases.  This was due to the implicit conversion of Readers to
 Strings.
