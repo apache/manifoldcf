@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1387: Fix Amazon S3 connector not storing secret key
+and proxy credentials properly
+(Markus Schuch)
+
 CONNECTORS-1383: Fix Generic connector not to send the password
 to the client in plaintext
 (Markus Schuch)
