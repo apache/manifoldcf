@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1384: Fix GridFS connector not to send the password
+to the client in plaintext and enabled password obfuscation
+(Markus Schuch)
+
 CONNECTORS-1385: Confluence connector was constructing bad paths
 which confused CF 6.4.
 (Andrew Shumway, Karl Wright)
