@@ -43,8 +43,6 @@ response.setContentType("text/html;charset=utf-8");
         document.loginform.submit();
       }
 
-      document.onkeypress = loginKeyPress;
-
       function loginKeyPress(e)
       {
           e = e || window.event;
@@ -55,6 +53,9 @@ response.setContentType("text/html;charset=utf-8");
           }
           return true;
       }
+      
+      document.onkeypress = loginKeyPress;
+
       //-->
     </script>
   </head>
@@ -79,7 +80,7 @@ if (value != null && value.equals("true"))
               <tr>
                 <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.UserIDColon")%></nobr></td>
                 <td class="value">
-                  <input name="userID" type="text" size="32" value="" autofocus />
+                  <input name="userID" type="text" size="32" value="" autofocus="true"/>
                 </td>
               </tr>
               <tr>
