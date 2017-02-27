@@ -2055,6 +2055,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     out.print(
 "      </table>\n"+
 "    </td>\n"+
+"  </tr>\n"+
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
     // Find whether security is on or off
