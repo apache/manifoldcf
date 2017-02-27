@@ -21,10 +21,12 @@ import java.util.Locale;
 
 import org.apache.manifoldcf.core.tests.HTMLTester;
 import org.junit.Test;
+import org.junit.Ignore;
 
 public class NavigationHSQLDBUI extends BaseUIHSQLDB {
 
   @Test
+  @Ignore
   public void createConnectionsAndJob()
           throws Exception {
     testerInstance.newTest(Locale.US);
