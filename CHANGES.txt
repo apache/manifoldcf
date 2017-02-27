@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1389: The email notification connector now supports
+multiple comma separated recipients
+(Markus Schuch)
+
 CONNECTORS-1388: The User ID field is now focused when the login
 page is loaded
 (Markus Schuch)
