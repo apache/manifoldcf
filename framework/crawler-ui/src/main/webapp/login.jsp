@@ -80,7 +80,7 @@ if (value != null && value.equals("true"))
               <tr>
                 <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.UserIDColon")%></nobr></td>
                 <td class="value">
-                  <input name="userID" type="text" size="32" value="" autofocus="true"/>
+                  <input name="userID" type="text" size="32" value="" autofocus="autofocus"/>
                 </td>
               </tr>
               <tr>
