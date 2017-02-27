@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1390: Add user-settable connect timeout field for
+Active Directory authority.
+(Cihad Guzel, Karl Wright)
+
 CONNECTORS-1389: The email notification connector now supports
 multiple comma separated recipients
 (Markus Schuch)
