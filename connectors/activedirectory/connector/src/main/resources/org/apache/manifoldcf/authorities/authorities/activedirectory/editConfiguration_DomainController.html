@@ -110,6 +110,11 @@
       </table>
     </td>
   </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.ConnectionTimeout'))</nobr></td>
+    <td class="value"><input type="text" size="5" name="ldapConnectionTimeout" value="$Encoder.attributeEscape($LDAPCONNECTIONTIMEOUT)"/> $Encoder.bodyEscape($ResourceBundle.getString('ActiveDirectoryAuthority.miliseconds'))</td>
+  </tr>
 </table>
 
 #else
@@ -128,5 +133,6 @@
   #end
 
 <input type="hidden" name="dcrecord_count" value="$dccounter"/>
+<input type="hidden" name="ldapConnectionTimeout" value="$LDAPCONNECTIONTIMEOUT"/>
 
 #end

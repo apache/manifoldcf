@@ -19,7 +19,6 @@
 package org.apache.manifoldcf.authorities.authorities.activedirectory;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.ManifoldCF;
@@ -52,6 +51,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   private String cacheLRUsize = null;
   private long responseLifetime = 60000L;
   private int LRUsize = 1000;
+  private String ldapConnectionTimeout = null;
 
   /** Session information for all DC's we talk with. */
   private Map<String,DCSessionInfo> sessionInfo = null;
@@ -136,7 +136,9 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
         }
       }
     }
-    
+
+    ldapConnectionTimeout = params.getParameter(ActiveDirectoryConfig.PARAM_LDAPCONNECTIONTIMEOUT);
+
     cacheLifetime = params.getParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME);
     if (cacheLifetime == null)
       cacheLifetime = "1";
@@ -197,7 +199,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       session = new DCSessionInfo();
       sessionInfo.put(domainController,session);
     }
-    return session.getSession(domainController,parms);
+    return session.getSession(domainController,parms, ldapConnectionTimeout);
   }
   
   /** Poll.  The connection should be closed if it has been idle for too long.
@@ -364,7 +366,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     try
     {
       // Establish a session with the selected domain controller
-      LdapContext ctx = createDCSession(domainController);  
+      LdapContext ctx = createDCSession(domainController);
     
       //Get DistinguishedName (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
       String searchBase = getDistinguishedName(ctx, userPart, domainsb.toString(), userACLsUsername);
@@ -505,6 +507,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     velocityContext.put("TabName",tabName);
     fillInDomainControllerTab(velocityContext,out,parameters);
     fillInCacheTab(velocityContext,out,parameters);
+    fillLDAPConfiguration(velocityContext,out,parameters);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_DomainController.html",velocityContext);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Cache.html",velocityContext);
   }
@@ -576,6 +579,12 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       cacheLRUsize = "1000";
     velocityContext.put("CACHELRUSIZE",cacheLRUsize);
   }
+
+  protected static void fillLDAPConfiguration(Map<String,Object> velocityContext, IPasswordMapperActivity mapper, ConfigParams parameters)
+  {
+    String ldapConnectionTimeout = parameters.getParameter(ActiveDirectoryConfig.PARAM_LDAPCONNECTIONTIMEOUT);
+    velocityContext.put("LDAPCONNECTIONTIMEOUT", (ldapConnectionTimeout == null? "" : ldapConnectionTimeout));
+  }
   
   /** Process a configuration post.
   * This method is called at the start of the authority connector's configuration page, whenever there is a possibility that form data for a connection has been
@@ -599,6 +608,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       parameters.setParameter(ActiveDirectoryConfig.PARAM_PASSWORD,null);
       parameters.setParameter(ActiveDirectoryConfig.PARAM_AUTHENTICATION,null);
       parameters.setParameter(ActiveDirectoryConfig.PARAM_USERACLsUSERNAME,null);
+      parameters.setParameter(ActiveDirectoryConfig.PARAM_LDAPCONNECTIONTIMEOUT,null);
       // Delete old nodes
       int i = 0;
       while (i < parameters.getChildCount())
@@ -656,7 +666,9 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
           variableContext.getParameter("dcrecord_userACLsUsername"));
       }
     }
-    
+    String ldapConnectionTimeout = variableContext.getParameter("ldapConnectionTimeout");
+    if (ldapConnectionTimeout != null)
+     parameters.setParameter(ActiveDirectoryConfig.PARAM_LDAPCONNECTIONTIMEOUT,ldapConnectionTimeout);
     String cacheLifetime = variableContext.getParameter("cachelifetime");
     if (cacheLifetime != null)
       parameters.setParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME,cacheLifetime);
@@ -700,6 +712,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     Map<String,Object> velocityContext = new HashMap<String,Object>();
     fillInDomainControllerTab(velocityContext,out,parameters);
     fillInCacheTab(velocityContext,out,parameters);
+    fillLDAPConfiguration(velocityContext,out,parameters);
     Messages.outputResourceWithVelocity(out,locale,"viewConfiguration.html",velocityContext);
   }
 
@@ -833,7 +846,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     }
 
     /** Initialize the session. */
-    public LdapContext getSession(String domainControllerName, DCConnectionParameters params)
+    public LdapContext getSession(String domainControllerName, DCConnectionParameters params, String ldapConnectionTimeout)
       throws ManifoldCFException
     {
       String authentication = params.getAuthentication();
@@ -858,7 +871,11 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
                     
           //specify attributes to be returned in binary format
           env.put("java.naming.ldap.attributes.binary","tokenGroups objectSid");
-     
+
+          if (ldapConnectionTimeout != null && ldapConnectionTimeout.length() > 0) {
+            env.put("com.sun.jndi.ldap.connect.timeout", ldapConnectionTimeout);
+          }
+          
           // Now, try the connection...
           try
           {
