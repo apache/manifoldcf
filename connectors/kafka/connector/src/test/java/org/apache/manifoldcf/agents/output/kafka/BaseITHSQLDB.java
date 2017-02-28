@@ -17,6 +17,8 @@
 
 package org.apache.manifoldcf.agents.output.kafka;
 
+import java.io.File;
+
 import java.util.Properties;
 import org.junit.After;
 import static org.junit.Assert.fail;
@@ -48,41 +50,41 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
     Properties kafkaProperties = new Properties();
     Properties zkProperties = new Properties();
 
-    try {
-      //load properties
-      kafkaProperties.put("broker.id", "0");
-      kafkaProperties.put("port", "9092");
-      kafkaProperties.put("num.network.threads", "3");
-      kafkaProperties.put("num.io.threads", "8");
-      kafkaProperties.put("socket.send.buffer.bytes", "102400");
-      kafkaProperties.put("socket.receive.buffer.bytes", "102400");
-      kafkaProperties.put("socket.request.max.bytes", "104857600");
-      kafkaProperties.put("log.dirs", "/tmp/kafka-logs");
-      kafkaProperties.put("num.partitions", "1");
-      kafkaProperties.put("num.recovery.threads.per.data.dir", "1");
-      kafkaProperties.put("log.retention.hours", "168");
-      kafkaProperties.put("log.segment.bytes", "1073741824");
-      kafkaProperties.put("log.retention.check.interval.ms", "300000");
-      kafkaProperties.put("log.cleaner.enable", "false");
-      kafkaProperties.put("zookeeper.connect", "localhost:2181");
-      kafkaProperties.put("zookeeper.connection.timeout.ms", "6000");
+    String tmpDir = System.getProperty("java.io.tmpdir");
+    File logDir = new File(tmpDir, "kafka-logs");
+    logDir.mkdir();
+    File zookeeperDir = new File(tmpDir, "zookeeper");
+    zookeeperDir.mkdir();
+            
+    //load properties
+    kafkaProperties.put("broker.id", "0");
+    kafkaProperties.put("port", "9092");
+    kafkaProperties.put("num.network.threads", "3");
+    kafkaProperties.put("num.io.threads", "8");
+    kafkaProperties.put("socket.send.buffer.bytes", "102400");
+    kafkaProperties.put("socket.receive.buffer.bytes", "102400");
+    kafkaProperties.put("socket.request.max.bytes", "104857600");
+    kafkaProperties.put("log.dirs", logDir.getAbsolutePath());
+    kafkaProperties.put("num.partitions", "1");
+    kafkaProperties.put("num.recovery.threads.per.data.dir", "1");
+    kafkaProperties.put("log.retention.hours", "168");
+    kafkaProperties.put("log.segment.bytes", "1073741824");
+    kafkaProperties.put("log.retention.check.interval.ms", "300000");
+    kafkaProperties.put("log.cleaner.enable", "false");
+    kafkaProperties.put("zookeeper.connect", "localhost:2181");
+    kafkaProperties.put("zookeeper.connection.timeout.ms", "6000");
 
-      zkProperties.put("dataDir", "/tmp/zookeeper");
-      zkProperties.put("clientPort", "2181");
-      zkProperties.put("maxClientCnxns", "0");
+    zkProperties.put("dataDir", zookeeperDir.getAbsolutePath());
+    zkProperties.put("clientPort", "2181");
+    zkProperties.put("maxClientCnxns", "0");
 
-      //kafkaProperties.load(Class.class.getResourceAsStream("/kafkalocal.properties"));
-      //zkProperties.load(Class.class.getResourceAsStream("/zklocal.properties"));
-      System.out.println("Kafka is starting...");
+    //kafkaProperties.load(Class.class.getResourceAsStream("/kafkalocal.properties"));
+    //zkProperties.load(Class.class.getResourceAsStream("/zklocal.properties"));
+    System.out.println("Kafka is starting...");
 
-      //start kafka
-      kafka = new KafkaLocal(kafkaProperties, zkProperties);
-      Thread.sleep(5000);
-    } catch (Exception e) {
-      e.printStackTrace(System.out);
-      fail("Error running local Kafka broker");
-      e.printStackTrace(System.out);
-    }
+    //start kafka
+    kafka = new KafkaLocal(kafkaProperties, zkProperties);
+    Thread.sleep(5000);
   }
 
   @After
