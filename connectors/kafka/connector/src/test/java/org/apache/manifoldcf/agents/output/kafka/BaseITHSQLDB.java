@@ -26,7 +26,7 @@ import org.junit.Before;
 
 public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB {
 
-  static KafkaLocal kafka;
+  KafkaLocal kafka;
 
   protected String[] getConnectorNames() {
     return new String[]{"CMIS"};

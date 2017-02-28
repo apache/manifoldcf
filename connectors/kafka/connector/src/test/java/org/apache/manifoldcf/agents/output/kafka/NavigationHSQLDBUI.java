@@ -26,7 +26,6 @@ import org.junit.Ignore;
 public class NavigationHSQLDBUI extends BaseUIHSQLDB {
 
   @Test
-  @Ignore
   public void createConnectionsAndJob()
           throws Exception {
     testerInstance.newTest(Locale.US);
