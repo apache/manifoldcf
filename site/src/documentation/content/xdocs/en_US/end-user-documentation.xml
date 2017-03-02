@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+﻿<?xml version="1.0"?>
 
 <!--
  Licensed to the Apache Software Foundation (ASF) under one or more
@@ -2729,7 +2729,7 @@ curl -XGET http://localhost:9200/index/_mapping
                 <br/><br/>
                 <figure src="images/en_US/web-configure-robots.PNG" alt="Web Connection, Robots tab" width="80%"/>
                 <br/><br/>
-                <p>Select how the connection will interpret robots.txt.  Remember that you have an interest in crawling people's sites as politely as is possible.</p>
+                <p>Select how the connection will interpret robots.txt and &lt;meta name=&quot;robots ...&gt; tags on HTML pages.  Remember that you have an interest in crawling people's sites as politely as is possible.</p>
                 <p>The "Bandwidth" tab allows you to specify a list of bandwidth rules.  Each rule has a regular expression matched against a URL's throttle bin.
                        Throttle bins, in connections of the Web type, are simply the server name part of the URL.  Each rule allows you to select a maximum bandwidth, number of
                        connections, and fetch rate.  You can have as many rules as you like; if a URL matches more than one rule, then the most conservative value will be used.</p>
