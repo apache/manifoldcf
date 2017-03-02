@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1392: The Webcrawler connector now has an option to ignore
+meta robots tags in HTML pages
+(Markus Schuch)
+
 CONNECTORS-1390: Add user-settable connect timeout field for
 Active Directory authority.
 (Cihad Guzel, Karl Wright)
