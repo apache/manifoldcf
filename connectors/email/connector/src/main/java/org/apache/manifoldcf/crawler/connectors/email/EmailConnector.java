@@ -635,8 +635,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                       Part part = mp.getBodyPart(k);
                       String disposition = part.getDisposition();
                       if ((disposition != null) &&
-                          ((disposition.equals(Part.ATTACHMENT) ||
-                              (disposition.equals(Part.INLINE))))) {
+                          ((disposition.toLowerCase(Locale.ROOT).equals(Part.ATTACHMENT) ||
+                              (disposition.toLowerCase(Locale.ROOT).equals(Part.INLINE))))) {
                         final String[] fileSplit = part.getFileName().split("\\?");
                         if (fileSplit.length > 1) {
                           encoding[k] = fileSplit[1];
@@ -654,8 +654,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                     Part part = mp.getBodyPart(k);
                     String disposition = part.getDisposition();
                     if ((disposition != null) &&
-                        ((disposition.equals(Part.ATTACHMENT) ||
-                            (disposition.equals(Part.INLINE))))) {
+                        ((disposition.toLowerCase(Locale.ROOT).equals(Part.ATTACHMENT) ||
+                            (disposition.toLowerCase(Locale.ROOT).equals(Part.INLINE))))) {
                       MIMEType[k] = part.getContentType();
 
                     }
