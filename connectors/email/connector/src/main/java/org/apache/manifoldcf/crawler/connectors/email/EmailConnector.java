@@ -637,8 +637,12 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                       if ((disposition != null) &&
                           ((disposition.equals(Part.ATTACHMENT) ||
                               (disposition.equals(Part.INLINE))))) {
-                        encoding[k] = part.getFileName().split("\\?")[1];
-
+                        final String[] fileSplit = part.getFileName().split("\\?");
+                        if (fileSplit.length > 1) {
+                          encoding[k] = fileSplit[1];
+                        } else {
+                          encoding[k] = "";
+                        }
                       }
                     }
                     rd.addField(EmailConfig.ENCODING_FIELD, encoding);
