@@ -634,14 +634,19 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                     for (int k = 0, n = mp.getCount(); k < n; k++) {
                       Part part = mp.getBodyPart(k);
                       String disposition = part.getDisposition();
-                      if ((disposition != null) &&
-                          ((disposition.equals(Part.ATTACHMENT) ||
-                              (disposition.equals(Part.INLINE))))) {
-                        encoding[k] = part.getFileName().split("\\?")[1];
-
+                      if (disposition != null) {
+                        disposition = disposition.toLowerCase(Locale.ROOT);
+                        if (disposition.equals(Part.ATTACHMENT) || disposition.equals(Part.INLINE)) {
+                          String[] array = part.getFileName().split("\\?");
+                          if(array.length > 1) {
+                            encoding[k] = array[1];
+                          }
+                        }
                       }
                     }
-                    rd.addField(EmailConfig.ENCODING_FIELD, encoding);
+                    if(encoding.length > 0) {
+                      rd.addField(EmailConfig.ENCODING_FIELD, encoding);
+                    }
                   }
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_ATTACHMENT_MIMETYPE)) {
                   Multipart mp = (Multipart) msg.getContent();
