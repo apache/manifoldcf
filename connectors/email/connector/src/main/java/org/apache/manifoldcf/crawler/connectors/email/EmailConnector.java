@@ -628,39 +628,51 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_DATE)) {
                   rd.addField(EmailConfig.EMAIL_DATE, sentDate.toString());
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_ATTACHMENT_ENCODING)) {
-                  Multipart mp = (Multipart) msg.getContent();
-                  if (mp != null) {
-                    String[] encoding = new String[mp.getCount()];
-                    for (int k = 0, n = mp.getCount(); k < n; k++) {
-                      Part part = mp.getBodyPart(k);
-                      String disposition = part.getDisposition();
-                      if ((disposition != null) &&
-                          ((disposition.toLowerCase(Locale.ROOT).equals(Part.ATTACHMENT) ||
-                              (disposition.toLowerCase(Locale.ROOT).equals(Part.INLINE))))) {
-                        final String[] fileSplit = part.getFileName().split("\\?");
-                        if (fileSplit.length > 1) {
-                          encoding[k] = fileSplit[1];
-                        } else {
-                          encoding[k] = "";
+                  Object o = msg.getContent();
+                  if (o != null) {
+                    if (o instanceof Multipart) {
+                      Multipart mp = (Multipart) o;
+                      String[] encoding = new String[mp.getCount()];
+                      for (int k = 0, n = mp.getCount(); k < n; k++) {
+                        Part part = mp.getBodyPart(k);
+                        String disposition = part.getDisposition();
+                        if ((disposition != null) &&
+                            ((disposition.toLowerCase(Locale.ROOT).equals(Part.ATTACHMENT) ||
+                                (disposition.toLowerCase(Locale.ROOT).equals(Part.INLINE))))) {
+                          final String[] fileSplit = part.getFileName().split("\\?");
+                          if (fileSplit.length > 1) {
+                            encoding[k] = fileSplit[1];
+                          } else {
+                            encoding[k] = "";
+                          }
                         }
                       }
+                      rd.addField(EmailConfig.ENCODING_FIELD, encoding);
+                    } else if (o instanceof String) {
+                      rd.addField(EmailConfig.ENCODING_FIELD, "");
                     }
-                    rd.addField(EmailConfig.ENCODING_FIELD, encoding);
                   }
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_ATTACHMENT_MIMETYPE)) {
-                  Multipart mp = (Multipart) msg.getContent();
-                  String[] MIMEType = new String[mp.getCount()];
-                  for (int k = 0, n = mp.getCount(); k < n; k++) {
-                    Part part = mp.getBodyPart(k);
-                    String disposition = part.getDisposition();
-                    if ((disposition != null) &&
-                        ((disposition.toLowerCase(Locale.ROOT).equals(Part.ATTACHMENT) ||
-                            (disposition.toLowerCase(Locale.ROOT).equals(Part.INLINE))))) {
-                      MIMEType[k] = part.getContentType();
+                  Object o = msg.getContent();
+                  if (o != null) {
+                    if (o instanceof Multipart) {
+                      Multipart mp = (Multipart) o;
+                      String[] MIMEType = new String[mp.getCount()];
+                      for (int k = 0, n = mp.getCount(); k < n; k++) {
+                        Part part = mp.getBodyPart(k);
+                        String disposition = part.getDisposition();
+                        if ((disposition != null) &&
+                            ((disposition.toLowerCase(Locale.ROOT).equals(Part.ATTACHMENT) ||
+                                (disposition.toLowerCase(Locale.ROOT).equals(Part.INLINE))))) {
+                          MIMEType[k] = part.getContentType();
 
+                        }
+                      }
+                      rd.addField(EmailConfig.MIMETYPE_FIELD, MIMEType);
+                    } else if (o instanceof String) {
+                      rd.addField(EmailConfig.MIMETYPE_FIELD, "");
                     }
                   }
-                  rd.addField(EmailConfig.MIMETYPE_FIELD, MIMEType);
                 }
               }
                   
