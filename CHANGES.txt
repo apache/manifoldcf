@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1396: Fix email connector class cast exception.
+(Cihad Guzel, Karl Wright)
+
 CONNECTORS-1394: Fix email connector ArrayIndexOutOfBounds
 exception.
 (Cihad Guzel, Karl Wright)
