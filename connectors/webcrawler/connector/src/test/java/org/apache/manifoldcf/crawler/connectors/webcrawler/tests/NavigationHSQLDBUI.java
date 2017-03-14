@@ -134,6 +134,8 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     form = window.findForm(testerInstance.createStringDescription("editconnection"));
     selectbox = form.findSelectbox(testerInstance.createStringDescription("robotsusage"));
     selectbox.selectValue(testerInstance.createStringDescription("none"));
+    selectbox = form.findSelectbox(testerInstance.createStringDescription("metarobotstagsusage"));
+    selectbox.selectValue(testerInstance.createStringDescription("none"));
     // Bandwidth
     link = window.findLink(testerInstance.createStringDescription("Bandwidth tab"));
     link.click();

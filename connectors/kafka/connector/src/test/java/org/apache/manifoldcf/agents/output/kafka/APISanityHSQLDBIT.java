@@ -31,7 +31,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
   @Test
   public void sanityCheck()
           throws Exception {
-    try {
       int i;
 
       // Create a basic file system connection, and save it.
@@ -59,14 +58,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
 
       child = new ConfigurationNode("configuration");
 
-      //Testing Repository Connector parameters
-      // MHL
-      /*
-       ConfigurationNode cmisBindingNode = new ConfigurationNode("_PARAMETER_");
-       cmisBindingNode.setAttribute("name", CmisConfig.BINDING_PARAM);
-       cmisBindingNode.setValue(CmisConfig.BINDING_DEFAULT_VALUE);
-       child.addChild(child.getChildCount(), cmisBindingNode);
-       */
       connectionObject.addChild(connectionObject.getChildCount(), child);
 
       requestObject = new Configuration();
@@ -199,10 +190,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       waitJobDeleted(jobIDString, 120000L);
 
       // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw e;
-    }
   }
 
   protected void startJob(String jobIDString)

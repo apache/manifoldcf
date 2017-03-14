@@ -485,7 +485,7 @@ public class GenericConnector extends BaseRepositoryConnector {
     String login = getParam(parameters, "genericLogin", "");
     String password = "";
     try {
-      password = ManifoldCF.deobfuscate(getParam(parameters, "genericPassword", ""));
+      password = out.mapPasswordToKey(ManifoldCF.deobfuscate(getParam(parameters, "genericPassword", "")));
     } catch (ManifoldCFException ignore) {
     }
     String conTimeout = getParam(parameters, "genericConnectionTimeout", "60000");
@@ -539,7 +539,7 @@ public class GenericConnector extends BaseRepositoryConnector {
     if (password == null) {
       password = "";
     }
-    parameters.setParameter("genericPassword", ManifoldCF.obfuscate(password));
+    parameters.setParameter("genericPassword", ManifoldCF.obfuscate(variableContext.mapKeyToPassword(password)));
     return null;
   }
 

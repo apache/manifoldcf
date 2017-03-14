@@ -192,7 +192,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
     public void connect(ConfigParams configParams) {
         super.connect(configParams);
         username = params.getParameter(GridFSConstants.USERNAME_PARAM);
-        password = params.getParameter(GridFSConstants.PASSWORD_PARAM);
+        password = params.getObfuscatedParameter(GridFSConstants.PASSWORD_PARAM);
         host = params.getParameter(GridFSConstants.HOST_PARAM);
         port = params.getParameter(GridFSConstants.PORT_PARAM);
         db = params.getParameter(GridFSConstants.DB_PARAM);
@@ -642,7 +642,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
 
         String password = variableContext.getParameter(GridFSConstants.PASSWORD_PARAM);
         if (password != null) {
-            parameters.setParameter(GridFSConstants.PASSWORD_PARAM, variableContext.mapKeyToPassword(password));
+            parameters.setObfuscatedParameter(GridFSConstants.PASSWORD_PARAM, variableContext.mapKeyToPassword(password));
         }
 
         String db = variableContext.getParameter(GridFSConstants.DB_PARAM);
@@ -774,8 +774,12 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
         String usernameParam = parameters.getParameter(GridFSConstants.USERNAME_PARAM);
         paramMap.put(GridFSConstants.USERNAME_PARAM, usernameParam);
 
-        String passwordParam = parameters.getParameter(GridFSConstants.PASSWORD_PARAM);
-        passwordParam = mapper.mapKeyToPassword(passwordParam);
+        String passwordParam = parameters.getObfuscatedParameter(GridFSConstants.PASSWORD_PARAM);
+        if (passwordParam == null) {
+          passwordParam = StringUtils.EMPTY;
+        } else {
+          passwordParam = mapper.mapPasswordToKey(passwordParam);
+        }
         paramMap.put(GridFSConstants.PASSWORD_PARAM, passwordParam);
 
         String dbParam = parameters.getParameter(GridFSConstants.DB_PARAM);

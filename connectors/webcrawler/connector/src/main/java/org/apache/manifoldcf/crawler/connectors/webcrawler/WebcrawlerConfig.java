@@ -44,6 +44,8 @@ public class WebcrawlerConfig
 
   /** Robots usage (a parameter) */
   public static final String PARAMETER_ROBOTSUSAGE = "Robots usage";
+  /** Meta robots tags usage (a parameter) */
+  public static final String PARAMETER_META_ROBOTS_TAGS_USAGE = "Meta robots tags usage";
   /** Email (a parameter) */
   public static final String PARAMETER_EMAIL = "Email address";
   /** Proxy host name (parameter) */

@@ -22,7 +22,9 @@ limitations under the License.
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('SlackConnector.WebHookUrlColon'))</nobr>
     </td>
     <td class="value">
-      <nobr>$Encoder.bodyEscape($WEBHOOK_URL)</nobr>
+      #if($WEBHOOK_URL && !$WEBHOOK_URL.empty)
+      <nobr>https://hooks.slack.com/services/********/********/************************</nobr>
+      #end
     </td>
   </tr>
   <tr>

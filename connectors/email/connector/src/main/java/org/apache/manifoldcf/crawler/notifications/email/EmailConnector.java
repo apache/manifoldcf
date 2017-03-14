@@ -22,16 +22,11 @@ package org.apache.manifoldcf.crawler.notifications.email;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.util.URLEncoder;
-import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 import java.io.*;
 import java.util.*;
 import javax.mail.*;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.search.*;
 
 /**
 */
@@ -265,7 +260,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     for (int i = 0; i < spec.getChildCount(); i++) {
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals(EmailConfig.NODE_TO))
-        to.add(sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE));
+        to.addAll(splitAtCommaAndTrim(sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE)));
       else if (sn.getType().equals(EmailConfig.NODE_FROM))
         from = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
       else if (sn.getType().equals(EmailConfig.NODE_SUBJECT))
@@ -282,8 +277,9 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
         {
           for (int j = 0; j < childNode.getChildCount(); j++) {
             SpecificationNode sn = childNode.getChild(j);
-            if (sn.getType().equals(EmailConfig.NODE_TO))
-              to.add(sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE));
+            if (sn.getType().equals(EmailConfig.NODE_TO)) {
+              to.addAll(splitAtCommaAndTrim(sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE)));
+            }
             else if (sn.getType().equals(EmailConfig.NODE_FROM))
               from = sn.getAttributeValue(EmailConfig.ATTRIBUTE_VALUE);
             else if (sn.getType().equals(EmailConfig.NODE_SUBJECT))
@@ -310,6 +306,14 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.notifications.
     } catch (MessagingException e) {
       handleMessagingException(e,"sending email");
     }
+  }
+  
+  private List<String> splitAtCommaAndTrim(String input) {
+    List<String> result = new ArrayList<>();
+    if (input != null) {
+      result.addAll(Arrays.asList(input.split("\\s*,\\s*")));
+    }
+    return result;
   }
 
 

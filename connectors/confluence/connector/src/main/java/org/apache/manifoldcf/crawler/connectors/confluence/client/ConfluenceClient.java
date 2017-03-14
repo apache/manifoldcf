@@ -201,7 +201,7 @@ public class ConfluenceClient {
         connect();
       }
 
-      String url = String.format(Locale.ROOT, "%s://%s:%s/%s/%s?limit=1", protocol, host,
+      String url = String.format(Locale.ROOT, "%s://%s:%s%s%s?limit=1", protocol, host,
           port, path, CONTENT_PATH);
       logger.debug(
           "[Processing] Hitting url: {} for confluence status check fetching : ",
@@ -296,7 +296,7 @@ public class ConfluenceClient {
   @SuppressWarnings("unchecked")
   public ConfluenceResponse<Page> getPages(int start, int limit,
       Optional<String> space) throws Exception {
-    String url = String.format(Locale.ROOT, "%s://%s:%s/%s/%s?limit=%s&start=%s", protocol,
+    String url = String.format(Locale.ROOT, "%s://%s:%s%s%s?limit=%s&start=%s", protocol,
         host, port, path, CONTENT_PATH, limit, start);
     if (space.isPresent()) {
       url = String.format(Locale.ROOT, "%s&spaceKey=%s", url, space.get());
@@ -375,7 +375,7 @@ public class ConfluenceClient {
    */
   public ConfluenceResponse<Attachment> getPageAttachments(String pageId, int start,
       int limit) throws Exception {
-    String url = String.format(Locale.ROOT, "%s://%s:%s/%s/%s/%s%s?limit=%s&start=%s",
+    String url = String.format(Locale.ROOT, "%s://%s:%s%s%s/%s%s?limit=%s&start=%s",
         protocol, host, port, path, CONTENT_PATH, pageId, CHILD_ATTACHMENTS_PATH,
         limit, start);
     @SuppressWarnings("unchecked")
@@ -394,7 +394,7 @@ public class ConfluenceClient {
    */
   public Attachment getAttachment(String attachmentId) {
     String url = String
-        .format(Locale.ROOT, "%s://%s:%s/%s/%s/%s?%s",
+        .format(Locale.ROOT, "%s://%s:%s%s%s/%s?%s",
             protocol, host, port, path, CONTENT_PATH, attachmentId, EXPANDABLE_PARAMETERS);
     logger.debug(
         "[Processing] Hitting url for getting document content : {}",
@@ -461,7 +461,7 @@ public class ConfluenceClient {
    */
   public Page getPage(String pageId) {
     String url = String
-        .format(Locale.ROOT, "%s://%s:%s/%s/%s/%s?%s",
+        .format(Locale.ROOT, "%s://%s:%s%s%s/%s?%s",
             protocol, host, port, path, CONTENT_PATH, pageId, EXPANDABLE_PARAMETERS);
     url = sanitizeUrl(url);
     logger.debug(
@@ -497,7 +497,7 @@ public class ConfluenceClient {
     boolean isLast = false;
     do {
       String url = String
-          .format(Locale.ROOT, "%s://%s:%s/%s/%s/%s/%s?start=%s&limit=%s",
+          .format(Locale.ROOT, "%s://%s:%s%s%s/%s/%s?start=%s&limit=%s",
               protocol, host, port, path, CONTENT_PATH, pageId, LABEL_PATH, lastStart, limit);
       url = sanitizeUrl(url);
       logger.debug(
