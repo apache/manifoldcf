@@ -28,7 +28,7 @@
   <!-- ZooKeeper lock manager configuration -->
   <property name="org.apache.manifoldcf.lockmanagerclass" value="org.apache.manifoldcf.core.lockmanager.ZooKeeperLockManager"/>
   <property name="org.apache.manifoldcf.zookeeper.connectstring" value="localhost:8349"/>
-  <property name="org.apache.manifoldcf.zookeeper.sessiontimeout" value="2000"/>
+  <property name="org.apache.manifoldcf.zookeeper.sessiontimeout" value="300000"/>
   <!-- Point to a specific (common) logging file -->
   <property name="org.apache.manifoldcf.logconfigfile" value="./logging.ini"/>
   <!-- Specify the connectors to be loaded -->

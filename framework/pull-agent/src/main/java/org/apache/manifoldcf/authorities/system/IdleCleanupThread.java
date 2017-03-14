@@ -41,7 +41,7 @@ public class IdleCleanupThread extends Thread
     throws ManifoldCFException
   {
     super();
-    setName("Idle cleanup thread");
+    setName("Authorities idle cleanup thread");
     setDaemon(true);
   }
 

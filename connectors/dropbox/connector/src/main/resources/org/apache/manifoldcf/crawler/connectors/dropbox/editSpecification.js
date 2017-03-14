@@ -21,7 +21,7 @@ function s${SeqNum}_checkSpecificationForSave()
 {
   if(editjob.s${SeqNum}_dropboxpath.value == "") {
     alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.PathMustNotBeNull'))");
-    SelectSequencedTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.Server'))",${SEQNUM});
+    SelectSequencedTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('DropboxRepositoryConnector.Server'))",${SeqNum});
     editjob.s${SeqNum}_dropboxpath.focus();
     return false;
   }
@@ -52,3 +52,4 @@ function s${SeqNum}_SpecAddToken(i)
 
 //-->
 </script>
+

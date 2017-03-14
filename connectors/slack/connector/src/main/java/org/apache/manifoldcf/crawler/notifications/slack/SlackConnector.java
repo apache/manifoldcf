@@ -66,7 +66,7 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
   @Override
   public void connect(ConfigParams configParameters) {
     super.connect(configParameters);
-    this.webHookUrl = configParameters.getParameter(SlackConfig.WEBHOOK_URL_PARAM);
+    this.webHookUrl = configParameters.getObfuscatedParameter(SlackConfig.WEBHOOK_URL_PARAM);
 
     String proxyHost = configParameters.getParameter(SlackConfig.PROXY_HOST_PARAM);
     String proxyPortString = configParameters.getParameter(SlackConfig.PROXY_PORT_PARAM);
@@ -330,7 +330,13 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
   }
 
   private static void fillInServerConfigurationMap(Map<String, Object> paramMap, IPasswordMapperActivity mapper, ConfigParams parameters) {
-    String webHookUrl = getEmptyOnNull(parameters, SlackConfig.WEBHOOK_URL_PARAM);
+    String webHookUrl = parameters.getObfuscatedParameter(SlackConfig.WEBHOOK_URL_PARAM);
+    if (webHookUrl == null) {
+      webHookUrl = StringUtils.EMPTY;
+    } else {
+      webHookUrl = mapper.mapPasswordToKey(webHookUrl);
+    }
+
     String proxyHost = getEmptyOnNull(parameters, SlackConfig.PROXY_HOST_PARAM);
     String proxyPort = getEmptyOnNull(parameters, SlackConfig.PROXY_PORT_PARAM);
     String proxyUsername = getEmptyOnNull(parameters, SlackConfig.PROXY_USERNAME_PARAM);
@@ -339,7 +345,7 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
     if(proxyPassword == null) {
       proxyPassword = StringUtils.EMPTY;
     } else {
-      mapper.mapPasswordToKey(proxyPassword);
+      proxyPassword = mapper.mapPasswordToKey(proxyPassword);
     }
 
     String proxyDomain = getEmptyOnNull(parameters, SlackConfig.PROXY_DOMAIN_PARAM);
@@ -380,7 +386,7 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
 
     final String webHookUrl = variableContext.getParameter("webHookUrl");
     if (webHookUrl != null) {
-      parameters.setParameter(SlackConfig.WEBHOOK_URL_PARAM, webHookUrl);
+      parameters.setObfuscatedParameter(SlackConfig.WEBHOOK_URL_PARAM, variableContext.mapKeyToPassword(webHookUrl));
     }
 
     final String proxyHost = variableContext.getParameter("proxyHost");

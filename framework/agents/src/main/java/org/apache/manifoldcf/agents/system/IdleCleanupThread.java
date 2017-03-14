@@ -40,13 +40,13 @@ public class IdleCleanupThread extends Thread
   {
     super();
     this.processID = processID;
-    setName("Idle cleanup thread");
+    setName("Agents idle cleanup thread");
     setDaemon(true);
   }
 
   public void run()
   {
-    Logging.agents.debug("Start up idle cleanup thread");
+    Logging.agents.debug("Start up agents idle cleanup thread");
     try
     {
       // Create a thread context object.

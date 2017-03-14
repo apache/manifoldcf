@@ -3,6 +3,60 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1395: Increase zookeeper session timeout to 300000,
+because we were having sessions expire.
+(Karl Wright)
+
+CONNECTORS-1396: Fix email connector class cast exception.
+(Cihad Guzel, Karl Wright)
+
+CONNECTORS-1394: Fix email connector ArrayIndexOutOfBounds
+exception.
+(Cihad Guzel, Karl Wright)
+
+CONNECTORS-1392: The Webcrawler connector now has an option to ignore
+meta robots tags in HTML pages
+(Markus Schuch)
+
+CONNECTORS-1390: Add user-settable connect timeout field for
+Active Directory authority.
+(Cihad Guzel, Karl Wright)
+
+CONNECTORS-1389: The email notification connector now supports
+multiple comma separated recipients
+(Markus Schuch)
+
+CONNECTORS-1388: The User ID field is now focused when the login
+page is loaded
+(Markus Schuch)
+
+CONNECTORS-1387: Fix Amazon S3 connector not storing secret key
+and proxy credentials properly
+(Markus Schuch)
+
+CONNECTORS-1383: Fix Generic connector not to send the password
+to the client in plaintext
+(Markus Schuch)
+
+CONNECTORS-1384: Fix GridFS connector not to send the password
+to the client in plaintext and enabled password obfuscation
+(Markus Schuch)
+
+CONNECTORS-1385: Confluence connector was constructing bad paths
+which confused CF 6.4.
+(Andrew Shumway, Karl Wright)
+
+CONNECTORS-1382: Slack notification connector now treats the webhook url
+as sensitive information
+(Markus Schuch)
+
+CONNECTORS-1381: Fix slack notification connector not to send the proxy
+password to the client in plaintext
+(Markus Schuch)
+
+CONNECTORS-1380: DropBox connector editSpecification.js velocity template incorrect variable
+(Kishore Kumar)
+
 CONNECTORS-1378: History reports End time year resets to Start Time year
 (Kishore Kumar)
 
@@ -66,7 +120,7 @@ transformation connections.
 CONNECTORS-1344: Adds Slack Notification Connector
 (Odilo Oehmichen, Markus Schuch, Rüdiger Kurz)
 
-CONNECTORS-1349: Fix the modified_date and original_size Solr 
+CONNECTORS-1349: Fix the modified_date and original_size Solr
 attributes.
 (Cihad Guzel)
 
@@ -126,7 +180,7 @@ CONNECTORS-1329: Add logging to LDAP connector.
 CONNECTORS-1326: Fix URL for Confluence documents.
 (Chalitha Perera)
 
-CONNECTORS-1325: Deal with SharePoint bad XML when document has 
+CONNECTORS-1325: Deal with SharePoint bad XML when document has
 optional plane utf-16 characters.  Documents with these are skipped
 since Java can't represent them either.
 (Karl Wright)
@@ -248,7 +302,7 @@ CONNECTORS-1266: Fix an infinite loop in email notification connector.
 CONNECTORS-1265: Adjust interval for checking validity of http connection.
 (Shinichiro Abe, Karl Wright)
 
-CONNECTORS-1263: New version of Alfresco-indexer package. 
+CONNECTORS-1263: New version of Alfresco-indexer package.
 (Maurizio Pillitu)
 
 CONNECTORS-1262: Fix Alfresco-webscript connector's version string,
@@ -410,7 +464,7 @@ CONNECTORS-1204: Add ability to post original binary length of document
 to Solr from JCIFS connector.  Also improve efficiency of JCIFS connector.
 (Karl Wright)
 
-CONNECTORS-1193: Add ability to discard web content based on a 
+CONNECTORS-1193: Add ability to discard web content based on a
 set of regular expressions.
 (Arcadius Ahouansou)
 
@@ -1332,7 +1386,7 @@ CONNECTORS-863: Increase the number of zookeeper connections allowed;
 this permits agents processes to start on linux.
 (Karl Wright)
 
-CONNECTORS-862: Reduce the binary image footprint by consolidating the 
+CONNECTORS-862: Reduce the binary image footprint by consolidating the
 various lib directories and just changing classpaths.
 (Karl Wright)
 
@@ -1967,7 +2021,7 @@ CONNECTORS-658: Add common metadata support (mimetype etc)
 to Livelink connector.
 (David Morana, Karl Wright)
 
-CONNECTORS-654: Move extension to mimetype mapping to a 
+CONNECTORS-654: Move extension to mimetype mapping to a
 central location.
 (Mark Lugert, Karl Wright)
 
@@ -2090,7 +2144,7 @@ JDBC connections under some error conditions.
 
 CONNECTORS-619: Include slf4j jars in multiprocess agents classpath.
 This was causing Solrj to not work on multiprocess deployments.
-(Erlend Garåsen, Karl Wright) 
+(Erlend Garåsen, Karl Wright)
 
 CONNECTORS-618: MySQL orders indexes so that NULL values are first.
 This is a problem for the stuffer query, which then must go through
@@ -2229,7 +2283,7 @@ we have.
 
 CONNECTORS-577: Typo in language message properties which cause stack
 traces
-(Erlend Garåsen) 
+(Erlend Garåsen)
 
 CONNECTORS-120: Port ManifoldCF to httpcomponents 4.2.2, from legacy
 commons-httpclient 3.1 (mcf edition).
@@ -2451,7 +2505,7 @@ CONNECTORS-505: Fix for "unknown state" issue with SharePoint
 UI.
 (Ahmet Arslan, Karl Wright)
 
-CONNECTORS-504: Stop agents process from talking to database after 
+CONNECTORS-504: Stop agents process from talking to database after
 the stop signal has been sent.
 (Karl Wright)
 
@@ -2743,7 +2797,7 @@ etc.
 CONNECTORS-419: Alfresco Connector needs to invoke the ingestDocument for each d:content property of a node
 (Piergiorgio Lucidi)
 
-CONNECTORS-417: CMIS Connector creates documentURI with wrong value when version is null. 
+CONNECTORS-417: CMIS Connector creates documentURI with wrong value when version is null.
 Now the documentURI to get the content stream is retrieved from the CMIS server using an internal method of the OpenCMIS API.
 (Piergiorgio Lucidi)
 
@@ -3359,11 +3413,11 @@ CONNECTORS-220: Fix long-standing issue with database connection
 problems.  Reset logic was insufficiently robust.
 (Farzad Valad, Karl Wright)
 
-CONNECTORS-217: Check running more than one of instance of agent. 
+CONNECTORS-217: Check running more than one of instance of agent.
 (Shinichiro Abe)
 
-CONNECTORS-218: LockClean supports relative path 
-to the synchronization directory. 
+CONNECTORS-218: LockClean supports relative path
+to the synchronization directory.
 (Shinichiro Abe)
 
 CONNECTORS-215: Setting an environment variable of agent.
@@ -3597,7 +3651,7 @@ CONNECTORS-130: Block the Solr output connector from accepting documents
 that have folder-level security.
 (Karl Wright)
 
-CONNECTORS-129: Add an API reset/outputconnections/xxx command, to 
+CONNECTORS-129: Add an API reset/outputconnections/xxx command, to
 forget the index state for an output connection.
 (Karl Wright)
 
@@ -3740,7 +3794,7 @@ CONNECTORS-105: File system connector UI enhancements, to use a table-based
 metaphor for paths and rules.
 (Karl Wright)
 
-CONNECTORS-101: File system connector paths should automatically get default 
+CONNECTORS-101: File system connector paths should automatically get default
 rules added.
 (Karl Wright)
 
@@ -3756,7 +3810,7 @@ CONNECTORS-97: Web connector session authentication was failing for some sites
 due to cookies httpclient thought were illegal, but browsers would accept.
 (Karl Wright)
 
-CONNECTORS-91: Made the initialization commands more accessible via code. 
+CONNECTORS-91: Made the initialization commands more accessible via code.
 (Jettro Coenradie, Karl Wright)
 
 CONNECTORS-90: Fixed a localization issue where database errors that should be

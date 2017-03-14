@@ -43,13 +43,13 @@ public class IdleCleanupThread extends Thread
   {
     super();
     this.processID = processID;
-    setName("Idle cleanup thread");
+    setName("Crawler idle cleanup thread");
     setDaemon(true);
   }
 
   public void run()
   {
-    Logging.threads.debug("Start up idle cleanup thread");
+    Logging.threads.debug("Start up crawler idle cleanup thread");
     try
     {
       // Create a thread context object.
