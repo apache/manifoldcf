@@ -43,24 +43,26 @@ public interface IBinManager
 
   /** Get N bin values (and set next one).  If the record does not yet exist, create it with a starting value.
   * We expect this to happen within a transaction!! 
+  *@param connectorClass is the class name of the connector
   *@param binName is the name of the bin (256 char max)
   *@param newBinValue is the value to use if there is no such bin yet.  This is the value that will be
   * returned; what will be stored will be that value + 1.
   *@param count is the number of values desired.
   *@return the counter values.
   */
-  public double[] getIncrementBinValues(String binName, double newBinValue, int count)
+  public double[] getIncrementBinValues(String connectorClass, String binName, double newBinValue, int count)
     throws ManifoldCFException;
 
   /** Get N bin values (and set next one).  If the record does not yet exist, create it with a starting value.
   * This method invokes its own retry-able transaction.
+  *@param connectorClass is the class name of the connector
   *@param binName is the name of the bin (256 char max)
   *@param newBinValue is the value to use if there is no such bin yet.  This is the value that will be
   * returned; what will be stored will be that value + 1.
   *@param count is the number of values desired.
   *@return the counter values.
   */
-  public double[] getIncrementBinValuesInTransaction(String binName, double newBinValue, int count)
+  public double[] getIncrementBinValuesInTransaction(String connectorClass, String binName, double newBinValue, int count)
     throws ManifoldCFException;
 
 }

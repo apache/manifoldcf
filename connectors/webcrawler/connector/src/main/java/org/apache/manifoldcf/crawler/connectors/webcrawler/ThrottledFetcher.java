@@ -476,7 +476,7 @@ public class ThrottledFetcher
           .register("https", myFactory)
           .build());
         poolingConnManager.setDefaultMaxPerRoute(1);
-        poolingConnManager.setValidateAfterInactivity(60000);
+        poolingConnManager.setValidateAfterInactivity(2000);
         poolingConnManager.setDefaultSocketConfig(SocketConfig.custom()
           .setTcpNoDelay(true)
           .setSoTimeout(socketTimeoutMilliseconds)

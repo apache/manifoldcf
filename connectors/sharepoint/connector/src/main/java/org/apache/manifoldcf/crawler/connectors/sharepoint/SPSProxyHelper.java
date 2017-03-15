@@ -132,7 +132,15 @@ public class SPSProxyHelper {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getACLs xml response: "+xmlResponse);
       
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+      
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -220,6 +228,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       currentTime = System.currentTimeMillis();
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
@@ -228,11 +241,12 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
-            // Page did not exist
+            // Page did not exist or was external reference
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist; assuming list/library deleted");
+              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist or was external; skipping list/library");
             return null;
           }
           else if (httpErrorCode.equals("401"))
@@ -260,7 +274,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The list "+guid+" in site "+site+" did not exist; assuming list/library deleted");
+              Logging.connectors.debug("SharePoint: The list "+guid+" in site "+site+" did not exist or was external; skipping list/library");
             return null;
           }
           else
@@ -351,7 +365,15 @@ public class SPSProxyHelper {
         Logging.connectors.debug("SharePoint: getDocumentACLs xml response: " + xmlResponse);
       }
 
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+      
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -431,6 +453,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       currentTime = System.currentTimeMillis();
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
@@ -439,11 +466,12 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
             // Page did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist or was external; skipping library");
             return null;
           }
           else if (httpErrorCode.equals("401"))
@@ -471,7 +499,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The file "+file+" in site "+site+" did not exist; assuming file deleted");
+              Logging.connectors.debug("SharePoint: The file "+file+" in site "+site+" did not exist or was external; skipping file");
             return null;
           }
           else
@@ -569,7 +597,14 @@ public class SPSProxyHelper {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("SharePoint: getChildren xml response: "+xmlResponse);
 
-        XMLDoc doc = new XMLDoc( xmlResponse );
+        final XMLDoc doc;
+        try
+        {
+          doc = new XMLDoc( xmlResponse );
+        }
+        catch (ManifoldCFException e) {
+          return false;
+        }
 
         doc.processPath(nodeList, "*", null);
         if (nodeList.size() != 1)
@@ -684,6 +719,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return false;
+      }
       currentTime = System.currentTimeMillis();
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
@@ -692,11 +732,12 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
             // Page did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist or was external; skipping library");
             return false;
           }
           else if (httpErrorCode.equals("401"))
@@ -724,7 +765,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The list "+guid+" in site "+site+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The list "+guid+" in site "+site+" did not exist or was external; skipping library");
             return false;
           }
           else
@@ -809,7 +850,16 @@ public class SPSProxyHelper {
       final String xmlResponse = lists[0].toString();
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getDocLibID xml response: "+xmlResponse);
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -895,11 +945,12 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
             // Page did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The page at "+baseUrl+parentSite+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The page at "+baseUrl+parentSite+" did not exist or was external; skipping library");
             return null;
           }
           else if (httpErrorCode.equals("401"))
@@ -927,7 +978,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The list "+docLibrary+" in site "+parentSite+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The list "+docLibrary+" in site "+parentSite+" did not exist or was external; skipping library");
             return null;
           }
           else
@@ -1011,7 +1062,16 @@ public class SPSProxyHelper {
       final String xmlResponse = lists[0].toString();
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getListID xml response: "+xmlResponse);
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -1096,6 +1156,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       currentTime = System.currentTimeMillis();
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
@@ -1104,11 +1169,12 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
             // Page did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The page at "+baseUrl+parentSite+" did not exist; assuming list deleted");
+              Logging.connectors.debug("SharePoint: The page at "+baseUrl+parentSite+" did not exist or was external; skipping list");
             return null;
           }
           else if (httpErrorCode.equals("401"))
@@ -1136,7 +1202,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The list "+listName+" in site "+parentSite+" did not exist; assuming list deleted");
+              Logging.connectors.debug("SharePoint: The list "+listName+" in site "+parentSite+" did not exist or was external; skipping list");
             return null;
           }
           else
@@ -1210,7 +1276,15 @@ public class SPSProxyHelper {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getVersions response: "+xmlResponse);
       
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -1240,6 +1314,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       currentTime = System.currentTimeMillis();
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
@@ -1248,11 +1327,12 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
             // Page did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The page at "+baseUrl+site+" did not exist or was external; skipping library");
             return null;
           }
           else if (httpErrorCode.equals("401"))
@@ -1280,7 +1360,7 @@ public class SPSProxyHelper {
           {
             // List did not exist
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("SharePoint: The docpath "+docPath+" in site "+site+" did not exist; assuming library deleted");
+              Logging.connectors.debug("SharePoint: The docpath "+docPath+" in site "+site+" did not exist or was external; skipping library");
             return null;
           }
           else
@@ -1555,10 +1635,11 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
           {
             // Page did not exist
-            throw new ManifoldCFException("The site at "+baseUrl+site+" did not exist");
+            throw new ManifoldCFException("The site at "+baseUrl+site+" did not exist or was external; skipping");
           }
           else if (httpErrorCode.equals("401"))
             throw new ManifoldCFException("Crawl user did not authenticate properly, or has insufficient permissions to access "+baseUrl+site+": "+e.getMessage(),e);
@@ -1634,7 +1715,15 @@ public class SPSProxyHelper {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getAttachmentNames response: "+xmlResponse);
 
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -1682,6 +1771,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
         org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
@@ -1689,7 +1783,8 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
             return null;
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);
@@ -1758,8 +1853,16 @@ public class SPSProxyHelper {
       final String xmlResponse = List[0].toString();
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getFieldList xml response: "+xmlResponse);
+
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
       
-      XMLDoc doc = new XMLDoc( xmlResponse );
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -1815,6 +1918,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
         org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
@@ -1822,7 +1930,8 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
             return null;
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);
@@ -1958,7 +2067,15 @@ public class SPSProxyHelper {
           Logging.connectors.debug("SharePoint: getFieldValues xml response: '" +xmlResponse+ "'");
         }
 
-        XMLDoc doc = new XMLDoc( xmlResponse );
+        final XMLDoc doc;
+        try
+        {
+          doc = new XMLDoc( xmlResponse );
+        }
+        catch (ManifoldCFException e) {
+          return null;
+        }
+
         ArrayList nodeList = new ArrayList();
 
         doc.processPath(nodeList, "*", null);
@@ -2026,7 +2143,15 @@ public class SPSProxyHelper {
         }
 
         ArrayList nodeList = new ArrayList();
-        XMLDoc doc = new XMLDoc(xmlResponse);
+        
+        final XMLDoc doc;
+        try
+        {
+          doc = new XMLDoc( xmlResponse );
+        }
+        catch (ManifoldCFException e) {
+          return null;
+        }
 
         doc.processPath(nodeList, "*", null);
         if (nodeList.size() != 1)
@@ -2092,6 +2217,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
         org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
@@ -2099,7 +2229,8 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
             return null;
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);
@@ -2164,7 +2295,16 @@ public class SPSProxyHelper {
       final String xmlResponse = webList[0].toString();
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getSites xml response: "+xmlResponse);
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -2226,6 +2366,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
         org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
@@ -2233,7 +2378,8 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
             return null;
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);
@@ -2304,7 +2450,15 @@ public class SPSProxyHelper {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getDocumentLibraries xml response: "+xmlResponse);
       
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -2387,6 +2541,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
         org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
@@ -2394,7 +2553,8 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
             return null;
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);
@@ -2460,7 +2620,15 @@ public class SPSProxyHelper {
       if (Logging.connectors.isDebugEnabled())
         Logging.connectors.debug("SharePoint: getLists xml response: "+xmlResponse);
 
-      XMLDoc doc = new XMLDoc( xmlResponse );
+      final XMLDoc doc;
+      try
+      {
+        doc = new XMLDoc( xmlResponse );
+      }
+      catch (ManifoldCFException e) {
+        return null;
+      }
+
       ArrayList nodeList = new ArrayList();
 
       doc.processPath(nodeList, "*", null);
@@ -2509,14 +2677,16 @@ public class SPSProxyHelper {
               // We're at the /Lists/listname part of the name.  Figure out where the end of it is.
               int index = urlPath.indexOf("/");
               if (index == -1)
-                throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
+                continue;
+                //throw new ManifoldCFException("Bad list view url without site: '"+urlPath+"'");
               String pathpart = urlPath.substring(0,index);
 
               if("Lists".equals(pathpart))
               {
                 int k = urlPath.indexOf("/",index+1);
                 if (k == -1)
-                  throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
+                  continue;
+                  //throw new ManifoldCFException("Bad list view url without 'Lists': '"+urlPath+"'");
                 pathpart = urlPath.substring(index+1,k);
               }
 
@@ -2552,6 +2722,11 @@ public class SPSProxyHelper {
     }
     catch (org.apache.axis.AxisFault e)
     {
+      // Bad XML can come from Microsoft.
+      if (e.getCause() != null && (e.getCause() instanceof org.xml.sax.SAXParseException))
+      {
+        return null;
+      }
       if (e.getFaultCode().equals(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HTTP")))
       {
         org.w3c.dom.Element elem = e.lookupFaultDetail(new javax.xml.namespace.QName("http://xml.apache.org/axis/","HttpErrorCode"));
@@ -2559,7 +2734,8 @@ public class SPSProxyHelper {
         {
           elem.normalize();
           String httpErrorCode = elem.getFirstChild().getNodeValue().trim();
-          if (httpErrorCode.equals("404"))
+          // 302 is what SharePoint returns for external sites
+          if (httpErrorCode.equals("404") || httpErrorCode.equals("302"))
             return null;
           else if (httpErrorCode.equals("403"))
             throw new ManifoldCFException("Remote procedure exception: "+e.getMessage(),e);

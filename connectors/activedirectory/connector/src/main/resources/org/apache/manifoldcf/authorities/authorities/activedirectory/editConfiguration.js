@@ -72,6 +72,13 @@ function checkConfigForSave()
     editconnection.cachelrusize.focus();
     return false;
   }
+  if (editconnection.ldapconnectiontimeout.value != "" && !isInteger(editconnection.ldapconnectiontimeout.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.ConnectionTimeoutMustBeAnInteger'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ActiveDirectoryAuthority.DomainController'))");
+    editconnection.ldapconnectiontimeout.focus();
+    return false;
+  }
   return true;
 }
 

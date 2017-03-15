@@ -91,6 +91,24 @@
   #end
     </td>
   </tr>
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.LowerNames'))</nobr></td>
+    <td class="value">
+  #if($LOWERNAMES == 'true')
+       <input type="checkbox" checked="true" name="s${SEQNUM}_lowernames" value="true"/>
+  #else
+       <input type="checkbox" name="s${SEQNUM}_lowernames" value="true"/>
+  #end
+    </td>
+  </tr>
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.WriteLimit'))</nobr></td>
+    <td class="value"><input name="s${SEQNUM}_writelimit" type="text"
+      value="$Encoder.attributeEscape($WRITELIMIT)" size="16" />
+    </td>
+  </tr>
 </table>
       
 #else
@@ -103,5 +121,7 @@
   #end
 <input type="hidden" name="s${SEQNUM}_fieldmapping_count" value="$fieldcounter"/>
 <input type="hidden" name="s${SEQNUM}_keepallmetadata" value="$Encoder.bodyEscape($KEEPALLMETADATA)"/>
+<input type="hidden" name="s${SEQNUM}_lowernames" value="$Encoder.bodyEscape($LOWERNAMES)"/>
+<input type="hidden" name="s${SEQNUM}_writelimit" value="$Encoder.attributeEscape($WRITELIMIT)" />
 
 #end

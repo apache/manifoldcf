@@ -41,6 +41,8 @@ public class ActiveDirectoryConfig
   public static final String PARAM_CACHELIFETIME = "Cache lifetime";
   /** Cache LRU size */
   public static final String PARAM_CACHELRUSIZE = "Cache LRU size";
+  /** LDAP connection timeout*/
+  public static final String PARAM_LDAPCONNECTIONTIMEOUT = "LDAP connection timeout";
 
   /** Domain controller node */
   public static final String NODE_DOMAINCONTROLLER = "domaincontroller";

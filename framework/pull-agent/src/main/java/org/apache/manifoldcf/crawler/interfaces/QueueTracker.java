@@ -18,7 +18,6 @@
 */
 package org.apache.manifoldcf.crawler.interfaces;
 
-import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.core.interfaces.*;
 import java.io.*;
 import java.util.*;
@@ -80,16 +79,6 @@ public class QueueTracker
   */
   public void addRecord(String[] binNames)
   {
-    if (Logging.scheduling.isDebugEnabled())
-    {
-      StringBuilder sb = new StringBuilder();
-      int j = 0;
-      while (j < binNames.length)
-      {
-        sb.append(binNames[j++]).append(" ");
-      }
-      Logging.scheduling.debug("Putting document with bins ["+sb.toString()+"] onto active queue");
-    }
     int i = 0;
     while (i < binNames.length)
     {
@@ -114,9 +103,6 @@ public class QueueTracker
   */
   public void noteConnectionPerformance(int docCount, String connectionName, long elapsedTime)
   {
-    if (Logging.scheduling.isDebugEnabled())
-      Logging.scheduling.debug("Worker thread for connection "+connectionName+" took "+new Long(elapsedTime).toString()+"ms to handle "+Integer.toString(docCount)+" documents");
-
     performanceStatistics.noteDocumentsCompleted(connectionName,docCount,elapsedTime);
   }
 
@@ -131,17 +117,6 @@ public class QueueTracker
   */
   public void beginProcessing(String[] binNames)
   {
-    if (Logging.scheduling.isDebugEnabled())
-    {
-      StringBuilder sb = new StringBuilder();
-      int j = 0;
-      while (j < binNames.length)
-      {
-        sb.append(binNames[j++]).append(" ");
-      }
-      Logging.scheduling.debug("Handing document with bins ["+sb.toString()+"] to worker thread");
-    }
-
     // Effectively, we are moving the document from one status to another, so we adjust the bin counts of the source and
     // the target both.
 
@@ -181,17 +156,6 @@ public class QueueTracker
   */
   public void endProcessing(String[] binNames)
   {
-    if (Logging.scheduling.isDebugEnabled())
-    {
-      StringBuilder sb = new StringBuilder();
-      int j = 0;
-      while (j < binNames.length)
-      {
-        sb.append(binNames[j++]).append(" ");
-      }
-      Logging.scheduling.debug("Worker thread done document with bins ["+sb.toString()+"]");
-    }
-
     // Remove the document from the active queue, by decrementing the corresponding active bin counts.
 
     int i = 0;
@@ -242,20 +206,7 @@ public class QueueTracker
     }
 
     // Take the ith root of the bin rating, and leave it in log form
-    double rval = ratingLog/(double)i;
-
-    if (false && Logging.scheduling.isDebugEnabled())
-    {
-      StringBuilder sb = new StringBuilder();
-      int j = 0;
-      while (j < binNames.length)
-      {
-        sb.append(binNames[j++]).append(" ");
-      }
-      Logging.scheduling.debug("Document with bins ["+sb.toString()+"] given assignment rating "+new Double(rval).toString());
-    }
-
-    return rval;
+    return ratingLog/(double)i;
   }
 
 

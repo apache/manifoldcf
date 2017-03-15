@@ -46,9 +46,9 @@ public class ReprioritizationTracker implements IReprioritizationTracker
   protected final IBinManager binManager;
 
   /** Preload requests */
-  protected final Map<String,PreloadRequest> preloadRequests = new HashMap<String,PreloadRequest>();
+  protected final Map<PreloadKey,PreloadRequest> preloadRequests = new HashMap<PreloadKey,PreloadRequest>();
   /** Preload values */
-  protected final Map<String,PreloadedValues> preloadedValues = new HashMap<String,PreloadedValues>();
+  protected final Map<PreloadKey,PreloadedValues> preloadedValues = new HashMap<PreloadKey,PreloadedValues>();
     
   /** Constructor.
   */
@@ -231,13 +231,14 @@ public class ReprioritizationTracker implements IReprioritizationTracker
   /** Note preload amounts.
   */
   @Override
-  public void addPreloadRequest(String binName, double weightedMinimumDepth)
+  public void addPreloadRequest(String connectorClass, String binName, double weightedMinimumDepth)
   {
-    PreloadRequest pr = preloadRequests.get(binName);
+    final PreloadKey pk = new PreloadKey(connectorClass, binName);
+    PreloadRequest pr = preloadRequests.get(pk);
     if (pr == null)
     {
       pr = new PreloadRequest(weightedMinimumDepth);
-      preloadRequests.put(binName,pr);
+      preloadRequests.put(pk,pr);
     }
     else
       pr.updateRequest(weightedMinimumDepth);
@@ -250,12 +251,12 @@ public class ReprioritizationTracker implements IReprioritizationTracker
   public void preloadBinValues()
     throws ManifoldCFException
   {
-    for (String binName : preloadRequests.keySet())
+    for (PreloadKey pk : preloadRequests.keySet())
     {
-      PreloadRequest pr = preloadRequests.get(binName);
-      double[] newValues = binManager.getIncrementBinValuesInTransaction(binName, pr.getWeightedMinimumDepth(), pr.getRequestCount());
+      PreloadRequest pr = preloadRequests.get(pk);
+      double[] newValues = binManager.getIncrementBinValuesInTransaction(pk.connectorClass, pk.binName, pr.getWeightedMinimumDepth(), pr.getRequestCount());
       PreloadedValues pv = new PreloadedValues(newValues);
-      preloadedValues.put(binName,pv);
+      preloadedValues.put(pk,pv);
     }
     preloadRequests.clear();
   }
@@ -277,22 +278,24 @@ public class ReprioritizationTracker implements IReprioritizationTracker
   }
 
   /** Get a bin value.
+  *@param connectorClass is the connector class name.
   *@param binName is the bin name.
   *@param weightedMinimumDepth is the minimum depth to use.
   *@return the bin value.
   */
   @Override
-  public double getIncrementBinValue(String binName, double weightedMinimumDepth)
+  public double getIncrementBinValue(String connectorClass, String binName, double weightedMinimumDepth)
     throws ManifoldCFException
   {
-    PreloadedValues pv = preloadedValues.get(binName);
+    final PreloadKey key = new PreloadKey(connectorClass,binName);
+    PreloadedValues pv = preloadedValues.get(key);
     if (pv != null)
     {
       Double rval = pv.getNextValue();
       if (rval != null)
         return rval.doubleValue();
     }
-    return binManager.getIncrementBinValues(binName, weightedMinimumDepth,1)[0];
+    return binManager.getIncrementBinValues(connectorClass, binName, weightedMinimumDepth,1)[0];
   }
   
   // Protected methods
@@ -445,6 +448,29 @@ public class ReprioritizationTracker implements IReprioritizationTracker
     }
   }
   
-
+  /** Connector class name, bin name pair */
+  protected static class PreloadKey
+  {
+    public final String connectorClass;
+    public final String binName;
+    
+    public PreloadKey(final String connectorClass, final String binName) {
+      this.connectorClass = connectorClass;
+      this.binName = binName;
+    }
+    
+    public int hashCode() {
+      return connectorClass.hashCode() + binName.hashCode();
+    }
+    
+    public boolean equals(final Object o) {
+      if (!(o instanceof PreloadKey))
+        return false;
+      final PreloadKey pk = (PreloadKey)o;
+      return connectorClass.equals(pk.connectorClass) &&
+        binName.equals(pk.binName);
+    }
+  }
+  
 }
 

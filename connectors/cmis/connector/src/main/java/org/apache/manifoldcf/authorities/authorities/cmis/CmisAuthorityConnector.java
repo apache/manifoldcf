@@ -196,7 +196,7 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
         + "    alert(\"" + Messages.getBodyJavascriptString(locale,"CmisAuthorityConnector.TheEndpointMustBeNotNull") + "\");\n"
         + "    editconnection.endpoint.focus();\n" + "    return false;\n"
         + "  }\n" + "  if (editconnection.repositoryId.value == \"\")\n" + "  {\n"
-        + "    alert(\"" + Messages.getBodyJavascriptString(locale,"CmisAuthorityConnector.TheEndpointMustBeNotNull") + "\");\n"
+        + "    alert(\"" + Messages.getBodyJavascriptString(locale,"CmisAuthorityConnector.TheRepositoryIDMustBeNotNull") + "\");\n"
         + "    editconnection.repositoryId.focus();\n" + "    return false;\n"
         + "  }\n" + "  return true;\n" + "}\n" + "\n" + "//-->\n"
         + "</script>\n");

@@ -27,13 +27,11 @@ import java.util.*;
 
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.parser.Parser;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.metadata.TikaMetadataKeys;
 import org.apache.tika.parser.html.BoilerpipeContentHandler;
+
 import de.l3s.boilerpipe.BoilerpipeExtractor;
+
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -95,6 +93,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   *@param checkActivity is an object including the activities that can be performed by this method.
   *@return true if the mime type can be accepted by this connector.
   */
+  @Override
   public boolean checkMimeTypeIndexable(VersionContext pipelineDescription, String mimeType, IOutputCheckActivity checkActivity)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -220,14 +219,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
           try
           {
             // Use tika to parse stuff
-            Parser parser = new AutoDetectParser();
-            ContentHandler handler = new BodyContentHandler(w);
+            ContentHandler handler = TikaParser.newWriteOutBodyContentHandler(w, sp.writeLimit());
             if (extractorClassInstance != null)
               handler = new BoilerpipeContentHandler(handler, extractorClassInstance);
-            ParseContext pc = new ParseContext();
             try
             {
-              parser.parse(document.getBinaryStream(), handler, metadata, pc);
+              TikaParser.parse(document.getBinaryStream(), metadata, handler);
             }
             catch (TikaException e)
             {
@@ -306,6 +303,17 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         String[] metaNames = metadata.names();
         for(String mName : metaNames){
           String value = metadata.get(mName);
+          if (sp.lowerNames())
+          {
+            StringBuilder sb = new StringBuilder();
+            for (int i=0; i<mName.length(); i++) {
+              char ch = mName.charAt(i);
+              if (!Character.isLetterOrDigit(ch)) ch='_';
+              else ch=Character.toLowerCase(ch);
+              sb.append(ch);
+            }
+            mName = sb.toString();
+          }
           String target = sp.getMapping(mName);
           if(target!=null)
           {
@@ -443,7 +451,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       while (i < os.getChildCount())
       {
         SpecificationNode node = os.getChild(i);
-        if (node.getType().equals(TikaConfig.NODE_FIELDMAP) || node.getType().equals(TikaConfig.NODE_KEEPMETADATA))
+        if (node.getType().equals(TikaConfig.NODE_FIELDMAP)
+          || node.getType().equals(TikaConfig.NODE_KEEPMETADATA)
+          || node.getType().equals(TikaConfig.NODE_LOWERNAMES)
+          || node.getType().equals(TikaConfig.NODE_WRITELIMIT))
           os.removeChild(i);
         else
           i++;
@@ -496,6 +507,30 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       }
       // Add the new keepallmetadata config parameter 
       os.addChild(os.getChildCount(), node);
+      
+      SpecificationNode node2 = new SpecificationNode(TikaConfig.NODE_LOWERNAMES);
+      String lower = variableContext.getParameter(seqPrefix+"lowernames");
+      if (lower != null)
+      {
+        node2.setAttribute(TikaConfig.ATTRIBUTE_VALUE, lower);
+      }
+      else
+      {
+        node2.setAttribute(TikaConfig.ATTRIBUTE_VALUE, "false");
+      }
+      os.addChild(os.getChildCount(), node2);
+      
+      SpecificationNode node3 = new SpecificationNode(TikaConfig.NODE_WRITELIMIT);
+      String writeLimit = variableContext.getParameter(seqPrefix+"writelimit");
+      if (writeLimit != null)
+      {
+        node3.setAttribute(TikaConfig.ATTRIBUTE_VALUE, writeLimit);
+      }
+      else
+      {
+        node3.setAttribute(TikaConfig.ATTRIBUTE_VALUE, "");
+      }
+      os.addChild(os.getChildCount(), node3);
     }
     
     if (variableContext.getParameter(seqPrefix+"ignoretikaexceptions_present") != null)
@@ -574,6 +609,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     // Prep for field mappings
     List<Map<String,String>> fieldMappings = new ArrayList<Map<String,String>>();
     String keepAllMetadataValue = "true";
+    String lowernamesValue = "false";
+    String writeLimitValue = "";
     for (int i = 0; i < os.getChildCount(); i++)
     {
       SpecificationNode sn = os.getChild(i);
@@ -598,9 +635,19 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       {
         keepAllMetadataValue = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
       }
+      else if (sn.getType().equals(TikaConfig.NODE_LOWERNAMES))
+      {
+        lowernamesValue = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+      }
+      else if (sn.getType().equals(TikaConfig.NODE_WRITELIMIT))
+      {
+        writeLimitValue = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+      }
     }
     paramMap.put("FIELDMAPPINGS",fieldMappings);
     paramMap.put("KEEPALLMETADATA",keepAllMetadataValue);
+    paramMap.put("LOWERNAMES",lowernamesValue);
+    paramMap.put("WRITELIMIT",writeLimitValue);
   }
 
   protected static void fillInExceptionsSpecificationMap(Map<String,Object> paramMap, Specification os)
@@ -798,11 +845,15 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     
     private final Map<String,String> sourceTargets = new HashMap<String,String>();
     private final boolean keepAllMetadata;
+    private final boolean lowerNames;
+    private final int writeLimit;
     private final boolean ignoreTikaException;
     private final String extractorClassName;
     
     public SpecPacker(Specification os) {
       boolean keepAllMetadata = true;
+      boolean lowerNames = false;
+      int writeLimit = TikaConfig.WRITELIMIT_DEFAULT;
       boolean ignoreTikaException = true;
       String extractorClassName = null;
       for (int i = 0; i < os.getChildCount(); i++) {
@@ -811,6 +862,16 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         if(sn.getType().equals(TikaConfig.NODE_KEEPMETADATA)) {
           String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
           keepAllMetadata = Boolean.parseBoolean(value);
+        } else if(sn.getType().equals(TikaConfig.NODE_LOWERNAMES)) {
+          String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+          lowerNames = Boolean.parseBoolean(value);
+        } else if(sn.getType().equals(TikaConfig.NODE_WRITELIMIT)) {
+          String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+          if (value.length() == 0) {
+            writeLimit = TikaConfig.WRITELIMIT_DEFAULT;
+          } else {
+            writeLimit = Integer.parseInt(value);
+          }
         } else if (sn.getType().equals(TikaConfig.NODE_FIELDMAP)) {
           String source = sn.getAttributeValue(TikaConfig.ATTRIBUTE_SOURCE);
           String target = sn.getAttributeValue(TikaConfig.ATTRIBUTE_TARGET);
@@ -827,6 +888,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         }
       }
       this.keepAllMetadata = keepAllMetadata;
+      this.lowerNames = lowerNames;
+      this.writeLimit = writeLimit;
       this.ignoreTikaException = ignoreTikaException;
       this.extractorClassName = extractorClassName;
     }
@@ -860,7 +923,17 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         sb.append('+');
       else
         sb.append('-');
-      
+      if (lowerNames)
+          sb.append('+');
+        else
+          sb.append('-');
+
+      if (writeLimit != TikaConfig.WRITELIMIT_DEFAULT)
+      {
+        sb.append('+');
+        sb.append(writeLimit);
+      }
+
       if (ignoreTikaException)
         sb.append('+');
       else
@@ -883,6 +956,14 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     
     public boolean keepAllMetadata() {
       return keepAllMetadata;
+    }
+    
+    public boolean lowerNames() {
+      return lowerNames;
+    }
+    
+    public int writeLimit() {
+      return writeLimit;
     }
     
     public boolean ignoreTikaException() {

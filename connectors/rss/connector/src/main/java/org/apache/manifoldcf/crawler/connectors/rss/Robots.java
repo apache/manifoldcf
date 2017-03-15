@@ -346,7 +346,7 @@ public class Robots
         // condition, or no records are present at all, access is unlimited."
 
         boolean sawAgent = false;
-        String userAgentUpper = userAgent.toUpperCase();
+        String userAgentUpper = userAgent.toUpperCase(Locale.ROOT);
 
         int i = 0;
         while (i < records.size())
@@ -544,7 +544,7 @@ public class Robots
           int numSignPos = x.indexOf("#");
           if (numSignPos != -1)
             x = x.substring(0,numSignPos);
-          String lowercaseLine = x.toLowerCase().trim();
+          String lowercaseLine = x.toLowerCase(Locale.ROOT).trim();
           if (lowercaseLine.startsWith("user-agent:"))
           {
             if (seenAction)
@@ -766,7 +766,7 @@ public class Robots
       int i = 0;
       while (i < userAgents.size())
       {
-        String agent = ((String)userAgents.get(i++)).toUpperCase();
+        String agent = ((String)userAgents.get(i++)).toUpperCase(Locale.ROOT);
         if (exactMatch && agent.trim().equals(agentNameUpper))
           return true;
         if (!exactMatch && agentNameUpper.indexOf(agent) != -1)

@@ -564,6 +564,8 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
         null,null,null,true,-1,null,null);
       if (set.getRowCount() == 0)
       {
+        // Special for Postgresql
+        masterDatabase.prepareForDatabaseCreate();
 	masterDatabase.executeQuery("CREATE DATABASE "+databaseName+" OWNER "+
 	  userName+" ENCODING 'utf8'",null,null,invalidateKeys,null,false,0,null,null);
       }

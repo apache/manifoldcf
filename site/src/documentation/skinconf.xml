@@ -77,7 +77,7 @@ which will be used to configure the chosen Forrest skin.
   <group-name>Apache</group-name>
   <group-description>Apache Software Foundation</group-description>
   <group-url>http://www.apache.org</group-url>
-  <group-logo>images/apache_feather.gif</group-logo>
+  <group-logo>images/asf_logo.png</group-logo>
   <!-- Alternative static image:
   <group-logo>images/group-logo.gif</group-logo> -->
 
@@ -90,7 +90,7 @@ which will be used to configure the chosen Forrest skin.
   <favicon-url>images/favicon.ico</favicon-url>
 
   <!-- The following are used to construct a copyright statement -->
-  <year>2009-2015</year>
+  <year>2009-2017</year>
   <vendor>The Apache Software Foundation.</vendor>
   <copyright-link>http://www.apache.org/licenses/</copyright-link>
   <!-- Optional text trademark statement below the copyright statement -->

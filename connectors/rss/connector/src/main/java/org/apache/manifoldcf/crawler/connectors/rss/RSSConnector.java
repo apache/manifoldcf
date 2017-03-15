@@ -1337,7 +1337,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 {
                   String[] pubDateValuesISO = new String[pubDates.length];
                   TimeZone tz = TimeZone.getTimeZone("UTC");
-                  DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+                  DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.ROOT);
                   df.setTimeZone(tz);
                   for (int k = 0; k < pubDates.length; k++)
                   {
@@ -5521,16 +5521,16 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             sb.append(groupValue);
             break;
           case EvaluatorToken.GROUPSTYLE_LOWER:
-            sb.append(groupValue.toLowerCase());
+            sb.append(groupValue.toLowerCase(Locale.ROOT));
             break;
           case EvaluatorToken.GROUPSTYLE_UPPER:
-            sb.append(groupValue.toUpperCase());
+            sb.append(groupValue.toUpperCase(Locale.ROOT));
             break;
           case EvaluatorToken.GROUPSTYLE_MIXED:
             if (groupValue.length() > 0)
             {
-              sb.append(groupValue.substring(0,1).toUpperCase());
-              sb.append(groupValue.substring(1).toLowerCase());
+              sb.append(groupValue.substring(0,1).toUpperCase(Locale.ROOT));
+              sb.append(groupValue.substring(1).toLowerCase(Locale.ROOT));
             }
             break;
           default:

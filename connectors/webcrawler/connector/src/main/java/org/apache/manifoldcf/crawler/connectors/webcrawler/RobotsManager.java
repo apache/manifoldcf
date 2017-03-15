@@ -352,7 +352,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
 
       boolean sawAgent = false;
 
-      String userAgentUpper = userAgent.toUpperCase();
+      String userAgentUpper = userAgent.toUpperCase(Locale.ROOT);
 
       int i = 0;
       while (i < records.size())
@@ -432,7 +432,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
           int numSignPos = x.indexOf("#");
           if (numSignPos != -1)
             x = x.substring(0,numSignPos);
-          String lowercaseLine = x.toLowerCase().trim();
+          String lowercaseLine = x.toLowerCase(Locale.ROOT).trim();
           if (lowercaseLine.startsWith("user-agent:"))
           {
             if (seenAction)
@@ -885,7 +885,7 @@ public class RobotsManager extends org.apache.manifoldcf.core.database.BaseTable
       int i = 0;
       while (i < userAgents.size())
       {
-        String agent = ((String)userAgents.get(i++)).toUpperCase();
+        String agent = ((String)userAgents.get(i++)).toUpperCase(Locale.ROOT);
         if (exactMatch && agent.trim().equals(agentNameUpper))
           return true;
         if (!exactMatch && agentNameUpper.indexOf(agent) != -1)

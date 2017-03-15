@@ -120,7 +120,7 @@ public class FindHTMLFormHandler extends FindHandler implements IHTMLHandler
         if (method == null || method.length() == 0)
           method = "get";
         else
-          method = method.toLowerCase();
+          method = method.toLowerCase(Locale.ROOT);
 
         // Start a new form
         currentFormData = new FormDataAccumulator(actionURI,method.equals("post")?FormData.SUBMITMETHOD_POST:FormData.SUBMITMETHOD_GET);

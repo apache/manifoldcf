@@ -27,6 +27,14 @@ limitations under the License.
       <nobr><input type="text" name="url" size="60" value="$Encoder.attributeEscape($URL)"/></nobr>
     </td>
   </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.AttachmentURLTemplateColon'))</nobr>
+    </td>
+    <td class="value">
+      <nobr><input type="text" name="attachmenturl" size="60" value="$Encoder.attributeEscape($ATTACHMENTURL)"/></nobr>
+    </td>
+  </tr>
 </table>
 
 #else

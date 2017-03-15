@@ -23,15 +23,27 @@
 %>
 
 <%
-    // The contract of this edit page is as follows.  It is either called directly, in which case it is expected to be creating
-    // a connection or beginning the process of editing an existing connection, or it is called via redirection from execute.jsp, in which case
-    // the connection object being edited will be placed in the thread context under the name "ConnectionObject".
-    try
-    {
+// The contract of this edit page is as follows.  It is either called directly, in which case it is expected to be creating
+// a connection or beginning the process of editing an existing connection, or it is called via redirection from execute.jsp, in which case
+// the connection object being edited will be placed in the thread context under the name "ConnectionObject".
+try
+{
+  // Check if authorized
+  if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+  {
+    variableContext.setParameter("target","listmappers.jsp");
+%>
+    <jsp:forward page="unauthorized.jsp"/>
+<%
+  }
+
   // Get the connection manager handle
   IMappingConnectionManager connMgr = MappingConnectionManagerFactory.make(threadContext);
   // Also get the list of available connectors
   IMappingConnectorManager connectorManager = MappingConnectorManagerFactory.make(threadContext);
+
+  // Get connectors, since this will be needed to determine what to display.
+  IResultSet set = connectorManager.getConnectors();
 
   // Figure out what the current tab name is.
   String tabName = variableContext.getParameter("tabname");
@@ -51,6 +63,9 @@
       connection = connMgr.load(connectionName);
     }
   }
+
+  // Mapping connections
+  IMappingConnection[] mappingConnections = connMgr.getAllNonLoopingConnections((connection==null)?null:connection.getName());
 
   // Setup default fields
   boolean isNew = true;
@@ -105,198 +120,195 @@
 
   <script type="text/javascript">
   <!--
-  // Use this method to repost the form and pick a new tab
-  function SelectTab(newtab)
+// Use this method to repost the form and pick a new tab
+function SelectTab(newtab)
+{
+  if (checkForm())
   {
-    if (checkForm())
-    {
-      document.editconnection.tabname.value = newtab;
-      document.editconnection.submit();
-    }
-  }
-
-  // Use this method to repost the form,
-  // and set the anchor request.
-  function postFormSetAnchor(anchorValue)
-  {
-    if (checkForm())
-    {
-      if (anchorValue != "")
-        document.editconnection.action = document.editconnection.action + "#" + anchorValue;
-      document.editconnection.submit();
-    }
-  }
-
-  // Use this method to repost the form
-  function postForm()
-  {
-    if (checkForm())
-    {
-      document.editconnection.submit();
-    }
-  }
-
-  function Save()
-  {
-    if (checkForm())
-    {
-      // Can't submit until all required fields have been set.
-      // Some of these don't live on the current tab, so don't set
-      // focus.
-
-      // Check our part of the form, for save
-      if (editconnection.connname.value == "")
-      {
-        alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editmapper.ConnectionMustHaveAName")%>");
-        SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editmapper.Name")%>");
-        document.editconnection.connname.focus();
-        return;
-      }
-      if (window.checkConfigForSave)
-      {
-        if (!checkConfigForSave())
-          return;
-      }
-      document.editconnection.op.value="Save";
-      document.editconnection.submit();
-    }
-  }
-
-  function Continue()
-  {
-    document.editconnection.op.value="Continue";
-    postForm();
-  }
-
-  function Cancel()
-  {
-    document.editconnection.op.value="Cancel";
+    document.editconnection.tabname.value = newtab;
     document.editconnection.submit();
   }
+}
 
-  function checkForm()
+// Use this method to repost the form,
+// and set the anchor request.
+function postFormSetAnchor(anchorValue)
+{
+  if (checkForm())
   {
-    if (!checkConnectionCount())
-      return false;
-    if (window.checkConfig)
-      return checkConfig();
+    if (anchorValue != "")
+      document.editconnection.action = document.editconnection.action + "#" + anchorValue;
+    document.editconnection.submit();
+  }
+}
+
+// Use this method to repost the form
+function postForm()
+{
+  if (checkForm())
+  {
+    document.editconnection.submit();
+  }
+}
+
+function Save()
+{
+  if (checkForm())
+  {
+    // Can't submit until all required fields have been set.
+    // Some of these don't live on the current tab, so don't set
+    // focus.
+
+    // Check our part of the form, for save
+    if (editconnection.connname.value == "")
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editmapper.ConnectionMustHaveAName")%>");
+      SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editmapper.Name")%>");
+      document.editconnection.connname.focus();
+      return;
+    }
+    if (window.checkConfigForSave)
+    {
+      if (!checkConfigForSave())
+        return;
+    }
+    document.editconnection.op.value="Save";
+    document.editconnection.submit();
+  }
+}
+
+function Continue()
+{
+  document.editconnection.op.value="Continue";
+  postForm();
+}
+
+function Cancel()
+{
+  document.editconnection.op.value="Cancel";
+  document.editconnection.submit();
+}
+
+function checkForm()
+{
+  if (!checkConnectionCount())
+    return false;
+  if (window.checkConfig)
+    return checkConfig();
+  return true;
+}
+
+function checkConnectionCount()
+{
+  if (!isInteger(editconnection.maxconnections.value))
+  {
+    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editmapper.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
+    editconnection.maxconnections.focus();
+    return false;
+  }
+  return true;
+}
+
+function isRegularExpression(value)
+{
+  try
+  {
+    var foo = "teststring";
+    foo.search(value.replace(/\(\?i\)/,""));
     return true;
   }
-
-  function checkConnectionCount()
+  catch (e)
   {
-    if (!isInteger(editconnection.maxconnections.value))
-    {
-      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editmapper.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
-      editconnection.maxconnections.focus();
-      return false;
-    }
-    return true;
+    return false;
   }
 
-  function isRegularExpression(value)
-  {
-    try
-    {
-      var foo = "teststring";
-                        foo.search(value.replace(/\(\?i\)/,""));
-      return true;
-    }
-    catch (e)
-    {
-      return false;
-    }
+}
 
-  }
-
-  function isInteger(value)
-  {
-    var anum=/(^\d+$)/;
-    return anum.test(value);
-  }
+function isInteger(value)
+{
+  var anum=/(^\d+$)/;
+  return anum.test(value);
+}
 
   //-->
   </script>
 <%
   MappingConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabsArray);
-
-  // Get connectors, since this will be needed to determine what to display.
-  IResultSet set = connectorManager.getConnectors();
-
 %>
 
 </head>
 
 <body class="standardbody">
 
-    <table class="page">
-      <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-      <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
-       <td class="darkwindow">
+  <table class="page">
+    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
+    <tr>
+      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
+      <td class="darkwindow">
 
 
 <%
   if (set.getRowCount() == 0)
   {
 %>
-  <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.EditMappingConnection")%></p>
-  <table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.NoMappingConnectorsRegistered")%></td></tr></table>
+        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.EditMappingConnection")%></p>
+        <table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.NoMappingConnectorsRegistered")%></td></tr></table>
 <%
   }
   else
   {
 %>
-  <form class="standardform" name="editconnection" action="execute.jsp" method="POST" enctype="multipart/form-data">
-      <input type="hidden" name="op" value="Continue"/>
-      <input type="hidden" name="type" value="mapper"/>
-      <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
-      <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
-      <table class="tabtable">
-        <tr class="tabspacerrow">
-    <td class="spacertab" colspan="<%=tabsArray.size()%>"></td>
-    <td class="remaindertab" rowspan="3">
+        <form class="standardform" name="editconnection" action="execute.jsp" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="op" value="Continue"/>
+          <input type="hidden" name="type" value="mapper"/>
+          <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
+          <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
+          <table class="tabtable">
+            <tr class="tabspacerrow">
+              <td class="spacertab" colspan="<%=tabsArray.size()%>"></td>
+              <td class="remaindertab" rowspan="3">
 <%
     if (description.length() > 0)
     {
 %>
-        <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.EditMapping")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
+                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.EditMapping")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
 <%
     }
     else
     {
 %>
-              <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.EditAMapping")%></nobr>
+                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.EditAMapping")%></nobr>
 <%
     }
 %>
-    </td>
-        </tr>
-        <tr class="tabsequencerow">
-    <td class="blanksequencetab" colspan="<%=tabsArray.size()%>"></td>
-        </tr>
-        <tr class="tabrow">
+              </td>
+            </tr>
+            <tr class="tabsequencerow">
+              <td class="blanksequencetab" colspan="<%=tabsArray.size()%>"></td>
+            </tr>
+            <tr class="tabrow">
 <%
     int tabNum = 0;
     while (tabNum < tabsArray.size())
     {
-    String tab = (String)tabsArray.get(tabNum++);
-    if (tab.equals(tabName))
-    {
+      String tab = (String)tabsArray.get(tabNum++);
+      if (tab.equals(tabName))
+      {
 %>
-          <td class="activetab"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></nobr></td>
+              <td class="activetab"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></nobr></td>
 <%
-    }
-    else
-    {
+      }
+      else
+      {
 %>
-          <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
+              <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
 <%
-    }
+      }
     }
 %>
-        </tr>
-        <tr class="tabbodyrow">
-    <td class="tabbody" colspan='<%=Integer.toString(tabsArray.size()+1)%>'>
+            </tr>
+            <tr class="tabbodyrow">
+              <td class="tabbody" colspan='<%=Integer.toString(tabsArray.size()+1)%>'>
 
 <%
 
@@ -304,44 +316,44 @@
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Name")))
     {
 %>
-        <table class="displaytable">
-      <tr><td class="separator" colspan="5"><hr/></td></tr>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.NameColon")%></nobr></td>
-        <td class="value" colspan="4">
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="5"><hr/></td></tr>
+                  <tr>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.NameColon")%></nobr></td>
+                    <td class="value" colspan="4">
 <%
       // If the connection doesn't exist yet, we are allowed to change the name.
       if (isNew)
       {
 %>
-          <input type="text" size="32" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+                      <input type="text" size="32" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
 <%
       }
       else
       {
 %>
-          <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%>
-          <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+                      <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%>
+                      <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
 <%
       }
 %>
-        </td>
-      </tr>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.DescriptionColon")%></nobr></td>
-        <td class="value" colspan="4">
-          <input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
-        </td>
-      </tr>
-        </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.DescriptionColon")%></nobr></td>
+                    <td class="value" colspan="4">
+                      <input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
+                    </td>
+                  </tr>
+                </table>
 <%
     }
     else
     {
-    // Hiddens for the Name tab
+      // Hiddens for the Name tab
 %>
-        <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
-        <input type="hidden" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
+                <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+                <input type="hidden" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
 <%
     }
 
@@ -350,200 +362,205 @@
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Type")))
     {
 %>
-        <table class="displaytable">
-      <tr><td class="separator" colspan="5"><hr/></td></tr>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.ConnectionTypeColon")%></nobr></td><td class="value" colspan="4">
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="5"><hr/></td></tr>
+                  <tr>
+                    <td class="description">
+                      <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.ConnectionTypeColon")%></nobr></td><td class="value" colspan="4">
 <%
       if (className.length() > 0)
       {
-    String value = connectorManager.getDescription(className);
-    if (value == null)
-    {
+        String value = connectorManager.getDescription(className);
+        if (value == null)
+        {
 %>
-          <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
+                      <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
 <%
-    }
-    else
-    {
+        }
+        else
+        {
 %>
-          <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)%>
+                      <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)%>
 <%
-    }
+        }
 %>
-          <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
+                      <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
 <%
       }
       else
       {
-    int i = 0;
+        int i = 0;
 %>
-          <select name="classname" size="1">
+                      <select name="classname" size="1">
 <%
-    while (i < set.getRowCount())
-    {
-      IResultRow row = set.getRow(i++);
-      String thisClassName = row.getValue("classname").toString();
-      String thisDescription = row.getValue("description").toString();
+        while (i < set.getRowCount())
+        {
+          IResultRow row = set.getRow(i++);
+          String thisClassName = row.getValue("classname").toString();
+          String thisDescription = row.getValue("description").toString();
 %>
-            <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisClassName)%>'
-              <%=className.equals(thisClassName)?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+                        <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisClassName)%>'
+                    <%=className.equals(thisClassName)?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%>
+                        </option>
 <%
-    }
+        }
 %>
-          </select>
+                      </select>
 <%
       }
 %>
-        </td>
-      </tr>
-        </table>
+                    </td>
+                  </tr>
+                </table>
 <%
     }
     else
     {
-    // Hiddens for the "Type" tab
+      // Hiddens for the "Type" tab
 %>
-        <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
+                <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
 <%
     }
 
     // The "Prerequisites" tab
-    IMappingConnection[] mappingConnections = connMgr.getAllNonLoopingConnections((connection==null)?null:connection.getName());
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Prerequisites")))
     {
 %>
-        <table class="displaytable">
-      <tr><td class="separator" colspan="5"><hr/></td></tr>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.PrerequisiteUserMappingColon")%></nobr></td>
-        <td class="value" colspan="4">
-          <input type="hidden" name="prerequisites_present" value="true"/>
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="5"><hr/></td></tr>
+                  <tr>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.PrerequisiteUserMappingColon")%></nobr></td>
+                    <td class="value" colspan="4">
+                      <input type="hidden" name="prerequisites_present" value="true"/>
 <%
       if (prereq == null)
       {
 %>
-          <input type="radio" name="prerequisites" value="" checked="true"/>&nbsp;<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.NoPrerequisites")%><br/>
+                      <input type="radio" name="prerequisites" value="" checked="true"/>&nbsp;<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.NoPrerequisites")%><br/>
 <%
       }
       else
       {
 %>
-          <input type="radio" name="prerequisites" value=""/>&nbsp;<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.NoPrerequisites")%><br/>
+                      <input type="radio" name="prerequisites" value=""/>&nbsp;<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.NoPrerequisites")%><br/>
 <%
       }
 
       for (IMappingConnection mappingConnection : mappingConnections)
       {
-    String mappingName = mappingConnection.getName();
-    String mappingDescription = mappingName;
-    if (mappingConnection.getDescription() != null && mappingConnection.getDescription().length() > 0)
-      mappingDescription += " (" + mappingConnection.getDescription()+")";
-    if (prereq != null && prereq.equals(mappingName))
-    {
+        String mappingName = mappingConnection.getName();
+        String mappingDescription = mappingName;
+        if (mappingConnection.getDescription() != null && mappingConnection.getDescription().length() > 0)
+          mappingDescription += " (" + mappingConnection.getDescription()+")";
+        if (prereq != null && prereq.equals(mappingName))
+        {
 %>
-          <input type="radio" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>' checked="true"/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
+                      <input type="radio" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>' checked="true"/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
 <%
-    }
-    else
-    {
+        }
+        else
+        {
 %>
-          <input type="radio" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>'/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
+                      <input type="radio" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>'/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
 <%
-    }
+        }
       }
 %>
-        </td>
-      </tr>
-        </table>
+                    </td>
+                  </tr>
+                </table>
 <%
     }
     else
     {
-    // Hiddens for Prerequisites tab
+      // Hiddens for Prerequisites tab
 %>
-        <input type="hidden" name="prerequisites_present" value="true"/>
+                <input type="hidden" name="prerequisites_present" value="true"/>
 <%
-    if (prereq != null)
-    {
+      if (prereq != null)
+      {
 %>
-        <input type="hidden" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(prereq)%>'/>
+                <input type="hidden" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(prereq)%>'/>
 <%
-    }
+      }
     }
 
     // The "Throttling" tab
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Throttling")))
     {
 %>
-        <table class="displaytable">
-      <tr><td class="separator" colspan="5"><hr/></td></tr>
-      <tr>
-        <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.MaxConnectionsColon")%></nobr></td>
-        <td class="value" colspan="4"><input type="text" size="6" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/></td>
-      </tr>
-        </table>
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="5"><hr/></td></tr>
+                  <tr>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.MaxConnectionsColon")%></nobr></td>
+                    <td class="value" colspan="4"><input type="text" size="6" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/></td>
+                  </tr>
+                </table>
 <%
     }
     else
     {
-    // Hiddens for "Throttling" tab
+      // Hiddens for "Throttling" tab
 %>
-        <input type="hidden" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/>
+                <input type="hidden" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/>
 <%
     }
 
     if (className.length() > 0)
-    MappingConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabName);
+      MappingConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabName);
 %>
-        <table class="displaytable">
-      <tr><td class="separator" colspan="4"><hr/></td></tr>
-      <tr><td class="message" colspan="4"><nobr>
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="4"><hr/></td></tr>
+                  <tr>
+                    <td class="message" colspan="4">
+                      <nobr>
 <%
     if (className.length() > 0)
     {
 %>
-          <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.SaveThisMappingConnection")%>"/>
+                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.SaveThisMappingConnection")%>"/>
 <%
     }
     else
     {
-    if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Type")))
-    {
+      if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Type")))
+      {
 %>
-          <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.ContinueToNextPage")%>"/>
+                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.ContinueToNextPage")%>"/>
 <%
-    }
+      }
     }
 %>
-          &nbsp;<input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.Cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.CancelMappingEditing")%>"/></nobr></td>
-      </tr>
-        </table>
-    </td>
-        </tr>
-      </table>
-  </form>
+                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.Cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.CancelMappingEditing")%>"/>
+                      </nobr>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </form>
 <%
   }
 %>
-       </td>
-      </tr>
-    </table>
+      </td>
+    </tr>
+  </table>
 
 </body>
 
 </html>
 
 <%
-    }
-    catch (ManifoldCFException e)
-    {
+}
+catch (ManifoldCFException e)
+{
   e.printStackTrace();
   variableContext.setParameter("text",e.getMessage());
   variableContext.setParameter("target","listmappers.jsp");
 %>
   <jsp:forward page="error.jsp"/>
 <%
-    }
+}
 %>
 

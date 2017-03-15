@@ -84,14 +84,14 @@ public class InterruptionTester
     instance.waitJobRunningNative(jobManager,job.getID(),30000L);
     
     // Wait for the job to become inactive.  The time should not exceed 10 seconds for the actual crawl.
-    instance.waitJobInactiveNative(jobManager,job.getID(),30000L);
+    instance.waitJobInactiveNative(jobManager,job.getID(),60000L);
     // The document will be skipped in the end.
     if (jobManager.getStatus(job.getID()).getDocumentsProcessed() != 9)
       throw new Exception("Expected 9 documents, saw "+jobManager.getStatus(job.getID()).getDocumentsProcessed());
     
     // Now, delete the job.
     jobManager.deleteJob(job.getID());
-    instance.waitJobDeletedNative(jobManager,job.getID(),30000L);
+    instance.waitJobDeletedNative(jobManager,job.getID(),60000L);
 
     // Shut down instance2
     instance.stop();

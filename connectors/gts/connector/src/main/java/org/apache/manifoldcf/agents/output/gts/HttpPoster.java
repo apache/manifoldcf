@@ -1034,7 +1034,7 @@ public class HttpPoster
           // Basically, we have no choice but to interpret that in the same manner as a 400, since no matter how we do it, it's a race and the 'broken pipe'
           // result is always possible.  So we might as well expect it and treat it properly.
           //
-          if (ioe.getClass().getName().equals("java.net.SocketException") && ioe.getMessage().toLowerCase().indexOf("broken pipe") != -1)
+          if (ioe.getClass().getName().equals("java.net.SocketException") && ioe.getMessage().toLowerCase(Locale.ROOT).indexOf("broken pipe") != -1)
           {
             // We've seen what looks like the ingestion interface forcibly closing the socket.
             // We *choose* to interpret this just like a 400 response.  However, we log in the history using a different code,

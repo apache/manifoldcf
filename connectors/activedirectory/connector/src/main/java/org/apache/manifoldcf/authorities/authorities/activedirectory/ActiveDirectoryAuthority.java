@@ -19,7 +19,6 @@
 package org.apache.manifoldcf.authorities.authorities.activedirectory;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.ManifoldCF;
@@ -52,6 +51,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   private String cacheLRUsize = null;
   private long responseLifetime = 60000L;
   private int LRUsize = 1000;
+  private String ldapConnectionTimeout = null;
 
   /** Session information for all DC's we talk with. */
   private Map<String,DCSessionInfo> sessionInfo = null;
@@ -136,7 +136,10 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
         }
       }
     }
-    
+
+    ldapConnectionTimeout = params.getParameter(ActiveDirectoryConfig.PARAM_LDAPCONNECTIONTIMEOUT);
+    if (ldapConnectionTimeout == null)
+      ldapConnectionTimeout = "60000";
     cacheLifetime = params.getParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME);
     if (cacheLifetime == null)
       cacheLifetime = "1";
@@ -197,7 +200,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       session = new DCSessionInfo();
       sessionInfo.put(domainController,session);
     }
-    return session.getSession(domainController,parms);
+    return session.getSession(domainController,parms,ldapConnectionTimeout);
   }
   
   /** Poll.  The connection should be closed if it has been idle for too long.
@@ -246,6 +249,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     
     cacheLifetime = null;
     cacheLRUsize = null;
+    ldapConnectionTimeout = null;
     super.disconnect();
   }
 
@@ -324,6 +328,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     if (domainController == null)
     {
       // No domain controller found for the user, so return "user not found".
+      Logging.authorityConnectors.info("User not found: " + userName);
       return RESPONSE_USERNOTFOUND;
     }
     
@@ -332,6 +337,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     if (dcParams == null)
     {
       // No domain controller, even though it's mentioned in a rule
+      Logging.authorityConnectors.info("User not found: " + userName);
       return RESPONSE_USERNOTFOUND;
     }
     
@@ -362,12 +368,14 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     try
     {
       // Establish a session with the selected domain controller
-      LdapContext ctx = createDCSession(domainController);  
+      LdapContext ctx = createDCSession(domainController);
     
       //Get DistinguishedName (for this method we are using DomainPart as a searchBase ie: DC=qa-ad-76,DC=metacarta,DC=com")
       String searchBase = getDistinguishedName(ctx, userPart, domainsb.toString(), userACLsUsername);
-      if (searchBase == null)
+      if (searchBase == null) {
+        Logging.authorityConnectors.info("User not found: " + userName);
         return RESPONSE_USERNOTFOUND;
+      }
 
       //specify the LDAP search filter
       String searchFilter = "(objectClass=user)";
@@ -411,15 +419,18 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
           }	 
           catch (NamingException e)
           {
+            Logging.authorityConnectors.error("Naming exception: " + e.getMessage(), e);
             throw new ManifoldCFException(e.getMessage(),e);
           }
 				
         }
       }
 
-      if (theGroups.size() == 0)
+      if (theGroups.size() == 0) {
+        Logging.authorityConnectors.info("User not found: " + userName);
         return RESPONSE_USERNOTFOUND;
-      
+      }
+
       // All users get certain well-known groups
       theGroups.add("S-1-1-0");
 
@@ -437,11 +448,13 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     catch (NameNotFoundException e)
     {
       // This means that the user doesn't exist
+      Logging.authorityConnectors.error("User not found: " + userName + " Exception: " + e.getMessage(), e);
       return RESPONSE_USERNOTFOUND;
     }
     catch (NamingException e)
     {
       // Unreachable
+      Logging.authorityConnectors.error("Response Unreachable: " + e.getMessage(), e);
       return RESPONSE_UNREACHABLE;
     }
   }
@@ -535,6 +548,10 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       }
     }
     velocityContext.put("DOMAINCONTROLLERS",domainControllers);
+    String ldapConnectionTimeout = parameters.getParameter(ActiveDirectoryConfig.PARAM_LDAPCONNECTIONTIMEOUT);
+    if (ldapConnectionTimeout == null)
+      ldapConnectionTimeout = "60000";
+    velocityContext.put("LDAPCONNECTIONTIMEOUT", ldapConnectionTimeout);
   }
 
   protected static Map<String,String> createDomainControllerMap(IPasswordMapperActivity mapper, String suffix, String domainControllerName,
@@ -567,7 +584,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       cacheLRUsize = "1000";
     velocityContext.put("CACHELRUSIZE",cacheLRUsize);
   }
-  
+
   /** Process a configuration post.
   * This method is called at the start of the authority connector's configuration page, whenever there is a possibility that form data for a connection has been
   * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
@@ -647,7 +664,9 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
           variableContext.getParameter("dcrecord_userACLsUsername"));
       }
     }
-    
+    String ldapConnectionTimeout = variableContext.getParameter("ldapconnectiontimeout");
+    if (ldapConnectionTimeout != null)
+      parameters.setParameter(ActiveDirectoryConfig.PARAM_LDAPCONNECTIONTIMEOUT,ldapConnectionTimeout);
     String cacheLifetime = variableContext.getParameter("cachelifetime");
     if (cacheLifetime != null)
       parameters.setParameter(ActiveDirectoryConfig.PARAM_CACHELIFETIME,cacheLifetime);
@@ -710,6 +729,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       }
       catch (NumberFormatException e)
       {
+        Logging.authorityConnectors.error("Cache lifetime or Cache LRU size must be an integer: " + e.getMessage(), e);
         throw new ManifoldCFException("Cache lifetime or Cache LRU size must be an integer: "+e.getMessage(),e);
       }
       hasSessionParameters = true;
@@ -752,6 +772,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     }
     catch (NamingException e)
     {
+      Logging.authorityConnectors.error("Naming exception: " + e.getMessage(), e);
       throw new ManifoldCFException(e.getMessage(),e);
     }
   }
@@ -822,7 +843,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     }
 
     /** Initialize the session. */
-    public LdapContext getSession(String domainControllerName, DCConnectionParameters params)
+    public LdapContext getSession(String domainControllerName, DCConnectionParameters params, String ldapConnectionTimeout)
       throws ManifoldCFException
     {
       String authentication = params.getAuthentication();
@@ -847,10 +868,13 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
                     
           //specify attributes to be returned in binary format
           env.put("java.naming.ldap.attributes.binary","tokenGroups objectSid");
-     
+
+          env.put("com.sun.jndi.ldap.connect.timeout", ldapConnectionTimeout);
+          
           // Now, try the connection...
           try
           {
+            Logging.authorityConnectors.info("LDAP Context environment properties: " + printLdapContextEnvironment(env));
             ctx = new InitialLdapContext(env,null);
             // If successful, break
             break;
@@ -858,15 +882,18 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
           catch (AuthenticationException e)
           {
             // This means we couldn't authenticate!
+            Logging.authorityConnectors.error("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
             throw new ManifoldCFException("Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
           }
           catch (CommunicationException e)
           {
             // This means we couldn't connect, most likely
+            Logging.authorityConnectors.error("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
             throw new ManifoldCFException("Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
           }
           catch (NamingException e)
           {
+            Logging.authorityConnectors.error("Naming exception: " + e.getMessage(), e);
             throw new ManifoldCFException(e.getMessage(),e);
           }
         }
@@ -882,16 +909,16 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
           catch (AuthenticationException e)
           {
             // This means we couldn't authenticate!  Log it and retry creating a whole new context.
-            Logging.authorityConnectors.warn("Reconnect: Authentication problem authenticating admin user '"+userName+"': "+e.getMessage(),e);
+            Logging.authorityConnectors.error("Authentication exception: " + e.getMessage() + ", explanation: " + e.getExplanation(), e);
           }
           catch (CommunicationException e)
           {
             // This means we couldn't connect, most likely.  Log it and retry creating a whole new context.
-            Logging.authorityConnectors.warn("Reconnect: Couldn't communicate with domain controller '"+domainControllerName+"': "+e.getMessage(),e);
+            Logging.authorityConnectors.error("Communication exception: " + e.getMessage() + ", explanation: " + e.getExplanation(), e);
           }
           catch (NamingException e)
           {
-            Logging.authorityConnectors.warn("Reconnect: Naming exception: "+e.getMessage(),e);
+            Logging.authorityConnectors.error("Naming exception: " + e.getMessage() + ", explanation: " + e.getExplanation(), e);
           }
           
           // So we have no chance of leaking resources, attempt to close the context.
@@ -935,6 +962,19 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     protected boolean isOpen()
     {
       return ctx != null;
+    }
+
+    /**
+     * Stringifies LDAP Context environment variable
+     * @param env LDAP Context environment variable
+     * @return Stringified LDAP Context environment. Password is masked if set.
+     */
+    private String printLdapContextEnvironment(Hashtable env) {
+      Hashtable copyEnv = new Hashtable<>(env);
+      if (copyEnv.containsKey(Context.SECURITY_CREDENTIALS)){
+        copyEnv.put(Context.SECURITY_CREDENTIALS, "********");
+      }
+      return Arrays.toString(copyEnv.entrySet().toArray());
     }
   }
 

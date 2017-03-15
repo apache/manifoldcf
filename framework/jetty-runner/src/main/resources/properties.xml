@@ -17,6 +17,7 @@
 -->
 
 <configuration>
+  <property name="org.apache.manifoldcf.jettyconfigfile" value="./jetty.xml"/>
   <!-- Select Derby as the database implementation, and specify where the database will be stored -->
   <property name="org.apache.manifoldcf.databaseimplementationclass" value="org.apache.manifoldcf.core.database.DBInterfaceHSQLDB"/>
   <property name="org.apache.manifoldcf.hsqldbdatabasepath" value="."/>
