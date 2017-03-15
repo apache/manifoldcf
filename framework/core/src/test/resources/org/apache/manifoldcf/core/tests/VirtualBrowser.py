@@ -1493,7 +1493,8 @@ class JSDocObject( Javascript.JSObject ):
             return Javascript.JSObject.get_value( self, member_name )
 
     def set_value( self, member_name, value ):
-        raise Exception("Cannot set properties of document object")
+        if member_name != "onkeypress":
+            raise Exception("Cannot set properties of document object")
 
 # Class representing a form in Javascript
 class JSFormObject( Javascript.JSObject ):

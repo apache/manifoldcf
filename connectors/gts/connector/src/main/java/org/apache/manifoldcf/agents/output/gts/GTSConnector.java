@@ -971,7 +971,7 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
   */
   protected static int recognizeApp(String appName)
   {
-    appName = appName.toUpperCase();
+    appName = appName.toUpperCase(Locale.ROOT);
     if (appName.indexOf("MICROSOFT WORD") != -1)
       return DT_MSWORD;
     if (appName.indexOf("MICROSOFT OFFICE WORD") != -1)

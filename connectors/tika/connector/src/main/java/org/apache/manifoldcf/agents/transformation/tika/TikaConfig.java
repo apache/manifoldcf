@@ -29,6 +29,9 @@ public class TikaConfig {
   // Specification nodes and values
   public static final String NODE_FIELDMAP = "fieldmap";
   public static final String NODE_KEEPMETADATA = "keepAllMetadata";
+  public static final String NODE_LOWERNAMES = "lowerNames";
+  public static final String NODE_WRITELIMIT = "writeLimit";
+  public static final int WRITELIMIT_DEFAULT = -1;
   public static final String NODE_IGNORETIKAEXCEPTION = "ignoreException";
   public static final String NODE_BOILERPLATEPROCESSOR = "boilerplateprocessor";
   public static final String ATTRIBUTE_SOURCE = "source";

@@ -40,8 +40,11 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -263,9 +266,12 @@ public class ThrottledFetcher
       SSLConnectionSocketFactory myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory,connectionTimeoutMilliseconds),
         NoopHostnameVerifier.INSTANCE);
 
-      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager();
+      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+        .register("https", myFactory)
+        .build());
       poolingConnectionManager.setDefaultMaxPerRoute(1);
-      poolingConnectionManager.setValidateAfterInactivity(60000);
+      poolingConnectionManager.setValidateAfterInactivity(2000);
       poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
         .setTcpNoDelay(true)
         .setSoTimeout(connectionTimeoutMilliseconds)
@@ -309,7 +315,6 @@ public class ThrottledFetcher
         .disableAutomaticRetries()
         .setDefaultRequestConfig(requestBuilder.build())
         .setDefaultCredentialsProvider(credentialsProvider)
-        .setSSLSocketFactory(myFactory)
         .setRequestExecutor(new HttpRequestExecutor(connectionTimeoutMilliseconds))
         .setRedirectStrategy(new DefaultRedirectStrategy())
         .build();

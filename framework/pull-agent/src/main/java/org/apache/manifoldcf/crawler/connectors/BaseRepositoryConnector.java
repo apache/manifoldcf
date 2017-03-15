@@ -49,12 +49,8 @@ import java.util.*;
 * It therefore establishes a space of document identifiers.  Each connector will only ever be
 * asked to deal with identifiers that have in some way originated from the connector.
 *
-* Documents are fetched in three stages.  First, the getDocuments() method is called in the connector
-* implementation.  This returns a set of document identifiers.  The document identifiers are used to
-* obtain the current document version strings in the second stage, using the getDocumentVersions() method.
-* The last stage is processDocuments(), which queues up any additional documents needed, and also ingests.
-* This method will not be called if the document version seems to indicate that no document change took
-* place.
+* Documents are fetched using processDocuments(), which then gets to decide how to dispose of the
+* document using the methods available by means of the provided IProcessActivity object.
 */
 public abstract class BaseRepositoryConnector extends org.apache.manifoldcf.core.connector.BaseConnector implements IRepositoryConnector
 {

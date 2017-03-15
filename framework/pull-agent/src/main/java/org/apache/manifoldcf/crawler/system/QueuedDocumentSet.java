@@ -73,6 +73,16 @@ public class QueuedDocumentSet
     while (l < documents.length)
     {
       QueuedDocument d = documents[l++];
+      if (Logging.scheduling.isDebugEnabled())
+      {
+        StringBuilder sb = new StringBuilder();
+        for (String binName : d.getBinNames())
+        {
+          sb.append(binName).append(" ");
+        }
+        Logging.scheduling.debug("Handing document '"+d.getDocumentDescription().getDocumentIdentifier()+"' with bins ["+sb.toString()+"] to worker thread");
+      }
+
       queueTracker.beginProcessing(d.getBinNames());
     }
   }
@@ -84,6 +94,16 @@ public class QueuedDocumentSet
     while (l < documents.length)
     {
       QueuedDocument d = documents[l++];
+      if (Logging.scheduling.isDebugEnabled())
+      {
+        StringBuilder sb = new StringBuilder();
+        for (String binName : d.getBinNames())
+        {
+          sb.append(binName).append(" ");
+        }
+        Logging.scheduling.debug("Worker thread done document '"+d.getDocumentDescription().getDocumentIdentifier()+"' with bins ["+sb.toString()+"]");
+      }
+
       queueTracker.endProcessing(d.getBinNames());
     }
 
@@ -100,8 +120,19 @@ public class QueuedDocumentSet
     int i = 0;
     while (i < documents.length)
     {
-      String[] binNames = documents[i++].getBinNames();
-      ratingAccumulator += overlapCalculator.calculateAssignmentRating(binNames,connection);
+      QueuedDocument d = documents[i++];
+      double rating = overlapCalculator.calculateAssignmentRating(d.getBinNames(),connection);
+      if (false && Logging.scheduling.isDebugEnabled())
+      {
+        StringBuilder sb = new StringBuilder();
+        for (String binName : d.getBinNames())
+        {
+          sb.append(binName).append(" ");
+        }
+        Logging.scheduling.debug("Document '"+d.getDocumentDescription().getDocumentIdentifier()+"' with bins ["+sb.toString()+"] given assignment rating "+new Double(rating).toString());
+      }
+
+      ratingAccumulator += rating;
     }
 
     return ratingAccumulator / (double)documents.length;

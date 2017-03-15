@@ -22,6 +22,23 @@
 */
 %>
 
+<%
+try
+{
+  // Check if authorized
+  if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_VIEW_CONNECTIONS))
+  {
+    variableContext.setParameter("target","index.jsp");
+%>
+    <jsp:forward page="unauthorized.jsp"/>
+<%
+  }
+  // Get the job manager handle
+  IRepositoryConnectionManager manager = RepositoryConnectionManagerFactory.make(threadContext);
+  IConnectorManager connectorManager = ConnectorManagerFactory.make(threadContext);
+  IRepositoryConnection[] connections = manager.getAllConnections();
+%>
+
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
@@ -37,15 +54,15 @@
   <script type="text/javascript">
   <!--
 
-  function Delete(connectionName)
+function Delete(connectionName)
+{
+  if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"listconnections.DeleteConnection")%> '"+connectionName+"'?"))
   {
-    if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"listconnections.DeleteConnection")%> '"+connectionName+"'?"))
-    {
-      document.listconnections.op.value="Delete";
-      document.listconnections.connname.value=connectionName;
-      document.listconnections.submit();
-    }
+    document.listconnections.op.value="Delete";
+    document.listconnections.connname.value=connectionName;
+    document.listconnections.submit();
   }
+}
 
   //-->
   </script>
@@ -54,36 +71,29 @@
 
 <body class="standardbody">
 
-    <table class="page">
-      <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-      <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
-       <td class="window">
-  <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.ListOfRepositoryConnections")%></p>
-  <form class="standardform" name="listconnections" action="execute.jsp" method="POST">
-    <input type="hidden" name="op" value="Continue"/>
-    <input type="hidden" name="type" value="connection"/>
-    <input type="hidden" name="connname" value=""/>
+  <table class="page">
+    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
+    <tr>
+      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
+      <td class="window">
+        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.ListOfRepositoryConnections")%></p>
+          <form class="standardform" name="listconnections" action="execute.jsp" method="POST">
+            <input type="hidden" name="op" value="Continue"/>
+            <input type="hidden" name="type" value="connection"/>
+            <input type="hidden" name="connname" value=""/>
 
-<%
-    try
-    {
-  // Get the job manager handle
-  IRepositoryConnectionManager manager = RepositoryConnectionManagerFactory.make(threadContext);
-  IConnectorManager connectorManager = ConnectorManagerFactory.make(threadContext);
-  IRepositoryConnection[] connections = manager.getAllConnections();
-%>
-    <table class="datatable">
-      <tr>
-        <td class="separator" colspan="6"><hr/></td>
-      </tr>
-      <tr class="headerrow">
-        <td class="columnheader"></td>
-        <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Name")%></td>
-        <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Description")%></td>
-        <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.ConnectionType")%></td>
-        <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.AuthorityGroup")%></td>
-        <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Max")%></td>
-      </tr>
+            <table class="datatable">
+              <tr>
+                <td class="separator" colspan="6"><hr/></td>
+              </tr>
+              <tr class="headerrow">
+                <td class="columnheader"></td>
+                <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Name")%></td>
+                <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Description")%></td>
+                <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.ConnectionType")%></td>
+                <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.AuthorityGroup")%></td>
+                <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Max")%></td>
+              </tr>
 <%
   int i = 0;
   while (i < connections.length)
@@ -102,50 +112,47 @@
     int maxCount = connection.getMaxConnections();
 
 %>
-    <tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
-      <td class="columncell">
-        <nobr>
-          <a href='<%="viewconnection.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.View")%></a>
-          <a href='<%="editconnection.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Edit")%></a>
-          <a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Delete")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Delete")%></a>
-        </nobr>
-      </td>
-      <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)%></td>
-      <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
-      <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></td>
-      <td class="columncell"><%=((authorityName==null)?Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.GlobalAuthority"):org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authorityName))%></td>
-      <td class="columncell"><%=Integer.toString(maxCount)%></td>
-    </tr>
+              <tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
+                <td class="columncell">
+                  <nobr>
+                    <a href='<%="viewconnection.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.View")%></a>
+                    <a href='<%="editconnection.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Edit")%></a>
+                    <a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Delete")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Delete")%></a>
+                  </nobr>
+                </td>
+                <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)%></td>
+                <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
+                <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></td>
+                <td class="columncell"><%=((authorityName==null)?Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.GlobalAuthority"):org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authorityName))%></td>
+                <td class="columncell"><%=Integer.toString(maxCount)%></td>
+              </tr>
 <%
   }
 %>
-      <tr>
-        <td class="separator" colspan="6"><hr/></td>
-      </tr>
-      <tr><td class="message" colspan="6"><a href="editconnection.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.AddAConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.AddNewConnection")%></a></td></tr>
-    </table>
+              <tr>
+                <td class="separator" colspan="6"><hr/></td>
+              </tr>
+              <tr><td class="message" colspan="6"><a href="editconnection.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.AddAConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.AddNewConnection")%></a></td></tr>
+            </table>
 
 <%
-    }
-    catch (ManifoldCFException e)
-    {
+}
+catch (ManifoldCFException e)
+{
   e.printStackTrace();
   variableContext.setParameter("text",e.getMessage());
   variableContext.setParameter("target","index.jsp");
 %>
   <jsp:forward page="error.jsp"/>
 <%
-    }
+}
 %>
-      </form>
-       </td>
-      </tr>
-    </table>
+        </form>
+      </td>
+    </tr>
+  </table>
 
 </body>
 
 </html>
 
-<%
-
-%>

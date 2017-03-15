@@ -223,7 +223,7 @@ public class SeedingActivity implements ISeedingActivity
     {
       // Calculate desired document priority based on current queuetracker status.
       String[] bins = connector.getBinNames(docIDs[i]);
-      PriorityCalculator p = new PriorityCalculator(rt,connection,bins);
+      PriorityCalculator p = new PriorityCalculator(rt,connection,bins,docIDs[i]);
       docPriorities[i] = p;
       p.makePreloadRequest();
     }

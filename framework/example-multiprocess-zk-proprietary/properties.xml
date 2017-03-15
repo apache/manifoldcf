@@ -28,11 +28,13 @@
   <!-- ZooKeeper lock manager configuration -->
   <property name="org.apache.manifoldcf.lockmanagerclass" value="org.apache.manifoldcf.core.lockmanager.ZooKeeperLockManager"/>
   <property name="org.apache.manifoldcf.zookeeper.connectstring" value="localhost:8349"/>
-  <property name="org.apache.manifoldcf.zookeeper.sessiontimeout" value="2000"/>
+  <property name="org.apache.manifoldcf.zookeeper.sessiontimeout" value="300000"/>
   <!-- Point to a specific (common) logging file -->
   <property name="org.apache.manifoldcf.logconfigfile" value="./logging.ini"/>
   <!-- Specify the connectors to be loaded -->
   <property name="org.apache.manifoldcf.connectorsconfigurationfile" value="../connectors-proprietary.xml"/>
+  <!-- Specify the path to the file resources directory -->
+  <property name="org.apache.manifoldcf.fileresources" value="../file-resources"/>
   <!-- Tell MCF where to find the connector jars -->
   <libdir path="../connector-lib"/>
   <libdir path="../connector-common-lib"/>

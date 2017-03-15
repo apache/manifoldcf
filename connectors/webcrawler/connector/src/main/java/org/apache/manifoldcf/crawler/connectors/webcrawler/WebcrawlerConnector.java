@@ -123,6 +123,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   protected static final int ROBOTS_DATA = 1;
   protected static final int ROBOTS_ALL = 2;
 
+  protected static final int META_ROBOTS_NONE = 0;
+  protected static final int META_ROBOTS_ALL = 1;
+
   // Relationship types
   public final static String REL_LINK = "link";
   public final static String REL_REDIRECT = "redirect";
@@ -162,6 +165,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   
   /** Robots usage flag */
   protected int robotsUsage = ROBOTS_ALL;
+  /** Meta robots tag usage flag */
+  protected int metaRobotsTagsUsage = META_ROBOTS_ALL;
   /** The user-agent for this connector instance */
   protected String userAgent = null;
   /** The email address for this connector instance */
@@ -364,8 +369,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     // Handle everything else
     if (!isInitialized)
     {
-      String x;
-
       // Either set this from the connection name, or just have one.  Right now, we have one.
       String throttleGroupName = "";
       
@@ -375,15 +378,21 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       userAgent = "Mozilla/5.0 (ApacheManifoldCFWebCrawler; "+emailAddress+")";
       from = emailAddress;
 
-      x = params.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
+      String robotsTxt = params.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
       robotsUsage = ROBOTS_ALL;
-      if (x == null || x.length() == 0 || x.equals("all"))
+      if (robotsTxt == null || robotsTxt.length() == 0 || robotsTxt.equals("all"))
         robotsUsage = ROBOTS_ALL;
-      else if (x.equals("none"))
+      else if (robotsTxt.equals("none"))
         robotsUsage = ROBOTS_NONE;
-      else if (x.equals("data"))
+      else if (robotsTxt.equals("data"))
         robotsUsage = ROBOTS_DATA;
 
+      String metaRobots = params.getParameter(WebcrawlerConfig.PARAMETER_META_ROBOTS_TAGS_USAGE);
+      if (metaRobots == null || metaRobots.length() == 0 || metaRobots.equals("all"))
+        metaRobotsTagsUsage = META_ROBOTS_ALL;
+      else if (metaRobots.equals("none"))
+        metaRobotsTagsUsage = META_ROBOTS_NONE;
+      
       throttleDescription = new ThrottleDescription(params);
       credentialsDescription = new CredentialsDescription(params);
       trustsDescription = new TrustsDescription(params);
@@ -1889,6 +1898,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String robotsUsage = parameters.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
     if (robotsUsage == null)
       robotsUsage = "all";
+    String metaRobotsTagsUsage = parameters.getParameter(WebcrawlerConfig.PARAMETER_META_ROBOTS_TAGS_USAGE);
+    if (metaRobotsTagsUsage == null)
+      metaRobotsTagsUsage = "all";
     String proxyHost = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYHOST);
     if (proxyHost == null)
       proxyHost = "";
@@ -1985,13 +1997,23 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.MetaRobotsTagsUsage") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"+
+"      <select name=\"metarobotstagsusage\" size=\"3\">\n"+
+"        <option value=\"none\" "+(metaRobotsTagsUsage.equals("none")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"WebcrawlerConnector.DontLookAtMetaRobotsTags") + "</option>\n"+
+"        <option value=\"all\" "+(metaRobotsTagsUsage.equals("all")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"WebcrawlerConnector.ObeyMetaRobotsTags") + "</option>\n"+
+"      </select>\n"+
+"    </td>\n"+
+"  </tr>\n"+
 "</table>\n"
       );
     }
     else
     {
       out.print(
-"<input type=\"hidden\" name=\"robotsusage\" value=\""+robotsUsage+"\"/>\n"
+"<input type=\"hidden\" name=\"robotsusage\" value=\""+robotsUsage+"\"/>\n"+
+"<input type=\"hidden\" name=\"metarobotstagsusage\" value=\""+metaRobotsTagsUsage+"\"/>\n"
       );
     }
 
@@ -2883,6 +2905,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String robotsUsage = variableContext.getParameter("robotsusage");
     if (robotsUsage != null)
       parameters.setParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE,robotsUsage);
+    String obeyMetaRobotsTags = variableContext.getParameter("metarobotstagsusage");
+    if (obeyMetaRobotsTags != null)
+      parameters.setParameter(WebcrawlerConfig.PARAMETER_META_ROBOTS_TAGS_USAGE, obeyMetaRobotsTags);
     String proxyHost = variableContext.getParameter("proxyhost");
     if (proxyHost != null)
       parameters.setParameter(WebcrawlerConfig.PARAMETER_PROXYHOST,proxyHost);
@@ -3277,11 +3302,16 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String email = parameters.getParameter(WebcrawlerConfig.PARAMETER_EMAIL);
     String robots = parameters.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
     if (robots.equals("none"))
-      robots = "Ignore robots.txt";
+      robots = Messages.getBodyString(locale,"WebcrawlerConnector.DontLookAtRobotsTxt");
     else if (robots.equals("data"))
-      robots = "Obey robots.txt for data fetches only";
+      robots = Messages.getBodyString(locale,"WebcrawlerConnector.ObeyRobotsTxtForDataFetchesOnly");
     else if (robots.equals("all"))
-      robots = "Obey robots.txt for all fetches";
+      robots = Messages.getBodyString(locale,"WebcrawlerConnector.ObeyRobotsTxtForAllFetches");
+    String metaRobotsTagsUsage = parameters.getParameter(WebcrawlerConfig.PARAMETER_META_ROBOTS_TAGS_USAGE);
+    if (metaRobotsTagsUsage == null || metaRobotsTagsUsage.equals("all"))
+      metaRobotsTagsUsage = Messages.getBodyString(locale,"WebcrawlerConnector.ObeyMetaRobotsTags");
+    else if (metaRobotsTagsUsage.equals("none"))
+      metaRobotsTagsUsage = Messages.getBodyString(locale,"WebcrawlerConnector.DontLookAtMetaRobotsTags");
     String proxyHost = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYHOST);
     if (proxyHost == null)
       proxyHost = "";
@@ -3299,9 +3329,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "<table class=\"displaytable\">\n"+
 "  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.EmailAddress")+"</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">"+Encoder.bodyEscape(email)+"</td>\n"+
+"    <td class=\"value\" colspan=\"3\">"+Encoder.bodyEscape(email)+"</td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
 "    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.RobotsUsage")+"</nobr></td>\n"+
 "    <td class=\"value\" colspan=\"1\"><nobr>"+Encoder.bodyEscape(robots)+"</nobr></td>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.MetaRobotsTagsUsage")+"</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"1\">"+Encoder.bodyEscape(metaRobotsTagsUsage)+"</td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyHostColon") + "</nobr></td>\n"+
@@ -5387,7 +5421,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String rval = hostName + ":" + port;
     // For backwards compatibility, only tack on the protocol if the protocol is not http
     if (!protocol.equalsIgnoreCase("http"))
-      rval = protocol.toLowerCase()+":"+rval;
+      rval = protocol.toLowerCase(Locale.ROOT)+":"+rval;
     return rval;
   }
 
@@ -6048,7 +6082,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     if (Logging.connectors.isDebugEnabled() && redirectHandler.shouldIndex() == false)
       Logging.connectors.debug("Web: Not indexing document '"+documentIdentifier+"' because of redirection");
     // For html, we don't want any actions, because we don't do form submission.
-    ProcessActivityHTMLHandler htmlHandler = new ProcessActivityHTMLHandler(documentIdentifier,activities,filter);
+    ProcessActivityHTMLHandler htmlHandler = new ProcessActivityHTMLHandler(documentIdentifier,activities,filter,metaRobotsTagsUsage);
     handleHTML(documentIdentifier,htmlHandler);
     if (Logging.connectors.isDebugEnabled() && htmlHandler.shouldIndex() == false)
       Logging.connectors.debug("Web: Not indexing document '"+documentIdentifier+"' because of HTML robots or content tags prohibiting indexing");
@@ -6124,11 +6158,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   {
     boolean allowIndex = true;
     boolean allowFollow = true;
+    boolean obeyMetaRobotsTags = true;
     
     /** Constructor. */
-    public ProcessActivityHTMLHandler(String documentIdentifier, IProcessActivity activities, DocumentURLFilter filter)
+    public ProcessActivityHTMLHandler(String documentIdentifier, IProcessActivity activities, DocumentURLFilter filter, int metaRobotTagsUsage)
     {
       super(documentIdentifier,activities,filter,"html",REL_LINK);
+      this.obeyMetaRobotsTags = metaRobotTagsUsage == META_ROBOTS_ALL;
     }
 
     /** Decide whether we should index. */
@@ -6152,12 +6188,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       throws ManifoldCFException
     {
       String name = (String)metaAttributes.get("name");
-      if (name != null && name.toLowerCase().equals("robots"))
+      if (obeyMetaRobotsTags && name != null && name.toLowerCase(Locale.ROOT).equals("robots"))
       {
         String contentValue = (String)metaAttributes.get("content");
         if (contentValue != null)
         {
-          contentValue = contentValue.toLowerCase();
+          contentValue = contentValue.toLowerCase(Locale.ROOT);
           // Parse content value
           try
           {
@@ -7749,16 +7785,16 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             sb.append(groupValue);
             break;
           case EvaluatorToken.GROUPSTYLE_LOWER:
-            sb.append(groupValue.toLowerCase());
+            sb.append(groupValue.toLowerCase(Locale.ROOT));
             break;
           case EvaluatorToken.GROUPSTYLE_UPPER:
-            sb.append(groupValue.toUpperCase());
+            sb.append(groupValue.toUpperCase(Locale.ROOT));
             break;
           case EvaluatorToken.GROUPSTYLE_MIXED:
             if (groupValue.length() > 0)
             {
-              sb.append(groupValue.substring(0,1).toUpperCase());
-              sb.append(groupValue.substring(1).toLowerCase());
+              sb.append(groupValue.substring(0,1).toUpperCase(Locale.ROOT));
+              sb.append(groupValue.substring(1).toLowerCase(Locale.ROOT));
             }
             break;
           default:

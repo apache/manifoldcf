@@ -46,6 +46,7 @@ public class RepositoryDocument
   // Member variables.
   protected InputStream binaryFieldData = null;
   protected long binaryLength = 0;
+  protected final Set<String> fieldSet = new HashSet<String>(); // MUST be independent of fields map because we iterate over this and may change fields
   protected final Map<String,Object> fields = new HashMap<String,Object>();
   protected final Map<String,String[]> stringFields = new HashMap<String,String[]>();
   protected final Map<String,Reader[]> readerFields = new HashMap<String,Reader[]>();
@@ -81,6 +82,10 @@ public class RepositoryDocument
     rval.modifiedDate = modifiedDate;
     rval.indexingDate = indexingDate;
     rval.originalSize = originalSize;
+    for (String key : fieldSet)
+    {
+      rval.fieldSet.add(key);
+    }
     for (String key : fields.keySet())
     {
       rval.fields.put(key,fields.get(key));
@@ -108,6 +113,7 @@ public class RepositoryDocument
   */
   public void clearFields()
   {
+    fieldSet.clear();
     fields.clear();
     stringFields.clear();
     dateFields.clear();
@@ -332,6 +338,7 @@ public class RepositoryDocument
   */
   public void removeField(String fieldName)
   {
+    fieldSet.remove(fieldName);
     fields.remove(fieldName);
     stringFields.remove(fieldName);
     readerFields.remove(fieldName);
@@ -348,6 +355,7 @@ public class RepositoryDocument
   {
     if (fieldData == null)
     {
+      fieldSet.remove(fieldName);
       fields.remove(fieldName);
       stringFields.remove(fieldName);
       readerFields.remove(fieldName);
@@ -355,6 +363,7 @@ public class RepositoryDocument
     }
     else
     {
+      fieldSet.add(fieldName);
       fields.put(fieldName,fieldData);
       stringFields.remove(fieldName);
       readerFields.remove(fieldName);
@@ -388,6 +397,7 @@ public class RepositoryDocument
   {
     if (fieldData == null)
     {
+      fieldSet.remove(fieldName);
       fields.remove(fieldName);
       stringFields.remove(fieldName);
       readerFields.remove(fieldName);
@@ -395,6 +405,7 @@ public class RepositoryDocument
     }
     else
     {
+      fieldSet.add(fieldName);
       fields.put(fieldName,fieldData);
       stringFields.remove(fieldName);
       readerFields.put(fieldName,fieldData);
@@ -428,6 +439,7 @@ public class RepositoryDocument
   {
     if (fieldData == null)
     {
+      fieldSet.remove(fieldName);
       fields.remove(fieldName);
       stringFields.remove(fieldName);
       readerFields.remove(fieldName);
@@ -435,6 +447,7 @@ public class RepositoryDocument
     }
     else
     {
+      fieldSet.add(fieldName);
       fields.put(fieldName,fieldData);
       readerFields.remove(fieldName);
       stringFields.put(fieldName,fieldData);
@@ -568,14 +581,14 @@ public class RepositoryDocument
   */
   public int fieldCount()
   {
-    return fields.size();
+    return fieldSet.size();
   }
 
   /** Iterate through the field name Strings.
   */
   public Iterator<String> getFields()
   {
-    return fields.keySet().iterator();
+    return fieldSet.iterator();
   }
 
   /** This class describes allow and deny tokens for a specific security class. */

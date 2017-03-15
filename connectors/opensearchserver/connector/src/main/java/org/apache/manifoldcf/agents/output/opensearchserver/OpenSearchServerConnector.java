@@ -110,7 +110,7 @@ public class OpenSearchServerConnector extends BaseOutputConnector
 
       PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager();
       poolingConnectionManager.setDefaultMaxPerRoute(1);
-      poolingConnectionManager.setValidateAfterInactivity(60000);
+      poolingConnectionManager.setValidateAfterInactivity(2000);
       poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
         .setTcpNoDelay(true)
         .setSoTimeout(socketTimeout)

@@ -46,7 +46,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
   private static final String[] activitiesList = new String[]{ACTIVITY_FETCH};
 
   private AlfrescoClient alfrescoClient;
-
+  private String binName;
+  
   private static final String CONTENT_URL_PROPERTY = "contentUrlPath";
   private static final String AUTHORITIES_PROPERTY = "readableAuthorities";
   private static final String MIMETYPE_PROPERTY = "mimetype";
@@ -70,6 +71,11 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
   }
 
   @Override
+  public String[] getBinNames(String documentIdentifier) {
+    return new String[] { binName };
+  }
+
+  @Override
   public void connect(ConfigParams config) {
     super.connect(config);
 
@@ -82,6 +88,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
     String username = getConfig(config, "username", null);
     String password = getObfuscatedConfig(config, "password", null);
 
+    /*
     System.out.println("============");
     System.out.println(protocol);
     System.out.println(hostname);
@@ -92,9 +99,11 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
     System.out.println(username);
     System.out.println(password);
     System.out.println("============");
-
+    */
+    
     alfrescoClient = new WebScriptsAlfrescoClient(protocol, hostname + ":" + port, endpoint,
         storeProtocol, storeId, username, password);
+    binName = hostname;
   }
 
   private static String getConfig(ConfigParams config,
@@ -129,16 +138,17 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
       }
       return "Alfresco connection check failed: " + e.getMessage();
     } catch (Exception e) {
-			if (Logging.connectors != null) {
-				Logging.connectors.error(e.getMessage(), e);
-			}
-			throw new ManifoldCFException("Alfresco connection check failed",e);
-		}
+      if (Logging.connectors != null) {
+        Logging.connectors.error(e.getMessage(), e);
+      }
+      throw new ManifoldCFException("Alfresco connection check failed",e);
+    }
   }
 
   @Override
   public void disconnect() throws ManifoldCFException {
     alfrescoClient = null;
+    binName = null;
     super.disconnect();
   }
 
@@ -169,7 +179,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
       }
 
       if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug(MessageFormat.format("Starting from transaction id: {0} and acl changeset id: {1}", new Object[]{lastTransactionId, lastAclChangesetId}));
+        Logging.connectors.debug(new MessageFormat("Starting from transaction id: {0} and acl changeset id: {1}", Locale.ROOT)
+            .format(new Object[]{lastTransactionId, lastAclChangesetId}));
 
       long transactionIdsProcessed;
       long aclChangesetsProcessed;
@@ -187,7 +198,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           count++;
         }
         if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug(MessageFormat.format("Fetched and added {0} seed documents", new Object[]{new Integer(count)}));
+          Logging.connectors.debug(new MessageFormat("Fetched and added {0} seed documents", Locale.ROOT)
+              .format(new Object[]{new Integer(count)}));
 
         transactionIdsProcessed = response.getLastTransactionId() - lastTransactionId;
         aclChangesetsProcessed = response.getLastAclChangesetId() - lastAclChangesetId;
@@ -196,11 +208,13 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         lastAclChangesetId = response.getLastAclChangesetId();
 
         if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug(MessageFormat.format("transaction_id={0}, acl_changeset_id={1}", new Object[]{lastTransactionId, lastAclChangesetId}));
+          Logging.connectors.debug(new MessageFormat("transaction_id={0}, acl_changeset_id={1}", Locale.ROOT)
+              .format(new Object[]{lastTransactionId, lastAclChangesetId}));
       } while (transactionIdsProcessed > 0 || aclChangesetsProcessed > 0);
 
       if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug(MessageFormat.format("Recording {0} as last transaction id and {1} as last changeset id", new Object[]{lastTransactionId, lastAclChangesetId}));
+        Logging.connectors.debug(new MessageFormat("Recording {0} as last transaction id and {1} as last changeset id", Locale.ROOT)
+            .format(new Object[]{lastTransactionId, lastAclChangesetId}));
       return lastTransactionId + "|" + lastAclChangesetId;
     } catch (AlfrescoDownException e) {
       handleAlfrescoDownException(e,"seeding");
@@ -229,7 +243,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         AlfrescoResponse response = alfrescoClient.fetchNode(doc);
         if(response.getDocumentList().isEmpty()){ // Not found seeded document. Could reflect an error in Alfresco
           if (Logging.connectors != null)
-            Logging.connectors.warn(MessageFormat.format("Invalid Seeded Document from Alfresco with ID {0}", new Object[]{doc}));
+            Logging.connectors.warn(new MessageFormat("Invalid Seeded Document from Alfresco with ID {0}", Locale.ROOT)
+                .format(new Object[]{doc}));
           activities.deleteDocument(doc);
           continue;
         }
@@ -280,7 +295,20 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           continue;
         }
 
-        String documentVersion = (enableDocumentProcessing?"+":"-") + new Long(modifiedDate.getTime()).toString();
+        StringBuilder sb = new StringBuilder();
+          
+        sb.append((enableDocumentProcessing?"+":"-"));
+        sb.append(new Long(modifiedDate.getTime()).toString());
+          
+        @SuppressWarnings("unchecked")
+        List<String> permissions = (List<String>) properties.remove(AUTHORITIES_PROPERTY);
+        if(permissions != null){
+            for (String permission : permissions) {
+                sb.append(permission);
+            }
+        }
+          
+        String documentVersion = sb.toString();
 
         if(!activities.checkDocumentNeedsReindexing(doc, documentVersion))
           continue;
@@ -347,8 +375,6 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
           rd.setMimeType(mimeType);
 
         // Indexing Permissions
-        @SuppressWarnings("unchecked")
-        List<String> permissions = (List<String>) properties.remove(AUTHORITIES_PROPERTY);
         if(permissions != null){
           rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT,
                             permissions.toArray(new String[permissions.size()]));
@@ -381,7 +407,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         try {
           rd.setBinary(stream, length);
           if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug(MessageFormat.format("Ingesting with id: {0}, URI {1} and rd {2}", new Object[]{uuid, nodeRef, rd.getFileName()}));
+            Logging.connectors.debug(new MessageFormat("Ingesting with id: {0}, URI {1} and rd {2}", Locale.ROOT)
+                .format(new Object[]{uuid, nodeRef, rd.getFileName()}));
           activities.ingestDocumentWithException(doc, documentVersion, contentUrlPath, rd);
           errorCode = "OK";
           fileLengthLong = new Long(length);

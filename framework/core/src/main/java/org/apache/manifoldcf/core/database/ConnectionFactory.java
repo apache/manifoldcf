@@ -102,6 +102,12 @@ public class ConnectionFactory
     c.release();
   }
 
+  public static void flush()
+  {
+    if (poolManager != null)
+      poolManager.flush();
+  }
+  
   public static void releaseAll()
   {
     if (poolManager != null)
@@ -191,7 +197,18 @@ public class ConnectionFactory
       
       thisPool.shutdown();
     }
-      
+    
+    public void flush()
+    {
+      synchronized (poolExistenceLock)
+      {
+        if (_pool != null)
+        {
+          _pool.flush();
+        }
+      }
+    }
+    
       /*
       // Cleanup strategy is to close everything that can easily be closed, but leave around connections that are so busy that they will not close within a certain amount of
       // time.  To do that, we spin up a thread for each connection, which attempts to close that connection, and then wait until either 15 seconds passes, or all the threads

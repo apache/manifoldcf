@@ -26,7 +26,7 @@ import java.io.*;
 * It's built on top of the JDK 1.4+ JSSE integration, and provides all the necessary logic
 * to work well within the ManifoldCF java environment.
 */
-public interface IKeystoreManager
+public interface IKeystoreManager extends ISSLSocketFactoryProducer
 {
   public static final String _rcsid = "@(#)$Id: IKeystoreManager.java 988245 2010-08-23 18:39:35Z kwright $";
 
@@ -79,12 +79,5 @@ public interface IKeystoreManager
   */
   public void addCertificate(String alias, java.security.cert.Certificate certificate)
     throws ManifoldCFException;
-
-  /** Build a secure socket factory based on this keystore.
-  */
-  public javax.net.ssl.SSLSocketFactory getSecureSocketFactory()
-    throws ManifoldCFException;
-
-
 
 }

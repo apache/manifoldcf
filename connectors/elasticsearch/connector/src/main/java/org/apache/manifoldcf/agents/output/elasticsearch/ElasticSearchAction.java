@@ -35,7 +35,7 @@ public class ElasticSearchAction extends ElasticSearchConnection
 
   public enum CommandEnum
   {
-    _optimize, _refresh, _status;
+    _optimize, _refresh, _stats;
   }
 
   public ElasticSearchAction(HttpClient client, ElasticSearchConfig config)

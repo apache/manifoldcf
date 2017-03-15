@@ -165,6 +165,14 @@
           }
           else if (op.equals("Save"))
           {
+            // Check if authorized
+            if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+            {
+              variableContext.setParameter("target","listconnections.jsp");
+%>
+                  <jsp:forward page="unauthorized.jsp"/>
+<%
+            }
             connManager.save(connection);
             variableContext.setParameter("connname",connectionName);
 %>
@@ -280,11 +288,20 @@
           {
             threadContext.save("GroupObject",group);
 %>
-            <jsp:forward page="editgroup.jsp"/>
+              <jsp:forward page="editgroup.jsp"/>
 <%
           }
           else if (op.equals("Save"))
           {
+            // Check if authorized
+            if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+            {
+              variableContext.setParameter("target","listgroups.jsp");
+%>
+                  <jsp:forward page="unauthorized.jsp"/>
+<%
+            }
+
             authGroupManager.save(group);
             variableContext.setParameter("groupname",groupName);
 %>
@@ -415,6 +432,15 @@
           }
           else if (op.equals("Save"))
           {
+            // Check if authorized
+            if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+            {
+              variableContext.setParameter("target","listauthorities.jsp");
+%>
+                  <jsp:forward page="unauthorized.jsp"/>
+<%
+            }
+
             authConnManager.save(connection);
             variableContext.setParameter("connname",connectionName);
 %>
@@ -538,6 +564,15 @@
           }
           else if (op.equals("Save"))
           {
+            // Check if authorized
+            if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+            {
+              variableContext.setParameter("target","listmappers.jsp");
+%>
+                  <jsp:forward page="unauthorized.jsp"/>
+<%
+            }
+
             mappingConnManager.save(connection);
             variableContext.setParameter("connname",connectionName);
 %>
@@ -653,6 +688,15 @@
           }
           else if (op.equals("Save"))
           {
+            // Check if authorized
+            if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+            {
+              variableContext.setParameter("target","listoutputs.jsp");
+%>
+                  <jsp:forward page="unauthorized.jsp"/>
+<%
+            }
+
             outputManager.save(connection);
             variableContext.setParameter("connname",connectionName);
 %>
@@ -812,6 +856,15 @@
           }
           else if (op.equals("Save"))
           {
+            // Check if authorized
+            if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+            {
+              variableContext.setParameter("target","listtransformations.jsp");
+%>
+                  <jsp:forward page="unauthorized.jsp"/>
+<%
+            }
+
             transformationManager.save(connection);
             variableContext.setParameter("connname",connectionName);
 %>
@@ -927,6 +980,15 @@
           }
           else if (op.equals("Save"))
           {
+            // Check if authorized
+            if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_EDIT_CONNECTIONS))
+            {
+              variableContext.setParameter("target","listnotifications.jsp");
+%>
+                  <jsp:forward page="unauthorized.jsp"/>
+<%
+            }
+
             notificationManager.save(connection);
             variableContext.setParameter("connname",connectionName);
 %>
@@ -1470,6 +1532,15 @@
           }
           else if (op.equals("Save"))
           {
+            // Check if authorized
+            if (!adminprofile.checkAllowed(threadContext,IAuthorizer.CAPABILITY_EDIT_JOBS))
+            {
+              variableContext.setParameter("target","listjobs.jsp");
+%>
+                  <jsp:forward page="unauthorized.jsp"/>
+<%
+            }
+
             manager.save(job);
             // Reset the job schedule. We may want to make this explicit at some point; having
             // this happen all the time seems wrong.

@@ -106,10 +106,6 @@ public class ManifoldCF
   protected static Integer initializeFlagLock = new Integer(0);
 
   // Local member variables
-  protected static String loginUserName = null;
-  protected static String loginPassword = null;
-  protected static String apiLoginUserName = null;
-  protected static String apiLoginPassword = null;
   protected static String masterDatabaseName = null;
   protected static String masterDatabaseUsername = null;
   protected static String masterDatabasePassword = null;
@@ -128,17 +124,6 @@ public class ManifoldCF
   /** Process ID - cannot exceed 16 characters */
   public static final String processIDProperty = "org.apache.manifoldcf.processid";
   
-  // Admin properties
-  /** UI login user name */
-  public static final String loginUserNameProperty = "org.apache.manifoldcf.login.name";
-  /** UI login password */
-  public static final String loginPasswordProperty = "org.apache.manifoldcf.login.password";
-
-  /** API login user name */
-  public static final String apiLoginUserNameProperty = "org.apache.manifoldcf.apilogin.name";
-  /** API login password */
-  public static final String apiLoginPasswordProperty = "org.apache.manifoldcf.apilogin.password";
-
   // Database access properties
   /** Database name property */
   public static final String masterDatabaseNameProperty = "org.apache.manifoldcf.database.name";
@@ -163,11 +148,17 @@ public class ManifoldCF
   /** Location of log configuration file */
   public static final String logConfigFileProperty = "org.apache.manifoldcf.logconfigfile";
   
+  // File resources property
+  /** Location of file resources */
+  public static final String fileResourcesProperty = "org.apache.manifoldcf.fileresources";
+  
   // Implementation class properties
   /** Lock manager implementation class */
   public static final String lockManagerImplementation = "org.apache.manifoldcf.lockmanagerclass";
   /** Database implementation class */
   public static final String databaseImplementation = "org.apache.manifoldcf.databaseimplementationclass";
+  /** Auth implementation class */
+  public static final String authImplementation = "org.apache.manifoldcf.authimplementationclass";
   
   // The following are system integration properties
   /** Script to invoke when configuration changes, if any */
@@ -198,10 +189,6 @@ public class ManifoldCF
         // Clean up the system doing the same thing the shutdown thread would have if the process was killed
         cleanUpEnvironment(threadContext);
         processID = null;
-        loginUserName = null;
-        loginPassword = null;
-        apiLoginUserName = null;
-        apiLoginPassword = null;
         masterDatabaseName = null;
         masterDatabaseUsername = null;
         masterDatabasePassword = null;
@@ -291,12 +278,6 @@ public class ManifoldCF
           // Set up local loggers
           Logging.initializeLoggers();
           Logging.setLogLevels(threadContext);
-
-          loginUserName = LockManagerFactory.getStringProperty(threadContext,loginUserNameProperty,"admin");
-          loginPassword = LockManagerFactory.getPossiblyObfuscatedStringProperty(threadContext,loginPasswordProperty,"admin");
-
-          apiLoginUserName = LockManagerFactory.getStringProperty(threadContext,apiLoginUserNameProperty,"");
-          apiLoginPassword = LockManagerFactory.getPossiblyObfuscatedStringProperty(threadContext,apiLoginPasswordProperty,"");
 
           masterDatabaseName = LockManagerFactory.getStringProperty(threadContext,masterDatabaseNameProperty,"dbname");
           masterDatabaseUsername = LockManagerFactory.getStringProperty(threadContext,masterDatabaseUsernameProperty,"manifoldcf");
@@ -707,44 +688,6 @@ public class ManifoldCF
     }
   }
 
-  /** Verify API login.
-  */
-  public static boolean verifyAPILogin(IThreadContext threadContext, String userID, String userPassword)
-    throws ManifoldCFException
-  {
-    if (userID != null && userPassword != null)
-    {
-      /*
-      IDBInterface database = DBInterfaceFactory.make(threadContext,
-        ManifoldCF.getMasterDatabaseName(),
-        ManifoldCF.getMasterDatabaseUsername(),
-        ManifoldCF.getMasterDatabasePassword());
-      */
-      // MHL to use a database table, when we get that sophisticated
-      return userID.equals(apiLoginUserName) &&  userPassword.equals(apiLoginPassword);
-    }
-    return false;
-  }
-
-  /** Verify login.
-  */
-  public static boolean verifyLogin(IThreadContext threadContext, String userID, String userPassword)
-    throws ManifoldCFException
-  {
-    if (userID != null && userPassword != null)
-    {
-      /*
-      IDBInterface database = DBInterfaceFactory.make(threadContext,
-        ManifoldCF.getMasterDatabaseName(),
-        ManifoldCF.getMasterDatabaseUsername(),
-        ManifoldCF.getMasterDatabasePassword());
-      */
-      // MHL to use a database table, when we get that sophisticated
-      return userID.equals(loginUserName) &&  userPassword.equals(loginPassword);
-    }
-    return false;
-  }
-  
   protected static final int IV_LENGTH = 16;
 
   protected static String getSaltValue(IThreadContext threadContext)
@@ -770,7 +713,7 @@ public class ManifoldCF
     try
     {
       SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-      KeySpec keySpec = new PBEKeySpec(passCode.toCharArray(), saltValue.getBytes(), 1024, 128);
+      KeySpec keySpec = new PBEKeySpec(passCode.toCharArray(), saltValue.getBytes(StandardCharsets.UTF_8), 1024, 128);
       SecretKey secretKey = factory.generateSecret(keySpec);
 
       Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -1226,7 +1169,7 @@ public class ManifoldCF
           InputStream is = p.getErrorStream();
           try
           {
-            Reader r = new InputStreamReader(is);
+            Reader r = new InputStreamReader(is, StandardCharsets.UTF_8);
             try
             {
               BufferedReader br = new BufferedReader(r);

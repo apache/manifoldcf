@@ -490,6 +490,7 @@
             <tr><td>"hopcount_mode"</td><td>The hopcount mode for the job, which can be either "accurate", "no delete", "never delete"</td></tr>
             <tr><td>"priority"</td><td>The job's priority, typically "5"</td></tr>
             <tr><td>"recrawl_interval"</td><td>The default time between recrawl of documents (if the job is "continuous"), in milliseconds, or "infinite" for infinity</td></tr>
+            <tr><td>"max_recrawl_interval"</td><td>The maximum time between recrawl of documents (if the job is "continuous"), in milliseconds, or "infinite" for infinity</td></tr>
             <tr><td>"expiration_interval"</td><td>The time until a document expires (if the job is "continuous"), in milliseconds, or "infinite" for infinity</td></tr>
             <tr><td>"reseed_interval"</td><td>The time between reseeding operations (if the job is "continuous"), in milliseconds, or "infinite" for infinity</td></tr>
             <tr><td>"hopcount"</td><td>An array of hopcount objects, describing the link types and associated maximum hops permitted for the job</td></tr>

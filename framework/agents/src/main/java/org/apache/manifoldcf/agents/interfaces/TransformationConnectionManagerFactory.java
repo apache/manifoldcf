@@ -71,10 +71,13 @@ public class TransformationConnectionManagerFactory
     {
       String connectionName = connection.getName();
       String[] activities = TransformationConnectorFactory.getActivitiesList(tc,connection.getClassName());
-      for (String baseActivity : activities)
+      if (activities != null)
       {
-        String activity = ManifoldCF.qualifyTransformationActivityName(baseActivity, connectionName);
-        map.add(activity);
+        for (String baseActivity : activities)
+        {
+          String activity = ManifoldCF.qualifyTransformationActivityName(baseActivity, connectionName);
+          map.add(activity);
+        }
       }
     }
     String[] rval = new String[map.size()];

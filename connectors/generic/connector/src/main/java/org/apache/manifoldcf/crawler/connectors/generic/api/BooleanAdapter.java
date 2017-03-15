@@ -16,12 +16,13 @@
 package org.apache.manifoldcf.crawler.connectors.generic.api;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
+import java.util.Locale;
 
 public class BooleanAdapter extends XmlAdapter<String, Boolean> {
 
   @Override
   public Boolean unmarshal(String v) throws Exception {
-    v = v.toLowerCase();
+    v = v.toLowerCase(Locale.ROOT);
     return "true".equals(v) || "1".equals(v) || "on".equals(v) || "y".equals(v);
   }
 
