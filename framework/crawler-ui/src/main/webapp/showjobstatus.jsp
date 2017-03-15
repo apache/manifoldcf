@@ -48,90 +48,84 @@ try
   JobStatus[] jobs = manager.getAllStatus(true,maxCount);
 %>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
-  <title>
-    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.ApacheManifoldCFStatusOfAllJobs")%>
-  </title>
-
-  <script type="text/javascript">
+<script type="text/javascript">
   <!--
+  $.ManifoldCF.setTitle(
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "showjobstatus.ApacheManifoldCFStatusOfAllJobs")%>',
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "showjobstatus.StatusOfJobs")%>',
+      'jobs'
+  );
 
-function Start(jobID)
-{
-  document.liststatuses.op.value="Start";
-  document.liststatuses.jobid.value=jobID;
-  document.liststatuses.submit();
-}
+  function Start(jobID)
+  {
+    document.liststatuses.op.value="Start";
+    document.liststatuses.jobid.value=jobID;
+    $.ManifoldCF.submit(document.liststatuses);
+  }
 
-function StartMinimal(jobID)
-{
-  document.liststatuses.op.value="StartMinimal";
-  document.liststatuses.jobid.value=jobID;
-  document.liststatuses.submit();
-}
+  function StartMinimal(jobID)
+  {
+    document.liststatuses.op.value="StartMinimal";
+    document.liststatuses.jobid.value=jobID;
+    $.ManifoldCF.submit(document.liststatuses);
+  }
 
-function Abort(jobID)
-{
-  document.liststatuses.op.value="Abort";
-  document.liststatuses.jobid.value=jobID;
-  document.liststatuses.submit();
-}
+  function Abort(jobID)
+  {
+    document.liststatuses.op.value="Abort";
+    document.liststatuses.jobid.value=jobID;
+    $.ManifoldCF.submit(document.liststatuses);
+  }
 
-function Restart(jobID)
-{
-  document.liststatuses.op.value="Restart";
-  document.liststatuses.jobid.value=jobID;
-  document.liststatuses.submit();
-}
+  function Restart(jobID)
+  {
+    document.liststatuses.op.value="Restart";
+    document.liststatuses.jobid.value=jobID;
+    $.ManifoldCF.submit(document.liststatuses);
+  }
 
-function RestartMinimal(jobID)
-{
-  document.liststatuses.op.value="RestartMinimal";
-  document.liststatuses.jobid.value=jobID;
-  document.liststatuses.submit();
-}
+  function RestartMinimal(jobID)
+  {
+    document.liststatuses.op.value="RestartMinimal";
+    document.liststatuses.jobid.value=jobID;
+    $.ManifoldCF.submit(document.liststatuses);
+  }
 
-function Pause(jobID)
-{
-  document.liststatuses.op.value="Pause";
-  document.liststatuses.jobid.value=jobID;
-  document.liststatuses.submit();
-}
+  function Pause(jobID)
+  {
+    document.liststatuses.op.value="Pause";
+    document.liststatuses.jobid.value=jobID;
+    $.ManifoldCF.submit(document.liststatuses);
+  }
 
-function Resume(jobID)
-{
-  document.liststatuses.op.value="Resume";
-  document.liststatuses.jobid.value=jobID;
-  document.liststatuses.submit();
-}
+  function Resume(jobID)
+  {
+    document.liststatuses.op.value="Resume";
+    document.liststatuses.jobid.value=jobID;
+    $.ManifoldCF.submit(document.liststatuses);
+  }
 
   //-->
-  </script>
+</script>
+<div class="row">
+  <div class="col-md-12">
+    <div class="box box-primary">
+      <form class="standardform" name="liststatuses" action="execute.jsp" method="POST">
+        <input type="hidden" name="op" value="Continue"/>
+        <input type="hidden" name="type" value="jobstatus"/>
+        <input type="hidden" name="jobid" value=""/>
 
-</head>
-
-<body class="standardbody">
-
-  <table class="page">
-    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-    <tr>
-      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
-      <td class="window">
-        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.StatusOfJobs")%></p>
-        <form class="standardform" name="liststatuses" action="execute.jsp" method="POST">
-          <input type="hidden" name="op" value="Continue"/>
-          <input type="hidden" name="type" value="jobstatus"/>
-          <input type="hidden" name="jobid" value=""/>
-
-          <table class="datatable">
+        <div class="box-body">
+          <table class="table table-bordered">
             <tr>
-              <td class="separator" colspan="8"><hr/></td>
-            </tr>
-            <tr class="headerrow">
-              <td class="columnheader"></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Name")%></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Status")%></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.StartTime")%></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.EndTime")%></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Documents")%></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Active")%></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Processed")%></td>
+              <th>Action</th>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Name")%></th>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Status")%></th>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.StartTime")%></th>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.EndTime")%></th>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Documents")%></th>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Active")%></th>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Processed")%></th>
             </tr>
 <%
   int i = 0;
@@ -210,17 +204,21 @@ function Resume(jobID)
         endTime = new Date(js.getEndTime()).toString();
     }
 %>
-            <tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
-              <td class="columncell">
-                <nobr>
+            <tr>
+              <td>
+
 <%
     if (status == JobStatus.JOBSTATUS_NOTYETRUN ||
       status == JobStatus.JOBSTATUS_COMPLETED ||
       status == JobStatus.JOBSTATUS_ERROR)
     {
 %>
-                  <a href='<%="javascript:Start(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Start")%></a>
-                  <a href='<%="javascript:StartMinimal(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Startminimal")%></a>
+                <a href='<%="javascript:Start(\""+js.getJobID()+"\")"%>'
+                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()%>'
+                        class="btn btn-success btn-xs" role="button"><span class="fa fa-play" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Start")%></a>
+                <a href='<%="javascript:StartMinimal(\""+js.getJobID()+"\")"%>'
+                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'
+                        class="btn btn-success btn-xs" role="button"><span class="fa fa-compress" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Startminimal")%></a>
 <%
     }
     if (status == JobStatus.JOBSTATUS_RUNNING ||
@@ -230,8 +228,12 @@ function Resume(jobID)
       status == JobStatus.JOBSTATUS_STARTING)
     {
 %>
-                  <a href='<%="javascript:Restart(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restart")%></a>
-                  <a href='<%="javascript:RestartMinimal(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restartminimal")%></a>
+                <a href='<%="javascript:Restart(\""+js.getJobID()+"\")"%>'
+                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()%>'
+                        class="btn btn-success btn-xs" role="button"><span class="fa fa-play" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restart")%></a>
+                <a href='<%="javascript:RestartMinimal(\""+js.getJobID()+"\")"%>'
+                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'
+                        class="btn btn-success btn-xs" role="button"><span class="fa fa-compress" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restartminimal")%></a>
 <%
     }
     if (status == JobStatus.JOBSTATUS_RUNNING ||
@@ -239,7 +241,9 @@ function Resume(jobID)
       status == JobStatus.JOBSTATUS_WINDOWWAIT)
     {
 %>
-                  <a href='<%="javascript:Pause(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Pausejob")+" "+js.getJobID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Pause")%></a>
+                <a href='<%="javascript:Pause(\""+js.getJobID()+"\")"%>'
+                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Pausejob")+" "+js.getJobID()%>'
+                        class="btn btn-success btn-xs" role="button"><span class="fa fa-pause" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Pause")%></a>
 <%
     }
     if (status == JobStatus.JOBSTATUS_RUNNING ||
@@ -252,33 +256,42 @@ function Resume(jobID)
       status == JobStatus.JOBSTATUS_RESTARTING)
     {
 %>
-                  <a href='<%="javascript:Abort(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Abortjob")+" "+js.getJobID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Abort")%></a>
+                <a href='<%="javascript:Abort(\""+js.getJobID()+"\")"%>'
+                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Abortjob")+" "+js.getJobID()%>'
+                        class="btn btn-success btn-xs" role="button"><span class="fa fa-stop" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Abort")%></a>
 <%
     }
     if (status == JobStatus.JOBSTATUS_PAUSED)
     {
 %>
-                  <a href='<%="javascript:Resume(\""+js.getJobID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Resumejob")+" "+js.getJobID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Resume")%></a>
+                <a href='<%="javascript:Resume(\""+js.getJobID()+"\")"%>'
+                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Resumejob")+" "+js.getJobID()%>'
+                        class="btn btn-success btn-xs" role="button"><span class="fa fa-play" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Resume")%></a>
 <%
     }
 %>
-                </nobr>
+
               </td>
-              <td class="columncell"><%="<!--jobid="+js.getJobID()+"-->"%><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(js.getDescription())%></td><td class="columncell"><%=statusName%></td><td class="columncell"><%=startTime%></td><td class="columncell"><%=endTime%></td>
-              <td class="columncell"><%=(js.getQueueCountExact()?"":"&gt; ")%><%=new Long(js.getDocumentsInQueue()).toString()%></td>
-              <td class="columncell"><%=(js.getOutstandingCountExact()?"":"&gt; ")%><%=new Long(js.getDocumentsOutstanding()).toString()%></td>
-              <td class="columncell"><%=(js.getProcessedCountExact()?"":"&gt; ")%><%=new Long(js.getDocumentsProcessed()).toString()%></td>
+              <td><%="<!--jobid=" + js.getJobID() + "-->"%><span jobid="<%= js.getJobID() %>"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(js.getDescription())%></span></td>
+              <td><%=statusName%></td>
+              <td><%=startTime%></td>
+              <td><%=endTime%></td>
+              <td><%=(js.getQueueCountExact()?"":"&gt; ")%><%=new Long(js.getDocumentsInQueue()).toString()%></td>
+              <td><%=(js.getOutstandingCountExact()?"":"&gt; ")%><%=new Long(js.getDocumentsOutstanding()).toString()%></td>
+              <td><%=(js.getProcessedCountExact()?"":"&gt; ")%><%=new Long(js.getDocumentsProcessed()).toString()%></td>
             </tr>
 <%
   }
 %>
-
-            <tr>
-              <td class="separator" colspan="8"><hr/></td>
-            </tr>
-            <tr><td class="message" colspan="8"><a href="showjobstatus.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.RefreshStatus")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Refresh")%></a></td></tr>
           </table>
-
+        </div>
+        <div class="box-footer clearfix">
+          <div class="btn-group">
+            <a href="showjobstatus.jsp"
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.RefreshStatus")%>"
+                    class="link btn btn-primary" role="button" data-toggle="tooltip"><span class="fa fa-refresh" aria-hidden="true"></span></a>
+          </div>
+          
 <%
 }
 catch (ManifoldCFException e)
@@ -287,16 +300,12 @@ catch (ManifoldCFException e)
   variableContext.setParameter("text",e.getMessage());
   variableContext.setParameter("target","index.jsp");
 %>
-  <jsp:forward page="error.jsp"/>
+<jsp:forward page="error.jsp"/>
 <%
 }
 %>
-        </form>
-      </td>
-    </tr>
-  </table>
-
-
-</body>
-
-</html>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

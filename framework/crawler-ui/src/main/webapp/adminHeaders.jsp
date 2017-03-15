@@ -47,11 +47,27 @@ response.setContentType("text/html;charset=utf-8");
 
 
 <%
+  String queryString = request.getQueryString();
+  String requestURL = request.getRequestURI();
+  requestURL = requestURL.substring(requestURL.lastIndexOf("/") + 1);
+  requestURL += queryString == null ? "" : "?" + queryString;
   if (adminprofile.getLoggedOn() == false)
   {
-    response.sendRedirect("login.jsp");
+    if (queryString == null)
+    {
+      response.sendRedirect("login.jsp");
+    } else
+    {
+      if (!requestURL.startsWith("index.jsp"))
+      {
+        requestURL = "index.jsp?p=" + requestURL;
+      }
+      response.sendRedirect("login.jsp?nextUrl=" + URLEncoder.encode(requestURL));
+    }
     return;
   }
+
+  response.setHeader("page", requestURL);
 
   IThreadContext threadContext = thread.getThreadContext();
   org.apache.manifoldcf.ui.multipart.MultipartWrapper variableContext = (org.apache.manifoldcf.ui.multipart.MultipartWrapper)threadContext.get("__WRAPPER__");
@@ -61,4 +77,3 @@ response.setContentType("text/html;charset=utf-8");
     threadContext.save("__WRAPPER__",variableContext);
   }
 %>
-

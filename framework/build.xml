@@ -647,7 +647,7 @@
             </fileset>
         </copy>
         <copy todir="build/webapp/crawler-ui">
-            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
         </copy>
         <jar destfile="build/webapp/crawler-ui/WEB-INF/lib/mcf-crawler-ui.jar" basedir="build/crawler-ui/classes"/>
     </target>
@@ -702,8 +702,8 @@
                 <include name="*.tld"/>
             </fileset>
         </copy>
-        <copy todir="build/webapp/crawler-ui-proprietary">
-            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+        <copy todir="build/webapp/crawler-ui-proprietary">            
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
         </copy>
         <jar destfile="build/webapp/crawler-ui-proprietary/WEB-INF/lib/mcf-crawler-ui.jar" basedir="build/crawler-ui/classes"/>
     </target>
@@ -753,7 +753,7 @@
             </fileset>
         </copy>
         <copy todir="build/webapp/combined-service">
-            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
         </copy>
         <jar destfile="build/webapp/combined-service/WEB-INF/lib/mcf-combined-service.jar" basedir="build/combined-service/classes"/>
     </target>
@@ -811,7 +811,7 @@
             </fileset>
         </copy>
         <copy todir="build/webapp/combined-service-proprietary">
-            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
         </copy>
         <jar destfile="build/webapp/combined-service-proprietary/WEB-INF/lib/mcf-combined-service.jar" basedir="build/combined-service/classes"/>
     </target>

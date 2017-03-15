@@ -92,130 +92,108 @@ try
       connectionStatus = Messages.getString(pageContext.getRequest().getLocale(),"viewauthority.Threwexception")+" '"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(e.getMessage())+"'";
     }
 %>
-
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html>
-<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
-  <title>
-    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.ApacheManifoldCFViewAuthorityConnectionStatus")%>
-  </title>
-
-  <script type="text/javascript">
+<script type="text/javascript">
   <!--
-
-function Delete(connectionName)
-{
-  if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewauthority.DeleteConnection")%> '"+connectionName+"'<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewauthority.qmark")%>"))
+  $.ManifoldCF.setTitle(
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewauthority.ApacheManifoldCFViewAuthorityConnectionStatus")%>',
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.ViewAuthorityConnectionStatus") + " - " + connectionName %>',
+      'authorities'
+  );
+  function Delete(connectionName)
   {
-    document.viewconnection.op.value="Delete";
-    document.viewconnection.connname.value=connectionName;
-    document.viewconnection.submit();
+    if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewauthority.DeleteConnection")%> '"+connectionName+"'<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"viewauthority.qmark")%>"))
+    {
+      document.viewconnection.op.value="Delete";
+      document.viewconnection.connname.value=connectionName;
+      $.ManifoldCF.submit(document.viewconnection);
+    }
   }
-}
 
   //-->
-  </script>
+</script>
 
-</head>
 
-<body class="standardbody">
+<div class="row">
+  <div class="col-md-12">
+    <div class="box box-primary">
+      <form class="standardform" name="viewconnection" action="execute.jsp" method="POST">
+        <input type="hidden" name="op" value="Continue"/>
+        <input type="hidden" name="type" value="authority"/>
+        <input type="hidden" name="connname" value=""/>
 
-  <table class="page">
-    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-    <tr>
-      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
-      <td class="window">
-        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.ViewAuthorityConnectionStatus")%></p> 
-        <form class="standardform" name="viewconnection" action="execute.jsp" method="POST">
-          <input type="hidden" name="op" value="Continue"/>
-          <input type="hidden" name="type" value="authority"/>
-          <input type="hidden" name="connname" value=""/>
-
-          <table class="displaytable">
+        <div class="box-body">
+          <table class="table table-bordered">
             <tr>
-              <td class="separator" colspan="4"><hr/></td>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.NameColon")%></nobr></th>
+              <td><%="<!--connection=" + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName) + "-->"%>
+                <nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></nobr>
+              </td>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.DescriptionColon")%></nobr></th>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
             </tr>
             <tr>
-              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.NameColon")%></nobr></td>
-              <td class="value" colspan="1"><%="<!--connection="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)+"-->"%><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%></nobr></td>
-              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.DescriptionColon")%></nobr></td>
-              <td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.AuthorityTypeColon")%></nobr></th>
+              <td><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></nobr></td>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.MaxConnectionsColon")%></nobr></th>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(Integer.toString(maxCount))%></td>
             </tr>
             <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-            <tr>
-              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.AuthorityTypeColon")%></nobr></td>
-              <td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></nobr></td>
-              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.MaxConnectionsColon")%></nobr></td>
-              <td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(Integer.toString(maxCount))%></td>
-            </tr>
-            <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-            <tr>
-              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.AuthorityGroupColon")%></nobr></td>
-              <td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(groupName)%></nobr></td>
-              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.AuthorizationDomainColon")%></nobr></td>
-              <td class="value" colspan="1"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authDomain)%></nobr></td>
-            </tr>
-            <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-            <tr>
-              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.PrerequisiteUserMappingColon")%></nobr></td>
-              <td class="value" colspan="3">
-<%
-    if (prereq != null)
-    {
-%>
-                <nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(prereq)%></nobr>
-<%
-    }
-    else
-    {
-%>
-                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.NoPrerequisites")%></nobr>
-<%
-    }
-%>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.AuthorityGroupColon")%></nobr></th>
+              <td><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(groupName)%></nobr></td>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.AuthorizationDomainColon")%></nobr></th>
+              <td><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(authDomain)%></nobr>
               </td>
             </tr>
             <tr>
-              <td class="separator" colspan="4"><hr/></td>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.PrerequisiteUserMappingColon")%></nobr></th>
+              <td colspan="3">
+<%
+  if (prereq != null)
+  {
+%>
+                <nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(prereq)%></nobr>
+<%
+  }
+  else
+  {
+%>
+                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.NoPrerequisites")%></nobr>
+<%
+  }
+%>
+              </td>
             </tr>
             <tr>
               <td colspan="4">
 <%
     AuthorityConnectorFactory.viewConfiguration(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters);
 %>
-
               </td>
             </tr>
             <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-            <tr>
-              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.ConnectionStatusColon")%></nobr></td>
-              <td class="value" colspan="3"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionStatus)%></td>
-            </tr>
-            <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-            <tr>
-              <td class="message" colspan="4">
-                <nobr><a href='<%="viewauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.Refresh")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.Refresh")%></a></nobr>
-                <nobr><a href='<%="editauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.EditThisAuthorityConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.Edit")%></a></nobr>
-                <nobr><a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.DeleteThisAuthorityConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.Delete")%></a></nobr>
-              </td>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.ConnectionStatusColon")%></nobr></th>
+              <td colspan="3"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionStatus)%></td>
             </tr>
           </table>
-
+        </div>
+        <div class="box-footer clearfix">
+          <div class="btn-group">
+            <a href='<%="viewauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.Refresh")%>"
+                    class="link btn btn-success" role="button" data-toggle="tooltip"><i class="fa fa-refresh fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.Refresh")%></a>
+            <a href='<%="editauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.EditThisAuthorityConnection")%>"
+                    class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-pencil fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.Edit")%></a>
+            <a href="javascript:void(0);"
+                    onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>'
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.DeleteThisAuthorityConnection")%>"
+                    class="btn btn-danger" role="button" data-toggle="tooltip"><i class="fa fa-trash fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewauthority.Delete")%></a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 <%
   }
 }
@@ -229,11 +207,3 @@ catch (ManifoldCFException e)
 <%
 }
 %>
-        </form>
-      </td>
-    </tr>
-  </table>
-
-</body>
-
-</html>
