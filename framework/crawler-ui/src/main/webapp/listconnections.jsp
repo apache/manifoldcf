@@ -101,24 +101,15 @@ try
               <td>
                 <div class="btn-group">
                   <a href='<%="viewconnection.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
-                          title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          class="link btn btn-success btn-xs" role="button" data-toggle="tooltip">
-                    <span class="fa fa-eye" aria-hidden="true"></span>
-                  </a>
+                          title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>' 
+                          class="link btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-eye fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.View")%></a>
                   <a href='<%="editconnection.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
-                          title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip">
-                    <span class="fa fa-pencil-square-o" aria-hidden="true"></span>
-                  </a>
+                          title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>' 
+                          class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-pencil-square-o fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Edit")%></a>
                   <a href="javascript:void(0);"
                           onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>'
-                          title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Delete")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Delete")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          class="btn btn-danger btn-xs" role="button" data-toggle="tooltip">
-                    <span class="fa fa-trash" aria-hidden="true"></span>
-                  </a>
+                          title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Delete")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>' 
+                          class="btn btn-danger btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-trash" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Delete")%></a>
                 </div>
               </td>
               <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)%></td>
@@ -134,12 +125,9 @@ try
         </div>
         <div class="box-footer clearfix">
           <div class="btn-group">
-            <a href="editconnection.jsp"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.AddAConnection")%>"
-                    class="link btn btn-primary" role="button">
-              <span class="fa fa-plus-circle" aria-hidden="true"></span>
-              <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.AddNewConnection")%>
-            </a>
+            <a href="editconnection.jsp" class="link btn btn-primary" role="button" 
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.AddAConnection")%>"
+                    data-toggle="tooltip"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.Add")%></a>
           </div>
 
 <%
