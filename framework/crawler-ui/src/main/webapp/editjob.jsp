@@ -300,20 +300,24 @@ try
   }
 %>
 
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html>
-<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
-  <title>
-    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ApacheManifoldCFEditJob")%>
-  </title>
-
-  <script type="text/javascript">
+<script type="text/javascript">
   <!--
+<%
+  String title = null;
+  if (description.length() > 0)
+  {
+    title = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditJob") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description);
+  }
+  else
+  {
+    title = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditaJob");
+  }
+%>
+    $.ManifoldCF.setTitle(
+        '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.ApacheManifoldCFEditJob")%>',
+        '<%=title%>',
+        'jobs'
+    );
 
 // Use this method to repost the form and pick a new tab
 function SelectTab(newtab)
@@ -322,18 +326,18 @@ function SelectTab(newtab)
   {
     document.editjob.tabname.value = newtab;
     document.editjob.sequencenumber.value = "";
-    document.editjob.submit();
+    $.ManifoldCF.submit(document.editjob);
   }
 }
 
-  // Use this method to repost the form and pick a new tab
+// Use this method to repost the form and pick a new tab
 function SelectSequencedTab(newtab, sequencenumber)
 {
   if (checkForm())
   {
     document.editjob.tabname.value = newtab;
     document.editjob.sequencenumber.value = sequencenumber;
-    document.editjob.submit();
+    $.ManifoldCF.submit(document.editjob);
   }
 }
 
@@ -345,7 +349,7 @@ function postFormSetAnchor(anchorValue)
   {
     if (anchorValue != "")
       document.editjob.action = document.editjob.action + "#" + anchorValue;
-    document.editjob.submit();
+    $.ManifoldCF.submit(document.editjob);
   }
 }
 
@@ -354,7 +358,7 @@ function postFormNew()
 {
   if (checkForm())
   {
-    document.editjob.submit();
+    $.ManifoldCF.submit(document.editjob);
   }
 }
 
@@ -363,7 +367,7 @@ function postForm(schedCount)
 {
   if (checkForm())
   {
-    document.editjob.submit();
+    $.ManifoldCF.submit(document.editjob);
   }
 }
 
@@ -411,14 +415,14 @@ function Save()
         return;
     }
     document.editjob.op.value="Save";
-    document.editjob.submit();
+    $.ManifoldCF.submit(document.editjob);
   }
 }
 
 function Cancel()
 {
   document.editjob.op.value="Cancel";
-  document.editjob.submit();
+  $.ManifoldCF.submit(document.editjob);
 }
 
 function Continue()
@@ -653,7 +657,7 @@ function isRegularExpression(value)
 }
 
   //-->
-  </script>
+</script>
 <%
   if (connection != null)
   {
@@ -754,168 +758,146 @@ function isRegularExpression(value)
   }
 %>
 
-</head>
-
-<body class="standardbody">
-
-  <table class="page">
-    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-    <tr>
-      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
-      <td class="darkwindow">
+<div class="row">
+  <div class="col-md-12">
 <%
   if (connList.length == 0)
   {
 %>
-        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditaJob")%></p>
-        <table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoRepositoryConnectionsDefinedCreateOneFirst")%></td></tr></table>
+    <div class="callout callout-warning">
+      <p><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoRepositoryConnectionsDefinedCreateOneFirst")%></p>
+    </div>
 <%
   }
   else if (outputList.length == 0)
   {
 %>
-        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditaJob")%></p>
-        <table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoOutputConnectionsDefinedCreateOneFirst")%></td></tr></table>
+    <div class="callout callout-warning">
+      <p><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoOutputConnectionsDefinedCreateOneFirst")%></p>
+    </div>
 <%
   }
   else
   {
 %>
-        <form class="standardform" name="editjob" action="execute.jsp" method="POST" enctype="multipart/form-data">
-          <input type="hidden" name="op" value="Continue"/>
-          <input type="hidden" name="type" value="job"/>
-          <input type="hidden" name="index" value=""/>
-          <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
-          <input type="hidden" name="sequencenumber" value='<%=((tabSequenceInt==-1)?"":Integer.toString(tabSequenceInt))%>'/>
+    <div class="box box-primary">
+      <form class="standardform" name="editjob" action="execute.jsp" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="op" value="Continue"/>
+        <input type="hidden" name="type" value="job"/>
+        <input type="hidden" name="index" value=""/>
+        <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
+        <input type="hidden" name="sequencenumber" value='<%=((tabSequenceInt==-1)?"":Integer.toString(tabSequenceInt))%>'/>
 <%
   if (jobID != null)
   {
 %>
-          <input type="hidden" name="jobid" value='<%=jobID%>'/>
+        <input type="hidden" name="jobid" value='<%=jobID%>'/>
 <%
   }
 %>
-          <table class="tabtable">
-            <tr class="tabspacerrow">
-              <td class="spacertab" colspan="<%=tabsArray.size()%>"></td>
-              <td class="remaindertab" rowspan="3">
+        <div class="box-header">
+          <div class="tab-group">
 <%
-  if (description.length() > 0)
-  {
-%>
-                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditJob")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
-<%
-  }
-  else
-  {
-%>
-                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EditaJob")%></nobr>
-<%
-  }
-%>
-              </td>
-            </tr>
-            <tr class="tabsequencerow">
-<%
-  Integer currentSequenceNumber = null;
-  int startColumn = 0;
-  for (int tabNum = 0; tabNum < tabsArray.size(); tabNum++)
-  {
-    boolean doswitch = false;
-    Integer sequenceNumber = sequenceArray.get(tabNum);
-    if (sequenceNumber == null || currentSequenceNumber == null)
-      doswitch = (sequenceNumber != null || currentSequenceNumber != null);
-    else
-      doswitch = !sequenceNumber.equals(currentSequenceNumber);
-    if (doswitch)
-    {
-      int colspan = tabNum - startColumn;
-      if (colspan > 0)
-      {
-        if (currentSequenceNumber == null)
-        {
-%>
-              <td class="blanksequencetab" colspan="<%=colspan%>"></td>
-<%
-        }
-        else
-        {
-%>
-              <td class="sequencetab" colspan="<%=colspan%>"><%=(currentSequenceNumber.intValue()+1)%>.</td>
-<%
-        }
-      }
-      startColumn = tabNum;
-      currentSequenceNumber = sequenceNumber;
-    }
-  }
-  if (startColumn != tabsArray.size())
-  {
-    int colspan = tabsArray.size() - startColumn;
-    if (currentSequenceNumber == null)
-    {
-%>
-              <td class="blanksequencetab" colspan="<%=colspan%>"></td>
-<%
-    }
-    else
-    {
-%>
-              <td class="sequencetab" colspan="<%=colspan%>"><%=(currentSequenceNumber.intValue()+1)%>.</td>
-<%
-    }
-  }
-  // Final (remainder) cell left out on purpose; filled in above.
-%>
-            </tr>
-            <tr class="tabrow">
-<%
+  int activeTab = 0;
+  int lastTabSeq = -1;
   for (int tabNum = 0; tabNum < tabsArray.size(); tabNum++)
   {
     String tab = tabsArray.get(tabNum);
     Integer sequenceNumber = sequenceArray.get(tabNum);
     int sequenceNumberInt = (sequenceNumber == null)?-1:sequenceNumber.intValue();
-    if (tab.equals(tabName) && (tabSequenceInt == -1 || sequenceNumberInt == tabSequenceInt))
+    String activeClass = "";
+    if(tab.equals(tabName))
+    {
+      activeClass = "active";
+    }
+    else
+    {
+      activeClass = "";
+    }
+
+    if(sequenceNumber == null)
     {
 %>
-              <td class="activetab"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></nobr></td>
+          <div class="btn-group" sequenceNumber="<%= (sequenceNumberInt + 1) %>">
+            <a class="btn btn-md <%= activeClass %>" href="#tab_<%=tabNum%>" data-toggle="tab" 
+                    alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.tab")%>'
+<%
+      if(activeClass.length() == 0)
+      {
+%>
+                    onclick='<%="javascript:SelectSequencedTab(\""+tab+"\",\""+((sequenceNumber==null)?"":sequenceNumber.toString())+"\");return false;"%>'
+<%
+      }
+%>                    
+            ><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a>
+          </div>
 <%
     }
     else
     {
+      int nextSeqNum = -1;
+      if(tabNum < tabsArray.size()-1)
+      {
+        nextSeqNum = sequenceArray.get(tabNum + 1);                    
+      }
+      else
+      {
+        nextSeqNum = -1;
+      }
+    
+      if(lastTabSeq != sequenceNumberInt)
+      {
 %>
-              <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.tab")%>' onclick='<%="javascript:SelectSequencedTab(\""+tab+"\",\""+((sequenceNumber==null)?"":sequenceNumber.toString())+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
+          <div class="btn-group" sequenceNumber="<%= (sequenceNumberInt + 1) %>">                        
+<% 
+      }
+%>                    
+            <a class="btn btn-md <%= activeClass %>" href="#tab_<%=tabNum%>" data-toggle="tab" 
+                    alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.tab")%>'
 <%
-    }
+      if(activeClass.length() == 0)
+      {
+%>
+                    onclick='<%="javascript:SelectSequencedTab(\""+tab+"\",\""+((sequenceNumber==null)?"":sequenceNumber.toString())+"\");return false;"%>'
+<%
+      }
+%>
+            ><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a>
+<%
+      if(nextSeqNum != sequenceNumberInt)
+      {
+%>
+          </div>
+<%
+      }
+      lastTabSeq = sequenceNumberInt;
+    }     
   }
   // Missing remainder tab ON PURPOSE -- comes from rowspan=2 tab above
 %>
-            </tr>
-            <tr class="tabbodyrow">
-              <td class="tabbody" colspan='<%=Integer.toString(tabsArray.size()+1)%>'>
+          </div>
+        </div>
+        <div class="box-body">
+          <div class="tab-content">
 
-                <input type="hidden" name="schedulerecords" value='<%=Integer.toString(scheduleRecords.size())%>'/>
+            <input type="hidden" name="schedulerecords" value='<%=Integer.toString(scheduleRecords.size())%>'/>
 <%
   // The NAME tab
   if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Name")) && tabSequenceInt == -1)
   {
 %>
-                <table class="displaytable">
-                  <tr>
-                    <td class="separator" colspan="4"><hr/></td>
-                  </tr>
-                  <tr>
-                    <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NameColon")%></nobr></td><td class="value" colspan="3">
-                      <input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
-                    </td>
-                  </tr>
-                </table>
+            <div class="tab-pane active" id="tab_<%=activeTab%>">
+              <div class="form-group">
+                <label><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NameColon")%></label>
+                <input type="text" size="50" class="form-control" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
+              </div>
+            </div>
 <%
   }
   else
   {
 %>
-                <input type="hidden" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
+            <input type="hidden" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
 <%
   }
 
@@ -925,10 +907,10 @@ function isRegularExpression(value)
     if (relationshipTypes != null)
     {
 %>
-                <table class="displaytable">
-                  <tr>
-                    <td class="separator" colspan="4"><input type="hidden" name="hopfilters" value="true"/><hr/></td>
-                  </tr>
+            <table class="displaytable table table-bordered">
+              <tr>
+                <td class="separator" colspan="4"><input type="hidden" name="hopfilters" value="true"/><hr/></td>
+              </tr>
 <%
       int i = 0;
       while (i < relationshipTypes.length)
@@ -939,25 +921,25 @@ function isRegularExpression(value)
         if (mapValue != null)
           mapField = mapValue.toString();
 %>
-                  <tr>
-                    <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaximumHopCountForType")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(relationshipType)%>'<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.colon")%></nobr></td>
-                    <td class="value" colspan="3" >
-                      <input name='<%="hopmax_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(relationshipType)%>' type="text" size="5" value='<%=mapField%>'/>
-                    </td>
-                  </tr>
+              <tr>
+                <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaximumHopCountForType")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(relationshipType)%>'<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.colon")%></nobr></td>
+                <td class="value" colspan="3">
+                  <input name='<%="hopmax_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(relationshipType)%>' type="text" size="5" value='<%=mapField%>'/>
+                </td>
+              </tr>
 <%
       }
 %>
-                  <tr><td class="separator" colspan="4"><hr/></td></tr>
-                  <tr>
-                    <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.HopCountModeColon")%></nobr></td>
-                    <td class="value" colspan="3">
-                      <nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_ACCURATE)%>' <%=((hopcountMode==IJobDescription.HOPCOUNT_ACCURATE)?"checked=\"true\"":"")%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.DeleteUnreachableDocuments")%></input></nobr><br/>
-                      <nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_NODELETE)%>' <%=((hopcountMode==IJobDescription.HOPCOUNT_NODELETE)?"checked=\"true\"":"")%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.KeepUnreachableDocumentsForNow")%></input></nobr><br/>
-                      <nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_NEVERDELETE)%>' <%=((hopcountMode==IJobDescription.HOPCOUNT_NEVERDELETE)?"checked=\"true\"":"")%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.KeepUnreachableDocumentsForever")%></input></nobr><br/>
-                    </td>
-                  </tr>
-                </table>
+
+              <tr>
+                <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.HopCountModeColon")%></nobr></td>
+                <td class="value" colspan="3">
+                  <nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_ACCURATE)%>' <%=((hopcountMode == IJobDescription.HOPCOUNT_ACCURATE) ? "checked=\"true\"" : "")%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.DeleteUnreachableDocuments")%></input></nobr><br/>
+                  <nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_NODELETE)%>' <%=((hopcountMode == IJobDescription.HOPCOUNT_NODELETE) ? "checked=\"true\"" : "")%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.KeepUnreachableDocumentsForNow")%></input></nobr><br/>
+                  <nobr><input type="radio" name="hopcountmode" value='<%=Integer.toString(IJobDescription.HOPCOUNT_NEVERDELETE)%>' <%=((hopcountMode == IJobDescription.HOPCOUNT_NEVERDELETE) ? "checked=\"true\"" : "")%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.KeepUnreachableDocumentsForever")%></input></nobr><br/>
+                </td>
+              </tr>
+            </table>
 <%
     }
   }
@@ -966,7 +948,7 @@ function isRegularExpression(value)
     if (relationshipTypes != null)
     {
 %>
-                <input type="hidden" name="hopfilters" value="true"/>
+            <input type="hidden" name="hopfilters" value="true"/>
 <%
       int i = 0;
       while (i < relationshipTypes.length)
@@ -977,8 +959,8 @@ function isRegularExpression(value)
         if (mapValue != null)
           mapField = mapValue.toString();
 %>
-                <input name='<%="hopmax_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(relationshipType)%>' type="hidden" value='<%=mapField%>'/>
-                <input name="hopcountmode" type="hidden" value='<%=Integer.toString(hopcountMode)%>'/>
+            <input name='<%="hopmax_"+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(relationshipType)%>' type="hidden" value='<%=mapField%>'/>
+            <input name="hopcountmode" type="hidden" value='<%=Integer.toString(hopcountMode)%>'/>
 <%
       }
     }
@@ -987,58 +969,54 @@ function isRegularExpression(value)
   // Connection tab
   if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Connection")) && tabSequenceInt == -1)
   {
-    int rowCounter = 0;
 
 %>
-                <table class="displaytable">
-                  <tr><td class="separator" colspan="4"><hr/></td></tr>
+            <div class="tab-pane active" id="tab_<%=activeTab%>">
+              <div class="form-group">
+                <label><%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.PipelineColon")%>
+                </label>
+                <table class="table table-bordered">
                   <tr>
-                    <td colspan="1" class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.PipelineColon")%></nobr></td>
-                    <td class="boxcell" colspan="3">
-                      <table class="formtable">
-                        <tr class="formheaderrow">
-                          <td class="formcolumnheader">
-                            <input name="pipeline_count" type="hidden" value="<%=pipelineConnectionNames.length%>"/>
-                          </td>
-                          <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageNumber")%></nobr></td>
-                          <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageType")%></nobr></td>
-                          <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StagePrecedent")%></nobr></td>
-                          <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageDescription")%></nobr></td>
-                          <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageConnectionName")%></nobr></td>
-                        </tr>
-                        <tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
-                          <td class="formcolumncell"></td>
-                          <td class="formcolumncell">1.</td>
-                          <td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Repository")%></td>
-                          <td class="formcolumncell"></td>
-                          <td class="formcolumncell"></td>
-                          <td class="formcolumncell">
+                    <th><input name="pipeline_count" type="hidden" value="<%=pipelineConnectionNames.length%>"/></th>
+                    <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageNumber")%></nobr></th>
+                    <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageType")%></nobr></th>
+                    <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StagePrecedent")%></nobr></th>
+                    <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageDescription")%></nobr></th>
+                    <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageConnectionName")%></nobr></th>
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td>1.</td>
+                    <td><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Repository")%></td>
+                    <td></td>
+                    <td></td>
+                    <td>
 <%
     if (connectionName.length() == 0)
     {
 %>
-                            <select name="connectionname" size="1">
-                              <option <%="".equals(connectionName)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
+                      <select name="connectionname" class="form-control">
+                        <option <%="".equals(connectionName)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.NoneSelected")%> --</option>
 <%
       for (IRepositoryConnection conn : connList)
       {
 %>
-                              <option <%=conn.getName().equals(connectionName)?"selected=\"selected\"":""%> value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+                        <option <%=conn.getName().equals(connectionName)?"selected=\"selected\"":""%>value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
 <%
       }
 %>
-                            </select>
+                      </select>
 <%
     }
     else
     {
 %>
-                            <input type="hidden" name="connectionname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%>
+                      <input type="hidden" name="connectionname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%>
 <%
     }
 %>
-                          </td>
-                        </tr>
+                    </td>
+                  </tr>
 <%
     // A map of stage number to reference count
     Map<Integer,Integer> referenceCounts = new HashMap<Integer,Integer>();
@@ -1072,10 +1050,12 @@ function isRegularExpression(value)
         pipelineDescription = "";
       String pipelineType = pipelineIsOutputs[j]?Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Output"):Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Transformation");
 %>
-                        <tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
-                          <td class="formcolumncell">
-                            <input name="pipeline_<%=j%>_op" type="hidden" value="Continue"/>
-                            <a name="pipeline_<%=j%>_tag"/>
+                  <tr>
+                    <td>
+                      <input name="pipeline_<%=j%>_op" type="hidden" value="Continue"/>
+                      <a name="pipeline_<%=j%>_tag"/>
+
+                      <div class="btn-group-vertical">
 <%
       // We don't want to leave orphans around.  If the pipeline stage is an output, we can delete it ONLY if:
       // -- the precedent is -1, OR
@@ -1083,121 +1063,119 @@ function isRegularExpression(value)
       if (!pipelineIsOutputs[j] || pipelinePrerequisites[j] == -1 || referenceCounts.get(new Integer(pipelinePrerequisites[j])).intValue() > 1)
       {
 %>
-                            <input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Delete")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Deletepipelinestage")%>' onclick="javascript:DeletePipelineStage(<%=j%>);"/>
+                        <input type="button" class="btn btn-sm btn-danger" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Delete")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Deletepipelinestage")%>' onclick="javascript:DeletePipelineStage(<%=j%>);"/>
 <%
       }
       if (transformationList.length > 0)
       {
         anyTransformationButtons = true;
 %>
-                            <input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertTransformationBefore")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Insertnewtransformationhere")%>' onclick="javascript:InsertPipelineStageTransformation(<%=j%>);"/>
+                        <input type="button" class="btn btn-sm btn-primary" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertTransformationBefore")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Insertnewtransformationhere")%>' onclick="javascript:InsertPipelineStageTransformation(<%=j%>);"/>
 <%
       }
       if (outputList.length != alreadyPresent.size())
       {
 %>
-                            <input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertOutputBefore")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Insertnewoutputhere")%>' onclick="javascript:InsertPipelineStageOutput(<%=j%>);"/>
+                        <input type="button" class="btn btn-sm btn-primary"
+                               value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.InsertOutputBefore")%>"
+                               alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Insertnewoutputhere")%>'
+                               onclick="javascript:InsertPipelineStageOutput(<%=j%>);"/>
 <%
       }
 %>
-                          </td>
-                          <td class="formcolumncell"><%=(j+2)%>.</td>
-                          <td class="formcolumncell"><%=pipelineType%>
-                            <input name="pipeline_<%=j%>_isoutput" type="hidden" value='<%=pipelineIsOutputs[j]?"true":"false"%>'/>
-                          </td>
-                          <td class="formcolumncell"><%=(pipelinePrerequisites[j] + 2)%>.
-                            <input name="pipeline_<%=j%>_precedent" type="hidden" value="<%=pipelinePrerequisites[j]%>"/>
-                          </td>
-                          <td class="formcolumncell">
-                            <input name="pipeline_<%=j%>_description" type="text" size="30" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pipelineDescription)%>"/>
-                          </td>
-                          <td class="formcolumncell">
-                            <nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pipelineConnectionName)%></nobr>
-                            <input name="pipeline_<%=j%>_connectionname" type="hidden" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pipelineConnectionName)%>"/>
-                          </td>
-                        </tr>
+                      </div>
+                    </td>
+                    <td><%=(j+2)%>.</td>
+                    <td><%=pipelineType%>
+                      <input name="pipeline_<%=j%>_isoutput" type="hidden" value='<%=pipelineIsOutputs[j]?"true":"false"%>'/>
+                    </td>
+                    <td><%=(pipelinePrerequisites[j] + 2)%>.
+                      <input name="pipeline_<%=j%>_precedent" type="hidden" value="<%=pipelinePrerequisites[j]%>"/>
+                    </td>
+                    <td>
+                      <input name="pipeline_<%=j%>_description" type="text" size="30" class="from-control" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pipelineDescription)%>"/>
+                    </td>
+                    <td>
+                      <nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(pipelineConnectionName)%></nobr>
+                      <input name="pipeline_<%=j%>_connectionname" type="hidden" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pipelineConnectionName)%>"/>
+                    </td>
+                  </tr>
 <%
     }
     if (anyTransformationButtons)
     {
 %>
-                        <tr class="formrow"><td class="formseparator" colspan="4"><hr/></td></tr>
-                        <tr class="formrow">
-                          <td class="formcolumncell">
-                            <a name="transformation_tag"/>
-                          </td>
-                          <td class="formcolumncell"></td>
-                          <td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Transformation")%></td>
-                          <td class="formcolumncell"></td>
-                          <td class="formcolumncell">
-                            <input name="transformation_description" type="text" size="30" value=""/>
-                          </td>
-                          <td class="formcolumncell">
-                            <select name="transformation_connectionname" size="1">
-                              <option selected="selected" value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
+                  <tr class="formrow">
+                    <td><a name="transformation_tag"/></td>
+                    <td></td>
+                    <td><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Transformation")%></td>
+                    <td></td>
+                    <td><input name="transformation_description" type="text" class="form-control" size="30" value=""/></td>
+                    <td>
+                      <select name="transformation_connectionname" class="form-control">
+                        <option selected="selected" value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.NoneSelected")%> --</option>
 <%
       for (ITransformationConnection conn : transformationList)
       {
 %>
-                              <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+                        <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
 <%
       }
 %>
-                            </select>
-                          </td>
-                        </tr>
+                      </select>
+                    </td>
+                  </tr>
 <%
     }
     if (outputList.length != alreadyPresent.size())
     {
 %>
-                        <tr class="formrow"><td class="formseparator" colspan="4"><hr/></td></tr>
-                        <tr class="formrow">
-                          <td class="formcolumncell">
-                            <a name="output_tag"/>
-                            <input type="button" value='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddOutput")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddAnOutput")%>' onclick="javascript:AppendPipelineStageOutput();"/>
-                            <input name="output_op" type="hidden" value="Continue"/>
-                          </td>
-                          <td class="formcolumncell"></td>
-                          <td class="formcolumncell"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Output")%></td>
-                          <td class="formcolumncell">
-                            <select name="output_precedent" size="1">
+                  <tr class="formrow">
+                    <td>
+                      <a name="output_tag"/>
+                      <input type="button" class="btn btn-primary btn-sm"
+                             value='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddOutput")%>'
+                             alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddAnOutput")%>'
+                             onclick="javascript:AppendPipelineStageOutput();"/>
+                      <input name="output_op" type="hidden" value="Continue"/>
+                    </td>
+                    <td></td>
+                    <td><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Output")%></td>
+                    <td>
+                      <select name="output_precedent" class="form-control">
 <%
       for (Integer pre : precedents)
       {
 %>
-                              <option value="<%=pre%>"><%=(pre.intValue()+2)%></option>
+                        <option value="<%=pre%>"><%=(pre.intValue()+2)%></option>
 <%
       }
 %>
-                            </select>
-                          </td>
-                          <td class="formcolumncell">
-                            <input name="output_description" type="text" size="30" value=""/>
-                          </td>
-                          <td class="formcolumncell">
-                            <select name="output_connectionname" size="1">
-                              <option selected="selected" value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
+                      </select>
+                    </td>
+                    <td><input name="output_description" type="text" class="form-control" size="30" value=""/></td>
+                    <td>
+                      <select name="output_connectionname" class="form-control">
+                        <option selected="selected" value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.NoneSelected")%> --</option>
 <%
       for (IOutputConnection conn : outputList)
       {
         if (!alreadyPresent.contains(conn.getName()))
         {
 %>
-                              <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+                        <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
 <%
         }
       }
 %>
-                            </select>
-                          </td>
-                        </tr>
+                      </select>
+                    </td>
+                  </tr>
 <%
     }
 %>
-                      </table>
-                    </td>
-                  </tr>
+                </table>
+              </div>
 
 <%
     alreadyPresent = new HashSet<String>();
@@ -1208,20 +1186,16 @@ function isRegularExpression(value)
     if (notificationList.length > 0)
     {
 %>
+              <div class="form-group">
+                <label><%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.NotificationsColon")%></label>
+                <table class="table table-bordered">
                   <tr>
-                    <td colspan="1" class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NotificationsColon")%></nobr></td>
-                    <td class="boxcell" colspan="3">
-                      <table class="formtable">
-                        <tr class="formheaderrow">
-                          <td class="formcolumnheader">
-                            <input name="notification_count" type="hidden" value="<%=notificationConnectionNames.length%>"/>
-                          </td>
-                          <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StageNumber")%></nobr></td>
-                          <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NotificationDescription")%></nobr></td>
-                          <td class="formcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NotificationConnectionName")%></nobr></td>
-                        </tr>
+                    <th><input name="notification_count" type="hidden" value="<%=notificationConnectionNames.length%>"/></th>
+                    <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.StageNumber")%></nobr></th>
+                    <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.NotificationDescription")%></nobr></th>
+                    <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.NotificationConnectionName")%></nobr></th>
+                  </tr>
 <%
-      rowCounter = 0;
       for (int j = 0; j < notificationConnectionNames.length; j++)
       {
         String notificationConnectionName = notificationConnectionNames[j];
@@ -1229,99 +1203,99 @@ function isRegularExpression(value)
         if (notificationDescription == null)
           notificationDescription = "";
 %>
-                        <tr class="<%=((rowCounter++ % 2)==0)?"evenformrow":"oddformrow"%>">
-                          <td class="formcolumncell">
-                            <input name="notification_<%=j%>_op" type="hidden" value="Continue"/>
-                            <a name="notification_<%=j%>_tag"/>
-                            <input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Delete")%>" alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Deletenotification")%>' onclick="javascript:DeleteNotification(<%=j%>);"/>
-                          </td>
-                          <td class="formcolumncell"><%=(j+pipelineConnectionNames.length+2)%>.</td>
-                          <td class="formcolumncell">
-                            <input name="notification_<%=j%>_description" type="text" size="30" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(notificationDescription)%>"/>
-                          </td>
-                          <td class="formcolumncell">
-                            <nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(notificationConnectionName)%></nobr>
-                            <input name="notification_<%=j%>_connectionname" type="hidden" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(notificationConnectionName)%>"/>
-                          </td>
-                        </tr>
+                  <tr>
+                    <td>
+                      <input name="notification_<%=j%>_op" type="hidden" value="Continue"/>
+                      <a name="notification_<%=j%>_tag"/>
+                      <input type="button" class="btn btn-danger btn-sm"
+                             value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Delete")%>"
+                             alt='<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Deletenotification")%>'
+                             onclick="javascript:DeleteNotification(<%=j%>);"/>
+                    </td>
+                    <td><%=(j+pipelineConnectionNames.length+2)%>.</td>
+                    <td>
+                      <input name="notification_<%=j%>_description" type="text" size="30"
+                             class="form-control"
+                             value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(notificationDescription)%>"/>
+                    </td>
+                    <td>
+                      <nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(notificationConnectionName)%></nobr>
+                      <input name="notification_<%=j%>_connectionname" type="hidden" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(notificationConnectionName)%>"/>
+                    </td>
+                  </tr>
 <%
       }
       if (notificationList.length != alreadyPresent.size())
       {
 %>
-                        <tr class="formrow"><td class="formseparator" colspan="4"><hr/></td></tr>
-                        <tr class="formrow">
-                          <td class="formcolumncell">
-                            <a name="notification_tag"/>
-                            <input type="button" value='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddNotification")%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddANotification")%>' onclick="javascript:AppendNotification();"/>
-                            <input name="notification_op" type="hidden" value="Continue"/>
-                          </td>
-                          <td class="formcolumncell"></td>
-                          <td class="formcolumncell">
-                            <input name="notification_description" type="text" size="30" value=""/>
-                          </td>
-                          <td class="formcolumncell">
-                            <select name="notification_connectionname" size="1">
-                              <option selected="selected" value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoneSelected")%> --</option>
+                  <tr class="formrow">
+                    <td>
+                      <a name="notification_tag"/>
+                      <input type="button" class="btn btn-primary btn-sm"
+                             value='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddNotification")%>'
+                             alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddANotification")%>'
+                             onclick="javascript:AppendNotification();"/>
+                      <input name="notification_op" type="hidden" value="Continue"/>
+                    </td>
+                    <td></td>
+                    <td><input name="notification_description" type="text" size="30" value="" class="form-control"/></td>
+                    <td>
+                      <select name="notification_connectionname" class="form-control">
+                        <option selected="selected" value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.NoneSelected")%> --</option>
 <%
         for (INotificationConnection conn : notificationList)
         {
           if (!alreadyPresent.contains(conn.getName()))
           {
 %>
-                              <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
+                        <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(conn.getName())%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(conn.getName())%></option>
 <%
           }
         }
 %>
-                            </select>
-                          </td>
-                        </tr>
+                      </select>
+                    </td>
+                  </tr>
 <%
       }
 %>
-                      </table>
-                    </td>
-                  </tr>
+                </table>
+              </div>
 <%
     }
 %>
-                  <tr><td class="separator" colspan="4"><hr/></td></tr>
-
-                  <tr>
-                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.PriorityColon")%></nobr></td>
-                    <td class="value">
-                      <select name="priority" size="1">
-                        <option value="1" <%=(priority==1)?"selected=\"selected\"":""%>>1 <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Highest")%></option>
-                        <option value="2" <%=(priority==2)?"selected=\"selected\"":""%>>2</option>
-                        <option value="3" <%=(priority==3)?"selected=\"selected\"":""%>>3</option>
-                        <option value="4" <%=(priority==4)?"selected=\"selected\"":""%>>4</option>
-                        <option value="5" <%=(priority==5)?"selected=\"selected\"":""%>>5</option>
-                        <option value="6" <%=(priority==6)?"selected=\"selected\"":""%>>6</option>
-                        <option value="7" <%=(priority==7)?"selected=\"selected\"":""%>>7</option>
-                        <option value="8" <%=(priority==8)?"selected=\"selected\"":""%>>8</option>
-                        <option value="9" <%=(priority==9)?"selected=\"selected\"":""%>>9</option>
-                        <option value="10" <%=(priority==10)?"selected=\"selected\"":""%>>10 <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Lowest")%></option>
-                      </select>
-                    </td>
-                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StartMethodColon")%></nobr></td>
-                    <td class="value">
-                      <select name="startmethod" size="1">
-                        <option value='<%=IJobDescription.START_WINDOWBEGIN%>' <%=(startMethod==IJobDescription.START_WINDOWBEGIN)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StartWhenScheduleWindowStarts")%></option>
-                        <option value='<%=IJobDescription.START_WINDOWINSIDE%>' <%=(startMethod==IJobDescription.START_WINDOWINSIDE)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StartEvenInsideAScheduleWindow")%></option>
-                        <option value='<%=IJobDescription.START_DISABLE%>' <%=(startMethod==IJobDescription.START_DISABLE)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.DontAutomaticallyStartThisJob")%></option>
-                      </select>
-                    </td>
-                  </tr>
-                </table>
+              <div class="form-group">
+                <label><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.PriorityColon")%></label>
+                <select name="priority" class="form-control">
+                  <option value="1" <%=(priority==1)?"selected=\"selected\"":""%>>1 <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Highest")%></option>
+                  <option value="2" <%=(priority==2)?"selected=\"selected\"":""%>>2</option>
+                  <option value="3" <%=(priority==3)?"selected=\"selected\"":""%>>3</option>
+                  <option value="4" <%=(priority==4)?"selected=\"selected\"":""%>>4</option>
+                  <option value="5" <%=(priority==5)?"selected=\"selected\"":""%>>5</option>
+                  <option value="6" <%=(priority==6)?"selected=\"selected\"":""%>>6</option>
+                  <option value="7" <%=(priority==7)?"selected=\"selected\"":""%>>7</option>
+                  <option value="8" <%=(priority==8)?"selected=\"selected\"":""%>>8</option>
+                  <option value="9" <%=(priority==9)?"selected=\"selected\"":""%>>9</option>
+                  <option value="10" <%=(priority==10)?"selected=\"selected\"":""%>>10 <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Lowest")%></option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StartMethodColon")%></label>
+                <select name="startmethod" class="form-control">
+                  <option value='<%=IJobDescription.START_WINDOWBEGIN%>' <%=(startMethod==IJobDescription.START_WINDOWBEGIN)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StartWhenScheduleWindowStarts")%></option>
+                  <option value='<%=IJobDescription.START_WINDOWINSIDE%>' <%=(startMethod==IJobDescription.START_WINDOWINSIDE)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.StartEvenInsideAScheduleWindow")%></option>
+                  <option value='<%=IJobDescription.START_DISABLE%>' <%=(startMethod==IJobDescription.START_DISABLE)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.DontAutomaticallyStartThisJob")%></option>
+                </select>
+              </div>
+            </div>
 <%
   }
   else
   {
 %>
-                <input type="hidden" name="connectionname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
-                <input type="hidden" name="pipeline_count" value="<%=pipelineConnectionNames.length%>"/>
-                <input type="hidden" name="notification_count" value="<%=notificationConnectionNames.length%>"/>
+            <input type="hidden" name="connectionname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+            <input type="hidden" name="pipeline_count" value="<%=pipelineConnectionNames.length%>"/>
+            <input type="hidden" name="notification_count" value="<%=notificationConnectionNames.length%>"/>
 <%
     for (int j = 0; j < pipelineConnectionNames.length; j++)
     {
@@ -1330,10 +1304,10 @@ function isRegularExpression(value)
       if (pipelineDescription == null)
         pipelineDescription = "";
 %>
-                <input name="pipeline_<%=j%>_isoutput" type="hidden" value='<%=pipelineIsOutputs[j]?"true":"false"%>'/>
-                <input name="pipeline_<%=j%>_precedent" type="hidden" value="<%=pipelinePrerequisites[j]%>"/>
-                <input type="hidden" name="pipeline_<%=j%>_connectionname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pipelineConnectionName)%>"/>
-                <input type="hidden" name="pipeline_<%=j%>_description" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pipelineDescription)%>"/>
+            <input name="pipeline_<%=j%>_isoutput" type="hidden" value='<%=pipelineIsOutputs[j]?"true":"false"%>'/>
+            <input name="pipeline_<%=j%>_precedent" type="hidden" value="<%=pipelinePrerequisites[j]%>"/>
+            <input type="hidden" name="pipeline_<%=j%>_connectionname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pipelineConnectionName)%>"/>
+            <input type="hidden" name="pipeline_<%=j%>_description" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(pipelineDescription)%>"/>
 <%
     }
     for (int j = 0; j < notificationConnectionNames.length; j++)
@@ -1343,14 +1317,14 @@ function isRegularExpression(value)
       if (notificationDescription == null)
         notificationDescription = "";
 %>
-                <input type="hidden" name="notification_<%=j%>_connectionname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(notificationConnectionName)%>"/>
-                <input type="hidden" name="notification_<%=j%>_description" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(notificationDescription)%>"/>
+            <input type="hidden" name="notification_<%=j%>_connectionname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(notificationConnectionName)%>"/>
+            <input type="hidden" name="notification_<%=j%>_description" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(notificationDescription)%>"/>
 <%
     }
 
 %>
-                <input type="hidden" name="priority" value='<%=priority%>'/>
-                <input type="hidden" name="startmethod" value='<%=startMethod%>'/>
+            <input type="hidden" name="priority" value='<%=priority%>'/>
+            <input type="hidden" name="startmethod" value='<%=startMethod%>'/>
 <%
   }
 
@@ -1358,78 +1332,63 @@ function isRegularExpression(value)
   if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Scheduling")) && tabSequenceInt == -1)
   {
 %>
-                <table class="displaytable">
+            <div class="tab-pane active" id="tab_<%=activeTab%>">
 <%
     if (model != -1 && model != IRepositoryConnector.MODEL_ADD_CHANGE_DELETE && model != IRepositoryConnector.MODEL_CHAINED_ADD_CHANGE_DELETE)
     {
 %>
-                  <tr>
-                    <td class="separator" colspan="4"><hr/></td>
-                  </tr>
-                  <tr>
-                    <td class="description">
-                      <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduleTypeColon")%></nobr>
-                    </td>
-                    <td class="value" colspan="3">
-                      <select name="scheduletype" size="1">
-                        <option value='<%=IJobDescription.TYPE_CONTINUOUS%>' <%=(type==IJobDescription.TYPE_CONTINUOUS)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RescanDocumentsDynamically")%></option>
-                        <option value='<%=IJobDescription.TYPE_SPECIFIED%>' <%=(type==IJobDescription.TYPE_SPECIFIED)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScanEveryDocumentOnce")%></option>
-                      </select>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="description">
-                      <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RecrawlIntervalIfContinuousColon")%></nobr>
-                    </td>
-                    <td class="value" colspan="3">
-                      <nobr><input type="text" size="5" name="recrawlinterval" value='<%=((recrawlInterval==null)?"":recrawlInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="description">
-                      <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaxRecrawlIntervalIfContinuousColon")%></nobr>
-                    </td>
-                    <td class="value" colspan="3">
-                      <nobr><input type="text" size="5" name="maxrecrawlinterval" value='<%=((maxRecrawlInterval==null)?"":maxRecrawlInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="description">
-                      <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ExpirationIntervalIfContinuousColon")%></nobr>
-                    </td>
-                    <td class="value" colspan="3">
-                      <nobr><input type="text" size="5" name="expirationinterval" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="description">
-                      <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ReseedIntervalIfContinuousColon")%></nobr>
-                    </td>
-                    <td class="value" colspan="3">
-                      <nobr><input type="text" size="5" name="reseedinterval" value='<%=((reseedInterval==null)?"":reseedInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
-                    </td>
-                  </tr>
+              <table class="table table-bordered">
+                <tr>
+                  <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduleTypeColon")%></nobr></th>
+                  <td colspan="3">
+                    <select name="scheduletype" class="form-control">
+                      <option value='<%=IJobDescription.TYPE_CONTINUOUS%>' <%=(type==IJobDescription.TYPE_CONTINUOUS)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RescanDocumentsDynamically")%></option>
+                      <option value='<%=IJobDescription.TYPE_SPECIFIED%>' <%=(type==IJobDescription.TYPE_SPECIFIED)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScanEveryDocumentOnce")%></option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RecrawlIntervalIfContinuousColon")%></nobr></th>
+                  <td colspan="3">
+                    <nobr><input type="text" size="5" name="recrawlinterval" class="form-control" value='<%=((recrawlInterval==null)?"":recrawlInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
+                  </td>
+                </tr>
+                <tr>
+                  <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaxRecrawlIntervalIfContinuousColon")%></nobr></th>
+                  <td colspan="3">
+                    <nobr><input type="text" size="5" name="maxrecrawlinterval" class="form-control" value='<%=((maxRecrawlInterval==null)?"":maxRecrawlInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
+                  </td>
+                </tr>
+                <tr>
+                  <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ExpirationIntervalIfContinuousColon")%></nobr></th>
+                  <td colspan="3">
+                    <nobr><input type="text" size="5" name="expirationinterval" class="form-control" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
+                  </td>
+                </tr>
+                <tr>
+                  <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ReseedIntervalIfContinuousColon")%></nobr></th>
+                  <td colspan="3">
+                    <nobr><input type="text" size="5" name="reseedinterval" class="form-control" value='<%=((reseedInterval==null)?"":reseedInterval.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutesBlankInfinity")%></nobr>
+                  </td>
+                </tr>
 <%
     }
     else
     {
 %>
-                  <input type="hidden" name="scheduletype" value='<%=type%>'/>
-                  <input type="hidden" name="recrawlinterval" value='<%=((recrawlInterval==null)?"":recrawlInterval.toString())%>'/>
-                  <input type="hidden" name="maxrecrawlinterval" value='<%=((maxRecrawlInterval==null)?"":maxRecrawlInterval.toString())%>'/>
-                  <input type="hidden" name="reseedinterval" value='<%=((reseedInterval==null)?"":reseedInterval.toString())%>'/>
-                  <input type="hidden" name="expirationinterval" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/>
+                <input type="hidden" name="scheduletype" value='<%=type%>'/>
+                <input type="hidden" name="recrawlinterval" value='<%=((recrawlInterval==null)?"":recrawlInterval.toString())%>'/>
+                <input type="hidden" name="maxrecrawlinterval" value='<%=((maxRecrawlInterval==null)?"":maxRecrawlInterval.toString())%>'/>
+                <input type="hidden" name="reseedinterval" value='<%=((reseedInterval==null)?"":reseedInterval.toString())%>'/>
+                <input type="hidden" name="expirationinterval" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/>
 <%
     }
-%>
-                  <tr>
-                    <td class="separator" colspan="4"><hr/></td>
-                  </tr>
-<%
     if (scheduleRecords.size() == 0)
     {
 %>
-                  <tr><td class="message" colspan="4"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoScheduleSpecified")%></td></tr>
+                <div class="callout callout-info">
+                  <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.NoScheduleSpecified")%>
+                </div>
 <%
     }
     else
@@ -1449,30 +1408,22 @@ function isRegularExpression(value)
         String postFix = Integer.toString(l);
         int k;
 
-        if (l > 0)
-        {
 %>
-                  <tr>
-                    <td class="separator" colspan="4"><hr/></td>
-                  </tr>
-<%
-        }
-%>
-                  <tr>
-                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></td>
-                    <td colspan="3" class="value">
-                      <select class="schedulepulldown" multiple="true" name='<%="dayofweek"+postFix%>' size="3">
-                        <option value="none" <%=(srDayOfWeek==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfWeek")%></option>
-                        <option value="0" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Sundays")%></option>
-                        <option value="1" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Mondays")%></option>
-                        <option value="2" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(2))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Tuesdays")%></option>
-                        <option value="3" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(3))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Wednesdays")%></option>
-                        <option value="4" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(4))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Thursdays")%></option>
-                        <option value="5" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(5))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Fridays")%></option>
-                        <option value="6" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Saturdays")%></option>
-                      </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.at")%>
-                      <select class="schedulepulldown" multiple="true" name='<%="hourofday"+postFix%>' size="3">
-                        <option value="none" <%=(srHourOfDay==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MidnightAnyHourOfDay")%></option>
+                <tr>
+                  <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></th>
+                  <td colspan="3" class="value">
+                    <select class="selectpicker" multiple="true" name='<%="dayofweek"+postFix%>'>
+                      <option value="none" <%=(srDayOfWeek==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfWeek")%></option>
+                      <option value="0" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Sundays")%></option>
+                      <option value="1" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Mondays")%></option>
+                      <option value="2" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(2))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Tuesdays")%></option>
+                      <option value="3" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(3))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Wednesdays")%></option>
+                      <option value="4" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(4))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Thursdays")%></option>
+                      <option value="5" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(5))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Fridays")%></option>
+                      <option value="6" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Saturdays")%></option>
+                    </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.at")%>
+                    <select class="selectpicker" multiple="true" name='<%="hourofday"+postFix%>'>
+                      <option value="none" <%=(srHourOfDay==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MidnightAnyHourOfDay")%></option>
 <%
         k = 0;
         while (k < 24)
@@ -1490,42 +1441,42 @@ function isRegularExpression(value)
           if (q == 0)
             q = 12;
 %>
-                        <option value='<%=k%>' <%=(srHourOfDay!=null&&srHourOfDay.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(q)+" "+ampm%></option>
-<%						
+                      <option value='<%=k%>' <%=(srHourOfDay!=null&&srHourOfDay.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(q)+" "+ampm%></option>
+<%
           k++;
         }
 %>
-                      </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.plus")%>
-                      <select class="schedulepulldown" multiple="true" name='<%="minutesofhour"+postFix%>' size="3">
-                        <option value="none" <%=(srMinutesOfHour==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Nothing")%></option>
+                    </select><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.plus")%>
+                    <select class="selectpicker" multiple="true" name='<%="minutesofhour"+postFix%>'>
+                      <option value="none" <%=(srMinutesOfHour==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Nothing")%></option>
 <%
         k = 0;
         while (k < 60)
         {
 %>
-                        <option value='<%=k%>' <%=(srMinutesOfHour!=null&&srMinutesOfHour.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(k)%> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutes")%></option>
+                      <option value='<%=k%>' <%=(srMinutesOfHour!=null&&srMinutesOfHour.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(k)%> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutes")%></option>
 <%
           k++;
         }
 %>
-                      </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.in")%>
-                      <select class="schedulepulldown" multiple="true" name='<%="monthofyear"+postFix%>' size="3">
-                        <option value="none" <%=(srMonthOfYear==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EveryMonthOfYear")%></option>
-                        <option value="0" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.January")%></option>
-                        <option value="1" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.February")%></option>
-                        <option value="2" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(2))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.March")%></option>
-                        <option value="3" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(3))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.April")%></option>
-                        <option value="4" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(4))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.May")%></option>
-                        <option value="5" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(5))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.June")%></option>
-                        <option value="6" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.July")%></option>
-                        <option value="7" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(7))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.August")%></option>
-                        <option value="8" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(8))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.September")%></option>
-                        <option value="9" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(9))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.October")%></option>
-                        <option value="10" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(10))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.November")%></option>
-                        <option value="11" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(11))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.December")%></option>
-                      </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.on")%>
-                      <select class="schedulepulldown" multiple="true" name='<%="dayofmonth"+postFix%>' size="3">
-                        <option value="none" <%=(srDayOfMonth==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfMonth")%></option>
+                    </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.in")%>
+                    <select class="selectpicker" multiple="true" name='<%="monthofyear"+postFix%>'>
+                      <option value="none" <%=(srMonthOfYear==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EveryMonthOfYear")%></option>
+                      <option value="0" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.January")%></option>
+                      <option value="1" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.February")%></option>
+                      <option value="2" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(2))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.March")%></option>
+                      <option value="3" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(3))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.April")%></option>
+                      <option value="4" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(4))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.May")%></option>
+                      <option value="5" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(5))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.June")%></option>
+                      <option value="6" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.July")%></option>
+                      <option value="7" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(7))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.August")%></option>
+                      <option value="8" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(8))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.September")%></option>
+                      <option value="9" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(9))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.October")%></option>
+                      <option value="10" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(10))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.November")%></option>
+                      <option value="11" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(11))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.December")%></option>
+                    </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.on")%>
+                    <select class="selectpicker schedulepulldown" multiple="true" name='<%="dayofmonth"+postFix%>'>
+                      <option value="none" <%=(srDayOfMonth==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfMonth")%></option>
 <%
         k = 0;
         while (k < 31)
@@ -1539,48 +1490,49 @@ function isRegularExpression(value)
           else if (value == 3 && k != 12)
             suffix = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.rd");
           else
-            suffix = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.th");
+          suffix = Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.th");
 %>
-                        <option value='<%=Integer.toString(k)%>' <%=(srDayOfMonth!=null&&srDayOfMonth.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.dayofmonth")%></option>
+                      <option value='<%=Integer.toString(k)%>' <%=(srDayOfMonth!=null&&srDayOfMonth.checkValue(k))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.dayofmonth")%></option>
 <%
           k++;
         }
 %>
-                      </select><input type="hidden" name='<%="year"+postFix%>' value="none"/>
-                    </td>
-                  </tr>     
-                  <tr>
-                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></td>
-                    <td class="value">
-                      <input type="text" size="5" name='<%="duration"+postFix%>' value='<%=((srDuration==null)?"":new Long(srDuration.longValue()/60000L).toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutes")%>
-                    </td>
-                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.JobInvocationColon")%></nobr></td>
-                    <td class="value">
-                      <select class="schedulepulldown" multiple="false" name='<%="invocation"+postFix%>' size="2">
-                        <option value="complete" <%=(srRequestMinimum==false)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Complete")%></option>
-                        <option value="minimal" <%=srRequestMinimum?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Minimal")%></option>
-                      </select>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="message" colspan="4">
-                      <a name='<%="remove_schedule_"+Integer.toString(l)%>'><input type="button" value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RemoveSchedule")%>" onClick='<%="Javascript:RemoveSchedule("+Integer.toString(l)+")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.RemoveScheduleRecord")+Integer.toString(l)%>'/></a>
-                      <input type="hidden" name='<%="recordop"+postFix%>' value=""/>
-                    </td>
-                  </tr>
+                    </select><input type="hidden" name='<%="year"+postFix%>' value="none"/>
+                  </td>
+                </tr>
+                <tr>
+                  <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></th>
+                  <td class="value">
+                    <input type="text" size="5" name='<%="duration"+postFix%>' class="form-control" value='<%=((srDuration==null)?"":new Long(srDuration.longValue()/60000L).toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutes")%>
+                  </td>
+                  <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.JobInvocationColon")%></nobr></th>
+                  <td class="value">
+                    <select class="form-control schedulepulldown" name='<%="invocation"+postFix%>'>
+                      <option value="complete" <%=(srRequestMinimum==false)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Complete")%></option>
+                      <option value="minimal" <%=srRequestMinimum?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Minimal")%></option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="message" colspan="4">
+                    <a name='<%="remove_schedule_"+Integer.toString(l)%>'>
+                      <input type="button" class="btn btn-primary btn-sm"
+                             value="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.RemoveSchedule")%>"
+                             onClick='<%="Javascript:RemoveSchedule("+Integer.toString(l)+")"%>'
+                             alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.RemoveScheduleRecord")+Integer.toString(l)%>'/></a>
+                    <input type="hidden" name='<%="recordop"+postFix%>' value=""/>
+                  </td>
+                </tr>
 <%
         l++;
       }
     }
 %>
-
-                  <tr>
-                    <td class="separator" colspan="4"><hr/></td>
-                  </tr>
-                  <tr>
-                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></td>
-                    <td colspan="3" class="value">
-                      <select class="schedulepulldown" multiple="true" name="dayofweek" size="3">
+                <tr>
+                  <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></th>
+                  <td colspan="3" class="value">
+                    <div class="input-group">
+                      <select class="selectpicker" multiple="true" name="dayofweek">
                         <option value="none" <%=(dayOfWeek==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfWeek")%></option>
                         <option value="0" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Sundays")%></option>
                         <option value="1" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Mondays")%></option>
@@ -1589,8 +1541,9 @@ function isRegularExpression(value)
                         <option value="4" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(4))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Thursdays")%></option>
                         <option value="5" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(5))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Fridays")%></option>
                         <option value="6" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Saturdays")%></option>
-                      </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.at")%>
-                      <select class="schedulepulldown" multiple="true" name="hourofday" size="3">
+                      </select>
+                      <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.at")%></span>
+                      <select class="selectpicker" multiple="true" name="hourofday">
                         <option value="none" <%=(hourOfDay==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MidnightAnyHourOfDay")%></option>
 <%
     int k = 0;
@@ -1614,8 +1567,9 @@ function isRegularExpression(value)
       k++;
     }
 %>
-                      </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.plus")%>
-                      <select class="schedulepulldown" multiple="true" name="minutesofhour" size="3">
+                      </select>
+                      <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.plus")%></span>
+                      <select class="selectpicker" multiple="true" name="minutesofhour">
                         <option value="none" <%=(minutesOfHour==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Nothing")%></option>
 <%
     k = 0;
@@ -1627,8 +1581,9 @@ function isRegularExpression(value)
       k++;
     }
 %>
-                      </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.in")%>
-                      <select class="schedulepulldown" multiple="true" name="monthofyear" size="3">
+                      </select>
+                      <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.in")%></span>
+                      <select class="selectpicker" multiple="true" name="monthofyear">
                         <option value="none" <%=(monthOfYear==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EveryMonthOfYear")%></option>
                         <option value="0" <%=(monthOfYear!=null&&monthOfYear.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.January")%></option>
                         <option value="1" <%=(monthOfYear!=null&&monthOfYear.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.February")%></option>
@@ -1642,8 +1597,9 @@ function isRegularExpression(value)
                         <option value="9" <%=(monthOfYear!=null&&monthOfYear.checkValue(9))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.October")%></option>
                         <option value="10" <%=(monthOfYear!=null&&monthOfYear.checkValue(10))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.November")%></option>
                         <option value="11" <%=(monthOfYear!=null&&monthOfYear.checkValue(11))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.December")%></option>
-                      </select> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.on")%>
-                      <select class="schedulepulldown" multiple="true" name="dayofmonth" size="3">
+                      </select>
+                      <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.on")%></span>
+                      <select class="selectpicker" multiple="true" name="dayofmonth">
                         <option value="none" <%=(dayOfMonth==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfMonth")%></option>
 <%
     k = 0;
@@ -1665,39 +1621,45 @@ function isRegularExpression(value)
       k++;
     }
 %>
-                      </select><input type="hidden" name="year" value="none"/>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></td>
-                    <td class="value">
-                      <input type="text" size="5" name="duration" value='<%=((duration==null)?"":duration.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutes")%>
-                    </td>
-                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.JobInvocationColon")%></nobr></td>
-                    <td class="value">
-                      <select class="schedulepulldown" multiple="false" name="invocation" size="2">
-                        <option value="complete" <%=(requestMinimum==false)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Complete")%></option>
-                        <option value="minimal" <%=requestMinimum?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Minimal")%></option>
                       </select>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="message" colspan="4">
-                      <input type="hidden" name="recordop" value=""/>
-                      <a name="add_schedule"><input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddScheduledTime")%>" onClick="javascript:AddScheduledTime()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddNewScheduleRecord")%>"/></a>
-                    </td>
-                  </tr>
-                </table>
+                    </div>
+                    <input type="hidden" name="year" value="none"/>
+                  </td>
+                </tr>
+                <tr>
+                  <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MaximumRunTimeColon")%></nobr></th>
+                  <td class="value">
+                    <input type="text" size="5" name="duration" class="form-control" value='<%=((duration==null)?"":duration.toString())%>'/> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.minutes")%>
+                  </td>
+                  <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.JobInvocationColon")%></nobr></th>
+                  <td class="value">
+                    <select class="selectpicker" name="invocation" class="form-control">
+                      <option value="complete" <%=(requestMinimum==false)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Complete")%></option>
+                      <option value="minimal" <%=requestMinimum ?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Minimal")%></option>
+                    </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="message" colspan="4">
+                    <input type="hidden" name="recordop" value=""/>
+                    <a name="add_schedule">
+                      <input type="button" class="btn btn-primary btn-sm"
+                              value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddScheduledTime")%>"
+                              onClick="javascript:AddScheduledTime()"
+                              alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.AddNewScheduleRecord")%>"/></a>
+                  </td>
+                </tr>
+              </table>
 <%
   }
   else
   {
 %>
-                <input type="hidden" name="scheduletype" value='<%=type%>'/>
-                <input type="hidden" name="recrawlinterval" value='<%=((recrawlInterval==null)?"":recrawlInterval.toString())%>'/>
-                <input type="hidden" name="maxrecrawlinterval" value='<%=((maxRecrawlInterval==null)?"":maxRecrawlInterval.toString())%>'/>
-                <input type="hidden" name="reseedinterval" value='<%=((reseedInterval==null)?"":reseedInterval.toString())%>'/>
-                <input type="hidden" name="expirationinterval" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/>
+              <input type="hidden" name="scheduletype" value='<%=type%>'/>
+              <input type="hidden" name="recrawlinterval" value='<%=((recrawlInterval==null)?"":recrawlInterval.toString())%>'/>
+              <input type="hidden" name="maxrecrawlinterval" value='<%=((maxRecrawlInterval==null)?"":maxRecrawlInterval.toString())%>'/>
+              <input type="hidden" name="reseedinterval" value='<%=((reseedInterval==null)?"":reseedInterval.toString())%>'/>
+              <input type="hidden" name="expirationinterval" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/>
 <%
 
     int l = 0;
@@ -1717,7 +1679,7 @@ function isRegularExpression(value)
       if (srDayOfWeek == null)
       {
 %>
-                <input type="hidden" name='<%="dayofweek"+postFix%>' value="none"/>
+              <input type="hidden" name='<%="dayofweek"+postFix%>' value="none"/>
 <%
       }
       else
@@ -1727,7 +1689,7 @@ function isRegularExpression(value)
         {
           Integer value = (Integer)iter.next();
 %>
-                <input type="hidden" name='<%="dayofweek"+postFix%>' value='<%=value%>'/>
+              <input type="hidden" name='<%="dayofweek"+postFix%>' value='<%=value%>'/>
 <%
         }
       }
@@ -1735,7 +1697,7 @@ function isRegularExpression(value)
       if (srHourOfDay == null)
       {
 %>
-                <input type="hidden" name='<%="hourofday"+postFix%>' value="none"/>
+              <input type="hidden" name='<%="hourofday"+postFix%>' value="none"/>
 <%
       }
       else
@@ -1745,7 +1707,7 @@ function isRegularExpression(value)
         {
           Integer value = (Integer)iter.next();
 %>
-                <input type="hidden" name='<%="hourofday"+postFix%>' value='<%=value%>'/>
+              <input type="hidden" name='<%="hourofday"+postFix%>' value='<%=value%>'/>
 <%
         }
       }
@@ -1753,7 +1715,7 @@ function isRegularExpression(value)
       if (srMinutesOfHour == null)
       {
 %>
-                <input type="hidden" name='<%="minutesofhour"+postFix%>' value="none"/>
+              <input type="hidden" name='<%="minutesofhour"+postFix%>' value="none"/>
 <%
       }
       else
@@ -1763,7 +1725,7 @@ function isRegularExpression(value)
         {
           Integer value = (Integer)iter.next();
 %>
-                <input type="hidden" name='<%="minutesofhour"+postFix%>' value='<%=value%>'/>
+              <input type="hidden" name='<%="minutesofhour"+postFix%>' value='<%=value%>'/>
 <%
         } 
       }
@@ -1771,7 +1733,7 @@ function isRegularExpression(value)
       if (srDayOfMonth == null)
       {
 %>
-                <input type="hidden" name='<%="dayofmonth"+postFix%>' value="none"/>
+              <input type="hidden" name='<%="dayofmonth"+postFix%>' value="none"/>
 <%
       }
       else
@@ -1781,7 +1743,7 @@ function isRegularExpression(value)
         {
           Integer value = (Integer)iter.next();
 %>
-                <input type="hidden" name='<%="dayofmonth"+postFix%>' value='<%=value%>'/>
+              <input type="hidden" name='<%="dayofmonth"+postFix%>' value='<%=value%>'/>
 <%
         }
       }
@@ -1789,7 +1751,7 @@ function isRegularExpression(value)
       if (srMonthOfYear == null)
       {
 %>
-                <input type="hidden" name='<%="monthofyear"+postFix%>' value="none"/>
+              <input type="hidden" name='<%="monthofyear"+postFix%>' value="none"/>
 <%
       }
       else
@@ -1799,14 +1761,14 @@ function isRegularExpression(value)
         {
           Integer value = (Integer)iter.next();
 %>
-                <input type="hidden" name='<%="monthofyear"+postFix%>' value='<%=value%>'/>
+              <input type="hidden" name='<%="monthofyear"+postFix%>' value='<%=value%>'/>
 <%
         }
       }
 %>
-                <input type="hidden" name='<%="duration"+postFix%>' value='<%=((srDuration==null)?"":new Long(srDuration.longValue()/60000L).toString())%>'/>
-                <input type="hidden" name='<%="invocation"+postFix%>' value='<%=srRequestMinimum?"minimal":"complete"%>'/>
-                <input type="hidden" name='<%="year"+postFix%>' value="none"/>
+              <input type="hidden" name='<%="duration"+postFix%>' value='<%=((srDuration==null)?"":new Long(srDuration.longValue()/60000L).toString())%>'/>
+              <input type="hidden" name='<%="invocation"+postFix%>' value='<%=srRequestMinimum?"minimal":"complete"%>'/>
+              <input type="hidden" name='<%="year"+postFix%>' value="none"/>
 <%
       l++;
     }
@@ -1826,7 +1788,7 @@ function isRegularExpression(value)
         repositoryConnectorPool.release(connection,repositoryConnector);
       }
 %>
-                <input type="hidden" name="connectionpresent" value="true"/>
+              <input type="hidden" name="connectionpresent" value="true"/>
 <%
     }
   }
@@ -1896,16 +1858,18 @@ function isRegularExpression(value)
   }
 
 %>
-                <table class="displaytable">
-                  <tr><td class="separator" colspan="4"><hr/></td></tr>
-                  <tr>
-                    <td class="message" colspan="4">
-                      <nobr>
+            </div>
+          </div>
+          <div class="box-footer clearfix">
+            <div class="btn-group">
 <%
   if (connectionName.length() > 0 && outputPresent)
   {
 %>
-                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.SaveThisJob")%>"/>
+              <input type="button" class="btn btn-primary"
+                     value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Save")%>"
+                     onClick="javascript:Save()"
+                     alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.SaveThisJob")%>"/>
 <%
   }
   else
@@ -1913,29 +1877,28 @@ function isRegularExpression(value)
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Connection")) && tabSequenceInt == -1)
     {
 %>
-                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.ContinueToNextScreen")%>"/>
+              <input type="button" class="btn btn-primary"
+                     value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Continue")%>"
+                     onClick="javascript:Continue()"
+                     alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.ContinueToNextScreen")%>"/>
 <%
     }
   }
 %>
-                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.CancelJobEditing")%>"/>
-                      </nobr>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </form>
+              <input type="button" class="btn btn-primary"
+                     value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.cancel")%>"
+                     onClick="javascript:Cancel()"
+                     alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.CancelJobEditing")%>"/>
+
+            </div>
+          </div>
+      </form>
 <%
   }
 %>
-      </td>
-    </tr>
-  </table>
-</body>
-
-</html>
+    </div>
+  </div>
+</div>
 
 <%
 }
@@ -1949,4 +1912,3 @@ catch (ManifoldCFException e)
 <%
 }
 %>
-

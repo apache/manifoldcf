@@ -97,211 +97,201 @@ try
 
 %>
 
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html>
-<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
-  <title>
-    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.ApacheManifoldCFEditOutputConnection")%>
-  </title>
-
-  <script type="text/javascript">
-  <!--
-
-// Use this method to repost the form and pick a new tab
-function SelectTab(newtab)
-{
-  if (checkForm())
-  {
-    document.editconnection.tabname.value = newtab;
-    document.editconnection.submit();
-  }
-}
-
-// Use this method to repost the form,
-// and set the anchor request.
-function postFormSetAnchor(anchorValue)
-{
-  if (checkForm())
-  {
-    if (anchorValue != "")
-      document.editconnection.action = document.editconnection.action + "#" + anchorValue;
-    document.editconnection.submit();
-  }
-}
-
-// Use this method to repost the form
-function postForm()
-{
-  if (checkForm())
-  {
-    document.editconnection.submit();
-  }
-}
-
-function Save()
-{
-  if (checkForm())
-  {
-    // Can't submit until all required fields have been set.
-    // Some of these don't live on the current tab, so don't set
-    // focus.
-
-    // Check our part of the form, for save
-    if (editconnection.connname.value == "")
-    {
-      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editoutput.ConnectionMustHaveAName")%>");
-      SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editoutput.Name")%>");
-      document.editconnection.connname.focus();
-      return;
-    }
-    if (window.checkConfigForSave)
-    {
-      if (!checkConfigForSave())
-        return;
-    }
-    document.editconnection.op.value="Save";
-    document.editconnection.submit();
-  }
-}
-
-function Continue()
-{
-  document.editconnection.op.value="Continue";
-  postForm();
-}
-
-function Cancel()
-{
-  document.editconnection.op.value="Cancel";
-  document.editconnection.submit();
-}
-
-function checkForm()
-{
-  if (!checkConnectionCount())
-    return false;
-  if (window.checkConfig)
-    return checkConfig();
-  return true;
-}
-
-function checkConnectionCount()
-{
-  if (!isInteger(editconnection.maxconnections.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editoutput.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
-    editconnection.maxconnections.focus();
-    return false;
-  }
-  return true;
-}
-
-function isRegularExpression(value)
-{
-  try
-  {
-    var foo = "teststring";
-    foo.search(value.replace(/\(\?i\)/,""));
-    return true;
-  }
-  catch (e)
-  {
-    return false;
-  }
-
-}
-
-function isInteger(value)
-{
-  var anum=/(^\d+$)/;
-  return anum.test(value);
-}
-
-  //-->
-  </script>
 <%
-  OutputConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabsArray);
+  String heading = null;
+  if (description.length() > 0)
+  {
+    heading = Messages.getBodyString(pageContext.getRequest()
+            .getLocale(),"editoutput.EditOutputConnection") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description);
+  }
+  else
+  {
+    heading = Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.EditAnOutputConnection");
+  }
 %>
 
-</head>
+<script type="text/javascript">
+  <!--
+  $.ManifoldCF.setTitle(
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editoutput.ApacheManifoldCFEditOutputConnection")%>',
+      '<%=heading%>',
+      'outputs'
+  );
 
-<body class="standardbody">
+  // Use this method to repost the form and pick a new tab
+  function SelectTab(newtab)
+  {
+    if (checkForm())
+    {
+      document.editconnection.tabname.value=newtab;
+      $.ManifoldCF.submit(document.editconnection);
+    }
+  }
 
-  <table class="page">
-    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-    <tr>
-      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
-      <td class="darkwindow">
+  // Use this method to repost the form,
+  // and set the anchor request.
+  function postFormSetAnchor(anchorValue)
+  {
+    if (checkForm())
+    {
+      if (anchorValue != "")
+      {
+        document.editconnection.action=document.editconnection.action + "#" + anchorValue;
+      }
+      $.ManifoldCF.submit(document.editconnection);
+    }
+  }
+
+  // Use this method to repost the form
+  function postForm()
+  {
+    if (checkForm())
+    {
+      $.ManifoldCF.submit(document.editconnection);
+    }
+  }
+
+  function Save()
+  {
+    if (checkForm())
+    {
+      // Can't submit until all required fields have been set.
+      // Some of these don't live on the current tab, so don't set
+      // focus.
+
+      // Check our part of the form, for save
+      if (editconnection.connname.value == "")
+      {
+        alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editoutput.ConnectionMustHaveAName")%>");
+        SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editoutput.Name")%>");
+        document.editconnection.connname.focus();
+        return;
+      }
+      if (window.checkConfigForSave)
+      {
+        if (!checkConfigForSave())
+          return;
+      }
+      document.editconnection.op.value="Save";
+      $.ManifoldCF.submit(document.editconnection);
+    }
+  }
+
+  function Continue()
+  {
+    document.editconnection.op.value="Continue";
+    postForm();
+  }
+
+  function Cancel()
+  {
+    document.editconnection.op.value="Cancel";
+    $.ManifoldCF.submit(document.editconnection);
+  }
+
+  function checkForm()
+  {
+    if (!checkConnectionCount())
+      return false;
+    if (window.checkConfig)
+      return checkConfig();
+    return true;
+  }
+
+  function checkConnectionCount()
+  {
+    if (!isInteger(editconnection.maxconnections.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editoutput.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
+      editconnection.maxconnections.focus();
+      return false;
+    }
+    return true;
+  }
+
+  function isRegularExpression(value)
+  {
+    try
+    {
+      var foo="teststring";
+      foo.search(value.replace(/\(\?i\)/,""));
+      return true;
+    }
+    catch (e)
+    {
+      return false;
+    }
+
+  }
+
+  function isInteger(value)
+  {
+    var anum=/(^\d+$)/;
+    return anum.test(value);
+  }
+
+  //-->
+</script>
+
+<section id="script">
+  <%
+    OutputConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabsArray);
+  %>
+</section>
+
+
+<div class="row">
+  <div class="col-md-12">
 <%
   // Get connector list; need this to decide what to do
   if (set.getRowCount() == 0)
   {
 %>
-        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.EditOutputConnection")%></p>
-        <table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.NoOutputConnectorsRegistered")%></td></tr></table>
+    <div class="callout callout-warning">
+      <p><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.NoOutputConnectorsRegistered")%></p>
+    </div>
 <%
   }
   else
   {
 %>
+    <div class="box box-primary">
+      <form class="standardform" name="editconnection" action="execute.jsp" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="op" value="Continue"/>
+        <input type="hidden" name="type" value="output"/>
+        <input type="hidden" name="tabname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>"/>
+        <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
 
-        <form class="standardform" name="editconnection" action="execute.jsp" method="POST" enctype="multipart/form-data">
-          <input type="hidden" name="op" value="Continue"/>
-          <input type="hidden" name="type" value="output"/>
-          <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
-          <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
-          <table class="tabtable">
-            <tr class="tabspacerrow">
-              <td class="spacertab" colspan="<%=tabsArray.size()%>"></td>
-              <td class="remaindertab" rowspan="3">
-<%
-    if (description.length() > 0)
-    {
-%>
-                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.EditOutputConnection")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
-<%
-    }
-    else
-    {
-%>
-
-                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.EditAnOutputConnection")%></nobr>
-<%
-    }
-%>
-              </td>
-            </tr>
-            <tr class="tabsequencerow">
-              <td class="blanksequencetab" colspan="<%=tabsArray.size()%>"></td>
-            </tr>
-            <tr class="tabrow">
+        <div class="box-header">
+          <ul class="nav nav-tabs" role="tablist">
 <%
     int tabNum = 0;
+    int activeTab = 0;
     while (tabNum < tabsArray.size())
     {
       String tab = (String)tabsArray.get(tabNum++);
       if (tab.equals(tabName))
       {
 %>
-              <td class="activetab"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></nobr></td>
+            <li class="active"><a href="#tab_<%=tabNum%>" data-toggle="tab"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></li>
 <%
       }
       else
       {
 %>
-              <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
+            <li>
+              <a href="#tab_<%=tabNum%>" data-toggle="tab"
+                      alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.tab")%>'
+                      onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a>
+            </li>
 <%
       }
     }
 %>
-            </tr>
-            <tr class="tabbodyrow">
-              <td class="tabbody" colspan='<%=Integer.toString(tabsArray.size()+1)%>'>
+          </ul>
+        </div>
+        <div class="box-body">
+          <div class="tab-content">
 <%
 
 
@@ -309,42 +299,39 @@ function isInteger(value)
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Name")))
     {
 %>
-                <table class="displaytable">
-                  <tr><td class="separator" colspan="5"><hr/></td></tr>
-                  <tr>
-                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.NameColon")%></nobr></td><td class="value" colspan="4">
+            <div class="tab-pane active" id="tab_<%=activeTab%>">
+              <div class="form-group">
+                <label><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.NameColon")%></label>
 <%
       // If the connection doesn't exist yet, we are allowed to change the name.
       if (connection == null || connectionName.length() < 1)
       {
 %>
-                      <input type="text" size="32" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+                <input type="text" size="32" name="connname" class="form-control" placeholder="Name..." value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>"/>
 <%
       }
       else
       {
 %>
-                      <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%>
-                      <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+                <input type="text" class="form-control" disabled value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>"/>
+                <input type="hidden" name="connname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>"/>
 <%
       }
 %>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.DescriptionColon")%></nobr></td><td class="value" colspan="4">
-                      <input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
-                    </td>
-                  </tr>
-                </table>
+              </div>
+              <div class="form-group">
+                <label for="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.DescriptionColon")%></label>
+                <input type="text" size="50" class="form-control" name="description" id="description" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>"/>
+              </div>
+            </div>
 <%
     }
     else
     {
       // Hiddens for the Name tab
 %>
-                <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
-                <input type="hidden" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
+            <input type="hidden" name="connname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>"/>
+            <input type="hidden" name="description" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>"/>
 <%
     }
 
@@ -353,10 +340,9 @@ function isInteger(value)
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Type")))
     {
 %>
-                <table class="displaytable">
-                  <tr><td class="separator" colspan="5"><hr/></td></tr>
-                  <tr>
-                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.ConnectionTypeColon")%></nobr></td><td class="value" colspan="4">
+            <div class="tab-pane active" id="tab_<%=activeTab%>">
+              <div class="form-group">
+                <label><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.ConnectionTypeColon")%></label>
 <%
       if (className.length() > 0)
       {
@@ -364,24 +350,24 @@ function isInteger(value)
         if (value == null)
         {
 %>
-                      <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
+                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
 <%
         }
         else
         {
 %>
-                      <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)%>
+                <input type="text" class="form-control" disabled value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)%>"/>
 <%
         }
 %>
-                      <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
+                <input type="hidden" name="classname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>"/>
 <%
       }
       else
       {
         int i = 0;
 %>
-                      <select name="classname" size="1">
+                <select name="classname" clas="form-control">
 <%
         while (i < set.getRowCount())
         {
@@ -389,26 +375,22 @@ function isInteger(value)
           String thisClassName = row.getValue("classname").toString();
           String thisDescription = row.getValue("description").toString();
 %>
-                        <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisClassName)%>'
-                      <%=className.equals(thisClassName)?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%>
-                        </option>
+                  <option value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisClassName)%>" <%=className.equals(thisClassName)?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
 <%
         }
 %>
-                      </select>
+                </select>
 <%
       }
 %>
-                    </td>
-                  </tr>
-                </table>
+              </div>
 <%
     }
     else
     {
       // Hiddens for the "Type" tab
 %>
-                <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
+              <input type="hidden" name="classname" value="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>"/>
 <%
     }
 
@@ -417,20 +399,19 @@ function isInteger(value)
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Throttling")))
     {
 %>
-                <table class="displaytable">
-                  <tr><td class="separator" colspan="2"><hr/></td></tr>
-                  <tr>
-                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.MaxConnectionsColon")%></nobr></td>
-                    <td class="value"><input type="text" size="6" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/></td>
-                  </tr>
-                </table>
+              <div class="tab-pane active" id="tab_<%=activeTab%>">
+                <div class="form-group">
+                  <label><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editoutput.MaxConnectionsColon")%></label>
+                  <input type="text" size="6" name="maxconnections" class="form-control" value="<%=Integer.toString(maxConnections)%>"/>
+                </div>
+              </div>
 <%
     }
     else
     {
       // Hiddens for "Throttling" tab
 %>
-                <input type="hidden" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/>
+              <input type="hidden" name="maxconnections" value="<%=Integer.toString(maxConnections)%>"/>
 <%
     }
 
@@ -438,16 +419,16 @@ function isInteger(value)
       OutputConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabName);
 
 %>
-                <table class="displaytable">
-                  <tr><td class="separator" colspan="4"><hr/></td></tr>
-                  <tr>
-                    <td class="message" colspan="4">
-                      <nobr>
+            </div>
+          </div>
+          <div class="box-footer clearfix">
+            <div class="btn-group">
 <%
     if (className.length() > 0)
     {
 %>
-                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.SaveThisOutputConnection")%>"/>
+              <a class="btn btn-primary" onClick="javascript:Save()"
+                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.SaveThisOutputConnection")%>" data-toggle="tooltip"><i class="fa fa-save fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.Save")%></a>
 <%
     }
     else
@@ -455,33 +436,24 @@ function isInteger(value)
       if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editoutput.Type")))
       {
 %>
-                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.ContinueToNextPage")%>"/>
+              <a class="btn btn-primary" onClick="javascript:Continue()"
+                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.ContinueToNextPage")%>"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.Continue")%></a>
 <%
       }
     }
 %>
-                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.Cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.CancelOutputConnectionEditing")%>"/>
-                      </nobr>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </form>
-
+              <a class="btn btn-primary" onClick="javascript:Cancel()"
+                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.CancelOutputConnectionEditing")%>"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.Cancel")%></a>
+            </div>
+          </div>
+        </div>
+      </form>
 <%
   }
 %>
-
-      </td>
-    </tr>
-  </table>
-
-</body>
-
-</html>
-
+    </div>
+  </div>
+</div>
 <%
 }
 catch (ManifoldCFException e)
@@ -494,4 +466,3 @@ catch (ManifoldCFException e)
 <%
 }
 %>
-
