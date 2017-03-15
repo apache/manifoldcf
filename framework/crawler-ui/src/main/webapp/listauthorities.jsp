@@ -101,7 +101,7 @@ try
                   <a href='<%="viewauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.View") + " " +org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
                           class="link btn btn-success btn-xs" role="button" data-toggle="tooltip">
-                    <i class="fa fa-eye fa-fw" aria-hidden="true"></i>View</a>
+                    <i class="fa fa-eye fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.View")%></a>
                   <a href='<%="editauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Edit") + " " + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
                           class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip">
