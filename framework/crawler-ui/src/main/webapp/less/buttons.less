@@ -62,39 +62,19 @@
   }
 }
 .btn-primary {
-  background-color: @light-blue;
-  border-color: darken(@light-blue, 5%);
-  &:hover, &:active, &.hover {
-    background-color: darken(@light-blue, 5%);
-  }
+  .button-variant(@btn-primary-color; @light-blue; darken(@light-blue, 5%));
 }
 .btn-success {
-  background-color: @green;
-  border-color: darken(@green, 5%);
-  &:hover, &:active, &.hover {
-    background-color: darken(@green, 5%);
-  }
+  .button-variant(@btn-primary-color; @green; darken(@green, 5%));
 }
 .btn-info {
-  background-color: @aqua;
-  border-color: darken(@aqua, 5%);
-  &:hover, &:active, &.hover {
-    background-color: darken(@aqua, 5%);
-  }
+  .button-variant(@btn-primary-color; @aqua; darken(@aqua, 5%));
 }
 .btn-danger {
-  background-color: @red;
-  border-color: darken(@red, 5%);
-  &:hover, &:active, &.hover {
-    background-color: darken(@red, 5%);
-  }
+  .button-variant(@btn-primary-color; @red; darken(@red, 5%));
 }
 .btn-warning {
-  background-color: @yellow;
-  border-color: darken(@yellow, 5%);
-  &:hover, &:active, &.hover {
-    background-color: darken(@yellow, 5%);
-  }
+  .button-variant(@btn-primary-color; @yellow; darken(@yellow, 5%));
 }
 .btn-outline {
   border: 1px solid #fff;

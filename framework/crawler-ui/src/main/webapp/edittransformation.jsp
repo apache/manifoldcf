@@ -377,6 +377,7 @@ try
       }
 %>
               </div>
+            </div>
 <%
     }
     else
@@ -436,7 +437,7 @@ try
     }
 %>
               <a class="btn btn-primary" onClick="javascript:Cancel()"
-                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.CancelTransformationConnectionEditing")%>"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.Cancel")%></a>
+                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.CancelTransformationConnectionEditing")%>" data-toggle="tooltip"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.Cancel")%></a>
             </div>
           </div>
         </div>

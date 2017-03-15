@@ -265,11 +265,11 @@ try
         <div class="box-footer clearfix">
           <div class="btn-group">
             <a href="javascript:void(0);" onClick="javascript:Save()"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editgroup.SaveThisAuthorityGroup")%>"
-                    class="btn btn-primary" role="button"><span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editgroup.Save")%></a>
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editgroup.SaveThisAuthorityGroup")%>"
+                    class="btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-save fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editgroup.Save")%></a>
             <a href="javascript:void(0);" onClick="javascript:Cancel()"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editgroup.CancelAuthorityGroupEditing")%>"
-                    class="btn btn-primary" role="button"><span class="glyphicon glyphicon-ban-circle" aria-hidden="true"></span><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editgroup.Cancel")%></a>
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editgroup.CancelAuthorityGroupEditing")%>"
+                    class="btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editgroup.Cancel")%></a>
           </div>
         </div>
       </form>

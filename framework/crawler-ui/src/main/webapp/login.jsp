@@ -33,6 +33,7 @@ response.setContentType("text/html;charset=utf-8");
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' name='viewport'>
+    <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
     <link rel="StyleSheet" href="css/style.css" type="text/css" media="screen"/>
     <title><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.ApacheManifoldCFLogin")%></title>
@@ -49,6 +50,8 @@ response.setContentType("text/html;charset=utf-8");
         document.loginform.submit();
       }
 
+      document.onkeypress = loginKeyPress;
+
       function loginKeyPress(e)
       {
         e = e || window.event;
@@ -59,9 +62,6 @@ response.setContentType("text/html;charset=utf-8");
         }
         return true;
       }
-      
-      document.onkeypress = loginKeyPress;
-
       //-->
     </script>
   </head>
@@ -96,7 +96,7 @@ if (value != null && value.equals("true"))
 }
 %>
           <div class="form-group has-feedback">
-            <input name="userID" type="text" autofocus="autofocus" class="form-control" placeholder="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.UserIDColon")%>"/>
+            <input name="userID" type="text" class="form-control" autofocus="autofocus" placeholder="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.UserIDColon")%>"/>
             <span class="glyphicon glyphicon-user form-control-feedback"></span>
           </div>
           <div class="form-group has-feedback">
@@ -107,9 +107,8 @@ if (value != null && value.equals("true"))
             <div class="col-xs-8">
             </div>
             <div class="col-xs-4">
-              <input id="buttonLogin" type="button" class="btn btn-primary btn-block" onclick='Javascript:login();'
-                      value='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>'
-                      alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>'/>
+              <button id="buttonLogin" class="btn btn-primary btn-block" onclick='Javascript:login();'
+                      alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>'><i class="fa fa-sign-in fa-fw" aria-hidden="true"></i>&nbsp;<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%></button>
             </div>
           </div>
         </form>
