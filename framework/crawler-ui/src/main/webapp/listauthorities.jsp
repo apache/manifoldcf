@@ -101,16 +101,16 @@ try
                   <a href='<%="viewauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.View") + " " +org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
                           class="link btn btn-success btn-xs" role="button" data-toggle="tooltip">
-                    <i class="fa fa-eye" aria-hidden="true"></i>View</a>
+                    <i class="fa fa-eye fa-fw" aria-hidden="true"></i>View</a>
                   <a href='<%="editauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Edit") + " " + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
                           class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip">
-                    <i class="fa fa-pencil-square-o" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Edit")%></a>
+                    <i class="fa fa-pencil-square-o fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Edit")%></a>
                   <a href="javascript:void(0);"
                           onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Delete") + " " + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
                           class="btn btn-danger btn-xs" role="button" data-toggle="tooltip">
-                    <i class="fa fa-trash" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Delete")%></a>
+                    <i class="fa fa-trash fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Delete")%></a>
                 </div>
               </td>
               <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)%></td>

@@ -384,6 +384,7 @@ try
       }
 %>
               </div>
+            </div>
 <%
     }
     else
@@ -437,13 +438,13 @@ try
       {
 %>
               <a class="btn btn-primary" onClick="javascript:Continue()"
-                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.ContinueToNextPage")%>"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.Continue")%></a>
+                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.ContinueToNextPage")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.Continue")%></a>
 <%
       }
     }
 %>
               <a class="btn btn-primary" onClick="javascript:Cancel()"
-                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.CancelOutputConnectionEditing")%>"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.Cancel")%></a>
+                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.CancelOutputConnectionEditing")%>" data-toggle="tooltip"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editoutput.Cancel")%></a>
             </div>
           </div>
         </div>
