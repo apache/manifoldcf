@@ -1353,6 +1353,7 @@ a:focus {
 }
 .box-body {
   padding: 10px;
+  overflow-x: auto;
 }
 .no-header .box-body {
   border-top-right-radius: 3px;
