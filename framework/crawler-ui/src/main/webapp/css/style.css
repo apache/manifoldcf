@@ -913,6 +913,9 @@ a:focus {
   -moz-appearance: none;
   appearance: none;
 }
+.form-group .form-control {
+  width: 100% !important;
+}
 .form-group.has-success label {
   color: #00a65a;
 }
