@@ -723,16 +723,16 @@ try
           <div class="btn-group">
             <a href='<%="editjob.jsp?origjobid="+jobID%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.CopyThisJob")%>"
-                    class="link btn btn-success" role="button" data-toggle="tooltip"><span class="fa fa-clipboard" aria-hidden="true"></span></a>
+                    class="link btn btn-success" role="button" data-toggle="tooltip"><i class="fa fa-clipboard fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Copy")%></a>
             <a href='<%="editjob.jsp?jobid="+jobID%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.EditThisJob")%>"
-                    class="link btn btn-primary" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span></a>
+                    class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-pencil fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Edit")%></a>
             <a href='<%="javascript:Delete(\""+jobID+"\")"%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.DeleteThisJob")%>"
-                    class="btn btn-danger" role="button" data-toggle="tooltip"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></a>
+                    class="btn btn-danger" role="button" data-toggle="tooltip"><i class="fa fa-trash fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Delete")%></a>
             <a href='<%="javascript:StartOver(\""+jobID+"\")"%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.ResetSeedingThisJob")%>"
-                    class="link btn btn-warning" role="button" data-toggle="tooltip"><span class="fa fa-recycle" aria-hidden="true"></span></a>
+                    class="link btn btn-warning" role="button" data-toggle="tooltip"><i class="fa fa-recycle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ResetSeeding")%></a>
           </div>
         </div>
       </form>

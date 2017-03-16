@@ -1866,10 +1866,8 @@ function isRegularExpression(value)
   if (connectionName.length() > 0 && outputPresent)
   {
 %>
-              <input type="button" class="btn btn-primary"
-                     value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Save")%>"
-                     onClick="javascript:Save()"
-                     alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.SaveThisJob")%>"/>
+              <a class="btn btn-primary" onClick="javascript:Save()"
+                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.SaveThisJob")%>" data-toggle="tooltip"><i class="fa fa-save fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Save")%></a>
 <%
   }
   else
@@ -1877,18 +1875,14 @@ function isRegularExpression(value)
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Connection")) && tabSequenceInt == -1)
     {
 %>
-              <input type="button" class="btn btn-primary"
-                     value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Continue")%>"
-                     onClick="javascript:Continue()"
-                     alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.ContinueToNextScreen")%>"/>
+              <a class="btn btn-primary" onClick="javascript:Continue()" 
+                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.ContinueToNextScreen")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Continue")%></a>
 <%
     }
   }
 %>
-              <input type="button" class="btn btn-primary"
-                     value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.cancel")%>"
-                     onClick="javascript:Cancel()"
-                     alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.CancelJobEditing")%>"/>
+              <a class="btn btn-primary" onClick="javascript:Cancel()" 
+                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.CancelJobEditing")%>" data-toggle="tooltip"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.cancel")%></a>
 
             </div>
           </div>

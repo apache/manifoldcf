@@ -216,7 +216,7 @@ try
             <a href="javascript:void(0);"
                     onclick='<%="javascript:ClearHistory(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.ClearHistoryAssociatedWithThisConnection")%>"
-                    class="btn btn-warning" role="button" data-toggle="tooltip"><i class="fa fa-remove fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.ClearHistory")%></a>
+                    class="btn btn-warning" role="button" data-toggle="tooltip"><i class="fa fa-remove fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewconnection.ClearAllRelatedHistory")%></a>
           </div>
         </div>
       </form>

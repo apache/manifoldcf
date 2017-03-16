@@ -178,11 +178,11 @@ try
             <a href="javascript:void(0);"
                     onclick='<%="javascript:ReingestAll(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.ReIngestAllDocumentsAssociatedWithThisOutputConnection")%>"
-                    class="btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-repeat fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.ReIngestAll")%></a>
+                    class="btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-repeat fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.ReIngestAllAssociatedDocuments")%></a>
             <a href="javascript:void(0)"
                     onclick='<%="javascript:RemoveAll(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(connectionName)+"\")"%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.RemoveAllDocumentsAssociatedWithThisOutputConnection")%>"
-                    class="btn btn-warning" role="button" data-toggle="tooltip"><i class="fa fa-remove fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.RemoveAll")%></a>
+                    class="btn btn-warning" role="button" data-toggle="tooltip"><i class="fa fa-remove fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.RemoveAllAssociatedDocuments")%></a>
           </div>
         </div>
       </form>
