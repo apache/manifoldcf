@@ -123,7 +123,8 @@ try
         </div>
         <div class="box-footer clearfix">
           <a href="edittransformation.jsp" class="link btn btn-primary" role="button" 
-                  title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listtransformations.AddaNewTransformationConnection")%>" data-toggle="tooltip"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listtransformations.Add")%></a>
+                  title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listtransformations.AddATransformationConnection")%>" 
+                  data-toggle="tooltip"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listtransformations.AddaNewTransformationConnection")%></a>
         </div>
       </form>
     </div>

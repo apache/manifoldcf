@@ -674,19 +674,15 @@ try
   if (reportConnection.length() > 0)
   {
 %>
-            <a name="MainButton"><input class="btn btn-primary" type="button"
-                    value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"resultreport.Go")%>"
-                    onClick="javascript:Go()"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"resultreport.ExecuteThisQuery")%>"/></a>
+            <a name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Go()" 
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"resultreport.ExecuteThisQuery")%>"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"resultreport.Go")%></a>
 <%
   }
   else
   {
 %>
-            <a name="MainButton"><input class="btn btn-primary" type="button"
-                    value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"resultreport.Continue")%>"
-                    onClick="javascript:Continue()"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"resultreport.Continue")%>"/></a>
+            <a name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Continue()" 
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"resultreport.Continue")%>"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"resultreport.Continue")%></a>
             <%
               }
             %>
@@ -794,25 +790,27 @@ try
     if (startRow == 0)
     {
 %>
-            <li><a href="#"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"resultreport.Previous")%></a></li>
+            <li><a href="#"><i class="fa fa-arrow-circle-o-left fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"resultreport.Previous")%></a></li>
 <%
     }
     else
     {
 %>
-            <li><a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"resultreport.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"resultreport.Previous")%></a></li>
+            <li><a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' 
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"resultreport.PreviousPage")%>" data-toggle="tooltip"><i class="fa fa-arrow-circle-o-left fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"resultreport.Previous")%></a></li>
 <%
     }
     if (hasMoreRows == false)
     {
 %>
-            <li><a href="#"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"resultreport.Next")%></a></li>
+            <li><a href="#"><i class="fa fa-arrow-circle-o-right fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"resultreport.Next")%></a></li>
 <%
     }
     else
     {
 %>
-            <li><a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"resultreport.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"resultreport.Next")%></a></li>
+            <li><a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' 
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"resultreport.NextPage")%>" data-toggle="tooltip"><i class="fa fa-arrow-circle-o-right fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"resultreport.Next")%></a></li>
 <%
     }
 %>

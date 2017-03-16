@@ -125,9 +125,9 @@ try
         </div>
         <div class="box-footer clearfix">
           <div class="btn-group">
-            <a href="editauthority.jsp" title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.AddaNewConnection")%>"
+            <a href="editauthority.jsp" title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.AddNewConnection")%>"
                     class="link btn btn-primary" role="button">
-              <i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.AddNewConnection")%></a>
+              <i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.AddaNewConnection")%></a>
           </div>
 
 <%

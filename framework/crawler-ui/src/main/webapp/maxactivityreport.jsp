@@ -643,19 +643,15 @@ try
   if (reportConnection.length() > 0)
   {
 %>
-            <a name="MainButton"><input class="btn btn-primary" type="button"
-                    value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.Go")%>"
-                    onClick="javascript:Go()"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.ExecuteThisQuery")%>"/></a>
+            <a name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Go()"
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.ExecuteThisQuery")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.Go")%></a>
 <%
   }
   else
   {
 %>
-            <a name="MainButton"><input class="btn btn-primary" type="button"
-                    value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.Continue")%>"
-                    onClick="javascript:Continue()"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.Continue")%>"/></a>
+            <a name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Continue()" 
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.Continue")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.Continue")%></a>
 <%
   }
 %>
@@ -783,7 +779,7 @@ try
     if (startRow == 0)
     {
 %>
-            <li><a href="#"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Previous")%></a></li>
+            <li><a href="#"><i class="fa fa-arrow-circle-o-left fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Previous")%></a></li>
 <%
     }
     else
@@ -792,14 +788,14 @@ try
             <li>
               <a href="javascript:void(0);"
                       onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>'
-                      alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Previous")%></a>
+                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.PreviousPage")%>" data-toggle="tooltip"><i class="fa fa-arrow-circle-o-left fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Previous")%></a>
             </li>
 <%
     }
     if (hasMoreRows == false)
     {
 %>
-            <li><a href="#"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Next")%></a></li>
+            <li><a href="#"><i class="fa fa-arrow-circle-o-right fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Next")%></a></li>
 <%
     }
     else
@@ -808,7 +804,7 @@ try
             <li>
               <a href="javascript:void(0);"
                       onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>'
-                      alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Next")%></a>
+                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"maxactivityreport.NextPage")%>" data-toggle="tooltip"><i class="fa fa-arrow-circle-o-right fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxactivityreport.Next")%></a>
             </li>
 <%
     }

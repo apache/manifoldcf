@@ -888,6 +888,7 @@ a:focus {
  * ---------------
  */
 .form-control {
+  width: auto !important;
   border-radius: 0px !important;
   box-shadow: none;
   border-color: #d2d6de;
@@ -944,6 +945,7 @@ a:focus {
   line-height: 3;
 }
 .input-group select {
+  width: auto !important;
   border-radius: 0px !important;
   box-shadow: none;
   border-color: #d2d6de;

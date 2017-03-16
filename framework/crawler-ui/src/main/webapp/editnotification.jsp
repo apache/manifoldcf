@@ -426,10 +426,8 @@ try
     if (className.length() > 0)
     {
 %>
-            <input type="button" class="btn btn-primary"
-                    value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.Save")%>"
-                    onClick="javascript:Save()"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.SaveThisNotificationConnection")%>"/>
+            <a role="button" class="btn btn-primary" onClick="javascript:Save()" 
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.SaveThisNotificationConnection")%>" data-toggle="tooltip"><i class="fa fa-save fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.Save")%></a>
 
 <%
     }
@@ -438,19 +436,15 @@ try
       if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editnotification.Type")))
       {
 %>
-            <input type="button" class="btn btn-primary"
-                    value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.Continue")%>"
-                    onClick="javascript:Continue()"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.ContinueToNextPage")%>"/>
+            <a role="button" class="btn btn-primary" onClick="javascript:Continue()"
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.ContinueToNextPage")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.Continue")%></a>
 
 <%
       }
     }
 %>
-            <input type="button" class="btn btn-primary"
-                    value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.Cancel")%>"
-                    onClick="javascript:Cancel()"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.CancelNotificationConnectionEditing")%>"/>
+            <a role="button" class="btn btn-primary" onClick="javascript:Cancel()"
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.CancelNotificationConnectionEditing")%>" data-toggle="tooltip"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.Cancel")%></a>
           </div>
         </div>
       </form>

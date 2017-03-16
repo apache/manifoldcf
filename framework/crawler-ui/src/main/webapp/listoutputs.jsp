@@ -122,10 +122,8 @@ try
         </div>
         <div class="box-footer clearfix">
           <div class="btn-group">
-            <a href="editoutput.jsp" title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listoutputs.AddaNewOutputConnection")%>"
-                    class="link btn btn-primary" role="button" data-toggle="tooltip">
-              <i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listoutputs.Add")%>
-            </a>
+            <a href="editoutput.jsp" title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listoutputs.AddAnOutputConnection")%>"
+                    class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listoutputs.AddaNewOutputConnection")%></a>
           </div>
 
 <%

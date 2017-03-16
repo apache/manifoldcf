@@ -214,11 +214,11 @@ try
     {
 %>
                 <a href='<%="javascript:Start(\""+js.getJobID()+"\")"%>'
-                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()%>'
-                        class="btn btn-success btn-xs" role="button"><span class="fa fa-play" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Start")%></a>
+                        title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()%>'
+                        class="btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-play fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Start")%></a>
                 <a href='<%="javascript:StartMinimal(\""+js.getJobID()+"\")"%>'
-                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'
-                        class="btn btn-success btn-xs" role="button"><span class="fa fa-compress" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Startminimal")%></a>
+                        title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Startjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'
+                        class="btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-compress fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Startminimal")%></a>
 <%
     }
     if (status == JobStatus.JOBSTATUS_RUNNING ||
@@ -229,11 +229,11 @@ try
     {
 %>
                 <a href='<%="javascript:Restart(\""+js.getJobID()+"\")"%>'
-                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()%>'
-                        class="btn btn-success btn-xs" role="button"><span class="fa fa-play" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restart")%></a>
+                        title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()%>'
+                        class="btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-play fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restart")%></a>
                 <a href='<%="javascript:RestartMinimal(\""+js.getJobID()+"\")"%>'
-                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'
-                        class="btn btn-success btn-xs" role="button"><span class="fa fa-compress" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restartminimal")%></a>
+                        title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Restartjob")+" "+js.getJobID()+" "+Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.minimally")%>'
+                        class="btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-compress fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Restartminimal")%></a>
 <%
     }
     if (status == JobStatus.JOBSTATUS_RUNNING ||
@@ -242,8 +242,8 @@ try
     {
 %>
                 <a href='<%="javascript:Pause(\""+js.getJobID()+"\")"%>'
-                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Pausejob")+" "+js.getJobID()%>'
-                        class="btn btn-success btn-xs" role="button"><span class="fa fa-pause" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Pause")%></a>
+                        title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Pausejob")+" "+js.getJobID()%>'
+                        class="btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-pause fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Pause")%></a>
 <%
     }
     if (status == JobStatus.JOBSTATUS_RUNNING ||
@@ -257,16 +257,16 @@ try
     {
 %>
                 <a href='<%="javascript:Abort(\""+js.getJobID()+"\")"%>'
-                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Abortjob")+" "+js.getJobID()%>'
-                        class="btn btn-success btn-xs" role="button"><span class="fa fa-stop" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Abort")%></a>
+                        title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Abortjob")+" "+js.getJobID()%>'
+                        class="btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-stop fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Abort")%></a>
 <%
     }
     if (status == JobStatus.JOBSTATUS_PAUSED)
     {
 %>
                 <a href='<%="javascript:Resume(\""+js.getJobID()+"\")"%>'
-                        alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Resumejob")+" "+js.getJobID()%>'
-                        class="btn btn-success btn-xs" role="button"><span class="fa fa-play" aria-hidden="true"></span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Resume")%></a>
+                        title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.Resumejob")+" "+js.getJobID()%>'
+                        class="btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-play fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Resume")%></a>
 <%
     }
 %>
@@ -286,11 +286,10 @@ try
           </table>
         </div>
         <div class="box-footer clearfix">
-          <div class="btn-group">
             <a href="showjobstatus.jsp"
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.RefreshStatus")%>"
-                    class="link btn btn-primary" role="button" data-toggle="tooltip"><span class="fa fa-refresh" aria-hidden="true"></span></a>
-          </div>
+                    class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-refresh fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Refresh")%></a>
+        </div>
           
 <%
 }
@@ -304,7 +303,6 @@ catch (ManifoldCFException e)
 <%
 }
 %>
-        </div>
       </form>
     </div>
   </div>

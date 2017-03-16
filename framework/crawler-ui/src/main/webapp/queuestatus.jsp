@@ -418,19 +418,15 @@ try
   if (statusConnection.length() > 0 && statusJobIdentifiers.length > 0)
   {
 %>
-            <a name="MainButton"><input class="btn btn-primary btn-sm" type="button"
-                    value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Go")%>"
-                    onClick="javascript:Go()"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.ExecuteThisQuery")%>"/></a>
+            <a name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Go()"
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.ExecuteThisQuery")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Go")%></a>
 <%
   }
   else
   {
 %>
-            <a name="MainButton"><input class="btn btn-primary btn-sm" type="button"
-                    value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Continue")%>"
-                    onClick="javascript:Continue()"
-                    alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Continue")%>"/></a>
+            <a name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Continue()"
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Continue")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Continue")%></a>
 <%
   }
 %>
@@ -561,7 +557,7 @@ try
       if (startRow == 0)
       {
 %>
-                <li><a hred="#"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%></a></li>
+                <li><a hred="#"><i class="fa fa-arrow-circle-o-left fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%></a></li>
 <%
       }
       else
@@ -570,14 +566,14 @@ try
                 <li>
                   <a href="javascript:void(0);"
                           onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>'
-                          alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%></a>
+                          title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.PreviousPage")%>" data-toggle="tooltip"><i class="fa fa-arrow-circle-o-left fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%></a>
                 </li>
 <%
       }
       if (hasMoreRows == false)
       {
 %>
-                <li><a href="#"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Next")%></a></li>
+                <li><a href="#"><i class="fa fa-arrow-circle-o-right fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Next")%></a></li>
 <%
       }
       else
@@ -586,7 +582,7 @@ try
                 <li>
                   <a href="javascript:void(0);"
                           onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>'
-                          alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Next")%></a>
+                          title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.NextPage")%>" data-toggle="title"><i class="fa fa-arrow-circle-o-right fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Next")%></a>
                 </li>
 <%
       }

@@ -113,7 +113,7 @@ try
           <div class="btn-group">
             <a href="editgroup.jsp"
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.AddNewGroup")%>"
-                    class="link btn btn-primary" role="button"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.Add")%></a>
+                    class="link btn btn-primary" role="button"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.AddaNewGroup")%></a>
           </div>
 <%
 }
