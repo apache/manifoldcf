@@ -31,9 +31,9 @@
     
     <property name="hsqldb.version" value="2.3.2"/>
     <property name="jetty.version" value="9.2.3.v20140905"/>
-    <property name="httpclient.version" value="4.5.1"/>
-    <property name="httpmime.version" value="4.5.1"/>
-    <property name="httpcore.version" value="4.4.4"/>
+    <property name="httpclient.version" value="4.5.3"/>
+    <property name="httpmime.version" value="4.5.3"/>
+    <property name="httpcore.version" value="4.4.6"/>
     <property name="xerces.version" value="2.10.0"/>
     <property name="zookeeper.version" value="3.4.8"/>
     <property name="mongodb.version" value="2.11.3"/>
