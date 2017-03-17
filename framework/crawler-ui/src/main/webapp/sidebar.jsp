@@ -177,10 +177,8 @@
       </a>
       <ul class="treeview-menu">
         <li>
-          <a href="<%="http://manifoldcf.apache.org/release/trunk/"+Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Locale")+"/end-user-documentation.html"%>" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Help")%>">
-            <i class="fa fa-book"></i>
-            <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Help")%>
-          </a>
+          <a href="<%="http://manifoldcf.apache.org/"+Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Locale")+"/release-documentation.html"%>" 
+                  alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Help")%>"><i class="fa fa-book"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Help")%></a>
         </li>
         <li>
           <a href="logout.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.LogOut")%>">
