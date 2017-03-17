@@ -43,6 +43,6 @@
   <h4><i class="icon fa fa-ban"></i> Error!</h4>
   <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(errorText)%>
 </div>
-<a class="btn btn-primary btn-sm"
+<a class="link btn btn-primary btn-sm"
         href='<%=org.apache.manifoldcf.core.util.URLEncoder.encode(target)%>'
-        alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"error.Return")%>">OK</a>
+        title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"error.Return")%>" data-toggle="tooltip"><i class="fa fa-check fa-fw" aria-hidden="true"></i>OK</a>

@@ -107,8 +107,8 @@ if (value != null && value.equals("true"))
             <div class="col-xs-8">
             </div>
             <div class="col-xs-4">
-              <button id="buttonLogin" class="btn btn-primary btn-block" onclick='Javascript:login();'
-                      alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>'><i class="fa fa-sign-in fa-fw" aria-hidden="true"></i>&nbsp;<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%></button>
+              <a id="buttonLogin" class="btn btn-primary btn-block" onclick='Javascript:login();'
+                      title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>'><i class="fa fa-sign-in fa-fw" aria-hidden="true"></i>&nbsp;<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%></a>
             </div>
           </div>
         </form>
