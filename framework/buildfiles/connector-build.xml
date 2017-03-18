@@ -116,6 +116,10 @@
         </fileset>
         <fileset dir="${mcf-dist}/lib">
             <include name="mail*.jar"/>
+            <include name="commons-exec*.jar"/>
+            <include name="guava*.jar"/>
+            <include name="gson*.jar"/>
+            <include name="jna*.jar"/>
             <include name="json*.jar"/>
             <include name="commons-codec*.jar"/>
             <include name="commons-collections*.jar"/>
@@ -133,6 +137,8 @@
             <include name="jsp-2.1*.jar"/>
             <include name="jsp-api*.jar"/>
             <include name="junit*.jar"/>
+            <include name="selenium*.jar"/>
+            <include name="cglib-nodep*.jar"/>
             <include name="hamcrest-core*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>

@@ -34,7 +34,6 @@
         <fileset dir="../../lib">
               <include name="jsoup*.jar" />
               <include name="resteasy-*.jar" />
-              <include name="guava-*.jar" />
         </fileset>
     </path>
 
@@ -44,7 +43,6 @@
             <fileset dir="../../lib">
               <include name="jsoup*.jar" />
               <include name="resteasy-*.jar" />
-              <include name="guava-*.jar" />
             </fileset>
         </copy>
     </target>

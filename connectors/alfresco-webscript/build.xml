@@ -36,8 +36,6 @@
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
             <include name="alfresco-indexer-client*.jar"/>
-            <include name="gson*.jar"/>
-            <include name="guava*.jar"/>
         </fileset>
     </path>
 
@@ -62,8 +60,6 @@
         <copy todir="dist/lib">
             <fileset dir="../../lib">
                 <include name="alfresco-indexer-client*.jar"/>
-                <include name="gson*.jar"/>
-                <include name="guava*.jar"/>
             </fileset>
         </copy>
     </target>
