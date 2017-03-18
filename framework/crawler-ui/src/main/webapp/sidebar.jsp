@@ -177,7 +177,7 @@
       </a>
       <ul class="treeview-menu">
         <li>
-          <a href="<%="http://manifoldcf.apache.org/"+Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Locale")+"/release-documentation.html"%>" 
+          <a href="<%="http://manifoldcf.apache.org/"+Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Locale")+"/release-documentation.html"%>" target="_blank" 
                   alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Help")%>"><i class="fa fa-book"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Help")%></a>
         </li>
         <li>

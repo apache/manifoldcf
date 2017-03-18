@@ -38,11 +38,17 @@
   String target = variableContext.getParameter("target");
 %>
 
-
-<div class="alert alert-danger">
-  <h4><i class="icon fa fa-ban"></i> Error!</h4>
-  <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(errorText)%>
+<div class="box box-solid">
+  <div class="box-body">
+    <div class="alert alert-danger">
+      <h3><i class="icon fa fa-ban"></i> Error!</h3>
+      <h4><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(errorText)%></h4>
+    </div>
+  </div>
+  <div class="box-footer with-border">
+    <a class="link btn btn-primary" href='<%=org.apache.manifoldcf.core.util.URLEncoder.encode(target)%>' 
+            title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"error.Return")%>" data-toggle="tooltip">
+      <i class="fa fa-check fa-fw" aria-hidden="true"></i>OK
+    </a>
+  </div>
 </div>
-<a class="link btn btn-primary btn-sm"
-        href='<%=org.apache.manifoldcf.core.util.URLEncoder.encode(target)%>'
-        title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"error.Return")%>" data-toggle="tooltip"><i class="fa fa-check fa-fw" aria-hidden="true"></i>OK</a>
