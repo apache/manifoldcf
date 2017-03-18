@@ -1603,6 +1603,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-support"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="cglib"/>
             <param name="artifact-version" value="${cglib.version}"/>
             <param name="artifact-name" value="cglib-nodep"/>
