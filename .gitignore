@@ -1,2 +1,6 @@
-/.settings/
-/.project
+.settings
+.project
+.classpath
+target
+logs
+dbname*
