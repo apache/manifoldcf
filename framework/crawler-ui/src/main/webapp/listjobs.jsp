@@ -53,7 +53,7 @@ try
     {
       document.listjobs.op.value="Delete";
       document.listjobs.jobid.value=jobID;
-      document.listjobs.submit();
+      $.ManifoldCF.submit(document.listjobs);
     }
   }
 
