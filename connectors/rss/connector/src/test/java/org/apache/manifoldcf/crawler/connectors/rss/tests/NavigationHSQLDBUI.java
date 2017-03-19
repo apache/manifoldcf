@@ -27,7 +27,8 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-import org.apache.manifoldcf.core.tests.HTMLTester;
+//import org.apache.manifoldcf.core.tests.HTMLTester;
+import org.openqa.selenium.By;
 
 /** Basic UI navigation tests */
 public class NavigationHSQLDBUI extends BaseUIHSQLDB
@@ -37,6 +38,153 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
   public void createConnectionsAndJob()
     throws Exception
   {
+    // Q: How can we control locale?  Is that even possible?  Will the test fail
+    // if the browser locale is wrong?
+    testerInstance.gotoUrl("http://localhost:8346/mcf-crawler-ui/index.jsp");
+
+    //Login
+    testerInstance.waitForElementWithName("loginform");
+    testerInstance.setValue("userID","admin");
+    testerInstance.setValue("password","admin");
+    testerInstance.clickButton("Login");
+    testerInstance.verifyHeader("Welcome to Apache ManifoldCF™");
+    testerInstance.navigateTo("List output connections");
+    testerInstance.clickButton("Add a new output connection");
+
+    // Fill in a name
+    testerInstance.waitForElementWithName("connname");
+    testerInstance.setValue("connname","Null Output Connection");
+
+    //Goto to Type tab
+    testerInstance.clickTab("Type");
+
+    // Select a type
+    testerInstance.waitForElementWithName("classname");
+    testerInstance.selectValue("classname","org.apache.manifoldcf.agents.output.nullconnector.NullConnector");
+    testerInstance.clickButton("Continue");
+
+    // Visit the Throttling tab
+    testerInstance.clickTab("Throttling");
+
+    // Go back to the Name tab
+    testerInstance.clickTab("Name");
+
+    // Now save the connection.
+    testerInstance.clickButton("Save");
+
+    // Define a repository connection via the UI
+    testerInstance.navigateTo("List repository connections");
+    testerInstance.clickButton("Add new connection");
+
+    testerInstance.waitForElementWithName("connname");
+    testerInstance.setValue("connname","RSS Repository Connection");
+
+    // Select a type
+    testerInstance.clickTab("Type");
+    testerInstance.selectValue("classname","org.apache.manifoldcf.crawler.connectors.rss.RSSConnector");
+    testerInstance.clickButton("Continue");
+
+    // Visit the Throttling tab
+    testerInstance.clickTab("Throttling");
+
+    // Visit the rest of the tabs - Email first
+    testerInstance.clickTab("Email");
+    testerInstance.setValue("email","kishore@apache.org");
+
+    // Robots
+    testerInstance.clickTab("Robots");
+    testerInstance.selectValue("robotsusage","none");
+
+    // Bandwidth
+    testerInstance.clickTab("Bandwidth");
+
+    // Proxy
+    testerInstance.clickTab("Proxy");
+
+    // Go back to the Name tab
+    testerInstance.clickTab("Name");
+    testerInstance.clickButton("Save");
+
+    // Create a job
+    testerInstance.navigateTo("List jobs");
+    //Add a job
+    testerInstance.clickButton("Add a new job");
+    testerInstance.waitForElementWithName("description");
+    //Fill in a name
+    testerInstance.setValue("description","RSS Job");
+    testerInstance.clickTab("Connection");
+
+    // Select the connections
+    testerInstance.selectValue("output_connectionname","Null Output Connection");
+    testerInstance.selectValue("output_precedent","-1");
+    testerInstance.clickButton("Add output",true);
+    testerInstance.waitForElementWithName("connectionname");
+    testerInstance.selectValue("connectionname","RSS Repository Connection");
+    
+    testerInstance.clickButton("Continue");
+
+    // Visit all the tabs.  Scheduling tab first
+    testerInstance.clickTab("Scheduling");
+    testerInstance.selectValue("dayofweek","0");
+    testerInstance.selectValue("hourofday","1");
+    testerInstance.selectValue("minutesofhour","30");
+    testerInstance.selectValue("monthofyear","11");
+    testerInstance.selectValue("dayofmonth","none");
+    testerInstance.setValue("duration","120");
+    testerInstance.clickButton("Add Scheduled Time",true);
+    testerInstance.waitForElementWithName("editjob");
+
+    //URLs tab
+    testerInstance.clickTab("URLs");
+    testerInstance.setValue("s0_rssurls","https://www.cnn.com");
+
+    // Canonicalization tab
+    testerInstance.clickTab("Canonicalization");
+    testerInstance.clickButton("Add",true);
+
+    // URL Mappings tab
+    testerInstance.clickTab("URL Mappings");
+    //Time values tab
+    testerInstance.clickTab("Time Values");
+    //Security tab
+    testerInstance.clickTab("Security");
+    // Dechromed Content tab
+    testerInstance.clickTab("Dechromed Content");
+
+    // Save the job
+    testerInstance.clickButton("Save");
+
+    testerInstance.waitUntilPresenceOfElementLocated(By.id("job"));
+    String jobID = testerInstance.getAttributeValueById("job","jobid");
+    System.out.println("JobId: " + jobID);
+
+    //Delete the job
+    testerInstance.clickButton("Delete");
+    testerInstance.acceptAlert();
+
+    //Wait for the job to go away
+    testerInstance.navigateTo("Manage jobs");
+    testerInstance.waitForElementWithName("liststatuses");
+    // Q: We may want to add functionality like this directly to the tester class?
+    while (testerInstance.exists(By.cssSelector("span[jobid=\"" + jobID + "\"]")))
+    {
+      testerInstance.clickButton("Refresh");
+      testerInstance.waitForElementWithName("liststatuses");
+      //Let us wait for a second.
+      Thread.sleep(1000);
+    }
+
+    // Delete the repository connection
+    testerInstance.navigateTo("List repository connections");
+    testerInstance.clickButtonByTitle("Delete RSS Repository Connection");
+    testerInstance.acceptAlert();
+
+    // Delete the output connection
+    testerInstance.navigateTo("List output connections");
+    testerInstance.clickButtonByTitle("Delete Null Output Connection");
+    testerInstance.acceptAlert();
+
+/*
     testerInstance.newTest(Locale.US);
     
     HTMLTester.Window window;
@@ -272,6 +420,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     link.click();
     
     testerInstance.executeTest();
+*/
   }
   
 }
