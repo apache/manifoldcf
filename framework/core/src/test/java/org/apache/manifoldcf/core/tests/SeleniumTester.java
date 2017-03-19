@@ -55,16 +55,13 @@ public class SeleniumTester {
   public void setup() throws Exception {
 
     //Download Chrome Driver for Linux from here (https://chromedriver.storage.googleapis.com/index.html?path=2.28/)
-
-    //TODO: Add value in properties file or get if from system path
-    System.setProperty("webdriver.chrome.driver", "/home/kishore/chrome-driver/chromedriver");
-
     String driverType = "chrome";
 
     if (driverType == "chrome") {
 
-      if (System.getProperty("webdriver.chrome.driver") == null)
-        throw new Exception("Please configure Google Chrome Driver in properties.");
+      if (System.getProperty("webdriver.chrome.driver") == null ||
+        System.getProperty("webdriver.chrome.driver").length() == 0)
+        throw new Exception("Please configure your SL_CHROME_DRIVER environment variable to point to the Selenium Google Chrome Driver");
 
       //Create a new instance of Chrome driver
       ChromeOptions options = new ChromeOptions();

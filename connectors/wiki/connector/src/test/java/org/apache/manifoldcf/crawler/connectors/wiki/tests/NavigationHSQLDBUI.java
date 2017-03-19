@@ -65,7 +65,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
       initialURLQueryResources,
       initialDocInfoQueryResources,
       namespaceResource);
-
+/*
     testerInstance.newTest(Locale.US);
     
     HTMLTester.Window window;
@@ -277,6 +277,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     link.click();
     
     testerInstance.executeTest();
+*/
   }
   
 }

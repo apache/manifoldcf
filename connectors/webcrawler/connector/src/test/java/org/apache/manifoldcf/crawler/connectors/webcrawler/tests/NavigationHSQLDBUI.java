@@ -37,6 +37,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
   public void createConnectionsAndJob()
     throws Exception
   {
+/*
     testerInstance.newTest(Locale.US);
     
     HTMLTester.Window window;
@@ -312,6 +313,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     link.click();
     
     testerInstance.executeTest();
+*/
   }
   
 }
