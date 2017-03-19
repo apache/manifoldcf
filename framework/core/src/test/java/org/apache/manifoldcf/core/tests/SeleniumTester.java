@@ -41,9 +41,13 @@ import java.io.IOException;
 
 public class SeleniumTester {
 
-  protected WebDriver driver;
-  protected WebDriverWait wait;
+  protected WebDriver driver = null;
+  protected WebDriverWait wait = null;
 
+  public enum BrowserType {
+    CHROME
+  };
+  
   /** Constructor. Create a test sequence object. */
   public SeleniumTester() {}
 
@@ -53,30 +57,32 @@ public class SeleniumTester {
    */
   @Before
   public void setup() throws Exception {
+    driver = null;
+    wait = null;
+  }
 
+  public void start(final BrowserType browserType, final String language, final String startURL) {
     //Download Chrome Driver for Linux from here (https://chromedriver.storage.googleapis.com/index.html?path=2.28/)
-    String driverType = "chrome";
+    switch (browserType) {
+      case CHROME:
 
-    if (driverType == "chrome") {
+        if (System.getProperty("webdriver.chrome.driver") == null ||
+          System.getProperty("webdriver.chrome.driver").length() == 0)
+          throw new IllegalStateException("Please configure your SL_CHROME_DRIVER environment variable to point to the Selenium Google Chrome Driver");
 
-      if (System.getProperty("webdriver.chrome.driver") == null ||
-        System.getProperty("webdriver.chrome.driver").length() == 0)
-        throw new Exception("Please configure your SL_CHROME_DRIVER environment variable to point to the Selenium Google Chrome Driver");
-
-      //Create a new instance of Chrome driver
-      ChromeOptions options = new ChromeOptions();
-      options.addArguments("--start-maximized");
-      driver = new ChromeDriver(options);
-
-    } else {
-      // Create a new instance of the html unit driver
-      //driver = new HtmlUnitDriver(BrowserVersion.CHROME);
-      //((HtmlUnitDriver)driver).setJavascriptEnabled(true);
+        //Create a new instance of Chrome driver
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--start-maximized", "--lang=" + language);
+        driver = new ChromeDriver(options);
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown browser type");
     }
 
     wait = new WebDriverWait(driver, 10);
+    driver.get(startURL);
   }
-
+  
   public WebDriver getDriver() {
     return driver;
   }
@@ -309,6 +315,7 @@ public class SeleniumTester {
       driver.close();
       driver.quit();
       driver = null;
+      wait = null;
     }
   }
 }

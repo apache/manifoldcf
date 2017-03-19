@@ -27,7 +27,7 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-//import org.apache.manifoldcf.core.tests.HTMLTester;
+import org.apache.manifoldcf.core.tests.SeleniumTester;
 import org.openqa.selenium.By;
 
 /** Basic UI navigation tests */
@@ -40,7 +40,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
   {
     // Q: How can we control locale?  Is that even possible?  Will the test fail
     // if the browser locale is wrong?
-    testerInstance.gotoUrl("http://localhost:8346/mcf-crawler-ui/index.jsp");
+    testerInstance.start(SeleniumTester.BrowserType.CHROME, "en-US", "http://localhost:8346/mcf-crawler-ui/index.jsp");
 
     //Login
     testerInstance.waitForElementWithName("loginform");
