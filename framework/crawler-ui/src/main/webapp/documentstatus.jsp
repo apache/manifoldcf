@@ -442,7 +442,7 @@ try
       <input type="hidden" name="sortorder" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
 
       <div class="box box-primary">
-        <div class="box-body">
+        <div class="box-body table-responsive">
           <table class="table table-bordered">
             <tr>
               <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"documentstatus.Identifier")%></th>

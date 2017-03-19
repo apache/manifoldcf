@@ -746,7 +746,7 @@ try
       <input type="hidden" name="sortorder" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
 
       <div class="box box-primary">
-        <div class="box-body">
+        <div class="box-body table-responsive">
           <table class="table table-bordered">
             <tr>
               <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("idbucket");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"resultreport.IdentifierClass")%></nobr></a></th>
