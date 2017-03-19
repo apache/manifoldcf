@@ -488,6 +488,11 @@ License: IPA Font License Agreement v1.0 (http://ossipedia.ipa.go.jp/ipafont/ind
 This product includes a curvesapi.jar: https://github.com/virtuald/curvesapi
 License: BSD License (http://opensource.org/licenses/BSD-3-Clause)
 
+This product includes a number of selenium jars, e.g.:
+selenium-api.jar, selenium-chrome-driver.jar, selenium-edge-driver.jar, selenium-firefox-driver.jar, selenium-ie-driver.jar,
+selenium-java.jar, selenium-opera-driver.jar, selenium-remote-driver.jar, selenium-safari-driver.jar, selenium-support.jar
+License: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
 ==========================================================================
 The following license applies to json.jar, which is generated from the json
 sources from http://www.json.org/java/index.html
