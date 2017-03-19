@@ -60,7 +60,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
 
     // Select a type
     testerInstance.waitForElementWithName("classname");
-    testerInstance.selectValue("classname","org.apache.manifoldcf.agents.output.nullconnector.NullConnector");
+    testerInstance.selectValue("classname","org.apache.manifoldcf.agents.tests.TestingOutputConnector");
     testerInstance.clickButton("Continue");
 
     // Visit the Throttling tab
