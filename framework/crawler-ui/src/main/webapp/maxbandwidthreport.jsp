@@ -730,7 +730,7 @@ try
 
 %>
       <div class="box box-primary">
-        <div class="box-body">
+        <div class="box-body table-responsive">
           <table class="table table-bordered">
             <tr>
               <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("idbucket");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"maxbandwidthreport.IdentifierClass")%></a></th>

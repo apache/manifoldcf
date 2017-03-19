@@ -487,8 +487,8 @@ try
           <input type="hidden" name="sortorder" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
 
       <div class="box box-primary">
-        <div class="box-body no-padding">
-          <table class="table table-responsive">
+        <div class="box-body  table-responsive no-padding">
+          <table class="table table-bordered">
             <tr>
               <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("idbucket");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClass")%></a></th>
               <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("inactive");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Inactive")%></a></th>

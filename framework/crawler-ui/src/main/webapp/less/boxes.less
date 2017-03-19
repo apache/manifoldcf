@@ -122,44 +122,6 @@
       margin-bottom: 5px;
     }
   }
-
-  // jQuery Knob in a box
-  .knob-label {
-    text-align: center;
-    color: #333;
-    font-weight: 100;
-    font-size: 12px;
-    margin-bottom: 0.3em;
-  }
-
-  // Box overlay for LOADING STATE effect
-  > .overlay,
-  > .loading-img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .overlay {
-    z-index: 50;
-    background: rgba(255, 255, 255, 0.7);
-    .border-radius(@box-border-radius);
-    > .fa {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      margin-left: -15px;
-      margin-top: -15px;
-      color: #000;
-      font-size: 30px;
-    }
-  }
-
-  .overlay.dark {
-    background: rgba(0, 0, 0, 0.5);
-  }
 }
 
 //Add clearfix to header, body and footer
@@ -236,7 +198,6 @@
 .box-body {
   //.border-radius(0; 0; @box-border-radius; @box-border-radius);
   padding: @box-padding;
-  overflow-x: auto;
   .no-header & {
     .border-top-radius(@box-border-radius);
   }
@@ -271,16 +232,6 @@
   border-top: 1px solid @box-border-color;
   padding: @box-padding;
   background-color: @box-footer-bg;
-}
-.chart-legend {
-  &:extend(.list-unstyled);
-  margin: 10px 0;
-  > li {
-    @media (max-width: @screen-sm-max) {
-      float: left;
-      margin-right: 10px;
-    }
-  }
 }
 
 //Input in box
