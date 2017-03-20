@@ -76,7 +76,7 @@
       </div>
       <footer class="main-footer">
         <div class="pull-right hidden-xs"><b>Version</b>&nbsp;<%= org.apache.manifoldcf.core.system.ManifoldCF.getMcfVersion() %></div>
-        <strong>Copyright &copy; 2010-<%= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR) %>&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" href="http://manifoldcf.apache.org/"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.ApacheManifoldCF")%></a></strong>
+        <strong><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.Copyright")%>&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" href="https://www.apache.org/"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.TheApacheSoftwareFoundation")%></a></strong>
       </footer>
     </div>
     <script src="javascript/jquery.min.js"></script>
