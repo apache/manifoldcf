@@ -303,6 +303,29 @@ public class SeleniumTester {
         ((JavascriptExecutor) driver).executeScript("return arguments[0].innerHTML", element);
   }
 
+  // Macro operations for job management
+  
+  /** Wait for a specified job to go away after being deleted.
+  */
+  public void waitForJobDelete(final String jobID, int timeoutAmount)
+    throws Exception {
+    
+    navigateTo("Manage jobs");
+    waitForElementWithName("liststatuses");
+    while (exists(By.cssSelector("span[jobid=\"" + jobID + "\"]")))
+    {
+      if (timeoutAmount == 0)
+      {
+        throw new Exception("Timed out waiting for job "+jobID+" to go away");
+      }
+      clickButton("Refresh");
+      waitForElementWithName("liststatuses");
+      //Let us wait for a second.
+      Thread.sleep(1000L);
+      timeoutAmount--;
+    }
+  }
+  
   private long tick() {
     long TICKS_AT_EPOCH = 621355968000000000L;
     return System.currentTimeMillis() * 10000 + TICKS_AT_EPOCH;

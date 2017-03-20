@@ -38,8 +38,6 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
   public void createConnectionsAndJob()
     throws Exception
   {
-    // Q: How can we control locale?  Is that even possible?  Will the test fail
-    // if the browser locale is wrong?
     testerInstance.start(SeleniumTester.BrowserType.CHROME, "en-US", "http://localhost:8346/mcf-crawler-ui/index.jsp");
 
     //Login
@@ -163,16 +161,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     testerInstance.acceptAlert();
 
     //Wait for the job to go away
-    testerInstance.navigateTo("Manage jobs");
-    testerInstance.waitForElementWithName("liststatuses");
-    // Q: We may want to add functionality like this directly to the tester class?
-    while (testerInstance.exists(By.cssSelector("span[jobid=\"" + jobID + "\"]")))
-    {
-      testerInstance.clickButton("Refresh");
-      testerInstance.waitForElementWithName("liststatuses");
-      //Let us wait for a second.
-      Thread.sleep(1000);
-    }
+    testerInstance.waitForJobDelete(jobID, 120);
 
     // Delete the repository connection
     testerInstance.navigateTo("List repository connections");
