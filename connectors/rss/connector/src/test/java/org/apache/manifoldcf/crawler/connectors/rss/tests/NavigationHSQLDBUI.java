@@ -28,7 +28,6 @@ import java.util.*;
 import org.junit.*;
 
 import org.apache.manifoldcf.core.tests.SeleniumTester;
-import org.openqa.selenium.By;
 
 /** Basic UI navigation tests */
 public class NavigationHSQLDBUI extends BaseUIHSQLDB
@@ -69,6 +68,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
 
     // Now save the connection.
     testerInstance.clickButton("Save");
+    testerInstance.verifyThereIsNoError();
 
     // Define a repository connection via the UI
     testerInstance.navigateTo("List repository connections");
@@ -102,6 +102,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     // Go back to the Name tab
     testerInstance.clickTab("Name");
     testerInstance.clickButton("Save");
+    testerInstance.verifyThereIsNoError();
 
     // Create a job
     testerInstance.navigateTo("List jobs");
@@ -151,14 +152,28 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
 
     // Save the job
     testerInstance.clickButton("Save");
-
-    testerInstance.waitUntilPresenceOfElementLocated(By.id("job"));
+    testerInstance.verifyThereIsNoError();
+    
+    testerInstance.waitForPresenceById("job");
     String jobID = testerInstance.getAttributeValueById("job","jobid");
     System.out.println("JobId: " + jobID);
+    
+    //Navigate to Status and Job management
+    testerInstance.navigateTo("Manage jobs");
+    testerInstance.waitForElementWithName("liststatuses");
+    
+    //Start the job
+    testerInstance.performJobAction(jobID,"Start minimal");
+    testerInstance.waitForJobStatus(jobID,"Done",120);
+    
+    //Navigate to List Jobs
+    testerInstance.navigateTo("List jobs");
+    testerInstance.waitForElementWithName("listjobs");
 
     //Delete the job
-    testerInstance.clickButton("Delete");
+    testerInstance.clickButtonByTitle("Delete job " + jobID);
     testerInstance.acceptAlert();
+    testerInstance.verifyThereIsNoError();
 
     //Wait for the job to go away
     testerInstance.waitForJobDelete(jobID, 120);
