@@ -36,12 +36,6 @@
     <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
     <link rel="stylesheet" href="css/style.css" type="text/css" media="screen"/>
     <link rel="stylesheet" href="css/print.css" type="text/css" media="print"/>
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-    <script src=javascript/html5shiv.min.js"></script>
-    <script src="javascript/respond.min.js"></script>
-    <![endif]-->
   </head>
   <body class="fixed skin-black sidebar-mini">
     <div class="wrapper">

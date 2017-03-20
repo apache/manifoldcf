@@ -37,12 +37,6 @@ response.setContentType("text/html;charset=utf-8");
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
     <link rel="StyleSheet" href="css/style.css" type="text/css" media="screen"/>
     <title><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.ApacheManifoldCFLogin")%></title>
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-    <script src=javascript/html5shiv.min.js"></script>
-    <script src="javascript/respond.min.js"></script>
-    <![endif]-->
     <script type="text/javascript">
       <!--
       function login()
