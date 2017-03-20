@@ -3,3 +3,7 @@
 /documentfilter/
 */build/
 */dist/
+test-HSQLDB-output/
+
+dbname.properties
+dbname.script
