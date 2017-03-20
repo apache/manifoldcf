@@ -16,7 +16,6 @@
  */
 package org.apache.manifoldcf.core.tests;
 
-import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
@@ -24,9 +23,7 @@ import org.junit.Before;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.OutputType;
 import org.openqa.selenium.SearchContext;
-import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -36,15 +33,14 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.io.File;
-import java.io.IOException;
-
-public class SeleniumTester {
+public class SeleniumTester
+{
 
   protected WebDriver driver = null;
   protected WebDriverWait wait = null;
 
-  public enum BrowserType {
+  public enum BrowserType
+  {
     CHROME
   };
   
@@ -56,14 +52,17 @@ public class SeleniumTester {
    * to the current directory.
    */
   @Before
-  public void setup() throws Exception {
+  public void setup() throws Exception
+  {
     driver = null;
     wait = null;
   }
 
-  public void start(final BrowserType browserType, final String language, final String startURL) {
+  public void start(final BrowserType browserType, final String language, final String startURL)
+  {
     //Download Chrome Driver for Linux from here (https://chromedriver.storage.googleapis.com/index.html?path=2.28/)
-    switch (browserType) {
+    switch (browserType)
+    {
       case CHROME:
 
         if (System.getProperty("webdriver.chrome.driver") == null ||
@@ -83,22 +82,27 @@ public class SeleniumTester {
     driver.get(startURL);
   }
   
-  public WebDriver getDriver() {
+  public WebDriver getDriver()
+  {
     return driver;
   }
 
-  public WebDriverWait getWait() {
+  public WebDriverWait getWait()
+  {
     return wait;
   }
 
-  public WebElement findElementById(String id) {
+  public WebElement findElementById(String id)
+  {
     return driver.findElement(By.id(id));
   }
 
-  /*
-  Verify that we land in a correct page based on display title.s
+  /**
+   * Verify that we land in a correct page based on display title
+   * @param expected
    */
-  public void verifyHeader(String expected) {
+  public void verifyHeader(String expected)
+  {
     WebDriverWait wait = new WebDriverWait(driver, 1);
     WebElement element =
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("heading")));
@@ -106,7 +110,12 @@ public class SeleniumTester {
     Assert.assertThat(element.getText(), CoreMatchers.is(CoreMatchers.equalTo(expected)));
   }
 
-  public void verifyHeaderContains(String expected) {
+  /**
+   * Verify that we land in a correct page based on display title substring
+   * @param expected
+   */
+  public void verifyHeaderContains(String expected)
+  {
     WebDriverWait wait = new WebDriverWait(driver, 1);
     WebElement element =
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("heading")));
@@ -114,14 +123,24 @@ public class SeleniumTester {
     Assert.assertThat(element.getText(), CoreMatchers.containsString(expected));
   }
 
-  public void gotoUrl(String url) {
-    driver.get(url);
+  /**
+   * Verify that we don't land in an error page
+   */
+  public void verifyThereIsNoError()
+  {
+    WebDriverWait wait = new WebDriverWait(driver,1);
+    WebElement element =
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("heading")));
+
+    Assert.assertNotEquals("Error!",element.getText());
   }
 
-  /*
-  Click links from navigation sidebar.
+  /**
+   * Navigate to a page based on sidebar link alt text
+   * @param lintAlt
    */
-  public void navigateTo(String lintAlt) {
+  public void navigateTo(String lintAlt)
+  {
     //Identify the link
     WebElement ele =
         driver.findElement(
@@ -133,7 +152,8 @@ public class SeleniumTester {
             By.xpath("./ancestor::li[contains(concat(' ', @class, ' '), ' treeview ')][1]"));
     parent.click();
 
-    if (!hasClass(parent, "active")) {
+    if (!hasClass(parent, "active"))
+    {
       executeJquery(parent, "addClass", "'active'");
     }
 
@@ -143,177 +163,292 @@ public class SeleniumTester {
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("#loader")));
   }
 
-  /*
-  Check if a element is present in DOM
+  /**
+   * Check if a element is present in DOM
+   * @param selector
+   * @return true, if the element exists else false
    */
-  public boolean exists(By selector) {
+  private boolean exists(By selector)
+  {
     return driver.findElements(selector).size() != 0;
   }
 
-  public WebElement waitFindElement(By selector) {
+  /**
+   * Find an element by waiting we find it based on its visibility
+   * @param selector
+   * @return
+   */
+  public WebElement waitFindElement(By selector)
+  {
     return wait.until(ExpectedConditions.visibilityOfElementLocated(selector));
   }
 
-  public WebElement waitElementClickable(By selector) {
+  /**
+   * Find an element by waiting until it becomes clickable
+   * @param selector
+   * @return
+   */
+  public WebElement waitElementClickable(By selector)
+  {
     return wait.until(ExpectedConditions.elementToBeClickable(selector));
   }
 
-  public WebElement waitUntilPresenceOfElementLocated(By selector) {
+  /**
+   * Find an element by waiting until we find it's presence in dom
+   * @param selector
+   * @return
+   */
+  public WebElement waitUntilPresenceOfElementLocated(By selector)
+  {
     return wait.until(ExpectedConditions.presenceOfElementLocated(selector));
   }
 
-  public void waitForElementWithName(String name) {
+  /**
+   * Find an element by it's name
+   * @param name
+   */
+  public void waitForElementWithName(String name)
+  {
     waitFor(By.name(name));
   }
   
-  public void waitFor(By selector) {
-    wait.until(ExpectedConditions.elementToBeClickable(selector));
+  public void waitForPresenceById(String id)
+  {
+    waitFor(By.id(id));
+  }
+  
+  public void waitFor(By selector)
+  {
+    wait.until(ExpectedConditions.presenceOfElementLocated(selector));
   }
 
-  /*
-  Click a tab
+  /**
+   * Click a tab by it's name
+   * @param tabName the name of the tab
    */
-  public void clickTab(String tabName) {
+  public void clickTab(String tabName)
+  {
     WebElement element =
         waitElementClickable(By.cssSelector("a[data-toggle=\"tab\"][alt=\"" + tabName + " tab\"]"));
     element.click();
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("loader")));
   }
 
-  /*
-  Click a button based on title, button created using anchor tag and has title attribute set.
+  /**
+   * Click a button based on title, button created using anchor tag and has title attribute set.
+   * @param title
    */
-  public void clickButtonByTitle(String title) {
+  public void clickButtonByTitle(String title)
+  {
     WebElement element =
         waitElementClickable(
             By.xpath(
                 "//a[contains(@class,'btn') and contains(@data-original-title,'" + title + "')]"));
     element.click();
 
-    if (!isAlertPresent()) {
+    if (!isAlertPresent())
+    {
       wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("loader")));
     }
   }
 
-  /*
-  Clicks a button based on visible text, this type of button is created using anchor tag with .btn class
-  */
-  public void clickButton(String text) {
+  /**
+   * Clicks a button based on visible text, this type of button is created using anchor tag with .btn class
+   * @param text
+   */
+  public void clickButton(String text)
+  {
     WebElement element =
         waitElementClickable(
             By.xpath("//a[contains(@class,'btn') and contains(text(),'" + text + "')]"));
     element.click();
 
-    if (!isAlertPresent()) {
+    if (!isAlertPresent())
+    {
       wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("loader")));
     }
   }
 
-  /*
-  Click a button created using <input type="button"/>
+  /**
+   * Click a button created using <input type="button"/>
+   * @param buttonText
+   * @param islegacy
    */
-  public void clickButton(String buttonText, boolean islegacy) {
-    if (!islegacy) {
+  public void clickButton(String buttonText, boolean islegacy)
+  {
+    if (!islegacy)
+    {
       clickButton(buttonText);
-    } else {
+    } else
+    {
       waitFindElement(By.cssSelector("[type=\"button\"][value=\"" + buttonText + "\"]")).click();
     }
   }
 
-  public boolean isAlertPresent() {
+  /**
+   * Check if a alert box appeared in the browser.s
+   * @return
+   */
+  public boolean isAlertPresent()
+  {
     boolean foundAlert = false;
     WebDriverWait wait = new WebDriverWait(driver, 0 /*timeout in seconds*/);
-    try {
+    try
+    {
       wait.until(ExpectedConditions.alertIsPresent());
       foundAlert = true;
-    } catch (TimeoutException eTO) {
+    } catch (TimeoutException eTO)
+    {
       foundAlert = false;
     }
     return foundAlert;
   }
 
-  public void acceptAlert() {
+  /**
+   * Accepts the alert box
+   */
+  public void acceptAlert()
+  {
     wait.until(ExpectedConditions.alertIsPresent());
     Alert alert = driver.switchTo().alert();
     alert.accept();
   }
 
-  public void setValue(String name, String value) {
+  /**
+   * Set value of an element with name
+   * @param name
+   * @param value
+   */
+  public void setValue(String name, String value)
+  {
     setValue(driver, name, value);
   }
 
-  public void setValue(SearchContext context, String name, String value) {
+  /**
+   * Set value of an element with name by searching in another element
+   * @param context
+   * @param name
+   * @param value
+   */
+  public void setValue(SearchContext context, String name, String value)
+  {
     setValue(context, By.name(name), value);
   }
 
-  public void setValue(SearchContext context, By selector, String value) {
+  public void setValue(SearchContext context, By selector, String value)
+  {
     context.findElement(selector).sendKeys(value);
   }
 
-  public void selectValue(String name, String value) {
+  /**
+   * Select value of a custom select box using javascript.
+   * @param name
+   * @param value
+   */
+  public void selectValue(String name, String value)
+  {
     WebElement element = waitUntilPresenceOfElementLocated(By.name(name));
     System.out.println(element.toString());
-    if (hasClass(element, "selectpicker")) {
+    if (hasClass(element, "selectpicker"))
+    {
       String js = "$(arguments[0]).selectpicker('val','" + value + "')";
       ((JavascriptExecutor) driver).executeScript(js, element);
-    } else {
+    } else
+    {
       Select select = new Select(element);
       select.selectByValue(value);
     }
   }
 
-  public void executeJquery(WebElement element, String method, String params) {
+  /**
+   * Executes javascript in browser
+   * @param element
+   * @param method
+   * @param params
+   */
+  public void executeJquery(WebElement element, String method, String params)
+  {
     String js = "$(arguments[0])." + method + "(" + params + ")";
     System.out.println("JavaScript to be executed: " + js);
     ((JavascriptExecutor) driver).executeScript(js, element);
   }
 
-  private boolean hasClass(WebElement element, String className) {
+  /**
+   * Check if an element has a class
+   * @param element
+   * @param className
+   * @return
+   */
+  private boolean hasClass(WebElement element, String className)
+  {
     if (element.getAttribute("class") != null)
       return element.getAttribute("class").contains(className);
     return false;
   }
 
-  public String getAttributeValueById(String id, String attribute) {
+  /**
+   * Get the attribute value of an element
+   * @param id
+   * @param attribute
+   * @return
+   */
+  public String getAttributeValueById(String id, String attribute)
+  {
     WebElement element = driver.findElement(By.id(id));
     return element.getAttribute(attribute);
   }
 
-  //The below method will save the screenshot
-  public void getscreenshot() {
-    File scrFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-    try {
-      FileUtils.copyFile(
-          scrFile, new File("/home/kishore/temp/selenium-screenshots/" + tick() + ".png"));
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-
-  public String getRenderedSource() {
-    return getRenderedSource(By.tagName("html"));
-  }
-
-  public String getRenderedSource(By selector) {
-    return getRenderedSource(driver.findElement(selector));
-  }
-
-  public String getRenderedSource(WebElement element) {
-    return (String)
-        ((JavascriptExecutor) driver).executeScript("return arguments[0].innerHTML", element);
-  }
-
   // Macro operations for job management
   
-  /** Wait for a specified job to go away after being deleted.
-  */
-  public void waitForJobDelete(final String jobID, int timeoutAmount)
-    throws Exception {
+  /**
+   * Perform an action (Start, Start minimal, Pause, Restart, Restart minimal, Abort) on a specified job.
+   * @param jobID
+   * @param action
+   */
+  public void performJobAction(String jobID,String action)
+  {
+    waitElementClickable(By.xpath("//tr[@job-id=" + jobID + "]//a[contains(@class,'btn') and text()='" + action + "']")).click();
+  }
+  
+  /**
+   * Wait until the status of an job become as mentioned
+   * @param jobID
+   * @param jobStatus
+   * @param timeoutAmount
+   * @throws Exception
+   */
+  public void waitForJobStatus(String jobID,String jobStatus,int timeoutAmount) throws Exception
+  {
+    while (!exists(By.xpath("//tr[@job-id='" + jobID + "' and @job-status-name='" + jobStatus + "']")))
+    {
+      System.out.println("Job Status: " + getJobStatus(jobID));
+      if (timeoutAmount == 0)
+      {
+        throw new Exception("Timed out waiting for job " + jobID + " to go away");
+      }
+      clickButton("Refresh");
+      waitForElementWithName("liststatuses");
+      //Let us wait for a second.
+      Thread.sleep(1000L);
+      timeoutAmount--;
+    }
+    System.out.println("Final Job Status: " + getJobStatus(jobID));
+  }
+
+  /**
+   * Wait for a specified job to go away after being deleted.
+   * @param jobID
+   * @param timeoutAmount
+   * @throws Exception
+   */
+  public void waitForJobDelete(final String jobID, int timeoutAmount) throws Exception
+  {
     
     navigateTo("Manage jobs");
     waitForElementWithName("liststatuses");
-    while (exists(By.cssSelector("span[jobid=\"" + jobID + "\"]")))
+    while (exists(By.xpath("//tr[@job-id=\"" + jobID + "\"]")))
     {
+      System.out.println("Job Status: " + getJobStatus(jobID));
       if (timeoutAmount == 0)
       {
         throw new Exception("Timed out waiting for job "+jobID+" to go away");
@@ -326,15 +461,54 @@ public class SeleniumTester {
     }
   }
   
-  private long tick() {
+  public String getJobStatus(String jobID)
+  {
+    WebElement element = driver.findElement(By.xpath("//tr[@job-id="+jobID+"]"));
+    return element.getAttribute("job-status-name");
+  }
+  
+  /**
+   * Get the source of the html document
+   * @return
+   */
+  public String getRenderedSource()
+  {
+    return getRenderedSource(By.tagName("html"));
+  }
+
+  /**
+   * Get the source of an element by find it in DOM
+   * @param selector
+   * @return
+   */
+  public String getRenderedSource(By selector)
+  {
+    return getRenderedSource(driver.findElement(selector));
+  }
+
+  /**
+   * Get the source of an element
+   * @param element
+   * @return
+   */
+  public String getRenderedSource(WebElement element)
+  {
+    return (String)
+        ((JavascriptExecutor) driver).executeScript("return arguments[0].innerHTML", element);
+  }
+  
+  private long tick()
+  {
     long TICKS_AT_EPOCH = 621355968000000000L;
     return System.currentTimeMillis() * 10000 + TICKS_AT_EPOCH;
   }
 
   /** Clean up the files we created. */
   @After
-  public void teardown() throws Exception {
-    if (driver != null) {
+  public void teardown() throws Exception
+  {
+    if (driver != null)
+    {
       driver.close();
       driver.quit();
       driver = null;
