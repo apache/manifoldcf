@@ -67,16 +67,16 @@
       </aside>
       <div class="content-wrapper">
         <section class="content-header">
-          <h1 class="visible-print-block">Apache ManifoldCF&trade;</h1>
+          <h1 class="visible-print-block"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.ApacheManifoldCF")%></h1>
 
-          <h1 id="heading">Welcome to Apache ManifoldCF&trade;</h1>
+          <h1 id="heading"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.WelcomeToApacheManifoldFC")%></h1>
         </section>
         <section id="content" class="content">
         </section>
       </div>
       <footer class="main-footer">
-        <div class="pull-right hidden-xs"><b>Version</b> 2.6</div>
-        <strong>Copyright &copy; 2009-<%= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR) %>&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" href="http://manifoldcf.apache.org/">Apache ManifoldCF&trade;</a></strong>
+        <div class="pull-right hidden-xs"><b>Version</b>&nbsp;<%= org.apache.manifoldcf.core.system.ManifoldCF.getMcfVersion() %></div>
+        <strong>Copyright &copy; 2010-<%= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR) %>&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" href="http://manifoldcf.apache.org/"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.ApacheManifoldCF")%></a></strong>
       </footer>
     </div>
     <script src="javascript/jquery.min.js"></script>
