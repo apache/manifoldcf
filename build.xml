@@ -248,7 +248,7 @@
       <echo message="Site did not build.  Was FORREST_HOME set properly?"/>
     </target>
     
-    <target name="setup-framework" depends="downloaded-check" if="downloaded"/>
+    <target name="setup-framework" depends="set-version,downloaded-check" if="downloaded"/>
       
       <target name="build-framework" depends="setup-framework" if="downloaded">
         <ant dir="framework" target="build"/>
