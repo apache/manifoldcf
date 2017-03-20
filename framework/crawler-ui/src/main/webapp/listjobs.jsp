@@ -107,7 +107,7 @@ try
     }
 
 %>
-            <tr>
+            <tr job-id="<%= jd.getID() %>">
               <td>
                 <div class="btn-group">
                   <a href='<%="viewjob.jsp?jobid="+jd.getID()%>'
