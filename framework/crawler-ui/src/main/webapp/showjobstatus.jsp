@@ -204,7 +204,7 @@ try
         endTime = new Date(js.getEndTime()).toString();
     }
 %>
-            <tr>
+            <tr job-id="<%= js.getJobID() %>" job-status="<%= status %>" job-status-name="<%= statusName%>">
               <td>
 
 <%
@@ -272,7 +272,7 @@ try
 %>
 
               </td>
-              <td><%="<!--jobid=" + js.getJobID() + "-->"%><span jobid="<%= js.getJobID() %>"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(js.getDescription())%></span></td>
+              <td><%="<!--jobid=" + js.getJobID() + "-->"%><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(js.getDescription())%></td>
               <td><%=statusName%></td>
               <td><%=startTime%></td>
               <td><%=endTime%></td>
