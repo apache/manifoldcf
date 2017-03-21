@@ -101,7 +101,6 @@ try
       document.viewconnection.op.value="Delete";
       document.viewconnection.connname.value=connectionName;
       $.ManifoldCF.submit(document.viewconnection);
-      //document.viewconnection.submit();
     }
   }
 
