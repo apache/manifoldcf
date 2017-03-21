@@ -405,8 +405,12 @@ public class SeleniumTester
    * @param jobID
    * @param action
    */
-  public void performJobAction(String jobID,String action)
+  public void performJobAction(String jobID, String action)
   {
+    //Navigate to Status and Job management
+    navigateTo("Manage jobs");
+    waitForElementWithName("liststatuses");
+
     waitElementClickable(By.xpath("//tr[@job-id=" + jobID + "]//a[contains(@class,'btn') and text()='" + action + "']")).click();
   }
   
@@ -417,14 +421,25 @@ public class SeleniumTester
    * @param timeoutAmount
    * @throws Exception
    */
-  public void waitForJobStatus(String jobID,String jobStatus,int timeoutAmount) throws Exception
+  public String waitForJobStatus(String jobID, String jobStatus, int timeoutAmount) throws Exception
   {
-    while (!exists(By.xpath("//tr[@job-id='" + jobID + "' and @job-status-name='" + jobStatus + "']")))
+    //Navigate to Status and Job management
+    navigateTo("Manage jobs");
+    waitForElementWithName("liststatuses");
+
+    while (true)
     {
-      System.out.println("Job Status: " + getJobStatus(jobID));
+      if (!exists(By.xpath("//tr[@job-id='" + jobID + "']")))
+      {
+        throw new Exception("Job "+jobID+" not found");
+      }
+      if (exists(By.xpath("//tr[@job-id='" + jobID + "' and @job-status-name='" + jobStatus + "']")))
+      {
+        break;
+      }
       if (timeoutAmount == 0)
       {
-        throw new Exception("Timed out waiting for job " + jobID + " to go away");
+        throw new Exception("Timed out waiting for job " + jobID + " to acheive status '" + jobStatus + "'");
       }
       clickButton("Refresh");
       waitForElementWithName("liststatuses");
@@ -432,7 +447,13 @@ public class SeleniumTester
       Thread.sleep(1000L);
       timeoutAmount--;
     }
-    System.out.println("Final Job Status: " + getJobStatus(jobID));
+    return getJobStatus(jobID);
+  }
+
+  public String getJobStatus(String jobID)
+  {
+    WebElement element = driver.findElement(By.xpath("//tr[@job-id="+jobID+"]"));
+    return element.getAttribute("job-status-name");
   }
 
   /**
@@ -443,12 +464,10 @@ public class SeleniumTester
    */
   public void waitForJobDelete(final String jobID, int timeoutAmount) throws Exception
   {
-    
     navigateTo("Manage jobs");
     waitForElementWithName("liststatuses");
     while (exists(By.xpath("//tr[@job-id=\"" + jobID + "\"]")))
     {
-      System.out.println("Job Status: " + getJobStatus(jobID));
       if (timeoutAmount == 0)
       {
         throw new Exception("Timed out waiting for job "+jobID+" to go away");
@@ -461,11 +480,6 @@ public class SeleniumTester
     }
   }
   
-  public String getJobStatus(String jobID)
-  {
-    WebElement element = driver.findElement(By.xpath("//tr[@job-id="+jobID+"]"));
-    return element.getAttribute("job-status-name");
-  }
   
   /**
    * Get the source of the html document

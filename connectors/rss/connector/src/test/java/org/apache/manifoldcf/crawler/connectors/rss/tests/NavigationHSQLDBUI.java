@@ -159,9 +159,6 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     System.out.println("JobId: " + jobID);
     
     /* Can't do this because we wind up crawling CNN and that's not allowed for a test like this.
-    //Navigate to Status and Job management
-    testerInstance.navigateTo("Manage jobs");
-    testerInstance.waitForElementWithName("liststatuses");
     
     //Start the job
     testerInstance.performJobAction(jobID,"Start minimal");
