@@ -130,7 +130,7 @@ public class NavigationUITester
 
     // Now, HopFilters
     testerInstance.clickTab("Hop Filters");
-    testerInstance.selectValue("hopcountmode","2");
+    testerInstance.clickRadioButton("hopcountmode","2");
 
     // Repository Paths tab
     testerInstance.clickTab("Repository Paths");

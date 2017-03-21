@@ -284,6 +284,25 @@ public class SeleniumTester
       waitFindElement(By.cssSelector("[type=\"button\"][value=\"" + buttonText + "\"]")).click();
     }
   }
+  
+  /**
+   * Click on a radio button with a specific value
+   * @param name
+   * @param value
+   */
+  public void clickRadioButton(String name,String value)
+  {
+    waitElementClickable(By.xpath("//input[@type='radio'][@name='" + name + "'][@value='" + value + "']")).click();
+  }
+
+  /**
+   * Click a checkbox with the specified name
+   * @param name
+   */
+  public void clickCheckbox(String name)
+  {
+    waitElementClickable(By.xpath("//input[@type='checkbox'][@name='" + name + "']")).click();
+  }
 
   /**
    * Check if a alert box appeared in the browser.s
