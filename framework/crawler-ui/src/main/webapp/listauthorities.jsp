@@ -53,7 +53,7 @@ try
     {
       document.listconnections.op.value="Delete";
       document.listconnections.connname.value=connectionName;
-      document.listconnections.submit();
+      $.ManifoldCF.submit(document.listconnections);
     }
   }
 

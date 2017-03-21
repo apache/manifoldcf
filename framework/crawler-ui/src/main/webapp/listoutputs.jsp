@@ -54,7 +54,6 @@ try
       document.listconnections.op.value="Delete";
       document.listconnections.connname.value=connectionName;
       $.ManifoldCF.submit(document.listconnections);
-      //document.listconnections.submit();
     }
   }
   //-->

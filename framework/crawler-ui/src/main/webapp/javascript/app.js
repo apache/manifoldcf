@@ -394,12 +394,11 @@ function _postLoadContent()
 
 $.ManifoldCF.loadContent=function (url)
 {
+  $('.spinner,#loader').show();
   console.log("URL: " + url);
   _preLoadContent();
-  $('.spinner,#loader').show();
   $('#content').load(decodeURIComponent(url),function (response,status,xhr)
   {
-    $('.spinner,#loader').hide();
     if (status == 'error')
     {
       $(".content-header #heading").text('Error');
@@ -407,6 +406,7 @@ $.ManifoldCF.loadContent=function (url)
       displayError(xhr);
     }
     _postLoadContent();
+    $('.spinner,#loader').hide();
   });
 };
 
@@ -441,8 +441,8 @@ $.ManifoldCF.submit=function (form)
     displayError(xhr);
   }).always(function ()
   {
-    $('.spinner,#loader').hide();
     _postLoadContent();
+    $('.spinner,#loader').hide();
   });
 }
 
