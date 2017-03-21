@@ -401,11 +401,11 @@ public class SeleniumTester
   // Macro operations for job management
   
   /**
-   * Perform an action (Start, Start minimal, Pause, Restart, Restart minimal, Abort) on a specified job.
+   * Perform an action (Start, Start minimal, Pause, Restart, Restart minimal, Abort) on a specified job (English version).
    * @param jobID
    * @param action
    */
-  public void performJobAction(String jobID, String action)
+  public void performJobActionEN(String jobID, String action)
   {
     //Navigate to Status and Job management
     navigateTo("Manage jobs");
@@ -415,17 +415,33 @@ public class SeleniumTester
   }
   
   /**
-   * Wait until the status of an job become as mentioned
-   * @param jobID
-   * @param jobStatus
-   * @param timeoutAmount
+   * Wait until the status of an job become as mentioned (English version)
+   * @param jobID is the jobID
+   * @param jobStatus is the desired job status (e.g. 'Done')
+   * @param timeoutAmount is the maximum time until the status is expected
    * @throws Exception
    */
-  public String waitForJobStatus(String jobID, String jobStatus, int timeoutAmount) throws Exception
+  public void waitForJobStatusEN(final String jobID, final String jobStatus, final int timeoutAmount) throws Exception
+  {
+    waitForJobStatus(jobID, jobStatus, timeoutAmount, "Manage jobs", "liststatuses", "Refresh");
+  }
+  
+  /**
+   * Wait until the status of an job become as mentioned (generic version)
+   * @param jobID is the jobID
+   * @param jobStatus is the desired job status (e.g. 'Done')
+   * @param timeoutAmount is the maximum time until the status is expected
+   * @param manageJobsPage is the 'manage jobs' page
+   * @param listStatusesElement is the 'list statuses' element
+   * @param refreshButton is the 'Refresh" button
+   * @throws Exception
+   */
+  public void waitForJobStatus(final String jobID, final String jobStatus, int timeoutAmount, final String manageJobsPage, final String listStatusesElement, final String refreshButton)
+    throws Exception
   {
     //Navigate to Status and Job management
-    navigateTo("Manage jobs");
-    waitForElementWithName("liststatuses");
+    navigateTo(manageJobsPage);
+    waitForElementWithName(listStatusesElement);
 
     while (true)
     {
@@ -441,39 +457,77 @@ public class SeleniumTester
       {
         throw new Exception("Timed out waiting for job " + jobID + " to acheive status '" + jobStatus + "'");
       }
-      clickButton("Refresh");
-      waitForElementWithName("liststatuses");
+      clickButton(refreshButton);
+      waitForElementWithName(listStatusesElement);
       //Let us wait for a second.
       Thread.sleep(1000L);
       timeoutAmount--;
     }
-    return getJobStatus(jobID);
   }
 
-  public String getJobStatus(String jobID)
+  /** Obtain a given job's status (English version).
+   * @param jobID is the job ID.
+   * @return the job status, if found,
+   */
+  public String getJobStatusEN(final String jobID) throws Exception
   {
-    WebElement element = driver.findElement(By.xpath("//tr[@job-id="+jobID+"]"));
+    return getJobStatus(jobID, "Manage jobs", "liststatuses");
+  }
+  
+  /** Obtain a given job's status (generic version).
+   * @param jobID is the job ID.
+   * @param manageJobsPage is the 'manage jobs' page
+   * @param listStatusesElement is the 'list statuses' element
+   * @return the job status, if found,
+   */
+  public String getJobStatus(final String jobID, final String manageJobsPage, final String listStatusesElement)
+    throws Exception
+  {
+    //Navigate to Status and Job management
+    navigateTo(manageJobsPage);
+    waitForElementWithName(listStatusesElement);
+
+    final WebElement element = driver.findElement(By.xpath("//tr[@job-id="+jobID+"]"));
+    if (element == null)
+    {
+      throw new Exception("Can't find job "+jobID);
+    }
     return element.getAttribute("job-status-name");
   }
 
   /**
-   * Wait for a specified job to go away after being deleted.
+   * Wait for a specified job to go away after being deleted (English version).
    * @param jobID
    * @param timeoutAmount
    * @throws Exception
    */
-  public void waitForJobDelete(final String jobID, int timeoutAmount) throws Exception
+  public void waitForJobDeleteEN(final String jobID, int timeoutAmount) throws Exception
   {
-    navigateTo("Manage jobs");
-    waitForElementWithName("liststatuses");
+    waitForJobDelete(jobID, timeoutAmount, "Manage jobs", "liststatuses", "Refresh");
+  }
+  
+  /**
+   * Wait for a specified job to go away after being deleted (generic version).
+   * @param jobID
+   * @param timeoutAmount
+   * @param manageJobsPage is the 'manage jobs' page
+   * @param listStatusesElement is the 'list statuses' element
+   * @param refreshButton is the 'Refresh" button
+   * @throws Exception
+   */
+  public void waitForJobDelete(final String jobID, int timeoutAmount, final String manageJobsPage, final String listStatusesElement, final String refreshButton)
+    throws Exception
+  {
+    navigateTo(manageJobsPage);
+    waitForElementWithName(listStatusesElement);
     while (exists(By.xpath("//tr[@job-id=\"" + jobID + "\"]")))
     {
       if (timeoutAmount == 0)
       {
         throw new Exception("Timed out waiting for job "+jobID+" to go away");
       }
-      clickButton("Refresh");
-      waitForElementWithName("liststatuses");
+      clickButton(refreshButton);
+      waitForElementWithName(listStatusesElement);
       //Let us wait for a second.
       Thread.sleep(1000L);
       timeoutAmount--;

@@ -161,8 +161,8 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     /* Can't do this because we wind up crawling CNN and that's not allowed for a test like this.
     
     //Start the job
-    testerInstance.performJobAction(jobID,"Start minimal");
-    testerInstance.waitForJobStatus(jobID,"Done",120);
+    testerInstance.performJobActionEN(jobID,"Start minimal");
+    testerInstance.waitForJobStatusEN(jobID,"Done",120);
     */
     
     //Navigate to List Jobs
@@ -175,7 +175,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     testerInstance.verifyThereIsNoError();
 
     //Wait for the job to go away
-    testerInstance.waitForJobDelete(jobID, 120);
+    testerInstance.waitForJobDeleteEN(jobID, 120);
 
     // Delete the repository connection
     testerInstance.navigateTo("List repository connections");
