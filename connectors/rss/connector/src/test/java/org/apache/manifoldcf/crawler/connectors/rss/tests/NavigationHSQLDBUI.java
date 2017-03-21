@@ -158,6 +158,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     String jobID = testerInstance.getAttributeValueById("job","jobid");
     System.out.println("JobId: " + jobID);
     
+    /* Can't do this because we wind up crawling CNN and that's not allowed for a test like this.
     //Navigate to Status and Job management
     testerInstance.navigateTo("Manage jobs");
     testerInstance.waitForElementWithName("liststatuses");
@@ -165,6 +166,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     //Start the job
     testerInstance.performJobAction(jobID,"Start minimal");
     testerInstance.waitForJobStatus(jobID,"Done",120);
+    */
     
     //Navigate to List Jobs
     testerInstance.navigateTo("List jobs");
