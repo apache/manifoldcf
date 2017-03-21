@@ -76,7 +76,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     testerInstance.clickTab("Domain Controller");
     testerInstance.setValue("dcrecord_domaincontrollername", "localhost");
     testerInstance.setValue("dcrecord_username", "foo");
-    testerInstance.clickButton("Add", true);
+    testerInstance.clickButton("Add to End", true);
     
     // Back to the name tab
     testerInstance.clickTab("Name");
@@ -86,7 +86,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     testerInstance.verifyThereIsNoError();
 
     // Delete the authority connection
-    testerInstance.navigateTo("List authority connections");
+    testerInstance.navigateTo("List authorities");
     testerInstance.clickButtonByTitle("Delete MyAuthorityConnection");
     testerInstance.acceptAlert();
 
