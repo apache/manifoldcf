@@ -27,7 +27,7 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-import org.apache.manifoldcf.core.tests.HTMLTester;
+import org.apache.manifoldcf.core.tests.SeleniumTester;
 
 /** Basic UI navigation tests */
 public class NavigationHSQLDBUI extends BaseUIHSQLDB
@@ -37,6 +37,65 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
   public void createConnectionsAndJob()
     throws Exception
   {
+    testerInstance.start(SeleniumTester.BrowserType.CHROME, "en-US", "http://localhost:8346/mcf-crawler-ui/index.jsp");
+
+    //Login
+    testerInstance.waitForElementWithName("loginform");
+    testerInstance.setValue("userID","admin");
+    testerInstance.setValue("password","admin");
+    testerInstance.clickButton("Login");
+    testerInstance.verifyHeader("Welcome to Apache ManifoldCF™");
+
+    // Add an authority group
+    testerInstance.navigateTo("List authority groups");
+    testerInstance.clickButton("Add a new authority group");
+
+    // Fill in a name
+    testerInstance.waitForElementWithName("groupname");
+    testerInstance.setValue("groupname","MyAuthorityGroup");
+
+    // Save the authority group
+    testerInstance.clickButton("Save");
+    testerInstance.verifyThereIsNoError();
+
+    // Add an authority
+    testerInstance.navigateTo("List authorities");
+    testerInstance.clickButton("Add a new connection");
+
+    // Fill in a name
+    testerInstance.waitForElementWithName("connname");
+    testerInstance.setValue("connname","MyAuthorityConnection");
+
+    // Select a type
+    testerInstance.clickTab("Type");
+    testerInstance.selectValue("classname","org.apache.manifoldcf.authorities.authorities.activedirectory.ActiveDirectoryAuthority");
+    testerInstance.selectValue("authoritygroup", "MyAuthorityGroup");
+    testerInstance.clickButton("Continue");
+    
+    // Visit Domain Controller tab
+    testerInstance.clickTab("Domain Controller");
+    testerInstance.setValue("dcrecord_domaincontrollername", "localhost");
+    testerInstance.setValue("dcrecord_username", "foo");
+    testerInstance.clickButton("Add", true);
+    
+    // Back to the name tab
+    testerInstance.clickTab("Name");
+    
+    // Now, save
+    testerInstance.clickButton("Save");
+    testerInstance.verifyThereIsNoError();
+
+    // Delete the authority connection
+    testerInstance.navigateTo("List authority connections");
+    testerInstance.clickButtonByTitle("Delete MyAuthorityConnection");
+    testerInstance.acceptAlert();
+
+    // Delete the authority group
+    testerInstance.navigateTo("List authority groups");
+    testerInstance.clickButtonByTitle("Delete MyAuthorityGroup");
+    testerInstance.acceptAlert();
+    
+
 /*
     testerInstance.newTest(Locale.US);
     
