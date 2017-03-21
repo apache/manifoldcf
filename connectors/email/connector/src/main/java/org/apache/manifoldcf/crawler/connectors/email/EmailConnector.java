@@ -688,10 +688,12 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
               
               // If we're supposed to deal with attachments, this is the time to queue them up
               if (attachmentUrlTemplate != null) {
-                final Multipart mp = (Multipart) msg.getContent();
-                final int numAttachments = mp.getCount();
-                for (int i = 0; i < numAttachments; i++) {
-                  activities.addDocumentReference(documentIdentifier + ":" + i);
+                if (msg.getContent() != null && msg.getContent() instanceof Multipart) {
+                  final Multipart mp = (Multipart) msg.getContent();
+                  final int numAttachments = mp.getCount();
+                  for (int i = 0; i < numAttachments; i++) {
+                    activities.addDocumentReference(documentIdentifier + ":" + i);
+                  }
                 }
               }
               
