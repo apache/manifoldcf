@@ -33,6 +33,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.util.List;
+
 public class SeleniumTester
 {
 
@@ -160,7 +162,42 @@ public class SeleniumTester
     //Wait until the menu is link is visible
     wait.until(ExpectedConditions.visibilityOf(ele)).click();
 
-    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("#loader")));
+    waitForAjax();
+  }
+
+  public void waitForAjax(){
+    waitForAjax(10);
+  }
+
+  public void waitForAjax(int timeoutInSeconds)
+  {
+    System.out.println("Querying active AJAX controls by calling jquery.active");
+    try
+    {
+      if (driver instanceof JavascriptExecutor)
+      {
+        JavascriptExecutor jsDriver = (JavascriptExecutor)driver;
+        for (int i = 0; i < timeoutInSeconds; i++)
+        {
+          Object numberOfAjaxConnections = jsDriver.executeScript("return jQuery.active");
+          // return should be a number
+          if (numberOfAjaxConnections instanceof Long)
+          {
+            Long n = (Long)numberOfAjaxConnections;
+            System.out.println("Number of active jquery AJAX controls: " + n);
+            if (n.longValue() == 0L)
+              break;
+          }
+          Thread.sleep(1000);
+        }
+      } else
+      {
+        System.out.println("Web driver: " + driver + " can't run javascript.");
+      }
+    } catch (InterruptedException e)
+    {
+      System.out.println(e);
+    }
   }
 
   /**
@@ -214,12 +251,16 @@ public class SeleniumTester
   
   public void waitForPresenceById(String id)
   {
-    waitFor(By.id(id));
+    waitForPresence(By.id(id));
   }
   
+  public void waitForPresence(By selector){
+    wait.until(ExpectedConditions.presenceOfElementLocated(selector));
+  }
+
   public void waitFor(By selector)
   {
-    wait.until(ExpectedConditions.presenceOfElementLocated(selector));
+    wait.until(ExpectedConditions.visibilityOfElementLocated(selector));
   }
 
   /**
@@ -231,7 +272,7 @@ public class SeleniumTester
     WebElement element =
         waitElementClickable(By.cssSelector("a[data-toggle=\"tab\"][alt=\"" + tabName + " tab\"]"));
     element.click();
-    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("loader")));
+    waitForAjax();
   }
 
   /**
@@ -256,16 +297,43 @@ public class SeleniumTester
    * Clicks a button based on visible text, this type of button is created using anchor tag with .btn class
    * @param text
    */
-  public void clickButton(String text)
+  public void clickButton(String text) throws Exception
   {
-    WebElement element =
+    /*WebElement element =
         waitElementClickable(
-            By.xpath("//a[contains(@class,'btn') and contains(text(),'" + text + "')]"));
-    element.click();
+            By.xpath("//a[contains(@class,'btn') and normalize-space()='" + text + "']"));
+    element.click();*/
+
+    boolean found = false;
+    List<WebElement> elements = driver.findElements(By.xpath("//a[contains(concat(' ',@class,' '), ' btn ')]"));
+    System.out.println("Count" + elements.size());
+    for(int i=0;i < elements.size();i++){
+      WebElement element  = elements.get(i);
+      System.out.println(getRenderedSource(element));
+      wait.until(ExpectedConditions.elementToBeClickable(element));
+      String actualText = element.getText();
+
+      if(actualText != null && actualText.length() > 0)
+      {
+        actualText = actualText.trim();
+      }
+
+      if(actualText.equals(text))
+      {
+        element.click();
+        found = true;
+        break;
+      }
+    }
+
+    if(!found)
+    {
+      throw new Exception("Button not found with text - " + text);
+    }
 
     if (!isAlertPresent())
     {
-      wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("loader")));
+      waitForAjax();
     }
   }
 
@@ -274,7 +342,7 @@ public class SeleniumTester
    * @param buttonText
    * @param islegacy
    */
-  public void clickButton(String buttonText, boolean islegacy)
+  public void clickButton(String buttonText, boolean islegacy) throws Exception
   {
     if (!islegacy)
     {
