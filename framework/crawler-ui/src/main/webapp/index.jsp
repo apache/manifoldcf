@@ -54,11 +54,6 @@
           <!-- Navbar Right Menu -->
           <div class="navbar-custom-menu">
             <div id="loader">Loading...</div>
-            <div class="spinner">
-              <div class="bounce1"></div>
-              <div class="bounce2"></div>
-              <div class="bounce3"></div>
-            </div>
           </div>
         </nav>
       </header>
@@ -78,6 +73,13 @@
         <div class="pull-right hidden-xs"><b>Version</b>&nbsp;<%= org.apache.manifoldcf.core.system.ManifoldCF.getMcfVersion() %></div>
         <strong><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.Copyright")%>&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" href="https://www.apache.org/"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.TheApacheSoftwareFoundation")%></a></strong>
       </footer>
+    </div>
+    <div class="overlay" style="display: none">
+      <div class="spinner">
+        <div class="bounce1"></div>
+        <div class="bounce2"></div>
+        <div class="bounce3"></div>
+      </div>
     </div>
     <script src="javascript/jquery.min.js"></script>
     <!-- Bootstrap JS -->

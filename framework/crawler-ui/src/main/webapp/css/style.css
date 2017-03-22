@@ -2636,6 +2636,27 @@ table.text-center th {
   opacity: 1;
   filter: alpha(opacity=100);
 }
+.fa-fw {
+  width: auto;
+  margin-right: 0.4em;
+}
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(52, 52, 62, 0.5);
+  z-index: 9999;
+  color: white;
+  display: inline-block;
+}
+.overlay .spinner {
+  display: block;
+  position: relative;
+  top: 50%;
+  text-align: center;
+}
 .displaytable,
 .formtable {
   border: 1px solid #f4f4f4;
@@ -3105,10 +3126,6 @@ fieldset[disabled] .formtable td input[type="button"].focus {
 .skin-black .treeview-menu > li.active > a,
 .skin-black .treeview-menu > li > a:hover {
   color: #ffffff;
-}
-.fa-fw {
-  width: auto;
-  margin-right: 0.4em;
 }
 @font-face {
   font-family: 'Source Sans Pro';

@@ -359,11 +359,22 @@ $.ManifoldCF.setTitle=function (title,header,activeMenu)
 
 function displayError(xhr)
 {
-  var msg='<div class="alert alert-danger alert-dismissable">' +
-      '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>' +
-      '<h4><i class="icon fa fa-ban"></i> Error!</h4>' +
-      'Sorry but there was an error:  ';
-  $("#content").html(msg + xhr.status + " " + xhr.statusText + '</div>');
+  $(".content-header #heading").text('Error!');
+  document.title='Error';
+  var errorTemplate = '<div class="box box-solid">' +
+                        '<div class="box-body">' +
+                          '<div class="alert alert-danger">' +
+                            '<h3><i class="icon fa fa-ban"></i> Error!</h3>' +
+                            '<h4>' + xhr.status + " " + xhr.statusText +'</h4>' +
+                          '</div>' +
+                        '</div>' +
+                        '<div class="box-footer with-border">' +
+                          '<a class="btn btn-primary" href="index.jsp" title="Return" data-toggle="tooltip">' +
+                            '<i class="fa fa-check fa-fw" aria-hidden="true"></i>OK' +
+                          '</a>' +
+                        '</div>' +
+                      '</div>';
+  $("#content").html(errorTemplate);
 }
 
 function _preLoadContent()
@@ -394,25 +405,23 @@ function _postLoadContent()
 
 $.ManifoldCF.loadContent=function (url)
 {
-  $('.spinner,#loader').show();
+  $('.overlay,#loader').show();
   console.log("URL: " + url);
   _preLoadContent();
   $('#content').load(decodeURIComponent(url),function (response,status,xhr)
   {
     if (status == 'error')
     {
-      $(".content-header #heading").text('Error');
-      document.title='Error';
       displayError(xhr);
     }
     _postLoadContent();
-    $('.spinner,#loader').hide();
+    $('.overlay,#loader').hide();
   });
 };
 
 $.ManifoldCF.submit=function (form)
 {
-  $('.spinner,#loader').show();
+  $('.overlay,#loader').show();
   var $form=$(form);
   var action=$form.attr('action')
   console.log("Ajax URL: " + action);
@@ -442,7 +451,7 @@ $.ManifoldCF.submit=function (form)
   }).always(function ()
   {
     _postLoadContent();
-    $('.spinner,#loader').hide();
+    $('.overlay,#loader').hide();
   });
 }
 
