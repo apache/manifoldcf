@@ -394,7 +394,10 @@ public class SeleniumTester
 
   public void setValue(SearchContext context, By selector, String value)
   {
-    context.findElement(selector).sendKeys(value);
+    WebElement element = context.findElement(selector);
+    //Make sure, there is no default text in the input.
+    element.clear();
+    element.sendKeys(value);
   }
 
   /**
