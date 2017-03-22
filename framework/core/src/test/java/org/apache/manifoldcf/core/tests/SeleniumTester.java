@@ -29,6 +29,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -40,6 +41,7 @@ public class SeleniumTester
 
   protected WebDriver driver = null;
   protected WebDriverWait wait = null;
+  private final long defaultTimeOutInSeconds = 15;
 
   public enum BrowserType
   {
@@ -80,7 +82,7 @@ public class SeleniumTester
         throw new IllegalArgumentException("Unknown browser type");
     }
 
-    wait = new WebDriverWait(driver, 10);
+    wait = new WebDriverWait(driver,defaultTimeOutInSeconds);
     driver.get(startURL);
   }
   
@@ -105,7 +107,6 @@ public class SeleniumTester
    */
   public void verifyHeader(String expected)
   {
-    WebDriverWait wait = new WebDriverWait(driver, 1);
     WebElement element =
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("heading")));
 
@@ -118,7 +119,6 @@ public class SeleniumTester
    */
   public void verifyHeaderContains(String expected)
   {
-    WebDriverWait wait = new WebDriverWait(driver, 1);
     WebElement element =
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("heading")));
 
@@ -130,7 +130,6 @@ public class SeleniumTester
    */
   public void verifyThereIsNoError()
   {
-    WebDriverWait wait = new WebDriverWait(driver,1);
     WebElement element =
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("heading")));
 
@@ -162,42 +161,8 @@ public class SeleniumTester
     //Wait until the menu is link is visible
     wait.until(ExpectedConditions.visibilityOf(ele)).click();
 
-    waitForAjax();
-  }
-
-  public void waitForAjax(){
-    waitForAjax(10);
-  }
-
-  public void waitForAjax(int timeoutInSeconds)
-  {
-    System.out.println("Querying active AJAX controls by calling jquery.active");
-    try
-    {
-      if (driver instanceof JavascriptExecutor)
-      {
-        JavascriptExecutor jsDriver = (JavascriptExecutor)driver;
-        for (int i = 0; i < timeoutInSeconds; i++)
-        {
-          Object numberOfAjaxConnections = jsDriver.executeScript("return jQuery.active");
-          // return should be a number
-          if (numberOfAjaxConnections instanceof Long)
-          {
-            Long n = (Long)numberOfAjaxConnections;
-            System.out.println("Number of active jquery AJAX controls: " + n);
-            if (n.longValue() == 0L)
-              break;
-          }
-          Thread.sleep(1000);
-        }
-      } else
-      {
-        System.out.println("Web driver: " + driver + " can't run javascript.");
-      }
-    } catch (InterruptedException e)
-    {
-      System.out.println(e);
-    }
+    //waitForAjax();
+    waitForAjaxAndDocumentReady();
   }
 
   /**
@@ -272,7 +237,7 @@ public class SeleniumTester
     WebElement element =
         waitElementClickable(By.cssSelector("a[data-toggle=\"tab\"][alt=\"" + tabName + " tab\"]"));
     element.click();
-    waitForAjax();
+    waitForAjaxAndDocumentReady();
   }
 
   /**
@@ -289,15 +254,20 @@ public class SeleniumTester
 
     if (!isAlertPresent())
     {
-      wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("loader")));
+      waitForAjaxAndDocumentReady();
     }
+  }
+
+  public void clickButton(String text) throws Exception
+  {
+    clickButton(text,defaultTimeOutInSeconds);
   }
 
   /**
    * Clicks a button based on visible text, this type of button is created using anchor tag with .btn class
    * @param text
    */
-  public void clickButton(String text) throws Exception
+  public void clickButton(String text, long timeOutInSeconds) throws Exception
   {
     /*WebElement element =
         waitElementClickable(
@@ -306,7 +276,7 @@ public class SeleniumTester
 
     boolean found = false;
     List<WebElement> elements = driver.findElements(By.xpath("//a[contains(concat(' ',@class,' '), ' btn ')]"));
-    System.out.println("Count" + elements.size());
+
     for(int i=0;i < elements.size();i++){
       WebElement element  = elements.get(i);
       System.out.println(getRenderedSource(element));
@@ -333,7 +303,7 @@ public class SeleniumTester
 
     if (!isAlertPresent())
     {
-      waitForAjax();
+      waitForAjaxAndDocumentReady(timeOutInSeconds);
     }
   }
 
@@ -621,7 +591,39 @@ public class SeleniumTester
     }
   }
   
-  
+  public boolean waitForAjaxAndDocumentReady(){
+    return waitForAjaxAndDocumentReady(defaultTimeOutInSeconds);
+  }
+
+  public boolean waitForAjaxAndDocumentReady(long timeOutInSeconds) {
+    WebDriverWait wait = new WebDriverWait(driver, timeOutInSeconds);
+
+    // wait for jQuery to load
+    ExpectedCondition<Boolean> jQueryLoad = new ExpectedCondition<Boolean>() {
+      @Override
+      public Boolean apply(WebDriver driver) {
+        try {
+          return ((Long)((JavascriptExecutor)getDriver()).executeScript("return jQuery.active") == 0);
+        }
+        catch (Exception e) {
+          // no jQuery present
+          return true;
+        }
+      }
+    };
+
+    // wait for Javascript to load
+    ExpectedCondition<Boolean> jsLoad = new ExpectedCondition<Boolean>() {
+      @Override
+      public Boolean apply(WebDriver driver) {
+        return ((JavascriptExecutor)getDriver()).executeScript("return document.readyState")
+        .toString().equals("complete");
+      }
+    };
+
+  return wait.until(jQueryLoad) && wait.until(jsLoad);
+}
+
   /**
    * Get the source of the html document
    * @return
