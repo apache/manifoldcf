@@ -6,3 +6,5 @@
 /build/
 /lib/
 /dist/
+lib-proprietary/*.jar
+site/fonts/
