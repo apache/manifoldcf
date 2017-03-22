@@ -44,210 +44,132 @@ public class NavigationUITester
   public void createConnectionsAndJob()
     throws Exception
   {
-/*
-    testerInstance.newTest(Locale.US);
-    
-    HTMLTester.Window window;
-    HTMLTester.Link link;
-    HTMLTester.Form form;
-    HTMLTester.Textarea textarea;
-    HTMLTester.Selectbox selectbox;
-    HTMLTester.Button button;
-    HTMLTester.Radiobutton radiobutton;
-    HTMLTester.Loop loop;
-    
-    window = testerInstance.openMainWindow(startURL);
-    
-    // Login
-    form = window.findForm(testerInstance.createStringDescription("loginform"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("userID"));
-    textarea.setValue(testerInstance.createStringDescription("admin"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("password"));
-    textarea.setValue(testerInstance.createStringDescription("admin"));
-    button = window.findButton(testerInstance.createStringDescription("Login"));
-    button.click();
-    window = testerInstance.findWindow(null);
+    testerInstance.start(SeleniumTester.BrowserType.CHROME, "en-US", startURL);
 
-    // Define an output connection via the UI
-    link = window.findLink(testerInstance.createStringDescription("List output connections"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Add an output connection"));
-    link.click();
+    //Login
+    testerInstance.waitForElementWithName("loginform");
+    testerInstance.setValue("userID","admin");
+    testerInstance.setValue("password","admin");
+    testerInstance.clickButton("Login");
+    testerInstance.verifyHeader("Welcome to Apache ManifoldCF™");
+    testerInstance.navigateTo("List output connections");
+    testerInstance.clickButton("Add a new output connection");
+
     // Fill in a name
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("connname"));
-    textarea.setValue(testerInstance.createStringDescription("MyOutputConnection"));
-    link = window.findLink(testerInstance.createStringDescription("Type tab"));
-    link.click();
+    testerInstance.waitForElementWithName("connname");
+    testerInstance.setValue("connname","MyOutputConnection");
+
+    //Goto to Type tab
+    testerInstance.clickTab("Type");
+
     // Select a type
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("classname"));
-    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.agents.tests.TestingOutputConnector"));
-    button = window.findButton(testerInstance.createStringDescription("Continue to next page"));
-    button.click();
+    testerInstance.waitForElementWithName("classname");
+    testerInstance.selectValue("classname","org.apache.manifoldcf.agents.tests.TestingOutputConnector");
+    testerInstance.clickButton("Continue");
+
     // Visit the Throttling tab
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Throttling tab"));
-    link.click();
+    testerInstance.clickTab("Throttling");
+
     // Go back to the Name tab
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Name tab"));
-    link.click();
+    testerInstance.clickTab("Name");
+
     // Now save the connection.
-    window = testerInstance.findWindow(null);
-    button = window.findButton(testerInstance.createStringDescription("Save this output connection"));
-    button.click();
-    
+    testerInstance.clickButton("Save");
+    testerInstance.verifyThereIsNoError();
+
     // Define a repository connection via the UI
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("List repository connections"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Add a connection"));
-    link.click();
-    // Fill in a name
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("connname"));
-    textarea.setValue(testerInstance.createStringDescription("MyRepositoryConnection"));
-    link = window.findLink(testerInstance.createStringDescription("Type tab"));
-    link.click();
+    testerInstance.navigateTo("List repository connections");
+    testerInstance.clickButton("Add new connection");
+
+    testerInstance.waitForElementWithName("connname");
+    testerInstance.setValue("connname","MyRepositoryConnection");
+
     // Select a type
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("classname"));
-    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.crawler.connectors.hdfs.HDFSRepositoryConnector"));
-    button = window.findButton(testerInstance.createStringDescription("Continue to next page"));
-    button.click();
+    testerInstance.clickTab("Type");
+    testerInstance.selectValue("classname","org.apache.manifoldcf.crawler.connectors.hdfs.HDFSRepositoryConnector");
+    testerInstance.clickButton("Continue");
+
     // Visit the Throttling tab
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Throttling tab"));
-    link.click();
+    testerInstance.clickTab("Throttling");
+
     // Go back to the Name tab
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Name tab"));
-    link.click();
-    // Server tab
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Server tab"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("user"));
-    textarea.setValue(testerInstance.createStringDescription("foo"));
-    // Now save the connection.
-    window = testerInstance.findWindow(null);
-    button = window.findButton(testerInstance.createStringDescription("Save this connection"));
-    button.click();
+    testerInstance.clickTab("Name");
     
+    // Server tab
+    testerInstance.clickTab("Server");
+    testerInstance.setValue("user", "foo");
+
+    // Save
+    testerInstance.clickButton("Save");
+    testerInstance.verifyThereIsNoError();
+
     // Create a job
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("List jobs"));
-    link.click();
-    // Add a job
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Add a job"));
-    link.click();
-    // Fill in a name
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editjob"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("description"));
-    textarea.setValue(testerInstance.createStringDescription("MyJob"));
-    link = window.findLink(testerInstance.createStringDescription("Connection tab"));
-    link.click();
+    testerInstance.navigateTo("List jobs");
+    //Add a job
+    testerInstance.clickButton("Add a new job");
+    testerInstance.waitForElementWithName("description");
+    //Fill in a name
+    testerInstance.setValue("description","MyJob");
+    testerInstance.clickTab("Connection");
+
     // Select the connections
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editjob"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("output_connectionname"));
-    selectbox.selectValue(testerInstance.createStringDescription("MyOutputConnection"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("output_precedent"));
-    selectbox.selectValue(testerInstance.createStringDescription("-1"));
-    button = window.findButton(testerInstance.createStringDescription("Add an output"));
-    button.click();
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editjob"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("connectionname"));
-    selectbox.selectValue(testerInstance.createStringDescription("MyRepositoryConnection"));
-    button = window.findButton(testerInstance.createStringDescription("Continue to next screen"));
-    button.click();
+    testerInstance.selectValue("output_connectionname","MyOutputConnection");
+    testerInstance.selectValue("output_precedent","-1");
+    testerInstance.clickButton("Add output",true);
+    testerInstance.waitForElementWithName("connectionname");
+    testerInstance.selectValue("connectionname","MyRepositoryConnection");
+    
+    testerInstance.clickButton("Continue");
+
     // Visit all the tabs.  Scheduling tab first
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Scheduling tab"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editjob"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("dayofweek"));
-    selectbox.selectValue(testerInstance.createStringDescription("0"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("hourofday"));
-    selectbox.selectValue(testerInstance.createStringDescription("1"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("minutesofhour"));
-    selectbox.selectValue(testerInstance.createStringDescription("30"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("monthofyear"));
-    selectbox.selectValue(testerInstance.createStringDescription("11"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("dayofmonth"));
-    selectbox.selectValue(testerInstance.createStringDescription("none"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("duration"));
-    textarea.setValue(testerInstance.createStringDescription("120"));
-    button = window.findButton(testerInstance.createStringDescription("Add new schedule record"));
-    button.click();
+    testerInstance.clickTab("Scheduling");
+    testerInstance.selectValue("dayofweek","0");
+    testerInstance.selectValue("hourofday","1");
+    testerInstance.selectValue("minutesofhour","30");
+    testerInstance.selectValue("monthofyear","11");
+    testerInstance.selectValue("dayofmonth","none");
+    testerInstance.setValue("duration","120");
+    testerInstance.clickButton("Add Scheduled Time",true);
+    testerInstance.waitForElementWithName("editjob");
+
     // Now, HopFilters
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Hop Filters tab"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editjob"));
-    radiobutton = form.findRadiobutton(testerInstance.createStringDescription("hopcountmode"),testerInstance.createStringDescription("2"));
-    radiobutton.select();
-    link = window.findLink(testerInstance.createStringDescription("Repository Paths tab"));
-    link.click();
-    // Add a record to the Paths list
+    testerInstance.clickTab("Hop Filters");
+    testerInstance.clickRadioButton("hopcountmode","2");
+
+    // Repository Paths tab
+    testerInstance.clickTab("Repository Paths");
     
     // MHL
     
     // Save the job
-    window = testerInstance.findWindow(null);
-    button = window.findButton(testerInstance.createStringDescription("Save this job"));
-    button.click();
+    testerInstance.clickButton("Save");
+    testerInstance.verifyThereIsNoError();
+    
+    testerInstance.waitForPresenceById("job");
+    String jobID = testerInstance.getAttributeValueById("job","jobid");
 
-    // Delete the job
-    window = testerInstance.findWindow(null);
-    HTMLTester.StringDescription jobID = window.findMatch(testerInstance.createStringDescription("<!--jobid=(.*?)-->"),0);
-    testerInstance.printValue(jobID);
-    link = window.findLink(testerInstance.createStringDescription("Delete this job"));
-    link.click();
-    
-    // Wait for the job to go away
-    loop = testerInstance.beginLoop(120);
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Manage jobs"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    HTMLTester.StringDescription isJobNotPresent = window.isNotPresent(jobID);
-    testerInstance.printValue(isJobNotPresent);
-    loop.breakWhenTrue(isJobNotPresent);
-    loop.endLoop();
-    
+    //Navigate to List Jobs
+    testerInstance.navigateTo("List jobs");
+    testerInstance.waitForElementWithName("listjobs");
+
+    //Delete the job
+    testerInstance.clickButtonByTitle("Delete job " + jobID);
+    testerInstance.acceptAlert();
+    testerInstance.verifyThereIsNoError();
+
+    //Wait for the job to go away
+    testerInstance.waitForJobDeleteEN(jobID, 120);
+
     // Delete the repository connection
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("List repository connections"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Delete MyRepositoryConnection"));
-    link.click();
-    
+    testerInstance.navigateTo("List repository connections");
+    testerInstance.clickButtonByTitle("Delete MyRepositoryConnection");
+    testerInstance.acceptAlert();
+
     // Delete the output connection
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("List output connections"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Delete MyOutputConnection"));
-    link.click();
-    
-    testerInstance.executeTest();
-*/
+    testerInstance.navigateTo("List output connections");
+    testerInstance.clickButtonByTitle("Delete MyOutputConnection");
+    testerInstance.acceptAlert();
+
   }
   
 }
