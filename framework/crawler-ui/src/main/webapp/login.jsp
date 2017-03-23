@@ -91,11 +91,11 @@ if (value != null && value.equals("true"))
 %>
           <div class="form-group has-feedback">
             <input name="userID" type="text" class="form-control" autofocus="autofocus" placeholder="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.UserIDColon")%>"/>
-            <span class="glyphicon glyphicon-user form-control-feedback"></span>
+            <span class="fa fa-user form-control-feedback"></span>
           </div>
           <div class="form-group has-feedback">
             <input name="password" type="password" class="form-control" placeholder="<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.PasswordColon")%>"/>
-            <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+            <span class="fa fa-lock form-control-feedback"></span>
           </div>
           <div class="row">
             <div class="col-xs-8">
