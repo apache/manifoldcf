@@ -87,7 +87,6 @@
     <!-- Bootstrap Select -->
     <script src="bootstrap-select/js/bootstrap-select.min.js" type="text/javascript"></script>
     <script src="javascript/jquery.slimscroll.min.js" type="text/javascript"></script>
-    <script src="javascript/jquery.history.js" type="text/javascript"></script>
     <!-- ManifoldCF -->
     <script src="javascript/app.js" type="text/javascript"></script>
 <%

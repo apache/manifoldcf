@@ -395,7 +395,7 @@ function _preLoadContent()
 
 function _postLoadContent()
 {
-  console.log('_postLoadContent')
+  console.log('_postLoadContent');
   //Activate Bootstrap tooltip
   $($.ManifoldCF.options.BSTooltipSelector).tooltip({
     trigger: 'hover',
@@ -423,11 +423,10 @@ $.ManifoldCF.submit=function (form)
 {
   $('.overlay,#loader').show();
   var $form=$(form);
-  var action=$form.attr('action')
+  var action=$form.attr('action');
   console.log("Ajax URL: " + action);
   console.log($form.serialize());
   _preLoadContent();
-  //History.replaceState({urlPath: encodeURI(action)}, null, '#execute_'+form.name);
   $.ajax({
     type: $form.attr('method'),
     url: action,
@@ -438,10 +437,11 @@ $.ManifoldCF.submit=function (form)
     console.log("page: " + page)
     if (typeof page != 'undefined')
     {
-      History.replaceState({urlPath: encodeURI(page)},null,'?p=' + page + '#execute');
-    } else
+      window.history.replaceState({urlPath: encodeURI(page)},null,'?p=' + page + '#execute');
+    }
+    else
     {
-      History.replaceState({urlPath: encodeURI(action)},null,'#execute_' + form.name);
+      window.history.replaceState({urlPath: encodeURI(action)},null,'#execute_' + form.name);
     }
     console.log("textStatus: " + textStatus);
     $('#content').html(data);
@@ -455,43 +455,36 @@ $.ManifoldCF.submit=function (form)
   });
 }
 
-$(function ()
-{
-  var
-      History=window.History,
-      State;
-
-  if (History.enabled)
-  {
-    State=History.getState();
-    // set initial state to first page that was loaded
-    History.pushState({urlPath: window.location.pathname},null,State.urlPath);
+window.onpopstate = function (event) {
+  console.log('historyEvent:',event);
+  if (event.state) {
+    // history changed because of pushState/replaceState
+    var state=window.history.state;
+    if (typeof  state != 'undefined')
+    {
+      if (!state.urlPath.startsWith('execute'))
+      {
+        $.ManifoldCF.loadContent(state.urlPath);
+      }
+    }
   }
   else
   {
-    return false;
+    console.log('history changed because of a page load');
   }
+}
 
-  // Content update and back/forward button handler
-  History.Adapter.bind(window,'statechange',function ()
-  {
-    var state=History.getState();
-    console.log(state);
-    if (typeof  state != 'undefined' && typeof state.data != 'undefined')
-    {
-      if (!state.data.urlPath.startsWith('execute'))
-      {
-        $.ManifoldCF.loadContent(state.data.urlPath);
-      }
-    }
-  });
-
+$(function(){
   // navigation link handler
   $(document.body).on("click",'.link',function (e)
   {
     e.preventDefault();
     var urlPath=$(this).attr('href');
     var title=$(this).text();
-    History.pushState({urlPath: encodeURI(urlPath)},title,'?p=' + encodeURI(urlPath) + '&_' + new Date().getTime());
+
+    $.ManifoldCF.loadContent(urlPath);
+
+    var data = {urlPath: encodeURIComponent(urlPath)};
+    window.history.pushState(data,title,'?p=' + encodeURIComponent(urlPath) + '&_' + new Date().getTime());
   });
 });
