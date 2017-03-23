@@ -6479,7 +6479,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           Logging.connectors.debug("WEB: Parsed bottom-level XML for RSS document '"+documentURI+"'");
         return new RSSContextClass(theStream,namespace,localName,qName,atts,documentURI,handler);
       }
-      else if (localName.equals("RDF"))
+      else if (localName.toLowerCase(Locale.ROOT).equals("rdf"))
       {
         // RDF/Atom feed detected
         outerTagCount++;
@@ -6509,7 +6509,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
       XMLParsingContext context = theStream.getContext();
       String tagName = context.getLocalname();
-      if (tagName.equals("RDF"))
+      if (tagName.toLowerCase(Locale.ROOT).equals("rdf"))
       {
         ((RDFContextClass)context).process();
       }

@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1398: Accept RDF feeds that use lowercase "rdf", even
+though that's not legal by the spec.
+(Joachim Butz, Karl Wright)
+
 CONNECTORS-1196: New AJAX-based crawler-UI.
 (Kishore Kumar, Karl Wright)
 

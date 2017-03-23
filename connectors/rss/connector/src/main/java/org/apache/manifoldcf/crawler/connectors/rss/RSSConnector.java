@@ -3311,7 +3311,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           Logging.connectors.debug("RSS: Parsed bottom-level XML for RSS document '"+documentIdentifier+"'");
         return new RSSContextClass(theStream,namespace,localName,qName,atts,documentIdentifier,activities,filter);
       }
-      else if (localName.equals("RDF"))
+      else if (localName.toLowerCase(Locale.ROOT).equals("rdf"))
       {
         // RDF/Atom feed detected
         outerTagCount++;
@@ -3345,7 +3345,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       {
         rescanTimeSet = ((RSSContextClass)context).process();
       }
-      else if (tagName.equals("RDF"))
+      else if (tagName.toLowerCase(Locale.ROOT).equals("rdf"))
       {
         rescanTimeSet = ((RDFContextClass)context).process();
       }
