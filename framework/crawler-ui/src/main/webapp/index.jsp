@@ -88,7 +88,7 @@
     <script src="bootstrap-select/js/bootstrap-select.min.js" type="text/javascript"></script>
     <script src="javascript/jquery.slimscroll.min.js" type="text/javascript"></script>
     <!-- ManifoldCF -->
-    <script src="javascript/app.js" type="text/javascript"></script>
+    <script src="javascript/mcf.js" type="text/javascript"></script>
 <%
   String reqPage = request.getParameter("p");
   if (reqPage != null && reqPage.length() > 0)
