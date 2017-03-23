@@ -373,14 +373,14 @@ try
   if (statusConnection.length() > 0 && statusJobIdentifiers.length > 0)
   {
 %>
-            <a class="btn btn-primary" role="button" onClick="javascript:Go()" 
+            <a href="#" class="btn btn-primary" role="button" onClick="javascript:Go()" 
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"documentstatus.ExecuteThisQuery")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"documentstatus.ExecuteThisQuery")%></a>
 <%
   }
   else
   {
 %>
-            <a class="btn btn-primary" role="button" onClick="javascript:Continue()"
+            <a href="#" class="btn btn-primary" role="button" onClick="javascript:Continue()"
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"documentstatus.Continue")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"documentstatus.Continue")%></a>
 <%
   }

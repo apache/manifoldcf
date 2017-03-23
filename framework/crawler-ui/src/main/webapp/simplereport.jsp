@@ -595,14 +595,14 @@ try
   if (reportConnection.length() > 0)
   {
 %>
-            <a name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Go()"
+            <a href="#" name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Go()"
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.ExecuteThisQuery")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.Go")%></a>
 <%
   }
   else
   {
 %>
-            <a name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Continue()" 
+            <a href="#" name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Continue()" 
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.Continue")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.Continue")%></a>
 <%
   }

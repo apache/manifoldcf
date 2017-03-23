@@ -101,7 +101,7 @@ if (value != null && value.equals("true"))
             <div class="col-xs-8">
             </div>
             <div class="col-xs-4">
-              <a id="buttonLogin" class="btn btn-primary btn-block" onclick='Javascript:login();'
+              <a href="#" id="buttonLogin" class="btn btn-primary btn-block" onclick='Javascript:login();'
                       title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%>'><i class="fa fa-sign-in fa-fw" aria-hidden="true"></i>&nbsp;<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"index.Login")%></a>
             </div>
           </div>
