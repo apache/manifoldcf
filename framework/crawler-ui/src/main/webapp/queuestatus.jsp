@@ -418,14 +418,14 @@ try
   if (statusConnection.length() > 0 && statusJobIdentifiers.length > 0)
   {
 %>
-            <a name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Go()"
+            <a href="#" name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Go()"
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.ExecuteThisQuery")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Go")%></a>
 <%
   }
   else
   {
 %>
-            <a name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Continue()"
+            <a href="#" name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Continue()"
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Continue")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Continue")%></a>
 <%
   }
@@ -557,7 +557,7 @@ try
       if (startRow == 0)
       {
 %>
-                <li><a hred="#"><i class="fa fa-arrow-circle-o-left fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%></a></li>
+                <li><a href="#"><i class="fa fa-arrow-circle-o-left fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%></a></li>
 <%
       }
       else

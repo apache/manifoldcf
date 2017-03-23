@@ -426,7 +426,7 @@ try
     if (className.length() > 0)
     {
 %>
-            <a role="button" class="btn btn-primary" onClick="javascript:Save()" 
+            <a href="#" role="button" class="btn btn-primary" onClick="javascript:Save()" 
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.SaveThisNotificationConnection")%>" data-toggle="tooltip"><i class="fa fa-save fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.Save")%></a>
 
 <%
@@ -436,14 +436,14 @@ try
       if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editnotification.Type")))
       {
 %>
-            <a role="button" class="btn btn-primary" onClick="javascript:Continue()"
+            <a href="#" role="button" class="btn btn-primary" onClick="javascript:Continue()"
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.ContinueToNextPage")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.Continue")%></a>
 
 <%
       }
     }
 %>
-            <a role="button" class="btn btn-primary" onClick="javascript:Cancel()"
+            <a href="#" role="button" class="btn btn-primary" onClick="javascript:Cancel()"
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.CancelNotificationConnectionEditing")%>" data-toggle="tooltip"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.Cancel")%></a>
           </div>
         </div>

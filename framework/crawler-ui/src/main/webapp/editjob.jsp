@@ -1866,7 +1866,7 @@ function isRegularExpression(value)
   if (connectionName.length() > 0 && outputPresent)
   {
 %>
-              <a class="btn btn-primary" onClick="javascript:Save()"
+              <a href="#" class="btn btn-primary" onClick="javascript:Save()"
                       title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.SaveThisJob")%>" data-toggle="tooltip"><i class="fa fa-save fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Save")%></a>
 <%
   }
@@ -1875,13 +1875,13 @@ function isRegularExpression(value)
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Connection")) && tabSequenceInt == -1)
     {
 %>
-              <a class="btn btn-primary" onClick="javascript:Continue()" 
+              <a href="#" class="btn btn-primary" onClick="javascript:Continue()" 
                       title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.ContinueToNextScreen")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.Continue")%></a>
 <%
     }
   }
 %>
-              <a class="btn btn-primary" onClick="javascript:Cancel()" 
+              <a href="#" class="btn btn-primary" onClick="javascript:Cancel()" 
                       title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.CancelJobEditing")%>" data-toggle="tooltip"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.cancel")%></a>
 
             </div>

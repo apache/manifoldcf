@@ -421,7 +421,7 @@ try
     if (className.length() > 0)
     {
 %>
-              <a class="btn btn-primary" onClick="javascript:Save()"
+              <a href="#" class="btn btn-primary" onClick="javascript:Save()"
                       title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.SaveThisTransformationConnection")%>" data-toggle="tooltip"><i class="fa fa-save fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.Save")%></a>
 <%
     }
@@ -430,13 +430,13 @@ try
       if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"edittransformation.Type")))
       {
 %>
-              <a class="btn btn-primary" onClick="javascript:Continue()"
+              <a href="#" class="btn btn-primary" onClick="javascript:Continue()"
                       title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.ContinueToNextPage")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.Continue")%></a>
 <%
       }
     }
 %>
-              <a class="btn btn-primary" onClick="javascript:Cancel()"
+              <a href="#" class="btn btn-primary" onClick="javascript:Cancel()"
                       title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.CancelTransformationConnectionEditing")%>" data-toggle="tooltip"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"edittransformation.Cancel")%></a>
             </div>
           </div>

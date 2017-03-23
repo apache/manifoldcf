@@ -495,7 +495,7 @@ try
     if (className.length() > 0)
     {
 %>
-              <a class="btn btn-primary" role="button" onClick="javascript:Save()"
+              <a href="#" class="btn btn-primary" role="button" onClick="javascript:Save()"
                       title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.SaveThisMappingConnection")%>" 
                       data-toggle="tooltip"><i class="fa fa-save fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.Save")%></a>
 <%
@@ -505,13 +505,13 @@ try
       if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editmapper.Type")))
       {
 %>
-              <a class="btn btn-primary" role="button" onClick="javascript:Continue()"
+              <a href="#" class="btn btn-primary" role="button" onClick="javascript:Continue()"
                       title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.ContinueToNextPage")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.Continue")%></a>
 <%
       }
     }
 %>
-              <a class="btn btn-primary" role="button" onClick="javascript:Cancel()"
+              <a href="#" class="btn btn-primary" role="button" onClick="javascript:Cancel()"
                       title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.CancelMappingEditing")%>" data-toggle="tooltip"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editmapper.Cancel")%></a>
             </div>
           </div>

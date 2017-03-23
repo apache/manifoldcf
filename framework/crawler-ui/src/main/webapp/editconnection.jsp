@@ -574,7 +574,7 @@ try
     if (className.length() > 0)
     {
 %>
-            <a class="btn btn-primary" onClick="javascript:Save()" 
+            <a href="#" class="btn btn-primary" onClick="javascript:Save()" 
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editconnection.SaveThisAuthorityConnection")%>" data-toggle="tooltip"><i class="fa fa-save fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editconnection.Save")%></a>
 <%
     }
@@ -583,13 +583,13 @@ try
       if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editconnection.Type")))
       {
 %>
-            <a class="btn btn-primary" onClick="javascript:Continue()"
+            <a href="#" class="btn btn-primary" onClick="javascript:Continue()"
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editconnection.ContinueToNextPage")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editconnection.Continue")%></a>
 <%
       }
     }
 %>
-            <a class="btn btn-primary" onClick="javascript:Cancel()" 
+            <a href="#" class="btn btn-primary" onClick="javascript:Cancel()" 
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editconnection.CancelConnectionEditing")%>" data-toggle="tooltip"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editconnection.Cancel")%></a>
           </div>
         </div>
