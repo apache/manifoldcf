@@ -30,4 +30,3 @@ response.setContentType("text/html;charset=utf-8");
 adminprofile.logout();
 response.sendRedirect("login.jsp");
 %>
-
