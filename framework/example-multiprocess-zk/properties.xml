@@ -19,8 +19,6 @@
 <!-- This configuration file contains only non-global configuration information,
     which is basically limited to file paths and ZooKeeper configuration -->
 <configuration>
-  <!-- Version string for UI -->
-  <property name="org.apache.manifoldcf.versionstring" value="unknown version"/>
   <!-- Point to the wars and configure Jetty -->
   <property name="org.apache.manifoldcf.crawleruiwarpath" value="../web/war/mcf-crawler-ui.war"/>
   <property name="org.apache.manifoldcf.authorityservicewarpath" value="../web/war/mcf-authority-service.war"/>

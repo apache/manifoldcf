@@ -48,63 +48,67 @@ try
       description = "";
 %>
 
-<script type="text/javascript">
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
+  <title>
+    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.ApacheManifoldCFViewGroup")%>
+  </title>
+
+  <script type="text/javascript">
   <!--
 
-  $.ManifoldCF.setTitle(
-      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewgroup.ApacheManifoldCFViewGroup")%>',
-      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.ViewAuthorityGroup") + " - " + groupName %>',
-      'authorities'
-  );
-
-  function Delete(groupName)
-  {
-    document.viewgroup.op.value="Delete";
-    document.viewgroup.groupname.value=groupName;
-    $.ManifoldCF.submit(document.viewgroup);
-  }
+function Delete(groupName)
+{
+  document.viewgroup.op.value="Delete";
+  document.viewgroup.groupname.value=groupName;
+  document.viewgroup.submit();
+}
 
   //-->
-</script>
+  </script>
 
+</head>
 
-<div class="row">
-  <div class="col-md-12">
-    <div class="box box-primary">
-      <form class="standardform" name="viewgroup" action="execute.jsp" method="POST">
-        <input type="hidden" name="op" value="Continue"/>
-        <input type="hidden" name="type" value="group"/>
-        <input type="hidden" name="groupname" value=""/>
+<body class="standardbody">
 
-        <div class="box-body">
-          <table class="table table-bordered">
+  <table class="page">
+    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
+    <tr>
+      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
+      <td class="window">
+        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.ViewAuthorityGroup")%></p>
+
+        <form class="standardform" name="viewgroup" action="execute.jsp" method="POST">
+          <input type="hidden" name="op" value="Continue"/>
+          <input type="hidden" name="type" value="group"/>
+          <input type="hidden" name="groupname" value=""/>
+
+          <table class="displaytable">
             <tr>
-              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.NameColon")%></nobr></th>
-              <td><%="<!--group=" + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(groupName) + "-->"%>
-                <nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(groupName)%></nobr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.NameColon")%></nobr></td>
+              <td class="value" colspan="1"><%="<!--group="+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(groupName)+"-->"%><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(groupName)%></nobr></td>
+              <td class="description" colspan="1"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.DescriptionColon")%></nobr></td>
+              <td class="value" colspan="1"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
+            </tr>
+            <tr>
+              <td class="separator" colspan="4"><hr/></td>
+            </tr>
+            <tr>
+              <td class="message" colspan="4">
+                <a href='<%="editgroup.jsp?groupname="+org.apache.manifoldcf.core.util.URLEncoder.encode(groupName)%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewgroup.EditThisAuthorityGroup")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.Edit")%></a>&nbsp;<a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(groupName)+"\")"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewgroup.DeleteThisAuthorityGroup")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.Delete")%></a>
               </td>
             </tr>
-            <tr>
-              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.DescriptionColon")%></nobr></th>
-              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
-            </tr>
           </table>
-        </div>
-        <div class="box-footer clearfix">
-          <div class="btn-group">
-            <a href='<%="editgroup.jsp?groupname="+org.apache.manifoldcf.core.util.URLEncoder.encode(groupName)%>'
-                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewgroup.EditThisAuthorityGroup")%>"
-                    class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-pencil fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.Edit")%></a>
-            <a href="javascript:void(0);"
-                    onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(groupName)+"\")"%>'
-                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewgroup.DeleteThisAuthorityGroup")%>"
-                    class="btn btn-danger" role="button" data-toggle="tooltip"><i class="fa fa-remove fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.Delete")%></a>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+
 <%
   }
 }
@@ -118,3 +122,11 @@ catch (ManifoldCFException e)
 <%
 }
 %>
+        </form>
+      </td>
+    </tr>
+  </table>
+
+</body>
+
+</html>

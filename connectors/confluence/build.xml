@@ -33,10 +33,20 @@
   <path id="connector-classpath">
     <path refid="mcf-connector-build.connector-classpath" />
     <fileset dir="../../lib">
+      <include name="guava-*.jar" />
       <include name="httpcore*.jar" />
       <include name="httpclient*.jar" />
     </fileset>
   </path>
+
+  <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
+    <mkdir dir="dist/lib" />
+    <copy todir="dist/lib">
+      <fileset dir="../../lib">
+        <include name="guava-*.jar" />
+      </fileset>
+    </copy>
+  </target>
 
   <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
     <antcall target="general-add-repository-connector">

@@ -39,44 +39,57 @@ try
   IAuthorityConnection[] connections = manager.getAllConnections();
 %>
 
-<script type="text/javascript">
-  <!--
-  $.ManifoldCF.setTitle(
-      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "listauthorities.ApacheManifoldCFListAuthorities")%>',
-      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "listauthorities.ListOfAuthorityConnections")%>',
-      'authorities'
-  );
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 
-  function Delete(connectionName)
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
+
+  <title>
+    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.ApacheManifoldCFListAuthorities")%>
+  </title>
+
+  <script type="text/javascript">
+  <!--
+
+function Delete(connectionName)
+{
+  if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"listauthorities.DeleteAuthority")%> '"+connectionName+"'?"))
   {
-    if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"listauthorities.DeleteAuthority")%> '"+connectionName+"'?"))
-    {
-      document.listconnections.op.value="Delete";
-      document.listconnections.connname.value=connectionName;
-      $.ManifoldCF.submit(document.listconnections);
-    }
+    document.listconnections.op.value="Delete";
+    document.listconnections.connname.value=connectionName;
+    document.listconnections.submit();
   }
+}
 
   //-->
 </script>
 
+</head>
 
-<div class="row">
-  <div class="col-md-12">
-    <div class="box box-primary">
-      <form class="standardform" name="listconnections" action="execute.jsp" method="POST">
-        <input type="hidden" name="op" value="Continue"/>
-        <input type="hidden" name="type" value="authority"/>
-        <input type="hidden" name="connname" value=""/>
+<body class="standardbody">
 
-        <div class="box-body">
-          <table class="table table-bordered">
+  <table class="page">
+    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
+    <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
+      <td class="window">
+        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.ListOfAuthorityConnections")%></p>
+        <form class="standardform" name="listconnections" action="execute.jsp" method="POST">
+          <input type="hidden" name="op" value="Continue"/>
+          <input type="hidden" name="type" value="authority"/>
+          <input type="hidden" name="connname" value=""/>
+
+          <table class="datatable">
             <tr>
-              <th>Action</th>
-              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Name")%></th>
-              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Description")%></th>
-              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.AuthorityType")%></th>
-              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Max")%></th>
+              <td class="separator" colspan="5"><hr/></td>
+            </tr>
+            <tr class="headerrow">
+              <td class="columnheader"></td>
+              <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Name")%></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Description")%></td><td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.AuthorityType")%></td>
+              <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Max")%></td>
             </tr>
 <%
   int i = 0;
@@ -95,40 +108,27 @@ try
       connectorName = className + "(uninstalled)";
 
 %>
-            <tr>
-              <td>
-                <div class="btn-group">
-                  <a href='<%="viewauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
-                          title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.View") + " " +org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          class="link btn btn-success btn-xs" role="button" data-toggle="tooltip">
-                    <i class="fa fa-eye fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.View")%></a>
-                  <a href='<%="editauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
-                          title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Edit") + " " + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip">
-                    <i class="fa fa-pencil-square-o fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Edit")%></a>
-                  <a href="javascript:void(0);"
-                          onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>'
-                          title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Delete") + " " + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          class="btn btn-danger btn-xs" role="button" data-toggle="tooltip">
-                    <i class="fa fa-trash fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Delete")%></a>
-                </div>
+            <tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
+              <td class="columncell">
+                <nobr>
+                  <a href='<%="viewauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>' alt='<%="View "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.View")%></a>
+                  <a href='<%="editauthority.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Edit")%></a>
+                  <a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.Delete")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.Delete")%></a>
+                </nobr>
               </td>
-              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)%></td>
-              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
-              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></td>
-              <td><%=Integer.toString(maxCount)%></td>
+              <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)%></td>
+              <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
+              <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectorName)%></td>
+              <td class="columncell"><%=Integer.toString(maxCount)%></td>
             </tr>
 <%
   }
 %>
+            <tr>
+              <td class="separator" colspan="5"><hr/></td>
+            </tr>
+            <tr><td class="message" colspan="5"><a href="editauthority.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.AddNewConnection")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.AddaNewConnection")%></a></td></tr>
           </table>
-        </div>
-        <div class="box-footer clearfix">
-          <div class="btn-group">
-            <a href="editauthority.jsp" title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listauthorities.AddNewConnection")%>"
-                    class="link btn btn-primary" role="button">
-              <i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listauthorities.AddaNewConnection")%></a>
-          </div>
 
 <%
 }
@@ -142,8 +142,11 @@ catch (ManifoldCFException e)
 <%
 }
 %>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+        </form>
+      </td>
+    </tr>
+  </table>
+
+</body>
+
+</html>

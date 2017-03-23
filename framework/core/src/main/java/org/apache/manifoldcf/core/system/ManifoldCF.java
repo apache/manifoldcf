@@ -106,7 +106,6 @@ public class ManifoldCF
   protected static Integer initializeFlagLock = new Integer(0);
 
   // Local member variables
-  protected static String mcfVersion = null;
   protected static String masterDatabaseName = null;
   protected static String masterDatabaseUsername = null;
   protected static String masterDatabasePassword = null;
@@ -120,10 +119,6 @@ public class ManifoldCF
   public static final String lcfConfigFileProperty = "org.apache.manifoldcf.configfile";
 
   // System property/config file property names
-  
-  // Version property
-  /** The current ManifoldCF version string */
-  public static final String versionProperty = "org.apache.manifoldcf.versionstring";
   
   // Process ID property
   /** Process ID - cannot exceed 16 characters */
@@ -194,7 +189,6 @@ public class ManifoldCF
         // Clean up the system doing the same thing the shutdown thread would have if the process was killed
         cleanUpEnvironment(threadContext);
         processID = null;
-        mcfVersion = null;
         masterDatabaseName = null;
         masterDatabaseUsername = null;
         masterDatabasePassword = null;
@@ -285,7 +279,6 @@ public class ManifoldCF
           Logging.initializeLoggers();
           Logging.setLogLevels(threadContext);
 
-          mcfVersion = LockManagerFactory.getStringProperty(threadContext,versionProperty,"unknown version");
           masterDatabaseName = LockManagerFactory.getStringProperty(threadContext,masterDatabaseNameProperty,"dbname");
           masterDatabaseUsername = LockManagerFactory.getStringProperty(threadContext,masterDatabaseUsernameProperty,"manifoldcf");
           masterDatabasePassword = LockManagerFactory.getPossiblyObfuscatedStringProperty(threadContext,masterDatabasePasswordProperty,"local_pg_passwd");
@@ -593,14 +586,6 @@ public class ManifoldCF
     return rval.toString();
   }
 
-  /** Get the mcf version.
-  *@return the version string
-  */
-  public static String getMcfVersion()
-  {
-    return mcfVersion;
-  }
-  
   /** Get the master database name.
   *@return the master database name
   */

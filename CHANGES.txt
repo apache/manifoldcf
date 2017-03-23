@@ -7,9 +7,6 @@ CONNECTORS-1398: Accept RDF feeds that use lowercase "rdf", even
 though that's not legal by the spec.
 (Joachim Butz, Karl Wright)
 
-CONNECTORS-1196: New AJAX-based crawler-UI.
-(Kishore Kumar, Karl Wright)
-
 CONNECTORS-1395: Increase zookeeper session timeout to 300000,
 because we were having sessions expire.
 (Karl Wright)
