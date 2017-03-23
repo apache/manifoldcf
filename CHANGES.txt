@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1196: New AJAX-based crawler-UI.
+(Kishore Kumar, Karl Wright)
+
 CONNECTORS-1395: Increase zookeeper session timeout to 300000,
 because we were having sessions expire.
 (Karl Wright)
