@@ -354,7 +354,7 @@ $.ManifoldCF.setTitle=function (title,header,activeMenu)
   activeMenu=typeof activeMenu !== 'undefined'?activeMenu:'outputs';
   $("." + activeMenu).addClass("active");
 
-  $(".selectpicker").selectpicker();
+  $(".selectpicker").selectpicker({iconBase:'fa',tickIcon:'fa-check'});
 };
 
 function displayError(xhr)
