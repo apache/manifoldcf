@@ -38,41 +38,57 @@ try
   IAuthorityGroup[] groups = manager.getAllGroups();
 %>
 
-<script type="text/javascript">
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
+
+  <title>
+    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.ApacheManifoldCFListAuthorityGroups")%>
+  </title>
+
+  <script type="text/javascript">
   <!--
 
-  $.ManifoldCF.setTitle(
-      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "listgroups.ApacheManifoldCFListAuthorityGroups")%>',
-      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "listgroups.ListOfAuthorityGroups")%>',
-      'authorities'
-  );
-
-  function Delete(groupName)
+function Delete(groupName)
+{
+  if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"listgroups.DeleteAuthorityGroup")%> '"+groupName+"'?"))
   {
-    if (confirm("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"listgroups.DeleteAuthorityGroup")%> '"+groupName+"'?"))
-    {
-      document.listgroups.op.value="Delete";
-      document.listgroups.groupname.value=groupName;
-      $.ManifoldCF.submit(document.listgroups);
-    }
+    document.listgroups.op.value="Delete";
+    document.listgroups.groupname.value=groupName;
+    document.listgroups.submit();
   }
+}
+
   //-->
-</script>
+  </script>
 
-<div class="row">
-  <div class="col-md-12">
-    <div class="box box-primary">
-      <form class="standardform" name="listgroups" action="execute.jsp" method="POST">
-        <input type="hidden" name="op" value="Continue"/>
-        <input type="hidden" name="type" value="group"/>
-        <input type="hidden" name="groupname" value=""/>
+</head>
 
-        <div class="box-body">
-          <table class="table table-bordered">
+<body class="standardbody">
+
+  <table class="page">
+    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
+    <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
+      <td class="window">
+        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.ListOfAuthorityGroups")%></p>
+        <form class="standardform" name="listgroups" action="execute.jsp" method="POST">
+          <input type="hidden" name="op" value="Continue"/>
+          <input type="hidden" name="type" value="group"/>
+          <input type="hidden" name="groupname" value=""/>
+
+          <table class="datatable">
             <tr>
-              <th>Action</th>
-              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.Name")%></th>
-              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.Description")%></th>
+              <td class="separator" colspan="5"><hr/></td>
+            </tr>
+            <tr class="headerrow">
+              <td class="columnheader"></td>
+              <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.Name")%></td>
+              <td class="columnheader"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.Description")%></td>
             </tr>
 <%
   int i = 0;
@@ -86,38 +102,29 @@ try
       description = "";
 
 %>
-            <tr>
-              <td>
-                <div class="btn-group">
-                  <a href='<%="viewgroup.jsp?groupname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
-                          title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          class="link btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-eye fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.View")%></a>
-                  <a href='<%="editgroup.jsp?groupname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
-                          title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-pencil-square-o fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.Edit")%></a>
-                  <a href="javascript:void(0);"
-                          onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>'
-                          title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.Delete")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
-                          class="btn btn-danger btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-trash fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.Delete")%></a>
-                </div>
+            <tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
+              <td class="columncell">
+                <nobr>
+                  <a href='<%="viewgroup.jsp?groupname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.View")%></a>
+                  <a href='<%="editgroup.jsp?groupname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.Edit")%></a>
+                  <a href="javascript:void()" onclick='<%="javascript:Delete(\""+org.apache.manifoldcf.ui.util.Encoder.attributeJavascriptEscape(name)+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.Delete")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.Delete")%></a>
+                </nobr>
               </td>
-              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)%></td>
-              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
+              <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)%></td>
+              <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%></td>
             </tr>
 <%
   }
 %>
+            <tr>
+              <td class="separator" colspan="5"><hr/></td>
+            </tr>
+            <tr><td class="message" colspan="5"><a href="editgroup.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.AddNewGroup")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.AddaNewGroup")%></a></td></tr>
           </table>
-        </div>
-        <div class="box-footer clearfix">
-          <div class="btn-group">
-            <a href="editgroup.jsp"
-                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listgroups.AddNewGroup")%>"
-                    class="link btn btn-primary" role="button"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listgroups.AddaNewGroup")%></a>
-          </div>
+
 <%
 }
-catch (ManifoldCFException e)
+  catch (ManifoldCFException e)
 {
   e.printStackTrace();
   variableContext.setParameter("text",e.getMessage());
@@ -127,8 +134,11 @@ catch (ManifoldCFException e)
 <%
 }
 %>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+        </form>
+      </td>
+    </tr>
+  </table>
+
+</body>
+
+</html>

@@ -17,8 +17,6 @@
 -->
 
 <configuration>
-  <!-- Version string for UI -->
-  <property name="org.apache.manifoldcf.versionstring" value="unknown version"/>
   <!-- Point to the wars and configure Jetty -->
   <property name="org.apache.manifoldcf.crawleruiwarpath" value="../web-proprietary/war/mcf-crawler-ui.war"/>
   <property name="org.apache.manifoldcf.authorityservicewarpath" value="../web-proprietary/war/mcf-authority-service.war"/>

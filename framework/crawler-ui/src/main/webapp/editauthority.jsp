@@ -123,244 +123,264 @@ try
 
 %>
 
-<script type="text/javascript">
-    <!--
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 
-<%
-  String title = null;
-  if (description.length() > 0)
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
+  <title>
+    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.ApacheManifoldCFEditAuthority")%>
+  </title>
+
+  <script type="text/javascript">
+  <!--
+// Use this method to repost the form and pick a new tab
+function SelectTab(newtab)
+{
+  if (checkForm())
   {
-    title = Messages.getBodyString(pageContext.getRequest().getLocale(), "editauthority.EditAuthority") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description);
+    document.editconnection.tabname.value = newtab;
+    document.editconnection.submit();
   }
-  else
+}
+
+// Use this method to repost the form,
+// and set the anchor request.
+function postFormSetAnchor(anchorValue)
+{
+  if (checkForm())
   {
-    title = Messages.getBodyString(pageContext.getRequest().getLocale(), "editauthority.EditAnAuthority");
+    if (anchorValue != "")
+      document.editconnection.action = document.editconnection.action + "#" + anchorValue;
+    document.editconnection.submit();
   }
-%>
+}
 
-    $.ManifoldCF.setTitle('<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.ApacheManifoldCFEditAuthority")%>','<%=title%>','authorities');
+// Use this method to repost the form
+function postForm()
+{ 
+  if (checkForm())
+  {
+    document.editconnection.submit();
+  }
+}
 
-    // Use this method to repost the form and pick a new tab
-    function SelectTab(newtab)
+function Save()
+{
+  if (checkForm())
+  {
+    // Can't submit until all required fields have been set.
+    // Some of these don't live on the current tab, so don't set
+    // focus.
+
+    // Check our part of the form, for save
+    if (editconnection.connname.value == "")
     {
-        if (checkForm())
-        {
-            document.editconnection.tabname.value = newtab;
-            $.ManifoldCF.submit(document.editconnection);
-        }
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.ConnectionMustHaveAName")%>");
+      SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.Name")%>");
+      document.editconnection.connname.focus();
+      return;
     }
-
-    // Use this method to repost the form,
-    // and set the anchor request.
-    function postFormSetAnchor(anchorValue)
+    if (editconnection.authoritygroup.value == "")
     {
-        if (checkForm())
-        {
-            if (anchorValue != "")
-                document.editconnection.action = document.editconnection.action + "#" + anchorValue;
-            $.ManifoldCF.submit(document.editconnection);
-        }
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.ConnectionMustHaveAGroup")%>");
+      SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.Type")%>");
+      document.editconnection.authoritygroup.focus();
+      return;
     }
-
-    // Use this method to repost the form
-    function postForm()
+    if (window.checkConfigForSave)
     {
-        if (checkForm())
-        {
-            $.ManifoldCF.submit(document.editconnection);
-        }
+      if (!checkConfigForSave())
+        return;
     }
+    document.editconnection.op.value="Save";
+    document.editconnection.submit();
+  }
+}
 
-    function Save()
-    {
-        if (checkForm())
-        {
-            // Can't submit until all required fields have been set.
-            // Some of these don't live on the current tab, so don't set
-            // focus.
+function Continue()
+{
+  document.editconnection.op.value="Continue";
+  postForm();
+}
 
-            // Check our part of the form, for save
-            if (editconnection.connname.value == "")
-            {
-                alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.ConnectionMustHaveAName")%>");
-                SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.Name")%>");
-                document.editconnection.connname.focus();
-                return;
-            }
-            if (editconnection.authoritygroup.value == "")
-            {
-                alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.ConnectionMustHaveAGroup")%>");
-                SelectTab("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.Type")%>");
-                document.editconnection.authoritygroup.focus();
-                return;
-            }
-            if (window.checkConfigForSave)
-            {
-                if (!checkConfigForSave())
-                    return;
-            }
-            document.editconnection.op.value="Save";
-            $.ManifoldCF.submit(document.editconnection);
-        }
-    }
+function Cancel()
+{
+  document.editconnection.op.value="Cancel";
+  document.editconnection.submit();
+}
 
-    function Continue()
-    {
-        document.editconnection.op.value="Continue";
-        postForm();
-    }
+function checkForm()
+{
+  if (!checkConnectionCount())
+    return false;
+  if (window.checkConfig)
+    return checkConfig();
+  return true;
+}
 
-    function Cancel()
-    {
-        document.editconnection.op.value="Cancel";
-        $.ManifoldCF.submit(document.editconnection);
-    }
+function checkConnectionCount()
+{
+  if (!isInteger(editconnection.maxconnections.value))
+  {
+    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
+    editconnection.maxconnections.focus();
+    return false;
+  }
+  return true;
+}
 
-    function checkForm()
-    {
-        if (!checkConnectionCount())
-            return false;
-        if (window.checkConfig)
-            return checkConfig();
-        return true;
-    }
+function isRegularExpression(value)
+{
+  try
+  {
+    var foo = "teststring";
+    foo.search(value.replace(/\(\?i\)/,""));
+    return true;
+  }
+  catch (e)
+  {
+    return false;
+  }
 
-    function checkConnectionCount()
-    {
-        if (!isInteger(editconnection.maxconnections.value))
-        {
-            alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"editauthority.TheMaximumNumberOfConnectionsMustBeAValidInteger")%>");
-            editconnection.maxconnections.focus();
-            return false;
-        }
-        return true;
-    }
-    
-    function isRegularExpression(value)
-    {
-        try
-        {
-            var foo = "teststring";
-            foo.search(value.replace(/\(\?i\)/,""));
-            return true;
-        }
-        catch (e)
-        {
-            return false;
-        }
+}
 
-    }
+function isInteger(value)
+{
+  var anum=/(^\d+$)/;
+  return anum.test(value);
+}
 
-    function isInteger(value)
-    {
-        var anum=/(^\d+$)/;
-        return anum.test(value);
-    }
-
-    //-->
-</script>
+  //-->
+  </script>
 <%
   AuthorityConnectorFactory.outputConfigurationHeader(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabsArray);
 %>
 
-<div class="row">
-  <div class="col-md-12">
+</head>
+
+<body class="standardbody">
+
+  <table class="page">
+    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
+    <tr>
+      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
+      <td class="darkwindow">
 <%
   if (set2.length == 0)
   {
 %>
-    <div class="callout callout-warning">
-      <p><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoAuthorityGroupsDefinedCreateOneFirst")%></p>
-    </div>
+        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.EditAuthorityConnection")%></p>
+        <table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoAuthorityGroupsDefinedCreateOneFirst")%></td></tr></table>
 <%
   }
   else if (set.getRowCount() == 0)
   {
 %>
-    <div class="callout callout-warning">
-      <p><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoAuthorityConnectorsRegistered")%></p>
-    </div>
+        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.EditAuthorityConnection")%></p>
+        <table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoAuthorityConnectorsRegistered")%></td></tr></table>
 <%
   }
   else
   {
 %>
-    <div class="box box-primary">
-      <form class="standardform" name="editconnection" action="execute.jsp" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="op" value="Continue"/>
-        <input type="hidden" name="type" value="authority"/>
-        <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
-        <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
-
-        <div class="box-header">
-          <ul class="nav nav-tabs" role="tablist">
+        <form class="standardform" name="editconnection" action="execute.jsp" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="op" value="Continue"/>
+          <input type="hidden" name="type" value="authority"/>
+          <input type="hidden" name="tabname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tabName)%>'/>
+          <input type="hidden" name="isnewconnection" value='<%=(isNew?"true":"false")%>'/>
+          <table class="tabtable">
+            <tr class="tabspacerrow">
+              <td class="spacertab" colspan="<%=tabsArray.size()%>"></td>
+              <td class="remaindertab" rowspan="3">
+<%
+    if (description.length() > 0)
+    {
+%>
+                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.EditAuthority")%> '<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description)%>'</nobr>
+<%
+    }
+    else
+    {
+%>
+                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.EditAnAuthority")%></nobr>
+<%
+    }
+%>
+              </td>
+            </tr>
+            <tr class="tabsequencerow">
+              <td class="blanksequencetab" colspan="<%=tabsArray.size()%>"></td>
+            </tr>
+            <tr class="tabrow">
 <%
     int tabNum = 0;
-    int activeTab = 0;
     while (tabNum < tabsArray.size())
     {
       String tab = (String)tabsArray.get(tabNum++);
       if (tab.equals(tabName))
       {
 %>
-            <li class="active"><a href="#tab_<%=tabNum%>" data-toggle="tab"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></li>
+              <td class="activetab"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></nobr></td>
 <%
       }
       else
       {
 %>
-            <li>
-              <a href="#tab_<%=tabNum%>" data-toggle="tab"
-                 alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.tab")%>'
-                 onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a>
-            </li>
+              <td class="passivetab"><nobr><a href="javascript:void(0);" alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.tab")%>' onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></nobr></td>
 <%
       }
     }
 %>
-          </ul>
-        </div>
-        <div class="box-body">
-          <div class="tab-content">
+            </tr>
+            <tr class="tabbodyrow">
+              <td class="tabbody" colspan='<%=Integer.toString(tabsArray.size()+1)%>'>
+
 <%
 
     // Name tab
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Name")))
     {
 %>
-          <div class="tab-pane active" id="tab_<%=activeTab%>">
-            <div class="form-group">
-              <label><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NameColon")%></label>
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="5"><hr/></td></tr>
+                  <tr>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NameColon")%></nobr></td><td class="value" colspan="4">
 <%
       // If the connection doesn't exist yet, we are allowed to change the name.
       if (isNew)
       {
 %>
-              <input type="text" size="32" name="connname" class="form-control" placeholder="Name..." value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+                      <input type="text" size="32" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
 <%
       }
       else
       {
 %>
-              <input type="text" size="32" class="form-control" disabled value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
-              <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+                      <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(connectionName)%>
+                      <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
 <%
       }
 %>
-            </div>
-            <div class="form-group">
-              <label for="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.DescriptionColon")%> </label>
-              <input type="text" size="50" class="form-control" name="description" id="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
-            </div>
-          </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.DescriptionColon")%></nobr></td><td class="value" colspan="4">
+                      <input type="text" size="50" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
+                    </td>
+                  </tr>
+                </table>
 <%
     }
     else
     {
     // Hiddens for the Name tab
 %>
-          <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
-          <input type="hidden" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
+                <input type="hidden" name="connname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(connectionName)%>'/>
+                <input type="hidden" name="description" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)%>'/>
 <%
     }
 
@@ -369,10 +389,11 @@ try
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Type")))
     {
 %>
-          <div class="tab-pane active" id="tab_<%=activeTab%>">
-            <div class="form-group">
-              <label><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.ConnectionTypeColon")%></label>
-
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="5"><hr/></td></tr>
+                  <tr>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.ConnectionTypeColon")%></nobr></td>
+                    <td class="value" colspan="4">
 <%
       if (className.length() > 0)
       {
@@ -380,24 +401,24 @@ try
         if (value == null)
         {
 %>
-              <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editauthority.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
+                      <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.UNREGISTERED")%> <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(className)%></nobr>
 <%
         }
         else
         {
 %>
-              <input type="text" class="form-control" disabled value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)%>'/>
+                      <%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)%>
 <%
         }
 %>
-              <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
+                      <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
 <%
       }
       else
       {
         int i = 0;
 %>
-              <select name="classname" class="form-control">
+                      <select name="classname" size="1">
 <%
         while (i < set.getRowCount())
         {
@@ -405,19 +426,24 @@ try
           String thisClassName = row.getValue("classname").toString();
           String thisDescription = row.getValue("description").toString();
 %>
-                <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisClassName)%>' <%=className.equals(thisClassName)?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+                        <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisClassName)%>'
+                    <%=className.equals(thisClassName)?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%>
+                        </option>
 <%
         }
 %>
-              </select>
+                      </select>
 <%
       }
 %>
-            </div>
-            <div class="form-group">
-              <label><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorityGroupColon")%></label>
-              <select name="authoritygroup" class="form-control">
-                <option value=""><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.SelectAGroup")%></option>
+                    </td>
+                  </tr>
+                  <tr><td class="separator" colspan="5"><hr/></td></tr>
+                  <tr>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorityGroupColon")%></nobr></td>
+                    <td class="value" colspan="1">
+                      <select name="authoritygroup" size="1">
+                        <option value=""><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.SelectAGroup")%></option>
 <%
       for (int i = 0; i < set2.length; i++)
       {
@@ -427,16 +453,18 @@ try
         if (thisDescription == null || thisDescription.length() == 0)
           thisDescription = thisAuthorityName;
 %>
-                <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisAuthorityName)%>'<%=(groupName.equals(thisAuthorityName))?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+                        <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(thisAuthorityName)%>'
+                    <%=(groupName.equals(thisAuthorityName))?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%>
+                        </option>
 <%
       }
 %>
-              </select>
-            </div>
-            <div class="form-group">
-              <label><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorizationDomainColon")%></label>
-              <select name="authdomain" class="form-control">
-                <option value="" <%=(authDomain == null || authDomain.length() == 0)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.DefaultDomainNone")%></option>
+                      </select>
+                    </td>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.AuthorizationDomainColon")%></nobr></td>
+                    <td class="value" colspan="1">
+                      <select name="authdomain" size="1">
+                        <option value="" <%=(authDomain == null || authDomain.length() == 0)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.DefaultDomainNone")%></option>
 <%
       for (int i = 0; i < domainSet.getRowCount(); i++)
       {
@@ -446,22 +474,25 @@ try
         if (thisDescription == null || thisDescription.length() == 0)
           thisDescription = domainName;
 %>
-                <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domainName)%>'<%=(authDomain!=null && domainName.equals(authDomain))?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%></option>
+                        <option value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(domainName)%>'
+                    <%=(authDomain!=null && domainName.equals(authDomain))?"selected=\"selected\"":""%>><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(thisDescription)%>
+                        </option>
 <%
       }
 %>
-              </select>
-            </div>
-          </div>
+                      </select>
+                    </td>
+                  </tr>
+                </table>
 <%
     }
     else
     {
     // Hiddens for the "Type" tab
 %>
-          <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
-          <input type="hidden" name="authdomain" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authDomain)%>'/>
-          <input type="hidden" name="authoritygroup" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(groupName)%>'/>
+                <input type="hidden" name="classname" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(className)%>'/>
+                <input type="hidden" name="authdomain" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(authDomain)%>'/>
+                <input type="hidden" name="authoritygroup" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(groupName)%>'/>
 <%
     }
 
@@ -469,24 +500,23 @@ try
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Prerequisites")))
     {
 %>
-          <div class="tab-pane active" id="tab_<%=activeTab%>">
-            <div class="form-group">
-              <strong><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.PrerequisiteUserMappingColon")%></strong>
-
-              <div class="radio">
-                <label>
-                  <input type="hidden" name="prerequisites_present" value="true"/>
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="5"><hr/></td></tr>
+                  <tr>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.PrerequisiteUserMappingColon")%></nobr></td>
+                    <td class="value" colspan="4">
+                      <input type="hidden" name="prerequisites_present" value="true"/>
 <%
       if (prereq == null)
       {
 %>
-                  <input type="radio" name="prerequisites" value="" checked="true"/>&nbsp;<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoPrerequisites")%><br/>
+                      <input type="radio" name="prerequisites" value="" checked="true"/>&nbsp;<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoPrerequisites")%><br/>
 <%
       }
       else
       {
 %>
-                  <input type="radio" name="prerequisites" value=""/>&nbsp;<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoPrerequisites")%><br/>
+                      <input type="radio" name="prerequisites" value=""/>&nbsp;<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.NoPrerequisites")%><br/>
 <%
       }
 
@@ -499,33 +529,32 @@ try
         if (prereq != null && prereq.equals(mappingName))
         {
 %>
-                  <input type="radio" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>' checked="true"/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
+                      <input type="radio" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>' checked="true"/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
 <%
         }
         else
         {
 %>
-                  <input type="radio" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>'/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
+                      <input type="radio" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(mappingName)%>'/>&nbsp;<%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(mappingDescription)%><br/>
 <%
         }
       }
 %>
-                </label>
-              </div>
-            </div>
-          </div>
+                    </td>
+                  </tr>
+                </table>
 <%
     }
     else
     {
-    // Hiddens for Prerequisites tab
+      // Hiddens for Prerequisites tab
 %>
-          <input type="hidden" name="prerequisites_present" value="true"/>
+                <input type="hidden" name="prerequisites_present" value="true"/>
 <%
       if (prereq != null)
       {
 %>
-          <input type="hidden" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(prereq)%>'/>
+                <input type="hidden" name="prerequisites" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(prereq)%>'/>
 <%
       }
     }
@@ -534,36 +563,36 @@ try
     if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Throttling")))
     {
 %>
-          <div class="tab-pane active" id="tab_<%=activeTab%>">
-            <div class="form-group">
-              <label><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.MaxConnectionsColon")%></label>
-              <input type="text" size="6" name="maxconnections" class="form-control" value='<%=Integer.toString(maxConnections)%>'/>
-            </div>
-          </div>
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="5"><hr/></td></tr>
+                  <tr>
+                    <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editauthority.MaxConnectionsColon")%></nobr></td>
+                    <td class="value" colspan="4"><input type="text" size="6" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/></td>
+                  </tr>
+                </table>
 <%
     }
     else
     {
     // Hiddens for "Throttling" tab
 %>
-          <input type="hidden" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/>
+                <input type="hidden" name="maxconnections" value='<%=Integer.toString(maxConnections)%>'/>
 <%
     }
 
     if (className.length() > 0)
       AuthorityConnectorFactory.outputConfigurationBody(threadContext,className,new org.apache.manifoldcf.ui.jsp.JspWrapper(out,adminprofile),pageContext.getRequest().getLocale(),parameters,tabName);
 %>
-          </div>
-        </div>
-
-        <div class="box-footer clearfix">
-          <div class="btn-group">
+                <table class="displaytable">
+                  <tr><td class="separator" colspan="4"><hr/></td></tr>
+                  <tr>
+                    <td class="message" colspan="4">
+                      <nobr>
 <%
     if (className.length() > 0)
     {
 %>
-            <a class="btn btn-primary" onClick="javascript:Save()"
-                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.SaveThisAuthorityConnection")%>" data-toggle="tooltip"><i class="fa fa-save fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.Save")%></a>
+                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.Save")%>" onClick="javascript:Save()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.SaveThisAuthorityConnection")%>"/>
 <%
     }
     else
@@ -571,21 +600,32 @@ try
       if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editauthority.Type")))
       {
 %>
-            <a class="btn btn-primary" onClick="javascript:Continue()"
-                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.ContinueToNextPage")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.Continue")%></a>
+                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.ContinueToNextPage")%>"/>
 <%
       }
     }
 %>
-            <a class="btn btn-primary" onClick="javascript:Cancel()"
-                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.CancelAuthorityEditing")%>" data-toggle="tooltip"><i class="fa fa-times-circle-o fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.Cancel")%></a>
-
-
-          </div>
-        </div>
-      </form>
+                        <input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.Cancel")%>" onClick="javascript:Cancel()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"editauthority.CancelAuthorityEditing")%>"/>
+                      </nobr>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </form>
 <%
   }
+%>
+      </td>
+    </tr>
+  </table>
+
+</body>
+
+</html>
+
+<%
 }
 catch (ManifoldCFException e)
 {
@@ -597,6 +637,4 @@ catch (ManifoldCFException e)
 <%
 }
 %>
-    </div>
-  </div>
-</div>
+

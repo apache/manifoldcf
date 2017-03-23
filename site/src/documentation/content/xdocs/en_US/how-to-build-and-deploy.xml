@@ -1226,49 +1226,6 @@ mvn exec:exec
     </section>
 
     <section>
-      <title>Running ManifoldCF tests</title>
-      <p></p>
-      <p>ManifoldCF has a large suite of tests which helps verify the integrity of a ManifoldCF release.  These tests come in several varieties:</p>
-      <p></p>
-      <ul>
-        <li>Unit tests, which test specific classes</li>
-        <li>Integration tests, which test connectors running in the MCF environment</li>
-        <li>Load tests, which are designed to run connectors under load over a long period of time</li>
-        <li>UI tests, which are like integration tests but are meant to exercise the UI</li>
-      </ul>
-      <p>There are no special considerations for unit tests.  These are executed across the whole project by the main ant target "run-tests".</p>
-      <p>Integration tests have a second dimension of variety, namely which database the test is meant to run on.  The testing databases are:</p>
-      <p></p>
-      <ul>
-        <li>HSQLDB (an embedded database)</li>
-        <li>HSQLDBext (running against HSQLDB as an external service)</li>
-        <li>PostgreSQL (requires a local installation of PostgreSQL to run against)</li>
-        <li>MySQL (requires a local installation of MySQL to run against)</li>
-      </ul>
-      <p>For both the PostgreSQL and Mysql tests, the databases that are installed locally must have a specific superuser and password set when they are installed, so that the
-         tests can create a test database instance and tear it down again.  The superuser name and password for PostgreSQL should be "postgres"/"postgres".  The superuser name
-         and password for MySQL should be "root"/"mysql".</p>
-      <p>Once set up, you can run the tests you want against the database you want by invoking the ant targets as follows:</p>
-      <table>
-        <caption>Databases and ant targets</caption>
-        <tr><th>Database</th><th>ant targets</th></tr>
-        <tr><td>HSQLDB, HSQLDBext</td><td>test-hs, load-hs</td></tr>
-        <tr><td>PostgreSQL</td><td>test-pg, load-pg</td></tr>
-        <tr><td>MySQL</td><td>test-my, load-my</td></tr>
-      </table>
-      <p></p>
-      <p>Running the UI tests requires some additional software installation and configuration as well.  This is what you will need:</p>
-      <p></p>
-      <ul>
-        <li>Install the Google Chrome browser on your testing machine</li>
-        <li>Download the appropriate Selenium Chrome driver from this <a href="https://chromedriver.storage.googleapis.com/index.html?path=2.28/">URL</a></li>
-        <li>Unpack the driver executable and place it in the location of your choice</li>
-        <li>Set the environment variable <em>SL_CHROME_DRIVER</em> to point to the executable</li>
-      </ul>
-      <p>After this, you should be able to run the UI tests using the ant target "uitests".  (This executes only the HSQLDB UI tests at this time.)</p>
-    </section>
-    
-    <section>
       <title>Integrating ManifoldCF into another application</title>
       <p></p>
       <p>ManifoldCF can be integrated into another application through a variety of methods.  We'll cover these below.</p>

@@ -39,6 +39,7 @@
             <include name="hadoop-annotations*.jar"/>
             <include name="hadoop-auth*.jar"/>
             <include name="hadoop-hdfs*.jar"/>
+            <include name="guava*.jar"/>
             <include name="htrace-core*.jar"/>
             <include name="protobuf-java*.jar"/>
         </fileset>
@@ -54,6 +55,7 @@
                 <include name="hadoop-annotations*.jar"/>
                 <include name="hadoop-auth*.jar"/>
                 <include name="hadoop-hdfs*.jar"/>
+                <include name="guava*.jar"/>
                 <include name="htrace-core*.jar"/>
                 <include name="protobuf-java*.jar"/>
             </fileset>

@@ -27,12 +27,12 @@ import java.io.*;
 import java.util.*;
 import org.junit.*;
 
-import org.apache.manifoldcf.core.tests.SeleniumTester;
+import org.apache.manifoldcf.core.tests.HTMLTester;
 
 /** Tests that run the "agents daemon" should be derived from this */
 public class ConnectorBaseUIHSQLDB extends BaseITHSQLDB
 {
-  protected SeleniumTester testerInstance = null;
+  protected HTMLTester testerInstance = null;
   
   public ConnectorBaseUIHSQLDB()
   {
@@ -48,7 +48,7 @@ public class ConnectorBaseUIHSQLDB extends BaseITHSQLDB
   public void setupHTMLTester()
     throws Exception
   {
-    testerInstance = new SeleniumTester();
+    testerInstance = new HTMLTester();
     testerInstance.setup();
   }
   
