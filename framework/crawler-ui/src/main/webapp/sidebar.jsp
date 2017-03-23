@@ -27,20 +27,20 @@
     <li class="header">MAIN NAVIGATION</li>
     <li class="outputs treeview">
       <a href="#">
-        <i class="glyphicon glyphicon-export"></i>
+        <i class="fa fa-outdent" aria-hidden="true"></i>
         <span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Outputs")%></span>
         <i class="fa fa-angle-left pull-right"></i>
       </a>
       <ul class="treeview-menu">
         <li>
           <a class="link" href="listtransformations.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listtransformationconnections")%>">
-            <i class="glyphicon glyphicon-list"></i>
+            <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListTransformationConnections")%>
           </a>
         </li>
         <li>
           <a class="link" href="listoutputs.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listoutputconnections")%>">
-            <i class="glyphicon glyphicon-list"></i>
+            <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListOutputConnections")%>
           </a>
         </li>
@@ -48,26 +48,26 @@
     </li>
     <li class="authorities treeview">
       <a href="#">
-        <i class="glyphicon glyphicon-user"></i>
+        <i class="fa fa-user" aria-hidden="true"></i>
         <span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Authorities")%></span>
         <i class="fa fa-angle-left pull-right"></i>
       </a>
       <ul class="treeview-menu">
         <li>
           <a class="link" href="listgroups.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listauthoritygroups")%>">
-            <i class="glyphicon glyphicon-list"></i>
+            <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListAuthorityGroups")%>
           </a>
         </li>
         <li>
           <a class="link" href="listmappers.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listusermappings")%>">
-            <i class="glyphicon glyphicon-list"></i>
+            <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListUserMappings")%>
           </a>
         </li>
         <li>
           <a class="link" href="listauthorities.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listauthorities")%>">
-            <i class="glyphicon glyphicon-list"></i>
+            <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListAuthorityConnections")%>
           </a>
         </li>
@@ -75,20 +75,20 @@
     </li>
     <li class="repositories treeview">
       <a href="#">
-        <i class="glyphicon glyphicon-import"></i>
+        <i class="fa fa-download" aria-hidden="true"></i>
         <span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Repositories")%></span>
         <i class="fa fa-angle-left pull-right"></i>
       </a>
       <ul class="treeview-menu">
         <li>
           <a class="link" href="listconnections.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listrepositoryconnections")%>">
-            <i class="glyphicon glyphicon-list"></i>
+            <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListRepositoryConnections")%>
           </a>
         </li>
         <li>
           <a class="link" href="listnotifications.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listnotificationconnections")%>">
-            <i class="glyphicon glyphicon-list"></i>
+            <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListNotificationConnections")%>
           </a>
         </li>
@@ -103,13 +103,13 @@
       <ul class="treeview-menu">
         <li>
           <a class="link" href="listjobs.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listjobs")%>">
-            <i class="glyphicon glyphicon-list"></i> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListAllJobs")%>
+            <i class="fa fa-list" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListAllJobs")%>
           </a>
         </li>
         <li>
           <a class="link" href="showjobstatus.jsp"
                   alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Managejobs")%>">
-            <i class="glyphicon glyphicon-list"></i> <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.StatusAndJobManagement")%>
+            <i class="fa fa-list" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.StatusAndJobManagement")%>
           </a>
         </li>
       </ul>
@@ -130,7 +130,7 @@
         <li>
           <a class="link" href="queuestatus.jsp"
                   alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Queuestatus")%>">
-            <i class="glyphicon glyphicon-list"></i>
+            <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.QueueStatus")%>
           </a>
         </li>
@@ -171,7 +171,7 @@
     </li>
     <li class="miscellaneous treeview">
       <a href="#">
-        <i class="glyphicon glyphicon-info-sign"></i>
+        <i class="fa fa-info" aria-hidden="true"></i>
         <span><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.Miscellaneous")%></span>
         <i class="fa fa-angle-left pull-right"></i>
       </a>
@@ -182,7 +182,7 @@
         </li>
         <li>
           <a href="logout.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.LogOut")%>">
-            <i class="glyphicon glyphicon-log-out"></i>
+            <i class="fa fa-sign-out" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.LogOut")%>
           </a>
         </li>
