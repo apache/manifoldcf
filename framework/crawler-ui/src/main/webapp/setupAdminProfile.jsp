@@ -1,3 +1,4 @@
+<%@ page import="org.apache.manifoldcf.core.util.URLDecoder" %>
 <% response.setHeader("Pragma","No-cache");
 response.setDateHeader("Expires",0);
 response.setHeader("Cache-Control", "no-cache");
@@ -36,7 +37,17 @@ if (password == null)
 
 adminprofile.login(threadContext,userID,password);
 if (adminprofile.getLoggedOn())
-  response.sendRedirect("index.jsp");
+{
+  String nextUri = request.getParameter("nextUrl");
+  if (nextUri == null)
+  {
+    response.sendRedirect("index.jsp");
+  }
+  else
+  {
+    response.sendRedirect(URLDecoder.decode(nextUri));
+  }
+}
 else
 {
   // Go back to login page, but with signal that login failed

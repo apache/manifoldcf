@@ -70,6 +70,7 @@
     <property name="chemistry.version" value="0.11.0"/>
     <property name="glassfish.version" value="2.1.v20091210"/>
     <property name="junit.version" value="4.12"/>
+    <property name="selenium.version" value="3.3.1"/>
     <property name="hamcrest.version" value="1.3"/>
     <property name="log4j.version" value="1.2.16"/>
     <property name="mail.version" value="1.4.5"/>
@@ -97,8 +98,8 @@
     <property name="jetty-jsp-jdt.version" value="2.3.3"/>
     <property name="jetty-schemas.version" value="3.1.M0"/>
     <property name="alfresco-indexer.version" value="0.8.1"/>
-    <property name="gson.version" value="2.2.4"/>
-    <property name="guava.version" value="18.0"/>
+    <property name="gson.version" value="2.8.0"/>
+    <property name="guava.version" value="21.0"/>
     <property name="mockito.version" value="1.9.5"/>
     <property name="wiremock.version" value="2.5.1"/>
     <property name="objenesis.version" value="2.1"/>
@@ -120,6 +121,7 @@
     <property name="juniversalchardet.version" value="1.0.3"/>
     <property name="ucar.version" value="4.5.5"/>
     <property name="jna.version" value="4.1.0"/>
+    <property name="cglib.version" value="3.2.4"/>
     <property name="jcommander.version" value="1.35"/>
     <property name="protobuf.version" value="2.5.0"/>
     <property name="jcip-annotations.version" value="1.0"/>
@@ -246,7 +248,7 @@
       <echo message="Site did not build.  Was FORREST_HOME set properly?"/>
     </target>
     
-    <target name="setup-framework" depends="downloaded-check" if="downloaded"/>
+    <target name="setup-framework" depends="set-version,downloaded-check" if="downloaded"/>
       
       <target name="build-framework" depends="setup-framework" if="downloaded">
         <ant dir="framework" target="build"/>
@@ -874,15 +876,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
-    <target name="download-alfresco-indexer-client" depends="download-guava">
+    <target name="download-gson">
         <mkdir dir="lib"/>
-        <antcall target="download-via-maven">
-            <param name="project-path" value="com/github/maoo/indexer"/>
-            <param name="artifact-version" value="${alfresco-indexer.version}"/>
-            <param name="target" value="lib"/>
-            <param name="artifact-name" value="alfresco-indexer-client"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
         <antcall target="download-via-maven">
             <param name="project-path" value="com/google/code/gson"/>
             <param name="artifact-version" value="${gson.version}"/>
@@ -891,6 +886,17 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
+    
+    <target name="download-alfresco-indexer-client" depends="download-guava,download-gson">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="com/github/maoo/indexer"/>
+            <param name="artifact-version" value="${alfresco-indexer.version}"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="alfresco-indexer-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+      </target>
 
     <target name="download-mongo-java-driver">
         <mkdir dir="lib"/>
@@ -1539,7 +1545,77 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
-    
+
+    <target name="download-selenium" depends="download-gson,download-guava,download-commons-exec">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-java"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-chrome-driver"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-remote-driver"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-edge-driver"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-firefox-driver"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-ie-driver"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-opera-driver"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-safari-driver"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-support"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="cglib"/>
+            <param name="artifact-version" value="${cglib.version}"/>
+            <param name="artifact-name" value="cglib-nodep"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
     <target name="download-mockito">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -1966,12 +2042,18 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
-    <target name="download-guava">
+    <target name="download-guava" depends="download-jna">
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/guava"/>
             <param name="artifact-version" value="${guava.version}"/>
             <param name="artifact-name" value="guava"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="net/java/dev/jna"/>
+            <param name="artifact-version" value="${jna.version}"/>
+            <param name="artifact-name" value="jna-platform"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -2005,8 +2087,27 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
-    
-    <target name="download-tika">
+    <target name="download-commons-exec">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/commons"/>
+            <param name="artifact-name" value="commons-exec"/>
+            <param name="artifact-version" value="${commons-exec.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-jna">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="net/java/dev/jna"/>
+            <param name="artifact-name" value="jna"/>
+            <param name="artifact-version" value="${jna.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-tika" depends="download-commons-exec,download-jna">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/tika"/>
@@ -2171,12 +2272,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/apache/commons"/>
-            <param name="artifact-name" value="commons-exec"/>
-            <param name="artifact-version" value="${commons-exec.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="edu/ucar"/>
             <param name="artifact-name" value="netcdf4"/>
             <param name="artifact-version" value="${ucar.version}"/>
@@ -2204,12 +2299,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="edu/ucar"/>
             <param name="artifact-name" value="udunits"/>
             <param name="artifact-version" value="${ucar.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="net/java/dev/jna"/>
-            <param name="artifact-name" value="jna"/>
-            <param name="artifact-version" value="${jna.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -2523,7 +2612,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
-    <target name="make-core-deps" depends="download-forbidden-checks,download-kafka-client,download-joda-time,download-aws-sdk,download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
+    <target name="make-core-deps" depends="download-forbidden-checks,download-selenium,download-kafka-client,download-joda-time,download-aws-sdk,download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-json,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>

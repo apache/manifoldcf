@@ -1,2 +1,10 @@
 /.settings/
 /.project
+/.idea/
+
+*.iml
+/build/
+/lib/
+/dist/
+lib-proprietary/*.jar
+site/fonts/

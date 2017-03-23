@@ -228,127 +228,112 @@ try
 
 %>
 
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html>
-<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
-  <title>
-    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.ApacheManifoldCFSimpleHistoryReport")%>
-  </title>
-
-  <script type="text/javascript">
+<script type="text/javascript">
   <!--
 
-function Go()
-{
-  if (!isInteger(report.rowcount.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.EnterALegalNumberForRowsPerPage")%>");
-    report.rowcount.focus();
-    return;
-  }
-  if (!isRegularExpression(report.reportentitymatch.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.EntityMatchMustBeAValidRegularExpression")%>");
-    report.reportentitymatch.focus();
-    return;
-  }
-  if (!isRegularExpression(report.reportresultcodematch.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.ResultCodeMatchMustBeAValidRegularExpression")%>");
-    report.reportresultcodematch.focus();
-    return;
-  }
+  $.ManifoldCF.setTitle(
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "simplereport.ApacheManifoldCFSimpleHistoryReport")%>',
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "simplereport.SimpleHistoryReport")%>',
+      'historyreports'
+  );
 
-  document.report.op.value="Report";
-  document.report.action = document.report.action + "#MainButton";
-  document.report.submit();
-}
-
-function Continue()
-{
-  if (!isRegularExpression(report.reportentitymatch.value))
+  function Go()
   {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.EntityMatchMustBeAValidRegularExpression")%>");
-    report.reportentitymatch.focus();
-    return;
-  }
-  if (!isRegularExpression(report.reportresultcodematch.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.ResultCodeMatchMustBeAValidRegularExpression")%>");
-    report.reportresultcodematch.focus();
-    return;
-  }
-  document.report.op.value="Continue";
-  document.report.action = document.report.action + "#MainButton";
-  document.report.submit();
-}
+    if (!isInteger(report.rowcount.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.EnterALegalNumberForRowsPerPage")%>");
+      report.rowcount.focus();
+      return;
+    }
+    if (!isRegularExpression(report.reportentitymatch.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.EntityMatchMustBeAValidRegularExpression")%>");
+      report.reportentitymatch.focus();
+      return;
+    }
+    if (!isRegularExpression(report.reportresultcodematch.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.ResultCodeMatchMustBeAValidRegularExpression")%>");
+      report.reportresultcodematch.focus();
+      return;
+    }
 
-function ColumnClick(colname)
-{
-  document.report.clickcolumn.value = colname;
-  Go();
-}
-
-function SetPosition(amt)
-{
-  if (amt < 0)
-    amt = 0;
-  document.report.startrow.value = amt;
-  Go();
-}
-
-function isRegularExpression(value)
-{
-  try
-  {
-    var foo = "teststring";
-    foo.search(value.replace(/\(\?i\)/,""));
-    return true;
-  }
-  catch (e)
-  {
-    return false;
+    document.report.op.value="Report";
+    document.report.action=document.report.action + "#MainButton";
+    $.ManifoldCF.submit(document.report);
   }
 
-}
+  function Continue()
+  {
+    if (!isRegularExpression(report.reportentitymatch.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.EntityMatchMustBeAValidRegularExpression")%>");
+      report.reportentitymatch.focus();
+      return;
+    }
+    if (!isRegularExpression(report.reportresultcodematch.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"simplereport.ResultCodeMatchMustBeAValidRegularExpression")%>");
+      report.reportresultcodematch.focus();
+      return;
+    }
+    document.report.op.value="Continue";
+    document.report.action=document.report.action + "#MainButton";
+    $.ManifoldCF.submit(document.report);
+  }
 
-function isInteger(value)
-{
-  var anum=/(^\d+$)/;
-  return anum.test(value);
-}
+  function ColumnClick(colname)
+  {
+    document.report.clickcolumn.value=colname;
+    Go();
+  }
+
+  function SetPosition(amt)
+  {
+    if (amt < 0)
+      amt=0;
+    document.report.startrow.value=amt;
+    Go();
+  }
+
+  function isRegularExpression(value)
+  {
+    try
+    {
+      var foo="teststring";
+      foo.search(value.replace(/\(\?i\)/,""));
+      return true;
+    }
+    catch (e)
+    {
+      return false;
+    }
+
+  }
+
+  function isInteger(value)
+  {
+    var anum=/(^\d+$)/;
+    return anum.test(value);
+  }
 
   //-->
-  </script>
+</script>
 
+<div class="row">
+  <div class="col-md-12">
+    <form class="standardform" name="report" action="execute.jsp" method="POST">
+      <input type="hidden" name="op" value="Continue"/>
+      <input type="hidden" name="type" value="simplereport"/>
 
-</head>
-
-<body class="standardbody">
-
-  <table class="page">
-    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-    <tr>
-      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
-      <td class="window">
-        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.SimpleHistoryReport")%></p>
-
-        <form class="standardform" name="report" action="execute.jsp" method="POST">
-          <input type="hidden" name="op" value="Continue"/>
-          <input type="hidden" name="type" value="simplereport"/>
-          <table class="displaytable">
+      <div class="box box-primary">
+        <div class="box-body">
+          <table class="table table-bordered">
             <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-            <tr>
-              <td class="description" colspan="1"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Connection")%></td><td class="value" colspan="1">
-                <select name="reportconnection" size="3">
-                  <option <%=(reportConnection.length()==0)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%> --</option>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Connection")%></th>
+              <td colspan="1">
+                <select name="reportconnection" class="form-control">
+                  <option <%=(reportConnection.length() == 0)?"selected=\"selected\"":""%>value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%>--</option>
 <%
   int i = 0;
   while (i < connList.length)
@@ -369,9 +354,11 @@ function isInteger(value)
   if (reportConnection.length() > 0)
   {
 %>
-              <td class="description" colspan="1"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Activities")%></td><td class="value" colspan="1">
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Activities")%></th>
+              <td colspan="1">
                 <input type="hidden" name="reportactivities_posted" value="true"/>
-                <select multiple="true" name="reportactivities" size="3">
+
+                <select multiple="true" class="selectpicker" name="reportactivities">
 <%
     i = 0;
     while (i < activityList.length)
@@ -389,20 +376,18 @@ function isInteger(value)
   else
   {
 %>
-              <td class="value" colspan="2"></td>
+              <td colspan="2"></td>
 <%
   }
 %>
 
             </tr>
             <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-            <tr>
-              <td class="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.StartTime")%></td>
-              <td class="value" colspan="3">
-                <select class="schedulepulldown" name='reportstarthour' size="3">
-                  <option value="" <%=(startHour.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%> --</option>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.StartTime")%></th>
+              <td colspan="3">
+                <div class="input-group">
+                  <select class="schedulepulldown" name='reportstarthour'>
+                    <option value="" <%=(startHour.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%>--</option>
 <%
   k = 0;
   while (k < 24)
@@ -420,43 +405,45 @@ function isInteger(value)
     if (q == 0)
       q = 12;
 %>
-                  <option value='<%=k%>' <%=(startHour.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(q)+" "+ampm%></option>
-<%						
+                    <option value='<%=k%>' <%=(startHour.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(q)+" "+ampm%></option>
+<%
     k++;
   }
 %>
-                </select>
-                <nobr/>:<nobr/>
-                <select class="schedulepulldown" name='reportstartminute' size="3">
-                  <option value="" <%=(startMinute.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%> --</option>
+                  </select>
+                  <span class="label">:</span>
+                  <select class="schedulepulldown" name='reportstartminute'>
+                    <option value="" <%=(startMinute.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%>--</option>
 <%
   k = 0;
   while (k < 60)
   {
 %>
-                  <option value='<%=k%>' <%=(startMinute.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k)%></option>
+                    <option value='<%=k%>' <%=(startMinute.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k)%></option>
 <%
     k++;
   }
 %>
-                </select><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.on")%>
-                <select class="schedulepulldown" name='reportstartmonth' size="3">
-                  <option value="" <%=(startMonth.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%> --</option>
-                  <option value="0" <%=(startMonth.equals("0"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.January")%></option>
-                  <option value="1" <%=(startMonth.equals("1"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.February")%></option>
-                  <option value="2" <%=(startMonth.equals("2"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.March")%></option>
-                  <option value="3" <%=(startMonth.equals("3"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.April")%></option>
-                  <option value="4" <%=(startMonth.equals("4"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.May")%></option>
-                  <option value="5" <%=(startMonth.equals("5"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.June")%></option>
-                  <option value="6" <%=(startMonth.equals("6"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.July")%></option>
-                  <option value="7" <%=(startMonth.equals("7"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.August")%></option>
-                  <option value="8" <%=(startMonth.equals("8"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.September")%></option>
-                  <option value="9" <%=(startMonth.equals("9"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.October")%></option>
-                  <option value="10" <%=(startMonth.equals("10"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.November")%></option>
-                  <option value="11" <%=(startMonth.equals("11"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.December")%></option>
-                </select><nobr/>
-                <select class="schedulepulldown" name='reportstartday' size="3">
-                  <option value="" <%=(startDay.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%> --</option>
+                  </select>
+                  <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.on")%></span>
+                  <select class="schedulepulldown" name='reportstartmonth'>
+                    <option value="" <%=(startMonth.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%>--</option>
+                    <option value="0" <%=(startMonth.equals("0"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.January")%></option>
+                    <option value="1" <%=(startMonth.equals("1"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.February")%></option>
+                    <option value="2" <%=(startMonth.equals("2"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.March")%></option>
+                    <option value="3" <%=(startMonth.equals("3"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.April")%></option>
+                    <option value="4" <%=(startMonth.equals("4"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.May")%></option>
+                    <option value="5" <%=(startMonth.equals("5"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.June")%></option>
+                    <option value="6" <%=(startMonth.equals("6"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.July")%></option>
+                    <option value="7" <%=(startMonth.equals("7"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.August")%></option>
+                    <option value="8" <%=(startMonth.equals("8"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.September")%></option>
+                    <option value="9" <%=(startMonth.equals("9"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.October")%></option>
+                    <option value="10" <%=(startMonth.equals("10"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.November")%></option>
+                    <option value="11" <%=(startMonth.equals("11"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.December")%></option>
+                  </select>
+                  <span class="label">-</span>
+                  <select class="schedulepulldown" name='reportstartday'>
+                    <option value="" <%=(startDay.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%>--</option>
 <%
   k = 0;
   while (k < 31)
@@ -472,26 +459,34 @@ function isInteger(value)
     else
       suffix = "th";
 %>
-                  <option value='<%=Integer.toString(k)%>' <%=(startDay.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix%></option>
+                    <option value='<%=Integer.toString(k)%>' <%=(startDay.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix%></option>
 <%
     k++;
   }
 %>
-                </select><nobr/>,<nobr/>
-                <select class="schedulepulldown" name='reportstartyear' size="3">
-                  <option value="" <%=(startYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%> --</option>
-                  <% for(int year=2005; year <= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); year++) {
-                      String selected = (startYear.equals(""+year))?"selected=\"selected\"":""; %>
-                  <option value="<%= year %>" <%= selected %>><%= year %></option>
-                  <% } %>
-                </select>
+                  </select>
+                  <span class="label">,</span>
+                  <select class="schedulepulldown" name='reportstartyear'>
+                    <option value="" <%=(startYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%>--</option>
+<% 
+  for(int year=2005; year <= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); year++)
+  {
+    String selected = (startYear.equals(""+year))?"selected=\"selected\"":"";
+%>
+                    <option value="<%= year %>" <%= selected %>><%= year %></option>
+<%
+  }
+%>
+                  </select>
+                </div>
               </td>
             </tr>
             <tr>
-              <td class="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.EndTime")%></td>
-              <td class="value" colspan="3">
-                <select class="schedulepulldown" name='reportendhour' size="3">
-                  <option value="" <%=(endHour.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%> --</option>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.EndTime")%></th>
+              <td colspan="3">
+                <div class="input-group">
+                  <select class="schedulepulldown" name='reportendhour'>
+                    <option value="" <%=(endHour.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%>--</option>
 <%
   k = 0;
   while (k < 24)
@@ -509,42 +504,45 @@ function isInteger(value)
     if (q == 0)
       q = 12;
 %>
-                  <option value='<%=k%>' <%=(endHour.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(q)+" "+ampm%></option>
-<%						
+                    <option value='<%=k%>' <%=(endHour.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(q)+" "+ampm%></option>
+<%
     k++;
   }
 %>
-                </select><nobr/>:<nobr/>
-                <select class="schedulepulldown" name='reportendminute' size="3">
-                  <option value="" <%=(endMinute.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%> --</option>
+                  </select>
+                  <span class="label">:</span>
+                  <select class="schedulepulldown" name='reportendminute'>
+                    <option value="" <%=(endMinute.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%>--</option>
 <%
   k = 0;
   while (k < 60)
   {
 %>
-                  <option value='<%=k%>' <%=(endMinute.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k)%></option>
+                    <option value='<%=k%>' <%=(endMinute.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k)%></option>
 <%
     k++;
   }
 %>
-                </select><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.on")%>
-                <select class="schedulepulldown" name='reportendmonth' size="3">
-                  <option value="" <%=(endMonth.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%> --</option>
-                  <option value="0" <%=(endMonth.equals("0"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.January")%></option>
-                  <option value="1" <%=(endMonth.equals("1"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.February")%></option>
-                  <option value="2" <%=(endMonth.equals("2"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.March")%></option>
-                  <option value="3" <%=(endMonth.equals("3"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.April")%></option>
-                  <option value="4" <%=(endMonth.equals("4"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.May")%></option>
-                  <option value="5" <%=(endMonth.equals("5"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.June")%></option>
-                  <option value="6" <%=(endMonth.equals("6"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.July")%></option>
-                  <option value="7" <%=(endMonth.equals("7"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.August")%></option>
-                  <option value="8" <%=(endMonth.equals("8"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.September")%></option>
-                  <option value="9" <%=(endMonth.equals("9"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.October")%></option>
-                  <option value="10" <%=(endMonth.equals("10"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.November")%></option>
-                  <option value="11" <%=(endMonth.equals("11"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.December")%></option>
-                </select><nobr/>
-                <select class="schedulepulldown" name='reportendday' size="3">
-                  <option value="" <%=(endDay.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%> --</option>
+                  </select>
+                  <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.on")%></span>
+                  <select class="schedulepulldown" name='reportendmonth'>
+                    <option value="" <%=(endMonth.length() == 0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%>--</option> 
+                    <option value="0" <%=(endMonth.equals("0"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.January")%></option>
+                    <option value="1" <%=(endMonth.equals("1"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.February")%></option>
+                    <option value="2" <%=(endMonth.equals("2"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.March")%></option>
+                    <option value="3" <%=(endMonth.equals("3"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.April")%></option>
+                    <option value="4" <%=(endMonth.equals("4"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.May")%></option>
+                    <option value="5" <%=(endMonth.equals("5"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.June")%></option>
+                    <option value="6" <%=(endMonth.equals("6"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.July")%></option>
+                    <option value="7" <%=(endMonth.equals("7"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.August")%></option>
+                    <option value="8" <%=(endMonth.equals("8"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.September")%></option>
+                    <option value="9" <%=(endMonth.equals("9"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.October")%></option>
+                    <option value="10" <%=(endMonth.equals("10"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.November")%></option>
+                    <option value="11" <%=(endMonth.equals("11"))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.December")%></option>
+                  </select>
+                  <span class="label">-</span>
+                  <select class="schedulepulldown" name='reportendday'>
+                    <option value="" <%=(endDay.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%>--</option>
 <%
   k = 0;
   while (k < 31)
@@ -560,53 +558,58 @@ function isInteger(value)
     else
       suffix = "th";
 %>
-                  <option value='<%=Integer.toString(k)%>' <%=(endDay.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix%></option>
+                    <option value='<%=Integer.toString(k)%>' <%=(endDay.equals(Integer.toString(k)))?"selected=\"selected\"":""%>><%=Integer.toString(k+1)+suffix%></option>
 <%
     k++;
   }
 %>
-                </select><nobr/>,<nobr/>
-                <select class="schedulepulldown" name='reportendyear' size="3">
-                  <option value="" <%=(endYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%> --</option>
-                  <% for(int year=2005; year <= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); year++) {
-                      String selected = (endYear.equals(""+year))?"selected=\"selected\"":""; %>
-                  <option value="<%= year %>" <%= selected %>><%= year %></option>
-                  <% } %>
-                </select>
+                  </select>
+                  <span class="label">,</span>
+                  <select class="schedulepulldown" name='reportendyear'>
+                    <option value="" <%=(endYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%>--</option>
+<%
+  for(int year=2005; year <= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); year++)
+  {
+    String selected = (endYear.equals(""+year))?"selected=\"selected\"":"";
+%>
+                    <option value="<%= year %>" <%= selected %>><%= year %></option>
+<%
+  }
+%>
+                  </select>
+                </div>
               </td>
             </tr>
             <tr>
-              <td class="separator" colspan="4"><hr/></td>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.EntityMatch")%></nobr></th>
+              <th><input type="text" name="reportentitymatch" class="form-control" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(entityMatch)%>'/></th>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.ResultCodeMatch")%></nobr></th>
+              <td><input type="text" class="form-control" name="reportresultcodematch" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(resultCodeMatch)%>'/></td>
             </tr>
-            <tr>
-              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.EntityMatch")%></nobr></td>
-              <td class="value"><input type="text" name="reportentitymatch" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(entityMatch)%>'/></td>
-              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.ResultCodeMatch")%></nobr></td>
-              <td class="value"><input type="text" name="reportresultcodematch" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(resultCodeMatch)%>'/></td>
-            </tr>
-            <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-              <td class="message" colspan="4">
+          </table>
+        </div>
+        <div class="box-footer clearfix">
+          <div class="btn-group">
+
 <%
   if (reportConnection.length() > 0)
   {
 %>
-                <a name="MainButton"><input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.Go")%>" onClick="javascript:Go()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.ExecuteThisQuery")%>"/></a>
+            <a name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Go()"
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.ExecuteThisQuery")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.Go")%></a>
 <%
   }
   else
   {
 %>
-                <a name="MainButton"><input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.Continue")%>"/></a>
+            <a name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Continue()" 
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.Continue")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.Continue")%></a>
 <%
   }
 %>
-              </td>
-            <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-          </table>
+          </div>
+        </div>
+      </div>
 <%
   if (reportConnection.length() > 0)
   {
@@ -656,121 +659,127 @@ function isInteger(value)
     IResultSet set = connMgr.genHistorySimple(reportConnection,criteria,sortOrder,startRow,rowCount+1);
 
 %>
-          <input type="hidden" name="clickcolumn" value=""/>
-          <input type="hidden" name="startrow" value='<%=Integer.toString(startRow)%>'/>
-          <input type="hidden" name="sortorder" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
+      <input type="hidden" name="clickcolumn" value=""/>
+      <input type="hidden" name="startrow" value='<%=Integer.toString(startRow)%>'/>
+      <input type="hidden" name="sortorder" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
 
-          <table class="displaytable">
-            <tr class="headerrow">
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("starttime");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.StartTime")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("activity");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Activity")%></nobr></a></td>
-              <td class="reportcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Identifier")%></nobr></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("resultcode");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.ResultCode")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("bytes");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Bytes")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("elapsedtime");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Time")%></nobr></a></td>
-              <td class="reportcolumnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.ResultDescription")%></nobr></td>
+      <div class="box box-primary">
+        <div class="box-body table-responsive">
+          <table class="table table-bordered">
+            <tr>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("starttime");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.StartTime")%></nobr></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("activity");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Activity")%></nobr></a></th>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Identifier")%></nobr></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("resultcode");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.ResultCode")%></nobr></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("bytes");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Bytes")%></nobr></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("elapsedtime");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Time")%></nobr></a></th>
+              <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.ResultDescription")%></nobr></th>
             </tr>
 <%
-    zz = 0;
+  zz = 0;
 
-    boolean hasMoreRows = (set.getRowCount() > rowCount);
-    int iterCount = hasMoreRows?rowCount:set.getRowCount();
-    while (zz < iterCount)
-    {
-      IResultRow row = set.getRow(zz);
-      String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(Converter.asLong(row.getValue("starttime")));
-      String resultCode = "";
-      Object resultCodeObject = row.getValue("resultcode");
-      if (resultCodeObject != null)
-        resultCode = resultCodeObject.toString();
-      String resultDescription = "";
-      Object resultDescriptionObject = row.getValue("resultdesc");
-      resultDescriptionObject = row.getValue("resultdesc");
-      if (resultDescriptionObject != null)
-        resultDescription = resultDescriptionObject.toString();
-      String[] identifierBreakdown = org.apache.manifoldcf.ui.util.Formatter.formatString(row.getValue("identifier").toString(),64,true,true);
+  boolean hasMoreRows = (set.getRowCount() > rowCount);
+  int iterCount = hasMoreRows?rowCount:set.getRowCount();
+  while (zz < iterCount)
+  {
+    IResultRow row = set.getRow(zz);
+    String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(Converter.asLong(row.getValue("starttime")));
+    String resultCode = "";
+    Object resultCodeObject = row.getValue("resultcode");
+    if (resultCodeObject != null)
+      resultCode = resultCodeObject.toString();
+    String resultDescription = "";
+    Object resultDescriptionObject = row.getValue("resultdesc");
+    resultDescriptionObject = row.getValue("resultdesc");
+    if (resultDescriptionObject != null)
+      resultDescription = resultDescriptionObject.toString();
+    String[] identifierBreakdown = org.apache.manifoldcf.ui.util.Formatter.formatString(row.getValue("identifier").toString(),64,true,true);
 %>
-            <tr <%="class=\""+((zz%2==0)?"evendatarow":"odddatarow")+"\""%>>
-              <td class="reportcolumncell"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(startTimeString)%></nobr></td>
-              <td class="reportcolumncell"><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("activity").toString())%></nobr></td>
-              <td class="reportcolumncell">
+            <tr>
+              <td><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(startTimeString)%></nobr></td>
+              <td><nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("activity").toString())%></nobr></td>
+              <td>
 <%
-      int q = 0;
-      while (q < identifierBreakdown.length)
-      {
+  int q = 0;
+  while (q < identifierBreakdown.length)
+  {
 %>
                 <nobr><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(identifierBreakdown[q++])%></nobr><br/>
 <%
-      }
+  }
 %>
               </td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(resultCode)%></td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("bytes").toString())%></td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("elapsedtime").toString())%></td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(resultDescription)%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(resultCode)%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("bytes").toString())%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("elapsedtime").toString())%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(resultDescription)%></td>
             </tr>
 <%
       zz++;
     }
 %>
           </table>
-          <table class="reportfootertable">
-            <tr class="reportfooterrow">
-              <td class="reportfootercell">
-                <nobr>
+        </div>
+        <div class="box-footer clearfix">
+          <ul class="pagination pagination-sm no-margin pull-left">
 <%
     if (startRow == 0)
     {
 %>
-                  <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Previous")%>
+            <li><a href="#"><i class="fa fa-arrow-circle-o-left fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Previous")%></a></li>
 <%
     }
     else
     {
 %>
-                  <a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Previous")%></a>
+            <li>
+              <a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>'
+                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.PreviousPage")%>" data-toggle="tooltip"><i class="fa fa-arrow-circle-o-left fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Previous")%></a>
+            </li>
 <%
     }
-%>
-                </nobr>
-                <nobr>
-<%
     if (hasMoreRows == false)
     {
 %>
-                  <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Next")%>
+            <li><a href="#"><i class="fa fa-arrow-circle-o-right fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Next")%></a></li>
 <%
     }
     else
     {
 %>
-                  <a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Next")%></a>
+            <li>
+              <a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>'
+                      title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"simplereport.NextPage")%>" data-toggle="tooltip"><i class="fa fa-arrow-circle-o-right fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Next")%>
+              </a>
+            </li>
 <%
     }
 %>
-                </nobr>
-              </td>
-              <td class="reportfootercell">
-                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Rows")%></nobr>
-                <nobr><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></nobr>
-              </td>
-              <td class="reportfootercell">
-                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.RowsPerPage")%></nobr>
-                <nobr><input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/></nobr>
-              </td>
-            </tr>
-          </table>
-
+          </ul>
+          <ul class="pagination pagination-sm no-margin pull-right">
+            <li class="pad">
+              <span class="label label-primary"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.Rows")%><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></span>
+            </li>
+            <li class="form-inline">
+              <div class="input-group input-group-sm">
+                <span class="input-group-addon"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.RowsPerPage")%></span>
+                <input type="text" class="form-control" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
 <%
   }
   else
   {
 %>
-          <table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.PleaseSelectAConnection")%></td></tr></table>
-<%
-  }
-%>
-        </form>
+      <div class="callout callout-info"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.PleaseSelectAConnection")%></div>
+      <%
+        }
+      %>
+
+    </form>
 <%
 }
 catch (ManifoldCFException e)
@@ -779,14 +788,9 @@ catch (ManifoldCFException e)
   variableContext.setParameter("text",e.getMessage());
   variableContext.setParameter("target","index.jsp");
 %>
-  <jsp:forward page="error.jsp"/>
+<jsp:forward page="error.jsp"/>
 <%
 }
 %>
-      </td>
-    </tr>
-  </table>
-
-</body>
-
-</html>
+  </div>
+</div>
