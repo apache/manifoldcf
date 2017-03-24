@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS_1399: Remove all dependencies on json.jar, as per
+Apache Legal advice.
+(Karl Wright)
+
 CONNECTORS-1398: Accept RDF feeds that use lowercase "rdf", even
 though that's not legal by the spec.
 (Joachim Butz, Karl Wright)

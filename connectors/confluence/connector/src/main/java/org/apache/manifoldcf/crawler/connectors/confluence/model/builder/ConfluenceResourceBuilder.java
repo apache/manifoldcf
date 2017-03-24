@@ -18,7 +18,7 @@
 package org.apache.manifoldcf.crawler.connectors.confluence.model.builder;
 
 import org.apache.manifoldcf.crawler.connectors.confluence.model.ConfluenceResource;
-import org.json.JSONObject;
+import org.json.simple.JSONObject;
 
 /**
  * <p>ConfluenceResourceBuilder interface</p>

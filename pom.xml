@@ -77,7 +77,6 @@
     <jstl.version>1.2</jstl.version>
     <glassfish.version>2.1.v20091210</glassfish.version>
     <log4j.version>1.2.16</log4j.version>
-    <json.version>20160212</json.version>
     <velocity.version>1.7</velocity.version>
     <slf4j.version>1.7.7</slf4j.version>
     <jaxb.version>2.2.6</jaxb.version>

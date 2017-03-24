@@ -19,9 +19,8 @@ package org.apache.manifoldcf.crawler.connectors.confluence.model;
 
 import java.util.ArrayList;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,16 +35,10 @@ public class Spaces extends ArrayList<Space> {
   
   public static Spaces fromJson(JSONArray jsonSpaces) {
     Spaces spaces = new Spaces();
-    for(int i=0,len=jsonSpaces.length();i<len;i++) {
-      try {
-        JSONObject spaceJson = jsonSpaces.getJSONObject(i);
-        Space space = Space.fromJson(spaceJson);
-        spaces.add(space);
-      } catch (JSONException e) {
-        logger.debug("Error obtaining JSON item from spaces. Item {} is not a JSON Object", i);
-        e.printStackTrace();
-        continue;
-      }
+    for(int i=0,len=jsonSpaces.size();i<len;i++) {
+      JSONObject spaceJson = (JSONObject)jsonSpaces.get(i);
+      Space space = Space.fromJson(spaceJson);
+      spaces.add(space);
     }
     
     return spaces;

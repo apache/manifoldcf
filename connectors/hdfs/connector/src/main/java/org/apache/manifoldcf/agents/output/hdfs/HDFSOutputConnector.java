@@ -56,7 +56,6 @@ import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
-import org.json.JSONException;
 
 public class HDFSOutputConnector extends BaseOutputConnector {
 
@@ -596,14 +595,6 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   {
     Logging.agents.error("Namenode URI is malformed: "+e.getMessage(),e);
     throw new ManifoldCFException("Namenode URI is malformed: "+e.getMessage(),e);
-  }
-  
-  /** Handle JSONException */
-  protected static void handleJSONException(JSONException e)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    Logging.agents.error("JSON parsing error: "+e.getMessage(),e);
-    throw new ManifoldCFException("JSON parsing error: "+e.getMessage(),e);
   }
   
   /** Handle IOException */

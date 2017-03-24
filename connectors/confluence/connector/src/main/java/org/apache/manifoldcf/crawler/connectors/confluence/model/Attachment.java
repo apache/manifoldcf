@@ -21,8 +21,10 @@ import java.io.InputStream;
 import java.util.Map;
 
 import org.apache.manifoldcf.crawler.connectors.confluence.model.builder.ConfluenceResourceBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  * <p>
@@ -95,27 +97,23 @@ public class Attachment extends Page {
     public Attachment fromJson(JSONObject jsonPage, Attachment attachment) {
       ((ConfluenceResourceBuilder<Page>) Page.builder()).fromJson(jsonPage, attachment);
 
-      try {
-        /*
-         * Download URL
-         */
+      /*
+        * Download URL
+        */
 
-        JSONObject links = (JSONObject) jsonPage.get(Page.KEY_LINKS);
-        if (links != null) {
-          attachment.downloadUrl = links.optString(KEY_DOWNLOAD, "");
-        }
+      JSONObject links = (JSONObject) jsonPage.get(Page.KEY_LINKS);
+      if (links != null) {
+        attachment.downloadUrl = (links.get(KEY_DOWNLOAD)==null)?"":links.get(KEY_DOWNLOAD).toString();
+      }
 
-        /*
-         * Extensions
-         */
-        JSONObject extensions = (JSONObject) jsonPage
-            .get(KEY_EXTENSIONS);
-        if (extensions != null) {
-          attachment.mediaType = extensions.optString(
-              Page.KEY_MEDIATYPE, "");
-        }
-      } catch (JSONException e) {
-        e.printStackTrace();
+      /*
+        * Extensions
+        */
+      JSONObject extensions = (JSONObject) jsonPage
+          .get(KEY_EXTENSIONS);
+      if (extensions != null) {
+        final Object o = extensions.get(Page.KEY_MEDIATYPE);
+        attachment.mediaType = (o==null)?"":o.toString();
       }
 
       return attachment;
