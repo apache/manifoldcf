@@ -809,6 +809,9 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="scripts-combined/*.env.unix"/>
           <exclude name="engine-scripts/*.env.win"/>
           <exclude name="engine-scripts/*.env.unix"/>
+          <exclude name="crawler-ui/**/*.map"/>
+          <exclude name="crawler-ui/**/*.json"/>
+          <exclude name="crawler-ui/**/*.svg"/>
         </fileset>
         <fileset dir="site/">
           <exclude name="fonts/"/>
