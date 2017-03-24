@@ -21,9 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.manifoldcf.crawler.connectors.confluence.model.builder.ConfluenceResourceBuilder;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 public class ConfluenceResponse<T extends ConfluenceResource> {
 
@@ -57,29 +56,21 @@ public class ConfluenceResponse<T extends ConfluenceResource> {
   
   public static <T extends ConfluenceResource> ConfluenceResponse<T> fromJson(JSONObject response, ConfluenceResourceBuilder<T> builder) {
     List<T> resources = new ArrayList<T>();
-    try {
-      JSONArray jsonArray = response.getJSONArray("results");
-      for(int i=0,size=jsonArray.length(); i<size;i++) {
-        JSONObject jsonPage = jsonArray.getJSONObject(i);
-        T resource = (T) builder.fromJson(jsonPage);
-        resources.add(resource);
-      }
-      
-      int limit = response.getInt("limit");
-      int start = response.getInt("start");
-      Boolean isLast = false;
-      JSONObject links = response.getJSONObject("_links");
-      if(links != null) {
-        isLast = links.optString("next", "undefined").equalsIgnoreCase("undefined");
-      }
-      
-      return new ConfluenceResponse<T>(resources, start, limit, isLast);
-      
-    } catch (JSONException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+    JSONArray jsonArray = (JSONArray)response.get("results");
+    for(int i=0,size=jsonArray.size(); i<size;i++) {
+      JSONObject jsonPage = (JSONObject)jsonArray.get(i);
+      T resource = (T) builder.fromJson(jsonPage);
+      resources.add(resource);
     }
-    
-    return new ConfluenceResponse<T>(new ArrayList<T>(), 0,0,false);
+      
+    int limit = ((Long)response.get("limit")).intValue();
+    int start = ((Long)response.get("start")).intValue();
+    Boolean isLast = false;
+    JSONObject links = (JSONObject)response.get("_links");
+    if(links != null) {
+      isLast = (links.get("next")==null);
+    }
+      
+    return new ConfluenceResponse<T>(resources, start, limit, isLast);
   }
 }
