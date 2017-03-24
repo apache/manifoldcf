@@ -2326,7 +2326,8 @@ Title to copyright in this software and any associated documentation will at all
 times remain with copyright holders.
 
 ==========================================================================
-The following license applies to bootstrap (http://getbootstrap.com/)
+The ManifoldCF UI uses components distributed by the "bootstrap" project.
+The following license applies to bootstrap (http://getbootstrap.com/):
 --------------------------------------------------------------------------
 
 The MIT License (MIT)

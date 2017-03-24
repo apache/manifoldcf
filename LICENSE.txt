@@ -186,7 +186,8 @@ interface descriptions generated in part from proprietary libraries licensed
 by Microsoft, Inc.
 
 ==========================================================================
-The following license applies to bootstrap (http://getbootstrap.com/)
+The ManifoldCF source software contains files from the "bootstrap" project.
+The following license applies to bootstrap (http://getbootstrap.com/):
 --------------------------------------------------------------------------
 
 The MIT License (MIT)
