@@ -1,0 +1,114 @@
+/*!
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * Component: Form
+ * ---------------
+ */
+.form-control {
+  width:auto !important;
+  .border-radius(@input-radius)!important;  
+  box-shadow: none;
+  border-color: @gray;
+  color: #555;
+  &:focus {
+    border-color: @light-blue !important;
+    box-shadow: none !important;
+  }
+  &::-moz-placeholder {
+    color: #bbb;
+    opacity: 1;
+  }
+  &:-ms-input-placeholder {
+    color: #bbb;
+  }
+  &::-webkit-input-placeholder {
+    color: #bbb;
+  }
+
+  &:not(select) {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+}
+
+.form-group {
+  .form-control {
+    width: 100% !important;
+  }
+  
+  &.has-success {
+    label {
+      color: @green;
+    }
+    .form-control {
+      border-color: @green !important;
+      box-shadow: none;
+    }
+  }
+
+  &.has-warning {
+    label {
+      color: @yellow;
+    }
+    .form-control {
+      border-color: @yellow !important;
+      box-shadow: none;
+    }
+  }
+
+  &.has-error {
+    label {
+      color: @red;
+    }
+    .form-control {
+      border-color: @red !important;
+      box-shadow: none;
+    }
+  }
+}
+
+/* Input group */
+.input-group {
+  .input-group-addon {
+    .border-radius(@input-radius);
+    border-color: @gray;
+    background-color: #fff;
+  }
+  .label{
+    color:@black;
+    line-height: 3;
+  }
+  select{
+    .form-control;
+    display:table-cell;
+    width:auto;
+  }
+}
+/* button groups */
+.btn-group-vertical {
+  .btn {
+    &.btn-flat:first-of-type, &.btn-flat:last-of-type {
+      .border-radius(0);
+    }
+  }
+}
+
+.icheck > label {
+  padding-left: 0;
+}

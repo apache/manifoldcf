@@ -1,0 +1,161 @@
+/*!
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * Component: Nav
+ * --------------
+ */
+
+
+.nav-tabs {
+  margin: 0;
+  border-bottom-color: #f4f4f4;
+  .border-top-radius(@box-border-radius);
+  > li {
+    border-top: 3px solid transparent;
+    margin-bottom: -2px;
+    > a {
+      .border-radius(0)!important;
+      &,
+      &:hover {
+        background: transparent;
+        margin: 0;
+      }
+    }
+    &:not(.active) {
+      > a:hover,
+        > a:focus,
+        > a:active {
+        border-color: transparent;
+      }
+    }
+    margin-right: 5px;
+  }
+
+  > li.active {
+    border-top-color: @light-blue;
+    & > a,
+    &:hover > a {
+      background-color: #fff;
+
+    }
+    > a {
+      border-top: 0;
+    }
+
+  }
+
+  > li:first-of-type {
+    margin-left: 10px;
+  }
+
+  //Pulled to the right
+  &.pull-right {
+    float: none!important;
+    > li {
+      float: right;
+    }
+    > li:first-of-type {
+      margin-right: 0;
+      &.active {
+        > a {
+          border-left-width: 1px;
+          border-right-width: 0;
+        }
+      }
+    }
+  }
+
+  > li.header {
+    line-height: 35px;
+    padding: 0 10px;
+    font-size: 20px;
+    color: #444;
+    > .fa {
+      margin-right: 5px;
+    }
+  }
+}
+
+.tab-content{
+  padding: 10px;
+  .tab-pane{
+    .form-control{
+      width:auto!important;
+      //display: inline;
+    }
+  }
+}
+
+
+/* Nav tabs bottom */
+.tabs-bottom {
+  &.nav-3 {
+    li a {
+      width: percentage(100/3)!important;
+    }
+  }
+  li a {
+    border: 0;
+  }
+}
+
+.tab-group{
+  border-bottom: 1px solid @box-border-color;
+  padding-bottom: 0px;
+  
+  .btn-group{
+    border:none;
+    border-radius:4px 4px 0px 0px;
+    border-top: 1px solid @nav-tabs-border-color;
+    margin:0px 3px;
+    
+    .btn{
+      padding:8px 12px;
+      border-radius:0px;
+      border-width: 3px 1px 0px 1px;
+      border-color:@nav-tabs-border-color;
+      border-top-color: transparent;
+      
+      &.active{
+        .box-shadow(none);
+        border-color:@btn-default-border;
+        border-top-color: @btn-primary-border ;
+      }
+      
+      &:active{
+        .box-shadow(none);
+      }
+    }
+  }
+  
+  > .btn-group:first-of-type{
+    margin-left:10px;
+  }
+}
+
+/* PAGINATION */
+.pagination {
+  > li > a {
+    background: #fafafa;
+    color: #666;
+  }
+  > li:first-of-type a,
+    > li:last-of-type a {
+    .border-radius(0);
+  }
+}
