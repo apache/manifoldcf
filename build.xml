@@ -812,6 +812,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="crawler-ui/**/*.map"/>
           <exclude name="crawler-ui/**/*.json"/>
           <exclude name="crawler-ui/**/*.svg"/>
+          <exclude name="crawler-ui/**/.csslintrc"/>
         </fileset>
         <fileset dir="site/">
           <exclude name="fonts/"/>
