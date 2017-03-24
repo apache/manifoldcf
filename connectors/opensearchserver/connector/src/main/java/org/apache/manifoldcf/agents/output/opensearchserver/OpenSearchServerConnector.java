@@ -51,8 +51,6 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class OpenSearchServerConnector extends BaseOutputConnector
 {

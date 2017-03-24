@@ -61,8 +61,6 @@ import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  * This is the "output connector" for elasticsearch.
