@@ -781,9 +781,7 @@ public class Configuration implements IHierarchyParent
     }
     
     public void startObject() {
-      objectStack.add(currentObject);
-      keyStack.add(currentKey);
-      arrayStack.add(currentArray);
+      pushState();
       currentObject = new JSONObject();
       currentKey = null;
       currentArray = null;
@@ -800,9 +798,7 @@ public class Configuration implements IHierarchyParent
     public void endObject() {
       final JSONObject object = currentObject;
       // Pop everything
-      currentObject = objectStack.remove(objectStack.size()-1);
-      currentKey = keyStack.remove(keyStack.size()-1);
-      currentArray = arrayStack.remove(arrayStack.size()-1);
+      popState();
       // Either an array is active, or an object is active, or nothing is active
       if (currentObject != null) {
         currentObject.put(currentKey, object);
@@ -814,9 +810,7 @@ public class Configuration implements IHierarchyParent
     }
     
     public void startArray() {
-      objectStack.add(currentObject);
-      keyStack.add(currentKey);
-      arrayStack.add(currentArray);
+      pushState();
       currentObject = null;
       currentKey = null;
       currentArray = new JSONArray();
@@ -825,9 +819,7 @@ public class Configuration implements IHierarchyParent
     public void endArray() {
       final JSONArray array = currentArray;
       // Pop everything
-      currentObject = objectStack.remove(objectStack.size()-1);
-      currentKey = keyStack.remove(keyStack.size()-1);
-      currentArray = arrayStack.remove(arrayStack.size()-1);
+      popState();
       // Either an array is active, or an object is active, or nothing is active
       if (currentObject != null) {
         currentObject.put(currentKey, array);
@@ -845,47 +837,103 @@ public class Configuration implements IHierarchyParent
       return finalObject.toJSONString();
     }
     
+    protected void pushState() {
+      objectStack.add(currentObject);
+      keyStack.add(currentKey);
+      arrayStack.add(currentArray);
+    }
+    
+    protected void popState() {
+      currentObject = objectStack.remove(objectStack.size()-1);
+      currentKey = keyStack.remove(keyStack.size()-1);
+      currentArray = arrayStack.remove(arrayStack.size()-1);
+    }
+
   }
   
   protected static class JSONReader {
     
+    private final List<JSONObject> objectStack = new ArrayList<>();
+    private final List<Iterator> arrayStack = new ArrayList<>();
+    private JSONObject currentObject = null;
+    private Iterator currentArrayIterator = null;
+    
+    private Object next = null;
+
     public JSONReader(final String json) throws ManifoldCFException {
+      final JSONParser parser = new JSONParser();
+      try {
+        next = parser.parse(new StringReader(json));
+      } catch (Exception e) {
+        throw new ManifoldCFException("Bad json: "+e.getMessage(),e);
+      }
     }
     
     public boolean isObject() {
+      return next != null && (next instanceof JSONObject);
     }
     
     public void startObject() {
+      pushState();
+      currentObject = (JSONObject)next;
+      currentArrayIterator = null;
     }
 
     public Iterator<String> getKeys() {
+      return currentObject.keySet().iterator();
     }
     
     public boolean valueForKey(final String key) {
+      next = currentObject.get(key);
+      return next != null;
     }
     
     public void endObject() {
+      popState();
     }
     
     public boolean isArray() {
+      return next != null && (next instanceof JSONArray);
     }
     
     public void startArray() {
+      pushState();
+      currentObject = null;
+      currentArrayIterator = ((JSONArray)next).iterator();
     }
     
     public boolean nextElement() {
+      if (currentArrayIterator.hasNext()) {
+        next = currentArrayIterator.next();
+        return true;
+      }
+      return false;
     }
     
     public void endArray() {
+      popState();
     }
 
     public boolean isNull() {
+      return next == null;
     }
     
     public boolean isValue() {
+      return next != null && !(next instanceof JSONObject || next instanceof JSONArray);
     }
     
     public String readValue() {
+      return next.toString();
+    }
+    
+    protected void pushState() {
+      objectStack.add(currentObject);
+      arrayStack.add(currentArrayIterator);
+    }
+    
+    protected void popState() {
+      currentObject = objectStack.remove(objectStack.size()-1);
+      currentArrayIterator = arrayStack.remove(arrayStack.size()-1);
     }
     
   }
