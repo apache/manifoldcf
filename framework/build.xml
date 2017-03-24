@@ -32,7 +32,7 @@
     <path id="framework-classpath">
         <fileset dir="../lib">
             <include name="zookeeper*.jar"/>
-            <include name="json*.jar"/>
+            <include name="json-simple*.jar"/>
             <include name="commons-codec*.jar"/>
             <include name="commons-collections-*.jar"/>
             <include name="commons-el*.jar"/>
@@ -439,7 +439,7 @@
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
+                <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -478,7 +478,7 @@
         <copy todir="build/webapp/authority-service-proprietary/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
+                <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -523,7 +523,7 @@
         <copy todir="build/webapp/api-service/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
+                <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -563,7 +563,7 @@
         <copy todir="build/webapp/api-service-proprietary/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
+                <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -610,7 +610,7 @@
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
+                <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -658,7 +658,7 @@
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
+                <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -714,7 +714,7 @@
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
+                <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -764,7 +764,7 @@
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
+                <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -883,7 +883,7 @@
         <copy todir="dist/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
-                <include name="json*.jar"/>
+                <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
                 <include name="commons-el*.jar"/>
@@ -1131,7 +1131,7 @@
             <include name="commons-discovery*.jar"/>
             <include name="jasper*.jar"/>
             <include name="jsp-api-2.1-glassfish*.jar"/>
-            <include name="json*.jar"/>
+            <include name="json-simple*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
             <include name="javax.servlet-api*.jar"/>
@@ -1166,7 +1166,7 @@
             <include name="commons-collections*.jar"/>
             <include name="commons-io*.jar"/>
             <include name="commons-logging*.jar"/>
-            <include name="json*.jar"/>
+            <include name="json-simple*.jar"/>
             <include name="httpcore*.jar"/>
             <include name="httpclient*.jar"/>
         </fileset>

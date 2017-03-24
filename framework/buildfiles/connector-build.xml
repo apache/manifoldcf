@@ -116,7 +116,7 @@
         </fileset>
         <fileset dir="${mcf-dist}/lib">
             <include name="mail*.jar"/>
-            <include name="json*.jar"/>
+            <include name="json-simple*.jar"/>
             <include name="commons-codec*.jar"/>
             <include name="commons-collections*.jar"/>
             <include name="commons-el*.jar"/>
