@@ -26,8 +26,8 @@ import java.util.Map;
 
 import org.apache.manifoldcf.core.common.DateParser;
 import org.apache.manifoldcf.crawler.connectors.confluence.model.builder.ConfluenceResourceBuilder;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
@@ -268,101 +268,81 @@ public class Page extends ConfluenceResource{
     
     public Page fromJson(JSONObject jsonPage, Page page) {
 
-      try {
-        String id = jsonPage.getString(KEY_ID);
-        String type = jsonPage.getString(KEY_TYPE);
-        String title = jsonPage.getString(KEY_TITLE);
+      String id = jsonPage.get(KEY_ID).toString();
+      String type = jsonPage.get(KEY_TYPE).toString();
+      String title = jsonPage.get(KEY_TITLE).toString();
 
-        page.delegated = jsonPage;
+      page.delegated = jsonPage;
 
-        /* Init Page fields */
-        page.id = id;
-        page.type = PageType.fromName(type);
-        page.title = title;
+      /* Init Page fields */
+      page.id = id;
+      page.type = PageType.fromName(type);
+      page.title = title;
 
-        page.space = processSpace(jsonPage);
+      page.space = processSpace(jsonPage);
 
-        /*
-         * Url & WebUrl
-         */
-        JSONObject links = (JSONObject) jsonPage.get(KEY_LINKS);
-        if (links != null) {
-          page.url = links.optString(KEY_SELF, "");
-          String webUrl = (String) links.optString(KEY_WEBUI, "");
-          page.urlContext = (String) links.optString(KEY_CONTEXT, "");
-          page.baseUrl = (String) links.optString(KEY_BASE, "");
-          page.webUrl = page.baseUrl + webUrl;
+      /*
+        * Url & WebUrl
+        */
+      JSONObject links = (JSONObject) jsonPage.get(KEY_LINKS);
+      if (links != null) {
+        page.url = (links.get(KEY_SELF)==null)?"":links.get(KEY_SELF).toString();
+        String webUrl = (links.get(KEY_WEBUI)==null)?"":links.get(KEY_WEBUI).toString();
+        page.urlContext = (links.get(KEY_CONTEXT)==null)?"":links.get(KEY_CONTEXT).toString();
+        page.baseUrl = (links.get(KEY_BASE)==null)?"":links.get(KEY_BASE).toString();
+        page.webUrl = page.baseUrl + webUrl;
 
-        }
-
-        /*
-         * Created By and created Date
-         */
-        JSONObject history = (JSONObject) jsonPage
-            .optJSONObject(KEY_HISTORY);
-        if (history != null) {
-
-          page.createdDate = DateParser.parseISO8601Date(history
-              .optString(KEY_CREATED_DATE, ""));
-          JSONObject createdBy = (JSONObject) history
-              .optJSONObject(KEY_CREATED_BY);
-          if (createdBy != null) {
-            page.creator = createdBy
-                .optString(KEY_DISPLAY_NAME, "");
-            page.creatorUsername = createdBy.optString(
-                KEY_USER_NAME, "");
-          }
-
-        }
-
-        /*
-         * Last modifier and Last modified date
-         */
-        JSONObject version = (JSONObject) jsonPage
-            .optJSONObject(KEY_VERSION);
-        if (version != null) {
-          JSONObject by = version.getJSONObject(KEY_BY);
-          if (by != null) {
-            page.lastModifier = by.optString(KEY_DISPLAY_NAME);
-            page.lastModifierUsername = by.optString(KEY_USER_NAME,
-                "");
-          }
-
-          page.lastModified = DateParser.parseISO8601Date(version
-              .optString(KEY_WHEN, ""));
-        }
-
-        /*
-         * Page Content
-         */
-        JSONObject body = (JSONObject) jsonPage.optJSONObject(KEY_BODY);
-        if (body != null) {
-          JSONObject view = (JSONObject) body.optJSONObject(KEY_VIEW);
-          if (view != null) {
-            page.content = view.optString(KEY_VALUE, null);
-            page.length = page.content.getBytes(StandardCharsets.UTF_8).length;
-          }
-        }
-
-        return page;
-
-      } catch (JSONException e) {
-        e.printStackTrace();
       }
 
-      return new Page();
+      /*
+        * Created By and created Date
+        */
+      JSONObject history = (JSONObject) jsonPage.get(KEY_HISTORY);
+      if (history != null) {
 
+        page.createdDate = DateParser.parseISO8601Date((history.get(KEY_CREATED_DATE)==null)?"":history.get(KEY_CREATED_DATE).toString());
+        JSONObject createdBy = (JSONObject) history.get(KEY_CREATED_BY);
+        if (createdBy != null) {
+          page.creator = (createdBy.get(KEY_DISPLAY_NAME)==null)?"":createdBy.get(KEY_DISPLAY_NAME).toString();
+          page.creatorUsername = (createdBy.get(KEY_USER_NAME)==null)?"":createdBy.get(KEY_USER_NAME).toString();
+        }
+
+      }
+
+      /*
+        * Last modifier and Last modified date
+        */
+      JSONObject version = (JSONObject) jsonPage.get(KEY_VERSION);
+      if (version != null) {
+        JSONObject by = (JSONObject) version.get(KEY_BY);
+        if (by != null) {
+          page.lastModifier = (by.get(KEY_DISPLAY_NAME)==null)?"":by.get(KEY_DISPLAY_NAME).toString();
+          page.lastModifierUsername = (by.get(KEY_USER_NAME)==null)?"":by.get(KEY_USER_NAME).toString();
+        }
+
+        page.lastModified = DateParser.parseISO8601Date((version.get(KEY_WHEN)==null)?"":version.get(KEY_WHEN).toString());
+      }
+
+      /*
+        * Page Content
+        */
+      JSONObject body = (JSONObject) jsonPage.get(KEY_BODY);
+      if (body != null) {
+        JSONObject view = (JSONObject) body.get(KEY_VIEW);
+        if (view != null) {
+          page.content = (view.get(KEY_VALUE)==null)?"":view.get(KEY_VALUE).toString();
+          page.length = page.content.getBytes(StandardCharsets.UTF_8).length;
+        }
+      }
+
+      return page;
     }
 
     private static String processSpace(JSONObject page) {
       /* Page */
-      try {
-        JSONObject space = (JSONObject) page.get(KEY_SPACE);
-        if (space != null)
-          return space.optString(KEY_KEY, "");
-      } catch (JSONException e) {
-        return "";
-      }
+      JSONObject space = (JSONObject) page.get(KEY_SPACE);
+      if (space != null)
+        return (space.get(KEY_KEY)==null)?"":space.get(KEY_KEY).toString();
       return "";
     }
 

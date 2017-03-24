@@ -17,7 +17,7 @@
 
 package org.apache.manifoldcf.crawler.connectors.confluence.model;
 
-import org.json.JSONObject;
+import org.json.simple.JSONObject;
 
 public class Space {
 
@@ -62,10 +62,10 @@ public class Space {
   
   public static Space fromJson(JSONObject spaceJson) {
     Space space = new Space();
-    space.key = spaceJson.optString(KEY_KEY, "");
-    space.name = spaceJson.optString(KEY_NAME, "");
-    space.type = spaceJson.optString(KEY_TYPE, "");
-    space.url = spaceJson.optString(KEY_URL, "");
+    space.key = (spaceJson.get(KEY_KEY)==null)?"":spaceJson.get(KEY_KEY).toString();
+    space.name = (spaceJson.get(KEY_NAME)==null)?"":spaceJson.get(KEY_NAME).toString();
+    space.type = (spaceJson.get(KEY_TYPE)==null)?"":spaceJson.get(KEY_TYPE).toString();
+    space.url = (spaceJson.get(KEY_URL)==null)?"":spaceJson.get(KEY_URL).toString();
     return space;
   }
   
