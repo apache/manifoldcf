@@ -23,9 +23,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.jsoup.Jsoup;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -206,60 +205,57 @@ public class SearchBloxDocument {
     if (apiKey == null)
       throw new SearchBloxException(
           "The API Key for accessing SearchBlox Server CAN'T be NULL");
-    try {
-      result.put(APIKEY_ATTRIBUTE, apiKey);
+    
+    result.put(APIKEY_ATTRIBUTE, apiKey);
 
-      JSONObject document = new JSONObject();
-      if (colName == null)
-        throw new SearchBloxException(
-            "The Collection Name of the SearchBlox Server CAN'T be NULL");
-      document.put(COLNAME_ATTRIBUTE, colName);
-      document.put(UID_ATTRIBUTE, uid);
+    JSONObject document = new JSONObject();
+    if (colName == null)
+      throw new SearchBloxException(
+          "The Collection Name of the SearchBlox Server CAN'T be NULL");
+    document.put(COLNAME_ATTRIBUTE, colName);
+    document.put(UID_ATTRIBUTE, uid);
 
-      if(action == DocumentAction.ADD_UPDATE){
-        for(String element:xmlElements){
-          if (!element.equals(xmlElements.get(12))) {
-            Collection<Object> values = data_fields.get(element);
-            if (values!=null && values.size()>0) {
-              Object next = values.iterator()
-                  .next();
-              String value =(String) next;
-              if (value != null && !value.isEmpty()) {
-                if(element.equals("keywords"))
-                  document.put(element, StringUtils.join(values, ','));
-                else
-                  document.put(element, value);
+    if(action == DocumentAction.ADD_UPDATE){
+      for(String element:xmlElements){
+        if (!element.equals(xmlElements.get(12))) {
+          Collection<Object> values = data_fields.get(element);
+          if (values!=null && values.size()>0) {
+            Object next = values.iterator()
+                .next();
+            String value =(String) next;
+            if (value != null && !value.isEmpty()) {
+              if(element.equals("keywords"))
+                document.put(element, StringUtils.join(values, ','));
+              else
+                document.put(element, value);
                 
-              }
             }
           }
         }
-
-        // Metadata
-        Collection<Object> metadataSet = data_fields
-            .get(xmlElements.get(12));
-        JSONObject metaObject = new JSONObject();
-        if(metadataSet!=null && metadataSet.size()>0){
-          Multimap<String, String> metadata = (Multimap<String, String>) metadataSet.iterator().next();
-          if (metadata != null && !metadata.isEmpty()) {
-            for (String name : metadata.keySet()){
-              JSONArray nextMetadata = new JSONArray();
-              for (String value : metadata.get(name)) {
-                nextMetadata.put(value);
-              }
-              metaObject.put(name, nextMetadata);
-            }
-          }  
-        }
-        document.put(xmlElements.get(12), metaObject);
       }
 
-      result.put(xmlElements.get(1), document);
-
-    } catch (JSONException e) {
-      throw new SearchBloxException("Error while building Document JSON object", e);
+      // Metadata
+      Collection<Object> metadataSet = data_fields
+          .get(xmlElements.get(12));
+      JSONObject metaObject = new JSONObject();
+      if(metadataSet!=null && metadataSet.size()>0){
+        Multimap<String, String> metadata = (Multimap<String, String>) metadataSet.iterator().next();
+        if (metadata != null && !metadata.isEmpty()) {
+          for (String name : metadata.keySet()){
+            JSONArray nextMetadata = new JSONArray();
+            for (String value : metadata.get(name)) {
+              nextMetadata.add(value);
+            }
+            metaObject.put(name, nextMetadata);
+          }
+        }  
+      }
+      document.put(xmlElements.get(12), metaObject);
     }
-    return result.toString();
+
+    result.put(xmlElements.get(1), document);
+
+    return result.toJSONString();
   }
 
   private String toStringXML(DocumentAction action) throws SearchBloxException{

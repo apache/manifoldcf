@@ -20,9 +20,9 @@ import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument.DocumentAction;
 import org.apache.manifoldcf.agents.output.searchblox.SearchBloxDocument.IndexingFormat;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -152,13 +152,15 @@ public class SearchBloxDocumentTest {
     }
 
     @Test
-    public void updateJsonString() throws SearchBloxException, JSONException {
+    public void updateJsonString() throws Exception {
 
         String jsonGenerated = toTest.toString(IndexingFormat.JSON, DocumentAction.ADD_UPDATE);
 
-        JSONObject json = new JSONObject(jsonGenerated);
-        assertTrue(json.has(APIKEY_ATTRIBUTE));
-        assertTrue(json.has("document"));
+        final JSONParser parser = new JSONParser();
+        JSONObject json = (JSONObject)parser.parse(new java.io.StringReader(jsonGenerated));
+
+        assertTrue(json.get(APIKEY_ATTRIBUTE) != null);
+        assertTrue(json.get("document") != null);
 
         Object apiObject = json.get(APIKEY_ATTRIBUTE);
         assertTrue(apiObject instanceof String);
@@ -168,25 +170,25 @@ public class SearchBloxDocumentTest {
         assertTrue(documentObject instanceof JSONObject);
         JSONObject document = (JSONObject) documentObject;
 
-        assertTrue(document.has(UID_ATTRIBUTE));
+        assertTrue(document.get(UID_ATTRIBUTE) != null);
         assertTrue(document.get(UID_ATTRIBUTE) instanceof String);
         assertEquals("URI", document.get(UID_ATTRIBUTE));
 
 
-        assertTrue(document.has(COLNAME_ATTRIBUTE));
+        assertTrue(document.get(COLNAME_ATTRIBUTE)  != null);
         assertTrue(document.get(COLNAME_ATTRIBUTE) instanceof String);
         assertEquals("collection1", document.get(COLNAME_ATTRIBUTE));
 
 
-        assertTrue(document.has("size"));
+        assertTrue(document.get("size") != null);
         assertTrue(document.get("size") instanceof String);
         assertEquals("100", document.get("size"));
 
-        assertTrue(document.has("meta"));
+        assertTrue(document.get("meta") != null);
         Object metaObject = document.get("meta");
         assertTrue(metaObject instanceof JSONObject);
         JSONObject meta = (JSONObject) metaObject;
-        assertEquals(6, meta.length());
+        assertEquals(6, meta.size());
 
         assertTrue(find(meta, "meta2", "I am META2!", 1));
         assertTrue(find(meta, "meta1", "I am META1!", 1));
@@ -206,45 +208,47 @@ public class SearchBloxDocumentTest {
         assertTrue(find(meta, "document_allow", "user12", 3));
 
 
-        assertTrue(document.has("description"));
+        assertTrue(document.get("description") != null);
         assertTrue(document.get("description") instanceof String);
         assertEquals("I am a little tiny description", document.get("description"));
 
 
-        assertTrue(document.has("title"));
+        assertTrue(document.get("title") != null);
         assertTrue(document.get("title") instanceof String);
         assertEquals("I am a nice title", document.get("title"));
 
-        assertTrue(document.has("content"));
+        assertTrue(document.get("content") != null);
         assertTrue(document.get("content") instanceof String);
         assertEquals("I am a nice content in english!", document.get("content"));
 
-        assertTrue(document.has("contenttype"));
+        assertTrue(document.get("contenttype") != null);
         assertTrue(document.get("contenttype") instanceof String);
         assertEquals("html", document.get("contenttype"));
     }
 
     private boolean find(JSONObject meta, String name, String textContent, int size) {
 
-        assertTrue(meta.has(name));
+        assertTrue(meta.get(name) != null);
         assertTrue(meta.get(name) instanceof JSONArray);
 
-        assertEquals(size, ((JSONArray) meta.get(name)).length());
+        assertEquals(size, ((JSONArray) meta.get(name)).size());
 
         for (int i = 0; i < size; i++) {
-            if (textContent.equals(((JSONArray) meta.get(name)).getString(i)))
+            if (textContent.equals(((JSONArray) meta.get(name)).get(i).toString()))
                 return true;
         }
         return false;
     }
 
     @Test
-    public void deleteJsonString() throws SearchBloxException, JSONException {
+    public void deleteJsonString() throws Exception {
         String jsonGenerated=toTest.toString(IndexingFormat.JSON, DocumentAction.DELETE);
 
-        JSONObject json = new JSONObject(jsonGenerated);
-        assertTrue(json.has(APIKEY_ATTRIBUTE));
-        assertTrue(json.has("document"));
+        final JSONParser parser = new JSONParser();
+        JSONObject json = (JSONObject)parser.parse(new java.io.StringReader(jsonGenerated));
+
+        assertTrue(json.get(APIKEY_ATTRIBUTE) != null);
+        assertTrue(json.get("document") != null);
 
         Object apiObject = json.get(APIKEY_ATTRIBUTE);
         assertTrue(apiObject instanceof String);
@@ -254,8 +258,8 @@ public class SearchBloxDocumentTest {
         assertTrue(documentObject instanceof JSONObject);
         JSONObject document = (JSONObject) documentObject;
 
-        assertTrue(document.has(UID_ATTRIBUTE));
-        assertTrue(document.has(COLNAME_ATTRIBUTE));
+        assertTrue(document.get(UID_ATTRIBUTE) != null);
+        assertTrue(document.get(COLNAME_ATTRIBUTE) != null);
 
         Object uidObject = document.get(UID_ATTRIBUTE);
         assertTrue(uidObject instanceof String);
