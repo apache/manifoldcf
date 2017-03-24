@@ -775,7 +775,9 @@ public class Configuration implements IHierarchyParent
     private JSONObject currentObject = null;
     private JSONArray currentArray = null;
     private String currentKey = null;
+    
     private JSONObject finalObject = null;
+    private JSONArray finalArray = null;
     
     public JSONWriter() {
     }
@@ -826,15 +828,18 @@ public class Configuration implements IHierarchyParent
       } else if (currentArray != null) {
         currentArray.add(array);
       } else {
-        throw new IllegalStateException("Top level entity can't be an array");
+        finalArray = array;
       }
     }
     
     public String toString() {
-      if (finalObject == null) {
+      if (finalObject != null) {
+        return finalObject.toJSONString();
+      } else if (finalArray != null) {
+        return finalArray.toJSONString();
+      } else {
         return "";
       }
-      return finalObject.toJSONString();
     }
     
     protected void pushState() {
