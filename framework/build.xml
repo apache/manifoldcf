@@ -57,6 +57,10 @@
             <include name="xml-apis*.jar"/>
             <include name="velocity*.jar"/>
             <include name="mail*.jar"/>
+            <include name="commons-exec*.jar"/>
+            <include name="gson*.jar"/>
+            <include name="guava*.jar"/>
+            <include name="jna*.jar"/>
         </fileset>
         <fileset dir="../lib">
             <include name="postgresql*.jar"/>
@@ -64,6 +68,8 @@
         </fileset>
         <fileset dir="../lib">
             <include name="junit*.jar"/>
+            <include name="selenium*.jar"/>
+            <include name="cglib-nodep*.jar"/>
             <include name="hamcrest-core*.jar"/>
             <include name="mockito-core*.jar"/>
             <include name="wiremock*.jar"/>
@@ -99,11 +105,9 @@
             <include name="plexus-utils*.jar"/>
             <include name="regexp*.jar"/>
             <include name="commons-csv*.jar"/>
-            <include name="commons-exec*.jar"/>
             <include name="netcdf4*.jar"/>
             <include name="httpservices*.jar"/>
             <include name="grib*.jar"/>
-            <include name="jna*.jar"/>
             <include name="cdm*.jar"/>
             <include name="udunits*.jar"/>
             <include name="jcommander*.jar"/>
@@ -456,6 +460,10 @@
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
                 <include name="mail*.jar"/>
+                <include name="commons-exec*.jar"/>
+                <include name="gson*.jar"/>
+                <include name="guava*.jar"/>
+                <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -495,6 +503,10 @@
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
                 <include name="mail*.jar"/>
+                <include name="commons-exec*.jar"/>
+                <include name="gson*.jar"/>
+                <include name="guava*.jar"/>
+                <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -540,6 +552,10 @@
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
                 <include name="mail*.jar"/>
+                <include name="commons-exec*.jar"/>
+                <include name="gson*.jar"/>
+                <include name="guava*.jar"/>
+                <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -580,6 +596,10 @@
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
                 <include name="mail*.jar"/>
+                <include name="commons-exec*.jar"/>
+                <include name="gson*.jar"/>
+                <include name="guava*.jar"/>
+                <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -628,6 +648,10 @@
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
                 <include name="mail*.jar"/>
+                <include name="commons-exec*.jar"/>
+                <include name="gson*.jar"/>
+                <include name="guava*.jar"/>
+                <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -647,7 +671,7 @@
             </fileset>
         </copy>
         <copy todir="build/webapp/crawler-ui">
-            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
         </copy>
         <jar destfile="build/webapp/crawler-ui/WEB-INF/lib/mcf-crawler-ui.jar" basedir="build/crawler-ui/classes"/>
     </target>
@@ -676,6 +700,10 @@
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
                 <include name="mail*.jar"/>
+                <include name="commons-exec*.jar"/>
+                <include name="gson*.jar"/>
+                <include name="guava*.jar"/>
+                <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -702,8 +730,8 @@
                 <include name="*.tld"/>
             </fileset>
         </copy>
-        <copy todir="build/webapp/crawler-ui-proprietary">
-            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+        <copy todir="build/webapp/crawler-ui-proprietary">            
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
         </copy>
         <jar destfile="build/webapp/crawler-ui-proprietary/WEB-INF/lib/mcf-crawler-ui.jar" basedir="build/crawler-ui/classes"/>
     </target>
@@ -732,6 +760,10 @@
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
                 <include name="mail*.jar"/>
+                <include name="commons-exec*.jar"/>
+                <include name="gson*.jar"/>
+                <include name="guava*.jar"/>
+                <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -753,7 +785,7 @@
             </fileset>
         </copy>
         <copy todir="build/webapp/combined-service">
-            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
         </copy>
         <jar destfile="build/webapp/combined-service/WEB-INF/lib/mcf-combined-service.jar" basedir="build/combined-service/classes"/>
     </target>
@@ -782,6 +814,10 @@
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
                 <include name="mail*.jar"/>
+                <include name="commons-exec*.jar"/>
+                <include name="gson*.jar"/>
+                <include name="guava*.jar"/>
+                <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -811,7 +847,7 @@
             </fileset>
         </copy>
         <copy todir="build/webapp/combined-service-proprietary">
-            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html"/>
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
         </copy>
         <jar destfile="build/webapp/combined-service-proprietary/WEB-INF/lib/mcf-combined-service.jar" basedir="build/combined-service/classes"/>
     </target>
@@ -902,6 +938,10 @@
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
                 <include name="mail*.jar"/>
+                <include name="commons-exec*.jar"/>
+                <include name="gson*.jar"/>
+                <include name="guava*.jar"/>
+                <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="jetty*.jar"/>
@@ -1146,6 +1186,10 @@
             <include name="httpcore*.jar"/>
             <include name="httpclient*.jar"/>
             <include name="mail*.jar"/>
+            <include name="commons-exec*.jar"/>
+            <include name="gson*.jar"/>
+            <include name="guava*.jar"/>
+            <include name="jna*.jar"/>
             <include name="zookeeper*.jar"/>
         </fileset>
     </path>
@@ -1411,11 +1455,9 @@
                 <include name="plexus-utils*.jar"/>
                 <include name="regexp*.jar"/>
                 <include name="commons-csv*.jar"/>
-                <include name="commons-exec*.jar"/>
                 <include name="netcdf4*.jar"/>
                 <include name="httpservices*.jar"/>
                 <include name="grib*.jar"/>
-                <include name="jna*.jar"/>
                 <include name="jj2000*.jar"/>
                 <include name="cdm*.jar"/>
                 <include name="udunits*.jar"/>
@@ -1548,6 +1590,7 @@
                 <include name="properties.xml"/>
             </fileset>
         </copy>
+        <replace file="dist/multiprocess-file-example/properties.xml" token="unknown version" value="${release-version}"/>
         
         <mkdir dir="dist/multiprocess-file-example/logs"/>
         <chmod dir="dist/multiprocess-file-example" perm="a+x" includes="**/*.sh"/>
@@ -1576,6 +1619,7 @@
                 <include name="properties.xml"/>
             </fileset>
         </copy>
+        <replace file="dist/multiprocess-file-example-proprietary/properties.xml" token="unknown version" value="${release-version}"/>
         <mkdir dir="dist/multiprocess-file-example-proprietary/logs"/>
         <chmod dir="dist/multiprocess-file-example-proprietary" perm="a+x" includes="**/*.sh"/>
     </target>
@@ -1608,6 +1652,7 @@
                 <include name="properties.xml"/>
             </fileset>
         </copy>
+        <replace file="dist/multiprocess-zk-example/properties.xml" token="unknown version" value="${release-version}"/>
         <mkdir dir="dist/multiprocess-zk-example/logs"/>
         <chmod dir="dist/multiprocess-zk-example" perm="a+x" includes="**/*.sh"/>
     </target>
@@ -1640,6 +1685,7 @@
                 <include name="properties.xml"/>
             </fileset>
         </copy>
+        <replace file="dist/multiprocess-zk-example-proprietary/properties.xml" token="unknown version" value="${release-version}"/>
         <mkdir dir="dist/multiprocess-zk-example-proprietary/logs"/>
         <chmod dir="dist/multiprocess-zk-example-proprietary" perm="a+x" includes="**/*.sh"/>
     </target>
@@ -1689,7 +1735,8 @@
                 <include name="properties.xml"/>
             </fileset>
         </copy>
-        
+        <replace file="dist/example/properties.xml" token="unknown version" value="${release-version}"/>
+
         <chmod dir="dist/example" perm="a+x" includes="**/*.sh"/>
 
     </target>
@@ -1722,7 +1769,8 @@
                 <include name="properties.xml"/>
             </fileset>
         </copy>
-        
+        <replace file="dist/example-proprietary/properties.xml" token="unknown version" value="${release-version}"/>
+
         <chmod dir="dist/example-proprietary" perm="a+x" includes="**/*.sh"/>
     </target>
 
@@ -1817,6 +1865,8 @@
         <copy todir="dist/test-lib">
             <fileset dir="../lib">
                 <include name="junit*.jar"/>
+                <include name="selenium*.jar"/>
+                <include name="cglib-nodep*.jar"/>
                 <include name="hamcrest-core*.jar"/>
                 <include name="mockito-core*.jar"/>
                 <include name="wiremock*.jar"/>

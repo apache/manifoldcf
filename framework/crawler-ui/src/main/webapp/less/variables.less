@@ -1,0 +1,122 @@
+/*!
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//ManifoldCF Variables.less
+//=========================
+
+//COLORS
+//--------------------------------------------------------
+
+@light-blue: #0275d8;  //Primary
+@red:        #d9534f;  //Danger
+@green:      #00a65a;  //Success
+@aqua:       #00c0ef;  //Info
+@yellow:     #f39c12;  //Warning
+@blue:       #0073b7;
+@navy:       #001F3F;
+@teal:       #39CCCC;
+@olive:      #3D9970;
+@lime:       #01FF70;
+@orange:     #f0ad4e;
+@fuchsia:    #F012BE;
+@purple:     #605ca8;
+@maroon:     #D81B60;
+@black:      #111;
+@gray:       #d2d6de;
+
+//LAYOUT
+//--------------------------------------------------------
+
+//Side bar and logo width
+@sidebar-width: 230px;
+//When the logo should go to the top of the screen
+@screen-header-collapse: @screen-xs-max;
+@main-footer-height: 30px;
+
+//Link colors (Aka: <a> tags)
+@link-color:       @light-blue;
+@link-hover-color: lighten(@link-color, 15%);
+
+//Body background (Affects main content background only)
+@body-bg: #ecf0f5;
+
+//SIDEBAR SKINS
+//--------------------------------------------------------
+
+//Dark sidebar
+@sidebar-dark-bg:                  #34343E;
+@sidebar-dark-hover-bg:            darken(@sidebar-dark-bg, 2%);
+@sidebar-dark-color:               lighten(@sidebar-dark-bg, 80%);
+@sidebar-dark-hover-color:         #fff;
+@sidebar-dark-submenu-bg:          lighten(@sidebar-dark-bg, 5%);
+@sidebar-dark-submenu-color:       lighten(@sidebar-dark-submenu-bg, 70%);
+@sidebar-dark-submenu-hover-color: #fff;
+
+//Light sidebar
+@sidebar-light-bg:                  #f9fafc;
+@sidebar-light-hover-bg:            lighten(#f0f0f1, 1.5%);
+@sidebar-light-color:               #444;
+@sidebar-light-hover-color:         #000;
+@sidebar-light-submenu-bg:          @sidebar-light-hover-bg;
+@sidebar-light-submenu-color:       #777;
+@sidebar-light-submenu-hover-color: #000;
+
+//CONTROL SIDEBAR
+//--------------------------------------------------------
+@control-sidebar-width: @sidebar-width;
+
+
+//BOXES
+//--------------------------------------------------------
+@box-border-color:  #f4f4f4;
+@box-border-radius: 3px;
+@box-footer-bg:     #fff;
+@box-boxshadow:     0 2px 2px 0 rgba(0,0,0,.16),0 0 2px 0 rgba(0,0,0,.12);
+@box-padding:       10px;
+
+//Box variants
+@box-default-border-top-color: #d2d6de;
+
+//BUTTONS
+//--------------------------------------------------------
+@btn-boxshadow: none;
+
+//PROGRESS BARS
+//--------------------------------------------------------
+@progress-bar-border-radius:    1px;
+@progress-bar-sm-border-radius: 1px;
+@progress-bar-xs-border-radius: 1px;
+
+//FORMS
+//--------------------------------------------------------
+@input-radius: 0px;
+
+//BUTTONS
+//--------------------------------------------------------
+
+//Border radius for non flat buttons
+@btn-border-radius: 3px;
+
+//TRANSITIONS SETTINGS
+//--------------------------------------------------------
+
+//Transition global options
+@transition-speed: .3s;
+@transition-fn:    ease-in-out;//cubic-bezier(0.32,1.25,0.375,1.15);
+
+//ManifoldCF variables
+@navbar-height:                    80px;

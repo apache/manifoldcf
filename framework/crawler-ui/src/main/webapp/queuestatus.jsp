@@ -181,150 +181,140 @@ try
 
 %>
 
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE html>
-<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
-  <title>
-    <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.ApacheManifoldCFQueueStatus")%>
-  </title>
-
-  <script type="text/javascript">
+<script type="text/javascript">
   <!--
+  $.ManifoldCF.setTitle(
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "queuestatus.ApacheManifoldCFQueueStatus")%>',
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.QueueStatus")%>',
+      'statusReports'
+  );
+  function Go()
+  {
+    if (report.statusbucketdesc.value == "")
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionCannotBeEmpty")%>");
+      report.statusbucketdesc.focus();
+      return;
+    }
+    if (!isRegularExpression(report.statusbucketdesc.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
+      report.statusbucketdesc.focus();
+      return;
+    }
+    if (report.statusbucketdesc.value.indexOf("(") == -1 || report.statusbucketdesc.value.indexOf(")") == -1)
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
+      report.statusbucketdesc.focus();
+      return;
+    }
+    if (!isInteger(report.rowcount.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.EnterALegalNumberForRowsPerPage")%>");
+      report.rowcount.focus();
+      return;
+    }
+    if (!isRegularExpression(report.statusidentifiermatch.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierMatchMustBeAValidRegularExpression")%>");
+      report.statusidentifiermatch.focus();
+      return;
+    }
 
-function Go()
-{
-  if (report.statusbucketdesc.value == "")
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionCannotBeEmpty")%>");
-    report.statusbucketdesc.focus();
-    return;
-  }
-  if (!isRegularExpression(report.statusbucketdesc.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
-    report.statusbucketdesc.focus();
-    return;
-  }
-  if (report.statusbucketdesc.value.indexOf("(") == -1 || report.statusbucketdesc.value.indexOf(")") == -1)
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
-    report.statusbucketdesc.focus();
-    return;
-  }
-  if (!isInteger(report.rowcount.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.EnterALegalNumberForRowsPerPage")%>");
-    report.rowcount.focus();
-    return;
-  }
-  if (!isRegularExpression(report.statusidentifiermatch.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierMatchMustBeAValidRegularExpression")%>");
-    report.statusidentifiermatch.focus();
-    return;
-  }
-
-  document.report.op.value="Status";
-  document.report.action = document.report.action + "#MainButton";
-  document.report.submit();
-}
-
-function Continue()
-{
-  if (report.statusbucketdesc.value == "")
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionCannotBeEmpty")%>");
-    report.statusbucketdesc.focus();
-    return;
-  }
-  if (!isRegularExpression(report.statusbucketdesc.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
-    report.statusbucketdesc.focus();
-    return;
-  }
-  if (report.statusbucketdesc.value.indexOf("(") == -1 || report.statusbucketdesc.value.indexOf(")") == -1)
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
-    report.statusbucketdesc.focus();
-    return;
-  }
-  if (!isRegularExpression(report.statusidentifiermatch.value))
-  {
-    alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierMatchMustBeAValidRegularExpression")%>");
-    report.statusidentifiermatch.focus();
-    return;
-  }
-  document.report.op.value="Continue";
-  document.report.action = document.report.action + "#MainButton";
-  document.report.submit();
-}
-
-function ColumnClick(colname)
-{
-  document.report.clickcolumn.value = colname;
-  Go();
-}
-
-function SetPosition(amt)
-{
-  if (amt < 0)
-    amt = 0;
-  document.report.startrow.value = amt;
-  Go();
-}
-
-function isRegularExpression(value)
-{
-  try
-  {
-    var foo = "teststring";
-    foo.search(value.replace(/\(\?i\)/,""));
-    return true;
-  }
-  catch (e)
-  {
-    return false;
+    document.report.op.value="Status";
+    document.report.action=document.report.action + "#MainButton";
+    $.ManifoldCF.submit(document.report);
   }
 
-}
+  function Continue()
+  {
+    if (report.statusbucketdesc.value == "")
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionCannotBeEmpty")%>");
+      report.statusbucketdesc.focus();
+      return;
+    }
+    if (!isRegularExpression(report.statusbucketdesc.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustBeAValidRegularExpression")%>");
+      report.statusbucketdesc.focus();
+      return;
+    }
+    if (report.statusbucketdesc.value.indexOf("(") == -1 || report.statusbucketdesc.value.indexOf(")") == -1)
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescriptionMustDelimitAClassWithParentheses")%>");
+      report.statusbucketdesc.focus();
+      return;
+    }
+    if (!isRegularExpression(report.statusidentifiermatch.value))
+    {
+      alert("<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierMatchMustBeAValidRegularExpression")%>");
+      report.statusidentifiermatch.focus();
+      return;
+    }
+    document.report.op.value="Continue";
+    document.report.action=document.report.action + "#MainButton";
+    $.ManifoldCF.submit(document.report);
+  }
 
-function isInteger(value)
-{
-  var anum=/(^\d+$)/;
-  return anum.test(value);
-}
+  function ColumnClick(colname)
+  {
+    document.report.clickcolumn.value=colname;
+    Go();
+  }
+
+  function SetPosition(amt)
+  {
+    if (amt < 0)
+      amt=0;
+    document.report.startrow.value=amt;
+    Go();
+  }
+
+  function isRegularExpression(value)
+  {
+    try
+    {
+      var foo="teststring";
+      foo.search(value.replace(/\(\?i\)/,""));
+      return true;
+    }
+    catch (e)
+    {
+      return false;
+    }
+
+  }
+
+  function isInteger(value)
+  {
+    var anum=/(^\d+$)/;
+    return anum.test(value);
+  }
+
+  $(function ()
+  {
+    $('.selectpicker').selectpicker();
+  });
 
   //-->
-  </script>
+</script>
 
 
-</head>
+<div class="row">
+  <div class="col-md-12">
+    <form class="standardform" name="report" action="execute.jsp" method="POST">
+      <input type="hidden" name="op" value="Continue"/>
+      <input type="hidden" name="type" value="queuestatus"/>
 
-<body class="standardbody">
-
-  <table class="page">
-    <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
-    <tr>
-      <td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
-      <td class="window">
-        <p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.QueueStatus")%></p>
-        <form class="standardform" name="report" action="execute.jsp" method="POST">
-          <input type="hidden" name="op" value="Continue"/>
-          <input type="hidden" name="type" value="queuestatus"/>
-          <table class="displaytable">
+      <div class="box box-primary">
+        <div class="box-body">
+          <table class="table table-bordered">
             <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-            <tr>
-              <td class="description" colspan="1"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Connection")%></td><td class="value" colspan="1">
-                <select name="statusconnection" size="3">
-                  <option <%=(statusConnection.length()==0)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.NotSpecified")%> --</option>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Connection")%></th>
+              <td>
+                <select class="selectpicker" name="statusconnection">
+                  <option <%=(statusConnection.length() == 0)?"selected=\"selected\"":""%> value="">-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.NotSpecified")%>--</option>
 <%
   int i = 0;
   while (i < connList.length)
@@ -345,8 +335,9 @@ function isInteger(value)
   if (eligibleList != null)
   {
 %>
-              <td class="description" colspan="1"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Jobs")%></td><td class="value" colspan="1">
-                <select multiple="true" name="statusjobs" size="3">
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Jobs")%></th>
+              <th>
+                <select class="selectpicker" multiple="true" name="statusjobs">
 <%
     i = 0;
     while (i < eligibleList.length)
@@ -366,26 +357,23 @@ function isInteger(value)
   else
   {
 %>
-              <td class="value" colspan="2"></td>
+              <td colspan="2"></td>
 <%
   }
 %>
 
             </tr>
             <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-            <tr>
-              <td class="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.TimeOffsetFromNowMinutes")%></td>
-              <td class="value" colspan="3">
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.TimeOffsetFromNowMinutes")%></th>
+              <td colspan="3">
                 <input name="statusscheduleoffset" type="text" size="6" value=""/>
               </td>
             </tr>
             <tr>
-              <td class="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.DocumentState")%></td>
-              <td class="value" colspan="3">
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.DocumentState")%></th>
+              <td colspan="3">
                 <input name="statusdocumentstates_posted" type="hidden" value="true"/>
-                <select name="statusdocumentstates" multiple="true" size="3">
+                <select class="selectpicker" name="statusdocumentstates" multiple="true">
                   <option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_NEVERPROCESSED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_NEVERPROCESSED)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.DocumentsThatHaveNeverBeenProcessed")%></option>
                   <option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_PREVIOUSLYPROCESSED)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.DocumentsProcessedAtLeastOnce")%></option>
                   <option <%=((matchingStatesHash.get(new Integer(IJobManager.DOCSTATE_OUTOFSCOPE))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATE_OUTOFSCOPE)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.DocumentsOutOfScope")%></option>
@@ -393,10 +381,10 @@ function isInteger(value)
               </td>
             </tr>
             <tr>
-              <td class="description"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.DocumentState")%></td>
-              <td class="value" colspan="3">
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.DocumentState")%></th>
+              <td colspan="3">
                 <input name="statusdocumentstatuses_posted" type="hidden" value="true"/>
-                <select name="statusdocumentstatuses" multiple="true" size="3">
+                <select class="selectpicker" name="statusdocumentstatuses" multiple="true">
                   <option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_INACTIVE))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_INACTIVE)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.DocumentsThatAreNoLongerActive")%></option>
                   <option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_PROCESSING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_PROCESSING)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.DocumentsCurrentlyInProgress")%></option>
                   <option <%=((matchingStatusesHash.get(new Integer(IJobManager.DOCSTATUS_EXPIRING))==null)?"":"selected=\"selected\"")%> value='<%=Integer.toString(IJobManager.DOCSTATUS_EXPIRING)%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.DocumentsCurrentlyBeingExpired")%></option>
@@ -411,42 +399,40 @@ function isInteger(value)
               </td>
             </tr>
             <tr>
-              <td class="separator" colspan="4"><hr/></td>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.DocumentIdentifierMatch")%></th>
+              <td colspan="3">
+                <input type="text" name="statusidentifiermatch" size="40" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(identifierMatch)%>'/>
+              </td>
             </tr>
             <tr>
-              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.DocumentIdentifierMatch")%></nobr></td>
-              <td class="value" colspan="3"><input type="text" name="statusidentifiermatch" size="40" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(identifierMatch)%>'/></td>
+              <th><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescription")%></th>
+              <td colspan="3">
+                <input type="text" name="statusbucketdesc" size="40" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(statusBucketDesc)%>'/>
+              </td>
             </tr>
-            <tr>
-              <td class="description"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClassDescription")%></nobr></td>
-              <td class="value" colspan="3"><input type="text" name="statusbucketdesc" size="40" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(statusBucketDesc)%>'/></td>
-            </tr>
-            <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-            <tr>
-              <td class="message" colspan="4">
+          </table>
+        </div>
+        <div class="box-footer clearfix">
+          <div class="btn-group">
 <%
   if (statusConnection.length() > 0 && statusJobIdentifiers.length > 0)
   {
 %>
-                <a name="MainButton"><input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Go")%>" onClick="javascript:Go()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.ExecuteThisQuery")%>"/></a>
+            <a href="#" name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Go()"
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.ExecuteThisQuery")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Go")%></a>
 <%
   }
   else
   {
 %>
-                <a name="MainButton"><input type="button" value="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Continue")%>" onClick="javascript:Continue()" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Continue")%>"/></a>
+            <a href="#" name="MainButton" class="btn btn-primary" role="button" onClick="javascript:Continue()"
+                    title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Continue")%>" data-toggle="tooltip"><i class="fa fa-play fa-fw"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.Continue")%></a>
 <%
   }
 %>
-              </td>
-            </tr>
-            <tr>
-              <td class="separator" colspan="4"><hr/></td>
-            </tr>
-
-          </table>
+          </div>
+        </div>
+      </div>
 <%
   if (statusConnection.length() > 0)
   {
@@ -500,20 +486,22 @@ function isInteger(value)
           <input type="hidden" name="startrow" value='<%=Integer.toString(startRow)%>'/>
           <input type="hidden" name="sortorder" value='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sortOrder.toString())%>'/>
 
-          <table class="displaytable">
-            <tr class="headerrow">
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("idbucket");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClass")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("inactive");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Inactive")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("processing");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Processing")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("expiring");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Expiring")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("deleting");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Deleting")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("processready");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.AboutToProcess")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("expireready");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.AboutToExpire")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("processwaiting");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.WaitingForProcessing")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("expirewaiting");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.WaitingForExpiration")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("waitingforever");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.WaitingForever")%></nobr></a></td>
-              <td class="reportcolumnheader"><a href="javascript:void(0);" onclick='javascript:ColumnClick("hopcountexceeded");'><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.HopcountExceeded")%></nobr></a></td>
-            </tr>
+      <div class="box box-primary">
+        <div class="box-body  table-responsive no-padding">
+          <table class="table table-bordered">
+            <tr>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("idbucket");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.IdentifierClass")%></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("inactive");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Inactive")%></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("processing");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Processing")%></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("expiring");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Expiring")%></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("deleting");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Deleting")%></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("processready");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.AboutToProcess")%></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("expireready");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.AboutToExpire")%></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("processwaiting");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.WaitingForProcessing")%></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("expirewaiting");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.WaitingForExpiration")%></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("waitingforever");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.WaitingForever")%></a></th>
+              <th><a href="javascript:void(0);" onclick='javascript:ColumnClick("hopcountexceeded");'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.HopcountExceeded")%></a></th>
+</tr>
 <%
       zz = 0;
       boolean hasMoreRows = (set.getRowCount() > rowCount);
@@ -532,8 +520,8 @@ function isInteger(value)
         String[] identifierBreakdown = org.apache.manifoldcf.ui.util.Formatter.formatString(idBucketValue,64,true,true);
 
 %>
-            <tr <%="class=\""+((zz%2==0)?"evendatarow":"odddatarow")+"\""%>>
-              <td class="reportcolumncell">
+            <tr>
+              <td>
 <%
         int q = 0;
         while (q < identifierBreakdown.length)
@@ -544,86 +532,94 @@ function isInteger(value)
         }
 %>
               </td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("inactive").toString())%></td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("processing").toString())%></td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("expiring").toString())%></td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("deleting").toString())%></td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("processready").toString())%></td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("expireready").toString())%></td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("processwaiting").toString())%></td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("expirewaiting").toString())%></td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("waitingforever").toString())%></td>
-              <td class="reportcolumncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("hopcountexceeded").toString())%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("inactive").toString())%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("processing").toString())%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("expiring").toString())%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("deleting").toString())%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("processready").toString())%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("expireready").toString())%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("processwaiting").toString())%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("expirewaiting").toString())%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("waitingforever").toString())%></td>
+              <td><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(row.getValue("hopcountexceeded").toString())%></td>
             </tr>
 <%
         zz++;
       }
 %>
           </table>
-          <table class="reportfootertable">
-            <tr class="reportfooterrow">
-              <td class="reportfootercell">
-                <nobr>
+        </div>
+        <div class="box-footer">
+          <div class="row">
+            <div class="col-md-7">
+              <ul class="pagination pagination-sm no-margin pull-left">
 <%
       if (startRow == 0)
       {
 %>
-                  <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%>
+                <li><a href="#"><i class="fa fa-arrow-circle-o-left fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%></a></li>
 <%
       }
       else
       {
 %>
-                  <a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.PreviousPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%></a>
+                <li>
+                  <a href="javascript:void(0);"
+                          onclick='<%="javascript:SetPosition("+Integer.toString(startRow-rowCount)+");"%>'
+                          title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.PreviousPage")%>" data-toggle="tooltip"><i class="fa fa-arrow-circle-o-left fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Previous")%></a>
+                </li>
 <%
       }
-%>
-                </nobr>
-                <nobr>
-<%
       if (hasMoreRows == false)
       {
 %>
-                  <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Next")%>
+                <li><a href="#"><i class="fa fa-arrow-circle-o-right fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Next")%></a></li>
 <%
       }
       else
       {
 %>
-                  <a href="javascript:void(0);" onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>' alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.NextPage")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Next")%></a>
+                <li>
+                  <a href="javascript:void(0);"
+                          onclick='<%="javascript:SetPosition("+Integer.toString(startRow+rowCount)+");"%>'
+                          title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"queuestatus.NextPage")%>" data-toggle="title"><i class="fa fa-arrow-circle-o-right fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Next")%></a>
+                </li>
 <%
       }
 %>
-                </nobr>
-              </td>
-              <td class="reportfootercell">
-                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Rows")%></nobr>
-                <nobr><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></nobr>
-              </td>
-              <td class="reportfootercell">
-                <nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.RowsPerPage")%></nobr>
-                <nobr><input type="text" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/></nobr>
-              </td>
-            </tr>
-          </table>
+              </ul>
+            </div>
+            <div class="col-md-2">
+              <span class="label label-primary"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.Rows")%></span>
+              <span class="label label-primary"><%=Integer.toString(startRow)%>-<%=(hasMoreRows?Integer.toString(startRow+rowCount-1):"END")%></span>
+            </div>
+            <div class="col-md-3">
+              <div class="input-group input-group-sm">
+                <span class="input-group-addon"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.RowsPerPage")%></span>
+                <input type="text" class="form-control" name="rowcount" size="5" value='<%=Integer.toString(rowCount)%>'/>
+              </div>
+            </div>
+          </div>
+        </div>
 
 <%
     }
     else
     {
 %>
-          <table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.PleaseSelectAtLeastOneJob")%></td></tr></table>
+        <div class="callout callout-info"><p><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.PleaseSelectAtLeastOneJob")%></p></div>
 <%
     }
   }
   else
   {
 %>
-          <table class="displaytable"><tr><td class="message"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.PleaseSelectaConnection")%></td></tr></table>
+        <div class="callout callout-info"><p><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"queuestatus.PleaseSelectaConnection")%></p></div>
 <%
   }
 %>
-        </form>
+      </div>
+    </form>
 <%
 }
 catch (ManifoldCFException e)
@@ -636,11 +632,5 @@ catch (ManifoldCFException e)
 <%
 }
 %>
-
-      </td>
-    </tr>
-  </table>
-
-</body>
-
-</html>
+  </div>
+</div>

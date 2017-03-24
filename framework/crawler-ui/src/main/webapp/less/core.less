@@ -1,0 +1,151 @@
+/*!
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * Core: Genral Layout Style
+ * -------------------------
+ */
+html,
+body {
+  min-height: 100%;
+  .layout-boxed & {
+    height: 100%;
+  }
+}
+
+body {  
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  overflow-x: hidden;
+  overflow-y: auto;
+  //background-color: @body-bg;
+}
+
+/* Layout */
+.wrapper {
+  .clearfix();
+  min-height: 100%;
+  position: static;
+  overflow: hidden;
+}
+
+/*
+ * Content Wrapper - contains the main content
+ */
+.content-wrapper,
+.main-footer {    
+  //Using disposable variable to join statements with a comma
+  @transition-rule: @transition-speed @transition-fn,
+                    margin @transition-speed @transition-fn;
+  .transition-transform(@transition-rule);
+  margin-left: @sidebar-width;
+  z-index: 820;
+  //Top nav layout
+  .layout-top-nav & {
+    margin-left: 0;
+  }
+  @media (max-width: @screen-xs-max) {    
+    margin-left: 0;
+  }
+  //When opening the sidebar on large screens
+  .sidebar-collapse & {
+    @media (min-width: @screen-sm) {
+      margin-left: 0;
+    }
+  }
+  //When opening the sidebar on small screens
+  .sidebar-open & {
+    @media (max-width: @screen-xs-max) {
+      .translate(@sidebar-width, 0);
+    }
+  }
+}
+
+.content-wrapper{
+  min-height: 100%;
+  background-color: @body-bg;
+  z-index: 800;
+}
+.main-footer {
+  background-color: @body-bg;
+  padding: 0 15px;
+  color: #444;
+  font-size: 12px;
+  height: @main-footer-height;
+  line-height: @main-footer-height - 1; //Subtract the border
+  display: none;
+}
+
+/* Fixed layout */
+.fixed {
+  .main-header,
+  .main-sidebar{
+    position: fixed;
+  }
+  .main-header {
+    top: 0;
+    right: 0;
+    left: 0;
+  }
+  .content-wrapper{
+    padding-top: @navbar-height;
+    @media (max-width: @screen-header-collapse) {
+      padding-top: 100px;
+    }
+  }
+  &.layout-boxed {
+    .wrapper {
+      max-width: 100%;
+    }
+  }
+}
+
+/* Content */
+.content {
+  min-height: 250px;
+  padding: 15px;
+  .container-fixed(@grid-gutter-width);
+}
+
+/* H1 - H6 font */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+/* General Links */
+a {
+  color: @link-color;
+}
+a:hover,
+a:active,
+a:focus {
+  outline: none;
+  text-decoration: none;
+  color: @link-hover-color;
+}

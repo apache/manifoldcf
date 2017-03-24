@@ -116,6 +116,10 @@
         </fileset>
         <fileset dir="${mcf-dist}/lib">
             <include name="mail*.jar"/>
+            <include name="commons-exec*.jar"/>
+            <include name="guava*.jar"/>
+            <include name="gson*.jar"/>
+            <include name="jna*.jar"/>
             <include name="json-simple*.jar"/>
             <include name="commons-codec*.jar"/>
             <include name="commons-collections*.jar"/>
@@ -133,6 +137,8 @@
             <include name="jsp-2.1*.jar"/>
             <include name="jsp-api*.jar"/>
             <include name="junit*.jar"/>
+            <include name="selenium*.jar"/>
+            <include name="cglib-nodep*.jar"/>
             <include name="hamcrest-core*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
@@ -1155,6 +1161,10 @@
     <target name="run-UI-postgresql" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-Dwebdriver.chrome.driver=${env.SL_CHROME_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.safari.driver=${env.SL_SAFARI_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.firefox.driver=${env.SL_FIREFOX_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.ie.driver=${env.SL_IE_DRIVER}"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
@@ -1178,6 +1188,10 @@
     <target name="run-UI-HSQLDB" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-HSQLDB-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-Dwebdriver.chrome.driver=${env.SL_CHROME_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.safari.driver=${env.SL_SAFARI_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.firefox.driver=${env.SL_FIREFOX_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.ie.driver=${env.SL_IE_DRIVER}"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
@@ -1201,6 +1215,10 @@
     <target name="run-UI-HSQLDBext" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-HSQLDBext-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-Dwebdriver.chrome.driver=${env.SL_CHROME_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.safari.driver=${env.SL_SAFARI_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.firefox.driver=${env.SL_FIREFOX_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.ie.driver=${env.SL_IE_DRIVER}"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
@@ -1224,6 +1242,10 @@
     <target name="run-UI-mysql" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-mysql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="-Dwebdriver.chrome.driver=${env.SL_CHROME_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.safari.driver=${env.SL_SAFARI_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.firefox.driver=${env.SL_FIREFOX_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.ie.driver=${env.SL_IE_DRIVER}"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web-proprietary/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web-proprietary/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web-proprietary/war/mcf-api-service.war"/>
