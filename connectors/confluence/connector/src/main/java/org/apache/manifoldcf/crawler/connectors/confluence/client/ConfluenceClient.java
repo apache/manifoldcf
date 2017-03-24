@@ -19,6 +19,7 @@ package org.apache.manifoldcf.crawler.connectors.confluence.client;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Locale;
@@ -60,9 +61,10 @@ import org.apache.manifoldcf.crawler.connectors.confluence.model.Page;
 import org.apache.manifoldcf.crawler.connectors.confluence.model.Space;
 import org.apache.manifoldcf.crawler.connectors.confluence.model.Spaces;
 import org.apache.manifoldcf.crawler.connectors.confluence.model.builder.ConfluenceResourceBuilder;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -337,21 +339,15 @@ public class ConfluenceClient {
       throws Exception {
     String stringEntity = EntityUtils.toString(entity);
 
-    JSONObject responseObject;
-    try {
-      responseObject = new JSONObject(stringEntity);
-      ConfluenceResponse<T> response = ConfluenceResponse
-          .fromJson(responseObject, builder);
-      if (response.getResults().size() == 0) {
-        logger.debug("[Processing] No {} found in the Confluence response", builder.getType().getSimpleName());
-      }
-
-      return response;
-    } catch (JSONException e) {
-      logger.debug("Error parsing JSON response");
-      throw new Exception();
+    final JSONParser parser = new JSONParser();
+    final JSONObject responseObject = (JSONObject)parser.parse(new StringReader(stringEntity));
+    ConfluenceResponse<T> response = ConfluenceResponse
+        .fromJson(responseObject, builder);
+    if (response.getResults().size() == 0) {
+      logger.debug("[Processing] No {} found in the Confluence response", builder.getType().getSimpleName());
     }
 
+    return response;
   }
   
   /**
@@ -590,16 +586,11 @@ public class ConfluenceClient {
   private MutablePage pageFromHttpEntity(HttpEntity entity) throws Exception {
     String stringEntity = EntityUtils.toString(entity);
 
-    JSONObject responseObject;
-    try {
-      responseObject = new JSONObject(stringEntity);
-      @SuppressWarnings("unchecked")
-      MutablePage response = ((ConfluenceResourceBuilder<MutablePage>)MutablePage.builder()).fromJson(responseObject, new MutablePage());
-      return response;
-    } catch (JSONException e) {
-      logger.debug("Error parsing JSON page response data");
-      throw new Exception("Error parsing JSON page response data");
-    }
+    final JSONParser parser = new JSONParser();
+    final JSONObject responseObject = (JSONObject)parser.parse(new StringReader(stringEntity));
+    @SuppressWarnings("unchecked")
+    MutablePage response = ((ConfluenceResourceBuilder<MutablePage>)MutablePage.builder()).fromJson(responseObject, new MutablePage());
+    return response;
   }
 
   /**
@@ -611,17 +602,12 @@ public class ConfluenceClient {
   private MutableAttachment attachmentFromHttpEntity(HttpEntity entity)
       throws Exception {
     String stringEntity = EntityUtils.toString(entity);
-    JSONObject responseObject;
-    try {
-      responseObject = new JSONObject(stringEntity);
-      MutableAttachment response = (MutableAttachment) Attachment
-          .builder()
-          .fromJson(responseObject, new MutableAttachment());
-      return response;
-    } catch (JSONException e) {
-      logger.debug("Error parsing JSON page response data");
-      throw new Exception("Error parsing JSON page response data");
-    }
+    final JSONParser parser = new JSONParser();
+    final JSONObject responseObject = (JSONObject)parser.parse(new StringReader(stringEntity));;
+    MutableAttachment response = (MutableAttachment) Attachment
+        .builder()
+        .fromJson(responseObject, new MutableAttachment());
+    return response;
   }
 
   /**
@@ -681,10 +667,10 @@ public class ConfluenceClient {
         url, username, space.getKey());
 
     HttpPost httpPost = createPostRequest(url);
-    JSONArray jsonArray = new JSONArray();
-    jsonArray.put(space.getKey());
-    jsonArray.put(username);
-    StringEntity stringEntity = new StringEntity(jsonArray.toString());
+    final JSONArray jsonArray = new JSONArray();
+    jsonArray.add(space.getKey());
+    jsonArray.add(username);
+    StringEntity stringEntity = new StringEntity(jsonArray.toJSONString());
     httpPost.setEntity(stringEntity);
     HttpResponse response = httpClient.execute(httpPost);
     if (response.getStatusLine().getStatusCode() != 200) {
@@ -700,36 +686,22 @@ public class ConfluenceClient {
 
   private Spaces spacesFromHttpEntity(HttpEntity entity) throws Exception {
     String stringEntity = EntityUtils.toString(entity);
+    final JSONParser parser = new JSONParser();
+    final JSONArray responseObject = (JSONArray)parser.parse(new StringReader(stringEntity));
+    Spaces response = Spaces.fromJson(responseObject);
 
-    JSONArray responseObject;
-    try {
-      responseObject = new JSONArray(stringEntity);
-      Spaces response = Spaces.fromJson(responseObject);
-
-      return response;
-    } catch (JSONException e) {
-      logger.debug("Error parsing JSON spaces response data");
-      throw new Exception("Error parsing JSON spaces response data");
-    }
-
+    return response;
   }
   
   private List<String> permissionsFromHttpEntity(HttpEntity entity) throws Exception {
     String stringEntity = EntityUtils.toString(entity);
-
-    JSONArray responseObject;
-    List<String> permissions = Lists.newArrayList();
-    try {
-      responseObject = new JSONArray(stringEntity);
-      for(int i=0,len=responseObject.length();i<len;i++) {
-        permissions.add(responseObject.getString(i));
-      }
-
-      return permissions;
-    } catch (JSONException e) {
-      logger.debug("Error parsing JSON space permissions response data");
-      throw new Exception("Error parsing JSON space permissions respnse data");
+    final JSONParser parser = new JSONParser();
+    final JSONArray responseObject = (JSONArray)parser.parse(new StringReader(stringEntity));
+    final List<String> permissions = Lists.newArrayList();
+    for(int i=0,len=responseObject.size();i<len;i++) {
+      permissions.add(responseObject.get(i).toString());
     }
 
+    return permissions;
   }
 }

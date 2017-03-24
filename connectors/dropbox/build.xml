@@ -34,7 +34,6 @@
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
             <include name="dropbox-client*.jar"/>
-            <include name="json-simple*.jar"/>
         </fileset>
     </path>
 
@@ -43,7 +42,6 @@
         <copy todir="dist/lib">
             <fileset dir="../../lib">
                 <include name="dropbox*.jar"/>
-                <include name="json-simple*.jar"/>
             </fileset>
         </copy>
     </target>

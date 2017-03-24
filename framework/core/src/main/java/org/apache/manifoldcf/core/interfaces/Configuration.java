@@ -23,7 +23,10 @@ import java.util.*;
 import java.io.*;
 import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.core.common.XMLDoc;
-import org.json.*;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /** This class represents XML configuration information, in its most basic incarnation.
 */
@@ -163,99 +166,91 @@ public class Configuration implements IHierarchyParent
   public String toJSON()
     throws ManifoldCFException
   {
-    try
-    {
-      JSONWriter writer = new JSONStringer();
-      writer.object();
-      // We do NOT use the root node label, unlike XML.
+    JSONWriter writer = new JSONWriter();
+    writer.startObject();
+    // We do NOT use the root node label, unlike XML.
       
-      // Now, do children.  To get the arrays right, we need to glue together all children with the
-      // same type, which requires us to do an appropriate pass to gather that stuff together.
-      // Since we also need to maintain order, it is essential that we detect the out-of-order condition
-      // properly, and use an alternate representation if we should find it.
-      Map<String,List<ConfigurationNode>> childMap = new HashMap<String,List<ConfigurationNode>>();
-      List<String> childList = new ArrayList<String>();
-      String lastChildType = null;
-      boolean needAlternate = false;
-      int i = 0;
-      while (i < getChildCount())
+    // Now, do children.  To get the arrays right, we need to glue together all children with the
+    // same type, which requires us to do an appropriate pass to gather that stuff together.
+    // Since we also need to maintain order, it is essential that we detect the out-of-order condition
+    // properly, and use an alternate representation if we should find it.
+    Map<String,List<ConfigurationNode>> childMap = new HashMap<String,List<ConfigurationNode>>();
+    List<String> childList = new ArrayList<String>();
+    String lastChildType = null;
+    boolean needAlternate = false;
+    int i = 0;
+    while (i < getChildCount())
+    {
+      ConfigurationNode child = findChild(i++);
+      String key = child.getType();
+      List<ConfigurationNode> list = childMap.get(key);
+      if (list == null)
       {
-        ConfigurationNode child = findChild(i++);
-        String key = child.getType();
-        List<ConfigurationNode> list = childMap.get(key);
-        if (list == null)
-        {
-          list = new ArrayList<ConfigurationNode>();
-          childMap.put(key,list);
-          childList.add(key);
-        }
-        else
-        {
-          if (!lastChildType.equals(key))
-          {
-            needAlternate = true;
-            break;
-          }
-        }
-        list.add(child);
-        lastChildType = key;
-      }
-        
-      if (needAlternate)
-      {
-        // Can't use the array representation.  We'll need to start do a _children_ object, and enumerate
-        // each child.  So, the JSON will look like:
-        // <key>:{_attribute_<attr>:xxx,_children_:[{_type_:<child_key>, ...},{_type_:<child_key_2>, ...}, ...]}
-        writer.key(JSON_CHILDREN);
-        writer.array();
-        i = 0;
-        while (i < getChildCount())
-        {
-          ConfigurationNode child = findChild(i++);
-          writeNode(writer,child,false,true);
-        }
-        writer.endArray();
+        list = new ArrayList<ConfigurationNode>();
+        childMap.put(key,list);
+        childList.add(key);
       }
       else
       {
-        // We can collapse child nodes to arrays and still maintain order.
-        // The JSON will look like this:
-        // <key>:{_attribute_<attr>:xxx,<child_key>:[stuff],<child_key_2>:[more_stuff] ...}
-        int q = 0;
-        while (q < childList.size())
+        if (!lastChildType.equals(key))
         {
-          String key = childList.get(q++);
-          List<ConfigurationNode> list = childMap.get(key);
-          if (list.size() > 1)
-          {
-            // Write the key
-            writer.key(key);
-            // Write it as an array
-            writer.array();
-            i = 0;
-            while (i < list.size())
-            {
-              ConfigurationNode child = list.get(i++);
-              writeNode(writer,child,false,false);
-            }
-            writer.endArray();
-          }
-          else
-          {
-            // Write it as a singleton
-            writeNode(writer,list.get(0),true,false);
-          }
+          needAlternate = true;
+          break;
         }
       }
-      writer.endObject();
-
-      // Convert to a string.
-      return writer.toString();
+      list.add(child);
+      lastChildType = key;
     }
-    catch (JSONException e)
+        
+    if (needAlternate)
     {
-      throw new ManifoldCFException(e.getMessage(),e);
+      // Can't use the array representation.  We'll need to start do a _children_ object, and enumerate
+      // each child.  So, the JSON will look like:
+      // <key>:{_attribute_<attr>:xxx,_children_:[{_type_:<child_key>, ...},{_type_:<child_key_2>, ...}, ...]}
+      writer.key(JSON_CHILDREN);
+      writer.startArray();
+      i = 0;
+      while (i < getChildCount())
+      {
+        ConfigurationNode child = findChild(i++);
+        writeNode(writer,child,false,true);
+      }
+      writer.endArray();
     }
+    else
+    {
+      // We can collapse child nodes to arrays and still maintain order.
+      // The JSON will look like this:
+      // <key>:{_attribute_<attr>:xxx,<child_key>:[stuff],<child_key_2>:[more_stuff] ...}
+      int q = 0;
+      while (q < childList.size())
+      {
+        String key = childList.get(q++);
+        List<ConfigurationNode> list = childMap.get(key);
+        if (list.size() > 1)
+        {
+          // Write it as an array
+          writer.key(key);
+          writer.startArray();
+          i = 0;
+          while (i < list.size())
+          {
+            ConfigurationNode child = list.get(i++);
+            writeNode(writer,child,false,false);
+          }
+          writer.endArray();
+        }
+        else
+        {
+          // Write it as a singleton
+          writeNode(writer,list.get(0),true,false);
+        }
+      }
+    }
+    writer.endObject();
+
+    // Convert to a string.
+    return writer.toString();
   }
   
   /** Write a specification node.
@@ -299,138 +294,131 @@ public class Configuration implements IHierarchyParent
   protected static void writeNode(JSONWriter writer, ConfigurationNode node, boolean writeKey, boolean writeSpecialKey)
     throws ManifoldCFException
   {
-    try
+    // Node types correspond directly to keys.  Attributes correspond to "_attribute_<attribute_name>".
+    // Get the type
+    if (writeKey)
     {
-      // Node types correspond directly to keys.  Attributes correspond to "_attribute_<attribute_name>".
-      // Get the type
-      if (writeKey)
-      {
-        String type = node.getType();
-        writer.key(type);
-      }
-      else if (writeSpecialKey)
-      {
-        writer.object();
-        writer.key(JSON_TYPE);
-        writer.value(node.getType());
-      }
+      String type = node.getType();
+      writer.key(type);
+    }
+    else if (writeSpecialKey)
+    {
+      writer.startObject();
+      writer.key(JSON_TYPE);
+      writer.value(node.getType());
+    }
       
-      // Problem: Two ways of handling a naked 'value'.  First way is to NOT presume a nested object is needed.  Second way is to require a nested
-      // object.  On reconstruction, the right thing will happen, and a naked value will become a node with a value, while an object will become
-      // a node that has an optional "_value_" key inside it.
-      String value = node.getValue();
-      if (value != null && node.getAttributeCount() == 0 && node.getChildCount() == 0)
+    // Problem: Two ways of handling a naked 'value'.  First way is to NOT presume a nested object is needed.  Second way is to require a nested
+    // object.  On reconstruction, the right thing will happen, and a naked value will become a node with a value, while an object will become
+    // a node that has an optional "_value_" key inside it.
+    String value = node.getValue();
+    if (value != null && node.getAttributeCount() == 0 && node.getChildCount() == 0)
+    {
+      writer.value(value);
+    }
+    else
+    {
+      if (!writeSpecialKey)
+        writer.startObject();
+        
+      if (value != null)
       {
+        writer.key(JSON_VALUE);
         writer.value(value);
       }
-      else
+        
+      Iterator<String> iter = node.getAttributes();
+      while (iter.hasNext())
       {
-        if (!writeSpecialKey)
-          writer.object();
-        
-        if (value != null)
-        {
-          writer.key(JSON_VALUE);
-          writer.value(value);
-        }
-        
-        Iterator<String> iter = node.getAttributes();
-        while (iter.hasNext())
-        {
-          String attribute = iter.next();
-          String attrValue = node.getAttributeValue(attribute);
-          writer.key(JSON_ATTRIBUTE+attribute);
-          writer.value(attrValue);
-        }
+        String attribute = iter.next();
+        String attrValue = node.getAttributeValue(attribute);
+        writer.key(JSON_ATTRIBUTE+attribute);
+        writer.value(attrValue);
+      }
 
-        // Now, do children.  To get the arrays right, we need to glue together all children with the
-        // same type, which requires us to do an appropriate pass to gather that stuff together.
-	// Since we also need to maintain order, it is essential that we detect the out-of-order condition
-	// properly, and use an alternate representation if we should find it.
-        Map<String,List<ConfigurationNode>> childMap = new HashMap<String,List<ConfigurationNode>>();
-	List<String> childList = new ArrayList<String>();
-	String lastChildType = null;
-        boolean needAlternate = false;
-        int i = 0;
-        while (i < node.getChildCount())
+      // Now, do children.  To get the arrays right, we need to glue together all children with the
+      // same type, which requires us to do an appropriate pass to gather that stuff together.
+      // Since we also need to maintain order, it is essential that we detect the out-of-order condition
+      // properly, and use an alternate representation if we should find it.
+      Map<String,List<ConfigurationNode>> childMap = new HashMap<String,List<ConfigurationNode>>();
+      List<String> childList = new ArrayList<String>();
+      String lastChildType = null;
+      boolean needAlternate = false;
+      int i = 0;
+      while (i < node.getChildCount())
+      {
+        ConfigurationNode child = node.findChild(i++);
+        String key = child.getType();
+        List<ConfigurationNode> list = childMap.get(key);
+        if (list == null)
         {
-          ConfigurationNode child = node.findChild(i++);
-          String key = child.getType();
-          List<ConfigurationNode> list = childMap.get(key);
-          if (list == null)
-          {
-            list = new ArrayList<ConfigurationNode>();
-            childMap.put(key,list);
-            childList.add(key);
-          }
-	  else
-          {
-            if (!lastChildType.equals(key))
-            {
-              needAlternate = true;
-              break;
-            }
-          }
-          list.add(child);
-          lastChildType = key;
-        }
-        
-        if (needAlternate)
-        {
-          // Can't use the array representation.  We'll need to start do a _children_ object, and enumerate
-          // each child.  So, the JSON will look like:
-          // <key>:{_attribute_<attr>:xxx,_children_:[{_type_:<child_key>, ...},{_type_:<child_key_2>, ...}, ...]}
-          writer.key(JSON_CHILDREN);
-          writer.array();
-          i = 0;
-          while (i < node.getChildCount())
-          {
-            ConfigurationNode child = node.findChild(i++);
-            writeNode(writer,child,false,true);
-          }
-          writer.endArray();
+          list = new ArrayList<ConfigurationNode>();
+          childMap.put(key,list);
+          childList.add(key);
         }
         else
         {
-          // We can collapse child nodes to arrays and still maintain order.
-          // The JSON will look like this:
-          // <key>:{_attribute_<attr>:xxx,<child_key>:[stuff],<child_key_2>:[more_stuff] ...}
-          int q = 0;
-          while (q < childList.size())
+          if (!lastChildType.equals(key))
           {
-            String key = childList.get(q++);
-            List<ConfigurationNode> list = childMap.get(key);
-            if (list.size() > 1)
-            {
-              // Write the key
-              writer.key(key);
-              // Write it as an array
-              writer.array();
-              i = 0;
-              while (i < list.size())
-              {
-                ConfigurationNode child = list.get(i++);
-                writeNode(writer,child,false,false);
-              }
-              writer.endArray();
-            }
-            else
-            {
-              // Write it as a singleton
-              writeNode(writer,list.get(0),true,false);
-            }
+            needAlternate = true;
+            break;
           }
         }
-        if (!writeSpecialKey)
-          writer.endObject();
+        list.add(child);
+        lastChildType = key;
       }
-      if (writeSpecialKey)
+        
+      if (needAlternate)
+      {
+        // Can't use the array representation.  We'll need to start do a _children_ object, and enumerate
+        // each child.  So, the JSON will look like:
+        // <key>:{_attribute_<attr>:xxx,_children_:[{_type_:<child_key>, ...},{_type_:<child_key_2>, ...}, ...]}
+        writer.key(JSON_CHILDREN);
+        writer.startArray();
+        i = 0;
+        while (i < node.getChildCount())
+        {
+          ConfigurationNode child = node.findChild(i++);
+          writeNode(writer,child,false,true);
+        }
+        writer.endArray();
+      }
+      else
+      {
+        // We can collapse child nodes to arrays and still maintain order.
+        // The JSON will look like this:
+        // <key>:{_attribute_<attr>:xxx,<child_key>:[stuff],<child_key_2>:[more_stuff] ...}
+        int q = 0;
+        while (q < childList.size())
+        {
+          String key = childList.get(q++);
+          List<ConfigurationNode> list = childMap.get(key);
+          if (list.size() > 1)
+          {
+            // Write the key
+            writer.key(key);
+            // Write it as an array
+            writer.startArray();
+            i = 0;
+            while (i < list.size())
+            {
+              ConfigurationNode child = list.get(i++);
+              writeNode(writer,child,false,false);
+            }
+            writer.endArray();
+          }
+          else
+          {
+            // Write it as a singleton
+            writeNode(writer,list.get(0),true,false);
+          }
+        }
+      }
+      if (!writeSpecialKey)
         writer.endObject();
     }
-    catch (JSONException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
+    if (writeSpecialKey)
+      writer.endObject();
   }
   
   /** Read from XML.
@@ -453,70 +441,59 @@ public class Configuration implements IHierarchyParent
       throw new IllegalStateException("Attempt to change read-only object");
 
     clearChildren();
-    try
+    final JSONReader object = new JSONReader(json);
+    object.startObject();
+    // Convert the object into our configuration
+    final Iterator<String> iter = object.getKeys();
+    while (iter.hasNext())
     {
-      JSONObject object = new JSONObject(json);
-      // Convert the object into our configuration
-      Iterator iter = object.keys();
-      while (iter.hasNext())
+      final String key = iter.next();
+      object.valueForKey(key);
+      if (object.isArray())
       {
-        String key = (String)iter.next();
-        Object x = object.opt(key);
-        if (x instanceof JSONArray)
-        {
-          // Iterate through.
-          JSONArray array = (JSONArray)x;
-          int i = 0;
-          while (i < array.length())
-          {
-            x = array.opt(i++);
-            processObject(key,x);
-          }
+        // Iterate through.
+        object.startArray();
+        while (object.nextElement()) {
+          processObject(key,object);
         }
-        else
-          processObject(key,x);
+        object.endArray();
       }
+      else
+        processObject(key,object);
     }
-    catch (JSONException e)
-    {
-      throw new ManifoldCFException("Json syntax error - "+e.getMessage(),e);
-    }
+    object.endObject();
   }
   
   /** Process a JSON object */
-  protected void processObject(String key, Object x)
+  protected void processObject(String key, JSONReader x)
     throws ManifoldCFException
   {
-    if (x instanceof JSONObject)
+    if (x.isObject())
     {
       // Nested single object
-      ConfigurationNode cn = readNode(key,(JSONObject)x);
+      ConfigurationNode cn = readNode(key,x);
       addChild(getChildCount(),cn);
     }
-    else if (x == JSONObject.NULL)
+    else if (x.isNull())
     {
       // Null object.  Don't enter the key.
     }
     else if (key.equals(JSON_CHILDREN))
     {
       // Children, as a list of separately enumerated child nodes.
-      if (!(x instanceof JSONArray))
+      if (!(x.isArray()))
         throw new ManifoldCFException("Expected array contents for '"+JSON_CHILDREN+"' node");
-      JSONArray array = (JSONArray)x;
-      int i = 0;
-      while (i < array.length())
-      {
-        Object z = array.opt(i++);
-        if (!(z instanceof JSONObject))
-          throw new ManifoldCFException("Expected object as array member");
-        ConfigurationNode nestedCn = readNode((String)null,(JSONObject)z);
+      x.startArray();
+      while (x.nextElement()) {
+        ConfigurationNode nestedCn = readNode((String)null,x);
         addChild(getChildCount(),nestedCn);
       }
+      x.endArray();
     }
     else
     {
       // It's a string or a number or some scalar value
-      String value = x.toString();
+      final String value = x.readValue();
       ConfigurationNode cn = createNewNode(key);
       cn.setValue(value);
       addChild(getChildCount(),cn);
@@ -524,68 +501,63 @@ public class Configuration implements IHierarchyParent
   }
   
   /** Read a node from a json object */
-  protected ConfigurationNode readNode(String key, JSONObject object)
+  protected ConfigurationNode readNode(String key, JSONReader object)
     throws ManifoldCFException
   {
+    object.startObject();
     // Override key if type field is found.
-    if (object.has(JSON_TYPE))
+    if (object.valueForKey(JSON_TYPE))
     {
-      try
-      {
-        key = object.getString(JSON_TYPE);
+      if (!object.isValue()) {
+        throw new ManifoldCFException("JSON_TYPE key does not have a string value");
       }
-      catch (JSONException e)
-      {
-        throw new ManifoldCFException("Exception decoding JSON: "+e.getMessage());
-      }
+      key = object.readValue();
     }
     if (key == null)
       throw new ManifoldCFException("No type found for node");
-    Iterator iter;
-    ConfigurationNode rval = createNewNode(key);
-    iter = object.keys();
+    final ConfigurationNode rval = createNewNode(key);
+    final Iterator<String> iter = object.getKeys();
     while (iter.hasNext())
     {
-      String nestedKey = (String)iter.next();
+      final String nestedKey = iter.next();
       if (!nestedKey.equals(JSON_TYPE))
       {
-        Object x = object.opt(nestedKey);
-        if (x instanceof JSONArray)
+        object.valueForKey(nestedKey);
+        if (object.isArray())
         {
           // Iterate through.
-          JSONArray array = (JSONArray)x;
-          int i = 0;
-          while (i < array.length())
-          {
-            x = array.opt(i++);
-            processObject(rval,nestedKey,x);
+          object.startArray();
+          while (object.nextElement()) {
+            processObject(rval,nestedKey,object);
           }
+          object.endArray();
         }
         else
-          processObject(rval,nestedKey,x);
+          processObject(rval,nestedKey,object);
       }
     }
+    object.endObject();
     return rval;
   }
   
   /** Process a JSON object */
-  protected void processObject(ConfigurationNode cn, String key, Object x)
+  protected void processObject(ConfigurationNode cn, String key, JSONReader x)
     throws ManifoldCFException
   {
-    if (x instanceof JSONObject)
+    if (x.isObject())
     {
       // Nested single object
-      ConfigurationNode nestedCn = readNode(key,(JSONObject)x);
+      ConfigurationNode nestedCn = readNode(key,x);
       cn.addChild(cn.getChildCount(),nestedCn);
     }
-    else if (x == JSONObject.NULL)
+    else if (x.isNull())
     {
       // Null object.  Don't enter the key.
     }
     else
     {
       // It's a string or a number or some scalar value
-      String value = x.toString();
+      String value = x.readValue();
       // Is it an attribute, or a value?
       if (key.startsWith(JSON_ATTRIBUTE))
       {
@@ -600,18 +572,15 @@ public class Configuration implements IHierarchyParent
       else if (key.equals(JSON_CHILDREN))
       {
         // Children, as a list of separately enumerated child nodes.
-        if (!(x instanceof JSONArray))
+        if (!(x.isArray()))
           throw new ManifoldCFException("Expected array contents for '"+JSON_CHILDREN+"' node");
-        JSONArray array = (JSONArray)x;
-        int i = 0;
-        while (i < array.length())
-        {
-          Object z = array.opt(i++);
-          if (!(z instanceof JSONObject))
-            throw new ManifoldCFException("Expected object as array member");
-          ConfigurationNode nestedCn = readNode((String)null,(JSONObject)z);
+        
+        x.startArray();
+        while (x.nextElement()) {
+          ConfigurationNode nestedCn = readNode((String)null,x);
           cn.addChild(cn.getChildCount(),nestedCn);
         }
+        x.endArray();
       }
       else
       {
@@ -796,5 +765,181 @@ public class Configuration implements IHierarchyParent
     }
     sb.append("]");
     return sb.toString();
+  }
+  
+  protected static class JSONWriter {
+    
+    private final List<JSONObject> objectStack = new ArrayList<>();
+    private final List<String> keyStack = new ArrayList<>();
+    private final List<JSONArray> arrayStack = new ArrayList<>();
+    private JSONObject currentObject = null;
+    private JSONArray currentArray = null;
+    private String currentKey = null;
+    
+    private JSONObject finalObject = null;
+    private JSONArray finalArray = null;
+    
+    public JSONWriter() {
+    }
+    
+    public void startObject() {
+      pushState();
+      currentObject = new JSONObject();
+      currentKey = null;
+      currentArray = null;
+    }
+
+    public void key(final String key) {
+      currentKey = key;
+    }
+    
+    public void value(final String value) {
+      currentObject.put(currentKey, value);
+    }
+    
+    public void endObject() {
+      final JSONObject object = currentObject;
+      // Pop everything
+      popState();
+      // Either an array is active, or an object is active, or nothing is active
+      if (currentObject != null) {
+        currentObject.put(currentKey, object);
+      } else if (currentArray != null) {
+        currentArray.add(object);
+      } else {
+        finalObject = object;
+      }
+    }
+    
+    public void startArray() {
+      pushState();
+      currentObject = null;
+      currentKey = null;
+      currentArray = new JSONArray();
+    }
+    
+    public void endArray() {
+      final JSONArray array = currentArray;
+      // Pop everything
+      popState();
+      // Either an array is active, or an object is active, or nothing is active
+      if (currentObject != null) {
+        currentObject.put(currentKey, array);
+      } else if (currentArray != null) {
+        currentArray.add(array);
+      } else {
+        finalArray = array;
+      }
+    }
+    
+    public String toString() {
+      if (finalObject != null) {
+        return finalObject.toJSONString();
+      } else if (finalArray != null) {
+        return finalArray.toJSONString();
+      } else {
+        return "";
+      }
+    }
+    
+    protected void pushState() {
+      objectStack.add(currentObject);
+      keyStack.add(currentKey);
+      arrayStack.add(currentArray);
+    }
+    
+    protected void popState() {
+      currentObject = objectStack.remove(objectStack.size()-1);
+      currentKey = keyStack.remove(keyStack.size()-1);
+      currentArray = arrayStack.remove(arrayStack.size()-1);
+    }
+
+  }
+  
+  protected static class JSONReader {
+    
+    private final List<JSONObject> objectStack = new ArrayList<>();
+    private final List<Iterator> arrayStack = new ArrayList<>();
+    private JSONObject currentObject = null;
+    private Iterator currentArrayIterator = null;
+    
+    private Object next = null;
+
+    public JSONReader(final String json) throws ManifoldCFException {
+      final JSONParser parser = new JSONParser();
+      try {
+        next = parser.parse(new StringReader(json));
+      } catch (Exception e) {
+        throw new ManifoldCFException("Bad json: "+e.getMessage(),e);
+      }
+    }
+    
+    public boolean isObject() {
+      return next != null && (next instanceof JSONObject);
+    }
+    
+    public void startObject() {
+      pushState();
+      currentObject = (JSONObject)next;
+      currentArrayIterator = null;
+    }
+
+    public Iterator<String> getKeys() {
+      return currentObject.keySet().iterator();
+    }
+    
+    public boolean valueForKey(final String key) {
+      next = currentObject.get(key);
+      return next != null;
+    }
+    
+    public void endObject() {
+      popState();
+    }
+    
+    public boolean isArray() {
+      return next != null && (next instanceof JSONArray);
+    }
+    
+    public void startArray() {
+      pushState();
+      currentObject = null;
+      currentArrayIterator = ((JSONArray)next).iterator();
+    }
+    
+    public boolean nextElement() {
+      if (currentArrayIterator.hasNext()) {
+        next = currentArrayIterator.next();
+        return true;
+      }
+      return false;
+    }
+    
+    public void endArray() {
+      popState();
+    }
+
+    public boolean isNull() {
+      return next == null;
+    }
+    
+    public boolean isValue() {
+      return next != null && !(next instanceof JSONObject || next instanceof JSONArray);
+    }
+    
+    public String readValue() {
+      return next.toString();
+    }
+    
+    protected void pushState() {
+      objectStack.add(currentObject);
+      arrayStack.add(currentArrayIterator);
+    }
+    
+    protected void popState() {
+      currentObject = objectStack.remove(objectStack.size()-1);
+      currentArrayIterator = arrayStack.remove(arrayStack.size()-1);
+    }
+    
   }
 }

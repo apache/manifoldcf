@@ -18,7 +18,7 @@
 package org.apache.manifoldcf.crawler.connectors.confluence.model;
 
 import org.apache.manifoldcf.crawler.connectors.confluence.model.builder.ConfluenceResourceBuilder;
-import org.json.JSONObject;
+import org.json.simple.JSONObject;
 
 /**
  * <p>
@@ -84,9 +84,9 @@ public class Label extends ConfluenceResource{
 
     public Label fromJson(JSONObject jsonPage, Label label) {
 
-      label.id = jsonPage.optString(KEY_ID, "");
-      label.prefix = jsonPage.optString(KEY_PREFIX, "");
-      label.name = jsonPage.optString(KEY_NAME, "");
+      label.id = (jsonPage.get(KEY_ID)==null)?"":jsonPage.get(KEY_ID).toString();
+      label.prefix = (jsonPage.get(KEY_PREFIX)==null)?"":jsonPage.get(KEY_PREFIX).toString();
+      label.name = (jsonPage.get(KEY_NAME)==null)?"":jsonPage.get(KEY_NAME).toString();
 
       label.delegated = jsonPage;
 
