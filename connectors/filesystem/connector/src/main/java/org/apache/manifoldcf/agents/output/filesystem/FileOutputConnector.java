@@ -54,7 +54,6 @@ import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
-import org.json.JSONException;
 
 public class FileOutputConnector extends BaseOutputConnector {
 
@@ -329,12 +328,6 @@ public class FileOutputConnector extends BaseOutputConnector {
     }
 
     return DOCUMENTSTATUS_ACCEPTED;
-  }
-
-  protected static void handleJSONException(JSONException e)
-    throws ManifoldCFException, ServiceInterruption {
-    Logging.agents.error("FileSystem: JSONException: "+e.getMessage(),e);
-    throw new ManifoldCFException(e.getMessage(),e);
   }
 
   protected static void handleURISyntaxException(URISyntaxException e)
