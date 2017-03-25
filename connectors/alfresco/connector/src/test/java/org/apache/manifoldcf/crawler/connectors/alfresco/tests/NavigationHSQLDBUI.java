@@ -20,7 +20,7 @@ package org.apache.manifoldcf.crawler.connectors.alfresco.tests;
 
 import java.util.Locale;
 
-import org.apache.manifoldcf.core.tests.HTMLTester;
+import org.apache.manifoldcf.core.tests.SeleniumTester;
 import org.junit.Test;
 
 /** Basic UI navigation tests */
@@ -31,210 +31,128 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
   public void createConnectionsAndJob()
     throws Exception
   {
-/*
-    testerInstance.newTest(Locale.US);
-    
-    HTMLTester.Window window;
-    HTMLTester.Link link;
-    HTMLTester.Form form;
-    HTMLTester.Textarea textarea;
-    HTMLTester.Selectbox selectbox;
-    HTMLTester.Button button;
-    HTMLTester.Radiobutton radiobutton;
-    HTMLTester.Loop loop;
-    
-    window = testerInstance.openMainWindow("http://localhost:8346/mcf-crawler-ui/index.jsp");
-    
-    // Login
-    form = window.findForm(testerInstance.createStringDescription("loginform"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("userID"));
-    textarea.setValue(testerInstance.createStringDescription("admin"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("password"));
-    textarea.setValue(testerInstance.createStringDescription("admin"));
-    button = window.findButton(testerInstance.createStringDescription("Login"));
-    button.click();
-    window = testerInstance.findWindow(null);
+    testerInstance.start(SeleniumTester.BrowserType.CHROME, "en-US", "http://localhost:8346/mcf-crawler-ui/index.jsp");
 
-    // Define an output connection via the UI
-    link = window.findLink(testerInstance.createStringDescription("List output connections"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Add an output connection"));
-    link.click();
+    //Login
+    testerInstance.waitForElementWithName("loginform");
+    testerInstance.setValue("userID","admin");
+    testerInstance.setValue("password","admin");
+    testerInstance.clickButton("Login");
+    testerInstance.verifyHeader("Welcome to Apache ManifoldCF™");
+    testerInstance.navigateTo("List output connections");
+    testerInstance.clickButton("Add a new output connection");
+
     // Fill in a name
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("connname"));
-    textarea.setValue(testerInstance.createStringDescription("MyOutputConnection"));
-    link = window.findLink(testerInstance.createStringDescription("Type tab"));
-    link.click();
+    testerInstance.waitForElementWithName("connname");
+    testerInstance.setValue("connname","Null Output Connection");
+
+    //Goto to Type tab
+    testerInstance.clickTab("Type");
+
     // Select a type
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("classname"));
-    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.agents.tests.TestingOutputConnector"));
-    button = window.findButton(testerInstance.createStringDescription("Continue to next page"));
-    button.click();
+    testerInstance.waitForElementWithName("classname");
+    testerInstance.selectValue("classname","org.apache.manifoldcf.agents.tests.TestingOutputConnector");
+    testerInstance.clickButton("Continue");
+
     // Visit the Throttling tab
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Throttling tab"));
-    link.click();
+    testerInstance.clickTab("Throttling");
+
     // Go back to the Name tab
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Name tab"));
-    link.click();
+    testerInstance.clickTab("Name");
+
     // Now save the connection.
-    window = testerInstance.findWindow(null);
-    button = window.findButton(testerInstance.createStringDescription("Save this output connection"));
-    button.click();
-    
+    testerInstance.clickButton("Save");
+    testerInstance.verifyThereIsNoError();
+
     // Define a repository connection via the UI
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("List repository connections"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Add a connection"));
-    link.click();
-    // Fill in a name
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("connname"));
-    textarea.setValue(testerInstance.createStringDescription("MyRepositoryConnection"));
-    link = window.findLink(testerInstance.createStringDescription("Type tab"));
-    link.click();
-    // Select a type
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("classname"));
-    selectbox.selectValue(testerInstance.createStringDescription("org.apache.manifoldcf.crawler.connectors.alfresco.AlfrescoRepositoryConnector"));
-    button = window.findButton(testerInstance.createStringDescription("Continue to next page"));
-    button.click();
-    // Visit the Throttling tab
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Throttling tab"));
-    link.click();
-    // Server tab
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Server tab"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editconnection"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("username"));
-    textarea.setValue(testerInstance.createStringDescription("admin"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("password"));
-    textarea.setValue(testerInstance.createStringDescription("admin"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("tenantDomain"));
-    textarea.setValue(testerInstance.createStringDescription(""));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("protocol"));
-    selectbox.selectValue(testerInstance.createStringDescription("http"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("server"));
-    textarea.setValue(testerInstance.createStringDescription("localhost"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("port"));
-    textarea.setValue(testerInstance.createStringDescription("9090"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("path"));
-    textarea.setValue(testerInstance.createStringDescription("/alfresco/api"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("socketTimeout"));
-    textarea.setValue(testerInstance.createStringDescription("120000"));
-    // Go back to the Name tab
-    link = window.findLink(testerInstance.createStringDescription("Name tab"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    // Now save the connection.
-    button = window.findButton(testerInstance.createStringDescription("Save this connection"));
-    button.click();
-    
-    // Create a job
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("List jobs"));
-    link.click();
-    // Add a job
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Add a job"));
-    link.click();
-    // Fill in a name
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editjob"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("description"));
-    textarea.setValue(testerInstance.createStringDescription("MyJob"));
-    link = window.findLink(testerInstance.createStringDescription("Connection tab"));
-    link.click();
-    // Select the connections
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editjob"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("output_connectionname"));
-    selectbox.selectValue(testerInstance.createStringDescription("MyOutputConnection"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("output_precedent"));
-    selectbox.selectValue(testerInstance.createStringDescription("-1"));
-    button = window.findButton(testerInstance.createStringDescription("Add an output"));
-    button.click();
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editjob"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("connectionname"));
-    selectbox.selectValue(testerInstance.createStringDescription("MyRepositoryConnection"));
-    button = window.findButton(testerInstance.createStringDescription("Continue to next screen"));
-    button.click();
-    // Visit all the tabs.  Scheduling tab first
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Scheduling tab"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    form = window.findForm(testerInstance.createStringDescription("editjob"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("dayofweek"));
-    selectbox.selectValue(testerInstance.createStringDescription("0"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("hourofday"));
-    selectbox.selectValue(testerInstance.createStringDescription("1"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("minutesofhour"));
-    selectbox.selectValue(testerInstance.createStringDescription("30"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("monthofyear"));
-    selectbox.selectValue(testerInstance.createStringDescription("11"));
-    selectbox = form.findSelectbox(testerInstance.createStringDescription("dayofmonth"));
-    selectbox.selectValue(testerInstance.createStringDescription("none"));
-    textarea = form.findTextarea(testerInstance.createStringDescription("duration"));
-    textarea.setValue(testerInstance.createStringDescription("120"));
-    button = window.findButton(testerInstance.createStringDescription("Add new schedule record"));
-    button.click();
-    window = testerInstance.findWindow(null);
-    // MHL
-    // Save the job
-    button = window.findButton(testerInstance.createStringDescription("Save this job"));
-    button.click();
+    testerInstance.navigateTo("List repository connections");
+    testerInstance.clickButton("Add new connection");
 
-    // Delete the job
-    window = testerInstance.findWindow(null);
-    HTMLTester.StringDescription jobID = window.findMatch(testerInstance.createStringDescription("<!--jobid=(.*?)-->"),0);
-    testerInstance.printValue(jobID);
-    link = window.findLink(testerInstance.createStringDescription("Delete this job"));
-    link.click();
+    testerInstance.waitForElementWithName("connname");
+    testerInstance.setValue("connname","Alfresco Repository Connection");
+
+    // Select a type
+    testerInstance.clickTab("Type");
+    testerInstance.selectValue("classname","org.apache.manifoldcf.crawler.connectors.alfresco.AlfrescoRepositoryConnector");
+    testerInstance.clickButton("Continue");
+
+    // Visit the Throttling tab
+    testerInstance.clickTab("Throttling");
+
+    // Server tab
+    testerInstance.clickTab("Server");
+    testerInstance.setValue("username", "admin");
+    testerInstance.setValue("password", "admin");
+    testerInstance.setValue("tenantDomain", "");
+    testerInstance.selectValue("protocol", "http");
+    testerInstance.setValue("server", "localhost");
+    testerInstance.setValue("port", "9090");
+    testerInstance.setValue("path", "/alfresco/api");
+    testerInstance.setValue("socketTimeout", "120000");
     
-    // Wait for the job to go away
-    loop = testerInstance.beginLoop(120);
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Manage jobs"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    HTMLTester.StringDescription isJobNotPresent = window.isNotPresent(jobID);
-    testerInstance.printValue(isJobNotPresent);
-    loop.breakWhenTrue(isJobNotPresent);
-    loop.endLoop();
+    // Go back to the Name tab
+    testerInstance.clickTab("Name");
+    testerInstance.clickButton("Save");
+    testerInstance.verifyThereIsNoError();
+
+    // Create a job
+    testerInstance.navigateTo("List jobs");
+    //Add a job
+    testerInstance.clickButton("Add a new job");
+    testerInstance.waitForElementWithName("description");
+    //Fill in a name
+    testerInstance.setValue("description","Alfresco Job");
+    testerInstance.clickTab("Connection");
+
+    // Select the connections
+    testerInstance.selectValue("output_connectionname","Null Output Connection");
+    testerInstance.selectValue("output_precedent","-1");
+    testerInstance.clickButton("Add output",true);
+    testerInstance.waitForElementWithName("connectionname");
+    testerInstance.selectValue("connectionname","Alfresco Repository Connection");
     
+    testerInstance.clickButton("Continue");
+
+    // Visit all the tabs.  Scheduling tab first
+    testerInstance.clickTab("Scheduling");
+    testerInstance.selectValue("dayofweek","0");
+    testerInstance.selectValue("hourofday","1");
+    testerInstance.selectValue("minutesofhour","30");
+    testerInstance.selectValue("monthofyear","11");
+    testerInstance.selectValue("dayofmonth","none");
+    testerInstance.setValue("duration","120");
+    testerInstance.clickButton("Add Scheduled Time",true);
+    testerInstance.waitForElementWithName("editjob");
+
+    // Save the job
+    testerInstance.clickButton("Save");
+    testerInstance.verifyThereIsNoError();
+    
+    testerInstance.waitForPresenceById("job");
+    String jobID = testerInstance.getAttributeValueById("job","jobid");
+    System.out.println("JobId: " + jobID);
+    
+    //Navigate to List Jobs
+    testerInstance.navigateTo("List jobs");
+    testerInstance.waitForElementWithName("listjobs");
+
+    //Delete the job
+    testerInstance.clickButtonByTitle("Delete job " + jobID);
+    testerInstance.acceptAlert();
+    testerInstance.verifyThereIsNoError();
+
+    //Wait for the job to go away
+    testerInstance.waitForJobDeleteEN(jobID, 120);
+
     // Delete the repository connection
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("List repository connections"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Delete MyRepositoryConnection"));
-    link.click();
-    
+    testerInstance.navigateTo("List repository connections");
+    testerInstance.clickButtonByTitle("Delete Alfresco Repository Connection");
+    testerInstance.acceptAlert();
+
     // Delete the output connection
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("List output connections"));
-    link.click();
-    window = testerInstance.findWindow(null);
-    link = window.findLink(testerInstance.createStringDescription("Delete MyOutputConnection"));
-    link.click();
-    
-    testerInstance.executeTest();
-*/
+    testerInstance.navigateTo("List output connections");
+    testerInstance.clickButtonByTitle("Delete Null Output Connection");
+    testerInstance.acceptAlert();
   }
   
 }
