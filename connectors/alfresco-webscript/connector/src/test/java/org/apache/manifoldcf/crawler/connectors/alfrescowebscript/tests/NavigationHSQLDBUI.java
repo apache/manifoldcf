@@ -146,7 +146,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
 
     // Delete the repository connection
     testerInstance.navigateTo("List repository connections");
-    testerInstance.clickButtonByTitle("Delete RSS Repository Connection");
+    testerInstance.clickButtonByTitle("Delete Alfresco Repository Connection");
     testerInstance.acceptAlert();
 
     // Delete the output connection
