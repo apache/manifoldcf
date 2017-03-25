@@ -35,7 +35,6 @@
     <link href="bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet" type="text/css"/>
     <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
     <link rel="stylesheet" href="css/style.css" type="text/css" media="screen"/>
-    <link rel="stylesheet" href="css/print.css" type="text/css" media="print"/>
   </head>
   <body class="fixed skin-black sidebar-mini">
     <div class="wrapper">
