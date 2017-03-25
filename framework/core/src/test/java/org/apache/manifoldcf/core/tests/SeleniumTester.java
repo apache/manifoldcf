@@ -46,10 +46,14 @@ public class SeleniumTester
   public enum BrowserType
   {
     CHROME
-  };
-  
-  /** Constructor. Create a test sequence object. */
-  public SeleniumTester() {}
+  }
+
+  /**
+   * Constructor. Create a test sequence object.
+   */
+  public SeleniumTester()
+  {
+  }
 
   /**
    * Set up for all tests. Basically this grabs the necessary stuff out of resources and writes it
@@ -68,7 +72,6 @@ public class SeleniumTester
     switch (browserType)
     {
       case CHROME:
-
         if (System.getProperty("webdriver.chrome.driver") == null ||
           System.getProperty("webdriver.chrome.driver").length() == 0)
           throw new IllegalStateException("Please configure your SL_CHROME_DRIVER environment variable to point to the Selenium Google Chrome Driver");
@@ -82,10 +85,10 @@ public class SeleniumTester
         throw new IllegalArgumentException("Unknown browser type");
     }
 
-    wait = new WebDriverWait(driver,defaultTimeOutInSeconds);
+    wait = new WebDriverWait(driver, defaultTimeOutInSeconds);
     driver.get(startURL);
   }
-  
+
   public WebDriver getDriver()
   {
     return driver;
@@ -108,7 +111,7 @@ public class SeleniumTester
   public void verifyHeader(String expected)
   {
     WebElement element =
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("heading")));
+      wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("heading")));
 
     Assert.assertThat(element.getText(), CoreMatchers.is(CoreMatchers.equalTo(expected)));
   }
@@ -120,7 +123,7 @@ public class SeleniumTester
   public void verifyHeaderContains(String expected)
   {
     WebElement element =
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("heading")));
+      wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("heading")));
 
     Assert.assertThat(element.getText(), CoreMatchers.containsString(expected));
   }
@@ -131,9 +134,9 @@ public class SeleniumTester
   public void verifyThereIsNoError()
   {
     WebElement element =
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("heading")));
+      wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("heading")));
 
-    Assert.assertNotEquals("Error!",element.getText());
+    Assert.assertNotEquals("Error!", element.getText());
   }
 
   /**
@@ -144,22 +147,21 @@ public class SeleniumTester
   {
     //Identify the link
     WebElement ele =
-        driver.findElement(
-            By.cssSelector(".sidebar-menu .treeview-menu a[alt=\"" + lintAlt + "\"]"));
+      driver.findElement(
+        By.cssSelector(".sidebar-menu .treeview-menu a[alt=\"" + lintAlt + "\"]"));
 
     //Expand the menu group, so that the element gets visible
-    WebElement parent =
-        ele.findElement(
-            By.xpath("./ancestor::li[contains(concat(' ', @class, ' '), ' treeview ')][1]"));
-    parent.click();
-
+    String js = "return $(arguments[0]).closest('.treeview').get(0)";
+    WebElement parent = (WebElement)((JavascriptExecutor)driver).executeScript(js, ele);
     if (!hasClass(parent, "active"))
     {
-      executeJquery(parent, "addClass", "'active'");
+      js = "$(arguments[0]).closest('.treeview').find('a:first-child').click();";
+      ((JavascriptExecutor)driver).executeScript(js, ele);
+      waitUntilAnimationIsDone(".sidebar-menu .treeview.active .treeview-menu");
     }
 
     //Wait until the menu is link is visible
-    wait.until(ExpectedConditions.visibilityOf(ele)).click();
+    wait.until(ExpectedConditions.elementToBeClickable(ele)).click();
 
     //waitForAjax();
     waitForAjaxAndDocumentReady();
@@ -213,13 +215,14 @@ public class SeleniumTester
   {
     waitFor(By.name(name));
   }
-  
+
   public void waitForPresenceById(String id)
   {
     waitForPresence(By.id(id));
   }
-  
-  public void waitForPresence(By selector){
+
+  public void waitForPresence(By selector)
+  {
     wait.until(ExpectedConditions.presenceOfElementLocated(selector));
   }
 
@@ -235,7 +238,7 @@ public class SeleniumTester
   public void clickTab(String tabName)
   {
     WebElement element =
-        waitElementClickable(By.cssSelector("a[data-toggle=\"tab\"][alt=\"" + tabName + " tab\"]"));
+      waitElementClickable(By.cssSelector("a[data-toggle=\"tab\"][alt=\"" + tabName + " tab\"]"));
     element.click();
     waitForAjaxAndDocumentReady();
   }
@@ -247,9 +250,9 @@ public class SeleniumTester
   public void clickButtonByTitle(String title)
   {
     WebElement element =
-        waitElementClickable(
-            By.xpath(
-                "//a[contains(@class,'btn') and contains(@data-original-title,'" + title + "')]"));
+      waitElementClickable(
+        By.xpath(
+          "//a[contains(@class,'btn') and contains(@data-original-title,'" + title + "')]"));
     element.click();
 
     if (!isAlertPresent())
@@ -260,11 +263,12 @@ public class SeleniumTester
 
   public void clickButton(String text) throws Exception
   {
-    clickButton(text,defaultTimeOutInSeconds);
+    clickButton(text, defaultTimeOutInSeconds);
   }
 
   /**
-   * Clicks a button based on visible text, this type of button is created using anchor tag with .btn class
+   * Clicks a button based on visible text, this type of button is created using anchor tag with
+   * .btn class
    * @param text
    */
   public void clickButton(String text, long timeOutInSeconds) throws Exception
@@ -277,18 +281,19 @@ public class SeleniumTester
     boolean found = false;
     List<WebElement> elements = driver.findElements(By.xpath("//a[contains(concat(' ',@class,' '), ' btn ')]"));
 
-    for(int i=0;i < elements.size();i++){
-      WebElement element  = elements.get(i);
+    for (int i = 0; i < elements.size(); i++)
+    {
+      WebElement element = elements.get(i);
       System.out.println(getRenderedSource(element));
       wait.until(ExpectedConditions.elementToBeClickable(element));
       String actualText = element.getText();
 
-      if(actualText != null && actualText.length() > 0)
+      if (actualText != null && actualText.length() > 0)
       {
         actualText = actualText.trim();
       }
 
-      if(actualText.equals(text))
+      if (actualText.equals(text))
       {
         element.click();
         found = true;
@@ -296,7 +301,7 @@ public class SeleniumTester
       }
     }
 
-    if(!found)
+    if (!found)
     {
       throw new Exception("Button not found with text - " + text);
     }
@@ -317,18 +322,19 @@ public class SeleniumTester
     if (!islegacy)
     {
       clickButton(buttonText);
-    } else
+    }
+    else
     {
       waitFindElement(By.cssSelector("[type=\"button\"][value=\"" + buttonText + "\"]")).click();
     }
   }
-  
+
   /**
    * Click on a radio button with a specific value
    * @param name
    * @param value
    */
-  public void clickRadioButton(String name,String value)
+  public void clickRadioButton(String name, String value)
   {
     waitElementClickable(By.xpath("//input[@type='radio'][@name='" + name + "'][@value='" + value + "']")).click();
   }
@@ -354,7 +360,8 @@ public class SeleniumTester
     {
       wait.until(ExpectedConditions.alertIsPresent());
       foundAlert = true;
-    } catch (TimeoutException eTO)
+    }
+    catch (TimeoutException eTO)
     {
       foundAlert = false;
     }
@@ -412,8 +419,9 @@ public class SeleniumTester
     if (hasClass(element, "selectpicker"))
     {
       String js = "$(arguments[0]).selectpicker('val','" + value + "')";
-      ((JavascriptExecutor) driver).executeScript(js, element);
-    } else
+      ((JavascriptExecutor)driver).executeScript(js, element);
+    }
+    else
     {
       Select select = new Select(element);
       select.selectByValue(value);
@@ -430,7 +438,7 @@ public class SeleniumTester
   {
     String js = "$(arguments[0])." + method + "(" + params + ")";
     System.out.println("JavaScript to be executed: " + js);
-    ((JavascriptExecutor) driver).executeScript(js, element);
+    ((JavascriptExecutor)driver).executeScript(js, element);
   }
 
   /**
@@ -459,9 +467,10 @@ public class SeleniumTester
   }
 
   // Macro operations for job management
-  
+
   /**
-   * Perform an action (Start, Start minimal, Pause, Restart, Restart minimal, Abort) on a specified job (English version).
+   * Perform an action (Start, Start minimal, Pause, Restart, Restart minimal, Abort) on a specified
+   * job (English version).
    * @param jobID
    * @param action
    */
@@ -471,13 +480,20 @@ public class SeleniumTester
     navigateTo("Manage jobs");
     waitForElementWithName("liststatuses");
 
-    waitElementClickable(By.xpath("//tr[@job-id=" + jobID + "]//a[contains(@class,'btn') and text()='" + action + "']")).click();
+    waitElementClickable(
+      By.xpath(
+        "//tr[@job-id="
+          + jobID
+          + "]//a[contains(@class,'btn') and text()='"
+          + action
+          + "']"))
+      .click();
   }
-  
+
   /**
    * Wait until the status of an job become as mentioned (English version)
-   * @param jobID is the jobID
-   * @param jobStatus is the desired job status (e.g. 'Done')
+   * @param jobID         is the jobID
+   * @param jobStatus     is the desired job status (e.g. 'Done')
    * @param timeoutAmount is the maximum time until the status is expected
    * @throws Exception
    */
@@ -485,15 +501,15 @@ public class SeleniumTester
   {
     waitForJobStatus(jobID, jobStatus, timeoutAmount, "Manage jobs", "liststatuses", "Refresh");
   }
-  
+
   /**
    * Wait until the status of an job become as mentioned (generic version)
-   * @param jobID is the jobID
-   * @param jobStatus is the desired job status (e.g. 'Done')
-   * @param timeoutAmount is the maximum time until the status is expected
-   * @param manageJobsPage is the 'manage jobs' page
+   * @param jobID               is the jobID
+   * @param jobStatus           is the desired job status (e.g. 'Done')
+   * @param timeoutAmount       is the maximum time until the status is expected
+   * @param manageJobsPage      is the 'manage jobs' page
    * @param listStatusesElement is the 'list statuses' element
-   * @param refreshButton is the 'Refresh" button
+   * @param refreshButton       is the 'Refresh" button
    * @throws Exception
    */
   public void waitForJobStatus(final String jobID, final String jobStatus, int timeoutAmount, final String manageJobsPage, final String listStatusesElement, final String refreshButton)
@@ -507,7 +523,7 @@ public class SeleniumTester
     {
       if (!exists(By.xpath("//tr[@job-id='" + jobID + "']")))
       {
-        throw new Exception("Job "+jobID+" not found");
+        throw new Exception("Job " + jobID + " not found");
       }
       if (exists(By.xpath("//tr[@job-id='" + jobID + "' and @job-status-name='" + jobStatus + "']")))
       {
@@ -525,7 +541,8 @@ public class SeleniumTester
     }
   }
 
-  /** Obtain a given job's status (English version).
+  /**
+   * Obtain a given job's status (English version).
    * @param jobID is the job ID.
    * @return the job status, if found,
    */
@@ -533,10 +550,11 @@ public class SeleniumTester
   {
     return getJobStatus(jobID, "Manage jobs", "liststatuses");
   }
-  
-  /** Obtain a given job's status (generic version).
-   * @param jobID is the job ID.
-   * @param manageJobsPage is the 'manage jobs' page
+
+  /**
+   * Obtain a given job's status (generic version).
+   * @param jobID               is the job ID.
+   * @param manageJobsPage      is the 'manage jobs' page
    * @param listStatusesElement is the 'list statuses' element
    * @return the job status, if found,
    */
@@ -547,10 +565,10 @@ public class SeleniumTester
     navigateTo(manageJobsPage);
     waitForElementWithName(listStatusesElement);
 
-    final WebElement element = driver.findElement(By.xpath("//tr[@job-id="+jobID+"]"));
+    final WebElement element = driver.findElement(By.xpath("//tr[@job-id=" + jobID + "]"));
     if (element == null)
     {
-      throw new Exception("Can't find job "+jobID);
+      throw new Exception("Can't find job " + jobID);
     }
     return element.getAttribute("job-status-name");
   }
@@ -565,14 +583,14 @@ public class SeleniumTester
   {
     waitForJobDelete(jobID, timeoutAmount, "Manage jobs", "liststatuses", "Refresh");
   }
-  
+
   /**
    * Wait for a specified job to go away after being deleted (generic version).
    * @param jobID
    * @param timeoutAmount
-   * @param manageJobsPage is the 'manage jobs' page
+   * @param manageJobsPage      is the 'manage jobs' page
    * @param listStatusesElement is the 'list statuses' element
-   * @param refreshButton is the 'Refresh" button
+   * @param refreshButton       is the 'Refresh" button
    * @throws Exception
    */
   public void waitForJobDelete(final String jobID, int timeoutAmount, final String manageJobsPage, final String listStatusesElement, final String refreshButton)
@@ -584,7 +602,7 @@ public class SeleniumTester
     {
       if (timeoutAmount == 0)
       {
-        throw new Exception("Timed out waiting for job "+jobID+" to go away");
+        throw new Exception("Timed out waiting for job " + jobID + " to go away");
       }
       clickButton(refreshButton);
       waitForElementWithName(listStatusesElement);
@@ -593,39 +611,85 @@ public class SeleniumTester
       timeoutAmount--;
     }
   }
-  
-  public boolean waitForAjaxAndDocumentReady(){
+
+  public boolean waitForAjaxAndDocumentReady()
+  {
     return waitForAjaxAndDocumentReady(defaultTimeOutInSeconds);
   }
 
-  public boolean waitForAjaxAndDocumentReady(long timeOutInSeconds) {
+  public boolean waitForAjaxAndDocumentReady(long timeOutInSeconds)
+  {
     WebDriverWait wait = new WebDriverWait(driver, timeOutInSeconds);
 
     // wait for jQuery to load
-    ExpectedCondition<Boolean> jQueryLoad = new ExpectedCondition<Boolean>() {
-      @Override
-      public Boolean apply(WebDriver driver) {
-        try {
-          return ((Long)((JavascriptExecutor)getDriver()).executeScript("return jQuery.active") == 0);
+    ExpectedCondition<Boolean> jQueryLoad =
+      new ExpectedCondition<Boolean>()
+      {
+        @Override
+        public Boolean apply(WebDriver driver)
+        {
+          try
+          {
+            return ((Long)
+              ((JavascriptExecutor)getDriver()).executeScript("return jQuery.active")
+              == 0);
+          }
+          catch (Exception e)
+          {
+            // no jQuery present
+            return true;
+          }
         }
-        catch (Exception e) {
-          // no jQuery present
-          return true;
-        }
-      }
-    };
+      };
 
     // wait for Javascript to load
-    ExpectedCondition<Boolean> jsLoad = new ExpectedCondition<Boolean>() {
-      @Override
-      public Boolean apply(WebDriver driver) {
-        return ((JavascriptExecutor)getDriver()).executeScript("return document.readyState")
-        .toString().equals("complete");
-      }
-    };
+    ExpectedCondition<Boolean> jsLoad =
+      new ExpectedCondition<Boolean>()
+      {
+        @Override
+        public Boolean apply(WebDriver driver)
+        {
+          return ((JavascriptExecutor)getDriver())
+            .executeScript("return document.readyState")
+            .toString()
+            .equals("complete");
+        }
+      };
 
-  return wait.until(jQueryLoad) && wait.until(jsLoad);
-}
+    return wait.until(jQueryLoad) && wait.until(jsLoad);
+  }
+
+  public void waitUntilAnimationIsDone(final String selector)
+  {
+    waitUntilAnimationIsDone(selector, defaultTimeOutInSeconds);
+  }
+
+  public void waitUntilAnimationIsDone(final String selector, final long timeOutInSeconds)
+  {
+    WebDriverWait wait = new WebDriverWait(driver, timeOutInSeconds);
+    ExpectedCondition<Boolean> expectation =
+      new ExpectedCondition<Boolean>()
+      {
+        @Override
+        public Boolean apply(WebDriver driver)
+        {
+          String temp =
+            ((JavascriptExecutor)driver)
+              .executeScript("return jQuery('" + selector + "').is(':animated')")
+              .toString();
+          return temp.equalsIgnoreCase("false");
+        }
+      };
+
+    try
+    {
+      wait.until(expectation);
+    }
+    catch (TimeoutException e)
+    {
+      throw new AssertionError("Element animation is not finished in time. selector: " + selector);
+    }
+  }
 
   /**
    * Get the source of the html document
@@ -654,16 +718,18 @@ public class SeleniumTester
   public String getRenderedSource(WebElement element)
   {
     return (String)
-        ((JavascriptExecutor) driver).executeScript("return arguments[0].innerHTML", element);
+      ((JavascriptExecutor)driver).executeScript("return arguments[0].innerHTML", element);
   }
-  
+
   private long tick()
   {
     long TICKS_AT_EPOCH = 621355968000000000L;
     return System.currentTimeMillis() * 10000 + TICKS_AT_EPOCH;
   }
 
-  /** Clean up the files we created. */
+  /**
+   * Clean up the files we created.
+   */
   @After
   public void teardown() throws Exception
   {
