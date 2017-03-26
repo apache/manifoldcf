@@ -1163,7 +1163,7 @@
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <jvmarg value="-Dwebdriver.chrome.driver=${env.SL_CHROME_DRIVER}"/>
             <jvmarg value="-Dwebdriver.safari.driver=${env.SL_SAFARI_DRIVER}"/>
-            <jvmarg value="-Dwebdriver.firefox.driver=${env.SL_FIREFOX_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.gecko.driver=${env.SL_FIREFOX_DRIVER}"/>
             <jvmarg value="-Dwebdriver.ie.driver=${env.SL_IE_DRIVER}"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
@@ -1190,7 +1190,7 @@
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <jvmarg value="-Dwebdriver.chrome.driver=${env.SL_CHROME_DRIVER}"/>
             <jvmarg value="-Dwebdriver.safari.driver=${env.SL_SAFARI_DRIVER}"/>
-            <jvmarg value="-Dwebdriver.firefox.driver=${env.SL_FIREFOX_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.gecko.driver=${env.SL_FIREFOX_DRIVER}"/>
             <jvmarg value="-Dwebdriver.ie.driver=${env.SL_IE_DRIVER}"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
@@ -1217,7 +1217,7 @@
         <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <jvmarg value="-Dwebdriver.chrome.driver=${env.SL_CHROME_DRIVER}"/>
             <jvmarg value="-Dwebdriver.safari.driver=${env.SL_SAFARI_DRIVER}"/>
-            <jvmarg value="-Dwebdriver.firefox.driver=${env.SL_FIREFOX_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.gecko.driver=${env.SL_FIREFOX_DRIVER}"/>
             <jvmarg value="-Dwebdriver.ie.driver=${env.SL_IE_DRIVER}"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
@@ -1244,7 +1244,7 @@
         <junit fork="true" maxmemory="128m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
             <jvmarg value="-Dwebdriver.chrome.driver=${env.SL_CHROME_DRIVER}"/>
             <jvmarg value="-Dwebdriver.safari.driver=${env.SL_SAFARI_DRIVER}"/>
-            <jvmarg value="-Dwebdriver.firefox.driver=${env.SL_FIREFOX_DRIVER}"/>
+            <jvmarg value="-Dwebdriver.gecko.driver=${env.SL_FIREFOX_DRIVER}"/>
             <jvmarg value="-Dwebdriver.ie.driver=${env.SL_IE_DRIVER}"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web-proprietary/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web-proprietary/war/mcf-authority-service.war"/>
