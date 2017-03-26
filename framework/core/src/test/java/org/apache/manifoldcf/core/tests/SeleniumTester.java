@@ -30,6 +30,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -47,7 +48,8 @@ public class SeleniumTester
   public enum BrowserType
   {
     CHROME,
-    FIREFOX
+    FIREFOX,
+    IE
   }
 
   /**
@@ -91,6 +93,15 @@ public class SeleniumTester
 
         //Create a new instance of Firefox driver
         driver = new FirefoxDriver();
+        break;
+      case IE:
+        if(System.getProperty("webdriver.ie.driver") == null
+                || System.getProperty("webdriver.ie.driver").length() == 0)
+          throw new IllegalStateException(
+                  "Please configure your SL_IE_DRIVER environment variable to point to the Internet Explorer Driver");
+
+        //For more info, on how to configure IE driver, plese read https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver
+        driver = new InternetExplorerDriver();
         break;
       default:
         throw new IllegalArgumentException("Unknown browser type");
