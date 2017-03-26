@@ -29,6 +29,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -45,7 +46,8 @@ public class SeleniumTester
 
   public enum BrowserType
   {
-    CHROME
+    CHROME,
+    FIREFOX
   }
 
   /**
@@ -80,6 +82,15 @@ public class SeleniumTester
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--start-maximized", "--lang=" + language);
         driver = new ChromeDriver(options);
+        break;
+      case FIREFOX:
+        if(System.getProperty("webdriver.gecko.driver") == null
+          || System.getProperty("webdriver.gecko.driver").length() == 0)
+          throw new IllegalStateException(
+            "Please configure your SL_FIREFOX_DRIVER environment variable to point to the Mozilla Firefox Driver");
+
+        //Create a new instance of Firefox driver
+        driver = new FirefoxDriver();
         break;
       default:
         throw new IllegalArgumentException("Unknown browser type");
@@ -157,7 +168,16 @@ public class SeleniumTester
     {
       js = "$(arguments[0]).closest('.treeview').find('a:first-child').click();";
       ((JavascriptExecutor)driver).executeScript(js, ele);
-      waitUntilAnimationIsDone(".sidebar-menu .treeview.active .treeview-menu");
+      //waitUntilAnimationIsDone(".sidebar-menu .treeview .treeview-menu");
+      //Wait for a second for the animation to complete.
+      try
+      {
+        Thread.sleep(1000);
+      }
+      catch (InterruptedException e)
+      {
+        e.printStackTrace();
+      }
     }
 
     //Wait until the menu is link is visible
