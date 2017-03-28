@@ -801,7 +801,13 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                 continue;
               }
                 
-              final String mimeType = part.getContentType();
+              final String origMimeType = part.getContentType();
+              final String mimeType;
+              if (origMimeType == null || origMimeType.indexOf("\n") == -1) {
+                mimeType = origMimeType;
+              } else {
+                mimeType = origMimeType.substring(0, origMimeType.indexOf("\n")).trim();
+              }
               if (!activities.checkMimeTypeIndexable(mimeType)) {
                 errorCode = activities.EXCLUDED_MIMETYPE;
                 errorDesc = "Excluded because of mime type ('"+mimeType+"')";
