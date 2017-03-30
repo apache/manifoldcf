@@ -803,10 +803,12 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                 
               final String origMimeType = part.getContentType();
               final String mimeType;
-              if (origMimeType == null || origMimeType.indexOf("\n") == -1) {
+              //MSExchange puts crap after the mime type so it has to be munged.
+              // Example: "application/msword; name=SampleDOCFile_100kb.doc"
+              if (origMimeType == null || origMimeType.indexOf(";") == -1) {
                 mimeType = origMimeType;
               } else {
-                mimeType = origMimeType.substring(0, origMimeType.indexOf("\n")).trim();
+                mimeType = origMimeType.substring(0, origMimeType.indexOf(";"));
               }
               if (!activities.checkMimeTypeIndexable(mimeType)) {
                 errorCode = activities.EXCLUDED_MIMETYPE;
