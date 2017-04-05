@@ -17,15 +17,15 @@
 -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<parent>
-		<groupId>org.apache.manifoldcf</groupId>
-		<artifactId>mcf-framework</artifactId>
-		<version>2.7-SNAPSHOT</version>
-	</parent>
-	<modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.apache.manifoldcf</groupId>
+    <artifactId>mcf-framework</artifactId>
+    <version>2.7-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
 
-	<artifactId>mcf-jettyrunner</artifactId>
-	<name>ManifoldCF - Framework - Jetty Runner</name>
+  <artifactId>mcf-jettyrunner</artifactId>
+  <name>ManifoldCF - Framework - Jetty Runner</name>
 
   <build>
     <plugins>
@@ -68,6 +68,30 @@
         </executions>
       
       </plugin>
+      
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.7</version>
+        <executions>
+          <execution>
+            <id>copy-resource-one</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+
+            <configuration>
+              <outputDirectory>${basedir}/target/run</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/resources</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+        
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
@@ -81,15 +105,16 @@
         </executions>
         <configuration>
           <executable>java</executable>
+          <workingDirectory>target/run</workingDirectory>
           <arguments>
-            <argument>-Dorg.apache.manifoldcf.configfile=src/main/resources/properties.xml</argument>
+            <argument>-Dorg.apache.manifoldcf.configfile=properties.xml</argument>
             <argument>-classpath</argument>
             <classpath />
             <argument>org.apache.manifoldcf.jettyrunner.ManifoldCFJettyRunner</argument>
             <argument>8345</argument>
-            <argument>target/dependency/mcf-crawler-ui-${project.version}.war</argument>
-            <argument>target/dependency/mcf-authority-service-${project.version}.war</argument>
-            <argument>target/dependency/mcf-api-service-${project.version}.war</argument>
+            <argument>../dependency/mcf-crawler-ui-${project.version}.war</argument>
+            <argument>../dependency/mcf-authority-service-${project.version}.war</argument>
+            <argument>../dependency/mcf-api-service-${project.version}.war</argument>
           </arguments>
         </configuration>
       </plugin>
