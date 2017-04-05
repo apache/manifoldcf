@@ -90,6 +90,7 @@
     <tomcat.version>6.0.35</tomcat.version>
     <ecj.version>4.3.1</ecj.version>
     <json-simple.version>1.1.1</json-simple.version>
+    <guava.version>21.0</guava.version>
   </properties>
 
   <modules>
