@@ -33,7 +33,6 @@
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
-              <include name="guava-*.jar" />
         </fileset>
     </path>
 
@@ -41,7 +40,6 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="../../lib">
-              <include name="guava-*.jar" />
             </fileset>
         </copy>
     </target>
