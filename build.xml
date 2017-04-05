@@ -1954,6 +1954,14 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <copy todir="lib/sharepoint-2013">
             <fileset dir="build/download/apache-manifoldcf-sharepoint-2013-plugin-bin/apache-manifoldcf-sharepoint-2013-plugin-0.1"/>
         </copy>
+        <mkdir dir="lib/sharepoint-2016"/>
+        <!-- Download and unpack binary artifact -->
+        <mkdir dir="build/download"/>
+        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2016-plugin-0.1/apache-manifoldcf-sharepoint-2016-plugin-0.1-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2016-plugin-bin.zip"/>
+        <unzip src="build/download/apache-manifoldcf-sharepoint-2016-plugin-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2016-plugin-bin"/>
+        <copy todir="lib/sharepoint-2016">
+            <fileset dir="build/download/apache-manifoldcf-sharepoint-2016-plugin-bin/apache-manifoldcf-sharepoint-2016-plugin-0.1"/>
+        </copy>
     </target>
 
     <target name="download-solr-plugins">

@@ -90,6 +90,10 @@
         <copy todir="dist/integration/sharepoint-2013">
           <fileset dir="../../lib/sharepoint-2013"/>
         </copy>
+        <mkdir dir="dist/integration/sharepoint-2016"/>
+        <copy todir="dist/integration/sharepoint-2016">
+          <fileset dir="../../lib/sharepoint-2016"/>
+        </copy>
     </target>
 
     <!-- target name="download-dependencies">
