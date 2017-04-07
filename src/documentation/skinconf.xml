@@ -77,7 +77,7 @@ which will be used to configure the chosen Forrest skin.
   <group-name>Apache</group-name>
   <group-description>Apache Software Foundation</group-description>
   <group-url>http://www.apache.org</group-url>
-  <group-logo>images/asf_logo.png</group-logo>
+  <group-logo>images/asf_18_years.png</group-logo>
   <!-- Alternative static image:
   <group-logo>images/group-logo.gif</group-logo> -->
 
