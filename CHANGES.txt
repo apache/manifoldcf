@@ -5,6 +5,7 @@ $Id$
 
 CONNECTORS-1401: Fix Documentum Authority query to exclude
 access tokens that have matching negative groups or users.
+(Sharnel Merdeck Pereira, Karl Wright)
 
 CONNECTORS_1399: Remove all dependencies on json.jar, as per
 Apache Legal advice.
