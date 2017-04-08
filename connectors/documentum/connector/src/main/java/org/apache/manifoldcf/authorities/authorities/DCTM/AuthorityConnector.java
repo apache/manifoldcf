@@ -744,14 +744,18 @@ public class AuthorityConnector extends org.apache.manifoldcf.authorities.author
       // U.user_state=0)";
       String strDQL = "SELECT DISTINCT A.owner_name, A.object_name FROM dm_acl A " + " WHERE ";
       if (!useSystemAcls)
+      {
         strDQL += "A.object_name NOT LIKE 'dm_%' AND (";
-      strDQL += "(any (A.r_accessor_name IN ('" + strAccessToken + "', 'dm_world') AND r_accessor_permit>2) "
-      + " OR (any (A.r_accessor_name='dm_owner' AND A.r_accessor_permit>2) AND A.owner_name=" + quoteDQLString(strAccessToken) + ")"
-      + " OR (ANY (A.r_accessor_name in (SELECT G.group_name FROM dm_group G WHERE ANY G.i_all_users_names = " + quoteDQLString(strAccessToken) + ")"
-      + " AND r_accessor_permit>2))"
-      + ")";
-      if (!useSystemAcls)
+      }
+      
+      // Include ACLs with positive groups and users
+      strDQL += "(any (A.r_accessor_name IN (" + quoteDQLString(strAccessToken) + ", 'dm_world') AND r_accessor_permit>2) OR (any (A.r_accessor_name='dm_owner' AND A.r_accessor_permit>2) AND A.owner_name=" + quoteDQLString(strAccessToken) + ") OR (ANY (A.r_accessor_name in (SELECT G.group_name FROM dm_group G WHERE ANY G.i_all_users_names = " + quoteDQLString(strAccessToken) + ") AND r_accessor_permit>2))) ";
+      // Exclude ACLs with negative groups and users
+      strDQL += "AND NOT (any (A.r_accessor_name IN (" + quoteDQLString(strAccessToken) + ", 'dm_world') AND r_accessor_permit<=2) OR (any (A.r_accessor_name='dm_owner' AND A.r_accessor_permit<=2) AND A.owner_name=" + quoteDQLString(strAccessToken) + ") OR (ANY (A.r_accessor_name in (SELECT G.group_name FROM dm_group G WHERE ANY G.i_all_users_names = " + quoteDQLString(strAccessToken) + ") AND r_accessor_permit<=2)))";
+      
+      if (!useSystemAcls) {
         strDQL += ")";
+      }
 
       if (Logging.authorityConnectors.isDebugEnabled())
         Logging.authorityConnectors.debug("DCTM: About to execute query= (" + strDQL + ")");
