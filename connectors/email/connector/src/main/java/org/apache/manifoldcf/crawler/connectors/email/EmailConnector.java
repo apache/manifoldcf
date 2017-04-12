@@ -263,8 +263,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   * The connector will be connected before this method can be called.
   *@param activities is the interface this method should use to perform whatever framework actions are desired.
   *@param spec is a document specification (that comes from the job).
+  *@param lastSeedVersion is the last seeding version string for this job, or null if the job has no previous seeding version string.
   *@param seedTime is the end of the time range of documents to consider, exclusive.
-  *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@return an updated seeding version string, to be stored with the job.
   */
@@ -584,7 +584,6 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
               rd.setCreatedDate(sentDate);
               rd.setModifiedDate(sentDate);
               
-              String subject = StringUtils.EMPTY;
               for (String metadata : requiredMetadata) {
                 if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_TO)) {
                   Address[] to = msg.getRecipients(Message.RecipientType.TO);
@@ -604,7 +603,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                   rd.addField(EmailConfig.EMAIL_FROM, fromStr);
 
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_SUBJECT)) {
-                  subject = msg.getSubject();
+                  String subject = msg.getSubject();
                   rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_BODY)) {
                   Object o = msg.getContent();
@@ -822,6 +821,29 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
               rd.setMimeType(mimeType);
               rd.setCreatedDate(sentDate);
               rd.setModifiedDate(sentDate);
+
+              for (String metadata : requiredMetadata) {
+                if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_TO)) {
+                  Address[] to = msg.getRecipients(Message.RecipientType.TO);
+                  String[] toStr = new String[to.length];
+                  int j = 0;
+                  for (Address address : to) {
+                    toStr[j] = address.toString();
+                  }
+                  rd.addField(EmailConfig.EMAIL_TO, toStr);
+                } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_FROM)) {
+                  Address[] from = msg.getFrom();
+                  String[] fromStr = new String[from.length];
+                  int j = 0;
+                  for (Address address : from) {
+                    fromStr[j] = address.toString();
+                  }
+                  rd.addField(EmailConfig.EMAIL_FROM, fromStr);
+
+                } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_DATE)) {
+                  rd.addField(EmailConfig.EMAIL_DATE, sentDate.toString());
+                }
+              }
 
               final InputStream is = part.getInputStream();
               try {
