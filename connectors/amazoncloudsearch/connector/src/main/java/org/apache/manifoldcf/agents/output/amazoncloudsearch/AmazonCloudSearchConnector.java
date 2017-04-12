@@ -279,7 +279,7 @@ public class AmazonCloudSearchConnector extends BaseOutputConnector {
   
   private String getStatusFromJsonResponse(String responsbody) throws ManifoldCFException {
     try {
-      JsonParser parser = new JsonFactory().createJsonParser(responsbody);
+      JsonParser parser = new JsonFactory().createParser(responsbody);
       while (parser.nextToken() != JsonToken.END_OBJECT)
       {
         String name = parser.getCurrentName();
