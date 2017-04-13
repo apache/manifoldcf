@@ -117,6 +117,7 @@ public class EmailConfig {
   public static final String ENCODING_FIELD = "encoding";
   public static final String MIMETYPE_FIELD = "mimetype";
   public static final String FILENAME_FIELD = "filename";
+  public static final String MAILSUBJECT_FIELD = "mailsubject";
   //public static final String TO = "To";
   
   // Activity names
