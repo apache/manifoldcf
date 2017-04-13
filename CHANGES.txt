@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1406: Fix multiple To and From field bug at e-mail.
+(Furkan KAMACI)
+
 CONNECTORS-1405: Add filename metadata information for email.
 (Furkan KAMACI)
 
