@@ -672,6 +672,26 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                       rd.addField(EmailConfig.MIMETYPE_FIELD, "");
                     }
                   }
+                } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_ATTACHMENT_FILENAME)) {
+                  Object o = msg.getContent();
+                  if (o != null) {
+                    if (o instanceof Multipart) {
+                      Multipart mp = (Multipart) o;
+                      String[] fileNames = new String[mp.getCount()];
+                      for (int k = 0, n = mp.getCount(); k < n; k++) {
+                        Part part = mp.getBodyPart(k);
+                        String disposition = part.getDisposition();
+                        if ((disposition != null) &&
+                            ((disposition.toLowerCase(Locale.ROOT).equals(Part.ATTACHMENT) ||
+                                (disposition.toLowerCase(Locale.ROOT).equals(Part.INLINE))))) {
+                          fileNames[k] = part.getFileName();
+                        }
+                      }
+                      rd.addField(EmailConfig.FILENAME_FIELD, fileNames);
+                    } else if (o instanceof String) {
+                      rd.addField(EmailConfig.FILENAME_FIELD, "");
+                    }
+                  }
                 }
               }
                   
