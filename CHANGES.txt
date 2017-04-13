@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1405: Add filename metadata information for email.
+(Furkan KAMACI)
+
 CONNECTORS-1402: Add metadata information for email attachments.
 (Furkan KAMACI)
 
