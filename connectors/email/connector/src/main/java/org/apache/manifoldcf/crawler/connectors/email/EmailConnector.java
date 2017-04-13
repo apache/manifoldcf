@@ -861,7 +861,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                   rd.addField(EmailConfig.EMAIL_FROM, fromStr);
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_SUBJECT)) {
                   String subject = msg.getSubject();
-                  rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
+                  //Attachments may have a field named "subject". So, different field name is used not to clash.
+                  rd.addField(EmailConfig.MAILSUBJECT_FIELD, subject);
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_DATE)) {
                   rd.addField(EmailConfig.EMAIL_DATE, sentDate.toString());
                 }
