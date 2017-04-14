@@ -2,7 +2,7 @@
 <script type="text/javascript">
 
 function checkSpecificationForSave(){
-	return true;
+  return true;
 }
 
 function s${SeqNum}_SpecOp(n, opValue, anchorvalue)
@@ -14,7 +14,7 @@ function s${SeqNum}_SpecOp(n, opValue, anchorvalue)
 //Domains
 function s${SeqNum}_SpecDeleteDomain(i)
 {
-	s${SeqNum}_SpecOp("s${SeqNum}_domainop_"+i,"Delete","domain_"+i);
+  s${SeqNum}_SpecOp("s${SeqNum}_domainop_"+i,"Delete","domain_"+i);
 }
 
 function s${SeqNum}_SpecAddDomain(i)
@@ -32,7 +32,7 @@ function s${SeqNum}_SpecAddDomain(i)
 //Documents
 function s${SeqNum}_SpecDeleteDocumentType(i)
 {
-	s${SeqNum}_SpecOp("s${SeqNum}_documentTypeop_"+i,"Delete","documentType_"+i);
+  s${SeqNum}_SpecOp("s${SeqNum}_documentTypeop_"+i,"Delete","documentType_"+i);
 }
 
 function s${SeqNum}_SpecAddDocumentType(i)
