@@ -24,19 +24,23 @@ import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.util.URLEncoder;
-import org.apache.manifoldcf.crawler.interfaces.*;
+import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
+import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
+import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
 
-import java.io.*;
+import javax.mail.*;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.search.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.mail.*;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.search.*;
 
 /**
 * This interface describes an instance of a connection between a repository and ManifoldCF's
@@ -641,10 +645,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                       String[] encoding = new String[mp.getCount()];
                       for (int k = 0, n = mp.getCount(); k < n; k++) {
                         Part part = mp.getBodyPart(k);
-                        String disposition = part.getDisposition();
-                        if ((disposition != null) &&
-                            ((disposition.toLowerCase(Locale.ROOT).equals(Part.ATTACHMENT) ||
-                                (disposition.toLowerCase(Locale.ROOT).equals(Part.INLINE))))) {
+                        if (isAttachment(part)) {
                           final String[] fileSplit = part.getFileName().split("\\?");
                           if (fileSplit.length > 1) {
                             encoding[k] = fileSplit[1];
@@ -666,10 +667,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                       String[] MIMEType = new String[mp.getCount()];
                       for (int k = 0, n = mp.getCount(); k < n; k++) {
                         Part part = mp.getBodyPart(k);
-                        String disposition = part.getDisposition();
-                        if ((disposition != null) &&
-                            ((disposition.toLowerCase(Locale.ROOT).equals(Part.ATTACHMENT) ||
-                                (disposition.toLowerCase(Locale.ROOT).equals(Part.INLINE))))) {
+                        if (isAttachment(part)) {
                           MIMEType[k] = part.getContentType();
 
                         }
@@ -687,10 +685,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                       String[] fileNames = new String[mp.getCount()];
                       for (int k = 0, n = mp.getCount(); k < n; k++) {
                         Part part = mp.getBodyPart(k);
-                        String disposition = part.getDisposition();
-                        if ((disposition != null) &&
-                            ((disposition.toLowerCase(Locale.ROOT).equals(Part.ATTACHMENT) ||
-                                (disposition.toLowerCase(Locale.ROOT).equals(Part.INLINE))))) {
+                        if (isAttachment(part)) {
                           fileNames[k] = part.getFileName();
                         }
                       }
@@ -718,7 +713,9 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                   final Multipart mp = (Multipart) msg.getContent();
                   final int numAttachments = mp.getCount();
                   for (int i = 0; i < numAttachments; i++) {
-                    activities.addDocumentReference(documentIdentifier + ":" + i);
+                    if (isAttachment(mp.getBodyPart(i))) {
+                      activities.addDocumentReference(documentIdentifier + ":" + i);
+                    }
                   }
                 }
               }
@@ -933,6 +930,18 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       }
     }
 
+  }
+
+    /**
+     * Checks whether a Part is an attachment or not
+     * @param part Part to check
+     * @return is attachment or not
+     */
+  private boolean isAttachment(Part part) throws MessagingException {
+      String disposition = part.getDisposition();
+      return ((disposition != null)
+           && ((disposition.toLowerCase(Locale.ROOT).equals(Part.ATTACHMENT)
+           || (disposition.toLowerCase(Locale.ROOT).equals(Part.INLINE)))));
   }
 
   /**
