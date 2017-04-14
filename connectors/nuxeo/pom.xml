@@ -383,11 +383,11 @@
     
     <!-- Nuxeo client -->
     <dependency>
-	  <groupId>org.nuxeo.client</groupId>
-	  <artifactId>nuxeo-java-client</artifactId>
-	  <version>2.5-SNAPSHOT</version>
-	</dependency>
-	<!-- End nuxeo client -->
+        <groupId>org.nuxeo.client</groupId>
+        <artifactId>nuxeo-java-client</artifactId>
+        <version>2.5</version>
+      </dependency>
+      <!-- End nuxeo client -->
   </dependencies>
 
 </project>
