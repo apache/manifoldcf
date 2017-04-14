@@ -33,7 +33,10 @@
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
-             <include name="nuxeo-java-client*.jar"/>
+            <include name="nuxeo-java-client*.jar"/>
+            <include name="retrofit*.jar"/>
+            <include name="okhttp*.jar"/>
+            <include name="okio*.jar"/>
         </fileset>
     </path>
 
@@ -42,6 +45,9 @@
         <copy todir="dist/lib">
             <fileset dir="../../lib">
                 <include name="nuxeo-java-client*.jar"/>
+                <include name="retrofit*.jar"/>
+                <include name="okhttp*.jar"/>
+                <include name="okio*.jar"/>
             </fileset>
         </copy>
     </target>
