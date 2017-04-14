@@ -3,10 +3,13 @@ $Id$
 
 ======================= 2.7-dev =====================
 
+CONNECTORS-1409: Fix re-processing email bug.
+(Furkan KAMACI)
+
 CONNECTORS-1407: Extract email addresses from email metadata fields.
 (Furkan KAMACI)
 
-CONNECTORS-1406: Fix multiple To and From field bug at e-mail.
+CONNECTORS-1406: Fix multiple To and From field bug at email.
 (Furkan KAMACI)
 
 CONNECTORS-1405: Add filename metadata information for email.
