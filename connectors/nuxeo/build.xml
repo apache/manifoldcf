@@ -33,6 +33,7 @@
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
+             <include name="nuxeo-java-client*.jar"/>
         </fileset>
     </path>
 
@@ -40,6 +41,7 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="../../lib">
+                <include name="nuxeo-java-client*.jar"/>
             </fileset>
         </copy>
     </target>

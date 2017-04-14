@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.apache.manifoldcf</groupId>
     <artifactId>mcf-connectors</artifactId>
-    <version>2.6-SNAPSHOT</version>
+    <version>2.7-SNAPSHOT</version>
   </parent>
 
   <name>ManifoldCF - Connectors - Nuxeo Connector</name>
@@ -43,6 +43,19 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
 
+  <!-- Nuxeo repositories -->
+  <repositories>
+    <repository>
+	  <id>public-releases</id>
+	  <url>http://maven.nuxeo.com/nexus/content/repositories/public-releases/</url>
+    </repository>
+    <repository>
+	  <id>public-snapshots</id>
+	  <url>http://maven.nuxeo.com/nexus/content/repositories/public-snapshots/</url>
+    </repository>
+  </repositories>
+  <!-- Nuxeo repositories -->
+	
   <build>
     <defaultGoal>integration-test</defaultGoal>
     <sourceDirectory>${basedir}/connector/src/main/java</sourceDirectory>
@@ -301,7 +314,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
+      <version>15.0</version>
     </dependency>
     
     <!-- Testing dependencies -->
@@ -346,27 +359,35 @@
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
-      <version>${commons-logging.version}</version>
+      <version>1.1.1</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
-      <version>${log4j.version}</version>
+      <version>1.2.16</version>
       <scope>provided</scope>
       <type>jar</type>
     </dependency>
     <dependency>
       <groupId>com.googlecode.json-simple</groupId>
       <artifactId>json-simple</artifactId>
-      <version>${json-simple.version}</version>
+      <version>1.1</version>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>${commons-codec.version}</version>
+      <version>1.8</version>
     </dependency>
+    
+    <!-- Nuxeo client -->
+    <dependency>
+	  <groupId>org.nuxeo.client</groupId>
+	  <artifactId>nuxeo-java-client</artifactId>
+	  <version>2.5-SNAPSHOT</version>
+	</dependency>
+	<!-- End nuxeo client -->
   </dependencies>
 
 </project>
