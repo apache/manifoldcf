@@ -63,22 +63,22 @@ function checkConfigForSave()
     return false;
   }
   
- if (editconnection.nuxeo_path.value == "")
- {
- alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoRepositoryConnector.PathMustNotBeNull'))");
- SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoRepositoryConnector.Server'))");
- editconnection.nuxeo_path.focus();
- return false;
- }
+  if (editconnection.nuxeo_path.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoRepositoryConnector.PathMustNotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoRepositoryConnector.Server'))");
+    editconnection.nuxeo_path.focus();
+    return false;
+  }
   
- if (editconnection.nuxeo_path.value != "" &&
- !(editconnection.nuxeo_path.value.indexOf("/") == 0))
- {
- alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoRepositoryConnector.PathMustBeginWithASlash'))");
- SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoRepositoryConnector.Server'))");
- editconnection.nuxeo_path.focus();
- return false;
- }
+  if (editconnection.nuxeo_path.value != "" &&
+    !(editconnection.nuxeo_path.value.indexOf("/") == 0))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoRepositoryConnector.PathMustBeginWithASlash'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoRepositoryConnector.Server'))");
+    editconnection.nuxeo_path.focus();
+    return false;
+  }
   
   return true;
 }

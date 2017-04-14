@@ -3,35 +3,35 @@ $ResourceBundle.getString('NuxeoRepositoryConnector.Documents') &&
 ${SeqNum} == ${SelectedNum})
 
 <table class="displaytable">
-	<tr>
-		<td class="separator" colspan="2"><hr /></td>
-	</tr>
+  <tr>
+    <td class="separator" colspan="2"><hr /></td>
+  </tr>
 
-	<tr>
-		<td class="description" colspan="2">
-			$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.ProcessTags'))
-		</td>
-		<td class="value"><input type="checkbox"
-			name="s${SeqNum}_process_tags" value="true"
-			#if($PROCESS_TAGS) checked 
+  <tr>
+    <td class="description" colspan="2">
+      $Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.ProcessTags'))
+    </td>
+    <td class="value"><input type="checkbox"
+      name="s${SeqNum}_process_tags" value="true"
+      #if($PROCESS_TAGS) checked 
       #end /></td>
-	</tr>
-	<tr>
-		<td class="description" colspan="2">
-			$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.ProcessAttachments'))
-		</td>
-		<td class="value"><input type="checkbox"
-			name="s${SeqNum}_process_attachments" value="true"
-			#if($PROCESS_ATTACHMENTS) checked 
+  </tr>
+  <tr>
+    <td class="description" colspan="2">
+      $Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.ProcessAttachments'))
+    </td>
+    <td class="value"><input type="checkbox"
+      name="s${SeqNum}_process_attachments" value="true"
+      #if($PROCESS_ATTACHMENTS) checked 
       #end /></td>
-	</tr>
+  </tr>
 </table>
 
 #else
 
 <input type="hidden" name="s${SeqNum}_process_tags"
-	value="$PROCESS_TAGS" />
+  value="$PROCESS_TAGS" />
 <input type="hidden" name="s${SeqNum}_process_attachments"
-	value="$PROCESS_ATTACHMENTS" />
+  value="$PROCESS_ATTACHMENTS" />
 
 #end

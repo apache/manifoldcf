@@ -1,39 +1,39 @@
 
 <table class="displaytable">
-	<tr>
-		#if($DOMAINS.size() == 0)
-		<td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.NoDomainsConfigured'))</nobr>
-		</td> #else
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.Domains')):</nobr>
-		</td>
-		<td class="value">#set($domaincounter = 0) #foreach($domain in
-			$DOMAINS) <nobr>$Encoder.bodyEscape($domain)</nobr><br />
-			#set($domaincounter = $domaincounter + 1) #end
-		</td> #end
-	</tr>
-	<tr>
-		#if($DOCUMENTSTYPE.size() == 0)
-		<td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.NoDocumentsTypeConfigured'))</nobr>
-		</td> #else
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.DocumentsType')):</nobr>
-		</td>
-		<td class="value">#set($documentTypecounter = 0)
-			#foreach($documentType in $DOCUMENTSTYPE) <nobr>$Encoder.bodyEscape($documentType)</nobr><br />
-			#set($documentTypecounter = $documentTypecounter + 1) #end
-		</td> #end
-	</tr>
-	<tr>
-		<td class="description"><nobr>
-				$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.ProcessTags')):
-			</nobr></td>
-		<td class="value"><nobr>$Encoder.bodyEscape($PROCESS_TAGS)</nobr>
-		</td>
-	</tr>
-	<tr>
-		<td class="description"><nobr>
-				$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.ProcessAttachments')):
-			</nobr></td>
-		<td class="value"><nobr>$Encoder.bodyEscape($PROCESS_ATTACHMENTS)</nobr>
-		</td>
-	</tr>
+  <tr>
+    #if($DOMAINS.size() == 0)
+    <td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.NoDomainsConfigured'))</nobr>
+    </td> #else
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.Domains')):</nobr>
+    </td>
+    <td class="value">#set($domaincounter = 0) #foreach($domain in
+      $DOMAINS) <nobr>$Encoder.bodyEscape($domain)</nobr><br />
+      #set($domaincounter = $domaincounter + 1) #end
+    </td> #end
+  </tr>
+  <tr>
+    #if($DOCUMENTSTYPE.size() == 0)
+    <td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.NoDocumentsTypeConfigured'))</nobr>
+    </td> #else
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.DocumentsType')):</nobr>
+    </td>
+    <td class="value">#set($documentTypecounter = 0)
+      #foreach($documentType in $DOCUMENTSTYPE) <nobr>$Encoder.bodyEscape($documentType)</nobr><br />
+      #set($documentTypecounter = $documentTypecounter + 1) #end
+    </td> #end
+  </tr>
+  <tr>
+    <td class="description"><nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.ProcessTags')):
+      </nobr></td>
+    <td class="value"><nobr>$Encoder.bodyEscape($PROCESS_TAGS)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.ProcessAttachments')):
+      </nobr></td>
+    <td class="value"><nobr>$Encoder.bodyEscape($PROCESS_ATTACHMENTS)</nobr>
+    </td>
+  </tr>
 </table>
