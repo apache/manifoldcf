@@ -31,6 +31,8 @@ import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.mail.*;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
@@ -482,11 +484,15 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
     throws ManifoldCFException, ServiceInterruption {
 
     List<String> requiredMetadata = new ArrayList<String>();
+    boolean useEmailExtractor = false;
     for (int i = 0; i < spec.getChildCount(); i++) {
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals(EmailConfig.NODE_METADATA)) {
         String metadataAttribute = sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME);
         requiredMetadata.add(metadataAttribute);
+      }
+      if (sn.getType().equals(EmailConfig.NODE_EXTRACT_EMAIL)) {
+        useEmailExtractor = true;
       }
     }
     
@@ -590,7 +596,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                   String[] toStr = new String[to.length];
                   int j = 0;
                   for (Address address : to) {
-                    toStr[j] = address.toString();
+                    toStr[j] = useEmailExtractor ? extractEmailAddress(address.toString()) : address.toString();
                     j++;
                   }
                   rd.addField(EmailConfig.EMAIL_TO, toStr);
@@ -599,11 +605,10 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                   String[] fromStr = new String[from.length];
                   int j = 0;
                   for (Address address : from) {
-                    fromStr[j] = address.toString();
+                    fromStr[j] = useEmailExtractor ? extractEmailAddress(address.toString()) : address.toString();
                     j++;
                   }
                   rd.addField(EmailConfig.EMAIL_FROM, fromStr);
-
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_SUBJECT)) {
                   String subject = msg.getSubject();
                   rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
@@ -850,7 +855,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                   String[] toStr = new String[to.length];
                   int j = 0;
                   for (Address address : to) {
-                    toStr[j] = address.toString();
+                    toStr[j] = useEmailExtractor ? extractEmailAddress(address.toString()) : address.toString();
                     j++;
                   }
                   rd.addField(EmailConfig.EMAIL_TO, toStr);
@@ -859,7 +864,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                   String[] fromStr = new String[from.length];
                   int j = 0;
                   for (Address address : from) {
-                    fromStr[j] = address.toString();
+                    fromStr[j] = useEmailExtractor ? extractEmailAddress(address.toString()) : address.toString();
                     j++;
                   }
                   rd.addField(EmailConfig.EMAIL_FROM, fromStr);
@@ -928,6 +933,20 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       }
     }
 
+  }
+
+  /**
+   * Extracts e-mail address within < and > characters if any.
+   * If not, returns passed raw mail address.
+   *
+   * @param rawEmailAddress e-mail address to be extracted
+   * @return Extracted e-mail address
+   */
+  private String extractEmailAddress(String rawEmailAddress) {
+    Pattern pattern = Pattern.compile("<(.+?@.+?)>");
+    Matcher matcher = pattern.matcher(rawEmailAddress);
+
+    return matcher.find() ? matcher.group(1) : rawEmailAddress;
   }
 
   //////////////////////////////End of Repository Connector Methods///////////////////////////////////
@@ -1215,15 +1234,19 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   protected static void fillInMetadataTab(Map<String, Object> paramMap,
     Specification ds) {
     Set<String> metadataSelections = new HashSet<String>();
+    String extractEmailSelection = null;
     int i = 0;
     while (i < ds.getChildCount()) {
       SpecificationNode sn = ds.getChild(i++);
       if (sn.getType().equals(EmailConfig.NODE_METADATA)) {
         String metadataName = sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME);
         metadataSelections.add(metadataName);
+      } else if (sn.getType().equals(EmailConfig.NODE_EXTRACT_EMAIL)) {
+        extractEmailSelection = sn.getAttributeValue(EmailConfig.ATTRIBUTE_NAME);
       }
     }
     paramMap.put("METADATASELECTIONS", metadataSelections);
+    paramMap.put("EXTRACTEMAILSELECTION", extractEmailSelection);
   }
 
   /**
@@ -1232,6 +1255,9 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   protected void fillInMetadataAttributes(Map<String, Object> paramMap) {
     String[] matchNames = EmailConfig.BASIC_METADATA;
     paramMap.put("METADATAATTRIBUTES", matchNames);
+
+    String extractEmailAttribute = EmailConfig.BASIC_EXTRACT_EMAIL;
+    paramMap.put("EXTRACTEMAILATTRIBUTE", extractEmailAttribute);
   }
 
   protected void outputFilterTab(IHTTPOutput out, Locale locale,
@@ -1364,6 +1390,18 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
 
   protected String processMetadataTab(IPostParameters variableContext, Specification ds,
+                                   int connectionSequenceNumber)
+          throws ManifoldCFException {
+    String result = processMetadataAttributes(variableContext, ds, connectionSequenceNumber);
+    if (result != null)
+      return result;
+
+    result = processExtractEmail(variableContext, ds, connectionSequenceNumber);
+    return result;
+
+  }
+
+  protected String processMetadataAttributes(IPostParameters variableContext, Specification ds,
     int connectionSequenceNumber)
     throws ManifoldCFException {
       
@@ -1382,6 +1420,30 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
         addIncludedMetadataNode(ds, metadataName);
       }
     }
+
+    return null;
+  }
+
+  protected String processExtractEmail(IPostParameters variableContext, Specification ds,
+    int connectionSequenceNumber)
+    throws ManifoldCFException {
+
+    String seqPrefix = "s"+connectionSequenceNumber+"_";
+
+    // Remove old included extract email nodes
+    removeNodes(ds, EmailConfig.NODE_EXTRACT_EMAIL);
+
+    // Get the posted extract email value
+    String extractEmail = variableContext.getParameter(seqPrefix + "extractemail");
+    if (extractEmail == null) {
+      return null;
+    }
+
+    // Gather the extract email parameter to be the last one
+    SpecificationNode sn = new SpecificationNode(EmailConfig.NODE_EXTRACT_EMAIL);
+    sn.setAttribute(EmailConfig.ATTRIBUTE_NAME, extractEmail);
+    // Add the new extract email parameter
+    ds.addChild(ds.getChildCount(), sn);
 
     return null;
   }

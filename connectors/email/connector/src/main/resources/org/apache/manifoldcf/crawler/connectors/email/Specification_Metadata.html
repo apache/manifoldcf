@@ -31,7 +31,18 @@ limitations under the License.
       <nobr>$Encoder.bodyEscape($metadataattribute)</nobr><br/>
   #end
     </td>
-
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('EmailConnector.ExtractEmailColon'))</nobr></td>
+    <td class="value">
+    #if($EXTRACTEMAILSELECTION)
+      <input type="checkbox" name="s${SeqNum}_extractemail" value="$Encoder.attributeEscape($EXTRACTEMAILATTRIBUTE)" checked="true"/>
+    #else
+      <input type="checkbox" name="s${SeqNum}_extractemail" value="$Encoder.attributeEscape($EXTRACTEMAILATTRIBUTE)"/>
+    #end
+      <nobr>$Encoder.bodyEscape($EXTRACTEMAILATTRIBUTE)</nobr><br/>
+    </td>
   </tr>
 </table>
 
@@ -40,5 +51,7 @@ limitations under the License.
   #foreach($metadataselection in $METADATASELECTIONS)
 <input type="hidden" name="s${SeqNum}_metadata" value="$Encoder.attributeEscape($metadataselection)"/>
   #end
-  
+  #if($EXTRACTEMAILSELECTION)
+<input type="hidden" name="s${SeqNum}_extractemail" value="$Encoder.attributeEscape($EXTRACTEMAILSELECTION)"/>
+  #end
 #end
