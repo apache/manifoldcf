@@ -1,29 +1,11 @@
-/* $Id: DefaultAuthenticator.java 1688076 2015-06-28 23:04:30Z kwright $ */
-
 /**
-* Licensed to the Apache Software Foundation (ASF) under one or more
-* contributor license agreements. See the NOTICE file distributed with
-* this work for additional information regarding copyright ownership.
-* The ASF licenses this file to You under the Apache License, Version 2.0
-* (the "License"); you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * 
+ */
 package org.apache.manifoldcf.crawler.connectors.nuxeo.tests;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -32,7 +14,6 @@ import static org.mockito.Mockito.verify;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -41,173 +22,194 @@ import java.util.Map;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
-import org.apache.manifoldcf.crawler.connectors.nuxeo.model.Document;
-import org.apache.manifoldcf.crawler.connectors.nuxeo.model.NuxeoResponse;
+import org.apache.manifoldcf.crawler.connectors.nuxeo.NuxeoRepositoryConnector;
+import org.apache.manifoldcf.crawler.connectors.nuxeo.model.DocumentManifold;
 import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.system.SeedingActivity;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.nuxeo.client.api.NuxeoClient;
+import org.nuxeo.client.api.objects.Document;
+import org.nuxeo.client.api.objects.Documents;
+import org.nuxeo.client.api.objects.Repository;
 
 /**
  * @author David Arroyo Escobar <arroyoescobardavid@gmail.com>
  *
  */
 @RunWith(MockitoJUnitRunner.class)
-public class NuxeoConnectorTest extends AbstractTestBase {
+public class NuxeoConnectorTest {
 
-  @Override
-  public void setup() throws Exception {
-    super.setup();
+	@Mock
+	public NuxeoClient client;
 
-    when(client.getDocuments(anyListOf(String.class), anyListOf(String.class), anyString(), anyInt(), anyInt(),
-        anyObject())).thenReturn(new NuxeoResponse<Document>(Collections.<Document> emptyList(), 0, 0, true));
-  };
+	public NuxeoRepositoryConnector repositoryConnector;
 
-  @Test
-  public void checkMockInjection() throws Exception {
-    when(client.check()).thenReturn(true);
-    assertEquals(repositoryConnector.check(), "Connection working");
-  }
+	@Before
+	public void setup() throws Exception {
 
-  @Test
-  public void mockSeeding() throws Exception {
-    SeedingActivity activities = mock(SeedingActivity.class);
-    Specification spec = new Specification();
-    List<Document> documents = new ArrayList<Document>();
-    Document document = mock(Document.class);
-    long seedTime = 0;
+		repositoryConnector = new NuxeoRepositoryConnector();
+		repositoryConnector.setNuxeoClient(client);
+	};
 
-    documents.add(document);
-    documents.add(document);
+	@Test
+	public void checkMockInjection() throws Exception {
+		Document doc = mock(Document.class);
+		Repository repository = mock(Repository.class);
+		
+		when(client.repository()).thenReturn(repository);
+		when(client.repository().getDocumentRoot()).thenReturn(doc);
+		assertEquals(repositoryConnector.check(), "Connection working");
+	}
 
-    when(client.getDocuments(anyListOf(String.class), anyListOf(String.class), anyString(), anyInt(), anyInt(),
-        anyObject())).thenReturn(new NuxeoResponse<Document>(documents, 0, 0, true))
-            .thenReturn(new NuxeoResponse<Document>(Collections.<Document> emptyList(), 0, 0, true));
+	@Test
+	public void mockSeeding() throws Exception {
+		SeedingActivity activities = mock(SeedingActivity.class);
+		Specification spec = new Specification();
+		Repository repository = mock(Repository.class);
+		Document document = mock(Document.class);
+		List<Document> documents = new ArrayList<>();
+		documents.add(document);
+		documents.add(document);
+		Documents docs = mock(Documents.class);
+		long seedTime = 0;
+		
 
-    repositoryConnector.addSeedDocuments(activities, spec, "", seedTime,
-        BaseRepositoryConnector.JOBMODE_CONTINUOUS);
+		when(client.repository()).thenReturn(repository);
+		when(client.repository().query(anyString(), anyString(), anyString(), anyString(), anyString(),
+				anyString(), anyString())).thenReturn(docs);
+		when(docs.getIsNextPageAvailable()).thenReturn(false);
+		when(docs.getDocuments()).thenReturn(documents);
+		
+		repositoryConnector.addSeedDocuments(activities, spec, "", seedTime,
+				BaseRepositoryConnector.JOBMODE_CONTINUOUS);
 
-    verify(activities, times(2)).addSeedDocument(anyString());
-    verify(client, times(1)).getDocuments(anyListOf(String.class), anyListOf(String.class), anyString(), anyInt(),
-        anyInt(), anyObject());
+		verify(activities, times(2)).addSeedDocument(anyString());
+		
+	}
 
-  }
+	@Test
+	public void mockEmptySeeding() throws Exception {
+		SeedingActivity activities = mock(SeedingActivity.class);
+		Specification spec = new Specification();
+		Repository repository = mock(Repository.class);
+		List<Document> documents = new ArrayList<>();		
+		Documents docs = mock(Documents.class);
+		long seedTime = 0;
+		
 
-  @Test
-  public void mockEmptySeeding() throws Exception {
-    SeedingActivity activities = mock(SeedingActivity.class);
-    Specification spec = new Specification();
-    long seedTime = 0;
+		when(client.repository()).thenReturn(repository);
+		when(client.repository().query(anyString(), anyString(), anyString(), anyString(), anyString(),
+				anyString(), anyString())).thenReturn(docs);
+		when(docs.getIsNextPageAvailable()).thenReturn(false);
+		when(docs.getDocuments()).thenReturn(documents);
+		
+		repositoryConnector.addSeedDocuments(activities, spec, "", seedTime,
+				BaseRepositoryConnector.JOBMODE_CONTINUOUS);
 
-    when(client.getDocuments(anyListOf(String.class), anyListOf(String.class), anyString(), anyInt(), anyInt(),
-        anyObject())).thenReturn(new NuxeoResponse<Document>(Collections.<Document> emptyList(), 0, 0, true));
+		verify(activities, times(0)).addSeedDocument(anyString());
+	}
 
-    repositoryConnector.addSeedDocuments(activities, spec, "", seedTime,
-        BaseRepositoryConnector.JOBMODE_CONTINUOUS);
+	@Test
+	public void mockDeleteDocument() throws Exception {
+		DocumentManifold docMa = mock(DocumentManifold.class);
+		Repository repository = mock(Repository.class);
+		Document doc = mock(Document.class);
+		Specification spec = new Specification();
+		IProcessActivity activities = mock(IProcessActivity.class);
+		IExistingVersions statuses = mock(IExistingVersions.class);
 
-    verify(activities, times(0)).addSeedDocument(anyString());
-    verify(client, times(1)).getDocuments(anyListOf(String.class), anyListOf(String.class), anyString(), anyInt(),
-        anyInt(), anyObject());
+		when(client.repository()).thenReturn(repository);
+		when(client.repository().fetchDocumentById(anyString())).thenReturn(doc);
+		when(docMa.getDocument()).thenReturn(doc);
+		when(doc.getState()).thenReturn("deleted");
 
-  }
+		repositoryConnector.processDocuments(new String[] { anyString() }, statuses, spec, activities,
+				BaseRepositoryConnector.JOBMODE_CONTINUOUS, true);
 
-  @Test
-  public void mockDeleteDocument() throws Exception {
-    Document doc = mock(Document.class);
-    String uid = "297529bf-191a-4c87-8259-28b692394229";
-    Specification spec = new Specification();
-    IProcessActivity activities = mock(IProcessActivity.class);
-    IExistingVersions statuses = mock(IExistingVersions.class);
+		verify(activities, times(1)).deleteDocument(anyString());
+	}
 
-    when(doc.getState()).thenReturn("deleted");
-    when(client.getDocument(uid)).thenReturn(doc);
+	@Test
+	public void mockSimpleIngestion() throws Exception {
 
-    repositoryConnector.processDocuments(new String[] { uid }, statuses, spec, activities,
-        BaseRepositoryConnector.JOBMODE_CONTINUOUS, true);
+		Document doc = mock(Document.class);
+		DocumentManifold docMa = mock(DocumentManifold.class);
+		Date date = new Date();
+		DateFormat df = DateFormat.getDateTimeInstance();
+		String version = df.format(date);
+		Long size = 0L;
+		String id;
+		String uri = "http://localhost:8080/nuxeo/site/api/v1/id/7995ff6d-1eda-41db-b9de-3ea4037fdb81";
+		Map<String, Object> metadata = new HashMap<String, Object>();
+		IProcessActivity activities = mock(IProcessActivity.class);
+		IExistingVersions statuses = mock(IExistingVersions.class);
+		Specification spec = new Specification();
+		Repository repository = mock(Repository.class);
 
-    verify(client, times(1)).getDocument(anyString());
-    verify(activities, times(1)).deleteDocument(uid);
-  }
 
-  @Test
-  public void mockSimpleIngestion() throws Exception {
+		metadata.put("key", "value");
+		id = df.format(date);
 
-    Document doc = mock(Document.class);
-    Date date = new Date();
-    DateFormat df = DateFormat.getDateTimeInstance();
-    Long size = 0L;
-    String id;
-    String uri = "http://localhost:8080/nuxeo/site/api/v1/id/7995ff6d-1eda-41db-b9de-3ea4037fdb81";
-    Map<String, Object> metadata = new HashMap<String, Object>();
-    IProcessActivity activities = mock(IProcessActivity.class);
-    IExistingVersions statuses = mock(IExistingVersions.class);
-    Specification spec = new Specification();
-    String mediaType = "text/html; charset=utf-8";
+		when(doc.get("lenght")).thenReturn(size);
+		when(doc.getLastModified()).thenReturn(version);
+		when(docMa.getMetadata()).thenReturn(metadata);
+		when(doc.getUid()).thenReturn(uri);
+		when(client.repository()).thenReturn(repository);
+		when(client.repository().fetchDocumentById(anyString())).thenReturn(doc);
 
-    metadata.put("key", "value");
-    id = df.format(date);
+		when(activities.checkDocumentNeedsReindexing(anyString(), anyString())).thenReturn(true);
+		when(statuses.getIndexedVersionString(id)).thenReturn(null);
 
-    when(doc.getLenght()).thenReturn(size);
-    when(doc.getLastModified()).thenReturn(date);
-    when(doc.getMediatype()).thenReturn(mediaType);
-    when(doc.getMetadataAsMap()).thenReturn(metadata);
-    when(doc.getUid()).thenReturn(uri);
 
-    when(activities.checkDocumentNeedsReindexing(anyString(), anyString())).thenReturn(true);
+		repositoryConnector.processDocuments(new String[] { id }, statuses, spec, activities,
+				BaseRepositoryConnector.JOBMODE_CONTINUOUS, true);
+		ArgumentCaptor<RepositoryDocument> ac = ArgumentCaptor.forClass(RepositoryDocument.class);
 
-    when(statuses.getIndexedVersionString(id)).thenReturn(null);
+		verify(activities, times(1)).ingestDocumentWithException(eq(id), eq(df.format(date)), eq(uri), ac.capture());
+		verify(activities, times(1)).recordActivity(anyLong(), eq("read document"), eq(size), eq(id), eq("OK"),
+				anyString(), Mockito.isNull(String[].class));
 
-    when(client.getDocument(anyString())).thenReturn(doc);
+		RepositoryDocument rd = ac.getValue();
+		Long rdSize = rd.getBinaryLength();
 
-    when(client.getPathDocument(anyString())).thenReturn(uri);
+		String[] keyValue = rd.getFieldAsStrings("uid");
+		
+		assertEquals(size, rdSize);
+		assertEquals(keyValue.length, 1);
+	}
 
-    repositoryConnector.processDocuments(new String[] { id }, statuses, spec, activities,
-        BaseRepositoryConnector.JOBMODE_CONTINUOUS, true);
-    ArgumentCaptor<RepositoryDocument> ac = ArgumentCaptor.forClass(RepositoryDocument.class);
+	@Test
+	public void mockNotNeedReindexing() throws Exception {
+		Document doc = mock(Document.class);
+		Date date = new Date();
+		Repository repository = mock(Repository.class);
+		DateFormat df = DateFormat.getDateTimeInstance();
+		String version = df.format(date);
+		String uid = "297529bf-191a-4c87-8259-28b692394229";
 
-    verify(client, times(1)).getDocument(id);
-    verify(activities, times(1)).ingestDocumentWithException(eq(id), eq(df.format(date)), eq(uri), ac.capture());
-    verify(activities, times(1)).recordActivity(anyLong(), eq("read document"), eq(size), eq(id), eq("OK"),
-        anyString(), Mockito.isNull(String[].class));
+		IProcessActivity activities = mock(IProcessActivity.class);
+		IExistingVersions statuses = mock(IExistingVersions.class);
+		Specification spec = new Specification();
 
-    RepositoryDocument rd = ac.getValue();
-    Long rdSize = rd.getBinaryLength();
+		when(doc.getLastModified()).thenReturn(version);
+		when(statuses.getIndexedVersionString(uid)).thenReturn(version);
+		when(client.repository()).thenReturn(repository);
+		when(client.repository().fetchDocumentById(anyString())).thenReturn(doc);
 
-    String[] keyValue = rd.getFieldAsStrings("key");
-    assertEquals(size, rdSize);
+		repositoryConnector.processDocuments(new String[] { uid }, statuses, spec, activities,
+				BaseRepositoryConnector.JOBMODE_CONTINUOUS, true);
+		ArgumentCaptor<RepositoryDocument> ac = ArgumentCaptor.forClass(RepositoryDocument.class);
 
-    assertEquals(keyValue.length, 1);
-    assertEquals(keyValue[0], "value");
-  }
+		verify(activities, times(1)).checkDocumentNeedsReindexing(uid, version);
+		verify(activities, times(0)).ingestDocumentWithException(anyString(), anyString(), anyString(), ac.capture());
 
-  @Test
-  public void mockNotNeedReindexing() throws Exception {
-    Document doc = mock(Document.class);
-    Date date = new Date();
-    DateFormat df = DateFormat.getDateTimeInstance();
-    String version = df.format(date);
-    String uid = "297529bf-191a-4c87-8259-28b692394229";
-
-    IProcessActivity activities = mock(IProcessActivity.class);
-    IExistingVersions statuses = mock(IExistingVersions.class);
-    Specification spec = new Specification();
-
-    when(doc.getLastModified()).thenReturn(df.parse(version));
-    when(statuses.getIndexedVersionString(uid)).thenReturn(version);
-    when(client.getDocument(anyString())).thenReturn(doc);
-
-    repositoryConnector.processDocuments(new String[] { uid }, statuses, spec, activities,
-        BaseRepositoryConnector.JOBMODE_CONTINUOUS, true);
-    ArgumentCaptor<RepositoryDocument> ac = ArgumentCaptor.forClass(RepositoryDocument.class);
-
-    verify(client, times(1)).getDocument(uid);
-    verify(activities, times(1)).checkDocumentNeedsReindexing(uid, version);
-    verify(activities, times(0)).ingestDocumentWithException(anyString(), anyString(), anyString(), ac.capture());
-
-  }
+	}
 
 }
