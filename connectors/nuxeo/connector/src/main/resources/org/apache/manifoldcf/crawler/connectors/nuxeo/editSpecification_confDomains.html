@@ -1,0 +1,57 @@
+
+#if($TabName == $ResourceBundle.getString('NuxeoRepositoryConnector.Domains') && ${SeqNum} == ${SelectedNum})
+
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
+  #set($domaincounter = 0)
+  #foreach($domain in $DOMAINS)
+
+  <tr>
+    <td class="description">
+      <input type="hidden" name="s${SeqNum}_domainop_$domaincounter" value=""/>
+      <input type="hidden" name="s${SeqNum}_domain_$domaincounter" value="$Encoder.attributeEscape($domain)"/>
+      <a name="s${SeqNum}_tokendomain_$domaincounter">
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('NuxeoRepositoryConnector.Delete'))" onClick='Javascript:s${SeqNum}_SpecDeleteDomain($domaincounter)' alt="$Encoder.attributeEscape($ResourceBundle.getString('NuxeoRepositoryConnector.DeleteDomain'))$domaincounter"/>
+      </a>
+    </td>
+    <td class="value">$Encoder.bodyEscape($domain)</td>
+  </tr>
+
+    #set($domaincounter = $domaincounter + 1)
+  #end
+
+  #set($nextdomain = $domaincounter + 1)
+
+  #if($domaincounter == 0)
+  <tr>
+    <td class="message" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.NoDomainsConfigured'))</td>
+  </tr>
+  #end
+
+  <tr><td class="lightseparator" colspan="2"><hr/></td></tr>
+  
+  <tr>
+    <td class="description">
+      <input type="hidden" name="s${SeqNum}_domainscount" value="$domaincounter"/>
+      <input type="hidden" name="s${SeqNum}_domainop" value=""/>
+      <a name="domain_$domaincounter">
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('NuxeoRepositoryConnector.Add'))" onClick='Javascript:s${SeqNum}_SpecAddDomain($nextdomain)' alt="$Encoder.attributeEscape($ResourceBundle.getString('NuxeoRepositoryConnector.AddDomain'))"/>
+      </a>
+    </td>
+    <td class="value">
+      <input type="text" size="30" name="s${SeqNum}_domain" value=""/>
+    </td>
+  </tr>
+</table>
+
+#else
+
+  #set($domaincounter = 0)
+  #foreach($domain in $DOMAINS)
+<input type="hidden" name="s${SeqNum}_domain_$domaincounter" value="$Encoder.attributeEscape($domain)"/>
+    #set($domaincounter = $domaincounter + 1)
+  #end
+<input type="hidden" name="s${SeqNum}_domainscount" value="$domaincounter"/>
+
+#end
