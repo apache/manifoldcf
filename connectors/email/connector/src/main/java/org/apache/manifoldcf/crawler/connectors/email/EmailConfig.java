@@ -78,12 +78,14 @@ public class EmailConfig {
   public static final String PORT_DEFAULT_VALUE = "";
   public static final String[] BASIC_METADATA = {"To","From","Subject","Body","Date","Encoding of Attachment",
       "MIME Type of attachment", "File Name of Attachment"};
+  public static final String BASIC_EXTRACT_EMAIL = "Use E-Mail Extractor";
   public static final String[] BASIC_SEARCHABLE_ATTRIBUTES = {"To","From","Subject","Body","Start Date", "End Date"};
 
   // Specification nodes
   
   public static final String NODE_PROPERTIES = "properties";
   public static final String NODE_METADATA = "metadata";
+  public static final String NODE_EXTRACT_EMAIL = "extractemail";
   public static final String NODE_FILTER = "filter";
   public static final String NODE_FOLDER = "folder";
   
