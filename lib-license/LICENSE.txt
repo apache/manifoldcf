@@ -502,6 +502,9 @@ selenium-api.jar, selenium-chrome-driver.jar, selenium-edge-driver.jar, selenium
 selenium-java.jar, selenium-opera-driver.jar, selenium-remote-driver.jar, selenium-safari-driver.jar, selenium-support.jar
 License: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
+This product includes a nuxeo-java-client.jar: https://doc.nuxeo.com/nxdoc/licenses/
+License: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
 ==========================================================================
 The following license applies to postgresql.jar, which is available from
 http://jdbc.postgresql.org
