@@ -839,6 +839,25 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </java>
     </target>
 
+    <target name="setup-nuxeo-url">
+        <property name="nuxeo-base-url" value="http://maven.nuxeo.com/nexus/content/repositories/public-releases"/>
+    </target>
+    
+    <target name="download-via-nuxeo" depends="setup-nuxeo-url">
+        <get src="${nuxeo-base-url}/${project-path}/${artifact-name}/${artifact-version}/${artifact-name}-${artifact-version}.${artifact-type}" dest="${target}/${artifact-name}-${artifact-version}.${artifact-type}"/>
+    </target>
+
+    <target name="download-nuxeo-client">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-nuxeo">
+            <param name="project-path" value="org/nuxeo/client"/>
+            <param name="artifact-version" value="2.5"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="nuxeo-java-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
     <target name="download-resteasy">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
