@@ -199,7 +199,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
     String nuxeoPort = parameters.getParameter(NuxeoConfiguration.Server.PORT);
     String nuxeoPath = parameters.getParameter(NuxeoConfiguration.Server.PATH);
     String nuxeoUsername = parameters.getParameter(NuxeoConfiguration.Server.USERNAME);
-    String nuxeoPassword = parameters.getParameter(NuxeoConfiguration.Server.PASSWORD);
+    String nuxeoPassword = parameters.getObfuscatedParameter(NuxeoConfiguration.Server.PASSWORD);
 
     if (nuxeoProtocol == null)
       nuxeoProtocol = NuxeoConfiguration.Server.PROTOCOL_DEFAULT_VALUE;
@@ -214,7 +214,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
     if (nuxeoPassword == null)
       nuxeoPassword = NuxeoConfiguration.Server.PASSWORD_DEFAULT_VALUE;
     else
-      nuxeoPassword = mapper.mapKeyToPassword(nuxeoPassword);
+      nuxeoPassword = mapper.mapPasswordToKey(nuxeoPassword);
 
     serverMap.put(PARAMETER_PREFIX + NuxeoConfiguration.Server.PROTOCOL, nuxeoProtocol);
     serverMap.put(PARAMETER_PREFIX + NuxeoConfiguration.Server.HOST, nuxeoHost);

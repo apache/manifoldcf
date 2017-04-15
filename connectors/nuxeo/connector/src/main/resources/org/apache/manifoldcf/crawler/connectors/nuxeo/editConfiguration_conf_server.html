@@ -76,7 +76,7 @@ $ResourceBundle.getString('NuxeoRepositoryConnector.Server'))
     </td>
     <td class="value"><input size="16" type="password"
       id="nuxeo_password" name="nuxeo_password"
-      value="" /></td>
+      value="$Encoder.attributeEscape($NUXEO_PASSWORD)" /></td>
   </tr>
 </table>
 
@@ -93,6 +93,6 @@ $ResourceBundle.getString('NuxeoRepositoryConnector.Server'))
 <input type="hidden" name="nuxeo_username"
   value="$Encoder.attributeEscape($NUXEO_USERNAME)" />
 <input type="hidden" name="nuxeo_password"
-  value="" />
+  value="$Encoder.attributeEscape($NUXEO_PASSWORD)" />
 
 #end
