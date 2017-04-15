@@ -3,6 +3,10 @@ $Id$
 
 ======================= Release 2.7 =====================
 
+CONNECTORS-1408: Insure that there's a non-null document name in
+the Solr connector, otherwise there will be no multipart post.
+(Cihad Gozel, Karl Wright)
+
 CONNECTORS-1409: Fix re-processing email bug.
 (Furkan KAMACI)
 
