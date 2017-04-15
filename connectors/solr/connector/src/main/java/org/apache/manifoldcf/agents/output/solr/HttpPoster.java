@@ -903,7 +903,7 @@ public class HttpPoster
           ContentStreamUpdateRequest contentStreamUpdateRequest = new ContentStreamUpdateRequest(postUpdateAction);
           if ( useExtractUpdateHandler )
           {
-            buildExtractUpdateHandlerRequest( length, is, contentType, contentName,
+            buildExtractUpdateHandlerRequest( length, is, contentType, (contentName==null || contentName.length()==0)?"docname":contentName,
               contentStreamUpdateRequest );
           }
           else
