@@ -23,13 +23,6 @@ import java.util.*;
 import java.io.*;
 
 import org.apache.log4j.*;
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-import org.apache.log4j.Layout.*;
-import org.apache.log4j.helpers.DateLayout;
-import org.apache.log4j.helpers.DateTimeDateFormat;
-import org.apache.log4j.DailyRollingFileAppender;
-import org.apache.log4j.PropertyConfigurator;
 
 /** This class furnishes the logging environment for the JSKW application.
 */

@@ -50,6 +50,8 @@ import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.nuxeo.client.api.NuxeoClient;
 import org.nuxeo.client.api.objects.Document;
 import org.nuxeo.client.api.objects.Documents;
+import org.nuxeo.client.internals.spi.NuxeoClientException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -301,7 +303,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
     initNuxeoClient();
     try {
       nuxeoClient.repository().getDocumentRoot();
-    } catch (Exception ex) {
+    } catch (NuxeoClientException ex) {
       return "Connection failed: "+ex.getMessage();
     }
 
@@ -424,11 +426,15 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
       lastSeedVersion = sdf.format(new Date());
 
       return lastSeedVersion;
-    } catch (Exception exception) {
+    } catch (NuxeoClientException exception) {
+      throw new ManifoldCFException("Failure during seeding: "+exception.getMessage(), exception);
+      /*
+      exception.printStackTrace();
       long interruptionRetryTime = 5L * 60L * 1000L;
       String message = "Server appears down during seeding: " + exception.getMessage();
       throw new ServiceInterruption(message, exception, System.currentTimeMillis() + interruptionRetryTime, -1L,
           3, true);
+      */
     }
   }
   
@@ -508,7 +514,9 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
 
         pResult = processDocument(documentId, spec, version, activities, doLog,
             Maps.<String, String> newHashMap());
-      } catch (Exception exception) {
+      } catch (NuxeoClientException exception) {
+        throw new ManifoldCFException("Client exception: "+exception.getMessage(), exception);
+      } catch (IOException exception) {
         long interruptionRetryTime = 5L * 60L * 1000L;
         String message = "Server appears down during seeding: " + exception.getMessage();
         throw new ServiceInterruption(message, exception, System.currentTimeMillis() + interruptionRetryTime,
@@ -610,7 +618,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
     try {
       documentUri = getUrl() + "/nxpath/" + doc.getDocument().getRepositoryName() + doc.getDocument().getPath()
           + "@view_documents";
-    } catch (Exception ex) {
+    } catch (NuxeoClientException ex) {
       documentUri = doc.getDocument().getUid();
     }
 
