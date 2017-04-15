@@ -99,6 +99,10 @@
       <version>${castor.version}</version>
       <exclusions>
         <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>adaptx</groupId>
           <artifactId>adaptx</artifactId>
         </exclusion>
