@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= 2.8-dev =====================
+
+
 ======================= Release 2.7 =====================
 
 CONNECTORS-1409: Fix re-processing email bug.
