@@ -140,7 +140,7 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
     initNuxeoClient();
     try {
       nuxeoClient.repository().getDocumentRoot();
-    } catch (Exception ex) {
+    } catch (NuxeoClientException ex) {
       return "Connection failed: "+ex.getMessage();
     }
 
@@ -346,9 +346,9 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
   }
 
   @Override
-  public AuthorizationResponse getAuthorizationResponse(String username) {
+  public AuthorizationResponse getAuthorizationResponse(String username) throws ManifoldCFException {
+    initNuxeoClient();
     try {
-      initNuxeoClient();
       List<String> authorities = getGroupsByUser(username);
       if (authorities == null || authorities.isEmpty()) {
         return RESPONSE_USERNOTFOUND;
@@ -357,8 +357,6 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
       }
 
     } catch (NuxeoClientException e) {
-      return RESPONSE_USERNOTFOUND;
-    } catch (Exception e) {
       return RESPONSE_UNREACHABLE;
     }
   }
