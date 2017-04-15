@@ -280,39 +280,32 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
     username = params.getParameter(NuxeoConfiguration.Server.USERNAME);
     password = params.getObfuscatedParameter(NuxeoConfiguration.Server.PASSWORD);
 
-    try {
-      initNuxeoClient();
-    } catch (ManifoldCFException manifoldCFException) {
-      logger.debug("Not possible to initialize Nuxeo client. Reason: {}", manifoldCFException.getMessage());
-      manifoldCFException.printStackTrace();
-    }
   }
 
+  @Override
+  public void disconnect() throws ManifoldCFException {
+    shutdownNuxeoClient();
+    protocol = null;
+    host = null;
+    port = null;
+    path = null;
+    username = null;
+    password = null;
+    super.disconnect();
+  }
+  
   // Check the connection
   @Override
   public String check() throws ManifoldCFException {
+    shutdownNuxeoClient();
+    initNuxeoClient();
     try {
-      if (!isConnected()) {
-        initNuxeoClient();
-      }
-
-      Boolean result = true;
-      try {
-        nuxeoClient.repository().getDocumentRoot();
-      } catch (Exception ex) {
-        result = false;
-      }
-
-      if (result)
-        return super.check();
-      else
-        throw new ManifoldCFException("Nuxeo instance could not be reached");
-
-    } catch (ManifoldCFException manifoldCFException) {
-      return "Connection failed: " + manifoldCFException.getMessage();
-    } catch (Exception e) {
-      return "Connection failed: " + e.getMessage();
+      nuxeoClient.repository().getDocumentRoot();
+    } catch (Exception ex) {
+      return "Connection failed: "+ex.getMessage();
     }
+
+    return super.check();
   }
 
   /**
@@ -341,6 +334,17 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
 
   }
 
+  /**
+   * Shut down Nuxeo client
+   */
+  private void shutdownNuxeoClient() {
+    if (nuxeoClient != null) {
+      nuxeoClient.shutdown();
+      nuxeoClient = null;
+      lastSessionFetch = -1L;
+    }
+  }
+  
   /**
    * Formatter URL
    * 
@@ -381,9 +385,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
     long currentTime = System.currentTimeMillis();
 
     if (currentTime > lastSessionFetch + timeToRelease) {
-      nuxeoClient.shutdown();
-      nuxeoClient = null;
-      lastSessionFetch = -1;
+      shutdownNuxeoClient();
     }
   }
 
@@ -392,9 +394,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
   public String addSeedDocuments(ISeedingActivity activities, Specification spec, String lastSeedVersion,
       long seedTime, int jobMode) throws ManifoldCFException, ServiceInterruption {
 
-    if (!isConnected())
-      initNuxeoClient();
-
+    initNuxeoClient();
     try {
 
       int lastStart = 0;
@@ -493,6 +493,8 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
       IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
       throws ManifoldCFException, ServiceInterruption {
 
+    initNuxeoClient();
+        
     for (int i = 0; i < documentsIdentifieres.length; i++) {
 
       String documentId = documentsIdentifieres[i];
@@ -503,10 +505,6 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
       boolean doLog = true;
 
       try {
-
-        if (!isConnected()) {
-          initNuxeoClient();
-        }
 
         pResult = processDocument(documentId, spec, version, activities, doLog,
             Maps.<String, String> newHashMap());
