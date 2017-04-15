@@ -76,7 +76,7 @@ public class EmailConfig {
   
   public static final String PROTOCOL_DEFAULT_VALUE = "IMAP";
   public static final String PORT_DEFAULT_VALUE = "";
-  public static final String[] BASIC_METADATA = {"To","From","Subject","Body","Date","Encoding of Attachment",
+  public static final String[] BASIC_METADATA = {"To","From","Subject","Date","Encoding of Attachment",
       "MIME Type of attachment", "File Name of Attachment"};
   public static final String BASIC_EXTRACT_EMAIL = "Use E-Mail Extractor";
   public static final String[] BASIC_SEARCHABLE_ATTRIBUTES = {"To","From","Subject","Body","Start Date", "End Date"};
