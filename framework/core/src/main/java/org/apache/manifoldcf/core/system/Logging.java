@@ -23,8 +23,11 @@ import java.util.*;
 import java.io.*;
 
 import org.apache.log4j.*;
+import org.apache.logging.log4j.core.config.ConfigurationSource;
+import org.apache.logging.log4j.core.config.ConfigurationFactory;
+import org.apache.logging.log4j.core.config.properties.PropertiesConfigurationFactory;
 
-/** This class furnishes the logging environment for the JSKW application.
+/** This class furnishes the logging environment for ManifoldCF.
 */
 public class Logging
 {
@@ -45,7 +48,7 @@ public class Logging
 
   /** Initialize logger setup.
   */
-  public static synchronized void initializeLoggingSystem(File logConfigFile)
+  public static synchronized void initializeLoggingSystem(final File logConfigFile)
   {
     if (logLevelMap != null)
       return;
@@ -63,9 +66,7 @@ public class Logging
 
     loggerTable = new HashMap();
 
-    // Initialize the logger
-    PropertyConfigurator.configure(logConfigFile.toString());
-
+    System.setProperty("log4j.configurationFile", logConfigFile.toString());
     //System.err.println("ManifoldCF logger setup complete");
   }
 
