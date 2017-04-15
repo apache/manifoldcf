@@ -78,6 +78,9 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
 
   protected NuxeoClient nuxeoClient = null;
 
+  protected long lastSessionFetch = -1L;
+  protected static final long timeToRelease = 300000L;
+
   // Constructor
   public NuxeoAuthorityConnector() {
     super();
@@ -114,11 +117,18 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
     username = params.getParameter(NuxeoConfiguration.Server.USERNAME);
     password = params.getObfuscatedParameter(NuxeoConfiguration.Server.PASSWORD);
 
-    try {
-      initNuxeoClient();
-    } catch (ManifoldCFException manifoldCFException) {
-      manifoldCFException.printStackTrace();
-    }
+  }
+
+  @Override
+  public void disconnect() throws ManifoldCFException {
+    shutdownNuxeoClient();
+    protocol = null;
+    host = null;
+    port = null;
+    path = null;
+    username = null;
+    password = null;
+    super.disconnect();
   }
 
   /**
@@ -126,29 +136,15 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
    */
   @Override
   public String check() throws ManifoldCFException {
+    shutdownNuxeoClient();
+    initNuxeoClient();
     try {
-      if (!isConnected()) {
-        initNuxeoClient();
-      }
-
-      Boolean result = null;
-      try {
-        getGroupsByUser("Administrator");
-        result = true;
-      } catch (Exception ex) {
-        result = false;
-      }
-
-      if (result)
-        return super.check();
-      else
-        throw new ManifoldCFException("Nuxeo instance could not be reached");
-
-    } catch (ManifoldCFException manifoldCFException) {
-      return "Connection failed: " + manifoldCFException.getMessage();
-    } catch (Exception e) {
-      return "Connection failed: " + e.getMessage();
+      nuxeoClient.repository().getDocumentRoot();
+    } catch (Exception ex) {
+      return "Connection failed: "+ex.getMessage();
     }
+
+    return super.check();
   }
 
   /**
@@ -173,6 +169,30 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
 
     }
 
+  }
+  
+  /**
+   * Shut down Nuxeo client
+   */
+  private void shutdownNuxeoClient() {
+    if (nuxeoClient != null) {
+      nuxeoClient.shutdown();
+      nuxeoClient = null;
+      lastSessionFetch = -1L;
+    }
+  }
+
+  @Override
+  public void poll() throws ManifoldCFException {
+    if (lastSessionFetch == -1L) {
+      return;
+    }
+
+    long currentTime = System.currentTimeMillis();
+
+    if (currentTime > lastSessionFetch + timeToRelease) {
+      shutdownNuxeoClient();
+    }
   }
 
   /**
@@ -328,6 +348,7 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
   @Override
   public AuthorizationResponse getAuthorizationResponse(String username) {
     try {
+      initNuxeoClient();
       List<String> authorities = getGroupsByUser(username);
       if (authorities == null || authorities.isEmpty()) {
         return RESPONSE_USERNOTFOUND;
