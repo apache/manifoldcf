@@ -2,80 +2,80 @@
 $ResourceBundle.getString('NuxeoAuthorityConnector.Server'))
 
 <table class="displaytable">
-	<tr>
-		<td class="separator" colspan="2"><hr /></td>
-	</tr>
+  <tr>
+    <td class="separator" colspan="2"><hr /></td>
+  </tr>
 
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Protocol'))</nobr>
-		</td>
-		<td class="value">
-			<select size="2" name="nuxeo_protocol" />
-				#if($NUXEO_PROTOCOL == 'https')
-					<option value="http">http</option>
-					<option value="https" selected>https</option>
-				#else
-					<option value="http" selected>http</option>
-					<option value="https" >https</option>
-				#end 
-			</select>
-		</td>
-	</tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Protocol'))</nobr>
+    </td>
+    <td class="value">
+      <select size="2" name="nuxeo_protocol">
+        #if($NUXEO_PROTOCOL == 'https')
+          <option value="http">http</option>
+          <option value="https" selected>https</option>
+        #else
+          <option value="http" selected>http</option>
+          <option value="https" >https</option>
+        #end 
+      </select>
+    </td>
+  </tr>
 
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Host'))</nobr>
-		</td>
-		<td class="value"><input size="32" type="text" id="nuxeo_host"
-			name="nuxeo_host" value="$Encoder.attributeEscape($NUXEO_HOST)" /></td>
-	</tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Host'))</nobr>
+    </td>
+    <td class="value"><input size="32" type="text" id="nuxeo_host"
+      name="nuxeo_host" value="$Encoder.attributeEscape($NUXEO_HOST)" /></td>
+  </tr>
 
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Port'))</nobr>
-		</td>
-		<td class="value"><input size="5" type="text" id="nuxeo_port"
-			name="nuxeo_port" value="$Encoder.attributeEscape($NUXEO_PORT)" /></td>
-	</tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Port'))</nobr>
+    </td>
+    <td class="value"><input size="5" type="text" id="nuxeo_port"
+      name="nuxeo_port" value="$Encoder.attributeEscape($NUXEO_PORT)" /></td>
+  </tr>
 
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Path'))</nobr>
-		</td>
-		<td class="value"><input size="32" type="text" id="nuxeo_path"
-			name="nuxeo_path" value="$Encoder.attributeEscape($NUXEO_PATH)" /></td>
-	</tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Path'))</nobr>
+    </td>
+    <td class="value"><input size="32" type="text" id="nuxeo_path"
+      name="nuxeo_path" value="$Encoder.attributeEscape($NUXEO_PATH)" /></td>
+  </tr>
 
-	<tr>
-		<td class="separator" colspan="2"><hr /></td>
-	</tr>
+  <tr>
+    <td class="separator" colspan="2"><hr /></td>
+  </tr>
 
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Username'))</nobr>
-		</td>
-		<td class="value"><input size="16" type="text"
-			id="nuxeo_username" name="nuxeo_username"
-			value="$Encoder.attributeEscape($NUXEO_USERNAME)" /></td>
-	</tr>
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Password'))</nobr>
-		</td>
-		<td class="value"><input size="16" type="password"
-			id="nuxeo_password" name="nuxeo_password"
-			value="" /></td>
-	</tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Username'))</nobr>
+    </td>
+    <td class="value"><input size="16" type="text"
+      id="nuxeo_username" name="nuxeo_username"
+      value="$Encoder.attributeEscape($NUXEO_USERNAME)" /></td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Password'))</nobr>
+    </td>
+    <td class="value"><input size="16" type="password"
+      id="nuxeo_password" name="nuxeo_password"
+      value="" /></td>
+  </tr>
 </table>
 
 #else
 
 <input type="hidden" name="nuxeo_protocol"
-	value="$Encoder.attributeEscape($NUXEO_PROTOCOL)" />
+  value="$Encoder.attributeEscape($NUXEO_PROTOCOL)" />
 <input type="hidden" name="nuxeo_host"
-	value="$Encoder.attributeEscape($NUXEO_HOST)" />
+  value="$Encoder.attributeEscape($NUXEO_HOST)" />
 <input type="hidden" name="nuxeo_port"
-	value="$Encoder.attributeEscape($NUXEO_PORT)" />
+  value="$Encoder.attributeEscape($NUXEO_PORT)" />
 <input type="hidden" name="nuxeo_path"
-	value="$Encoder.attributeEscape($NUXEO_PATH)" />
+  value="$Encoder.attributeEscape($NUXEO_PATH)" />
 <input type="hidden" name="nuxeo_username"
-	value="$Encoder.attributeEscape($NUXEO_USERNAME)" />
+  value="$Encoder.attributeEscape($NUXEO_USERNAME)" />
 <input type="hidden" name="nuxeo_password"
-	value="$Encoder.attributeEscape($NUXEO_PASSWORD)" />
+  value="$Encoder.attributeEscape($NUXEO_PASSWORD)" />
 
 #end

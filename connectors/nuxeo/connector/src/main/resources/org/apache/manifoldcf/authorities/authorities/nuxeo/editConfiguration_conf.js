@@ -16,13 +16,13 @@ function checkConfig()
     return false;
   }
 
- if (editconnection.nuxeo_path.value != "" &&
- !(editconnection.nuxeo_path.value.indexOf("/") == 0))
- {
- alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoAuthorityConnector.PathMustBeginWithASlash'))");
- editconnection.nuxeo_path.focus();
- return false;
- }
+  if (editconnection.nuxeo_path.value != "" &&
+    !(editconnection.nuxeo_path.value.indexOf("/") == 0))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoAuthorityConnector.PathMustBeginWithASlash'))");
+    editconnection.nuxeo_path.focus();
+    return false;
+  }
 
   return true;
 }
@@ -62,22 +62,22 @@ function checkConfigForSave()
     return false;
   }
 
- if (editconnection.nuxeo_path.value == "")
- {
- alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoAuthorityConnector.PathMustNotBeNull'))");
- SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Server'))");
- editconnection.nuxeo_path.focus();
- return false;
- }
+  if (editconnection.nuxeo_path.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoAuthorityConnector.PathMustNotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Server'))");
+    editconnection.nuxeo_path.focus();
+    return false;
+  }
   
- if (editconnection.nuxeo_path.value != "" &&
- !(editconnection.nuxeo_path.value.indexOf("/") == 0))
- {
- alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoAuthorityConnector.PathMustBeginWithASlash'))");
- SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Server'))");
- editconnection.nuxeo_path.focus();
- return false;
- }
+  if (editconnection.nuxeo_path.value != "" &&
+    !(editconnection.nuxeo_path.value.indexOf("/") == 0))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoAuthorityConnector.PathMustBeginWithASlash'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('NuxeoAuthorityConnector.Server'))");
+    editconnection.nuxeo_path.focus();
+    return false;
+  }
   
   return true;
 }
