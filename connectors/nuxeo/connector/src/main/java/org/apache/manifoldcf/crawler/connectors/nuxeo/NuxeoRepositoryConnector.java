@@ -145,7 +145,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
     super();
   }
 
-  public void setNuxeoClient(NuxeoClient nuxeoClient) {
+  void setNuxeoClient(NuxeoClient nuxeoClient) {
     this.nuxeoClient = nuxeoClient;
   }
 
@@ -352,7 +352,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
    * 
    * @throws ManifoldCFException
    */
-  public String getUrl() throws ManifoldCFException {
+  String getUrl() throws ManifoldCFException {
     int portInt;
     if (port != null && port.length() > 0) {
       try {
@@ -448,7 +448,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
    * @param start
    * @return Documents
    */
-  public Documents getDocsByDate(NuxeoClient nuxeoClient, String date, List<String> domains,
+  Documents getDocsByDate(NuxeoClient nuxeoClient, String date, List<String> domains,
       List<String> documentsType, int limit, int start) {
 
     String query = "";
@@ -851,7 +851,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
     Messages.outputResourceWithVelocity(out, locale, EDIT_SPEC_HEADER_FORWARD, paramMap);
   }
 
-  public static class NuxeoSpecification {
+  static class NuxeoSpecification {
 
     private List<String> domains;
     private List<String> documentsType;

@@ -86,21 +86,8 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
     super();
   }
 
-  public void setNuxeoClient(NuxeoClient nuxeoClient) {
+  void setNuxeoClient(NuxeoClient nuxeoClient) {
     this.nuxeoClient = nuxeoClient;
-  }
-
-  // Close the connection.
-  public void disconenct() throws ManifoldCFException {
-    if (nuxeoClient != null)
-      nuxeoClient = null;
-
-    protocol = null;
-    host = null;
-    port = null;
-    path = null;
-    username = null;
-    password = null;
   }
 
   /** CONNECTION **/
@@ -200,7 +187,7 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
    * 
    * @throws ManifoldCFException
    */
-  public String getUrl() throws ManifoldCFException {
+  String getUrl() throws ManifoldCFException {
     int portInt;
     if (port != null && port.length() > 0) {
       try {
@@ -361,7 +348,7 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
     }
   }
 
-  public List<String> getGroupsByUser(String username) {
+  List<String> getGroupsByUser(String username) {
 
     List<String> authorities = null;
 
