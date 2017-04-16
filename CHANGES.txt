@@ -19,7 +19,7 @@ CONNECTORS-1407: Extract email addresses from email metadata fields.
 CONNECTORS-1406: Fix multiple To and From field bug at email.
 (Furkan KAMACI)
 
-CONNECTORS-1405: Add filename metadata information for email.
+CONNECTORS-1405: Add file name of attachment metadata information for email.
 (Furkan KAMACI)
 
 CONNECTORS-1402: Add metadata information for email attachments.
