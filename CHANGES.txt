@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 2.7 =====================
 
+CONNECTORS-1411: Fix attachment URL template reset bug.
+(Furkan KAMACI)
+
 CONNECTORS-1410: Body is used as content at emails.
 (Furkan KAMACI)
 
