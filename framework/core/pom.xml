@@ -67,8 +67,18 @@
       <version>${httpcomponent.httpclient.version}</version>
     </dependency>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>${log4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>${log4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-1.2-api</artifactId>
       <version>${log4j.version}</version>
     </dependency>
     <dependency>
@@ -87,6 +97,10 @@
       <artifactId>zookeeper</artifactId>
       <version>${zookeeper.version}</version>
       <exclusions>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
         <exclusion>
           <groupId>junit</groupId>
           <artifactId>junit</artifactId>

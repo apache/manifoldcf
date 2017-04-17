@@ -1,0 +1,73 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TabName == $ResourceBundle.getString('NuxeoRepositoryConnector.DocumentsType') && ${SeqNum} == ${SelectedNum})
+
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
+  #set($documentTypecounter = 0)
+  #foreach($documentType in $DOCUMENTSTYPE)
+
+  <tr>
+    <td class="description">
+      <input type="hidden" name="s${SeqNum}_documentTypeop_$documentTypecounter" value=""/>
+      <input type="hidden" name="s${SeqNum}_documentType_$documentTypecounter" value="$Encoder.attributeEscape($documentType)"/>
+      <a name="s${SeqNum}_tokendocumentType_$documentTypecounter">
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('NuxeoRepositoryConnector.Delete'))" onClick='Javascript:s${SeqNum}_SpecDeleteDocumentType($documentTypecounter)' alt="$Encoder.attributeEscape($ResourceBundle.getString('NuxeoRepositoryConnector.DeleteDocumentType'))$documentTypecounter"/>
+      </a>
+    </td>
+    <td class="value">$Encoder.bodyEscape($documentType)</td>
+  </tr>
+
+    #set($documentTypecounter = $documentTypecounter + 1)
+  #end
+
+  #set($nextdocumentType = $documentTypecounter + 1)
+
+  #if($documentTypecounter == 0)
+  <tr>
+    <td class="message" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('NuxeoRepositoryConnector.NoDocumentsTypeConfigured'))</td>
+  </tr>
+  #end
+
+  <tr><td class="lightseparator" colspan="2"><hr/></td></tr>
+  
+  <tr>
+    <td class="description">
+      <input type="hidden" name="s${SeqNum}_documentsTypecount" value="$documentTypecounter"/>
+      <input type="hidden" name="s${SeqNum}_documentTypeop" value=""/>
+      <a name="documentType_$documentTypecounter">
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('NuxeoRepositoryConnector.Add'))" onClick='Javascript:s${SeqNum}_SpecAddDocumentType($nextdocumentType)' alt="$Encoder.attributeEscape($ResourceBundle.getString('NuxeoRepositoryConnector.AddDocumentType'))"/>
+      </a>
+    </td>
+    <td class="value">
+      <input type="text" size="30" name="s${SeqNum}_documentType" value=""/>
+    </td>
+  </tr>
+</table>
+
+#else
+
+  #set($documentTypecounter = 0)
+  #foreach($documentType in $DOCUMENTSTYPE)
+<input type="hidden" name="s${SeqNum}_documentType_$documentTypecounter" value="$Encoder.attributeEscape($documentType)"/>
+    #set($documentTypecounter = $documentTypecounter + 1)
+  #end
+<input type="hidden" name="s${SeqNum}_documentsTypecount" value="$documentTypecounter"/>
+
+#end

@@ -69,11 +69,6 @@
       <version>${httpcomponent.httpclient.version}</version>
     </dependency>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>${log4j.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-core</artifactId>
       <version>${tika.version}</version>
@@ -103,6 +98,10 @@
       <artifactId>castor</artifactId>
       <version>${castor.version}</version>
       <exclusions>
+        <exclusion>
+          <groupId>log4j</groupId>
+          <artifactId>log4j</artifactId>
+        </exclusion>
         <exclusion>
           <groupId>adaptx</groupId>
           <artifactId>adaptx</artifactId>
