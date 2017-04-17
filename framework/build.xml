@@ -1577,7 +1577,6 @@
         <mkdir dir="dist/multiprocess-file-example"/>
         <copy todir="dist/multiprocess-file-example">
             <fileset dir="example-multiprocess-common">
-                <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
                 <include name="*.xml"/>
@@ -1606,7 +1605,6 @@
         <mkdir dir="dist/multiprocess-file-example-proprietary"/>
         <copy todir="dist/multiprocess-file-example-proprietary">
             <fileset dir="example-multiprocess-common">
-                <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
                 <include name="*.xml"/>
@@ -1637,7 +1635,6 @@
         <mkdir dir="dist/multiprocess-zk-example"/>
         <copy todir="dist/multiprocess-zk-example">
             <fileset dir="example-multiprocess-common">
-                <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
                 <include name="*.xml"/>
@@ -1670,7 +1667,6 @@
         <mkdir dir="dist/multiprocess-zk-example-proprietary"/>
         <copy todir="dist/multiprocess-zk-example-proprietary">
             <fileset dir="example-multiprocess-common">
-                <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
                 <include name="*.xml"/>
@@ -1726,7 +1722,6 @@
         <mkdir dir="dist/example/logs"/>
         <copy todir="dist/example">
             <fileset dir="example-singleprocess-common">
-                <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
                 <include name="*.xml"/>
@@ -1760,7 +1755,6 @@
         <mkdir dir="dist/example-proprietary/logs"/>
         <copy todir="dist/example-proprietary">
             <fileset dir="example-singleprocess-common">
-                <include name="logging.ini"/>
                 <include name="*.sh"/>
                 <include name="*.bat"/>
                 <include name="*.xml"/>

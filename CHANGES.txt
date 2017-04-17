@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1290: Merge Nuxeo Connector.  This also required going
+to log4j 2.x.  This connector is a work in progress but since a great deal
+of work has been done and the connector is nearly done, it's time to
+commit to trunk.
+(David Arroyo Escobar, Rafa Haro, Karl Wright)
 
 ======================= Release 2.7 =====================
 
