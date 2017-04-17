@@ -45,7 +45,7 @@ public class Base
 
       // First, write a properties file and a logging file, in the current directory.
       configFile = new File("properties.xml").getCanonicalFile();
-      loggingFile = new File("logging.ini").getCanonicalFile();
+      loggingFile = new File("logging.xml").getCanonicalFile();
       logOutputFile = new File("manifoldcf.log").getCanonicalFile();
       connectorFile = new File("connectors.xml").getCanonicalFile();
 
@@ -90,11 +90,20 @@ public class Base
     throws Exception
   {
     output.append(
-      "log4j.appender.MAIN.File="+logOutputFile.getAbsolutePath().replaceAll("\\\\","/")+"\n" +
-      "log4j.rootLogger=WARN, MAIN\n" +
-      "log4j.appender.MAIN=org.apache.log4j.RollingFileAppender\n" +
-      "log4j.appender.MAIN.layout=org.apache.log4j.PatternLayout\n" +
-      "log4j.appender.MAIN.layout.ConversionPattern=%5p %d{ISO8601} (%t) - %m%n\n"
+"<Configuration status=\"warn\" name=\"ManifoldCF\" packages=\"\">\n"+
+"  <Appenders>\n"+
+"    <File name=\"MyFile\" fileName=\""+logOutputFile.getAbsolutePath().replaceAll("\\\\","/")+"\">\n"+
+"      <PatternLayout>\n"+
+"        <Pattern>%5p %d{ISO8601} (%t) - %m%n</Pattern>\n"+
+"      </PatternLayout>\n"+
+"    </File>\n"+
+"  </Appenders>\n"+
+"  <Loggers>\n"+
+"    <Root level=\"error\">\n"+
+"      <AppenderRef ref=\"MyFile\"/>\n"+
+"    </Root>\n"+
+"  </Loggers>\n"+
+"</Configuration>\n"
     );
   }
   

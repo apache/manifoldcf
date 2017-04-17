@@ -265,7 +265,7 @@ public class ManifoldCF
             System.err.println("Couldn't find "+logConfigFileProperty+" property; using default");
             String configPath = (String)props.get("user.home") + "/"+applicationName;
             configPath = configPath.replace('\\', '/');
-            logConfigFile = new File(configPath,"logging.properties");
+            logConfigFile = new File(configPath,"logging.xml");
           }
 
           // Make sure that the registered entry points for polling and cleanup are cleared, just in case.
