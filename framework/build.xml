@@ -1649,7 +1649,7 @@
                 <include name="properties.xml"/>
             </fileset>
         </copy>
-        <replace file="dist/multiprocess-zk-example/properties.xml" token="unknown version" value="${release-version}"/>
+        <replace file="dist/multiprocess-zk-example/properties-global.xml" token="unknown version" value="${release-version}"/>
         <mkdir dir="dist/multiprocess-zk-example/logs"/>
         <chmod dir="dist/multiprocess-zk-example" perm="a+x" includes="**/*.sh"/>
     </target>
@@ -1681,7 +1681,7 @@
                 <include name="properties.xml"/>
             </fileset>
         </copy>
-        <replace file="dist/multiprocess-zk-example-proprietary/properties.xml" token="unknown version" value="${release-version}"/>
+        <replace file="dist/multiprocess-zk-example-proprietary/properties-global.xml" token="unknown version" value="${release-version}"/>
         <mkdir dir="dist/multiprocess-zk-example-proprietary/logs"/>
         <chmod dir="dist/multiprocess-zk-example-proprietary" perm="a+x" includes="**/*.sh"/>
     </target>

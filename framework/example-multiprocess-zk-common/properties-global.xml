@@ -19,6 +19,8 @@
 <!-- This file contains ONLY global (shared) configuration, for use on systems using
     ZooKeeper to coordinate ManifoldCF processes. -->
 <configuration>
+  <!-- Version string for UI -->
+  <property name="org.apache.manifoldcf.versionstring" value="unknown version"/>
   <!-- Select HSQLDB as the database implementation, and specify multiprocess access -->
   <property name="org.apache.manifoldcf.databaseimplementationclass" value="org.apache.manifoldcf.core.database.DBInterfaceHSQLDB"/>
   <property name="org.apache.manifoldcf.hsqldbdatabaseprotocol" value="hsql"/>
