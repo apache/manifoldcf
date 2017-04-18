@@ -599,13 +599,15 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
               for (String metadata : requiredMetadata) {
                 if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_TO)) {
                   Address[] to = msg.getRecipients(Message.RecipientType.TO);
-                  String[] toStr = new String[to.length];
-                  int j = 0;
-                  for (Address address : to) {
-                    toStr[j] = useEmailExtractor ? extractEmailAddress(address.toString()) : address.toString();
-                    j++;
+                  if (to != null) {
+                    String[] toStr = new String[to.length];
+                    int j = 0;
+                    for (Address address : to) {
+                      toStr[j] = useEmailExtractor ? extractEmailAddress(address.toString()) : address.toString();
+                      j++;
+                    }
+                    rd.addField(EmailConfig.EMAIL_TO, toStr);
                   }
-                  rd.addField(EmailConfig.EMAIL_TO, toStr);
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_FROM)) {
                   Address[] from = msg.getFrom();
                   String[] fromStr = new String[from.length];
@@ -834,13 +836,15 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
               for (String metadata : requiredMetadata) {
                 if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_TO)) {
                   Address[] to = msg.getRecipients(Message.RecipientType.TO);
-                  String[] toStr = new String[to.length];
-                  int j = 0;
-                  for (Address address : to) {
-                    toStr[j] = useEmailExtractor ? extractEmailAddress(address.toString()) : address.toString();
-                    j++;
+                  if (to != null) {
+                    String[] toStr = new String[to.length];
+                    int j = 0;
+                    for (Address address : to) {
+                      toStr[j] = useEmailExtractor ? extractEmailAddress(address.toString()) : address.toString();
+                      j++;
+                    }
+                    rd.addField(EmailConfig.EMAIL_TO, toStr);
                   }
-                  rd.addField(EmailConfig.EMAIL_TO, toStr);
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_FROM)) {
                   Address[] from = msg.getFrom();
                   String[] fromStr = new String[from.length];

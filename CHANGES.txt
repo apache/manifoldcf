@@ -11,6 +11,9 @@ commit to trunk.
 
 ======================= Release 2.7 =====================
 
+CONNECTORS-1412: Fix null "to" recipient bug at email connector.
+(Furkan KAMACI)
+
 CONNECTORS-1411: Fix attachment URL template reset bug.
 (Furkan KAMACI)
 
