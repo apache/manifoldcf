@@ -405,7 +405,7 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
           return false;
         AuthorizationResponseDescription ard = (AuthorizationResponseDescription)o;
         return ard.userName.equals(userName) && ard.endpoint.equals(endpoint) &&
-          repositoryId.equals(ard.repositoryId);
+          ard.repositoryId.equals(repositoryId);
       }
       
     }
