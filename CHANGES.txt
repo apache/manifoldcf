@@ -3,8 +3,8 @@ $Id$
 
 ======================= 2.8-dev =====================
 
-CONNECTORS-1413: Fix object equality bu at Cmis Authority Connector.
-(Furkan KAMACI)
+CONNECTORS-1413: Fix object equality bug at Cmis Authority Connector.
+(Furkan KAMACI, JC)
 
 CONNECTORS-1290: Merge Nuxeo Connector.  This also required going
 to log4j 2.x.  This connector is a work in progress but since a great deal
