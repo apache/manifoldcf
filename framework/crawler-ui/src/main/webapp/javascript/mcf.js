@@ -361,11 +361,17 @@ function displayError(xhr)
 {
   $(".content-header #heading").text('Error!');
   document.title='Error';
+  var msg = xhr.status + " " + xhr.statusText;
+  //Proper error message, if the server is down.
+  if(xhr.readyState === 0 && xhr.status === 0)
+  {
+    msg = MCFError.ServerDown;
+  }
   var errorTemplate = '<div class="box box-solid">' +
                         '<div class="box-body">' +
                           '<div class="alert alert-danger">' +
                             '<h3><i class="icon fa fa-ban"></i> Error!</h3>' +
-                            '<h4>' + xhr.status + " " + xhr.statusText +'</h4>' +
+                            '<h4>' + msg +'</h4>' +
                           '</div>' +
                         '</div>' +
                         '<div class="box-footer with-border">' +

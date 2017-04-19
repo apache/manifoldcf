@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1414: Return descriptive error message when UI is disconnected
+(Markus Schuch, Kishore Kumar, Karl Wright)
+
 CONNECTORS-1413: Fix object equality bug at Cmis Authority Connector.
 (Furkan KAMACI, JC)
 

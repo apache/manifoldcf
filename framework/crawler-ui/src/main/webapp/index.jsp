@@ -35,6 +35,12 @@
     <link href="bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet" type="text/css"/>
     <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
     <link rel="stylesheet" href="css/style.css" type="text/css" media="screen"/>
+    
+  <script type="text/javascript">
+    var MCFError = {
+        ServerDown:"<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"errorCode.ServerDown")%>"
+    }
+  </script>
   </head>
   <body class="fixed skin-black sidebar-mini">
     <div class="wrapper">
