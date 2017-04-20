@@ -76,7 +76,7 @@ public class EmailConfig {
   
   public static final String PROTOCOL_DEFAULT_VALUE = "IMAP";
   public static final String PORT_DEFAULT_VALUE = "";
-  public static final String[] BASIC_METADATA = {"To","From","Subject","Body","Date","Encoding of Attachment",
+  public static final String[] BASIC_METADATA = {"To","From","Subject","Date","Encoding of Attachment",
       "MIME Type of attachment", "File Name of Attachment"};
   public static final String BASIC_EXTRACT_EMAIL = "Use E-Mail Extractor";
   public static final String[] BASIC_SEARCHABLE_ATTRIBUTES = {"To","From","Subject","Body","Start Date", "End Date"};
@@ -101,7 +101,7 @@ public class EmailConfig {
   public static final String EMAIL_DATE = "date";
   public static final String EMAIL_ATTACHMENT_ENCODING = "encoding of attachment";
   public static final String EMAIL_ATTACHMENT_MIMETYPE = "mime type of attachment";
-  public static final String EMAIL_ATTACHMENT_FILENAME = "file name of attachment";
+  public static final String EMAIL_ATTACHMENTNAME = "file name of attachment";
   public static final String EMAIL_VERSION = "1.0";
 
   // Date field names for filtering
@@ -118,7 +118,7 @@ public class EmailConfig {
   
   public static final String ENCODING_FIELD = "encoding";
   public static final String MIMETYPE_FIELD = "mimetype";
-  public static final String FILENAME_FIELD = "filename";
+  public static final String ATTACHMENTNAME_FIELD = "attachmentname";
   public static final String MAILSUBJECT_FIELD = "mailsubject";
   //public static final String TO = "To";
   

@@ -33,9 +33,11 @@ import javax.mail.*;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.search.*;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -593,7 +595,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
               rd.setMimeType(mimeType);
               rd.setCreatedDate(sentDate);
               rd.setModifiedDate(sentDate);
-              
+
               for (String metadata : requiredMetadata) {
                 if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_TO)) {
                   Address[] to = msg.getRecipients(Message.RecipientType.TO);
@@ -616,25 +618,6 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_SUBJECT)) {
                   String subject = msg.getSubject();
                   rd.addField(EmailConfig.EMAIL_SUBJECT, subject);
-                } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_BODY)) {
-                  Object o = msg.getContent();
-                  if (o instanceof Multipart) {
-                    Multipart mp = (Multipart) msg.getContent();
-                    for (int k = 0, n = mp.getCount(); k < n; k++) {
-                      Part part = mp.getBodyPart(k);
-                      String disposition = part.getDisposition();
-                      if ((disposition == null)) {
-                        MimeBodyPart mbp = (MimeBodyPart) part;
-                        if (mbp.isMimeType(EmailConfig.MIMETYPE_TEXT_PLAIN)) {
-                          rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString());
-                        } else if (mbp.isMimeType(EmailConfig.MIMETYPE_HTML)) {
-                          rd.addField(EmailConfig.EMAIL_BODY, mbp.getContent().toString()); //handle html accordingly. Returns content with html tags
-                        }
-                      }
-                    }
-                  } else if (o instanceof String) {
-                    rd.addField(EmailConfig.EMAIL_BODY, (String)o);
-                  }
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_DATE)) {
                   rd.addField(EmailConfig.EMAIL_DATE, sentDate.toString());
                 } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_ATTACHMENT_ENCODING)) {
@@ -677,27 +660,29 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
                       rd.addField(EmailConfig.MIMETYPE_FIELD, "");
                     }
                   }
-                } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_ATTACHMENT_FILENAME)) {
+                } else if (metadata.toLowerCase(Locale.ROOT).equals(EmailConfig.EMAIL_ATTACHMENTNAME)) {
                   Object o = msg.getContent();
                   if (o != null) {
                     if (o instanceof Multipart) {
                       Multipart mp = (Multipart) o;
-                      String[] fileNames = new String[mp.getCount()];
+                      String[] attachmentNames = new String[mp.getCount()];
                       for (int k = 0, n = mp.getCount(); k < n; k++) {
                         Part part = mp.getBodyPart(k);
                         if (isAttachment(part)) {
-                          fileNames[k] = part.getFileName();
+                          attachmentNames[k] = part.getFileName();
                         }
                       }
-                      rd.addField(EmailConfig.FILENAME_FIELD, fileNames);
+                      rd.addField(EmailConfig.ATTACHMENTNAME_FIELD, attachmentNames);
                     } else if (o instanceof String) {
-                      rd.addField(EmailConfig.FILENAME_FIELD, "");
+                      rd.addField(EmailConfig.ATTACHMENTNAME_FIELD, "");
                     }
                   }
                 }
               }
-                  
-              InputStream is = msg.getInputStream();
+
+              //Content includes both body and attachments,
+              //Body will be set as content and attachments will be indexed as separate documents.
+              InputStream is = new ByteArrayInputStream(extractBodyContent(msg).getBytes(StandardCharsets.UTF_8));
               try {
                 rd.setBinary(is, fileLength);
                 activities.ingestDocumentWithException(documentIdentifier, version, msgURL, rd);
@@ -706,7 +691,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
               } finally {
                 is.close();
               }
-              
+
               // If we're supposed to deal with attachments, this is the time to queue them up
               if (attachmentUrlTemplate != null) {
                 if (msg.getContent() != null && msg.getContent() instanceof Multipart) {
@@ -932,16 +917,39 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
 
   }
 
-    /**
-     * Checks whether a Part is an attachment or not
-     * @param part Part to check
-     * @return is attachment or not
-     */
+  private String extractBodyContent(Message msg) throws MessagingException, IOException {
+    String bodyContent = null;
+    Object o = msg.getContent();
+    if (o instanceof Multipart) {
+      Multipart mp = (Multipart) msg.getContent();
+      for (int k = 0, n = mp.getCount(); k < n; k++) {
+        Part part = mp.getBodyPart(k);
+        String disposition = part.getDisposition();
+        if ((disposition == null)) {
+          MimeBodyPart mbp = (MimeBodyPart) part;
+          if (mbp.isMimeType(EmailConfig.MIMETYPE_TEXT_PLAIN)) {
+            bodyContent = mbp.getContent().toString();
+          } else if (mbp.isMimeType(EmailConfig.MIMETYPE_HTML)) {
+            bodyContent = mbp.getContent().toString(); //handle html accordingly. Returns content with html tags
+          }
+        }
+      }
+    } else if (o instanceof String) {
+      bodyContent = (String)o;
+    }
+    return bodyContent;
+  }
+
+  /**
+  * Checks whether a Part is an attachment or not
+  * @param part Part to check
+  * @return is attachment or not
+  */
   private boolean isAttachment(Part part) throws MessagingException {
-      String disposition = part.getDisposition();
-      return ((disposition != null)
-           && ((disposition.toLowerCase(Locale.ROOT).equals(Part.ATTACHMENT)
-           || (disposition.toLowerCase(Locale.ROOT).equals(Part.INLINE)))));
+    String disposition = part.getDisposition();
+    return ((disposition != null)
+        && ((disposition.toLowerCase(Locale.ROOT).equals(Part.ATTACHMENT)
+        || (disposition.toLowerCase(Locale.ROOT).equals(Part.INLINE)))));
   }
 
   /**

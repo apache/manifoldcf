@@ -3,6 +3,16 @@ $Id$
 
 ======================= Release 2.7 =====================
 
+CONNECTORS-1411: Fix attachment URL template reset bug.
+(Furkan KAMACI)
+
+CONNECTORS-1410: Body is used as content at emails.
+(Furkan KAMACI)
+
+CONNECTORS-1408: Insure that there's a non-null document name in
+the Solr connector, otherwise there will be no multipart post.
+(Cihad Guzel, Karl Wright)
+
 CONNECTORS-1409: Fix re-processing email bug.
 (Furkan KAMACI)
 
@@ -12,7 +22,7 @@ CONNECTORS-1407: Extract email addresses from email metadata fields.
 CONNECTORS-1406: Fix multiple To and From field bug at email.
 (Furkan KAMACI)
 
-CONNECTORS-1405: Add filename metadata information for email.
+CONNECTORS-1405: Add file name of attachment metadata information for email.
 (Furkan KAMACI)
 
 CONNECTORS-1402: Add metadata information for email attachments.
