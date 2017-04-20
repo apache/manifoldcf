@@ -363,21 +363,34 @@ function displayError(xhr)
   document.title='Error';
   var msg = xhr.status + " " + xhr.statusText;
   //Proper error message, if the server is down.
-  if(xhr.readyState === 0 && xhr.status === 0)
+  if(xhr.status === 0)
   {
     msg = MCFError.ServerDown;
+  }
+  else if(xhr.status === 500)
+  {
+    msg = MCFError.InternalServerError;
   }
   var errorTemplate = '<div class="box box-solid">' +
                         '<div class="box-body">' +
                           '<div class="alert alert-danger">' +
-                            '<h3><i class="icon fa fa-ban"></i> Error!</h3>' +
+                            '<h3><i class="fa fa-ban fa-fw"></i> Error!</h3>' +
                             '<h4>' + msg +'</h4>' +
                           '</div>' +
                         '</div>' +
                         '<div class="box-footer with-border">' +
-                          '<a class="btn btn-primary" href="index.jsp" title="Return" data-toggle="tooltip">' +
-                            '<i class="fa fa-check fa-fw" aria-hidden="true"></i>OK' +
-                          '</a>' +
+                          '<div class="btn-group">' +
+                            '<a class="btn btn-default" href="index.jsp" title="Return" data-toggle="tooltip">' +
+                              '<i class="fa fa-check fa-fw" aria-hidden="true"></i>OK' +
+                            '</a>';
+  if(xhr.status === 500)
+  {
+    errorTemplate +=        '<button type="button" class="btn btn-default" data-toggle="modal" data-target="#exceptionModal">' +
+                              '<i class="fa fa-exclamation-triangle fa-fw" aria-hidden="true"></i>See Exception</button>';
+    $('#exceptionModal .modal-body').empty();
+    $('#exceptionModal .modal-body').html(xhr.responseText);
+  }
+  errorTemplate +=        '</div>' +
                         '</div>' +
                       '</div>';
   $("#content").html(errorTemplate);
