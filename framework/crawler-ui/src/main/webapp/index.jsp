@@ -38,7 +38,8 @@
     
   <script type="text/javascript">
     var MCFError = {
-        ServerDown:"<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"errorCode.ServerDown")%>"
+        ServerDown          :"<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"errorCode.ServerDown")%>",
+        InternalServerError :"<%=Messages.getBodyJavascriptString(pageContext.getRequest().getLocale(),"errorCode.InternalServerError")%>"
     }
   </script>
   </head>
@@ -84,6 +85,22 @@
         <div class="bounce1"></div>
         <div class="bounce2"></div>
         <div class="bounce3"></div>
+      </div>
+    </div>
+    <!-- Error Modal -->
+    <div class="modal fade" id="exceptionModal" tabindex="-1" role="dialog" aria-labelledby="exceptionModalLabel">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="exceptionModalLabel">Internal Server Exception</h4>
+          </div>
+          <div class="modal-body" style="max-height:calc(100vh - 212px);overflow: auto;">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div>
       </div>
     </div>
     <script src="javascript/jquery.min.js"></script>
