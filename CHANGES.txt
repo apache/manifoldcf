@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1416: Use a 4-character year for email dates.
+(Cihad Guzel)
+
 CONNECTORS-1415: Return descriptive error message when Internal Server Error occurs
 (Kishore Kumar)
 
