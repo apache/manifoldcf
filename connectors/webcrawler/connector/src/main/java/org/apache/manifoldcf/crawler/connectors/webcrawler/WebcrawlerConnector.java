@@ -1563,8 +1563,318 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Certificates"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Proxy"));
 
-    final Map<String,Object> velocityContext = new HashMap<String,Object>();
-    Messages.outputResourceWithVelocity(out, locale, "editConfiguration.js.vm", velocityContext);
+    out.print(
+"<script type=\"text/javascript\">\n"+
+"<!--\n"+
+"function checkConfig()\n"+
+"{\n"+
+"  if (editconnection.email.value != \"\" && editconnection.email.value.indexOf(\"@\") == -1)\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.NeedAValidEmailAddress")+"\");\n"+
+"    editconnection.email.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"\n"+
+"  // If the Bandwidth tab is up, check to be sure we have valid numbers and regexps everywhere.\n"+
+"  var i = 0;\n"+
+"  var count = editconnection.bandwidth_count.value;\n"+
+"  while (i < count)\n"+
+"  {\n"+
+"    var connections = eval(\"editconnection.connections_bandwidth_\"+i+\".value\");\n"+
+"    if (connections != \"\" && !isInteger(connections))\n"+
+"    {\n"+
+"      alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumConnectionsMustBeAnInteger")+"\");\n"+
+"      eval(\"editconnection.connections_bandwidth_\"+i+\".focus()\");\n"+
+"      return false;\n"+
+"    }\n"+
+"    var rate = eval(\"editconnection.rate_bandwidth_\"+i+\".value\");\n"+
+"    if (rate != \"\" && !isInteger(rate))\n"+
+"    {\n"+
+"      alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumKbytesPerSecondMustBeAnInteger")+"\");\n"+
+"      eval(\"editconnection.rate_bandwidth_\"+i+\".focus()\");\n"+
+"      return false;\n"+
+"    }\n"+
+"    var fetches = eval(\"editconnection.fetches_bandwidth_\"+i+\".value\");\n"+
+"    if (fetches != \"\" && !isInteger(fetches))\n"+
+"    {\n"+
+"      alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumFetchesPerMinuteMustBeAnInteger")+"\");\n"+
+"      eval(\"editconnection.fetches_bandwidth_\"+i+\".focus()\");\n"+
+"      return false;\n"+
+"    }\n"+
+"\n"+
+"    i = i + 1;\n"+
+"  }\n"+
+"    \n"+
+"  // Make sure access credentials are all legal\n"+
+"  i = 0;\n"+
+"  count = editconnection.acredential_count.value;\n"+
+"  while (i < count)\n"+
+"  {\n"+
+"    var username = eval(\"editconnection.username_acredential_\"+i+\".value\");\n"+
+"    if (username == \"\")\n"+
+"    {\n"+
+"      alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.CredentialMustHaveNonNullUserName")+"\");\n"+
+"      eval(\"editconnection.username_acredential_\"+i+\".focus()\");\n"+
+"      return false;\n"+
+"    }\n"+
+"    i = i + 1;\n"+
+"  }\n"+
+"\n"+
+"  // Make sure session credentials are all legal\n"+
+"  i = 0;\n"+
+"  count = editconnection.scredential_count.value;\n"+
+"  while (i < count)\n"+
+"  {\n"+
+"    var loginpagecount = eval(\"editconnection.scredential_\"+i+\"_loginpagecount.value\");\n"+
+"    var j = 0;\n"+
+"    while (j < loginpagecount)\n"+
+"    {\n"+
+"      var matchregexp = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_matchregexp.value\");\n"+
+"      if (!isRegularExpression(matchregexp))\n"+
+"      {\n"+
+"        alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MatchExpressionMustBeAValidRegularExpression")+"\");\n"+
+"        eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_matchregexp.focus()\");\n"+
+"        return false;\n"+
+"      }\n"+
+"      if (eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_type.value\") == \"form\")\n"+
+"      {\n"+
+"        var paramcount = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_loginparamcount.value\");\n"+
+"        var k = 0;\n"+
+"        while (k < paramcount)\n"+
+"        {\n"+
+"          var paramname = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_param.value\");\n"+
+"          if (paramname == \"\")\n"+
+"          {\n"+
+"            alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.ParameterMustHaveNonEmptyName")+"\");\n"+
+"            eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_param.focus()\");\n"+
+"            return false;\n"+
+"          }\n"+
+"          var paramvalue = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_value.value\");\n"+
+"          var parampassword = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_password.value\");\n"+
+"          if (paramvalue != \"\" && parampassword != \"\")\n"+
+"          {\n"+
+"            alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.ParameterCanEitherBeHidden")+"\");\n"+
+"            eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_value.focus()\");\n"+
+"            return false;\n"+
+"          }\n"+
+"          k = k + 1;\n"+
+"        }\n"+
+"      }\n"+
+"      j = j + 1;\n"+
+"    }\n"+
+"    i = i + 1;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function checkConfigForSave()\n"+
+"{\n"+
+"  if (editconnection.email.value == \"\")\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.EmailAaddressRequired") + "\");\n"+
+"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.Email") + "\");\n"+
+"    editconnection.email.focus();\n"+
+"    return false;\n"+
+"  }\n"+
+"  return true;\n"+
+"}\n"+
+"\n"+
+"function deleteRegexp(i)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editconnection.op_bandwidth_\"+i+\".value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (editconnection.bandwidth_count.value==i)\n"+
+"    postFormSetAnchor(\"bandwidth\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"bandwidth_\"+i)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editconnection.op_bandwidth_\"+i+\".value=\\\"Continue\\\"\");\n"+
+"}\n"+
+"\n"+
+"function addRegexp()\n"+
+"{\n"+
+"  if (editconnection.connections_bandwidth.value != \"\" && !isInteger(editconnection.connections_bandwidth.value))\n"+
+"  {\n"+
+"    alert(\"" + Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumConnectionsMustBeAnInteger")+"\");\n"+
+"    editconnection.connections_bandwidth.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (editconnection.rate_bandwidth.value != \"\" && !isInteger(editconnection.rate_bandwidth.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumKbytesPerSecondMustBeAnInteger")+"\");\n"+
+"    editconnection.rate_bandwidth.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (editconnection.fetches_bandwidth.value != \"\" && !isInteger(editconnection.fetches_bandwidth.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumFetchesPerMinuteMustBeAnInteger")+"\");\n"+
+"    editconnection.fetches_bandwidth.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (!isRegularExpression(editconnection.regexp_bandwidth.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.AValidRegularExpressionIsRequired")+"\");\n"+
+"    editconnection.regexp_bandwidth.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  editconnection.bandwidth_op.value=\"Add\";\n"+
+"  postFormSetAnchor(\"bandwidth\");\n"+
+"}\n"+
+"\n"+
+"function deleteARegexp(i)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editconnection.op_acredential_\"+i+\".value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (editconnection.acredential_count.value==i)\n"+
+"    postFormSetAnchor(\"acredential\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"acredential_\"+i)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editconnection.op_acredential_\"+i+\".value=\\\"Continue\\\"\");\n"+
+"}\n"+
+"\n"+
+"function addARegexp()\n"+
+"{\n"+
+"  if (editconnection.username_acredential.value == \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.CredentialMustIncludeANonNullUserName")+"\");\n"+
+"    editconnection.username_acredential.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (!isRegularExpression(editconnection.regexp_acredential.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.AValidRegularExpressionIsRequired")+"\");\n"+
+"    editconnection.regexp_acredential.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  editconnection.acredential_op.value=\"Add\";\n"+
+"  postFormSetAnchor(\"acredential\");\n"+
+"}\n"+
+"\n"+
+"function deleteSRegexp(i)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editconnection.scredential_\"+i+\"_op.value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (editconnection.scredential_count.value==i)\n"+
+"    postFormSetAnchor(\"scredential\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"scredential_\"+i)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editconnection.scredential_\"+i+\"_op.value=\\\"Continue\\\"\");\n"+
+"}\n"+
+"\n"+
+"function addSRegexp()\n"+
+"{\n"+
+"  if (!isRegularExpression(editconnection.scredential_regexp.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.AValidRegularExpressionIsRequired")+"\");\n"+
+"    editconnection.scredential_regexp.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  editconnection.scredential_op.value=\"Add\";\n"+
+"  postFormSetAnchor(\"scredential\");\n"+
+"}\n"+
+"\n"+
+"function deleteLoginPage(credential,loginpage)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_op.value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (eval(\"editconnection.scredential_\"+credential+\"_loginpagecount.value\")==credential)\n"+
+"    postFormSetAnchor(\"scredential_loginpage\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"scredential_\"+credential+\"_\"+loginpage)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_op.value=\\\"Continue\\\"\");\n"+
+"\n"+
+"}\n"+
+"  \n"+
+"function addLoginPage(credential)\n"+
+"{\n"+
+"  if (!isRegularExpression(eval(\"editconnection.scredential_\"+credential+\"_loginpageregexp.value\")))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.AValidRegularExpressionIsRequired")+"\");\n"+
+"    eval(\"editconnection.scredential_\"+credential+\"_loginpageregexp.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"  if (!isRegularExpression(eval(\"editconnection.scredential_\"+credential+\"_loginpagematchregexp.value\")))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.AValidRegularExpressionIsRequired")+"\");\n"+
+"    eval(\"editconnection.scredential_\"+credential+\"_loginpagematchregexp.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"  eval(\"editconnection.scredential_\"+credential+\"_loginpageop.value=\\\"Add\\\"\");\n"+
+"  postFormSetAnchor(\"scredential_\"+credential);\n"+
+"}\n"+
+"  \n"+
+"function deleteLoginPageParameter(credential,loginpage,parameter)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_\"+parameter+\"_op.value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamcount.value\")==credential)\n"+
+"    postFormSetAnchor(\"scredential_\"+credential+\"_loginparam\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"scredential_\"+credential+\"_\"+loginpage+\"_\"+parameter)\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_\"+parameter+\"_op.value=\\\"Continue\\\"\");\n"+
+"}\n"+
+"  \n"+
+"function addLoginPageParameter(credential,loginpage)\n"+
+"{\n"+
+"  if (!isRegularExpression(eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamname.value\")))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.ParameterNameMustBeARegularExpression")+"\");\n"+
+"    eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamname.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"  if (eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamvalue.value\") != \"\" && eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparampassword.value\") != \"\")\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.ParameterCanEitherBeHidden")+"\");\n"+
+"    eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamvalue.focus()\");\n"+
+"    return;\n"+
+"  }\n"+
+"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamop.value=\\\"Add\\\"\");\n"+
+"  postFormSetAnchor(\"scredential_\"+credential+\"_\"+loginpage);\n"+
+"}\n"+
+"  \n"+
+"function deleteTRegexp(i)\n"+
+"{\n"+
+"  // Set the operation\n"+
+"  eval(\"editconnection.op_trust_\"+i+\".value=\\\"Delete\\\"\");\n"+
+"  // Submit\n"+
+"  if (editconnection.trust_count.value==i)\n"+
+"    postFormSetAnchor(\"trust\");\n"+
+"  else\n"+
+"    postFormSetAnchor(\"trust_\"+i);\n"+
+"  // Undo, so we won't get two deletes next time\n"+
+"  eval(\"editconnection.op_trust_\"+i+\".value=\\\"Continue\\\"\");\n"+
+"}\n"+
+"\n"+
+"function addTRegexp()\n"+
+"{\n"+
+"  if (editconnection.certificate_trust.value == \"\" && editconnection.all_trust.checked == false)\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.SpecifyATrustCertificateFileToUploadFirst")+"\");\n"+
+"    editconnection.certificate_trust.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  if (!isRegularExpression(editconnection.regexp_trust.value))\n"+
+"  {\n"+
+"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.AValidRegularExpressionIsRequired")+"\");\n"+
+"    editconnection.regexp_trust.focus();\n"+
+"    return;\n"+
+"  }\n"+
+"  editconnection.trust_op.value=\"Add\";\n"+
+"  postFormSetAnchor(\"trust\");\n"+
+"}\n"+
+"  \n"+
+"//-->\n"+
+"</script>\n"
+    );
   }
   
   /** Output the configuration body section.
