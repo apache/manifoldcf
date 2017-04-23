@@ -105,7 +105,7 @@ public class EmailConfig {
   public static final String EMAIL_VERSION = "1.0";
 
   // Date field names for filtering
-  public static final String EMAIL_FILTERING_DATE_FORMAT = "dd/MM/yy";
+  public static final String EMAIL_FILTERING_DATE_FORMAT = "dd/MM/yyyy";
   public static final String EMAIL_START_DATE = "start date";
   public static final String EMAIL_END_DATE = "end date";
 
