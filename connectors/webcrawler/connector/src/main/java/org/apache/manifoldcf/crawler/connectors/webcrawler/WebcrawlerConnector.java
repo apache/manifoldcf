@@ -1566,6 +1566,84 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     final Map<String,Object> velocityContext = new HashMap<String,Object>();
     Messages.outputResourceWithVelocity(out, locale, "editConfiguration.js.vm", velocityContext);
   }
+
+  private void fillInEmailTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
+    String email = parameters.getParameter(WebcrawlerConfig.PARAMETER_EMAIL);
+    if (email == null)
+      email = "";
+
+    velocityContext.put("EMAIL",email);
+  }
+
+  private void fillInRobotsTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
+    String robotsUsage = parameters.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
+    if (robotsUsage == null)
+      robotsUsage = "all";
+    String metaRobotsTagsUsage = parameters.getParameter(WebcrawlerConfig.PARAMETER_META_ROBOTS_TAGS_USAGE);
+    if (metaRobotsTagsUsage == null)
+      metaRobotsTagsUsage = "all";
+
+    velocityContext.put("ROBOTSUSAGE",robotsUsage);
+    velocityContext.put("METAROBOTSTAGSUSAGE",metaRobotsTagsUsage);
+  }
+
+  private void fillInBandwidthTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
+    int i = 0;
+    int binCounter = 0;
+    List<Map<String,String>> throttlesMapList = new ArrayList<>();
+    while (i < parameters.getChildCount())
+    {
+      ConfigNode cn = parameters.getChild(i++);
+      if (cn.getType().equals(WebcrawlerConfig.NODE_BINDESC))
+      {
+        Map<String,String> throttleMap = new HashMap<>();
+        // A bin description node!  Look for all its parameters.
+        String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_BINREGEXP);
+        String isCaseInsensitive = cn.getAttributeValue(WebcrawlerConfig.ATTR_INSENSITIVE);
+        String maxConnections = null;
+        String maxKBPerSecond = null;
+        String maxFetchesPerMinute = null;
+        int j = 0;
+        while (j < cn.getChildCount())
+        {
+          ConfigNode childNode = cn.getChild(j++);
+          if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXCONNECTIONS))
+            maxConnections = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+          else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXKBPERSECOND))
+            maxKBPerSecond = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+          else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
+            maxFetchesPerMinute = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+        }
+        if (maxConnections == null)
+          maxConnections = "";
+        if (maxKBPerSecond == null)
+          maxKBPerSecond = "";
+        if (maxFetchesPerMinute == null)
+          maxFetchesPerMinute = "";
+        if(regexp == null)
+          regexp = "";
+
+        if (isCaseInsensitive == null || isCaseInsensitive.length() == 0)
+          isCaseInsensitive = "false";
+
+        throttleMap.put("regexp",regexp);
+        throttleMap.put("isCaseInsensitive",isCaseInsensitive);
+        throttleMap.put("maxConnections",maxConnections);
+        throttleMap.put("maxKBPerSecond",maxKBPerSecond);
+        throttleMap.put("maxFetchesPerMinute",maxFetchesPerMinute);
+        throttlesMapList.add(throttleMap);
+        binCounter++;
+      }
+    }
+    if (parameters.getChildCount() == 0)
+    {
+      velocityContext.put("BRANDNEW",true);
+    }
+    velocityContext.put("THROTTLESMAPLIST",throttlesMapList);
+  }
   
   /** Output the configuration body section.
   * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
@@ -1587,11 +1665,14 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     fillInEmailTab(velocityContext,out,parameters);
     fillInRobotsTab(velocityContext,out,parameters);
+    fillInBandwidthTab(velocityContext,out,parameters);
 
     // Email tab
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Email.html.vm",velocityContext);
     // Robots tab
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Robots.html.vm",velocityContext);
+    //Bandwidth tab
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Bandwidth.html.vm",velocityContext);
 
     String proxyHost = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYHOST);
     if (proxyHost == null)
@@ -1648,234 +1729,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "<input type=\"hidden\" name=\"proxyauthusername\" value=\""+Encoder.attributeEscape(proxyAuthUsername)+"\"/>\n"+
 "<input type=\"hidden\" name=\"proxyauthdomain\" value=\""+Encoder.attributeEscape(proxyAuthDomain)+"\"/>\n"+
 "<input type=\"hidden\" name=\"proxyauthpassword\" value=\""+Encoder.attributeEscape(proxyAuthPassword)+"\"/>\n"
-      );
-    }
-
-    // Bandwidth tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Bandwidth")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Throttles") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.BinRegularExpression") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.CaseInsensitive") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.MaxConnections") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.MaxKbytesSec") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.MaxFetchesMin") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      int i = 0;
-      int binCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_BINDESC))
-        {
-          // A bin description node!  Look for all its parameters.
-          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_BINREGEXP);
-          String isCaseInsensitive = cn.getAttributeValue(WebcrawlerConfig.ATTR_INSENSITIVE);
-          String maxConnections = null;
-          String maxKBPerSecond = null;
-          String maxFetchesPerMinute = null;
-          int j = 0;
-          while (j < cn.getChildCount())
-          {
-            ConfigNode childNode = cn.getChild(j++);
-            if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXCONNECTIONS))
-              maxConnections = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-            else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXKBPERSECOND))
-              maxKBPerSecond = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-            else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
-              maxFetchesPerMinute = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-          }
-          if (maxConnections == null)
-            maxConnections = "";
-          if (maxKBPerSecond == null)
-            maxKBPerSecond = "";
-          if (maxFetchesPerMinute == null)
-            maxFetchesPerMinute = "";
-            
-          if (isCaseInsensitive == null || isCaseInsensitive.length() == 0)
-            isCaseInsensitive = "false";
-
-          // It's prefix will be...
-          String prefix = "bandwidth_" + Integer.toString(binCounter);
-          out.print(
-"        <tr class=\""+(((binCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteBinRegularExpression")+Integer.toString(binCounter+1)+"\" onclick='javascript:deleteRegexp("+Integer.toString(binCounter)+");'/>\n"+
-"              <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"checkbox\" name=\"insensitive_"+prefix+"\" value=\"true\" "+(isCaseInsensitive.equals("true")?"checked=\"\"":"")+" /></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"connections_"+prefix+"\" value=\""+maxConnections+"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"rate_"+prefix+"\" value=\""+maxKBPerSecond+"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"fetches_"+prefix+"\" value=\""+maxFetchesPerMinute+"\"/></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-          );
-          binCounter++;
-        }
-      }
-
-      // If it looks like this is a brand-new configuration, add in a default throttle.
-      // This only works because other nodes must get created on the first post, and cannot then be deleted.
-      if (parameters.getChildCount() == 0)
-      {
-        // It's prefix will be...
-        String prefix = "bandwidth_" + Integer.toString(binCounter);
-        out.print(
-"        <tr class=\""+(((binCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+ Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteBinRegularExpression") +Integer.toString(binCounter+1)+"\" onclick='javascript:deleteRegexp("+Integer.toString(binCounter)+");'/>\n"+
-"              <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"checkbox\" name=\"insensitive_"+prefix+"\" value=\"false\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"connections_"+prefix+"\" value=\"2\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"rate_"+prefix+"\" value=\"64\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"fetches_"+prefix+"\" value=\"12\"/></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-        );
-        binCounter++;
-      }
-
-      if (binCounter == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"6\">"+Messages.getBodyString(locale,"WebcrawlerConnector.NoBandwidthOrConnectionThrottlingSpecified")+"</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"6\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\"bandwidth\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddBinRegularExpression") + "\" onclick=\"javascript:addRegexp();\"/>\n"+
-"            </a>\n"+
-"            <input type=\"hidden\" name=\"bandwidth_count\" value=\""+binCounter+"\"/>\n"+
-"            <input type=\"hidden\" name=\"bandwidth_op\" value=\"Continue\"/>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"30\" name=\"regexp_bandwidth\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"checkbox\" name=\"insensitive_bandwidth\" value=\"true\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"connections_bandwidth\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"rate_bandwidth\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"fetches_bandwidth\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for bandwidth tab.
-      int i = 0;
-      int binCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_BINDESC))
-        {
-          // A bin description node!  Look for all its parameters.
-          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_BINREGEXP);
-          String isCaseInsensitive = cn.getAttributeValue(WebcrawlerConfig.ATTR_INSENSITIVE);
-          String maxConnections = null;
-          String maxKBPerSecond = null;
-          String maxFetchesPerMinute = null;
-          int j = 0;
-          while (j < cn.getChildCount())
-          {
-            ConfigNode childNode = cn.getChild(j++);
-            if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXCONNECTIONS))
-              maxConnections = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-            else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXKBPERSECOND))
-              maxKBPerSecond = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-            else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
-              maxFetchesPerMinute = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-          }
-          if (maxConnections == null)
-            maxConnections = "";
-          if (maxKBPerSecond == null)
-            maxKBPerSecond = "";
-          if (maxFetchesPerMinute == null)
-            maxFetchesPerMinute = "";
-          if (isCaseInsensitive == null || isCaseInsensitive.length() == 0)
-            isCaseInsensitive = "false";
-
-          // It's prefix will be...
-          String prefix = "bandwidth_" + Integer.toString(binCounter);
-          out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"insensitive_"+prefix+"\" value=\""+isCaseInsensitive+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"connections_"+prefix+"\" value=\""+maxConnections+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"rate_"+prefix+"\" value=\""+maxKBPerSecond+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"fetches_"+prefix+"\" value=\""+maxFetchesPerMinute+"\"/>\n"
-          );
-          binCounter++;
-        }
-      }
-
-      // If it looks like this is a brand-new configuration, add in a default throttle.
-      // This only works because other nodes must get created on the first post, and cannot then be deleted.
-      if (parameters.getChildCount() == 0)
-      {
-        // It's prefix will be...
-        String prefix = "bandwidth_" + Integer.toString(binCounter);
-        out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\"\"/>\n"+
-"<input type=\"hidden\" name=\""+"insensitive_"+prefix+"\" value=\"false\"/>\n"+
-"<input type=\"hidden\" name=\""+"connections_"+prefix+"\" value=\"2\"/>\n"+
-"<input type=\"hidden\" name=\""+"rate_"+prefix+"\" value=\"64\"/>\n"+
-"<input type=\"hidden\" name=\""+"fetches_"+prefix+"\" value=\"12\"/>\n"
-        );
-        binCounter++;
-      }
-
-      out.print(
-"<input type=\"hidden\" name=\"bandwidth_count\" value=\""+binCounter+"\"/>\n"
       );
     }
 
