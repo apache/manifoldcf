@@ -1671,6 +1671,54 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     velocityContext.put("PROXYAUTHUSERNAME",proxyAuthUsername);
     velocityContext.put("PROXYAUTHPASSWORD",proxyAuthPassword);
   }
+
+  private void fillInCertificatesTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters) throws ManifoldCFException
+  {
+    int i = 0;
+    List<Map<String,String>> trustMapList = new ArrayList<>();
+    while (i < parameters.getChildCount())
+    {
+      ConfigNode cn = parameters.getChild(i++);
+      if (cn.getType().equals(WebcrawlerConfig.NODE_TRUST))
+      {
+        Map<String,String> trustMap = new HashMap<>();
+
+        // A bin description node!  Look for all its parameters.
+        String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+        String trustEverything = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
+
+        trustMap.put("trustEverything",trustEverything);
+        trustMap.put("regexp",regexp);
+
+        if (trustEverything != null && trustEverything.equals("true"))
+        {
+        }
+        else
+        {
+          String trustStore = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTSTORE);
+          IKeystoreManager localTruststore = KeystoreManagerFactory.make("",trustStore);
+          String[] truststoreContents = localTruststore.getContents();
+
+          // Each trust store will have only at most one cert in it at this level.  These individual certs are assembled into the proper trust store
+          // for each individual url at fetch time.
+
+          if (truststoreContents.length == 1)
+          {
+            String alias = truststoreContents[0];
+            String description = localTruststore.getDescription(alias);
+            String shortenedDescription = description;
+            if (shortenedDescription.length() > 100)
+              shortenedDescription = shortenedDescription.substring(0,100) + "...";
+
+            trustMap.put("trustStore",trustStore);
+            trustMap.put("shortenedDescription",shortenedDescription);
+          }
+        }
+        trustMapList.add(trustMap);
+      }
+    }
+    velocityContext.put("TRUSTMAPLIST",trustMapList);
+  }
   
   /** Output the configuration body section.
   * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
@@ -1693,6 +1741,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     fillInEmailTab(velocityContext,out,parameters);
     fillInRobotsTab(velocityContext,out,parameters);
     fillInBandwidthTab(velocityContext,out,parameters);
+    fillInCertificatesTab(velocityContext,out,parameters);
     fillInProxyTab(velocityContext,out,parameters);
 
     // Email tab
@@ -1701,6 +1750,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Robots.html.vm",velocityContext);
     //Bandwidth tab
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Bandwidth.html.vm",velocityContext);
+    //Certificates tab
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Certificates.html.vm",velocityContext);
     // Proxy tab
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Proxy.html.vm",velocityContext);
 
@@ -2178,170 +2229,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "<input type=\"hidden\" name=\"scredential_count\" value=\""+accessCounter+"\"/>\n"
       );
     }
-
-    // "Certificates" tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Certificates")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.TrustCertificates") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.URLRegularExpression") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Certificate") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      int i = 0;
-      int trustsCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_TRUST))
-        {
-          // It's prefix will be...
-          String prefix = "trust_" + Integer.toString(trustsCounter);
-          // A bin description node!  Look for all its parameters.
-          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-          String trustEverything = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
-          if (trustEverything != null && trustEverything.equals("true"))
-          {
-            // We trust everything that matches this regexp
-            out.print(
-"        <tr class=\""+(((trustsCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\"><input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteTrustUrlRegularExpression")+Integer.toString(trustsCounter+1)+"\" onclick='javascript:deleteTRegexp("+Integer.toString(trustsCounter)+");'/>\n"+
-"            <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"            <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"true\"/>\n"+
-"            <input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><i>"+Messages.getBodyString(locale,"WebcrawlerConnector.TrustEverything")+"</i></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-            );
-            trustsCounter++;
-          }
-          else
-          {
-            String trustStore = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTSTORE);
-            IKeystoreManager localTruststore = KeystoreManagerFactory.make("",trustStore);
-            String[] truststoreContents = localTruststore.getContents();
-            
-            // Each trust store will have only at most one cert in it at this level.  These individual certs are assembled into the proper trust store
-            // for each individual url at fetch time.
-            
-            if (truststoreContents.length == 1)
-            {
-              String alias = truststoreContents[0];
-              String description = localTruststore.getDescription(alias);
-              String shortenedDescription = description;
-              if (shortenedDescription.length() > 100)
-                shortenedDescription = shortenedDescription.substring(0,100) + "...";
-              out.print(
-"        <tr class=\""+(((trustsCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteTrustUrlRegularExpression")+Integer.toString(trustsCounter+1)+"\" onclick='javascript:deleteTRegexp("+Integer.toString(trustsCounter)+");'/>\n"+
-"              <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"false\"/>\n"+
-"              <input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\""+Encoder.attributeEscape(trustStore)+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Encoder.bodyEscape(shortenedDescription)+"</nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-              );
-              trustsCounter++;
-            }
-          }
-
-        }
-      }
-
-      if (trustsCounter == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getBodyString(locale,"WebcrawlerConnector.NoTrustCertificatesSpecified") + "</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\"trust\"><input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddUrlRegularExpressionForTruststore") + "\" onclick=\"javascript:addTRegexp();\"/></a>\n"+
-"            <input type=\"hidden\" name=\"trust_count\" value=\""+trustsCounter+"\"/>\n"+
-"            <input type=\"hidden\" name=\"trust_op\" value=\"Continue\"/>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"30\" name=\"regexp_trust\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.UploadCertificate") + " <input name=\"certificate_trust\" size=\"50\" type=\"file\"/>&nbsp;<input name=\"all_trust\" type=\"checkbox\" value=\"true\">" + Messages.getBodyString(locale,"WebcrawlerConnector.TrustEverything") + "</input></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for Certificates tab.
-      int i = 0;
-      int trustsCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_TRUST))
-        {
-          // It's prefix will be...
-          String prefix = "trust_" + Integer.toString(trustsCounter);
-
-          // A bin description node!  Look for all its parameters.
-          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-          String trustEverything = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
-          if (trustEverything != null && trustEverything.equals("true"))
-          {
-            // We trust everything that matches this regexp
-            out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\"\"/>\n"+
-"<input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"true\"/>\n"
-            );
-            trustsCounter++;
-          }
-          else
-          {
-            String trustStore = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTSTORE);
-            out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\""+Encoder.attributeEscape(trustStore)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"false\"/>\n"
-            );
-            trustsCounter++;
-          }
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\"trust_count\" value=\""+trustsCounter+"\"/>\n"
-      );
-    }
-
   }
   
   /** Process a configuration post.
