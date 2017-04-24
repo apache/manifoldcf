@@ -1,0 +1,310 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+#set( $COUNTER = 0)
+#if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.AccessCredentials'))
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.PageAccessCredentials'))</nobr></td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.AuthenticationType'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Domain'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.UserName'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Password'))</nobr></td>
+        </tr>
+        #foreach($pageAccessMap in $PAGEACCESSMAPLIST)
+          #set( $PREFIX = "acredential_" + $COUNTER )
+        <tr>
+          <td class="formcolumncell">
+            <a name="$PREFIX">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeletePageAuthenticationUrlRegularExpression'))$foreach.count" onclick='javascript:deleteARegexp($COUNTER);'/>
+              <input type="hidden" name="op_$PREFIX" value="Continue"/>
+              <input type="hidden" name="regexp_$PREFIX" value="$Encoder.attributeEscape($pageAccessMap["regexp"])"/>
+            </a>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($pageAccessMap["regexp"])</nobr>
+          </td>
+          <td class="formcolumncell">
+            <input type="radio" name="type_$PREFIX" value="basic" #if($pageAccessMap["type"] == 'basic') checked #{else} "" #end />$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.BasicAuthentication'))<br/>
+            <input type="radio" name="type_$PREFIX" value="ntlm" #if($pageAccessMap["type"] == 'ntlm') checked #{else} "" #end />$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.NTLMAuthentication'))
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="16" name="domain_$PREFIX" value="$Encoder.attributeEscape($pageAccessMap["domain"])"/></nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="16" name="username_$PREFIX" value="$Encoder.attributeEscape($pageAccessMap["userName"])"/></nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="password" size="16" name="password_$PREFIX" value="$Encoder.attributeEscape($pageAccessMap["password"])"/></nobr>
+          </td>
+        </tr>
+          #set( $COUNTER = $COUNTER + 1)
+        #end
+
+        #if($COUNTER == "0")
+        <tr class="formrow">
+            <td class="formmessage" colspan="6">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoPageAccessCredentialsSpecified'))</td>
+        </tr>
+        #end
+
+        <tr class="formrow"><td class="formseparator" colspan="6"><hr/></td></tr>
+        <tr class="formrow">
+          <td class="formcolumncell">
+            <a name="bandwidth">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddPageAuthenticationUrlRegularExpression'))" onclick="javascript:addARegexp();"/>
+            </a>
+            <input type="hidden" name="acredential_count" value="$COUNTER"/>
+            <input type="hidden" name="acredential_op" value="Continue"/>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="30" name="regexp_acredential" value=""/></nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="radio" name="type_acredential" value="basic" checked="" />&nbsp;$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.BasicAuthentication'))</nobr><br/>
+            <nobr><input type="radio" name="type_acredential" value="ntlm" />&nbsp;$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.NTLMAuthentication'))</nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="16" name="domain_acredential" value=""/></nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="16" name="username_acredential" value=""/></nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="password" size="16" name="password_acredential" value=""/></nobr>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+      <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.SessionBasedAccessCredentials'))</nobr></td>
+      <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.LoginPages'))</nobr></td>
+        </tr>
+  
+        #set( $COUNTER = 0)
+        #foreach($sessionAccessMap in $SESSIONACCESSMAPLIST)
+          #set( $PREFIX = "scredential_" + $COUNTER )
+        <tr>
+          <td class="formcolumncell">
+            <a name="$PREFIX">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteSessionAuthenticationUrlRegularExpression'))$foreach.count" onclick='javascript:deleteSRegexp($COUNTER);'/>
+              <input type="hidden" name="${PREFIX}_op" value="Continue"/>
+              <input type="hidden" name="${PREFIX}_regexp" value="$Encoder.attributeEscape($sessionAccessMap["regexp"])"/>
+            </a>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($sessionAccessMap["regexp"])</nobr>
+          </td>
+          <td class="boxcell">
+            <table class="formtable">
+              <tr class="formheaderrow">
+                <td class="formcolumnheader"></td>
+                <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.LoginURLRegularExpression'))</nobr></td>
+                <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.PageType'))</nobr></td>
+                <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.FormNamelinkTargetRegularExpression'))</nobr></td>
+                <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.OverrideTargetURL'))</nobr></td>
+                <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.OverrideFormParameters'))</nobr></td>
+              </tr>
+              #set( $AUTHPAGECOUNTER = 0 )
+              #set( $AUTHPAGEMAPLIST = $sessionAccessMap["authPageMapList"])
+              #foreach($authPageMap in $AUTHPAGEMAPLIST)
+                #set( $AUTHPAGEPREFIX = $PREFIX + "_" + $AUTHPAGECOUNTER)
+              <tr>
+                <td class="formcolumncell">
+                  <a name="$AUTHPAGEPREFIX">
+                    <input type="button" value="Delete" alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteLoginPage'))$foreach.count for url regular expression #$AUTHPAGECOUNTER" onclick='javascript:deleteLoginPage($COUNTER,$AUTHPAGECOUNTER);'/>
+                    <input type="hidden" name="${AUTHPAGEPREFIX}_op" value="Continue"/>
+                    <input type="hidden" name="${AUTHPAGEPREFIX}_regexp" value="$Encoder.attributeEscape($authPageMap["pageRegexp"])"/>
+                    <input type="hidden" name="${AUTHPAGEPREFIX}_type" value="$Encoder.attributeEscape($authPageMap["pageType"])"/>
+                  </a>
+                </td>
+
+                <td class="formcolumncell"><nobr>$Encoder.bodyEscape($authPageMap["pageRegexp"])</nobr></td>
+                <td class="formcolumncell"><nobr>$authPageMap["pageType"]</nobr></td>
+                <td class="formcolumncell"><nobr><input type="text" size="30" name="${AUTHPAGEPREFIX}_matchregexp" value="$Encoder.attributeEscape($authPageMap["matchRegexp"])"/></nobr></td>
+                <td class="formcolumncell"><nobr><input type="text" size="30" name="${AUTHPAGEPREFIX}_overridetargeturl" value="$Encoder.attributeEscape($authPageMap["overrideTargetURL"])"/></nobr></td>
+                
+                #if($authPageMap["pageType"] == "form")
+                <td class="boxcell">
+                  <table class="formtable">
+                    <tr class="formheaderrow">
+                      <td class="formcolumnheader"></td>
+                      <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ParameterRegularExpression'))</nobr></td>
+                      <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Value'))</nobr></td>
+                      <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Password'))</nobr></td>
+                    </tr>
+                  #set( $AUTHPARAMCOUNTER = 0)
+                  #set( $AUTHPAGEPARAMMAPLIST = $authPageMap["authPageParamMapList"] )
+                  #foreach($authPageParamMap in $AUTHPAGEPARAMMAPLIST)
+                    #set( $AUTHPARAMPREFIX = $AUTHPAGEPREFIX + "_" + $AUTHPARAMCOUNTER)
+                    <tr>
+                      <td class="formcolumncell">
+                        <a name="$AUTHPARAMPREFIX">
+                          <input type="button" value="Delete" alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteParameter'))$foreach.count$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.ForLoginPage'))$AUTHPAGECOUNTER$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.ForCredential'))$COUNTER" onclick='javascript:deleteLoginPageParameter($COUNTER,$AUTHPAGECOUNTER,$AUTHPARAMCOUNTER);'/>
+                          <input type="hidden" name="${AUTHPARAMPREFIX}_op" value="Continue"/>
+                        </a>
+                      </td>
+                      <td class="formcolumncell">
+                        <nobr><input type="text" size="30" name="${AUTHPARAMPREFIX}_param" value="$Encoder.attributeEscape($authPageParamMap["param"])"/></nobr>
+                      </td>
+                      <td class="formcolumncell">
+                        <nobr><input type="text" size="15" name="${AUTHPARAMPREFIX}_value" value="$Encoder.attributeEscape($authPageParamMap["value"])"/></nobr>
+                      </td>
+                      <td class="formcolumncell">
+                        <nobr><input type="password" size="15" name="${AUTHPARAMPREFIX}_password" value="$Encoder.attributeEscape($authPageParamMap["password"])"/></nobr>
+                      </td>
+                    </tr>
+                    #set( $AUTHPARAMCOUNTER = $AUTHPARAMCOUNTER + 1)
+                  #end
+                    <tr class="formrow"><td class="formseparator" colspan="4"><hr/></td></tr>
+                    <tr class="formrow">
+                      <td class="formcolumncell">
+                        <a name="${AUTHPAGEPREFIX}_loginparam">
+                          <input type="button" value="Add" alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddParameterToLoginPage'))$AUTHPAGECOUNTER$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.ForCredential'))$COUNTER" onclick='javascript:addLoginPageParameter($COUNTER,$AUTHPAGECOUNTER);'/>
+                        </a>
+                        <input type="hidden" name="${AUTHPAGEPREFIX}_loginparamcount" value="$AUTHPARAMCOUNTER"/>
+                        <input type="hidden" name="${AUTHPAGEPREFIX}_loginparamop" value="Continue"/>
+                      </td>
+                      <td class="formcolumncell">
+                        <nobr><input type="text" size="30" name="${AUTHPAGEPREFIX}_loginparamname" value=""/></nobr>
+                      </td>
+                      <td class="formcolumncell">
+                        <nobr><input type="text" size="15" name="${AUTHPAGEPREFIX}_loginparamvalue" value=""/></nobr>
+                      </td>
+                      <td class="formcolumncell">
+                        <nobr><input type="password" size="15" name="${AUTHPAGEPREFIX}_loginparampassword" value=""/></nobr>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+                #else
+                <td class="formcolumncell"></td>
+                #end
+              </tr>
+                #set( $AUTHPAGECOUNTER = $AUTHPAGECOUNTER + 1 )
+              #end
+              <tr class="formrow"><td class="formseparator" colspan="6"><hr/></td></tr>
+              <tr class="formrow">
+                <td class="formcolumncell">
+                  <a name="${PREFIX}_loginpage">
+                    <input type="button" value="Add" alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddLoginPageToCredential'))$foreach.count" onclick='javascript:addLoginPage($COUNTER);'/>
+                  </a>
+                  <input type="hidden" name="${PREFIX}_loginpagecount" value="$AUTHPAGECOUNTER"/>
+                  <input type="hidden" name="${PREFIX}_loginpageop" value="Continue"/>
+                </td>
+                <td class="formcolumncell">
+                  <nobr><input type="text" size="30" name="${PREFIX}_loginpageregexp" value=""/></nobr>
+                </td>
+                <td class="formcolumncell">
+                  <nobr><input type="radio" name="${PREFIX}_loginpagetype" value="form" checked=""/>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.FormName'))</nobr><br/>
+                  <nobr><input type="radio" name="${PREFIX}_loginpagetype" value="link"/>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.LinkTarget'))</nobr>
+                  <nobr><input type="radio" name="${PREFIX}_loginpagetype" value="redirection"/>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.RedirectionTo'))</nobr>
+                  <nobr><input type="radio" name="${PREFIX}_loginpagetype" value="content"/>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.PageContent'))</nobr>
+                </td>
+                <td class="formcolumncell">
+                  <nobr><input type="text" size="30" name="${PREFIX}_loginpagematchregexp" value=""/></nobr>
+                </td>
+                <td class="formcolumncell">
+                  <nobr><input type="text" size="30" name="${PREFIX}_loginpageoverridetargeturl" value=""/></nobr>
+                </td>
+                <td class="formcolumncell">
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        </tr>
+          #set( $COUNTER = $COUNTER + 1)
+        #end
+
+        #if($COUNTER == 0)
+        <tr class="formrow"><td class="formmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoSessionBasedAccessCredentialsSpecified'))</td></tr>
+        #end
+
+        <tr class="formrow"><td class="formseparator" colspan="3"><hr/></td></tr>
+        <tr class="formrow">
+          <td class="formcolumncell">
+            <a name="scredential">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddSessionAuthenticationUrlRegularExpression'))" onclick="javascript:addSRegexp();"/>
+            </a>
+            <input type="hidden" name="scredential_count" value="$COUNTER"/>
+            <input type="hidden" name="scredential_op" value="Continue"/>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="30" name="scredential_regexp" value=""/></nobr>
+          </td>
+          <td class="formcolumncell"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+#else
+  #foreach($pageAccessMap in $PAGEACCESSMAPLIST)
+    #set( $PREFIX = "acredential_" + $COUNTER )
+<input type="hidden" name="regexp_$PREFIX" value="$Encoder.attributeEscape($pageAccessMap["regexp"])" />
+<input type="hidden" name="type_$PREFIX" value="$pageAccessMap["type"]" />
+<input type="hidden" name="domain_$PREFIX" value="$Encoder.attributeEscape($pageAccessMap["domain"])" />
+<input type="hidden" name="username_$PREFIX" value="$Encoder.attributeEscape($pageAccessMap["userName"])" />
+<input type="hidden" name="password_$PREFIX" value="$Encoder.attributeEscape($pageAccessMap["password"])" />
+    #set( $COUNTER = $COUNTER + 1)
+  #end
+<input type="hidden" name="acredential_count" value="$COUNTER"/>
+
+  #set( $COUNTER = 0)
+  #foreach($sessionAccessMap in $SESSIONACCESSMAPLIST)
+    #set( $PREFIX = "scredential_" + $COUNTER )
+<input type="hidden" name="regexp_$PREFIX" value="$Encoder.attributeEscape($sessionAccessMap["regexp"])"/>
+    #set( $AUTHPAGECOUNTER = 0 )
+    #set( $AUTHPAGEMAPLIST = $sessionAccessMap["authPageMapList"])
+    #foreach($authPageMap in $AUTHPAGEMAPLIST)
+      #set( $AUTHPAGEPREFIX = $PREFIX + "_" + $AUTHPAGECOUNTER)
+<input type="hidden" name="${AUTHPAGEPREFIX}_regexp" value="$Encoder.attributeEscape($authPageMap["pageRegexp"])" />
+<input type="hidden" name="${AUTHPAGEPREFIX}_type" value="$Encoder.attributeEscape($authPageMap["pageType"])" />
+<input type="hidden" name="${AUTHPAGEPREFIX}_matchregexp" value="$Encoder.attributeEscape($authPageMap["matchRegexp"])" />
+<input type="hidden" name="${AUTHPAGEPREFIX}_overridetargeturl" value="$Encoder.attributeEscape($authPageMap["overrideTargetURL"])" />
+      #if($authPageMap["pageType"] == "form")
+        #set( $AUTHPARAMCOUNTER = 0)
+        #set( $AUTHPAGEPARAMMAPLIST = $authPageMap["authPageParamMapList"] )
+        #foreach($authPageParamMap in $AUTHPAGEPARAMMAPLIST)
+          #set( $AUTHPARAMPREFIX = $AUTHPAGEPREFIX + "_" + $AUTHPARAMCOUNTER)
+<input type="hidden" name="${AUTHPARAMPREFIX}_op" value="Continue"/>
+<input type="hidden" name="${AUTHPARAMPREFIX}_param" value="$Encoder.attributeEscape($authPageParamMap["param"])" />
+<input type="hidden" name="${AUTHPARAMPREFIX}_value" value="$Encoder.attributeEscape($authPageParamMap["value"])" />
+<input type="hidden" name="${AUTHPARAMPREFIX}_password" value="$Encoder.attributeEscape($authPageParamMap["value"])" />
+          #set( $AUTHPARAMCOUNTER = $AUTHPARAMCOUNTER + 1)
+        #end
+<input type="hidden" name="${AUTHPAGEPREFIX}_loginparamcount" value="$AUTHPARAMCOUNTER"/>
+      #end
+      #set( $AUTHPAGECOUNTER = $AUTHPAGECOUNTER + 1 )
+    #end
+<input type="hidden" name="${PREFIX}_loginpagecount" value="$AUTHPAGECOUNTER" />
+    #set( $COUNTER = $COUNTER + 1)
+  #end
+<input type="hidden" name="scredential_count" value="$COUNTER" />
+#end
