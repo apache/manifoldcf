@@ -1581,16 +1581,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    
-    String email = parameters.getParameter(WebcrawlerConfig.PARAMETER_EMAIL);
-    if (email == null)
-      email = "";
-    String robotsUsage = parameters.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
-    if (robotsUsage == null)
-      robotsUsage = "all";
-    String metaRobotsTagsUsage = parameters.getParameter(WebcrawlerConfig.PARAMETER_META_ROBOTS_TAGS_USAGE);
-    if (metaRobotsTagsUsage == null)
-      metaRobotsTagsUsage = "all";
+
+    final Map<String,Object> velocityContext = new HashMap<String,Object>();
+    velocityContext.put("TABNAME",tabName);
+
+    fillInEmailTab(velocityContext,out,parameters);
+    fillInRobotsTab(velocityContext,out,parameters);
+
+    // Email tab
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Email.html.vm",velocityContext);
+    // Robots tab
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Robots.html.vm",velocityContext);
+
     String proxyHost = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYHOST);
     if (proxyHost == null)
       proxyHost = "";
@@ -1646,64 +1648,6 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 "<input type=\"hidden\" name=\"proxyauthusername\" value=\""+Encoder.attributeEscape(proxyAuthUsername)+"\"/>\n"+
 "<input type=\"hidden\" name=\"proxyauthdomain\" value=\""+Encoder.attributeEscape(proxyAuthDomain)+"\"/>\n"+
 "<input type=\"hidden\" name=\"proxyauthpassword\" value=\""+Encoder.attributeEscape(proxyAuthPassword)+"\"/>\n"
-      );
-    }
-
-    // Email tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Email")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.EmailAddressToContact") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"32\" name=\"email\" value=\""+Encoder.attributeEscape(email)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\"email\" value=\""+Encoder.attributeEscape(email)+"\"/>\n"
-      );
-    }
-
-    // Robots tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Robots")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RobotsTxtUsage") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\"robotsusage\" size=\"3\">\n"+
-"        <option value=\"none\" "+(robotsUsage.equals("none")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"WebcrawlerConnector.DontLookAtRobotsTxt") + "</option>\n"+
-"        <option value=\"data\" "+(robotsUsage.equals("data")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"WebcrawlerConnector.ObeyRobotsTxtForDataFetchesOnly") + "</option>\n"+
-"        <option value=\"all\" "+(robotsUsage.equals("all")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"WebcrawlerConnector.ObeyRobotsTxtForAllFetches") + "</option>\n"+
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.MetaRobotsTagsUsage") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\"metarobotstagsusage\" size=\"3\">\n"+
-"        <option value=\"none\" "+(metaRobotsTagsUsage.equals("none")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"WebcrawlerConnector.DontLookAtMetaRobotsTags") + "</option>\n"+
-"        <option value=\"all\" "+(metaRobotsTagsUsage.equals("all")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"WebcrawlerConnector.ObeyMetaRobotsTags") + "</option>\n"+
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\"robotsusage\" value=\""+robotsUsage+"\"/>\n"+
-"<input type=\"hidden\" name=\"metarobotstagsusage\" value=\""+metaRobotsTagsUsage+"\"/>\n"
       );
     }
 
