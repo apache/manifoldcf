@@ -1644,6 +1644,33 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     velocityContext.put("THROTTLESMAPLIST",throttlesMapList);
   }
+
+  private void fillInProxyTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
+    String proxyHost = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYHOST);
+    if (proxyHost == null)
+      proxyHost = "";
+    String proxyPort = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYPORT);
+    if (proxyPort == null)
+      proxyPort = "";
+    String proxyAuthDomain = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHDOMAIN);
+    if (proxyAuthDomain == null)
+      proxyAuthDomain = "";
+    String proxyAuthUsername = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHUSERNAME);
+    if (proxyAuthUsername == null)
+      proxyAuthUsername = "";
+    String proxyAuthPassword = parameters.getObfuscatedParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHPASSWORD);
+    if (proxyAuthPassword == null)
+      proxyAuthPassword = "";
+    else
+      proxyAuthPassword = out.mapPasswordToKey(proxyAuthPassword);
+
+    velocityContext.put("PROXYHOST",proxyHost);
+    velocityContext.put("PROXYPORT",proxyPort);
+    velocityContext.put("PROXYAUTHDOMAIN",proxyAuthDomain);
+    velocityContext.put("PROXYAUTHUSERNAME",proxyAuthUsername);
+    velocityContext.put("PROXYAUTHPASSWORD",proxyAuthPassword);
+  }
   
   /** Output the configuration body section.
   * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
@@ -1666,6 +1693,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     fillInEmailTab(velocityContext,out,parameters);
     fillInRobotsTab(velocityContext,out,parameters);
     fillInBandwidthTab(velocityContext,out,parameters);
+    fillInProxyTab(velocityContext,out,parameters);
 
     // Email tab
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Email.html.vm",velocityContext);
@@ -1673,64 +1701,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Robots.html.vm",velocityContext);
     //Bandwidth tab
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Bandwidth.html.vm",velocityContext);
-
-    String proxyHost = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYHOST);
-    if (proxyHost == null)
-      proxyHost = "";
-    String proxyPort = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYPORT);
-    if (proxyPort == null)
-      proxyPort = "";
-    String proxyAuthDomain = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHDOMAIN);
-    if (proxyAuthDomain == null)
-      proxyAuthDomain = "";
-    String proxyAuthUsername = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHUSERNAME);
-    if (proxyAuthUsername == null)
-      proxyAuthUsername = "";
-    String proxyAuthPassword = parameters.getObfuscatedParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHPASSWORD);
-    if (proxyAuthPassword == null)
-      proxyAuthPassword = "";
-    else
-      proxyAuthPassword = out.mapPasswordToKey(proxyAuthPassword);
-
     // Proxy tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Proxy")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyHostColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"proxyhost\" value=\""+Encoder.attributeEscape(proxyHost)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyPortColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"proxyport\" value=\""+Encoder.attributeEscape(proxyPort)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationDomainColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthdomain\" value=\""+Encoder.attributeEscape(proxyAuthDomain)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationUserNameColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthusername\" value=\""+Encoder.attributeEscape(proxyAuthUsername)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationPasswordColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"password\" size=\"16\" name=\"proxyauthpassword\" value=\""+Encoder.attributeEscape(proxyAuthPassword)+"\"/></td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\"proxyhost\" value=\""+Encoder.attributeEscape(proxyHost)+"\"/>\n"+
-"<input type=\"hidden\" name=\"proxyport\" value=\""+Encoder.attributeEscape(proxyPort)+"\"/>\n"+
-"<input type=\"hidden\" name=\"proxyauthusername\" value=\""+Encoder.attributeEscape(proxyAuthUsername)+"\"/>\n"+
-"<input type=\"hidden\" name=\"proxyauthdomain\" value=\""+Encoder.attributeEscape(proxyAuthDomain)+"\"/>\n"+
-"<input type=\"hidden\" name=\"proxyauthpassword\" value=\""+Encoder.attributeEscape(proxyAuthPassword)+"\"/>\n"
-      );
-    }
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Proxy.html.vm",velocityContext);
 
     // Access Credentials tab
     if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.AccessCredentials")))
