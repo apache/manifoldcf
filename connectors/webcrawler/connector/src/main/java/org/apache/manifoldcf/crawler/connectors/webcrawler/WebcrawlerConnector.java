@@ -1719,6 +1719,125 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     velocityContext.put("TRUSTMAPLIST",trustMapList);
   }
+
+  private void fillInAccessTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters) throws ManifoldCFException
+  {
+    int i = 0;
+    List<Map<String,String>> pageAccessMapList = new ArrayList<>();
+    while (i < parameters.getChildCount())
+    {
+      ConfigNode cn = parameters.getChild(i++);
+      if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+      {
+        Map<String,String> pageAccessMap = new HashMap<>();
+
+        // A bin description node!  Look for all its parameters.
+        String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+        if (!type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
+        {
+          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+          if(regexp == null)
+            regexp = "";
+          String domain = cn.getAttributeValue(WebcrawlerConfig.ATTR_DOMAIN);
+          if (domain == null)
+            domain = "";
+          String userName = cn.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
+          String password = out.mapPasswordToKey(ManifoldCF.deobfuscate(cn.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD)));
+
+          pageAccessMap.put("regexp",regexp);
+          pageAccessMap.put("domain",domain);
+          pageAccessMap.put("userName",userName);
+          pageAccessMap.put("password",password);
+          pageAccessMap.put("type",type);
+
+          pageAccessMapList.add(pageAccessMap);
+        }
+      }
+    }
+    velocityContext.put("PAGEACCESSMAPLIST",pageAccessMapList);
+
+    i = 0;
+    List<Map<String,Object>> sessionAccessMapList = new ArrayList<>();
+    while (i < parameters.getChildCount())
+    {
+      ConfigNode cn = parameters.getChild(i++);
+      if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+      {
+        // A bin description node!  Look for all its parameters.
+        String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+        if (type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
+        {
+          Map<String,Object> sessionAccessMap = new HashMap<>();
+          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+          if(regexp == null)
+            regexp = "";
+          sessionAccessMap.put("regexp",regexp);
+
+          int q = 0;
+          List<Map<String,Object>> authPageMapList = new ArrayList<>();
+          while (q < cn.getChildCount())
+          {
+            ConfigNode authPageNode = cn.getChild(q++);
+            if (authPageNode.getType().equals(WebcrawlerConfig.NODE_AUTHPAGE))
+            {
+              Map<String,Object> authPageMap = new HashMap<>();
+
+              String pageRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+              String pageType = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+              String matchRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_MATCHREGEXP);
+              if (matchRegexp == null)
+                matchRegexp = "";
+              String overrideTargetURL = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_OVERRIDETARGETURL);
+              if (overrideTargetURL == null)
+                overrideTargetURL = "";
+
+              authPageMap.put("pageRegexp",pageRegexp);
+              authPageMap.put("pageType",pageType);
+              authPageMap.put("matchRegexp",matchRegexp);
+              authPageMap.put("overrideTargetURL",overrideTargetURL);
+
+              if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
+              {
+                int z = 0;
+                List<Map<String,String>> authPageParamMapList = new ArrayList<>();
+                while (z < authPageNode.getChildCount())
+                {
+                  ConfigNode paramNode = authPageNode.getChild(z++);
+                  if (paramNode.getType().equals(WebcrawlerConfig.NODE_AUTHPARAMETER))
+                  {
+                    Map<String,String> authPageParamMap = new HashMap<>();
+
+                    String param = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_NAMEREGEXP);
+                    if (param == null)
+                      param = "";
+                    String value = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+                    if (value == null)
+                      value = "";
+                    String password = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD);
+                    if (password == null)
+                      password = "";
+                    else
+                      password = out.mapPasswordToKey(ManifoldCF.deobfuscate(password));
+
+                    authPageParamMap.put("param",param);
+                    authPageParamMap.put("value",value);
+                    authPageParamMap.put("password",password);
+
+                    authPageParamMapList.add(authPageParamMap);
+                  }
+                }
+                authPageMap.put("authPageParamMapList",authPageParamMapList);
+              }
+              authPageMapList.add(authPageMap);
+            }
+          }
+          sessionAccessMap.put("authPageMapList",authPageMapList);
+          sessionAccessMapList.add(sessionAccessMap);
+        }
+      }
+    }
+    velocityContext.put("SESSIONACCESSMAPLIST",sessionAccessMapList);
+  }
   
   /** Output the configuration body section.
   * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
@@ -1741,6 +1860,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     fillInEmailTab(velocityContext,out,parameters);
     fillInRobotsTab(velocityContext,out,parameters);
     fillInBandwidthTab(velocityContext,out,parameters);
+    fillInAccessTab(velocityContext,out,parameters);
     fillInCertificatesTab(velocityContext,out,parameters);
     fillInProxyTab(velocityContext,out,parameters);
 
@@ -1750,485 +1870,13 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Robots.html.vm",velocityContext);
     //Bandwidth tab
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Bandwidth.html.vm",velocityContext);
+    // Access Credentials tab
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Access.html.vm",velocityContext);
     //Certificates tab
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Certificates.html.vm",velocityContext);
     // Proxy tab
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Proxy.html.vm",velocityContext);
 
-    // Access Credentials tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.AccessCredentials")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.PageAccessCredentials") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.URLRegularExpression") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.AuthenticationType") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Domain") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.UserName") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Password") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      int i = 0;
-      int accessCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
-        {
-          // A bin description node!  Look for all its parameters.
-          String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-          if (!type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
-          {
-            String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-            String domain = cn.getAttributeValue(WebcrawlerConfig.ATTR_DOMAIN);
-            if (domain == null)
-              domain = "";
-            String userName = cn.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
-            String password = out.mapPasswordToKey(ManifoldCF.deobfuscate(cn.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD)));
-                                        
-            // It's prefix will be...
-            String prefix = "acredential_" + Integer.toString(accessCounter);
-            out.print(
-"        <tr class=\""+(((accessCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeletePageAuthenticationUrlRegularExpression")+Integer.toString(accessCounter+1)+"\" onclick='javascript:deleteARegexp("+Integer.toString(accessCounter)+");'/>\n"+
-"              <input type=\"hidden\" name=\"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"radio\" name=\"type_"+prefix+"\" value=\"basic\" "+(type.equals("basic")?"checked=\"\"":"")+" />&nbsp;" + Messages.getBodyString(locale,"WebcrawlerConnector.BasicAuthentication") + "</nobr><br/>\n"+
-"            <nobr><input type=\"radio\" name=\"type_"+prefix+"\" value=\"ntlm\" "+(type.equals("ntlm")?"checked=\"\"":"")+" />&nbsp;" + Messages.getBodyString(locale,"WebcrawlerConnector.NTLMAuthentication") + "</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"16\" name=\""+"domain_"+prefix+"\" value=\""+Encoder.attributeEscape(domain)+"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"16\" name=\""+"username_"+prefix+"\" value=\""+Encoder.attributeEscape(userName)+"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"password\" size=\"16\" name=\""+"password_"+prefix+"\" value=\""+Encoder.attributeEscape(password)+"\"/></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-            );
-            accessCounter++;
-          }
-        }
-      }
-
-      if (accessCounter == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"6\">" + Messages.getBodyString(locale,"WebcrawlerConnector.NoPageAccessCredentialsSpecified") + "</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"6\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\"acredential\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddPageAuthenticationUrlRegularExpression") + "\" onclick=\"javascript:addARegexp();\"/>\n"+
-"            </a>\n"+
-"            <input type=\"hidden\" name=\"acredential_count\" value=\""+accessCounter+"\"/>\n"+
-"            <input type=\"hidden\" name=\"acredential_op\" value=\"Continue\"/>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"30\" name=\"regexp_acredential\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"radio\" name=\"type_acredential\" value=\"basic\" checked=\"\" />&nbsp;" + Messages.getBodyString(locale,"WebcrawlerConnector.BasicAuthentication") + "</nobr><br/>\n"+
-"            <nobr><input type=\"radio\" name=\"type_acredential\" value=\"ntlm\" />&nbsp;" + Messages.getBodyString(locale,"WebcrawlerConnector.NTLMAuthentication") + "</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"16\" name=\"domain_acredential\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"16\" name=\"username_acredential\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"password\" size=\"16\" name=\"password_acredential\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"        \n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.SessionBasedAccessCredentials") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.URLRegularExpression") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.LoginPages") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      i = 0;
-      accessCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
-        {
-          // A bin description node!  Look for all its parameters.
-          String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-          if (type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
-          {
-            String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-                                        
-            // It's prefix will be...
-            String prefix = "scredential_" + Integer.toString(accessCounter);
-            out.print(
-"        <tr class=\""+(((accessCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteSessionAuthenticationUrlRegularExpression")+Integer.toString(accessCounter+1)+"\" onclick='javascript:deleteSRegexp("+Integer.toString(accessCounter)+");'/>\n"+
-"              <input type=\"hidden\" name=\""+prefix+"_op"+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\""+prefix+"_regexp"+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"boxcell\">\n"+
-"            <table class=\"formtable\">\n"+
-"              <tr class=\"formheaderrow\">\n"+
-"                <td class=\"formcolumnheader\"></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.LoginURLRegularExpression") + "</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.PageType") + "</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.FormNamelinkTargetRegularExpression") + "</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.OverrideTargetURL") + "</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.OverrideFormParameters") + "</nobr></td>\n"+
-"              </tr>\n"
-            );
-            int q = 0;
-            int authPageCounter = 0;
-            while (q < cn.getChildCount())
-            {
-              ConfigNode authPageNode = cn.getChild(q++);
-              if (authPageNode.getType().equals(WebcrawlerConfig.NODE_AUTHPAGE))
-              {
-                String pageRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-                String pageType = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-                String matchRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_MATCHREGEXP);
-                if (matchRegexp == null)
-                  matchRegexp = "";
-                String overrideTargetURL = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_OVERRIDETARGETURL);
-                if (overrideTargetURL == null)
-                  overrideTargetURL = "";
-                String authpagePrefix = prefix + "_" + authPageCounter;
-                out.print(
-"              <tr class=\""+(((authPageCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                  <a name=\""+authpagePrefix+"\">\n"+
-"                    <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteLoginPage")+(authPageCounter+1)+" for url regular expression #"+Integer.toString(accessCounter+1)+"\" onclick='javascript:deleteLoginPage("+Integer.toString(accessCounter)+","+Integer.toString(authPageCounter)+");'/>\n"+
-"                    <input type=\"hidden\" name=\""+authpagePrefix+"_op"+"\" value=\"Continue\"/>\n"+
-"                    <input type=\"hidden\" name=\""+authpagePrefix+"_regexp"+"\" value=\""+Encoder.attributeEscape(pageRegexp)+"\"/>\n"+
-"                    <input type=\"hidden\" name=\""+authpagePrefix+"_type"+"\" value=\""+pageType+"\"/>\n"+
-"                  </a>\n"+
-"                </td>\n"+
-"\n"+
-"                <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(pageRegexp)+"</nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr>"+pageType+"</nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+Encoder.attributeEscape(matchRegexp)+"\"/></nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_overridetargeturl"+"\" value=\""+Encoder.attributeEscape(overrideTargetURL)+"\"/></nobr></td>\n"
-                );
-                if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
-                {
-                  out.print(
-"                <td class=\"boxcell\">\n"+
-"                  <table class=\"formtable\">\n"+
-"                    <tr class=\"formheaderrow\">\n"+
-"                      <td class=\"formcolumnheader\"></td>\n"+
-"                      <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.ParameterRegularExpression")+"</nobr></td>\n"+
-"                      <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.Value")+"</nobr></td>\n"+
-"                      <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.Password")+"</nobr></td>\n"+
-"                    </tr>\n"
-                  );
-                  int z = 0;
-                  int paramCounter = 0;
-                  while (z < authPageNode.getChildCount())
-                  {
-                    ConfigNode paramNode = authPageNode.getChild(z++);
-                    if (paramNode.getType().equals(WebcrawlerConfig.NODE_AUTHPARAMETER))
-                    {
-                      String param = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_NAMEREGEXP);
-                      if (param == null)
-                        param = "";
-                      String value = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-                      if (value == null)
-                        value = "";
-                      String password = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD);
-                      if (password == null)
-                        password = "";
-                      else
-                        password = out.mapPasswordToKey(ManifoldCF.deobfuscate(password));
-                      String authParamPrefix = authpagePrefix + "_" + paramCounter;
-                      out.print(
-"                    <tr class=\""+(((paramCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <a name=\""+authParamPrefix+"\">\n"+
-"                          <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteParameter")+(paramCounter+1)+Messages.getAttributeString(locale,"WebcrawlerConnector.ForLoginPage")+(authPageCounter+1)+Messages.getAttributeString(locale,"WebcrawlerConnector.ForCredential")+(accessCounter+1)+"\" onclick='javascript:deleteLoginPageParameter("+accessCounter+","+authPageCounter+","+paramCounter+");'/>\n"+
-"                          <input type=\"hidden\" name=\""+authParamPrefix+"_op"+"\" value=\"Continue\"/>\n"+
-"                        </a>\n"+
-"                      </td>\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"text\" size=\"30\" name=\""+authParamPrefix+"_param"+"\" value=\""+Encoder.attributeEscape(param)+"\"/></nobr>\n"+
-"                      </td>\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"text\" size=\"15\" name=\""+authParamPrefix+"_value"+"\" value=\""+Encoder.attributeEscape(value)+"\"/></nobr>\n"+
-"                      </td>\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"password\" size=\"15\" name=\""+authParamPrefix+"_password"+"\" value=\""+Encoder.attributeEscape(password)+"\"/></nobr>\n"+
-"                      </td>\n"+
-"                    </tr>\n"
-                      );
-                      paramCounter++;
-                    }
-                  }
-                  out.print(
-"                    <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"4\"><hr/></td></tr>\n"+
-"                    <tr class=\"formrow\">\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <a name=\""+authpagePrefix+"_loginparam"+"\">\n"+
-"                          <input type=\"button\" value=\"Add\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.AddParameterToLoginPage")+(authPageCounter+1)+Messages.getAttributeString(locale,"WebcrawlerConnector.ForCredential")+(accessCounter+1)+"\" onclick='javascript:addLoginPageParameter("+accessCounter+","+authPageCounter+");'/>\n"+
-"                        </a>\n"+
-"                        <input type=\"hidden\" name=\""+authpagePrefix+"_loginparamcount"+"\" value=\""+paramCounter+"\"/>\n"+
-"                        <input type=\"hidden\" name=\""+authpagePrefix+"_loginparamop"+"\" value=\"Continue\"/>\n"+
-"                      </td>\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_loginparamname"+"\" value=\"\"/></nobr>\n"+
-"                      </td>\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"text\" size=\"15\" name=\""+authpagePrefix+"_loginparamvalue"+"\" value=\"\"/></nobr>\n"+
-"                      </td>\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"password\" size=\"15\" name=\""+authpagePrefix+"_loginparampassword"+"\" value=\"\"/></nobr>\n"+
-"                      </td>\n"+
-"                    </tr>\n"+
-"                  </table>\n"+
-"                </td>\n"
-                  );
-                }
-                else
-                {
-                  out.print(
-"                <td class=\"formcolumncell\"></td>\n"
-                  );
-                }
-                out.print(
-"              </tr>\n"
-                );
-                authPageCounter++;
-              }
-            }
-            out.print(
-"              <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"6\"><hr/></td></tr>\n"+
-"              <tr class=\"formrow\">\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                  <a name=\""+prefix+"_loginpage"+"\">\n"+
-"                    <input type=\"button\" value=\"Add\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.AddLoginPageToCredential")+(accessCounter+1)+"\" onclick='javascript:addLoginPage("+accessCounter+");'/>\n"+
-"                  </a>\n"+
-"                  <input type=\"hidden\" name=\""+prefix+"_loginpagecount"+"\" value=\""+authPageCounter+"\"/>\n"+
-"                  <input type=\"hidden\" name=\""+prefix+"_loginpageop"+"\" value=\"Continue\"/>\n"+
-"                </td>\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                  <nobr><input type=\"text\" size=\"30\" name=\""+prefix+"_loginpageregexp"+"\" value=\"\"/></nobr>\n"+
-"                </td>\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+WebcrawlerConfig.ATTRVALUE_FORM+"\" checked=\"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.FormName")+"</nobr><br/>\n"+
-"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+WebcrawlerConfig.ATTRVALUE_LINK+"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.LinkTarget")+"</nobr>\n"+
-"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+WebcrawlerConfig.ATTRVALUE_REDIRECTION+"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.RedirectionTo")+"</nobr>\n"+
-"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+WebcrawlerConfig.ATTRVALUE_CONTENT+"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.PageContent")+"</nobr>\n"+
-"                </td>\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                  <nobr><input type=\"text\" size=\"30\" name=\""+prefix+"_loginpagematchregexp"+"\" value=\"\"/></nobr>\n"+
-"                </td>\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                  <nobr><input type=\"text\" size=\"30\" name=\""+prefix+"_loginpageoverridetargeturl"+"\" value=\"\"/></nobr>\n"+
-"                </td>\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                </td>\n"+
-"              </tr>\n"+
-"\n"+
-"            </table>\n"+
-"          </td>\n"+
-"        </tr>\n"
-            );
-            accessCounter++;
-          }
-        }
-      }
-
-      if (accessCounter == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getBodyString(locale,"WebcrawlerConnector.NoSessionBasedAccessCredentialsSpecified") + "</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\"scredential\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.AddSessionAuthenticationUrlRegularExpression")+"\" onclick=\"javascript:addSRegexp();\"/>\n"+
-"            </a>\n"+
-"            <input type=\"hidden\" name=\"scredential_count\" value=\""+accessCounter+"\"/>\n"+
-"            <input type=\"hidden\" name=\"scredential_op\" value=\"Continue\"/>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"30\" name=\"scredential_regexp\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for Access Credentials tab.
-      
-      // Page credentials first.
-      int i = 0;
-      int accessCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
-        {
-          // A bin description node!  Look for all its parameters.
-          String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-          if (!type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
-          {
-            String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-            String domain = cn.getAttributeValue(WebcrawlerConfig.ATTR_DOMAIN);
-            if (domain == null)
-              domain = "";
-            String userName = cn.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
-            String password = out.mapPasswordToKey(ManifoldCF.deobfuscate(cn.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD)));
-
-            // It's prefix will be...
-            String prefix = "acredential_" + Integer.toString(accessCounter);
-            out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"type_"+prefix+"\" value=\""+type+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"domain_"+prefix+"\" value=\""+Encoder.attributeEscape(domain)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"username_"+prefix+"\" value=\""+Encoder.attributeEscape(userName)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"password_"+prefix+"\" value=\""+Encoder.attributeEscape(password)+"\"/>\n"
-            );
-            accessCounter++;
-          }
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\"acredential_count\" value=\""+accessCounter+"\"/>\n"
-      );
-
-      // Now, session credentials
-      i = 0;
-      accessCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
-        {
-          // A bin description node!  Look for all its parameters.
-          String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-          if (type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
-          {
-            String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-            // It's identifier will be...
-            String prefix = "scredential_" + Integer.toString(accessCounter);
-            out.print(
-"<input type=\"hidden\" name=\""+prefix+"_regexp"+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"
-            );
-            // Loop through login pages...
-            int q = 0;
-            int authPageCounter = 0;
-            while (q < cn.getChildCount())
-            {
-              ConfigNode authPageNode = cn.getChild(q++);
-              if (authPageNode.getType().equals(WebcrawlerConfig.NODE_AUTHPAGE))
-              {
-                String pageRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-                String pageType = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-                String matchRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_MATCHREGEXP);
-                if (matchRegexp == null)
-                  matchRegexp = "";
-                String overrideTargetURL = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_OVERRIDETARGETURL);
-                if (overrideTargetURL == null)
-                  overrideTargetURL = "";
-                String authpagePrefix = prefix + "_" + authPageCounter;
-                out.print(
-"<input type=\"hidden\" name=\""+authpagePrefix+"_regexp"+"\" value=\""+Encoder.attributeEscape(pageRegexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authpagePrefix+"_type"+"\" value=\""+pageType+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+Encoder.attributeEscape(matchRegexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authpagePrefix+"_overridetargeturl"+"\" value=\""+Encoder.attributeEscape(overrideTargetURL)+"\"/>\n"
-                );
-                if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
-                {
-                  int z = 0;
-                  int paramCounter = 0;
-                  while (z < authPageNode.getChildCount())
-                  {
-                    ConfigNode paramNode = authPageNode.getChild(z++);
-                    if (paramNode.getType().equals(WebcrawlerConfig.NODE_AUTHPARAMETER))
-                    {
-                      String param = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_NAMEREGEXP);
-                      if (param == null)
-                        param = "";
-                      String value = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-                      if (value == null)
-                        value = "";
-                      String password = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD);
-                      if (password == null)
-                        password = "";
-                      else
-                        password = out.mapPasswordToKey(ManifoldCF.deobfuscate(password));
-                      String authParamPrefix = authpagePrefix + "_" + paramCounter;
-                      out.print(
-"<input type=\"hidden\" name=\""+authParamPrefix+"_param"+"\" value=\""+Encoder.attributeEscape(param)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authParamPrefix+"_value"+"\" value=\""+Encoder.attributeEscape(value)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authParamPrefix+"_password"+"\" value=\""+Encoder.attributeEscape(password)+"\"/>\n"
-                      );
-                      paramCounter++;
-                    }
-                  }
-                  out.print(
-"<input type=\"hidden\" name=\""+authpagePrefix+"_loginparamcount"+"\" value=\""+paramCounter+"\"/>\n"
-                  );
-                }
-                authPageCounter++;
-              }
-            }
-            out.print(
-"<input type=\"hidden\" name=\""+prefix+"_loginpagecount"+"\" value=\""+authPageCounter+"\"/>\n"
-            );
-            accessCounter++;
-          }
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\"scredential_count\" value=\""+accessCounter+"\"/>\n"
-      );
-    }
   }
   
   /** Process a configuration post.
