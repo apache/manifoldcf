@@ -279,7 +279,7 @@
   #set( $COUNTER = 0)
   #foreach($sessionAccessMap in $SESSIONACCESSMAPLIST)
     #set( $PREFIX = "scredential_" + $COUNTER )
-<input type="hidden" name="regexp_$PREFIX" value="$Encoder.attributeEscape($sessionAccessMap["regexp"])"/>
+<input type="hidden" name="${PREFIX}_regexp" value="$Encoder.attributeEscape($sessionAccessMap["regexp"])"/>
     #set( $AUTHPAGECOUNTER = 0 )
     #set( $AUTHPAGEMAPLIST = $sessionAccessMap["authPageMapList"])
     #foreach($authPageMap in $AUTHPAGEMAPLIST)
@@ -296,7 +296,7 @@
 <input type="hidden" name="${AUTHPARAMPREFIX}_op" value="Continue"/>
 <input type="hidden" name="${AUTHPARAMPREFIX}_param" value="$Encoder.attributeEscape($authPageParamMap["param"])" />
 <input type="hidden" name="${AUTHPARAMPREFIX}_value" value="$Encoder.attributeEscape($authPageParamMap["value"])" />
-<input type="hidden" name="${AUTHPARAMPREFIX}_password" value="$Encoder.attributeEscape($authPageParamMap["value"])" />
+<input type="hidden" name="${AUTHPARAMPREFIX}_password" value="$Encoder.attributeEscape($authPageParamMap["password"])" />
           #set( $AUTHPARAMCOUNTER = $AUTHPARAMCOUNTER + 1)
         #end
 <input type="hidden" name="${AUTHPAGEPREFIX}_loginparamcount" value="$AUTHPARAMCOUNTER"/>
