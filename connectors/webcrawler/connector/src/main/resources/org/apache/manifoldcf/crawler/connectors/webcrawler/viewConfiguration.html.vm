@@ -1,0 +1,241 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<table class="displaytable">
+  <tr>
+    <td class="description" colspan="1"><nobr>$ResourceBundle.getString('WebcrawlerConnector.EmailAddress')</nobr></td>
+    <td class="value" colspan="3">$Encoder.bodyEscape($EMAIL)</td>
+  </tr>
+  <tr>
+    <td class="description" colspan="1"><nobr>$ResourceBundle.getString('WebcrawlerConnector.RobotsUsage')</nobr></td>
+    <td class="value" colspan="1">
+    #if($ROBOTSUSAGE == 'none')
+      $ResourceBundle.getString('WebcrawlerConnector.DontLookAtRobotsTxt')
+    #elseif($ROBOTUSAGE == 'data')
+      $ResourceBundle.getString('WebcrawlerConnector.ObeyRobotsTxtForDataFetchesOnly')
+    #elseif($ROBOTUSAGE == 'all')
+      $ResourceBundle.getString('WebcrawlerConnector.ObeyRobotsTxtForAllFetches')
+    #end
+    </td>
+    <td class="description" colspan="1"><nobr>$ResourceBundle.getString('WebcrawlerConnector.MetaRobotsTagsUsage')</nobr></td>
+    <td class="value" colspan="1">
+    #if($METAROBOTSTAGSUSAGE == 'none')
+      $ResourceBundle.getString('WebcrawlerConnector.DontLookAtMetaRobotsTags')
+    #elseif($METAROBOTSTAGSUSAGE == 'all')
+      $ResourceBundle.getString('WebcrawlerConnector.ObeyMetaRobotsTags')
+    #end
+    </td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$ResourceBundle.getString('WebcrawlerConnector.ProxyHostColon')</nobr></td>
+    <td class="value">$Encoder.bodyEscape($PROXYHOST)</td>
+    <td class="description"><nobr>$ResourceBundle.getString('WebcrawlerConnector.ProxyPortColon')</nobr></td>
+    <td class="value">$Encoder.bodyEscape($PROXYPORT)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$ResourceBundle.getString('WebcrawlerConnector.ProxyAuthenticationDomainColon')</nobr></td>
+    <td class="value">$Encoder.bodyEscape($PROXYAUTHDOMAIN)</td>
+    <td class="description"><nobr>$ResourceBundle.getString('WebcrawlerConnector.ProxyAuthenticationUserNameColon')</nobr></td>
+    <td class="value">$Encoder.bodyEscape($PROXYAUTHUSERNAME)</td>
+  </tr>
+  <tr>
+    <td class="description" colspan="1"><nobr>$ResourceBundle.getString('WebcrawlerConnector.BandwidthThrottling')</nobr></td>
+    <td class="boxcell" colspan="3">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"><nobr>$ResourceBundle.getString('WebcrawlerConnector.BinRegularExpression')</nobr></td>
+          <td class="formcolumnheader"><nobr>$ResourceBundle.getString('WebcrawlerConnector.CaseInsensitive')</nobr></td>
+          <td class="formcolumnheader"><nobr>$ResourceBundle.getString('WebcrawlerConnector.MaxConnections')</nobr></td>
+          <td class="formcolumnheader"><nobr>$ResourceBundle.getString('WebcrawlerConnector.MaxKbytesSec')</nobr></td>
+          <td class="formcolumnheader"><nobr>$ResourceBundle.getString('WebcrawlerConnector.MaxFetchesMin')</nobr></td>
+        </tr>
+        #set( $BINCOUNTER = 0)
+        #foreach($throttleMap in $THROTTLESMAPLIST)
+        <tr>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($throttleMap.get("regexp"))</nobr>
+          </td>
+          <td class="formcolumncell"><nobr>$throttleMap["isCaseInsensitive"]</nobr></td>
+          <td class="formcolumncell">
+          #if($throttleMap["maxConnections"] == "")
+            Not limited
+          #else
+            $throttleMap["maxConnections"]
+          #end
+          </td>
+          <td class="formcolumncell">
+          #if($throttleMap["maxKBPerSecond"] == "")
+            Not limited
+          #else
+            $throttleMap["maxKBPerSecond"]
+          #end
+          </td>
+          <td class="formcolumncell">
+          #if($throttleMap["maxFetchesPerMinute"] == "")
+            Not limited
+          #else
+            $throttleMap["maxFetchesPerMinute"]
+          #end
+          </td>
+        </tr>
+          #set( $BINCOUNTER = $BINCOUNTER + 1)
+        #end
+        #if($BINCOUNTER == 0)
+        <tr class="formrow"><td class="formmessage" colspan="5">$ResourceBundle.getString('WebcrawlerConnector.NoBandwidthThrottling')</td></tr>
+        #end
+      </table>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="description" colspan="1"><nobr>$ResourceBundle.getString('WebcrawlerConnector.PageAccessCredentials')</nobr></td>
+    <td class="boxcell" colspan="3">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"><nobr>$ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression')</nobr></td>
+          <td class="formcolumnheader"><nobr>$ResourceBundle.getString('WebcrawlerConnector.CredentialType')</nobr></td>
+          <td class="formcolumnheader"><nobr>$ResourceBundle.getString('WebcrawlerConnector.CredentialDomain')</nobr></td>
+          <td class="formcolumnheader"><nobr>$ResourceBundle.getString('WebcrawlerConnector.UserName')</nobr></td>
+        </tr>
+        #set( $COUNTER = 0)
+        #foreach($pageAccessMap in $PAGEACCESSMAPLIST)
+        <tr>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($pageAccessMap["regexp"])</nobr>
+          </td>
+          <td class="formcolumncell">
+          $pageAccessMap["type"]
+          </td>
+          <td class="formcolumncell"><nobr>$Encoder.bodyEscape($pageAccessMap["domain"])</nobr></td>
+          <td class="formcolumncell"><nobr>$Encoder.attributeEscape($pageAccessMap["userName"])</nobr></td>
+        </tr>
+          #set( $COUNTER = $COUNTER + 1)
+        #end
+        #if($COUNTER == 0)
+        <tr class="formrow"><td class="formmessage" colspan="4"><nobr>$ResourceBundle.getString('WebcrawlerConnector.NoPageAccessCredentials')</nobr></td></tr>
+        #end
+      </table>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="description" colspan="1"><nobr>$ResourceBundle.getString('WebcrawlerConnector.SessionBasedAccessCredentials')</nobr></td>
+    <td class="boxcell" colspan="3">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"><nobr>$ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression')</nobr></td>
+          <td class="formcolumnheader"><nobr>$ResourceBundle.getString('WebcrawlerConnector.LoginPages')</nobr></td>
+        </tr>
+        #set( $COUNTER = 0)
+        #foreach($sessionAccessMap in $SESSIONACCESSMAPLIST)
+        <tr>
+          <td class="formcolumncell"><nobr>$Encoder.bodyEscape($sessionAccessMap["regexp"])</nobr></td>
+          <td class="boxcell">
+            <table class="formtable">
+              <tr class="formheaderrow">
+                <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.LoginURLRegularExpression'))</nobr></td>
+                <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.PageType'))</nobr></td>
+                <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.FormNamelinkTargetRegularExpression'))</nobr></td>
+                <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.OverrideTargetURL'))</nobr></td>
+                <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.OverrideFormParameters'))</nobr></td>
+              </tr>
+              #set( $AUTHPAGECOUNTER = 0 )
+              #set( $AUTHPAGEMAPLIST = $sessionAccessMap["authPageMapList"])
+              #foreach($authPageMap in $AUTHPAGEMAPLIST)
+              <tr>
+                <td class="formcolumncell"><nobr>$Encoder.bodyEscape($authPageMap["pageRegexp"])</nobr></td>
+                <td class="formcolumncell"><nobr>$authPageMap["pageType"]</nobr></td>
+                <td class="formcolumncell"><nobr>$Encoder.bodyEscape($authPageMap["matchRegexp"])</nobr></td>
+                <td class="formcolumncell"><nobr>$Encoder.bodyEscape($authPageMap["overrideTargetURL"])</nobr></td>
+                #if($authPageMap["pageType"] == "form")
+                <td class="boxcell">
+                  <table class="formtable">
+                    <tr class="formheaderrow">
+                      <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ParameterRegularExpression'))</nobr></td>
+                      <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Value'))</nobr></td>
+                      <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Password'))</nobr></td>
+                    </tr>
+                  #set( $AUTHPARAMCOUNTER = 0)
+                  #set( $AUTHPAGEPARAMMAPLIST = $authPageMap["authPageParamMapList"] )
+                  #foreach($authPageParamMap in $AUTHPAGEPARAMMAPLIST)
+                    <tr>
+                      <td class="formcolumncell"><nobr>$Encoder.bodyEscape($authPageParamMap["param"])</nobr></td>
+                      <td class="formcolumncell"><nobr>$Encoder.bodyEscape($authPageParamMap["value"])</nobr></td>
+                      <td class="formcolumncell">
+                      #if($authPageParamMap["password"] != "")
+                        *****
+                      #end
+                      </td>
+                    </tr>
+                    #set( $AUTHPARAMCOUNTER = $AUTHPARAMCOUNTER + 1)
+                  #end
+                  </table>
+                </td>
+                #else
+                <td class="formcolumncell"></td>
+                #end
+              </tr>
+                #set( $AUTHPAGECOUNTER = $AUTHPAGECOUNTER + 1 )
+              #end
+              #if($AUTHPAGECOUNTER == 0)
+              <tr><td><nobr>$ResourceBundle.getString('WebcrawlerConnector.NoLoginPagesSpecified')</nobr></td></tr>
+              #end
+            </table>
+          </td>
+        </tr>
+          #set( $COUNTER = $COUNTER + 1)
+        #end
+        #if($COUNTER == 0)
+        <tr class="formrow"><td class="formmessage" colspan="2"><nobr>$ResourceBundle.getString('WebcrawlerConnector.NoSessionBasedAccessCredentials')</nobr></td></tr>
+        #end
+      </table>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="description" colspan="1"><nobr>$ResourceBundle.getString('WebcrawlerConnector.TrustCertificates')</nobr></td>
+    <td class="boxcell" colspan="3">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"><nobr>$ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression')</nobr></td>
+          <td class="formcolumnheader"><nobr>$ResourceBundle.getString('WebcrawlerConnector.Certificate')</nobr></td>
+        </tr>
+        #set( $COUNTER = 0)
+        #foreach($trustMap in $TRUSTMAPLIST)
+        <tr>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($trustMap["regexp"])</nobr>
+          </td>
+          #if($trustMap["trustEverything"] == "true")
+          <td class="formcolumncell">
+            <nobr><i>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.TrustEverything"))</i></nobr>
+          </td>
+          #else
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($trustMap["shortenedDescription"])</nobr>
+          </td>
+          #end
+          #set( $COUNTER = $COUNTER + 1)
+        #end
+        #if($COUNTER == 0)
+        <tr class="formrow"><td class="formmessage" colspan="2">$ResourceBundle.getString('WebcrawlerConnector.NoTrustCertificates')</td></tr>
+        #end
+      </table>
+    </td>
+  </tr>
+</table>
+
