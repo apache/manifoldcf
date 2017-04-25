@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1417: Accept multipart/alternal email format.
+(Cihad Guzel)
+
 CONNECTORS-1416: Use a 4-character year for email dates.
 (Cihad Guzel)
 
