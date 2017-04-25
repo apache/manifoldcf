@@ -113,6 +113,8 @@ public class EmailConfig {
   
   public static final String MIMETYPE_TEXT_PLAIN = "text/plain";
   public static final String MIMETYPE_HTML = "text/html";
+  public static final String MIMETYPE_MULTIPART_GENERIC = "multipart/*";
+  public static final String MIMETYPE_MULTIPART_ALTERNATIVE = "multipart/alternative";
   
   // Fields
   
