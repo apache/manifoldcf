@@ -28,6 +28,31 @@
   <name>ManifoldCF - Framework - Crawler UI</name>
   <packaging>war</packaging>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.lesscss</groupId>
+        <artifactId>lesscss-maven-plugin</artifactId>
+        <version>1.7.0.1.1</version>
+        <configuration>
+            <sourceDirectory>${project.basedir}/src/main/webapp/less</sourceDirectory>
+            <outputDirectory>${project.build.directory}/${project.build.finalName}/css</outputDirectory>
+            <compress>true</compress>
+            <includes>
+                <include>main.less</include>
+            </includes>
+        </configuration>
+        <executions>
+            <execution>
+                <goals>
+                    <goal>compile</goal>
+                </goals>
+            </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
   <dependencies>
     <!-- Internal dependencies -->
     <dependency>
