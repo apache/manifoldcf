@@ -39,7 +39,7 @@
   </tr>
 </table>
 #else
-<input type="hidden" name="${SEQPREFIX}exclusions" value="$Encoder.attributeEscape($INCLUSIONS)"/>
-<input type="hidden" name="${SEQPREFIX}exclusionsindex" value="$Encoder.attributeEscape($INCLUSIONSINDEX)"/>
-<input type="hidden" name="${SEQPREFIX}exclusionscontentindex" value="$Encoder.attributeEscape($INCLUSIONSCONTENTINDEX)"/>
+<input type="hidden" name="${SEQPREFIX}exclusions" value="$Encoder.attributeEscape($EXCLUSIONS)"/>
+<input type="hidden" name="${SEQPREFIX}exclusionsindex" value="$Encoder.attributeEscape($EXCLUSIONSINDEX)"/>
+<input type="hidden" name="${SEQPREFIX}exclusionscontentindex" value="$Encoder.attributeEscape($EXCLUSIONSCONTENTINDEX)"/>
 #end

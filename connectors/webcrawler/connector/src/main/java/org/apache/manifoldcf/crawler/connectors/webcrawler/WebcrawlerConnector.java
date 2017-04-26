@@ -2383,7 +2383,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
         }
         else
-          allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+          allowReorderOutput = allowReorder;
         String allowJavaSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL);
         String allowJavaSessionRemovalOutput;
         if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
@@ -2392,7 +2392,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
         }
         else
-          allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+          allowJavaSessionRemovalOutput = allowJavaSessionRemoval;
         String allowASPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL);
         String allowASPSessionRemovalOutput;
         if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
@@ -2401,7 +2401,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
         }
         else
-          allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+          allowASPSessionRemovalOutput = allowASPSessionRemoval;
         String allowPHPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL);
         String allowPHPSessionRemovalOutput;
         if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
@@ -2410,7 +2410,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
         }
         else
-          allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+          allowPHPSessionRemovalOutput = allowPHPSessionRemoval;
         String allowBVSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL);
         String allowBVSessionRemovalOutput;
         if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
@@ -2419,7 +2419,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
         }
         else
-          allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+          allowBVSessionRemovalOutput = allowBVSessionRemoval;
 
         canonicalizationMap.put("regexpString",regexpString);
         canonicalizationMap.put("description",description);
@@ -2525,7 +2525,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
+      if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDES))
       {
         exclusions = sn.getValue();
         if (exclusions == null)
@@ -2572,10 +2572,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   }
 
-  private void fillInMetadatasTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  private void fillInMetadataTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
   {
 
-    Set<String> excludedHeaders = new HashSet<String>();
+    Set<String> excludedHeaders = new HashSet<>();
 
     // Now, loop through description
     int i = 0;
@@ -2625,7 +2625,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     fillInInclusionsTab(velocityContext,out,ds);
     fillInExclusionsTab(velocityContext,out,ds);
     fillInSecurityTab(velocityContext,out,ds);
-    fillInMetadatasTab(velocityContext,out,ds);
+    fillInMetadataTab(velocityContext,out,ds);
 
     // Seeds tab
     Messages.outputResourceWithVelocity(out,locale,"editSpecification_Seeds.html.vm",velocityContext);

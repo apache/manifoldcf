@@ -19,7 +19,7 @@
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.URLMappings') && ${SEQNUM} == ${SELECTEDNUM})
 <input type="hidden" name="${SEQPREFIX}rssop" value=""/>
 <input type="hidden" name="${SEQPREFIX}rssindex" value=""/>
-<input type="hidden" name="${SEQPREFIX}rssmapcount" value="$REGEXP.size()"/>
+<input type="hidden" name="${SEQPREFIX}rssmapcount" value="$REGEXPLIST.size()"/>
 
 <table class="displaytable">
   <tr><td class="separator" colspan="4"><hr/></td></tr>
@@ -36,10 +36,10 @@
     <td class="value">
     #set( $MATCH = $MATCHSTRINGS.get($foreach.index))
       <input type="hidden" name="${PREFIX}map" value="$Encoder.attributeEscape($MATCH)"/>
-    #if($MATCH)
-      $Encoder.bodyEscape($MATCH)
+    #if($MATCH.length() == 0)
+      &lt;as is&gt;
     #else
-    &lt;as is&gt;
+      $Encoder.bodyEscape($MATCH)
     #end
     </td>
   </tr>
@@ -63,7 +63,7 @@
   <input type="hidden" name="${SEQPREFIX}rssmapcount" value="$COUNTER"/>
   #foreach($REGEXP in $REGEXPLIST)
     #set( $PREFIX = $SEQPREFIX + "rssregexp_" + $foreach.index +"_" )
-  <input type="hidden" name="${PREFIX}match" value="$Encoder.attributeEscape($REGEXP)"/>$Encoder.bodyEscape($REGEXP)</td>
+  <input type="hidden" name="${PREFIX}match" value="$Encoder.attributeEscape($REGEXP)"/>
     #set( $MATCH = $MATCHSTRINGS.get($foreach.index))
   <input type="hidden" name="${PREFIX}map" value="$Encoder.attributeEscape($MATCH)"/>
   #end
