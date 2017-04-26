@@ -2551,6 +2551,49 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
   }
 
+  private void fillInSecurityTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+
+    int i = 0;
+
+    // Go through forced ACL
+    Set<String> tokens = new HashSet<>();
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(WebcrawlerConfig.NODE_ACCESS))
+      {
+        String token = sn.getAttributeValue(WebcrawlerConfig.ATTR_TOKEN);
+        tokens.add(token);
+      }
+    }
+
+    velocityContext.put("TOKENS",tokens);
+
+  }
+
+  private void fillInMetadatasTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+
+    Set<String> excludedHeaders = new HashSet<String>();
+
+    // Now, loop through description
+    int i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDEHEADER))
+      {
+        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+        excludedHeaders.add(value);
+      }
+    }
+
+    velocityContext.put("POTENTIALLYEXCLUDEDHEADERS",potentiallyExcludedHeaders);
+    velocityContext.put("EXCLUDEDHEADERS",excludedHeaders);
+
+  }
+
   /** Output the specification body section.
   * This method is called in the body section of a job page which has selected a repository connection of the
   * current type.  Its purpose is to present the required form elements for editing.
@@ -2581,45 +2624,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     fillInMappingsTab(velocityContext,out,ds);
     fillInInclusionsTab(velocityContext,out,ds);
     fillInExclusionsTab(velocityContext,out,ds);
-
-    String seqPrefix = "s"+connectionSequenceNumber+"_";
-
-    int i;
-    int k;
-
-
-
-
-    String exclusions = "";
-    String exclusionsIndex = "";
-    String exclusionsContentIndex = "";
-
-    Set<String> excludedHeaders = new HashSet<String>();
-    
-    // Now, loop through description
-    i = 0;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDES))
-      {
-        exclusions = sn.getValue();
-        if (exclusions == null)
-          exclusions = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESCONTENTINDEX))
-      {
-        exclusionsContentIndex = sn.getValue();
-        if (exclusionsContentIndex == null)
-        	exclusionsContentIndex = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDEHEADER))
-      {
-        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-        excludedHeaders.add(value);
-      }
-
-    }
+    fillInSecurityTab(velocityContext,out,ds);
+    fillInMetadatasTab(velocityContext,out,ds);
 
     // Seeds tab
     Messages.outputResourceWithVelocity(out,locale,"editSpecification_Seeds.html.vm",velocityContext);
@@ -2631,129 +2637,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     Messages.outputResourceWithVelocity(out,locale,"editSpecification_Inclusions.html.vm",velocityContext);
     // Exclusions tab
     Messages.outputResourceWithVelocity(out,locale,"editSpecification_Exclusions.html.vm",velocityContext);
-  
     // Security tab
-    // There is no native security, so all we care about are the tokens.
-    i = 0;
-
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Security")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-      );
-      // Go through forced ACL
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals(WebcrawlerConfig.NODE_ACCESS))
-        {
-          String accessDescription = "_"+Integer.toString(k);
-          String accessOpName = seqPrefix+"accessop"+accessDescription;
-          String token = sn.getAttributeValue(WebcrawlerConfig.ATTR_TOKEN);
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+Encoder.attributeEscape(token)+"\"/>\n"+
-"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+accessOpName+"\",\"Delete\",\""+seqPrefix+"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
-"      </a>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      "+Encoder.bodyEscape(token)+"\n"+
-"    </td>\n"+
-"  </tr>\n"
-          );
-          k++;
-        }
-      }
-      if (k == 0)
-      {
-        out.print(
-"  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"WebcrawlerConnector.NoAccessTokensPresent") + "</td>\n"+
-"  </tr>\n"
-        );
-      }
-      out.print(
-"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"accessop\" value=\"\"/>\n"+
-"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" onClick='Javascript:"+seqPrefix+"SpecAddToken(\""+seqPrefix+"token_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddAccessToken") + "\"/>\n"+
-"      </a>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"spectoken\" value=\"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Finally, go through forced ACL
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals(WebcrawlerConfig.NODE_ACCESS))
-        {
-          String accessDescription = "_"+Integer.toString(k);
-          String token = sn.getAttributeValue(WebcrawlerConfig.ATTR_TOKEN);
-          out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+Encoder.attributeEscape(token)+"\"/>\n"
-          );
-          k++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
-      );
-    }
-
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Security.html.vm",velocityContext);
     // "Metadata" tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Metadata")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale, "WebcrawlerConnector.ExcludedHeadersColon")+"</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"3\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"excludedheaders_present\" value=\"true\"/>\n"
-      );
-      
-      for (String potentiallyExcludedHeader : potentiallyExcludedHeaders)
-      {
-        out.print(
-"      <input type=\"checkbox\" name=\""+seqPrefix+"excludedheaders\" value=\""+Encoder.attributeEscape(potentiallyExcludedHeader)+"\""+(excludedHeaders.contains(potentiallyExcludedHeader)?" checked=\"true\"":"")+">"+Encoder.bodyEscape(potentiallyExcludedHeader)+"</input><br/>\n"
-        );
-      }
-      out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"excludedheaders_present\" value=\"true\"/>\n"
-      );
-      for (String excludedHeader : excludedHeaders)
-      {
-        out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"excludedheaders\" value=\""+Encoder.attributeEscape(excludedHeader)+"\"/>\n"
-        );
-      }
-    }
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Metadata.html.vm",velocityContext);
+
   }
   
   /** Process a specification post.
