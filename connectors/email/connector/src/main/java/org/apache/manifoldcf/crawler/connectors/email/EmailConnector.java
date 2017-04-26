@@ -367,9 +367,9 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       } else if (findParameterName.equals(EmailConfig.EMAIL_BODY)) {
         searchClause = new BodyTerm(findParameterValue);
       } else if (findParameterName.equals(EmailConfig.EMAIL_START_DATE)) {
-        comparisonTerm = ComparisonTerm.LT;
-      } else if (findParameterName.equals(EmailConfig.EMAIL_END_DATE)) {
         comparisonTerm = ComparisonTerm.GT;
+      } else if (findParameterName.equals(EmailConfig.EMAIL_END_DATE)) {
+        comparisonTerm = ComparisonTerm.LT;
       }
 
       if (comparisonTerm != null) {
