@@ -1,0 +1,70 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#set( $SEQPREFIX = 's' + $SEQNUM + '_' )
+#if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.URLMappings') && ${SEQNUM} == ${SELECTEDNUM})
+<input type="hidden" name="${SEQPREFIX}rssop" value=""/>
+<input type="hidden" name="${SEQPREFIX}rssindex" value=""/>
+<input type="hidden" name="${SEQPREFIX}rssmapcount" value="$REGEXP.size()"/>
+
+<table class="displaytable">
+  <tr><td class="separator" colspan="4"><hr/></td></tr>
+  #foreach($REGEXP in $REGEXPLIST)
+    #set( $PREFIX = $SEQPREFIX + "rssregexp_" + $foreach.index +"_" )
+  <tr>
+    <td class="value">
+      <a name="${SEQPREFIX}regexp_$foreach.index">
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Remove'))" onclick='javascript:${SEQPREFIX}RemoveRegexp($foreach.index,"${SEQPREFIX}regexp_$foreach.index")' alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.RemoveRegexp'))$foreach.index"/>
+      </a>
+    </td>
+    <td class="value"><input type="hidden" name="${PREFIX}match" value="$Encoder.attributeEscape($REGEXP)"/>$Encoder.bodyEscape($REGEXP)</td>
+    <td class="value">--&gt;</td>
+    <td class="value">
+    #set( $MATCH = $MATCHSTRINGS.get($foreach.index))
+      <input type="hidden" name="${PREFIX}map" value="$Encoder.attributeEscape($MATCH)"/>
+    #if($MATCH)
+      $Encoder.bodyEscape($MATCH)
+    #else
+    &lt;as is&gt;
+    #end
+    </td>
+  </tr>
+  #end
+  #set( $COUNTER = $REGEXPLIST.size() )
+  #set( $NEXTCOUNTER = $COUNTER + 1 )
+  <tr>
+    <td class="value">
+        <a name="${SEQPREFIX}regexp_${COUNTER}">
+            <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))" onclick='javascript:${SEQPREFIX}AddRegexp("${SEQPREFIX}regexp_${NEXTCOUNTER}")' alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddRegexp'))" />
+        </a>
+    </td>
+    <td class="value"><input type="text" name="${SEQPREFIX}rssmatch" size="16" value=""/></td>
+    <td class="value">--&gt;</td>
+    <td class="value"><input type="text" name="${SEQPREFIX}rssmap" size="16" value=""/></td>
+  </tr>
+</table>
+
+#else
+  #set( $COUNTER = $REGEXPLIST.size() )
+  <input type="hidden" name="${SEQPREFIX}rssmapcount" value="$COUNTER"/>
+  #foreach($REGEXP in $REGEXPLIST)
+    #set( $PREFIX = $SEQPREFIX + "rssregexp_" + $foreach.index +"_" )
+  <input type="hidden" name="${PREFIX}match" value="$Encoder.attributeEscape($REGEXP)"/>$Encoder.bodyEscape($REGEXP)</td>
+    #set( $MATCH = $MATCHSTRINGS.get($foreach.index))
+  <input type="hidden" name="${PREFIX}map" value="$Encoder.attributeEscape($MATCH)"/>
+  #end
+#end

@@ -2336,7 +2336,221 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     Messages.outputResourceWithVelocity(out, locale, "editSpecification.js.vm", velocityContext);
   }
-  
+
+  private void fillInSeedsTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+
+    int i;
+    String seeds = "";
+
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(WebcrawlerConfig.NODE_SEEDS))
+      {
+        seeds = sn.getValue();
+        if (seeds == null)
+          seeds = "";
+      }
+    }
+
+    velocityContext.put("SEEDS",seeds);
+
+  }
+
+  private void fillInCanonicalizationTab(Map<String,Object> velocityContext, IHTTPOutput out, Locale locale, Specification ds)
+  {
+
+    int q = 0;
+    List<Map<String,String>> canonicalizationMapList = new ArrayList<>();
+    while (q < ds.getChildCount())
+    {
+      SpecificationNode specNode = ds.getChild(q++);
+      if (specNode.getType().equals(WebcrawlerConfig.NODE_URLSPEC))
+      {
+        Map<String,String> canonicalizationMap = new HashMap<>();
+        // Ok, this node matters to us
+        String regexpString = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REGEXP);
+        String description = specNode.getAttributeValue(WebcrawlerConfig.ATTR_DESCRIPTION);
+        if (description == null)
+          description = "";
+        String allowReorder = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REORDER);
+        String allowReorderOutput;
+        if (allowReorder == null || allowReorder.length() == 0)
+        {
+          allowReorder = WebcrawlerConfig.ATTRVALUE_NO;
+          allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        }
+        else
+          allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+        String allowJavaSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL);
+        String allowJavaSessionRemovalOutput;
+        if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
+        {
+          allowJavaSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+          allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        }
+        else
+          allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+        String allowASPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL);
+        String allowASPSessionRemovalOutput;
+        if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
+        {
+          allowASPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+          allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        }
+        else
+          allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+        String allowPHPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL);
+        String allowPHPSessionRemovalOutput;
+        if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
+        {
+          allowPHPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+          allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        }
+        else
+          allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+        String allowBVSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL);
+        String allowBVSessionRemovalOutput;
+        if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
+        {
+          allowBVSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+          allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        }
+        else
+          allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
+
+        canonicalizationMap.put("regexpString",regexpString);
+        canonicalizationMap.put("description",description);
+        canonicalizationMap.put("allowReorder",allowReorder);
+        canonicalizationMap.put("allowReorderOutput",allowReorderOutput);
+        canonicalizationMap.put("allowJavaSessionRemoval",allowJavaSessionRemoval);
+        canonicalizationMap.put("allowJavaSessionRemovalOutput",allowJavaSessionRemovalOutput);
+        canonicalizationMap.put("allowASPSessionRemoval",allowASPSessionRemoval);
+        canonicalizationMap.put("allowASPSessionRemovalOutput",allowASPSessionRemovalOutput);
+        canonicalizationMap.put("allowPHPSessionRemoval",allowPHPSessionRemoval);
+        canonicalizationMap.put("allowPHPSessionRemovalOutput",allowPHPSessionRemovalOutput);
+        canonicalizationMap.put("allowBVSessionRemoval",allowBVSessionRemoval);
+        canonicalizationMap.put("allowBVSessionRemovalOutput",allowBVSessionRemovalOutput);
+
+        canonicalizationMapList.add(canonicalizationMap);
+      }
+    }
+
+    velocityContext.put("CANONICALIZATIONMAPLIST",canonicalizationMapList);
+
+  }
+
+  private void fillInMappingsTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+
+    int i;
+    // Find the various strings
+    List<String> regexpList = new ArrayList<String>();
+    List<String> matchStrings = new ArrayList<String>();
+
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(WebcrawlerConfig.NODE_MAP))
+      {
+        String match = sn.getAttributeValue(WebcrawlerConfig.ATTR_MATCH);
+        String map = sn.getAttributeValue(WebcrawlerConfig.ATTR_MAP);
+        if (match != null)
+        {
+          regexpList.add(match);
+          if (map == null)
+            map = "";
+          matchStrings.add(map);
+        }
+      }
+    }
+
+    velocityContext.put("REGEXPLIST",regexpList);
+    velocityContext.put("MATCHSTRINGS",matchStrings);
+
+  }
+
+  private void fillInInclusionsTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+
+    int i;
+    String inclusions = ".*\n";
+    String inclusionsIndex = ".*\n";
+    boolean includeMatching = true;
+
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
+      {
+        inclusions = sn.getValue();
+        if (inclusions == null)
+          inclusions = "";
+      }
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDESINDEX))
+      {
+        inclusionsIndex = sn.getValue();
+        if (inclusionsIndex == null)
+          inclusionsIndex = "";
+      }
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
+      {
+        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+        if (value == null || value.equals("false"))
+          includeMatching = false;
+        else
+          includeMatching = true;
+      }
+    }
+
+    velocityContext.put("INCLUSIONS",inclusions);
+    velocityContext.put("INCLUSIONSINDEX",inclusionsIndex);
+    velocityContext.put("INCLUDEMATCHING",includeMatching);
+
+  }
+
+  private void fillInExclusionsTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+
+    int i;
+    String exclusions = "";
+    String exclusionsIndex = "";
+    String exclusionsContentIndex = "";
+
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
+      {
+        exclusions = sn.getValue();
+        if (exclusions == null)
+          exclusions = "";
+      }
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESINDEX))
+      {
+        exclusionsIndex = sn.getValue();
+        if (exclusionsIndex == null)
+          exclusionsIndex = "";
+      }
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESCONTENTINDEX))
+      {
+        exclusionsContentIndex = sn.getValue();
+        if (exclusionsContentIndex == null)
+          exclusionsContentIndex = "";
+      }
+    }
+
+    velocityContext.put("EXCLUSIONS",exclusions);
+    velocityContext.put("EXCLUSIONSINDEX",exclusionsIndex);
+    velocityContext.put("EXCLUSIONSCONTENTINDEX",exclusionsContentIndex);
+
+  }
+
   /** Output the specification body section.
   * This method is called in the body section of a job page which has selected a repository connection of the
   * current type.  Its purpose is to present the required form elements for editing.
@@ -2356,23 +2570,30 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
+
+    final Map<String,Object> velocityContext = new HashMap<>();
+    velocityContext.put("TABNAME",tabName);
+    velocityContext.put("SEQNUM", Integer.toString(connectionSequenceNumber));
+    velocityContext.put("SELECTEDNUM", Integer.toString(actualSequenceNumber));
+
+    fillInSeedsTab(velocityContext,out,ds);
+    fillInCanonicalizationTab(velocityContext,out,locale,ds);
+    fillInMappingsTab(velocityContext,out,ds);
+    fillInInclusionsTab(velocityContext,out,ds);
+    fillInExclusionsTab(velocityContext,out,ds);
+
     String seqPrefix = "s"+connectionSequenceNumber+"_";
 
     int i;
     int k;
 
-    // Find the various strings
-    List<String> regexp = new ArrayList<String>();
-    List<String> matchStrings = new ArrayList<String>();
 
-    String seeds = "";
-    String inclusions = ".*\n";
+
+
     String exclusions = "";
-    String inclusionsIndex = ".*\n";
     String exclusionsIndex = "";
     String exclusionsContentIndex = "";
-    
-    boolean includeMatching = true;
+
     Set<String> excludedHeaders = new HashSet<String>();
     
     // Now, loop through description
@@ -2380,61 +2601,17 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(WebcrawlerConfig.NODE_MAP))
-      {
-        String match = sn.getAttributeValue(WebcrawlerConfig.ATTR_MATCH);
-        String map = sn.getAttributeValue(WebcrawlerConfig.ATTR_MAP);
-        if (match != null)
-        {
-          regexp.add(match);
-          if (map == null)
-            map = "";
-          matchStrings.add(map);
-        }
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_SEEDS))
-      {
-        seeds = sn.getValue();
-        if (seeds == null)
-          seeds = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
-      {
-        inclusions = sn.getValue();
-        if (inclusions == null)
-          inclusions = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDES))
+      if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDES))
       {
         exclusions = sn.getValue();
         if (exclusions == null)
           exclusions = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDESINDEX))
-      {
-        inclusionsIndex = sn.getValue();
-        if (inclusionsIndex == null)
-          inclusionsIndex = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESINDEX))
-      {
-        exclusionsIndex = sn.getValue();
-        if (exclusionsIndex == null)
-          exclusionsIndex = "";
       }
       else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESCONTENTINDEX))
       {
         exclusionsContentIndex = sn.getValue();
         if (exclusionsContentIndex == null)
         	exclusionsContentIndex = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
-      {
-        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-        if (value == null || value.equals("false"))
-          includeMatching = false;
-        else
-          includeMatching = true;
       }
       else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDEHEADER))
       {
@@ -2445,363 +2622,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
 
     // Seeds tab
-
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Seeds")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"value\" colspan=\"2\">\n"+
-"      <textarea rows=\"25\" cols=\"80\" name=\""+seqPrefix+"seeds\">"+Encoder.bodyEscape(seeds)+"</textarea>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"seeds\" value=\""+Encoder.attributeEscape(seeds)+"\"/>\n"
-      );
-    }
-
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Seeds.html.vm",velocityContext);
     // Canonicalization tab
-
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Canonicalization")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"boxcell\" colspan=\"2\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"urlregexpop\" value=\"Continue\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"urlregexpnumber\" value=\"\"/>\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.URLRegularExpression") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Description") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Reorder") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RemoveJSPSessions") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RemoveASPSessions") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RemovePHPSessions") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RemoveBVSessions") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      int q = 0;
-      int l = 0;
-      while (q < ds.getChildCount())
-      {
-        SpecificationNode specNode = ds.getChild(q++);
-        if (specNode.getType().equals(WebcrawlerConfig.NODE_URLSPEC))
-        {
-          // Ok, this node matters to us
-          String regexpString = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REGEXP);
-          String description = specNode.getAttributeValue(WebcrawlerConfig.ATTR_DESCRIPTION);
-          if (description == null)
-            description = "";
-          String allowReorder = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REORDER);
-          String allowReorderOutput;
-          if (allowReorder == null || allowReorder.length() == 0)
-          {
-            allowReorder = WebcrawlerConfig.ATTRVALUE_NO;
-            allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-          }
-          else
-            allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-          String allowJavaSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL);
-          String allowJavaSessionRemovalOutput;
-          if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-          {
-            allowJavaSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-            allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-          }
-          else
-            allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-          String allowASPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL);
-          String allowASPSessionRemovalOutput;
-          if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-          {
-            allowASPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-            allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-          }
-          else
-            allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-          String allowPHPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL);
-          String allowPHPSessionRemovalOutput;
-          if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-          {
-            allowPHPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-            allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-          }
-          else
-            allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-          String allowBVSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL);
-          String allowBVSessionRemovalOutput;
-          if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-          {
-            allowBVSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-            allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-          }
-          else
-            allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-          out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteUrlRegexp")+Encoder.attributeEscape(regexpString)+"\" onclick='javascript:"+seqPrefix+"URLRegexpDelete("+Integer.toString(l)+",\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\");'/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(regexpString)+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(description)+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpphp_"+Integer.toString(l)+"\" value=\""+allowPHPSessionRemoval+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpbv_"+Integer.toString(l)+"\" value=\""+allowBVSessionRemoval+"\"/>\n"+
-"            <nobr>"+Encoder.bodyEscape(regexpString)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">"+Encoder.bodyEscape(description)+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowReorderOutput+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowJavaSessionRemovalOutput+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowASPSessionRemovalOutput+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowPHPSessionRemovalOutput+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowBVSessionRemovalOutput+"</td>\n"+
-"        </tr>\n"
-          );
-
-          l++;
-        }
-      }
-      if (l == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td colspan=\"8\" class=\"formcolumnmessage\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.NoCanonicalizationSpecified") + "</nobr></td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\"formrow\"><td colspan=\"8\" class=\"formseparator\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddUrlRegexp") + "\" onclick='javascript:"+seqPrefix+"URLRegexpAdd(\""+seqPrefix+"urlregexp_"+Integer.toString(l+1)+"\");'/>\n"+
-"              <input type=\"hidden\" name=\""+seqPrefix+"urlregexpcount\" value=\""+Integer.toString(l)+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"text\" name=\""+seqPrefix+"urlregexp\" size=\"30\" value=\"\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"text\" name=\""+seqPrefix+"urlregexpdesc\" size=\"30\" value=\"\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpreorder\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpjava\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpasp\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpphp\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpbv\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Post the canonicalization specification
-      int q = 0;
-      int l = 0;
-      while (q < ds.getChildCount())
-      {
-        SpecificationNode specNode = ds.getChild(q++);
-        if (specNode.getType().equals(WebcrawlerConfig.NODE_URLSPEC))
-        {
-          // Ok, this node matters to us
-          String regexpString = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REGEXP);
-          String description = specNode.getAttributeValue(WebcrawlerConfig.ATTR_DESCRIPTION);
-          if (description == null)
-            description = "";
-          String allowReorder = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REORDER);
-          if (allowReorder == null || allowReorder.length() == 0)
-            allowReorder = WebcrawlerConfig.ATTRVALUE_NO;
-          String allowJavaSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL);
-          if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-            allowJavaSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-          String allowASPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL);
-          if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-            allowASPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-          String allowPHPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL);
-          if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-            allowPHPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-          String allowBVSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL);
-          if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-            allowBVSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-          out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(regexpString)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(description)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpphp_"+Integer.toString(l)+"\" value=\""+allowPHPSessionRemoval+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpbv_"+Integer.toString(l)+"\" value=\""+allowBVSessionRemoval+"\"/>\n"
-          );
-          l++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpcount\" value=\""+Integer.toString(l)+"\"/>\n"
-      );
-    }
-
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Canonicalization.html.vm",velocityContext);
     // Mappings tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.URLMappings")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"rssop\" value=\"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"rssindex\" value=\"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"rssmapcount\" value=\""+Integer.toString(regexp.size())+"\"/>\n"+
-"\n"+
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
-      );
-
-      i = 0;
-      while (i < regexp.size())
-      {
-        String prefix = seqPrefix+"rssregexp_"+Integer.toString(i)+"_";
-        out.print(
-"  <tr>\n"+
-"    <td class=\"value\">\n"+
-"      <a name=\""+seqPrefix+"regexp_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" value=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.Remove")+"\" onclick='javascript:"+seqPrefix+"RemoveRegexp("+Integer.toString(i)+",\""+seqPrefix+"regexp_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.RemoveRegexp")+Integer.toString(i)+"\"/>\n"+
-"      </a>\n"+
-"    </td>\n"+
-"    <td class=\"value\"><input type=\"hidden\" name=\""+prefix+"match"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape((String)regexp.get(i))+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape((String)regexp.get(i))+"</td>\n"+
-"    <td class=\"value\">--&gt;</td>\n"+
-"    <td class=\"value\">\n"
-        );
-        String match = (String)matchStrings.get(i);
-        out.print(
-"      <input type=\"hidden\" name=\""+prefix+"map"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"
-        );
-        if (match.length() == 0)
-        {
-          out.print(
-"      &lt;as is&gt;\n"
-          );
-        }
-        else
-        {
-          out.print(
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(match)+"\n"
-          );
-        }
-        out.print(
-"    </td>\n"+
-"  </tr>\n"
-        );
-        i++;
-      }
-      out.print(
-"  <tr>\n"+
-"    <td class=\"value\"><a name=\""+seqPrefix+"regexp_"+Integer.toString(i)+"\"><input type=\"button\" value=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.Add")+"\" onclick='javascript:"+seqPrefix+"AddRegexp(\""+seqPrefix+"regexp_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.AddRegexp")+"\"/></a></td>\n"+
-"    <td class=\"value\"><input type=\"text\" name=\""+seqPrefix+"rssmatch\" size=\"16\" value=\"\"/></td>\n"+
-"    <td class=\"value\">--&gt;</td>\n"+
-"    <td class=\"value\"><input type=\"text\" name=\""+seqPrefix+"rssmap\" size=\"16\" value=\"\"/></td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"rssmapcount\" value=\""+Integer.toString(regexp.size())+"\"/>\n"
-      );
-      i = 0;
-      while (i < regexp.size())
-      {
-        String prefix = seqPrefix+"rssregexp_"+Integer.toString(i)+"_";
-        String match = (String)matchStrings.get(i);
-        out.print(
-"<input type=\"hidden\" name=\""+prefix+"match"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape((String)regexp.get(i))+"\"/>\n"+
-"<input type=\"hidden\" name=\""+prefix+"map"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"
-        );
-        i++;
-      }
-    }
-
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Mappings.html.vm",velocityContext);
     // Inclusions tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Inclusions")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeInCrawl") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"25\" cols=\"60\" name=\""+seqPrefix+"inclusions\">"+Encoder.bodyEscape(inclusions)+"</textarea>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeInIndex") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"10\" cols=\"60\" name=\""+seqPrefix+"inclusionsindex\">"+Encoder.bodyEscape(inclusionsIndex)+"</textarea>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeOnlyHostsMatchingSeeds") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"checkbox\" name=\""+seqPrefix+"matchinghosts\" value=\"true\""+(includeMatching?" checked=\"yes\"":"")+"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"matchinghosts_present\" value=\"true\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"inclusions\" value=\""+Encoder.attributeEscape(inclusions)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"inclusionsindex\" value=\""+Encoder.attributeEscape(inclusionsIndex)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"matchinghosts\" value=\""+(includeMatching?"true":"false")+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"matchinghosts_present\" value=\"true\"/>\n"
-      );
-    }
-
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Inclusions.html.vm",velocityContext);
     // Exclusions tab
-
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Exclusions")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeFromCrawl") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"25\" cols=\"60\" name=\""+seqPrefix+"exclusions\">"+Encoder.bodyEscape(exclusions)+"</textarea>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeFromIndex") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"10\" cols=\"60\" name=\""+seqPrefix+"exclusionsindex\">"+Encoder.bodyEscape(exclusionsIndex)+"</textarea>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeContentFromIndex") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"10\" cols=\"60\" name=\""+seqPrefix+"exclusionscontentindex\">"+Encoder.bodyEscape(exclusionsContentIndex)+"</textarea>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-              "<input type=\"hidden\" name=\"" + seqPrefix + "exclusions\" value=\"" + Encoder.attributeEscape(exclusions) + "\"/>\n" +
-                      "<input type=\"hidden\" name=\"" + seqPrefix + "exclusionsindex\" value=\"" + Encoder.attributeEscape(exclusionsIndex) + "\"/>\n" +
-                      "<input type=\"hidden\" name=\"" + seqPrefix + "exclusionscontentindex\" value=\"" + Encoder.attributeEscape(exclusionsContentIndex) + "\"/>\n"
-      );
-    }
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Exclusions.html.vm",velocityContext);
   
     // Security tab
     // There is no native security, so all we care about are the tokens.
