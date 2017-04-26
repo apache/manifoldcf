@@ -397,7 +397,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     // Delete the documents that had no version, and work only on ones that did
-    Set<String> fetchDocuments = documentVersions.keySet();
+    final Set<String> fetchDocuments = documentVersions.keySet();
     for (String documentIdentifier : documentIdentifiers)
     {
       String documentVersion = documentVersions.get(documentIdentifier);
@@ -497,7 +497,11 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
     
-    Map<String,String> map = new HashMap<String,String>();
+    // Map from identifier to version string
+    final Map<String,String> map = new HashMap<>();
+    // This is the set of documents actually seen
+    final Set<String> seenDocuments = new HashSet<>();
+    
     for (String documentIdentifier : fetchDocuments)
     {
       String documentVersion = documentVersions.get(documentIdentifier);
@@ -676,7 +680,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
           Object o = row.getValue(JDBCConstants.idReturnColumnName);
           if (o == null)
             throw new ManifoldCFException("Bad document query; doesn't return $(IDCOLUMN) column.  Try using quotes around $(IDCOLUMN) variable, e.g. \"$(IDCOLUMN)\", or, for MySQL, select \"by label\" in your repository connection.");
-          String id = JDBCConnection.readAsString(o);
+          final String id = JDBCConnection.readAsString(o);
+          seenDocuments.add(id);
           
           String errorCode = null;
           String errorDesc = null;
@@ -922,11 +927,17 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     
     // Now, go through the original id's, and see which ones are still in the map.  These
     // did not appear in the result and are presumed to be gone from the database, and thus must be deleted.
-    for (String documentIdentifier : documentIdentifiers)
+    for (final String documentIdentifier : fetchDocuments)
     {
-      if (fetchDocuments.contains(documentIdentifier))
+      if (!seenDocuments.contains(documentIdentifier))
       {
-        String documentVersion = map.get(documentIdentifier);
+        // Never saw it in the fetch attempt
+        activities.deleteDocument(documentIdentifier);
+      }
+      else
+      {
+        // Saw it in the fetch attempt, and we might have fetched it
+        final String documentVersion = map.get(documentIdentifier);
         if (documentVersion != null)
         {
           // This means we did not see it (or data for it) in the result set.  Delete it!
