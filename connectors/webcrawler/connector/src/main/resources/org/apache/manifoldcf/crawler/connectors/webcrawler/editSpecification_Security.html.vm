@@ -27,7 +27,7 @@
       <input type="hidden" name="$ACCESSOPNAME" value=""/>
       <input type="hidden" name="${SEQPREFIX}spectoken${ACCESSDESC}" value="$Encoder.attributeEscape($TOKEN)" />
       <a name="${SEQPREFIX}token_${foreach.index}">
-        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))" onClick='Javascript:${SEQPREFIX}SpecOp("$ACCESSOPNAME","Delete","${SEQPREFIX}token_${foreach.index}")' alt="??"/>
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))" onClick='Javascript:${SEQPREFIX}SpecOp("$ACCESSOPNAME","Delete","${SEQPREFIX}token_${foreach.index}")' alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteToken'))$foreach.index"/>
       </a>&nbsp;
     </td>
     <td class="value">
@@ -44,7 +44,7 @@
   <tr><td class="lightseparator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
-      <input type="hidden" name="${SEQPREFIX}tokencount" value="?"/>
+      <input type="hidden" name="${SEQPREFIX}tokencount" value="$COUNTER"/>
       <input type="hidden" name="${SEQPREFIX}accessop" value=""/>
       <a name="${SEQPREFIX}token_${COUNTER}">
         <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))" onClick='Javascript:${SEQPREFIX}SpecAddToken("${SEQPREFIX}token_${COUNTER}")' alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddAccessToken'))"/>

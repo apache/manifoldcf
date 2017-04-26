@@ -21,7 +21,7 @@
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="boxcell" colspan="2">
-      <input type="hidden" name="${SEQPREFIX}urlregexpop}" value="Continue"/>
+      <input type="hidden" name="${SEQPREFIX}urlregexpop" value="Continue"/>
       <input type="hidden" name="${SEQPREFIX}urlregexpnumber" value=""/>
       <table class="formtable">
         <tr class="formheaderrow">
@@ -59,7 +59,8 @@
           <td class="formcolumncell">$canonicalizationMap["allowBVSessionRemovalOutput"]</td>
         </tr>
         #end
-        #set( $COUNTER = $CANONICALIZATIONMAPLIST.size())
+        #set( $COUNTER = $CANONICALIZATIONMAPLIST.size() )
+        #set( $NEXTCOUNTER = $COUNTER + 1 )
         #if($COUNTER == 0)
         <tr class="formrow"><td colspan="8" class="formcolumnmessage"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('NoCanonicalizationSpecified'))</nobr></td></tr>
         #end
@@ -67,7 +68,7 @@
         <tr class="formrow">
           <td class="formcolumncell">
             <a name="${SEQPREFIX}urlregexp_${COUNTER}">
-              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddUrlRegexp'))" onclick='javascript:${SEQPREFIX}URLRegexpAdd("${SEQPREFIX}urlregexp_${COUNTER}");'/>
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddUrlRegexp'))" onclick='javascript:${SEQPREFIX}URLRegexpAdd("${SEQPREFIX}urlregexp_${NEXTCOUNTER}");'/>
               <input type="hidden" name="${SEQPREFIX}urlregexpcount" value="$COUNTER"/>
             </a>
           </td>

@@ -31,7 +31,7 @@
 </table>
 #else
 <input type="hidden" name="${SEQPREFIX}excludedheaders_present" value="true"/>
-  #foreach($potentiallyExcludedHeader in $POTENTIALLYEXCLUDEDHEADERS)
-<input type="hidden" name="${SEQPREFIX}excludedheaders" value="$Encoder.attributeEscape($potentiallyExcludedHeader)" />
+  #foreach($excludedHeader in $EXCLUDEDHEADERS)
+<input type="hidden" name="${SEQPREFIX}excludedheaders" value="$Encoder.attributeEscape($excludedHeader)" />
   #end
 #end
