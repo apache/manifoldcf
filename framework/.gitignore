@@ -2,4 +2,5 @@
 /.project
 /dist/
 /build/
+/target/
 */target/
