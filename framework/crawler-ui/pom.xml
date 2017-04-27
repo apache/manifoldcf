@@ -31,28 +31,34 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.lesscss</groupId>
-        <artifactId>lesscss-maven-plugin</artifactId>
-        <version>1.7.0.1.1</version>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.6.0</version>
+
         <configuration>
-            <sourceDirectory>${project.basedir}/src/main/webapp/less</sourceDirectory>
-            <outputDirectory>${project.build.directory}/${project.build.finalName}/css</outputDirectory>
-            <compress>true</compress>
-            <includes>
-                <include>main.less</include>
-            </includes>
+          <mainClass>org.apache.manifoldcf.less.MCFLessCompiler</mainClass>
+          <arguments>
+            <argument>${project.basedir}/src/main/webapp/less/style.less</argument>
+            <argument>${project.build.directory}/${project.build.finalName}/css/style.css</argument>
+            <argument>true</argument>
+          </arguments>
         </configuration>
         <executions>
             <execution>
-                <goals>
-                    <goal>compile</goal>
-                </goals>
+              <id>compile-less</id>
+              <!-- Currently during process-classes phase, css is generated, but during the package phase,
+              the generated css will be over written by the file from source css folder. It's intentional for now,
+              but once the decision is made about approach, we can change the phase to prepare-package -->
+              <phase>process-classes</phase>
+              <goals>
+                  <goal>java</goal>
+              </goals>
             </execution>
         </executions>
       </plugin>
     </plugins>
   </build>
-  
+
   <dependencies>
     <!-- Internal dependencies -->
     <dependency>
@@ -148,6 +154,13 @@
       <artifactId>jtds</artifactId>
       <version>${jtds.version}</version>
       <scope>runtime</scope>
+    </dependency>
+
+    <!-- Less compiler -->
+    <dependency>
+      <groupId>com.github.sommeri</groupId>
+      <artifactId>less4j</artifactId>
+      <version>1.17.2</version>
     </dependency>
 
   </dependencies>
