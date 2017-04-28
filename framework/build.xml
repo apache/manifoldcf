@@ -361,7 +361,19 @@
         </javac>
     </target>
 
-    <target name="compile-crawler-ui" depends="compile-less-compiler,compile-core,compile-ui-core,compile-agents,compile-pull-agent">
+    <target name="less-compiler-invocation" depends="compile-less-compiler">
+        <mkdir dir="build/crawler-ui/css"/>
+        <java classname="org.apache.manifoldcf.less.MCFLessCompiler" fork="true" failonerror="true" maxmemory="128m">
+            <arg value="crawler-ui/src/main/less/style.less"/>
+            <arg value="build/crawler-ui/css/style.css"/>
+            <classpath>
+                <path refid="less-classpath"/>
+                <pathelement location="build/less-compiler/classes"/>
+            </classpath>
+        </java>
+    </target>
+
+    <target name="compile-crawler-ui" depends="less-compiler-invocation,compile-core,compile-ui-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/crawler-ui/classes"/>
         <javac srcdir="crawler-ui/src/main/java" destdir="build/crawler-ui/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
