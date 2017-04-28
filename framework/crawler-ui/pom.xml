@@ -63,6 +63,11 @@
     <!-- Internal dependencies -->
     <dependency>
       <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-less-compiler</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
       <artifactId>mcf-core</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -154,13 +159,6 @@
       <artifactId>jtds</artifactId>
       <version>${jtds.version}</version>
       <scope>runtime</scope>
-    </dependency>
-
-    <!-- Less compiler -->
-    <dependency>
-      <groupId>com.github.sommeri</groupId>
-      <artifactId>less4j</artifactId>
-      <version>1.17.2</version>
     </dependency>
 
   </dependencies>

@@ -32,6 +32,7 @@
     <path id="less-classpath">
         <fileset dir="../lib">
             <include name="less4j*.jar"/>
+            <include name="commons-io*.jar"/>
         </fileset>
     </path>
     
@@ -204,7 +205,16 @@
             <fileset dir="jetty-runner/src/main/java" includes="**/*.java"/>
         </javadoc>
     </target>
-    
+
+    <target name="compile-less-compiler">
+        <mkdir dir="build/less-compiler/classes"/>
+        <javac srcdir="less-compiler/src/main/java" destdir="build/less-compiler/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+            <classpath>
+                <path refid="less-classpath"/>
+            </classpath>
+        </javac>
+    </target>
+
     <target name="compile-core">
         <mkdir dir="build/core/classes"/>
         <javac srcdir="core/src/main/java" destdir="build/core/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
@@ -351,12 +361,13 @@
         </javac>
     </target>
 
-    <target name="compile-crawler-ui" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent">
+    <target name="compile-crawler-ui" depends="compile-less-compiler,compile-core,compile-ui-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/crawler-ui/classes"/>
         <javac srcdir="crawler-ui/src/main/java" destdir="build/crawler-ui/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
-                <path refid="framework-classpath"/>
                 <path refid="less-classpath"/>
+                <pathelement location="build/less-compiler/classes"/>
+                <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
