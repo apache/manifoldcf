@@ -365,8 +365,6 @@
         <mkdir dir="build/crawler-ui/classes"/>
         <javac srcdir="crawler-ui/src/main/java" destdir="build/crawler-ui/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
-                <path refid="less-classpath"/>
-                <pathelement location="build/less-compiler/classes"/>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
@@ -375,6 +373,15 @@
             </classpath>
         </javac>
 
+        <!-- Compile the less files to css -->
+        <!-- The compilation invocation needs to have a classpath like this:
+            <classpath>
+                <path refid="less-classpath"/>
+                <pathelement location="build/less-compiler/classes"/>
+            </classpath>
+        -->
+        <!-- MHL -->
+        
         <!-- Define the jsp compilation task using tomcat libraries -->
         <taskdef classname="org.apache.jasper.JspC" name="jasper2" > 
             <classpath id="jspc.classpath"> 
