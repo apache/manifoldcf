@@ -38,7 +38,7 @@
         <configuration>
           <mainClass>org.apache.manifoldcf.less.MCFLessCompiler</mainClass>
           <arguments>
-            <argument>${project.basedir}/src/main/webapp/less/style.less</argument>
+            <argument>${project.basedir}/src/main/less/style.less</argument>
             <argument>${project.build.directory}/${project.build.finalName}/css/style.css</argument>
             <argument>true</argument>
           </arguments>
