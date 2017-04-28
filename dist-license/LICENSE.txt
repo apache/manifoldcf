@@ -505,9 +505,6 @@ License: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0
 This product includes a okio.jar.
 License: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
-This product includes a less4j.jar.
-License: Triple license, distributed under Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.txt)
-
 ==========================================================================
 The following license applies to postgresql.jar, which is available from
 http://jdbc.postgresql.org
