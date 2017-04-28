@@ -106,8 +106,7 @@ public class MCFLessCompiler
   {
 
     String outputLess = lessFolderPath + "/style.less";
-    //TODO: Need to change to actual name in final impl
-    String outputCSS = cssFolderPath + "/style_test.css";
+    String outputCSS = cssFolderPath + "/style.css";
     boolean compress = false;
 
     MCFLessCompiler compiler = new MCFLessCompiler();
