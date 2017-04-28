@@ -46,10 +46,7 @@
         <executions>
             <execution>
               <id>compile-less</id>
-              <!-- Currently during process-classes phase, css is generated, but during the package phase,
-              the generated css will be over written by the file from source css folder. It's intentional for now,
-              but once the decision is made about approach, we can change the phase to prepare-package -->
-              <phase>process-classes</phase>
+              <phase>prepare-package</phase>
               <goals>
                   <goal>java</goal>
               </goals>
