@@ -839,13 +839,27 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </java>
     </target>
 
-    <target name="download-less-compiler">
+    <target name="download-less-compiler" depends="download-protobuf">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
             <param name="project-path" value="com/github/sommeri"/>
             <param name="artifact-version" value="1.17.2"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="less4j"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="org/antlr"/>
+            <param name="artifact-version" value="3.5.2"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="antlr-runtime"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="commons-beanutils"/>
+            <param name="artifact-version" value="1.8.3"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="commons-beanutils"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
