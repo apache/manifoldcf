@@ -32,7 +32,11 @@
     <path id="less-classpath">
         <fileset dir="../lib">
             <include name="less4j*.jar"/>
+            <include name="antlr-runtime*.jar"/>
+            <include name="commons-beanutils*.jar"/>
+            <include name="protobuf-java*.jar"/>
             <include name="commons-io*.jar"/>
+            <include name="commons-logging*.jar"/>
         </fileset>
     </path>
     
@@ -385,15 +389,6 @@
             </classpath>
         </javac>
 
-        <!-- Compile the less files to css -->
-        <!-- The compilation invocation needs to have a classpath like this:
-            <classpath>
-                <path refid="less-classpath"/>
-                <pathelement location="build/less-compiler/classes"/>
-            </classpath>
-        -->
-        <!-- MHL -->
-        
         <!-- Define the jsp compilation task using tomcat libraries -->
         <taskdef classname="org.apache.jasper.JspC" name="jasper2" > 
             <classpath id="jspc.classpath"> 
@@ -709,6 +704,10 @@
         </copy>
         <copy todir="build/webapp/crawler-ui">
             <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
+        </copy>
+        <mkdir dir="build/webapp/crawler-ui/css"/>
+        <copy todir="build/webapp/crawler-ui/css">
+            <fileset dir="build/crawler-ui/css" includes="**/*.css"/>
         </copy>
         <jar destfile="build/webapp/crawler-ui/WEB-INF/lib/mcf-crawler-ui.jar" basedir="build/crawler-ui/classes"/>
     </target>
