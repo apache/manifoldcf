@@ -370,6 +370,8 @@
         <java classname="org.apache.manifoldcf.less.MCFLessCompiler" fork="true" failonerror="true" maxmemory="128m">
             <arg value="crawler-ui/src/main/less/style.less"/>
             <arg value="build/crawler-ui/css/style.css"/>
+            <!-- Compress less output -->
+            <arg value="true"/>
             <classpath>
                 <path refid="less-classpath"/>
                 <pathelement location="build/less-compiler/classes"/>
