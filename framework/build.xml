@@ -28,6 +28,12 @@
       <delete dir="test-HSQLDB-output"/>
       <delete dir="test-HSQLDBext-output"/>
     </target>
+
+    <path id="less-classpath">
+        <fileset dir="../lib">
+            <include name="less4j*.jar"/>
+        </fileset>
+    </path>
     
     <path id="framework-classpath">
         <fileset dir="../lib">
@@ -350,6 +356,7 @@
         <javac srcdir="crawler-ui/src/main/java" destdir="build/crawler-ui/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
+                <path refid="less-classpath"/>
                 <pathelement location="build/core/classes"/>
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
