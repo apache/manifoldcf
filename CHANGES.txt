@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1421: Have email connector retry when the connection
+is not established properly.
+(Cihad Guzel, Karl Wright)
+
 CONNECTORS-1418: Build .less files into style.css as part of the build.
 (Kishore Kumar, Karl Wright)
 
