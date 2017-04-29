@@ -28,8 +28,41 @@
   <name>ManifoldCF - Framework - Crawler UI</name>
   <packaging>war</packaging>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.6.0</version>
+
+        <configuration>
+          <mainClass>org.apache.manifoldcf.less.MCFLessCompiler</mainClass>
+          <arguments>
+            <argument>${project.basedir}/src/main/less/style.less</argument>
+            <argument>${project.build.directory}/${project.build.finalName}/css/style.css</argument>
+            <argument>true</argument>
+          </arguments>
+        </configuration>
+        <executions>
+            <execution>
+              <id>compile-less</id>
+              <phase>prepare-package</phase>
+              <goals>
+                  <goal>java</goal>
+              </goals>
+            </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
   <dependencies>
     <!-- Internal dependencies -->
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-less-compiler</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-core</artifactId>
