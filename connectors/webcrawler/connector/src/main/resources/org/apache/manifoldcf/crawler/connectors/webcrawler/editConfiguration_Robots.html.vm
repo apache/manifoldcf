@@ -16,28 +16,25 @@
 -->
 
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Robots'))
-<table class="displaytable">
-  <tr><td class="separator" colspan="2"><hr/></td></tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.RobotsTxtUsage'))</nobr></td>
-    <td class="value">
-      <select name="robotsusage" size="3">
-        <option value="none" #if($ROBOTSUSAGE == 'none') selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.DontLookAtRobotsTxt'))</option>
-        <option value="data" #if($ROBOTSUSAGE == 'data') selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ObeyRobotsTxtForDataFetchesOnly'))</option>
-        <option value="all"  #if($ROBOTSUSAGE == 'all')  selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ObeyRobotsTxtForAllFetches'))</option>
+<div class="row">
+  <div class="col-md-4">
+    <div class="form-group">
+      <label for="robotsusage">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.RobotsTxtUsage'))</label>
+      <select name="robotsusage" id="robotsusage" class="form-control">
+        <option value="none" #if($ROBOTSUSAGE == 'none') selected="selected" #end >$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.DontLookAtRobotsTxt'))</option>
+        <option value="data" #if($ROBOTSUSAGE == 'data') selected="selected" #end >$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ObeyRobotsTxtForDataFetchesOnly'))</option>
+        <option value="all"  #if($ROBOTSUSAGE == 'all')  selected="selected" #end >$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ObeyRobotsTxtForAllFetches'))</option>
       </select>
-    </td>
-  </tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.MetaRobotsTagsUsage'))</nobr></td>
-    <td class="value">
-      <select name="metarobotstagsusage" size="3">
-        <option value="none" #if($METAROBOTSTAGSUSAGE == 'none') selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.DontLookAtMetaRobotsTags'))</option>
-        <option value="all"  #if($METAROBOTSTAGSUSAGE == 'all')  selected="selected" #{else} "" #end>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ObeyMetaRobotsTags'))</option>
+    </div>
+    <div class="form-group">
+      <label for="metarobotstagsusage">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.MetaRobotsTagsUsage'))</label>
+      <select name="metarobotstagsusage" id="metarobotstagsusage"  class="form-control">
+        <option value="none" #if($METAROBOTSTAGSUSAGE == 'none') selected="selected" #end>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.DontLookAtMetaRobotsTags'))</option>
+        <option value="all"  #if($METAROBOTSTAGSUSAGE == 'all')  selected="selected" #end>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ObeyMetaRobotsTags'))</option>
       </select>
-    </td>
-  </tr>
-</table>
+    </div>
+  </div>
+</div>
 #else
 <input type="hidden" name="robotsusage" value="$Encoder.attributeEscape($ROBOTSUSAGE)"/>
 <input type="hidden" name="metarobotstagsusage" value="$Encoder.attributeEscape($METAROBOTSTAGSUSAGE)"/>
