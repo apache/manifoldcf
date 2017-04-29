@@ -17,14 +17,13 @@
 
 #set( $SEQPREFIX = 's' + $SEQNUM + '_' )
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Seeds') && ${SEQNUM} == ${SELECTEDNUM})
-<table class="displaytable">
-  <tr><td class="separator" colspan="2"><hr/></td></tr>
-  <tr>
-    <td class="value" colspan="2">
-      <textarea rows="25" cols="80" name="${SEQPREFIX}seeds">$Encoder.bodyEscape($SEEDS)</textarea>
-    </td>
-  </tr>
-</table>
+<div class="row">
+  <div class="col-md-6">
+    <div class="form-group">
+      <textarea class="form-control" rows="20" name="${SEQPREFIX}seeds">$Encoder.bodyEscape($SEEDS)</textarea>
+    </div>
+  </div>
+</div>
 #else
 <input type="hidden" name="${SEQPREFIX}seeds" value="$Encoder.attributeEscape($SEEDS)"/>
 #end
