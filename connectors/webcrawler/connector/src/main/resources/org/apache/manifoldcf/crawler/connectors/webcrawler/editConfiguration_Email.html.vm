@@ -16,15 +16,14 @@
 -->
 
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Email'))
-<table class="displaytable">
-  <tr><td class="separator" colspan="2"><hr/></td></tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.EmailAddressToContact'))</nobr></td>
-    <td class="value">
-      <input type="text" size="32" name="email" value="$Encoder.attributeEscape($EMAIL)"/>
-    </td>
-  </tr>
-</table>
+<div class="row">
+  <div class="col-md-4">
+    <div class="form-group">
+      <label for="email">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.EmailAddressToContact'))</label>
+      <input type="email" size="32" class="form-control" name="email" id="email" value="$Encoder.attributeEscape($EMAIL)"/>
+    </div>
+  </div>
+</div>
 #else
 <input type="hidden" name="email" value="$Encoder.attributeEscape($EMAIL)"/>
 #end
