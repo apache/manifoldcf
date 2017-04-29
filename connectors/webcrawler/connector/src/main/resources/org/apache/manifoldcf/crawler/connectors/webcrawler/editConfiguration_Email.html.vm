@@ -20,11 +20,10 @@
   <div class="col-md-4">
     <div class="form-group">
       <label for="email">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.EmailAddressToContact'))</label>
-      <input type="email" size="32" class="form-control" name="email" id="email" value="$Encoder.attributeEscape($EMAIL)"/>
+      <input class="form-control" type="email" size="32" name="email" id="email" value="$Encoder.attributeEscape($EMAIL)"/>
     </div>
   </div>
 </div>
 #else
 <input type="hidden" name="email" value="$Encoder.attributeEscape($EMAIL)"/>
 #end
-
