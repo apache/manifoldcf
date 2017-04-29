@@ -17,27 +17,22 @@
 
 #set( $SEQPREFIX = 's' + $SEQNUM + '_' )
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Exclusions') && ${SEQNUM} == ${SELECTEDNUM})
-<table class="displaytable">
-  <tr><td class="separator" colspan="2"><hr/></td></tr>
-  <tr>
-    <td class="description" colspan="1"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ExcludeFromCrawl'))</nobr></td>
-    <td class="value" colspan="1">
-      <textarea rows="25" cols="60" name="${SEQPREFIX}exclusions">$Encoder.bodyEscape($EXCLUSIONS)</textarea>
-    </td>
-  </tr>
-  <tr>
-    <td class="description" colspan="1"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ExcludeFromIndex'))</nobr></td>
-    <td class="value" colspan="1">
-      <textarea rows="10" cols="60" name="${SEQPREFIX}exclusionsindex">$Encoder.bodyEscape($EXCLUSIONSINDEX)</textarea>
-    </td>
-  </tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ExcludeContentFromIndex'))</nobr></td>
-    <td class="value">
-      <textarea rows="10" cols="60" name="${SEQPREFIX}exclusionscontentindex">$Encoder.bodyEscape($EXCLUSIONSCONTENTINDEX)</textarea>
-    </td>
-  </tr>
-</table>
+<div class="row">
+  <div class="col-md-4">
+    <div class="form-group">
+      <label for="${SEQPREFIX}exclusions">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ExcludeFromCrawl'))</label>
+      <textarea class="form-control" rows="15" name="${SEQPREFIX}exclusions" id="${SEQPREFIX}exclusions">$Encoder.bodyEscape($EXCLUSIONS)</textarea>
+    </div>
+    <div class="form-group">
+      <label for="${SEQPREFIX}exclusionsindex">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ExcludeFromIndex'))</label>
+      <textarea class="form-control" rows="10" name="${SEQPREFIX}exclusionsindex" id="${SEQPREFIX}exclusionsindex">$Encoder.bodyEscape($EXCLUSIONSINDEX)</textarea>
+    </div>
+    <div class="form-group">
+      <label for="">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ExcludeContentFromIndex'))</label>
+      <textarea class="form-control" rows="10" name="${SEQPREFIX}exclusionscontentindex" id="${SEQPREFIX}exclusionscontentindex">$Encoder.bodyEscape($EXCLUSIONSCONTENTINDEX)</textarea>
+    </div>
+  </div>
+</div>
 #else
 <input type="hidden" name="${SEQPREFIX}exclusions" value="$Encoder.attributeEscape($EXCLUSIONS)"/>
 <input type="hidden" name="${SEQPREFIX}exclusionsindex" value="$Encoder.attributeEscape($EXCLUSIONSINDEX)"/>
