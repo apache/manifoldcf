@@ -20,7 +20,7 @@
   <div class="col-md-4">
     <div class="form-group">
       <label for="${SEQPREFIX}inclusions">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.IncludeInCrawl'))</label>
-      <textarea class="form-control" rows="20" name="${SEQPREFIX}inclusions" id="${SEQPREFIX}inclusions">$Encoder.bodyEscape($INCLUSIONS)</textarea>
+      <textarea class="form-control" rows="15" name="${SEQPREFIX}inclusions" id="${SEQPREFIX}inclusions">$Encoder.bodyEscape($INCLUSIONS)</textarea>
     </div>
     <div class="form-group">
       <label for="${SEQPREFIX}inclusionsindex">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.IncludeInIndex'))</label>
