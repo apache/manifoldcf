@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1418: Build .less files into style.css as part of the build.
+(Kishore Kumar, Karl Wright)
+
 CONNECTORS-1420: Fix the email connector's date range code.
 (Cihad Guzel)
 
