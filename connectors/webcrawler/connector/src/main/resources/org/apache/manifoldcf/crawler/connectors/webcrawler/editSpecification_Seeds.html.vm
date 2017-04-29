@@ -14,11 +14,10 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-
 #set( $SEQPREFIX = 's' + $SEQNUM + '_' )
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Seeds') && ${SEQNUM} == ${SELECTEDNUM})
 <div class="row">
-  <div class="col-md-6">
+  <div class="col-md-4">
     <div class="form-group">
       <textarea class="form-control" rows="20" name="${SEQPREFIX}seeds">$Encoder.bodyEscape($SEEDS)</textarea>
     </div>
