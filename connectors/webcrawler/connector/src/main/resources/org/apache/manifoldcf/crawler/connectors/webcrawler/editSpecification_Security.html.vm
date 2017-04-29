@@ -17,44 +17,44 @@
 
 #set( $SEQPREFIX = 's' + $SEQNUM + '_' )
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Security') && ${SEQNUM} == ${SELECTEDNUM})
-<table class="displaytable">
-  <tr><td class="separator" colspan="2"><hr/></td></tr>
-  #foreach($TOKEN in $TOKENS)
-    #set( $ACCESSDESC = "_" + $foreach.index )
-    #set( $ACCESSOPNAME = $SEQPREFIX + "accessop" + $ACCESSDESC )
-  <tr>
-    <td class="description">
-      <input type="hidden" name="$ACCESSOPNAME" value=""/>
-      <input type="hidden" name="${SEQPREFIX}spectoken${ACCESSDESC}" value="$Encoder.attributeEscape($TOKEN)" />
-      <a name="${SEQPREFIX}token_${foreach.index}">
-        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))" onClick='Javascript:${SEQPREFIX}SpecOp("$ACCESSOPNAME","Delete","${SEQPREFIX}token_${foreach.index}")' alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteToken'))$foreach.index"/>
-      </a>&nbsp;
-    </td>
-    <td class="value">
-      $Encoder.bodyEscape($TOKEN)
-    </td>
-  </tr>
-  #end
-  #set( $COUNTER = $TOKENS.size() )
-  #if($COUNTER == 0)
-  <tr>
-    <td class="message" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoAccessTokensPresent'))</td>
-  </tr>
-  #end
-  <tr><td class="lightseparator" colspan="2"><hr/></td></tr>
-  <tr>
-    <td class="description">
+<div class="row">
+  <div class="col-md-4">
+    <ul class="list-group">
+    #foreach($TOKEN in $TOKENS)
+      #set( $ACCESSDESC = "_" + $foreach.index )
+      #set( $ACCESSOPNAME = $SEQPREFIX + "accessop" + $ACCESSDESC )
+      <li class="list-group-item">
+        <input type="hidden" name="$ACCESSOPNAME" value=""/>
+        <input type="hidden" name="${SEQPREFIX}spectoken${ACCESSDESC}" value="$Encoder.attributeEscape($TOKEN)" />
+        $Encoder.bodyEscape($TOKEN)
+        <span class="pull-right">
+          <button class="btn btn-xs btn-danger" type="button" onClick='Javascript:${SEQPREFIX}SpecOp("$ACCESSOPNAME","Delete","${SEQPREFIX}token_${foreach.index}")' alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteToken'))$foreach.index"><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
+        </span>
+      </li>
+    #end
+    </ul>
+  </div>
+</div>
+#set( $COUNTER = $TOKENS.size() )
+#if($COUNTER == 0)
+<div class="row">
+  <div class="col-sm-12">
+    <div class="alert alert-warning">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoAccessTokensPresent'))</div>
+  </div>
+</div>
+#end
+<hr/>
+<div class="row">
+  <div class="col-md-4 form-inline">
+    <div class="form-group">
       <input type="hidden" name="${SEQPREFIX}tokencount" value="$COUNTER"/>
       <input type="hidden" name="${SEQPREFIX}accessop" value=""/>
-      <a name="${SEQPREFIX}token_${COUNTER}">
-        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))" onClick='Javascript:${SEQPREFIX}SpecAddToken("${SEQPREFIX}token_${COUNTER}")' alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddAccessToken'))"/>
-      </a>&nbsp;
-    </td>
-    <td class="value">
-      <input type="text" size="30" name="${SEQPREFIX}spectoken" value="" />
-    </td>
-  </tr>
-</table>
+      <label for="${SEQPREFIX}spectoken" class="sr-only">Token:</label>
+      <input class="form-control" type="text" name="${SEQPREFIX}spectoken" id="${SEQPREFIX}spectoken" value="" placeholder="Token" />
+    </div>
+    <button class="btn btn-primary" type="button" onClick='Javascript:${SEQPREFIX}SpecAddToken("${SEQPREFIX}token_${COUNTER}")' title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddAccessToken'))"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i>$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))</button>
+  </div>
+</div>
 #else
   #foreach($TOKEN in $TOKENS)
     #set( $ACCESSDESC = "_" + $foreach.index )
