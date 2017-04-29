@@ -20,7 +20,7 @@
   <div class="col-md-4">
     <div class="form-group">
       <label for="robotsusage">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.RobotsTxtUsage'))</label>
-      <select name="robotsusage" id="robotsusage" class="form-control">
+      <select class="form-control" name="robotsusage" id="robotsusage">
         <option value="none" #if($ROBOTSUSAGE == 'none') selected="selected" #end >$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.DontLookAtRobotsTxt'))</option>
         <option value="data" #if($ROBOTSUSAGE == 'data') selected="selected" #end >$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ObeyRobotsTxtForDataFetchesOnly'))</option>
         <option value="all"  #if($ROBOTSUSAGE == 'all')  selected="selected" #end >$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ObeyRobotsTxtForAllFetches'))</option>
@@ -28,7 +28,7 @@
     </div>
     <div class="form-group">
       <label for="metarobotstagsusage">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.MetaRobotsTagsUsage'))</label>
-      <select name="metarobotstagsusage" id="metarobotstagsusage"  class="form-control">
+      <select class="form-control" name="metarobotstagsusage" id="metarobotstagsusage">
         <option value="none" #if($METAROBOTSTAGSUSAGE == 'none') selected="selected" #end>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.DontLookAtMetaRobotsTags'))</option>
         <option value="all"  #if($METAROBOTSTAGSUSAGE == 'all')  selected="selected" #end>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ObeyMetaRobotsTags'))</option>
       </select>
@@ -39,4 +39,3 @@
 <input type="hidden" name="robotsusage" value="$Encoder.attributeEscape($ROBOTSUSAGE)"/>
 <input type="hidden" name="metarobotstagsusage" value="$Encoder.attributeEscape($METAROBOTSTAGSUSAGE)"/>
 #end
-

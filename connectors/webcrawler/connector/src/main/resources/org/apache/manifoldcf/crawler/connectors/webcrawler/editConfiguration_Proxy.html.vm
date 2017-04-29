@@ -16,29 +16,42 @@
 -->
 
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Proxy'))
-<table class="displaytable">
-  <tr><td class="separator" colspan="2"><hr/></td></tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyHostColon'))</nobr></td>
-    <td class="value"><input type="text" size="40" name="proxyhost" value="$Encoder.attributeEscape($PROXYHOST)"/></td>
-  </tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyPortColon'))</nobr></td>
-    <td class="value"><input type="text" size="5" name="proxyport" value="$Encoder.attributeEscape($PROXYPORT)"/></td>
-  </tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyAuthenticationDomainColon'))</nobr></td>
-    <td class="value"><input type="text" size="32" name="proxyauthdomain" value="$Encoder.attributeEscape($PROXYAUTHDOMAIN)"/></td>
-  </tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyAuthenticationUserNameColon'))</nobr></td>
-    <td class="value"><input type="text" size="32" name="proxyauthusername" value="$Encoder.attributeEscape($PROXYAUTHUSERNAME)"/></td>
-  </tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyAuthenticationPasswordColon'))</nobr></td>
-    <td class="value"><input type="password" size="16" name="proxyauthpassword" value="$Encoder.attributeEscape($PROXYAUTHPASSWORD)"/></td>
-  </tr>
-</table>
+<div class="row">
+  <div class="col-md-4">
+    <div class="form-group">
+      <label for="proxyhost">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyHostColon'))</label>
+      <input class="form-control" type="text" size="40" name="proxyhost" id="proxyhost" value="$Encoder.attributeEscape($PROXYHOST)"/>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="form-group">
+      <label for="proxyport">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyPortColon'))</label>
+      <input class="form-control" type="text" size="5" name="proxyport" id="proxyport" value="$Encoder.attributeEscape($PROXYPORT)"/>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6">
+    <div class="form-group">
+      <label for="proxyauthdomain">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyAuthenticationDomainColon'))</label>
+      <input class="form-control" type="text" size="32" name="proxyauthdomain" id="proxyauthdomain" value="$Encoder.attributeEscape($PROXYAUTHDOMAIN)"/>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-3">
+    <div class="form-group">
+      <label for="proxyauthusername">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyAuthenticationUserNameColon'))</label>
+      <input class="form-control" type="text" size="32" name="proxyauthusername" id="proxyauthusername" value="$Encoder.attributeEscape($PROXYAUTHUSERNAME)"/>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="form-group">
+      <label for="proxyauthpassword">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyAuthenticationPasswordColon'))</label>
+      <input class="form-control" type="password" size="16" name="proxyauthpassword" id="proxyauthpassword" value="$Encoder.attributeEscape($PROXYAUTHPASSWORD)"/>
+    </div>
+  </div>
+</div>
 #else
 <input type="hidden" name="proxyhost" value="$Encoder.attributeEscape($PROXYHOST)"/>
 <input type="hidden" name="proxyport" value="$Encoder.attributeEscape($PROXYPORT)"/>
@@ -46,4 +59,3 @@
 <input type="hidden" name="proxyauthdomain" value="$Encoder.attributeEscape($PROXYAUTHDOMAIN)"/>
 <input type="hidden" name="proxyauthpassword" value="$Encoder.attributeEscape($PROXYAUTHPASSWORD)"/>
 #end
-
