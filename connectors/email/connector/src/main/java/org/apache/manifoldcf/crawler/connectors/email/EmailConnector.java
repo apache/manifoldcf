@@ -1755,8 +1755,14 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   protected static void handleMessagingException(MessagingException e, String context)
     throws ManifoldCFException, ServiceInterruption
   {
-    Logging.connectors.error("Email: Error "+context+": "+e.getMessage(),e);
-    throw new ManifoldCFException("Error "+context+": "+e.getMessage(),e);
+    if (e.getMessage().indexOf("Connection dropped by server?") != -1) {
+      final long currentTime = System.currentTimeMillis();
+      throw new ServiceInterruption("Email server is down, retrying: "+e.getMessage(),e,currentTime + 300000L,
+        currentTime + 12 * 60 * 60000L,-1,true);
+    } else {
+      Logging.connectors.error("Email: Error "+context+": "+e.getMessage(),e);
+      throw new ManifoldCFException("Error "+context+": "+e.getMessage(),e);
+    }
   }
   
   /** Handle IO Exception */
