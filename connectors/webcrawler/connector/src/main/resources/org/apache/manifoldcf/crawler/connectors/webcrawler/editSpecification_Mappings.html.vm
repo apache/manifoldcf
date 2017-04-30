@@ -17,47 +17,75 @@
 
 #set( $SEQPREFIX = 's' + $SEQNUM + '_' )
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.URLMappings') && ${SEQNUM} == ${SELECTEDNUM})
+<style type="text/css">
+  .mapping{
+    width:100%;
+  }
+  .mapping > div{
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mapping-regexp{
+    width:35%;
+  }
+  .mapping-arrow{
+    width:10%;
+  }
+  .mapping-match{
+    width: 35%;
+  }
+</style>
+
 <input type="hidden" name="${SEQPREFIX}rssop" value=""/>
 <input type="hidden" name="${SEQPREFIX}rssindex" value=""/>
 <input type="hidden" name="${SEQPREFIX}rssmapcount" value="$REGEXPLIST.size()"/>
-
-<table class="displaytable">
-  <tr><td class="separator" colspan="4"><hr/></td></tr>
-  #foreach($REGEXP in $REGEXPLIST)
-    #set( $PREFIX = $SEQPREFIX + "rssregexp_" + $foreach.index +"_" )
-  <tr>
-    <td class="value">
-      <a name="${SEQPREFIX}regexp_$foreach.index">
-        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Remove'))" onclick='javascript:${SEQPREFIX}RemoveRegexp($foreach.index,"${SEQPREFIX}regexp_$foreach.index")' alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.RemoveRegexp'))$foreach.index"/>
-      </a>
-    </td>
-    <td class="value"><input type="hidden" name="${PREFIX}match" value="$Encoder.attributeEscape($REGEXP)"/>$Encoder.bodyEscape($REGEXP)</td>
-    <td class="value">--&gt;</td>
-    <td class="value">
-    #set( $MATCH = $MATCHSTRINGS.get($foreach.index))
-      <input type="hidden" name="${PREFIX}map" value="$Encoder.attributeEscape($MATCH)"/>
-    #if($MATCH.length() == 0)
-      &lt;as is&gt;
-    #else
-      $Encoder.bodyEscape($MATCH)
+<div class="row">
+  <div class="col-md-6">
+    <ul class="list-group">
+    #foreach($REGEXP in $REGEXPLIST)
+      #set( $PREFIX = $SEQPREFIX + "rssregexp_" + $foreach.index +"_" )
+      <li class="list-group-item">
+        <input type="hidden" name="${PREFIX}match" value="$Encoder.attributeEscape($REGEXP)"/>
+        <div class="mapping">
+          <div class="text-right mapping-regexp">$Encoder.bodyEscape($REGEXP)</div>
+          <div class="text-center mapping-arrow"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></div>
+          <div class="text-left mapping-match">
+          #set( $MATCH = $MATCHSTRINGS.get($foreach.index))
+            <input type="hidden" name="${PREFIX}map" value="$Encoder.attributeEscape($MATCH)"/>
+          #if($MATCH.length() == 0)
+            &lt;as is&gt;
+          #else
+            $Encoder.bodyEscape($MATCH)
+          #end
+          </div>
+          <div class="pull-right">
+            <button class="btn btn-xs btn-danger" type="button" onclick='javascript:${SEQPREFIX}RemoveRegexp($foreach.index,"${SEQPREFIX}regexp_$foreach.index")' title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.RemoveRegexp'))$foreach.index"><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Remove'))</button>
+          </div>
+        </div>
+      </li>
     #end
-    </td>
-  </tr>
-  #end
-  #set( $COUNTER = $REGEXPLIST.size() )
-  #set( $NEXTCOUNTER = $COUNTER + 1 )
-  <tr>
-    <td class="value">
-        <a name="${SEQPREFIX}regexp_${COUNTER}">
-            <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))" onclick='javascript:${SEQPREFIX}AddRegexp("${SEQPREFIX}regexp_${NEXTCOUNTER}")' alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddRegexp'))" />
-        </a>
-    </td>
-    <td class="value"><input type="text" name="${SEQPREFIX}rssmatch" size="16" value=""/></td>
-    <td class="value">--&gt;</td>
-    <td class="value"><input type="text" name="${SEQPREFIX}rssmap" size="16" value=""/></td>
-  </tr>
-</table>
-
+    </ul>
+  </div>
+</div>
+<hr/>
+#set( $COUNTER = $REGEXPLIST.size() )
+#set( $NEXTCOUNTER = $COUNTER + 1 )
+<div class="row">
+  <div class="col-md-6 form-inline">
+    <div class="form-group">
+      <div class="input-group">
+        <input class="form-control" type="text" name="${SEQPREFIX}rssmatch" value=""/>
+        <div class="input-group-addon"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <input class="form-control" type="text" name="${SEQPREFIX}rssmap" value=""/>
+    </div>
+    <button class="btn btn-primary" type="button" onclick='javascript:${SEQPREFIX}AddRegexp("${SEQPREFIX}regexp_${NEXTCOUNTER}")' title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddRegexp'))"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i>$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))</button>
+  </div>
+</div>
 #else
   #set( $COUNTER = $REGEXPLIST.size() )
   <input type="hidden" name="${SEQPREFIX}rssmapcount" value="$COUNTER"/>
