@@ -17,7 +17,7 @@
 #set( $SEQPREFIX = 's' + $SEQNUM + '_' )
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Inclusions') && ${SEQNUM} == ${SELECTEDNUM})
 <div class="row">
-  <div class="col-md-4">
+  <div class="col-md-6">
     <div class="form-group">
       <label for="${SEQPREFIX}inclusions">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.IncludeInCrawl'))</label>
       <textarea class="form-control" rows="15" name="${SEQPREFIX}inclusions" id="${SEQPREFIX}inclusions">$Encoder.bodyEscape($INCLUSIONS)</textarea>

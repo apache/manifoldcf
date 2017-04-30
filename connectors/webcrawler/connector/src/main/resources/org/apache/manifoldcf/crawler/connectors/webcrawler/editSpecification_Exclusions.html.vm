@@ -18,7 +18,7 @@
 #set( $SEQPREFIX = 's' + $SEQNUM + '_' )
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Exclusions') && ${SEQNUM} == ${SELECTEDNUM})
 <div class="row">
-  <div class="col-md-4">
+  <div class="col-md-6">
     <div class="form-group">
       <label for="${SEQPREFIX}exclusions">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ExcludeFromCrawl'))</label>
       <textarea class="form-control" rows="15" name="${SEQPREFIX}exclusions" id="${SEQPREFIX}exclusions">$Encoder.bodyEscape($EXCLUSIONS)</textarea>

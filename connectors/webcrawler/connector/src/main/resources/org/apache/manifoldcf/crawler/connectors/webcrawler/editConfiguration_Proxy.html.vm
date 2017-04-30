@@ -17,13 +17,13 @@
 
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Proxy'))
 <div class="row">
-  <div class="col-md-4">
+  <div class="col-lg-4 col-md-5">
     <div class="form-group">
       <label for="proxyhost">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyHostColon'))</label>
       <input class="form-control" type="text" size="40" name="proxyhost" id="proxyhost" value="$Encoder.attributeEscape($PROXYHOST)"/>
     </div>
   </div>
-  <div class="col-md-2">
+  <div class="col-lg-2 col-md-3">
     <div class="form-group">
       <label for="proxyport">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyPortColon'))</label>
       <input class="form-control" type="text" size="5" name="proxyport" id="proxyport" value="$Encoder.attributeEscape($PROXYPORT)"/>
@@ -31,7 +31,7 @@
   </div>
 </div>
 <div class="row">
-  <div class="col-md-6">
+  <div class="col-lg-6 col-md-8">
     <div class="form-group">
       <label for="proxyauthdomain">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyAuthenticationDomainColon'))</label>
       <input class="form-control" type="text" size="32" name="proxyauthdomain" id="proxyauthdomain" value="$Encoder.attributeEscape($PROXYAUTHDOMAIN)"/>
@@ -39,13 +39,13 @@
   </div>
 </div>
 <div class="row">
-  <div class="col-md-3">
+  <div class="col-lg-3 col-md-4">
     <div class="form-group">
       <label for="proxyauthusername">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyAuthenticationUserNameColon'))</label>
       <input class="form-control" type="text" size="32" name="proxyauthusername" id="proxyauthusername" value="$Encoder.attributeEscape($PROXYAUTHUSERNAME)"/>
     </div>
   </div>
-  <div class="col-md-3">
+  <div class="col-lg-3 col-md-4">
     <div class="form-group">
       <label for="proxyauthpassword">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ProxyAuthenticationPasswordColon'))</label>
       <input class="form-control" type="password" size="16" name="proxyauthpassword" id="proxyauthpassword" value="$Encoder.attributeEscape($PROXYAUTHPASSWORD)"/>
