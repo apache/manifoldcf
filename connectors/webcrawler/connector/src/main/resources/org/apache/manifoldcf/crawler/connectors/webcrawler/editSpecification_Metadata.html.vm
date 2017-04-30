@@ -17,18 +17,19 @@
 
 #set( $SEQPREFIX = 's' + $SEQNUM + '_' )
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Metadata') && ${SEQNUM} == ${SELECTEDNUM})
-<table class="displaytable">
-  <tr><td class="separator" colspan="4"><hr/></td></tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ExcludedHeadersColon'))</nobr></td>
-    <td class="value" colspan="3">
-      <input type="hidden" name="${SEQPREFIX}excludedheaders_present" value="true"/>
-  #foreach($potentiallyExcludedHeader in $POTENTIALLYEXCLUDEDHEADERS)
-      <input type="checkbox" name="${SEQPREFIX}excludedheaders" value="$Encoder.attributeEscape($potentiallyExcludedHeader)" #if($EXCLUDEDHEADERS.contains($potentiallyExcludedHeader)) checked="true" #end>$Encoder.bodyEscape($potentiallyExcludedHeader)</input><br/>
-  #end
-    </td>
-  </tr>
-</table>
+<div class="row">
+  <div class="col-md-4">
+    <h5>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ExcludedHeadersColon'))</h5>
+    <input type="hidden" name="${SEQPREFIX}excludedheaders_present" value="true"/>
+    <div class="list-group">
+    #foreach($potentiallyExcludedHeader in $POTENTIALLYEXCLUDEDHEADERS)
+      <label class="list-group-item">
+        <input type="checkbox" name="${SEQPREFIX}excludedheaders" value="$Encoder.attributeEscape($potentiallyExcludedHeader)" #if($EXCLUDEDHEADERS.contains($potentiallyExcludedHeader)) checked="true" #end />&nbsp;&nbsp;$Encoder.bodyEscape($potentiallyExcludedHeader)
+      </label>
+    #end
+    </div>
+  </div>
+</div>
 #else
 <input type="hidden" name="${SEQPREFIX}excludedheaders_present" value="true"/>
   #foreach($excludedHeader in $EXCLUDEDHEADERS)
