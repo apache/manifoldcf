@@ -18,7 +18,7 @@
 #set( $SEQPREFIX = 's' + $SEQNUM + '_' )
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Metadata') && ${SEQNUM} == ${SELECTEDNUM})
 <div class="row">
-  <div class="col-md-4">
+  <div class="col-md-6">
     <h5>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ExcludedHeadersColon'))</h5>
     <input type="hidden" name="${SEQPREFIX}excludedheaders_present" value="true"/>
     <div class="list-group">
