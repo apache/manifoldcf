@@ -16,115 +16,142 @@
 -->
 #set( $BINCOUNTER = 0)
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Bandwidth'))
-<table class="displaytable">
-  <tr><td class="separator" colspan="2"><hr/></td></tr>
-  <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Throttles'))</nobr></td>
-    <td class="boxcell">
-      <table class="formtable">
-        <tr class="formheaderrow">
-          <td class="formcolumnheader"></td>
-          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.BinRegularExpression'))</nobr></td>
-          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.CaseInsensitive'))</nobr></td>
-          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.MaxConnections'))</nobr></td>
-          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.MaxKbytesSec'))</nobr></td>
-          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.MaxFetchesMin'))</nobr></td>
-        </tr>
-        #foreach($throttleMap in $THROTTLESMAPLIST)
-          #set( $THROTTLEPREFIX = "bandwidth_" + $BINCOUNTER )
-        <tr>
-          <td class="formcolumncell">
-            <a name="$THROTTLEPREFIX">
-              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteBinRegularExpression'))$foreach.count" onclick='javascript:deleteRegexp($BINCOUNTER);'/>
+<div class="row">
+  <div class="col-md-12">
+    <h5>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Throttles'))</h5>
+    <ul class="list-group">
+      #foreach($throttleMap in $THROTTLESMAPLIST)
+        #set( $THROTTLEPREFIX = "bandwidth_" + $BINCOUNTER )
+      <li class="list-group-item">
+        <div class="row form-inline">
+          <div class="col-md-1">
+            <div class="form-group">
+              <button class="btn btn-sm btn-danger" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteBinRegularExpression'))$foreach.count" onclick='javascript:deleteRegexp($BINCOUNTER);'><i class="fa fa-minus-circle fa-lg" aria-hidden="true"></i></button>
               <input type="hidden" name="op_$THROTTLEPREFIX" value="Continue"/>
               <input type="hidden" name="regexp_$THROTTLEPREFIX" value="$throttleMap.get("regexp")"/>
-            </a>
-          </td>
-          <td class="formcolumncell">
-            <nobr>$Encoder.bodyEscape($throttleMap.get("regexp"))</nobr>
-          </td>
-          <td class="formcolumncell">
-            <nobr><input type="checkbox" name="insensitive_$THROTTLEPREFIX" value="true" #if($throttleMap.get("isCaseInsensitive") == 'true') checked #{else} "" #end /></nobr>
-          </td>
-          <td class="formcolumncell">
-            <nobr><input type="text" size="5" name="connections_$THROTTLEPREFIX" value="$throttleMap.get("maxConnections")"/></nobr>
-          </td>
-          <td class="formcolumncell">
-            <nobr><input type="text" size="5" name="rate_$THROTTLEPREFIX" value="$throttleMap.get("maxKBPerSecond")"/></nobr>
-          </td>
-          <td class="formcolumncell">
-            <nobr><input type="text" size="5" name="fetches_$THROTTLEPREFIX" value="$throttleMap.get("maxFetchesPerMinute")"/></nobr>
-          </td>
-        </tr>
-          #set( $BINCOUNTER = $BINCOUNTER + 1)
-        #end
-
-        ## If it looks like this is a brand-new configuration, add in a default throttle.
-        ## This only works because other nodes must get created on the first post, and cannot then be deleted.
-        #if($BRANDNEW)
-          #set( $THROTTLEPREFIX = "bandwidth_" + $BINCOUNTER )
-        <tr>
-          <td class="formcolumncell">
-            <a name="$THROTTLEPREFIX">
-              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteBinRegularExpression'))($foreach.count + 1)" onclick='javascript:deleteRegexp($BINCOUNTER);'/>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-group">
+              <p content="form-control-static">$Encoder.bodyEscape($throttleMap.get("regexp"))</p>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <div class="checkbox">
+                <label><input type="checkbox" name="insensitive_$THROTTLEPREFIX" value="true" #if($throttleMap.get("isCaseInsensitive") == 'true') checked #{else} "" #end /> $Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.CaseInsensitive'))</label>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <input class="form-control" type="text" name="connections_$THROTTLEPREFIX" value="$throttleMap.get("maxConnections")" placeholder="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.MaxConnections'))"/>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <input class="form-control" type="text" name="rate_$THROTTLEPREFIX" value="$throttleMap.get("maxKBPerSecond")" placeholder="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.MaxKbytesSec'))"/>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <input class="form-control" type="text" name="fetches_$THROTTLEPREFIX" value="$throttleMap.get("maxFetchesPerMinute")" placeholder="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.MaxFetchesMin'))"/>
+            </div>
+          </div>
+        </div>
+      </li>
+        #set( $BINCOUNTER = $BINCOUNTER + 1)
+      #end
+      ## If it looks like this is a brand-new configuration, add in a default throttle.
+      ## This only works because other nodes must get created on the first post, and cannot then be deleted.
+      #if($BRANDNEW)
+        #set( $THROTTLEPREFIX = "bandwidth_" + $BINCOUNTER )
+      <li class="list-group-item">
+        <div class="row form-inline">
+          <div class="col-md-1">
+            <div class="form-group">
+              <button class="btn btn-sm btn-danger" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteBinRegularExpression'))($foreach.count + 1)" onclick='javascript:deleteRegexp($BINCOUNTER);'><i class="fa fa-minus-circle fa-lg" aria-hidden="true"></i></button>
               <input type="hidden" name="op_$THROTTLEPREFIX" value="Continue"/>
               <input type="hidden" name="regexp_$THROTTLEPREFIX" value=""/>
-            </a>
-          </td>
-          <td class="formcolumncell">
-            <nobr></nobr>
-          </td>
-          <td class="formcolumncell">
-            <nobr><input type="checkbox" name="insensitive_$THROTTLEPREFIX" value="false"/></nobr>
-          </td>
-          <td class="formcolumncell">
-            <nobr><input type="text" size="5" name="connections_$THROTTLEPREFIX" value="2"/></nobr>
-          </td>
-          <td class="formcolumncell">
-            <nobr><input type="text" size="5" name="rate_$THROTTLEPREFIX" value="64"/></nobr>
-          </td>
-          <td class="formcolumncell">
-            <nobr><input type="text" size="5" name="fetches_$THROTTLEPREFIX" value="12"/></nobr>
-          </td>
-        </tr>
-          #set( $BINCOUNTER = $BINCOUNTER + 1)
-        #end
-
-        #if($BINCOUNTER == "0")
-        <tr class="formrow">
-            <td class="formmessage" colspan="6">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoBandwidthOrConnectionThrottlingSpecified'))</td>
-        </tr>
-        #end
-
-        <tr class="formrow"><td class="formseparator" colspan="6"><hr/></td></tr>
-        <tr class="formrow">
-          <td class="formcolumncell">
-            <a name="bandwidth">
-              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddBinRegularExpression'))" onclick="javascript:addRegexp();"/>
-            </a>
-            <input type="hidden" name="bandwidth_count" value="$BINCOUNTER"/>
-            <input type="hidden" name="bandwidth_op" value="Continue"/>
-          </td>
-          <td class="formcolumncell">
-            <nobr><input type="text" size="30" name="regexp_bandwidth" value=""/></nobr>
-          </td>
-          <td class="formcolumncell">
-            <nobr><input type="checkbox" name="insensitive_bandwidth" value="true"/></nobr>
-          </td>
-          <td class="formcolumncell">
-            <nobr><input type="text" size="5" name="connections_bandwidth" value=""/></nobr>
-          </td>
-          <td class="formcolumncell">
-            <nobr><input type="text" size="5" name="rate_bandwidth" value=""/></nobr>
-          </td>
-          <td class="formcolumncell">
-            <nobr><input type="text" size="5" name="fetches_bandwidth" value=""/></nobr>
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-group">
+              <p class="form-control-static"></p>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <div class="checkbox">
+                <label><input type="checkbox" name="insensitive_$THROTTLEPREFIX" value="false"/> $Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.CaseInsensitive'))</label>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <input class="form-control" type="text" name="connections_$THROTTLEPREFIX" value="2"/>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <input class="form-control" type="text" name="rate_$THROTTLEPREFIX" value="64"/>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <input class="form-control" type="text" name="fetches_$THROTTLEPREFIX" value="12"/>
+            </div>
+          </div>
+        </div>
+      </li>
+        #set( $BINCOUNTER = $BINCOUNTER + 1)
+      #end
+      #if($BINCOUNTER == "0")
+      <li class="list-group-item list-group-item-warning">
+        $Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoBandwidthOrConnectionThrottlingSpecified'))
+      </li>
+      #end
+      <li class="list-group-item">
+        <div class="row form-inline">
+          <div class="col-md-1">
+            <div class="form-group">
+              <button class="btn btn-primary btn-sm" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddBinRegularExpression'))" onclick="javascript:addRegexp();"><i class="fa fa-plus-circle fa-lg" aria-hidden="true"></i></button>
+              <input type="hidden" name="bandwidth_count" value="$BINCOUNTER"/>
+              <input type="hidden" name="bandwidth_op" value="Continue"/>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="form-group">
+              <input class="form-control" type="text" name="regexp_bandwidth" value="" placeholder="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.BinRegularExpression'))"/>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <div class="checkbox">
+                <label><input type="checkbox" name="insensitive_bandwidth" value="true"/> $Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.CaseInsensitive'))</label>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <input class="form-control" type="text" name="connections_bandwidth" value="" placeholder="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.MaxConnections'))"/>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <input class="form-control" type="text" name="rate_bandwidth" value="" placeholder="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.MaxKbytesSec'))"/>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <input class="form-control" type="text" name="fetches_bandwidth" value="" placeholder="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.MaxFetchesMin'))"/>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
 #else
   #foreach($throttleMap in $THROTTLESMAPLIST)
     #set( $THROTTLEPREFIX = "bandwidth_" + $BINCOUNTER )
