@@ -18,33 +18,39 @@
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Certificates'))
 <div class="row">
   <div class="col-md-12 col-lg-8">
-    <table class="table">
-      <caption class="text-left">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.TrustCertificates'))</caption>
-      <tr>
-        <th></th>
-        <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression'))</th>
-        <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Certificate'))</th>
-      </tr>
+    <h5>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.TrustCertificates'))</h5>
+    <ul class="list-group">
+      <li class="list-group-item" style="padding: 5px 15px;">
+        <div class="row">
+          <div class="col-md-5"><strong>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression'))</strong></div>
+          <div class="col-md-5"><strong>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Certificate'))</strong></div>
+          <div class="col-md-2"></div>
+        </div>
+      </li>
       #foreach($trustMap in $TRUSTMAPLIST)
         #set( $PREFIX = "trust_" + $COUNTER )
-      <tr>
-        <td>
-          <button class="btn btn-danger" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteTrustUrlRegularExpression'))$foreach.count" onclick="javascript:deleteTRegexp($COUNTER);"><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
+      <li class="list-group-item">
+        <div class="row">
+          <div class="col-md-5">$Encoder.bodyEscape($trustMap["regexp"])</div>
+          <div class="col-md-5">
+            #if($trustMap["trustEverything"] == "true")
+            <i>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.TrustEverything"))</i>
+            #else
+            $Encoder.bodyEscape($trustMap["shortenedDescription"])
+            #end
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-danger btn-xs pull-right" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteTrustUrlRegularExpression'))$foreach.count" onclick="javascript:deleteTRegexp($COUNTER);"><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
             <input type="hidden" name="op_$PREFIX" value="Continue"/>
             <input type="hidden" name="regexp_$PREFIX" value="$Encoder.attributeEscape($trustMap["regexp"])"/>
             <input type="hidden" name="trustall_$PREFIX" value="$Encoder.attributeEscape($trustMap["trustEverything"])"/>
             <input type="hidden" name="truststore_$PREFIX" value="#if($trustMap["trustEverything"] == "true") "" #{else} $Encoder.attributeEscape($trustMap["trustStore"]) #end"/>
-        </td>
-        <td>$Encoder.bodyEscape($trustMap["regexp"])</td>
-        #if($trustMap["trustEverything"] == "true")
-        <td><i>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.TrustEverything"))</i></td>
-        #else
-        <td>$Encoder.bodyEscape($trustMap["shortenedDescription"])</td>
-        #end
-      </tr>
+          </div>
+        </div>
+      </li>
         #set( $COUNTER = $COUNTER + 1)
       #end
-    </table>
+    </ul>
   </div>
 </div>
 #if($COUNTER == "0")
