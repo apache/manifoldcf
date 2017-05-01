@@ -16,10 +16,16 @@
 -->
 #set( $BINCOUNTER = 0)
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Bandwidth'))
+<style type="text/css">
+  #webcrawler-bandwidth-throttles .form-group
+  {
+    display: block !important;
+  }
+</style>
 <div class="row">
   <div class="col-md-12">
     <h5>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Throttles'))</h5>
-    <ul class="list-group">
+    <ul id="webcrawler-bandwidth-throttles" class="list-group">
       #foreach($throttleMap in $THROTTLESMAPLIST)
         #set( $THROTTLEPREFIX = "bandwidth_" + $BINCOUNTER )
       <li class="list-group-item">
