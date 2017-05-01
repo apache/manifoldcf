@@ -19,10 +19,30 @@
 <script type="text/javascript">
   $(function(){
       $('#accordion-session-access .btn-danger').hover(function(){
-          $(this).closest('.panel').removeClass('panel-default').addClass('panel-danger');
+        $(this).closest('.panel').removeClass('panel-default').addClass('panel-danger');
       },function(){
-          $(this).closest('.panel').removeClass('panel-danger').addClass('panel-default');
+        $(this).closest('.panel').removeClass('panel-danger').addClass('panel-default');
       });
+
+      $('.collapse').on('shown.bs.collapse', function () {
+        var collapseId = $(this).attr("id");
+        if(window.sessionStorage){
+          sessionStorage.setItem("webcrawler_session_collapse",collapseId)
+        }
+      })
+
+      //if post-back, open the same collapse
+      if(window.sessionStorage){
+        if(sessionStorage.getItem("mcf_webcrawler_session_collapse")){
+          var collapseId = sessionStorage.getItem("webcrawler_session_collapse");
+          if(collapseId) {
+              //Remove the previous selected Pane.
+            $("#accordion-session-access .in").removeClass("in");
+
+            $('#' + collapseId).collapse("show");
+          }
+        }
+      }
   });
 </script>
 <style type="text/css">
