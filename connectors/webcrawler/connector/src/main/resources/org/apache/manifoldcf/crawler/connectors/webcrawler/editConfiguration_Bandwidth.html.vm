@@ -121,7 +121,7 @@
         <div class="row form-inline">
           <div class="col-md-1">
             <div class="form-group">
-              <button class="btn btn-primary btn-sm" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddBinRegularExpression'))" onclick="javascript:addRegexp();"><i class="fa fa-plus-circle fa-lg" aria-hidden="true"></i></button>
+              <button class="btn btn-success btn-sm" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddBinRegularExpression'))" onclick="javascript:addRegexp();"><i class="fa fa-plus-circle fa-lg" aria-hidden="true"></i></button>
               <input type="hidden" name="bandwidth_count" value="$BINCOUNTER"/>
               <input type="hidden" name="bandwidth_op" value="Continue"/>
             </div>
