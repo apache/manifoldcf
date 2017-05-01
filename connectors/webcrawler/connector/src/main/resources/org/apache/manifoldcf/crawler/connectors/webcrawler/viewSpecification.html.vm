@@ -1,0 +1,140 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<table class="displaytable">
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.SeedsColon"))</nobr></td>
+    <td class="value">
+      $Encoder.attributeEscape($SEEDS)
+      </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.URLCanonicalization"))</nobr></td>
+    <td class="value">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.URLRegexp"))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.Description"))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.Reorder"))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.RemoveJSPSessions"))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.RemoveASPSessions"))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.RemovePHPSessions"))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.RemoveBVSessions"))</nobr></td>
+        </tr>
+        #foreach($canonicalizationMap in $CANONICALIZATIONMAPLIST)
+        <tr>
+          <td>$Encoder.bodyEscape($canonicalizationMap["regexpString"])</td>
+          <td>$Encoder.bodyEscape($canonicalizationMap["description"])</td>
+          <td>$canonicalizationMap["allowReorderOutput"]</td>
+          <td>$canonicalizationMap["allowJavaSessionRemovalOutput"]</td>
+          <td>$canonicalizationMap["allowASPSessionRemovalOutput"]</td>
+          <td>$canonicalizationMap["allowPHPSessionRemovalOutput"]</td>
+          <td>$canonicalizationMap["allowBVSessionRemovalOutput"]</td>
+        </tr>
+        #end
+        #if($CANONICALIZATIONMAPLIST.size() == 0)
+          <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.NoCanonicalizationSpecified"))</nobr></td></tr>
+        #end
+      </table>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  #if($REGEXPLIST.size() == 0)
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.NoMappingsSpecifiedWillAcceptAllUrls"))</nobr></td></tr>
+  #else
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.URLMappingsColon"))</nobr></td>
+    <td class="value">
+      #foreach($REGEXP in $REGEXPLIST)
+      <p><span>$Encoder.bodyEscape($REGEXP)</span>&nbsp;&nbsp;<i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+      <span>
+      #set( $MATCH = $MATCHSTRINGS.get($foreach.index))
+      #if($MATCH.length() == 0)
+        &lt;as is&gt;
+      #else
+        $Encoder.bodyEscape($MATCH)
+      #end
+      </span></p>
+      #end
+    </td>
+  </tr>
+  #end
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.IncludeOnlyHostsMatchingSeeds"))</nobr></td>
+    <td class="value">#if($INCLUDEMATCHING)$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.yes"))#{else}$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.no"))#{end}</td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.IncludeInCrawl"))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($INCLUSIONS)</td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.IncludeInIndex"))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($INCLUSIONSINDEX)</td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.ExcludeFromCrawl"))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($EXCLUSIONS)</td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.ExcludeFromIndex"))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($EXCLUSIONSINDEX)</td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.ExcludeContentFromIndex"))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($EXCLUSIONSCONTENTINDEX)</td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  #if($TOKENS.size() == 0)
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.NoAccessTokensSpecified"))</nobr></td></tr>
+  #else
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.AccessTokens"))</nobr></td>
+    <td class="value">
+    #foreach($TOKEN in $TOKENS)
+      <p>$Encoder.bodyEscape($TOKEN)</p>
+    #end
+    </td>
+  </tr>
+  #end
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.ExcludedHeadersColon"))</nobr></td>
+    <td class="value">
+    #foreach($excludedHeader in $EXCLUDEDHEADERS)
+      <p>$Encoder.bodyEscape($excludedHeader)</p>
+    #end
+    </td>
+  </tr>
+</table>
+
+
+
+
+
+
+
+
+
+
+
