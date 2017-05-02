@@ -60,8 +60,8 @@
     #end
   </table>
 </div>
-#end
-#set( $NEXTCOUNTER = $COUNTER + 1 )
+  #end
+  #set( $NEXTCOUNTER = $COUNTER + 1 )
 <hr/>
 <div class="row">
   <div class="col-md-4">

@@ -63,9 +63,9 @@
           <div class="col-md-2"><strong>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Password'))</strong></div>
         </div>
       </li>
-      #foreach($pageAccessMap in $PAGEACCESSMAPLIST)
-          #set( $PREFIX = "acredential_" + $COUNTER )
-          <li class="list-group-item">
+  #foreach($pageAccessMap in $PAGEACCESSMAPLIST)
+    #set( $PREFIX = "acredential_" + $COUNTER )
+      <li class="list-group-item">
             <div class="row form-inline">
               <div class="col-md-1">
                 <button class="btn btn-danger btn-sm" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeletePageAuthenticationUrlRegularExpression'))$foreach.count" onclick='javascript:deleteARegexp($COUNTER);'><i class="fa fa-minus-circle fa-lg" aria-hidden="true"></i></button>
@@ -102,13 +102,13 @@
               </div>
             </div>
           </li>
-          #set( $COUNTER = $COUNTER + 1)
-        #end
-      #if($COUNTER == "0")
+    #set( $COUNTER = $COUNTER + 1)
+  #end
+  #if($COUNTER == "0")
       <li class="list-group-item list-group-item-warning">
-          $Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoPageAccessCredentialsSpecified'))
+        $Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoPageAccessCredentialsSpecified'))
       </li>
-      #end
+  #end
       <li class="list-group-item">
         <div class="row form-inline">
           <div class="col-md-1">
@@ -169,45 +169,45 @@
     </div>
     <div id="collapse_$PREFIX" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading_$PREFIX">
       <div class="panel-body">
-      <h5><strong>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.LoginPages'))</strong></h5>
-      #set( $AUTHPAGECOUNTER = 0 )
-      #set( $AUTHPAGEMAPLIST = $sessionAccessMap["authPageMapList"])
-      #foreach($authPageMap in $AUTHPAGEMAPLIST)
-        #set( $AUTHPAGEPREFIX = $PREFIX + "_" + $AUTHPAGECOUNTER)
-      <div class="panel panel-default">
-        <div class="panel-body">
-          <div class="form-group">
-            <button class="btn btn-danger btn-xs pull-right" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteLoginPage'))$foreach.count for url regular expression #$AUTHPAGECOUNTER" onclick='javascript:deleteLoginPage($COUNTER,$AUTHPAGECOUNTER);'><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
-            <input type="hidden" name="${AUTHPAGEPREFIX}_op" value="Continue"/>
-            <input type="hidden" name="${AUTHPAGEPREFIX}_regexp" value="$Encoder.attributeEscape($authPageMap["pageRegexp"])"/>
-            <input type="hidden" name="${AUTHPAGEPREFIX}_type" value="$Encoder.attributeEscape($authPageMap["pageType"])"/>
-          </div>
-          <div class="form-group">
-            <div class="row">
-              <div class="col-md-6">
-                <label class="control-label">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.LoginURLRegularExpression'))</label>
-                <p class="form-control-static">$Encoder.bodyEscape($authPageMap["pageRegexp"])</p>
+        <h5><strong>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.LoginPages'))</strong></h5>
+    #set( $AUTHPAGECOUNTER = 0 )
+    #set( $AUTHPAGEMAPLIST = $sessionAccessMap["authPageMapList"])
+    #foreach($authPageMap in $AUTHPAGEMAPLIST)
+      #set( $AUTHPAGEPREFIX = $PREFIX + "_" + $AUTHPAGECOUNTER)
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="form-group">
+              <button class="btn btn-danger btn-xs pull-right" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteLoginPage'))$foreach.count for url regular expression #$AUTHPAGECOUNTER" onclick='javascript:deleteLoginPage($COUNTER,$AUTHPAGECOUNTER);'><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
+              <input type="hidden" name="${AUTHPAGEPREFIX}_op" value="Continue"/>
+              <input type="hidden" name="${AUTHPAGEPREFIX}_regexp" value="$Encoder.attributeEscape($authPageMap["pageRegexp"])"/>
+              <input type="hidden" name="${AUTHPAGEPREFIX}_type" value="$Encoder.attributeEscape($authPageMap["pageType"])"/>
+            </div>
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="control-label">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.LoginURLRegularExpression'))</label>
+                  <p class="form-control-static">$Encoder.bodyEscape($authPageMap["pageRegexp"])</p>
+                </div>
+                <div class="col-md-6">
+                  <label class="control-label">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.PageType'))</label>
+                  <p class="form-control-static">$authPageMap["pageType"]</p>
+                </div>
               </div>
-              <div class="col-md-6">
-                <label class="control-label">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.PageType'))</label>
-                <p class="form-control-static">$authPageMap["pageType"]</p>
+            </div>
+            <div class="form-group">
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="control-label" for="${AUTHPAGEPREFIX}_matchregexp">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.FormNamelinkTargetRegularExpression'))</label>
+                  <input class="form-control" type="text" size="30" name="${AUTHPAGEPREFIX}_matchregexp" id="${AUTHPAGEPREFIX}_matchregexp" value="$Encoder.attributeEscape($authPageMap["matchRegexp"])"/>
+                </div>
+                <div class="col-md-6">
+                  <label class="control-label" for="${AUTHPAGEPREFIX}_overridetargeturl">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.OverrideTargetURL'))</label>
+                  <input class="form-control" type="text" size="30" name="${AUTHPAGEPREFIX}_overridetargeturl" id="${AUTHPAGEPREFIX}_overridetargeturl" value="$Encoder.attributeEscape($authPageMap["overrideTargetURL"])"/>
+                </div>
               </div>
             </div>
           </div>
-          <div class="form-group">
-            <div class="row">
-              <div class="col-md-6">
-                <label class="control-label" for="${AUTHPAGEPREFIX}_matchregexp">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.FormNamelinkTargetRegularExpression'))</label>
-                <input class="form-control" type="text" size="30" name="${AUTHPAGEPREFIX}_matchregexp" id="${AUTHPAGEPREFIX}_matchregexp" value="$Encoder.attributeEscape($authPageMap["matchRegexp"])"/>
-              </div>
-              <div class="col-md-6">
-                <label class="control-label" for="${AUTHPAGEPREFIX}_overridetargeturl">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.OverrideTargetURL'))</label>
-                <input class="form-control" type="text" size="30" name="${AUTHPAGEPREFIX}_overridetargeturl" id="${AUTHPAGEPREFIX}_overridetargeturl" value="$Encoder.attributeEscape($authPageMap["overrideTargetURL"])"/>
-              </div>
-            </div>
-          </div>
-        </div>
-        #if($authPageMap["pageType"] == "form")
+      #if($authPageMap["pageType"] == "form")
           <h5 style="padding-left:15px;"><strong>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.OverrideFormParameters'))</strong></h5>
           <ul class="list-group webcrawler-access-credentials">
             <li class="list-group-item">
@@ -218,10 +218,10 @@
                 <div class="col-md-3"><strong>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Password'))</strong></div>
               </div>
             </li>
-            #set( $AUTHPARAMCOUNTER = 0)
-            #set( $AUTHPAGEPARAMMAPLIST = $authPageMap["authPageParamMapList"] )
-            #foreach($authPageParamMap in $AUTHPAGEPARAMMAPLIST)
-              #set( $AUTHPARAMPREFIX = $AUTHPAGEPREFIX + "_" + $AUTHPARAMCOUNTER)
+        #set( $AUTHPARAMCOUNTER = 0)
+        #set( $AUTHPAGEPARAMMAPLIST = $authPageMap["authPageParamMapList"] )
+        #foreach($authPageParamMap in $AUTHPAGEPARAMMAPLIST)
+          #set( $AUTHPARAMPREFIX = $AUTHPAGEPREFIX + "_" + $AUTHPARAMCOUNTER)
             <li class="list-group-item">
               <div class="row form-inline">
                 <div class="col-md-2">
@@ -245,11 +245,11 @@
                 </div>
               </div>
             </li>
-              #set( $AUTHPARAMCOUNTER = $AUTHPARAMCOUNTER + 1)
-            #end
-            #if($AUTHPAGEPARAMMAPLIST.size() == 0)
+          #set( $AUTHPARAMCOUNTER = $AUTHPARAMCOUNTER + 1)
+        #end
+        #if($AUTHPAGEPARAMMAPLIST.size() == 0)
             <li class="list-group-item list-group-item-warning">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoFormParametersSpecified'))</li>
-            #end
+        #end
             <li class="list-group-item">
               <div class="row">
                 <div class="col-md-2">
@@ -275,11 +275,11 @@
               </div>
             </li>
           </ul>
-        #end
-      </div>
-        #set( $AUTHPAGECOUNTER = $AUTHPAGECOUNTER + 1 )
       #end
-      <div class="panel panel-default">
+        </div>
+      #set( $AUTHPAGECOUNTER = $AUTHPAGECOUNTER + 1 )
+    #end
+        <div class="panel panel-default">
         <div class="panel-body">
           <div class="row">
             <div class="col-md-12">
@@ -323,16 +323,16 @@
           </div>
         </div>
       </div>
-    </div>
+      </div>
     </div>
   </div>
     #set( $COUNTER = $COUNTER + 1)
   #end
 </div>
 
-#if($COUNTER == 0)
+  #if($COUNTER == 0)
 <div class="callout callout-warning">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoSessionBasedAccessCredentialsSpecified'))</div>
-#end
+  #end
 <hr/>
 <div class="row">
   <div class="col-md-6">
