@@ -17,14 +17,14 @@
 
 <table class="table">
   <tr>
-    <td>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.SeedsColon"))</td>
-    <td>$Encoder.attributeEscape($SEEDS)</td>
+    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.SeedsColon"))</th>
+    <td><pre>$Encoder.attributeEscape($SEEDS)</pre></td>
   </tr>
   <tr>
-    <td>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.URLCanonicalization"))</td>
+    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.URLCanonicalization"))</th>
     <td>
       <table class="table">
-        <tr>
+        <tr class="active">
           <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.URLRegexp"))</th>
           <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.Description"))</th>
           <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.Reorder"))</th>
@@ -54,7 +54,7 @@
     <tr><td colspan="2"><div class="callout callout-info">$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.NoMappingsSpecifiedWillAcceptAllUrls"))</div></td></tr>
   #else
   <tr>
-    <td>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.URLMappingsColon"))</td>
+    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.URLMappingsColon"))</th>
     <td>
       #foreach($REGEXP in $REGEXPLIST)
       <p><span>$Encoder.bodyEscape($REGEXP)</span>&nbsp;&nbsp;<i class="fa fa-long-arrow-right" aria-hidden="true"></i>
@@ -71,34 +71,34 @@
   </tr>
   #end
   <tr>
-    <td>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.IncludeOnlyHostsMatchingSeeds"))</td>
+    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.IncludeOnlyHostsMatchingSeeds"))</th>
     <td>#if($INCLUDEMATCHING)$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.yes"))#{else}$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.no"))#{end}</td>
   </tr>
   <tr>
-    <td>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.IncludeInCrawl"))</td>
-    <td>$Encoder.bodyEscape($INCLUSIONS)</td>
+    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.IncludeInCrawl"))</th>
+    <td><pre>$Encoder.bodyEscape($INCLUSIONS)</pre></td>
   </tr>
   <tr>
-    <td>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.IncludeInIndex"))</td>
-    <td>$Encoder.bodyEscape($INCLUSIONSINDEX)</td>
+    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.IncludeInIndex"))</th>
+    <td><pre>$Encoder.bodyEscape($INCLUSIONSINDEX)</pre></td>
   </tr>
   <tr>
-    <td>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.ExcludeFromCrawl"))</td>
-    <td>$Encoder.bodyEscape($EXCLUSIONS)</td>
+    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.ExcludeFromCrawl"))</th>
+    <td><pre>$Encoder.bodyEscape($EXCLUSIONS)</pre></td>
   </tr>
   <tr>
-    <td>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.ExcludeFromIndex"))</td>
-    <td>$Encoder.bodyEscape($EXCLUSIONSINDEX)</td>
+    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.ExcludeFromIndex"))</th>
+    <td><pre>$Encoder.bodyEscape($EXCLUSIONSINDEX)</pre></td>
   </tr>
   <tr>
-    <td>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.ExcludeContentFromIndex"))</td>
-    <td>$Encoder.bodyEscape($EXCLUSIONSCONTENTINDEX)</td>
+    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.ExcludeContentFromIndex"))</th>
+    <td><pre>$Encoder.bodyEscape($EXCLUSIONSCONTENTINDEX)</pre></td>
   </tr>
   #if($TOKENS.size() == 0)
     <tr><td colspan="2"><div class="callout callout-info">$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.NoAccessTokensSpecified"))</div></td></tr>
   #else
   <tr>
-    <td>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.AccessTokens"))</td>
+    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.AccessTokens"))</th>
     <td>
     #foreach($TOKEN in $TOKENS)
       <p>$Encoder.bodyEscape($TOKEN)</p>
@@ -107,7 +107,7 @@
   </tr>
   #end
   <tr>
-    <td>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.ExcludedHeadersColon"))</td>
+    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.ExcludedHeadersColon"))</th>
     <td>
     #foreach($excludedHeader in $EXCLUDEDHEADERS)
       <p>$Encoder.bodyEscape($excludedHeader)</p>
@@ -115,14 +115,3 @@
     </td>
   </tr>
 </table>
-
-
-
-
-
-
-
-
-
-
-

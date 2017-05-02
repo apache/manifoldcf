@@ -56,12 +56,12 @@
     <th colspan="1">$ResourceBundle.getString('WebcrawlerConnector.BandwidthThrottling')</th>
     <td colspan="3">
       <table class="table">
-        <tr>
-          <th>$ResourceBundle.getString('WebcrawlerConnector.BinRegularExpression')</td>
-          <th>$ResourceBundle.getString('WebcrawlerConnector.CaseInsensitive')</td>
-          <th>$ResourceBundle.getString('WebcrawlerConnector.MaxConnections')</td>
-          <th>$ResourceBundle.getString('WebcrawlerConnector.MaxKbytesSec')</td>
-          <th>$ResourceBundle.getString('WebcrawlerConnector.MaxFetchesMin')</td>
+        <tr class="active">
+          <th>$ResourceBundle.getString('WebcrawlerConnector.BinRegularExpression')</th>
+          <th>$ResourceBundle.getString('WebcrawlerConnector.CaseInsensitive')</th>
+          <th>$ResourceBundle.getString('WebcrawlerConnector.MaxConnections')</th>
+          <th>$ResourceBundle.getString('WebcrawlerConnector.MaxKbytesSec')</th>
+          <th>$ResourceBundle.getString('WebcrawlerConnector.MaxFetchesMin')</th>
         </tr>
         #set( $BINCOUNTER = 0)
         #foreach($throttleMap in $THROTTLESMAPLIST)
@@ -95,7 +95,7 @@
           #set( $BINCOUNTER = $BINCOUNTER + 1)
         #end
         #if($BINCOUNTER == 0)
-        <tr class="formrow"><td class="formmessage" colspan="5">$ResourceBundle.getString('WebcrawlerConnector.NoBandwidthThrottling')</td></tr>
+          <tr class="formrow"><td class="formmessage" colspan="5"><div class="callout callout-info">$ResourceBundle.getString('WebcrawlerConnector.NoBandwidthThrottling')</div></td></tr>
         #end
       </table>
     </td>
@@ -105,11 +105,11 @@
     <th colspan="1">$ResourceBundle.getString('WebcrawlerConnector.PageAccessCredentials')</th>
     <td colspan="3">
       <table class="table">
-        <tr>
-          <th>$ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression')</td>
-          <th>$ResourceBundle.getString('WebcrawlerConnector.CredentialType')</td>
-          <th>$ResourceBundle.getString('WebcrawlerConnector.CredentialDomain')</td>
-          <th>$ResourceBundle.getString('WebcrawlerConnector.UserName')</td>
+        <tr class="active">
+          <th>$ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression')</th>
+          <th>$ResourceBundle.getString('WebcrawlerConnector.CredentialType')</th>
+          <th>$ResourceBundle.getString('WebcrawlerConnector.CredentialDomain')</th>
+          <th>$ResourceBundle.getString('WebcrawlerConnector.UserName')</th>
         </tr>
         #set( $COUNTER = 0)
         #foreach($pageAccessMap in $PAGEACCESSMAPLIST)
@@ -126,7 +126,7 @@
           #set( $COUNTER = $COUNTER + 1)
         #end
         #if($COUNTER == 0)
-        <tr class="formrow"><td class="formmessage" colspan="4">$ResourceBundle.getString('WebcrawlerConnector.NoPageAccessCredentials')</td></tr>
+          <tr class="formrow"><td class="formmessage" colspan="4"><div class="callout callout-info">$ResourceBundle.getString('WebcrawlerConnector.NoPageAccessCredentials')</div></td></tr>
         #end
       </table>
     </td>
@@ -136,9 +136,9 @@
     <th colspan="1">$ResourceBundle.getString('WebcrawlerConnector.SessionBasedAccessCredentials')</th>
     <td colspan="3">
       <table class="table">
-        <tr>
-          <th>$ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression')</td>
-          <th>$ResourceBundle.getString('WebcrawlerConnector.LoginPages')</td>
+        <tr class="active">
+          <th>$ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression')</th>
+          <th>$ResourceBundle.getString('WebcrawlerConnector.LoginPages')</th>
         </tr>
         #set( $COUNTER = 0)
         #foreach($sessionAccessMap in $SESSIONACCESSMAPLIST)
@@ -146,7 +146,7 @@
           <td>$Encoder.bodyEscape($sessionAccessMap["regexp"])</td>
           <td>
             <table class="table">
-              <tr>
+              <tr class="active">
                 <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.LoginURLRegularExpression'))</th>
                 <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.PageType'))</th>
                 <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.FormNamelinkTargetRegularExpression'))</th>
@@ -164,7 +164,7 @@
                 #if($authPageMap["pageType"] == "form")
                 <td>
                   <table class="table">
-                    <tr>
+                    <tr class="active">
                       <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ParameterRegularExpression'))</th>
                       <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Value'))</th>
                       <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Password'))</th>
@@ -192,7 +192,7 @@
                 #set( $AUTHPAGECOUNTER = $AUTHPAGECOUNTER + 1 )
               #end
               #if($AUTHPAGECOUNTER == 0)
-                <tr><td><div class="alert alert-info">$ResourceBundle.getString('WebcrawlerConnector.NoLoginPagesSpecified')</div></td></tr>
+                <tr><td><div class="callout callout-info">$ResourceBundle.getString('WebcrawlerConnector.NoLoginPagesSpecified')</div></td></tr>
               #end
             </table>
           </td>
@@ -200,7 +200,7 @@
           #set( $COUNTER = $COUNTER + 1)
         #end
         #if($COUNTER == 0)
-          <tr><td colspan="2"><div class="alert alert-info">$ResourceBundle.getString('WebcrawlerConnector.NoSessionBasedAccessCredentials')</div></td></tr>
+          <tr><td colspan="2"><div class="callout callout-info">$ResourceBundle.getString('WebcrawlerConnector.NoSessionBasedAccessCredentials')</div></td></tr>
         #end
       </table>
     </td>
@@ -210,7 +210,7 @@
     <th colspan="1">$ResourceBundle.getString('WebcrawlerConnector.TrustCertificates')</th>
     <td colspan="3">
       <table class="table">
-        <tr>
+        <tr class="active">
           <th>$ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression')</th>
           <th>$ResourceBundle.getString('WebcrawlerConnector.Certificate')</th>
         </tr>
@@ -226,10 +226,9 @@
           #set( $COUNTER = $COUNTER + 1)
         #end
         #if($COUNTER == 0)
-          <tr><td colspan="2"><div class="alert alert-info">$ResourceBundle.getString('WebcrawlerConnector.NoTrustCertificates')</div></td></tr>
+          <tr><td colspan="2"><div class="callout callout-info">$ResourceBundle.getString('WebcrawlerConnector.NoTrustCertificates')</div></td></tr>
         #end
       </table>
     </td>
   </tr>
 </table>
-

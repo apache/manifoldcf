@@ -33,7 +33,7 @@
 
       //if post-back, open the same collapse
       if(window.sessionStorage){
-        if(sessionStorage.getItem("mcf_webcrawler_session_collapse")){
+        if(sessionStorage.getItem("webcrawler_session_collapse")){
           var collapseId = sessionStorage.getItem("webcrawler_session_collapse");
           if(collapseId) {
               //Remove the previous selected Pane.
@@ -162,7 +162,7 @@
         </a>
       </h4>
       <div class="pull-right">
-        <button class="btn btn-danger btn-xs" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteSessionAuthenticationUrlRegularExpression'))$foreach.count" onclick='javascript:deleteSRegexp($COUNTER);'>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
+        <button class="btn btn-danger btn-xs" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteSessionAuthenticationUrlRegularExpression'))$foreach.count" onclick='javascript:deleteSRegexp($COUNTER);'><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
         <input type="hidden" name="${PREFIX}_op" value="Continue"/>
         <input type="hidden" name="${PREFIX}_regexp" value="$Encoder.attributeEscape($sessionAccessMap["regexp"])"/>
       </div>
@@ -177,7 +177,7 @@
       <div class="panel panel-default">
         <div class="panel-body">
           <div class="form-group">
-            <button class="btn btn-danger btn-xs pull-right" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteLoginPage'))$foreach.count for url regular expression #$AUTHPAGECOUNTER" onclick='javascript:deleteLoginPage($COUNTER,$AUTHPAGECOUNTER);'>Delete</button>
+            <button class="btn btn-danger btn-xs pull-right" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteLoginPage'))$foreach.count for url regular expression #$AUTHPAGECOUNTER" onclick='javascript:deleteLoginPage($COUNTER,$AUTHPAGECOUNTER);'><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
             <input type="hidden" name="${AUTHPAGEPREFIX}_op" value="Continue"/>
             <input type="hidden" name="${AUTHPAGEPREFIX}_regexp" value="$Encoder.attributeEscape($authPageMap["pageRegexp"])"/>
             <input type="hidden" name="${AUTHPAGEPREFIX}_type" value="$Encoder.attributeEscape($authPageMap["pageType"])"/>
@@ -213,9 +213,9 @@
             <li class="list-group-item">
               <div class="row">
                 <div class="col-md-2"></div>
-                <div class="col-md-4">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ParameterRegularExpression'))</div>
-                <div class="col-md-3">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Value'))</div>
-                <div class="col-md-3">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Password'))</div>
+                <div class="col-md-4"><strong>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ParameterRegularExpression'))</strong></div>
+                <div class="col-md-3"><strong>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Value'))</strong></div>
+                <div class="col-md-3"><strong>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Password'))</strong></div>
               </div>
             </li>
             #set( $AUTHPARAMCOUNTER = 0)
@@ -225,7 +225,7 @@
             <li class="list-group-item">
               <div class="row form-inline">
                 <div class="col-md-2">
-                  <button class="btn btn-danger btn-xs" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteParameter'))$foreach.count$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.ForLoginPage'))$AUTHPAGECOUNTER$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.ForCredential'))$COUNTER" onclick='javascript:deleteLoginPageParameter($COUNTER,$AUTHPAGECOUNTER,$AUTHPARAMCOUNTER);'>Delete</button>
+                  <button class="btn btn-danger btn-xs" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteParameter'))$foreach.count$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.ForLoginPage'))$AUTHPAGECOUNTER$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.ForCredential'))$COUNTER" onclick='javascript:deleteLoginPageParameter($COUNTER,$AUTHPAGECOUNTER,$AUTHPARAMCOUNTER);'><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
                   <input type="hidden" name="${AUTHPARAMPREFIX}_op" value="Continue"/>
                 </div>
                 <div class="col-md-4">
@@ -250,7 +250,7 @@
             <li class="list-group-item">
               <div class="row">
                 <div class="col-md-2">
-                  <button class="btn btn-success btn-xs" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddParameterToLoginPage'))$AUTHPAGECOUNTER$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.ForCredential'))$COUNTER" onclick='javascript:addLoginPageParameter($COUNTER,$AUTHPAGECOUNTER);'>Add</button>
+                  <button class="btn btn-success btn-xs" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddParameterToLoginPage'))$AUTHPAGECOUNTER$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.ForCredential'))$COUNTER" onclick='javascript:addLoginPageParameter($COUNTER,$AUTHPAGECOUNTER);'><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))</button>
                   <input type="hidden" name="${AUTHPAGEPREFIX}_loginparamcount" value="$AUTHPARAMCOUNTER"/>
                   <input type="hidden" name="${AUTHPAGEPREFIX}_loginparamop" value="Continue"/>
                 </div>
@@ -313,7 +313,7 @@
           </div>
           <div class="row">
             <div class="col-md-12">
-              <button class="btn btn-success pull-right" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddLoginPageToCredential'))$foreach.count" onclick='javascript:addLoginPage($COUNTER);'>Add</button>
+              <button class="btn btn-success pull-right" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddLoginPageToCredential'))$foreach.count" onclick='javascript:addLoginPage($COUNTER);'><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))</button>
               <input type="hidden" name="${PREFIX}_loginpagecount" value="$AUTHPAGECOUNTER"/>
               <input type="hidden" name="${PREFIX}_loginpageop" value="Continue"/>
             </div>
@@ -338,7 +338,7 @@
       <input class="form-control" type="text" size="30" name="scredential_regexp" id="scredential_regexp" value=""/>
     </div>
     <div class="form-group">
-      <button class="btn btn-success pull-right" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddSessionAuthenticationUrlRegularExpression'))" onclick="javascript:addSRegexp();">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))</button>
+      <button class="btn btn-success pull-right" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.AddSessionAuthenticationUrlRegularExpression'))" onclick="javascript:addSRegexp();"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Add'))</button>
       <input type="hidden" name="scredential_count" value="$COUNTER"/>
       <input type="hidden" name="scredential_op" value="Continue"/>
     </div>
