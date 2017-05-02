@@ -93,11 +93,11 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     // Certificates
     testerInstance.clickTab("Certificates");
     testerInstance.clickCheckbox("all_trust");
-    testerInstance.clickButton("Add", true);
-    
+    testerInstance.clickButton("Add");
+
     // Go back to the Name tab
     testerInstance.clickTab("Name");
-    
+
     // Save
     testerInstance.clickButton("Save");
     testerInstance.verifyThereIsNoError();
@@ -117,7 +117,7 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     testerInstance.clickButton("Add output",true);
     testerInstance.waitForElementWithName("connectionname");
     testerInstance.selectValue("connectionname","MyRepositoryConnection");
-    
+
     testerInstance.clickButton("Continue");
 
     // HopFilters tab
@@ -127,15 +127,15 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     testerInstance.setValue("s0_seeds", "http://www.cnn.com");
     // Canonicalization tab
     testerInstance.clickTab("Canonicalization");
-    testerInstance.clickButton("Add", true);
+    testerInstance.clickButton("Add");
     // Security tab
     testerInstance.clickTab("Security");
     // URL Mapping tab
     testerInstance.clickTab("URL Mappings");
     testerInstance.setValue("s0_rssmatch", "foo");
     testerInstance.setValue("s0_rssmap", "bar");
-    testerInstance.clickButton("Add", true);
-    testerInstance.clickButton("Remove", true);
+    testerInstance.clickButton("Add");
+    testerInstance.clickButton("Remove");
     // Metadata tab
     testerInstance.clickTab("Metadata");
     // Inclusions tab
