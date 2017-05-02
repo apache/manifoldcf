@@ -46,8 +46,8 @@
       <resource>
         <directory>${basedir}/connector/src/main/resources</directory>
         <includes>
-          <include>**/*.html</include>
-          <include>**/*.js</include>
+          <include>**/*.html.vm</include>
+          <include>**/*.js.vm</include>
         </includes>
       </resource>
     </resources> 

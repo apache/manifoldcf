@@ -1563,344 +1563,90 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Certificates"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Proxy"));
 
-    out.print(
-"<script type=\"text/javascript\">\n"+
-"<!--\n"+
-"function checkConfig()\n"+
-"{\n"+
-"  if (editconnection.email.value != \"\" && editconnection.email.value.indexOf(\"@\") == -1)\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.NeedAValidEmailAddress")+"\");\n"+
-"    editconnection.email.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"\n"+
-"  // If the Bandwidth tab is up, check to be sure we have valid numbers and regexps everywhere.\n"+
-"  var i = 0;\n"+
-"  var count = editconnection.bandwidth_count.value;\n"+
-"  while (i < count)\n"+
-"  {\n"+
-"    var connections = eval(\"editconnection.connections_bandwidth_\"+i+\".value\");\n"+
-"    if (connections != \"\" && !isInteger(connections))\n"+
-"    {\n"+
-"      alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumConnectionsMustBeAnInteger")+"\");\n"+
-"      eval(\"editconnection.connections_bandwidth_\"+i+\".focus()\");\n"+
-"      return false;\n"+
-"    }\n"+
-"    var rate = eval(\"editconnection.rate_bandwidth_\"+i+\".value\");\n"+
-"    if (rate != \"\" && !isInteger(rate))\n"+
-"    {\n"+
-"      alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumKbytesPerSecondMustBeAnInteger")+"\");\n"+
-"      eval(\"editconnection.rate_bandwidth_\"+i+\".focus()\");\n"+
-"      return false;\n"+
-"    }\n"+
-"    var fetches = eval(\"editconnection.fetches_bandwidth_\"+i+\".value\");\n"+
-"    if (fetches != \"\" && !isInteger(fetches))\n"+
-"    {\n"+
-"      alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumFetchesPerMinuteMustBeAnInteger")+"\");\n"+
-"      eval(\"editconnection.fetches_bandwidth_\"+i+\".focus()\");\n"+
-"      return false;\n"+
-"    }\n"+
-"\n"+
-"    i = i + 1;\n"+
-"  }\n"+
-"    \n"+
-"  // Make sure access credentials are all legal\n"+
-"  i = 0;\n"+
-"  count = editconnection.acredential_count.value;\n"+
-"  while (i < count)\n"+
-"  {\n"+
-"    var username = eval(\"editconnection.username_acredential_\"+i+\".value\");\n"+
-"    if (username == \"\")\n"+
-"    {\n"+
-"      alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.CredentialMustHaveNonNullUserName")+"\");\n"+
-"      eval(\"editconnection.username_acredential_\"+i+\".focus()\");\n"+
-"      return false;\n"+
-"    }\n"+
-"    i = i + 1;\n"+
-"  }\n"+
-"\n"+
-"  // Make sure session credentials are all legal\n"+
-"  i = 0;\n"+
-"  count = editconnection.scredential_count.value;\n"+
-"  while (i < count)\n"+
-"  {\n"+
-"    var loginpagecount = eval(\"editconnection.scredential_\"+i+\"_loginpagecount.value\");\n"+
-"    var j = 0;\n"+
-"    while (j < loginpagecount)\n"+
-"    {\n"+
-"      var matchregexp = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_matchregexp.value\");\n"+
-"      if (!isRegularExpression(matchregexp))\n"+
-"      {\n"+
-"        alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MatchExpressionMustBeAValidRegularExpression")+"\");\n"+
-"        eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_matchregexp.focus()\");\n"+
-"        return false;\n"+
-"      }\n"+
-"      if (eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_type.value\") == \"form\")\n"+
-"      {\n"+
-"        var paramcount = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_loginparamcount.value\");\n"+
-"        var k = 0;\n"+
-"        while (k < paramcount)\n"+
-"        {\n"+
-"          var paramname = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_param.value\");\n"+
-"          if (paramname == \"\")\n"+
-"          {\n"+
-"            alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.ParameterMustHaveNonEmptyName")+"\");\n"+
-"            eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_param.focus()\");\n"+
-"            return false;\n"+
-"          }\n"+
-"          var paramvalue = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_value.value\");\n"+
-"          var parampassword = eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_password.value\");\n"+
-"          if (paramvalue != \"\" && parampassword != \"\")\n"+
-"          {\n"+
-"            alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.ParameterCanEitherBeHidden")+"\");\n"+
-"            eval(\"editconnection.scredential_\"+i+\"_\"+j+\"_\"+k+\"_value.focus()\");\n"+
-"            return false;\n"+
-"          }\n"+
-"          k = k + 1;\n"+
-"        }\n"+
-"      }\n"+
-"      j = j + 1;\n"+
-"    }\n"+
-"    i = i + 1;\n"+
-"  }\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function checkConfigForSave()\n"+
-"{\n"+
-"  if (editconnection.email.value == \"\")\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.EmailAaddressRequired") + "\");\n"+
-"    SelectTab(\"" + Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.Email") + "\");\n"+
-"    editconnection.email.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function deleteRegexp(i)\n"+
-"{\n"+
-"  // Set the operation\n"+
-"  eval(\"editconnection.op_bandwidth_\"+i+\".value=\\\"Delete\\\"\");\n"+
-"  // Submit\n"+
-"  if (editconnection.bandwidth_count.value==i)\n"+
-"    postFormSetAnchor(\"bandwidth\");\n"+
-"  else\n"+
-"    postFormSetAnchor(\"bandwidth_\"+i)\n"+
-"  // Undo, so we won't get two deletes next time\n"+
-"  eval(\"editconnection.op_bandwidth_\"+i+\".value=\\\"Continue\\\"\");\n"+
-"}\n"+
-"\n"+
-"function addRegexp()\n"+
-"{\n"+
-"  if (editconnection.connections_bandwidth.value != \"\" && !isInteger(editconnection.connections_bandwidth.value))\n"+
-"  {\n"+
-"    alert(\"" + Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumConnectionsMustBeAnInteger")+"\");\n"+
-"    editconnection.connections_bandwidth.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  if (editconnection.rate_bandwidth.value != \"\" && !isInteger(editconnection.rate_bandwidth.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumKbytesPerSecondMustBeAnInteger")+"\");\n"+
-"    editconnection.rate_bandwidth.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  if (editconnection.fetches_bandwidth.value != \"\" && !isInteger(editconnection.fetches_bandwidth.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MaximumFetchesPerMinuteMustBeAnInteger")+"\");\n"+
-"    editconnection.fetches_bandwidth.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  if (!isRegularExpression(editconnection.regexp_bandwidth.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.AValidRegularExpressionIsRequired")+"\");\n"+
-"    editconnection.regexp_bandwidth.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  editconnection.bandwidth_op.value=\"Add\";\n"+
-"  postFormSetAnchor(\"bandwidth\");\n"+
-"}\n"+
-"\n"+
-"function deleteARegexp(i)\n"+
-"{\n"+
-"  // Set the operation\n"+
-"  eval(\"editconnection.op_acredential_\"+i+\".value=\\\"Delete\\\"\");\n"+
-"  // Submit\n"+
-"  if (editconnection.acredential_count.value==i)\n"+
-"    postFormSetAnchor(\"acredential\");\n"+
-"  else\n"+
-"    postFormSetAnchor(\"acredential_\"+i)\n"+
-"  // Undo, so we won't get two deletes next time\n"+
-"  eval(\"editconnection.op_acredential_\"+i+\".value=\\\"Continue\\\"\");\n"+
-"}\n"+
-"\n"+
-"function addARegexp()\n"+
-"{\n"+
-"  if (editconnection.username_acredential.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.CredentialMustIncludeANonNullUserName")+"\");\n"+
-"    editconnection.username_acredential.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  if (!isRegularExpression(editconnection.regexp_acredential.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.AValidRegularExpressionIsRequired")+"\");\n"+
-"    editconnection.regexp_acredential.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  editconnection.acredential_op.value=\"Add\";\n"+
-"  postFormSetAnchor(\"acredential\");\n"+
-"}\n"+
-"\n"+
-"function deleteSRegexp(i)\n"+
-"{\n"+
-"  // Set the operation\n"+
-"  eval(\"editconnection.scredential_\"+i+\"_op.value=\\\"Delete\\\"\");\n"+
-"  // Submit\n"+
-"  if (editconnection.scredential_count.value==i)\n"+
-"    postFormSetAnchor(\"scredential\");\n"+
-"  else\n"+
-"    postFormSetAnchor(\"scredential_\"+i)\n"+
-"  // Undo, so we won't get two deletes next time\n"+
-"  eval(\"editconnection.scredential_\"+i+\"_op.value=\\\"Continue\\\"\");\n"+
-"}\n"+
-"\n"+
-"function addSRegexp()\n"+
-"{\n"+
-"  if (!isRegularExpression(editconnection.scredential_regexp.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.AValidRegularExpressionIsRequired")+"\");\n"+
-"    editconnection.scredential_regexp.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  editconnection.scredential_op.value=\"Add\";\n"+
-"  postFormSetAnchor(\"scredential\");\n"+
-"}\n"+
-"\n"+
-"function deleteLoginPage(credential,loginpage)\n"+
-"{\n"+
-"  // Set the operation\n"+
-"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_op.value=\\\"Delete\\\"\");\n"+
-"  // Submit\n"+
-"  if (eval(\"editconnection.scredential_\"+credential+\"_loginpagecount.value\")==credential)\n"+
-"    postFormSetAnchor(\"scredential_loginpage\");\n"+
-"  else\n"+
-"    postFormSetAnchor(\"scredential_\"+credential+\"_\"+loginpage)\n"+
-"  // Undo, so we won't get two deletes next time\n"+
-"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_op.value=\\\"Continue\\\"\");\n"+
-"\n"+
-"}\n"+
-"  \n"+
-"function addLoginPage(credential)\n"+
-"{\n"+
-"  if (!isRegularExpression(eval(\"editconnection.scredential_\"+credential+\"_loginpageregexp.value\")))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.AValidRegularExpressionIsRequired")+"\");\n"+
-"    eval(\"editconnection.scredential_\"+credential+\"_loginpageregexp.focus()\");\n"+
-"    return;\n"+
-"  }\n"+
-"  if (!isRegularExpression(eval(\"editconnection.scredential_\"+credential+\"_loginpagematchregexp.value\")))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.AValidRegularExpressionIsRequired")+"\");\n"+
-"    eval(\"editconnection.scredential_\"+credential+\"_loginpagematchregexp.focus()\");\n"+
-"    return;\n"+
-"  }\n"+
-"  eval(\"editconnection.scredential_\"+credential+\"_loginpageop.value=\\\"Add\\\"\");\n"+
-"  postFormSetAnchor(\"scredential_\"+credential);\n"+
-"}\n"+
-"  \n"+
-"function deleteLoginPageParameter(credential,loginpage,parameter)\n"+
-"{\n"+
-"  // Set the operation\n"+
-"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_\"+parameter+\"_op.value=\\\"Delete\\\"\");\n"+
-"  // Submit\n"+
-"  if (eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamcount.value\")==credential)\n"+
-"    postFormSetAnchor(\"scredential_\"+credential+\"_loginparam\");\n"+
-"  else\n"+
-"    postFormSetAnchor(\"scredential_\"+credential+\"_\"+loginpage+\"_\"+parameter)\n"+
-"  // Undo, so we won't get two deletes next time\n"+
-"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_\"+parameter+\"_op.value=\\\"Continue\\\"\");\n"+
-"}\n"+
-"  \n"+
-"function addLoginPageParameter(credential,loginpage)\n"+
-"{\n"+
-"  if (!isRegularExpression(eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamname.value\")))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.ParameterNameMustBeARegularExpression")+"\");\n"+
-"    eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamname.focus()\");\n"+
-"    return;\n"+
-"  }\n"+
-"  if (eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamvalue.value\") != \"\" && eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparampassword.value\") != \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.ParameterCanEitherBeHidden")+"\");\n"+
-"    eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamvalue.focus()\");\n"+
-"    return;\n"+
-"  }\n"+
-"  eval(\"editconnection.scredential_\"+credential+\"_\"+loginpage+\"_loginparamop.value=\\\"Add\\\"\");\n"+
-"  postFormSetAnchor(\"scredential_\"+credential+\"_\"+loginpage);\n"+
-"}\n"+
-"  \n"+
-"function deleteTRegexp(i)\n"+
-"{\n"+
-"  // Set the operation\n"+
-"  eval(\"editconnection.op_trust_\"+i+\".value=\\\"Delete\\\"\");\n"+
-"  // Submit\n"+
-"  if (editconnection.trust_count.value==i)\n"+
-"    postFormSetAnchor(\"trust\");\n"+
-"  else\n"+
-"    postFormSetAnchor(\"trust_\"+i);\n"+
-"  // Undo, so we won't get two deletes next time\n"+
-"  eval(\"editconnection.op_trust_\"+i+\".value=\\\"Continue\\\"\");\n"+
-"}\n"+
-"\n"+
-"function addTRegexp()\n"+
-"{\n"+
-"  if (editconnection.certificate_trust.value == \"\" && editconnection.all_trust.checked == false)\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.SpecifyATrustCertificateFileToUploadFirst")+"\");\n"+
-"    editconnection.certificate_trust.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  if (!isRegularExpression(editconnection.regexp_trust.value))\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.AValidRegularExpressionIsRequired")+"\");\n"+
-"    editconnection.regexp_trust.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  editconnection.trust_op.value=\"Add\";\n"+
-"  postFormSetAnchor(\"trust\");\n"+
-"}\n"+
-"  \n"+
-"//-->\n"+
-"</script>\n"
-    );
+    final Map<String,Object> velocityContext = new HashMap<String,Object>();
+    Messages.outputResourceWithVelocity(out, locale, "editConfiguration.js.vm", velocityContext);
   }
-  
-  /** Output the configuration body section.
-  * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
-  * form is "editconnection".
-  *@param threadContext is the local thread context.
-  *@param out is the output to which any HTML should be sent.
-  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
-  *@param tabName is the current tab name.
-  */
-  @Override
-  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
-    Locale locale, ConfigParams parameters, String tabName)
-    throws ManifoldCFException, IOException
+
+  private void fillInEmailTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
   {
-    
     String email = parameters.getParameter(WebcrawlerConfig.PARAMETER_EMAIL);
     if (email == null)
       email = "";
+
+    velocityContext.put("EMAIL",email);
+  }
+
+  private void fillInRobotsTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
     String robotsUsage = parameters.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
     if (robotsUsage == null)
       robotsUsage = "all";
     String metaRobotsTagsUsage = parameters.getParameter(WebcrawlerConfig.PARAMETER_META_ROBOTS_TAGS_USAGE);
     if (metaRobotsTagsUsage == null)
       metaRobotsTagsUsage = "all";
+
+    velocityContext.put("ROBOTSUSAGE",robotsUsage);
+    velocityContext.put("METAROBOTSTAGSUSAGE",metaRobotsTagsUsage);
+  }
+
+  private void fillInBandwidthTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
+    int i = 0;
+    int binCounter = 0;
+    List<Map<String,String>> throttlesMapList = new ArrayList<>();
+    while (i < parameters.getChildCount())
+    {
+      ConfigNode cn = parameters.getChild(i++);
+      if (cn.getType().equals(WebcrawlerConfig.NODE_BINDESC))
+      {
+        Map<String,String> throttleMap = new HashMap<>();
+        // A bin description node!  Look for all its parameters.
+        String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_BINREGEXP);
+        String isCaseInsensitive = cn.getAttributeValue(WebcrawlerConfig.ATTR_INSENSITIVE);
+        String maxConnections = null;
+        String maxKBPerSecond = null;
+        String maxFetchesPerMinute = null;
+        int j = 0;
+        while (j < cn.getChildCount())
+        {
+          ConfigNode childNode = cn.getChild(j++);
+          if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXCONNECTIONS))
+            maxConnections = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+          else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXKBPERSECOND))
+            maxKBPerSecond = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+          else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
+            maxFetchesPerMinute = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+        }
+        if (maxConnections == null)
+          maxConnections = "";
+        if (maxKBPerSecond == null)
+          maxKBPerSecond = "";
+        if (maxFetchesPerMinute == null)
+          maxFetchesPerMinute = "";
+        if(regexp == null)
+          regexp = "";
+
+        if (isCaseInsensitive == null || isCaseInsensitive.length() == 0)
+          isCaseInsensitive = "false";
+
+        throttleMap.put("regexp",regexp);
+        throttleMap.put("isCaseInsensitive",isCaseInsensitive);
+        throttleMap.put("maxConnections",maxConnections);
+        throttleMap.put("maxKBPerSecond",maxKBPerSecond);
+        throttleMap.put("maxFetchesPerMinute",maxFetchesPerMinute);
+        throttlesMapList.add(throttleMap);
+        binCounter++;
+      }
+    }
+    if (parameters.getChildCount() == 0)
+    {
+      velocityContext.put("BRANDNEW",true);
+    }
+    velocityContext.put("THROTTLESMAPLIST",throttlesMapList);
+  }
+
+  private void fillInProxyTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
     String proxyHost = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYHOST);
     if (proxyHost == null)
       proxyHost = "";
@@ -1919,969 +1665,217 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     else
       proxyAuthPassword = out.mapPasswordToKey(proxyAuthPassword);
 
-    // Proxy tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Proxy")))
+    velocityContext.put("PROXYHOST",proxyHost);
+    velocityContext.put("PROXYPORT",proxyPort);
+    velocityContext.put("PROXYAUTHDOMAIN",proxyAuthDomain);
+    velocityContext.put("PROXYAUTHUSERNAME",proxyAuthUsername);
+    velocityContext.put("PROXYAUTHPASSWORD",proxyAuthPassword);
+  }
+
+  private void fillInCertificatesTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters) throws ManifoldCFException
+  {
+    int i = 0;
+    List<Map<String,String>> trustMapList = new ArrayList<>();
+    while (i < parameters.getChildCount())
     {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyHostColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"40\" name=\"proxyhost\" value=\""+Encoder.attributeEscape(proxyHost)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyPortColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"5\" name=\"proxyport\" value=\""+Encoder.attributeEscape(proxyPort)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationDomainColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthdomain\" value=\""+Encoder.attributeEscape(proxyAuthDomain)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationUserNameColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"text\" size=\"32\" name=\"proxyauthusername\" value=\""+Encoder.attributeEscape(proxyAuthUsername)+"\"/></td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationPasswordColon") + "</nobr></td>\n"+
-"    <td class=\"value\"><input type=\"password\" size=\"16\" name=\"proxyauthpassword\" value=\""+Encoder.attributeEscape(proxyAuthPassword)+"\"/></td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
+      ConfigNode cn = parameters.getChild(i++);
+      if (cn.getType().equals(WebcrawlerConfig.NODE_TRUST))
+      {
+        Map<String,String> trustMap = new HashMap<>();
+
+        // A bin description node!  Look for all its parameters.
+        String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+        String trustEverything = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
+
+        trustMap.put("trustEverything",trustEverything);
+        trustMap.put("regexp",regexp);
+
+        if (trustEverything != null && trustEverything.equals("true"))
+        {
+        }
+        else
+        {
+          String trustStore = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTSTORE);
+          IKeystoreManager localTruststore = KeystoreManagerFactory.make("",trustStore);
+          String[] truststoreContents = localTruststore.getContents();
+
+          // Each trust store will have only at most one cert in it at this level.  These individual certs are assembled into the proper trust store
+          // for each individual url at fetch time.
+
+          if (truststoreContents.length == 1)
+          {
+            String alias = truststoreContents[0];
+            String description = localTruststore.getDescription(alias);
+            String shortenedDescription = description;
+            if (shortenedDescription.length() > 100)
+              shortenedDescription = shortenedDescription.substring(0,100) + "...";
+
+            trustMap.put("trustStore",trustStore);
+            trustMap.put("shortenedDescription",shortenedDescription);
+          }
+        }
+        trustMapList.add(trustMap);
+      }
     }
-    else
+    velocityContext.put("TRUSTMAPLIST",trustMapList);
+  }
+
+  private void fillInAccessTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters) throws ManifoldCFException
+  {
+    int i = 0;
+    List<Map<String,String>> pageAccessMapList = new ArrayList<>();
+    while (i < parameters.getChildCount())
     {
-      out.print(
-"<input type=\"hidden\" name=\"proxyhost\" value=\""+Encoder.attributeEscape(proxyHost)+"\"/>\n"+
-"<input type=\"hidden\" name=\"proxyport\" value=\""+Encoder.attributeEscape(proxyPort)+"\"/>\n"+
-"<input type=\"hidden\" name=\"proxyauthusername\" value=\""+Encoder.attributeEscape(proxyAuthUsername)+"\"/>\n"+
-"<input type=\"hidden\" name=\"proxyauthdomain\" value=\""+Encoder.attributeEscape(proxyAuthDomain)+"\"/>\n"+
-"<input type=\"hidden\" name=\"proxyauthpassword\" value=\""+Encoder.attributeEscape(proxyAuthPassword)+"\"/>\n"
-      );
+      ConfigNode cn = parameters.getChild(i++);
+      if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+      {
+        Map<String,String> pageAccessMap = new HashMap<>();
+
+        // A bin description node!  Look for all its parameters.
+        String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+        if (!type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
+        {
+          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+          if(regexp == null)
+            regexp = "";
+          String domain = cn.getAttributeValue(WebcrawlerConfig.ATTR_DOMAIN);
+          if (domain == null)
+            domain = "";
+          String userName = cn.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
+          String password = out.mapPasswordToKey(ManifoldCF.deobfuscate(cn.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD)));
+
+          pageAccessMap.put("regexp",regexp);
+          pageAccessMap.put("domain",domain);
+          pageAccessMap.put("userName",userName);
+          pageAccessMap.put("password",password);
+          pageAccessMap.put("type",type);
+
+          pageAccessMapList.add(pageAccessMap);
+        }
+      }
     }
+    velocityContext.put("PAGEACCESSMAPLIST",pageAccessMapList);
+
+    i = 0;
+    List<Map<String,Object>> sessionAccessMapList = new ArrayList<>();
+    while (i < parameters.getChildCount())
+    {
+      ConfigNode cn = parameters.getChild(i++);
+      if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
+      {
+        // A bin description node!  Look for all its parameters.
+        String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+        if (type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
+        {
+          Map<String,Object> sessionAccessMap = new HashMap<>();
+          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+          if(regexp == null)
+            regexp = "";
+          sessionAccessMap.put("regexp",regexp);
+
+          int q = 0;
+          List<Map<String,Object>> authPageMapList = new ArrayList<>();
+          while (q < cn.getChildCount())
+          {
+            ConfigNode authPageNode = cn.getChild(q++);
+            if (authPageNode.getType().equals(WebcrawlerConfig.NODE_AUTHPAGE))
+            {
+              Map<String,Object> authPageMap = new HashMap<>();
+
+              String pageRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
+              String pageType = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
+              String matchRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_MATCHREGEXP);
+              if (matchRegexp == null)
+                matchRegexp = "";
+              String overrideTargetURL = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_OVERRIDETARGETURL);
+              if (overrideTargetURL == null)
+                overrideTargetURL = "";
+
+              authPageMap.put("pageRegexp",pageRegexp);
+              authPageMap.put("pageType",pageType);
+              authPageMap.put("matchRegexp",matchRegexp);
+              authPageMap.put("overrideTargetURL",overrideTargetURL);
+
+              if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
+              {
+                int z = 0;
+                List<Map<String,String>> authPageParamMapList = new ArrayList<>();
+                while (z < authPageNode.getChildCount())
+                {
+                  ConfigNode paramNode = authPageNode.getChild(z++);
+                  if (paramNode.getType().equals(WebcrawlerConfig.NODE_AUTHPARAMETER))
+                  {
+                    Map<String,String> authPageParamMap = new HashMap<>();
+
+                    String param = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_NAMEREGEXP);
+                    if (param == null)
+                      param = "";
+                    String value = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+                    if (value == null)
+                      value = "";
+                    String password = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD);
+                    if (password == null)
+                      password = "";
+                    else
+                      password = out.mapPasswordToKey(ManifoldCF.deobfuscate(password));
+
+                    authPageParamMap.put("param",param);
+                    authPageParamMap.put("value",value);
+                    authPageParamMap.put("password",password);
+
+                    authPageParamMapList.add(authPageParamMap);
+                  }
+                }
+                authPageMap.put("authPageParamMapList",authPageParamMapList);
+              }
+              authPageMapList.add(authPageMap);
+            }
+          }
+          sessionAccessMap.put("authPageMapList",authPageMapList);
+          sessionAccessMapList.add(sessionAccessMap);
+        }
+      }
+    }
+    velocityContext.put("SESSIONACCESSMAPLIST",sessionAccessMapList);
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  @Override
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, String tabName)
+    throws ManifoldCFException, IOException
+  {
+
+    final Map<String,Object> velocityContext = new HashMap<String,Object>();
+    velocityContext.put("TABNAME",tabName);
+
+    fillInEmailTab(velocityContext,out,parameters);
+    fillInRobotsTab(velocityContext,out,parameters);
+    fillInBandwidthTab(velocityContext,out,parameters);
+    fillInAccessTab(velocityContext,out,parameters);
+    fillInCertificatesTab(velocityContext,out,parameters);
+    fillInProxyTab(velocityContext,out,parameters);
 
     // Email tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Email")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.EmailAddressToContact") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"32\" name=\"email\" value=\""+Encoder.attributeEscape(email)+"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\"email\" value=\""+Encoder.attributeEscape(email)+"\"/>\n"
-      );
-    }
-
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Email.html.vm",velocityContext);
     // Robots tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Robots")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RobotsTxtUsage") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\"robotsusage\" size=\"3\">\n"+
-"        <option value=\"none\" "+(robotsUsage.equals("none")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"WebcrawlerConnector.DontLookAtRobotsTxt") + "</option>\n"+
-"        <option value=\"data\" "+(robotsUsage.equals("data")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"WebcrawlerConnector.ObeyRobotsTxtForDataFetchesOnly") + "</option>\n"+
-"        <option value=\"all\" "+(robotsUsage.equals("all")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"WebcrawlerConnector.ObeyRobotsTxtForAllFetches") + "</option>\n"+
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.MetaRobotsTagsUsage") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <select name=\"metarobotstagsusage\" size=\"3\">\n"+
-"        <option value=\"none\" "+(metaRobotsTagsUsage.equals("none")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"WebcrawlerConnector.DontLookAtMetaRobotsTags") + "</option>\n"+
-"        <option value=\"all\" "+(metaRobotsTagsUsage.equals("all")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"WebcrawlerConnector.ObeyMetaRobotsTags") + "</option>\n"+
-"      </select>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\"robotsusage\" value=\""+robotsUsage+"\"/>\n"+
-"<input type=\"hidden\" name=\"metarobotstagsusage\" value=\""+metaRobotsTagsUsage+"\"/>\n"
-      );
-    }
-
-    // Bandwidth tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Bandwidth")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Throttles") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.BinRegularExpression") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.CaseInsensitive") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.MaxConnections") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.MaxKbytesSec") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.MaxFetchesMin") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      int i = 0;
-      int binCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_BINDESC))
-        {
-          // A bin description node!  Look for all its parameters.
-          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_BINREGEXP);
-          String isCaseInsensitive = cn.getAttributeValue(WebcrawlerConfig.ATTR_INSENSITIVE);
-          String maxConnections = null;
-          String maxKBPerSecond = null;
-          String maxFetchesPerMinute = null;
-          int j = 0;
-          while (j < cn.getChildCount())
-          {
-            ConfigNode childNode = cn.getChild(j++);
-            if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXCONNECTIONS))
-              maxConnections = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-            else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXKBPERSECOND))
-              maxKBPerSecond = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-            else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
-              maxFetchesPerMinute = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-          }
-          if (maxConnections == null)
-            maxConnections = "";
-          if (maxKBPerSecond == null)
-            maxKBPerSecond = "";
-          if (maxFetchesPerMinute == null)
-            maxFetchesPerMinute = "";
-            
-          if (isCaseInsensitive == null || isCaseInsensitive.length() == 0)
-            isCaseInsensitive = "false";
-
-          // It's prefix will be...
-          String prefix = "bandwidth_" + Integer.toString(binCounter);
-          out.print(
-"        <tr class=\""+(((binCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteBinRegularExpression")+Integer.toString(binCounter+1)+"\" onclick='javascript:deleteRegexp("+Integer.toString(binCounter)+");'/>\n"+
-"              <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"checkbox\" name=\"insensitive_"+prefix+"\" value=\"true\" "+(isCaseInsensitive.equals("true")?"checked=\"\"":"")+" /></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"connections_"+prefix+"\" value=\""+maxConnections+"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"rate_"+prefix+"\" value=\""+maxKBPerSecond+"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"fetches_"+prefix+"\" value=\""+maxFetchesPerMinute+"\"/></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-          );
-          binCounter++;
-        }
-      }
-
-      // If it looks like this is a brand-new configuration, add in a default throttle.
-      // This only works because other nodes must get created on the first post, and cannot then be deleted.
-      if (parameters.getChildCount() == 0)
-      {
-        // It's prefix will be...
-        String prefix = "bandwidth_" + Integer.toString(binCounter);
-        out.print(
-"        <tr class=\""+(((binCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+ Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteBinRegularExpression") +Integer.toString(binCounter+1)+"\" onclick='javascript:deleteRegexp("+Integer.toString(binCounter)+");'/>\n"+
-"              <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"checkbox\" name=\"insensitive_"+prefix+"\" value=\"false\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"connections_"+prefix+"\" value=\"2\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"rate_"+prefix+"\" value=\"64\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"fetches_"+prefix+"\" value=\"12\"/></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-        );
-        binCounter++;
-      }
-
-      if (binCounter == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"6\">"+Messages.getBodyString(locale,"WebcrawlerConnector.NoBandwidthOrConnectionThrottlingSpecified")+"</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"6\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\"bandwidth\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddBinRegularExpression") + "\" onclick=\"javascript:addRegexp();\"/>\n"+
-"            </a>\n"+
-"            <input type=\"hidden\" name=\"bandwidth_count\" value=\""+binCounter+"\"/>\n"+
-"            <input type=\"hidden\" name=\"bandwidth_op\" value=\"Continue\"/>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"30\" name=\"regexp_bandwidth\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"checkbox\" name=\"insensitive_bandwidth\" value=\"true\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"connections_bandwidth\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"rate_bandwidth\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"5\" name=\"fetches_bandwidth\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for bandwidth tab.
-      int i = 0;
-      int binCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_BINDESC))
-        {
-          // A bin description node!  Look for all its parameters.
-          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_BINREGEXP);
-          String isCaseInsensitive = cn.getAttributeValue(WebcrawlerConfig.ATTR_INSENSITIVE);
-          String maxConnections = null;
-          String maxKBPerSecond = null;
-          String maxFetchesPerMinute = null;
-          int j = 0;
-          while (j < cn.getChildCount())
-          {
-            ConfigNode childNode = cn.getChild(j++);
-            if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXCONNECTIONS))
-              maxConnections = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-            else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXKBPERSECOND))
-              maxKBPerSecond = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-            else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
-              maxFetchesPerMinute = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-          }
-          if (maxConnections == null)
-            maxConnections = "";
-          if (maxKBPerSecond == null)
-            maxKBPerSecond = "";
-          if (maxFetchesPerMinute == null)
-            maxFetchesPerMinute = "";
-          if (isCaseInsensitive == null || isCaseInsensitive.length() == 0)
-            isCaseInsensitive = "false";
-
-          // It's prefix will be...
-          String prefix = "bandwidth_" + Integer.toString(binCounter);
-          out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"insensitive_"+prefix+"\" value=\""+isCaseInsensitive+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"connections_"+prefix+"\" value=\""+maxConnections+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"rate_"+prefix+"\" value=\""+maxKBPerSecond+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"fetches_"+prefix+"\" value=\""+maxFetchesPerMinute+"\"/>\n"
-          );
-          binCounter++;
-        }
-      }
-
-      // If it looks like this is a brand-new configuration, add in a default throttle.
-      // This only works because other nodes must get created on the first post, and cannot then be deleted.
-      if (parameters.getChildCount() == 0)
-      {
-        // It's prefix will be...
-        String prefix = "bandwidth_" + Integer.toString(binCounter);
-        out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\"\"/>\n"+
-"<input type=\"hidden\" name=\""+"insensitive_"+prefix+"\" value=\"false\"/>\n"+
-"<input type=\"hidden\" name=\""+"connections_"+prefix+"\" value=\"2\"/>\n"+
-"<input type=\"hidden\" name=\""+"rate_"+prefix+"\" value=\"64\"/>\n"+
-"<input type=\"hidden\" name=\""+"fetches_"+prefix+"\" value=\"12\"/>\n"
-        );
-        binCounter++;
-      }
-
-      out.print(
-"<input type=\"hidden\" name=\"bandwidth_count\" value=\""+binCounter+"\"/>\n"
-      );
-    }
-
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Robots.html.vm",velocityContext);
+    //Bandwidth tab
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Bandwidth.html.vm",velocityContext);
     // Access Credentials tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.AccessCredentials")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.PageAccessCredentials") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.URLRegularExpression") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.AuthenticationType") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Domain") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.UserName") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Password") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      int i = 0;
-      int accessCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
-        {
-          // A bin description node!  Look for all its parameters.
-          String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-          if (!type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
-          {
-            String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-            String domain = cn.getAttributeValue(WebcrawlerConfig.ATTR_DOMAIN);
-            if (domain == null)
-              domain = "";
-            String userName = cn.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
-            String password = out.mapPasswordToKey(ManifoldCF.deobfuscate(cn.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD)));
-                                        
-            // It's prefix will be...
-            String prefix = "acredential_" + Integer.toString(accessCounter);
-            out.print(
-"        <tr class=\""+(((accessCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeletePageAuthenticationUrlRegularExpression")+Integer.toString(accessCounter+1)+"\" onclick='javascript:deleteARegexp("+Integer.toString(accessCounter)+");'/>\n"+
-"              <input type=\"hidden\" name=\"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"radio\" name=\"type_"+prefix+"\" value=\"basic\" "+(type.equals("basic")?"checked=\"\"":"")+" />&nbsp;" + Messages.getBodyString(locale,"WebcrawlerConnector.BasicAuthentication") + "</nobr><br/>\n"+
-"            <nobr><input type=\"radio\" name=\"type_"+prefix+"\" value=\"ntlm\" "+(type.equals("ntlm")?"checked=\"\"":"")+" />&nbsp;" + Messages.getBodyString(locale,"WebcrawlerConnector.NTLMAuthentication") + "</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"16\" name=\""+"domain_"+prefix+"\" value=\""+Encoder.attributeEscape(domain)+"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"16\" name=\""+"username_"+prefix+"\" value=\""+Encoder.attributeEscape(userName)+"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"password\" size=\"16\" name=\""+"password_"+prefix+"\" value=\""+Encoder.attributeEscape(password)+"\"/></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-            );
-            accessCounter++;
-          }
-        }
-      }
-
-      if (accessCounter == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"6\">" + Messages.getBodyString(locale,"WebcrawlerConnector.NoPageAccessCredentialsSpecified") + "</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"6\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\"acredential\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddPageAuthenticationUrlRegularExpression") + "\" onclick=\"javascript:addARegexp();\"/>\n"+
-"            </a>\n"+
-"            <input type=\"hidden\" name=\"acredential_count\" value=\""+accessCounter+"\"/>\n"+
-"            <input type=\"hidden\" name=\"acredential_op\" value=\"Continue\"/>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"30\" name=\"regexp_acredential\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"radio\" name=\"type_acredential\" value=\"basic\" checked=\"\" />&nbsp;" + Messages.getBodyString(locale,"WebcrawlerConnector.BasicAuthentication") + "</nobr><br/>\n"+
-"            <nobr><input type=\"radio\" name=\"type_acredential\" value=\"ntlm\" />&nbsp;" + Messages.getBodyString(locale,"WebcrawlerConnector.NTLMAuthentication") + "</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"16\" name=\"domain_acredential\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"16\" name=\"username_acredential\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"password\" size=\"16\" name=\"password_acredential\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"        \n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.SessionBasedAccessCredentials") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.URLRegularExpression") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.LoginPages") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      i = 0;
-      accessCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
-        {
-          // A bin description node!  Look for all its parameters.
-          String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-          if (type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
-          {
-            String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-                                        
-            // It's prefix will be...
-            String prefix = "scredential_" + Integer.toString(accessCounter);
-            out.print(
-"        <tr class=\""+(((accessCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteSessionAuthenticationUrlRegularExpression")+Integer.toString(accessCounter+1)+"\" onclick='javascript:deleteSRegexp("+Integer.toString(accessCounter)+");'/>\n"+
-"              <input type=\"hidden\" name=\""+prefix+"_op"+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\""+prefix+"_regexp"+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"boxcell\">\n"+
-"            <table class=\"formtable\">\n"+
-"              <tr class=\"formheaderrow\">\n"+
-"                <td class=\"formcolumnheader\"></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.LoginURLRegularExpression") + "</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.PageType") + "</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.FormNamelinkTargetRegularExpression") + "</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.OverrideTargetURL") + "</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.OverrideFormParameters") + "</nobr></td>\n"+
-"              </tr>\n"
-            );
-            int q = 0;
-            int authPageCounter = 0;
-            while (q < cn.getChildCount())
-            {
-              ConfigNode authPageNode = cn.getChild(q++);
-              if (authPageNode.getType().equals(WebcrawlerConfig.NODE_AUTHPAGE))
-              {
-                String pageRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-                String pageType = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-                String matchRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_MATCHREGEXP);
-                if (matchRegexp == null)
-                  matchRegexp = "";
-                String overrideTargetURL = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_OVERRIDETARGETURL);
-                if (overrideTargetURL == null)
-                  overrideTargetURL = "";
-                String authpagePrefix = prefix + "_" + authPageCounter;
-                out.print(
-"              <tr class=\""+(((authPageCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                  <a name=\""+authpagePrefix+"\">\n"+
-"                    <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteLoginPage")+(authPageCounter+1)+" for url regular expression #"+Integer.toString(accessCounter+1)+"\" onclick='javascript:deleteLoginPage("+Integer.toString(accessCounter)+","+Integer.toString(authPageCounter)+");'/>\n"+
-"                    <input type=\"hidden\" name=\""+authpagePrefix+"_op"+"\" value=\"Continue\"/>\n"+
-"                    <input type=\"hidden\" name=\""+authpagePrefix+"_regexp"+"\" value=\""+Encoder.attributeEscape(pageRegexp)+"\"/>\n"+
-"                    <input type=\"hidden\" name=\""+authpagePrefix+"_type"+"\" value=\""+pageType+"\"/>\n"+
-"                  </a>\n"+
-"                </td>\n"+
-"\n"+
-"                <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(pageRegexp)+"</nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr>"+pageType+"</nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+Encoder.attributeEscape(matchRegexp)+"\"/></nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_overridetargeturl"+"\" value=\""+Encoder.attributeEscape(overrideTargetURL)+"\"/></nobr></td>\n"
-                );
-                if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
-                {
-                  out.print(
-"                <td class=\"boxcell\">\n"+
-"                  <table class=\"formtable\">\n"+
-"                    <tr class=\"formheaderrow\">\n"+
-"                      <td class=\"formcolumnheader\"></td>\n"+
-"                      <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.ParameterRegularExpression")+"</nobr></td>\n"+
-"                      <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.Value")+"</nobr></td>\n"+
-"                      <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.Password")+"</nobr></td>\n"+
-"                    </tr>\n"
-                  );
-                  int z = 0;
-                  int paramCounter = 0;
-                  while (z < authPageNode.getChildCount())
-                  {
-                    ConfigNode paramNode = authPageNode.getChild(z++);
-                    if (paramNode.getType().equals(WebcrawlerConfig.NODE_AUTHPARAMETER))
-                    {
-                      String param = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_NAMEREGEXP);
-                      if (param == null)
-                        param = "";
-                      String value = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-                      if (value == null)
-                        value = "";
-                      String password = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD);
-                      if (password == null)
-                        password = "";
-                      else
-                        password = out.mapPasswordToKey(ManifoldCF.deobfuscate(password));
-                      String authParamPrefix = authpagePrefix + "_" + paramCounter;
-                      out.print(
-"                    <tr class=\""+(((paramCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <a name=\""+authParamPrefix+"\">\n"+
-"                          <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteParameter")+(paramCounter+1)+Messages.getAttributeString(locale,"WebcrawlerConnector.ForLoginPage")+(authPageCounter+1)+Messages.getAttributeString(locale,"WebcrawlerConnector.ForCredential")+(accessCounter+1)+"\" onclick='javascript:deleteLoginPageParameter("+accessCounter+","+authPageCounter+","+paramCounter+");'/>\n"+
-"                          <input type=\"hidden\" name=\""+authParamPrefix+"_op"+"\" value=\"Continue\"/>\n"+
-"                        </a>\n"+
-"                      </td>\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"text\" size=\"30\" name=\""+authParamPrefix+"_param"+"\" value=\""+Encoder.attributeEscape(param)+"\"/></nobr>\n"+
-"                      </td>\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"text\" size=\"15\" name=\""+authParamPrefix+"_value"+"\" value=\""+Encoder.attributeEscape(value)+"\"/></nobr>\n"+
-"                      </td>\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"password\" size=\"15\" name=\""+authParamPrefix+"_password"+"\" value=\""+Encoder.attributeEscape(password)+"\"/></nobr>\n"+
-"                      </td>\n"+
-"                    </tr>\n"
-                      );
-                      paramCounter++;
-                    }
-                  }
-                  out.print(
-"                    <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"4\"><hr/></td></tr>\n"+
-"                    <tr class=\"formrow\">\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <a name=\""+authpagePrefix+"_loginparam"+"\">\n"+
-"                          <input type=\"button\" value=\"Add\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.AddParameterToLoginPage")+(authPageCounter+1)+Messages.getAttributeString(locale,"WebcrawlerConnector.ForCredential")+(accessCounter+1)+"\" onclick='javascript:addLoginPageParameter("+accessCounter+","+authPageCounter+");'/>\n"+
-"                        </a>\n"+
-"                        <input type=\"hidden\" name=\""+authpagePrefix+"_loginparamcount"+"\" value=\""+paramCounter+"\"/>\n"+
-"                        <input type=\"hidden\" name=\""+authpagePrefix+"_loginparamop"+"\" value=\"Continue\"/>\n"+
-"                      </td>\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"text\" size=\"30\" name=\""+authpagePrefix+"_loginparamname"+"\" value=\"\"/></nobr>\n"+
-"                      </td>\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"text\" size=\"15\" name=\""+authpagePrefix+"_loginparamvalue"+"\" value=\"\"/></nobr>\n"+
-"                      </td>\n"+
-"                      <td class=\"formcolumncell\">\n"+
-"                        <nobr><input type=\"password\" size=\"15\" name=\""+authpagePrefix+"_loginparampassword"+"\" value=\"\"/></nobr>\n"+
-"                      </td>\n"+
-"                    </tr>\n"+
-"                  </table>\n"+
-"                </td>\n"
-                  );
-                }
-                else
-                {
-                  out.print(
-"                <td class=\"formcolumncell\"></td>\n"
-                  );
-                }
-                out.print(
-"              </tr>\n"
-                );
-                authPageCounter++;
-              }
-            }
-            out.print(
-"              <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"6\"><hr/></td></tr>\n"+
-"              <tr class=\"formrow\">\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                  <a name=\""+prefix+"_loginpage"+"\">\n"+
-"                    <input type=\"button\" value=\"Add\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.AddLoginPageToCredential")+(accessCounter+1)+"\" onclick='javascript:addLoginPage("+accessCounter+");'/>\n"+
-"                  </a>\n"+
-"                  <input type=\"hidden\" name=\""+prefix+"_loginpagecount"+"\" value=\""+authPageCounter+"\"/>\n"+
-"                  <input type=\"hidden\" name=\""+prefix+"_loginpageop"+"\" value=\"Continue\"/>\n"+
-"                </td>\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                  <nobr><input type=\"text\" size=\"30\" name=\""+prefix+"_loginpageregexp"+"\" value=\"\"/></nobr>\n"+
-"                </td>\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+WebcrawlerConfig.ATTRVALUE_FORM+"\" checked=\"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.FormName")+"</nobr><br/>\n"+
-"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+WebcrawlerConfig.ATTRVALUE_LINK+"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.LinkTarget")+"</nobr>\n"+
-"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+WebcrawlerConfig.ATTRVALUE_REDIRECTION+"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.RedirectionTo")+"</nobr>\n"+
-"                  <nobr><input type=\"radio\" name=\""+prefix+"_loginpagetype"+"\" value=\""+WebcrawlerConfig.ATTRVALUE_CONTENT+"\"/>"+Messages.getBodyString(locale,"WebcrawlerConnector.PageContent")+"</nobr>\n"+
-"                </td>\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                  <nobr><input type=\"text\" size=\"30\" name=\""+prefix+"_loginpagematchregexp"+"\" value=\"\"/></nobr>\n"+
-"                </td>\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                  <nobr><input type=\"text\" size=\"30\" name=\""+prefix+"_loginpageoverridetargeturl"+"\" value=\"\"/></nobr>\n"+
-"                </td>\n"+
-"                <td class=\"formcolumncell\">\n"+
-"                </td>\n"+
-"              </tr>\n"+
-"\n"+
-"            </table>\n"+
-"          </td>\n"+
-"        </tr>\n"
-            );
-            accessCounter++;
-          }
-        }
-      }
-
-      if (accessCounter == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getBodyString(locale,"WebcrawlerConnector.NoSessionBasedAccessCredentialsSpecified") + "</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\"scredential\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.AddSessionAuthenticationUrlRegularExpression")+"\" onclick=\"javascript:addSRegexp();\"/>\n"+
-"            </a>\n"+
-"            <input type=\"hidden\" name=\"scredential_count\" value=\""+accessCounter+"\"/>\n"+
-"            <input type=\"hidden\" name=\"scredential_op\" value=\"Continue\"/>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"30\" name=\"scredential_regexp\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for Access Credentials tab.
-      
-      // Page credentials first.
-      int i = 0;
-      int accessCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
-        {
-          // A bin description node!  Look for all its parameters.
-          String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-          if (!type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
-          {
-            String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-            String domain = cn.getAttributeValue(WebcrawlerConfig.ATTR_DOMAIN);
-            if (domain == null)
-              domain = "";
-            String userName = cn.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
-            String password = out.mapPasswordToKey(ManifoldCF.deobfuscate(cn.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD)));
-
-            // It's prefix will be...
-            String prefix = "acredential_" + Integer.toString(accessCounter);
-            out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"type_"+prefix+"\" value=\""+type+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"domain_"+prefix+"\" value=\""+Encoder.attributeEscape(domain)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"username_"+prefix+"\" value=\""+Encoder.attributeEscape(userName)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"password_"+prefix+"\" value=\""+Encoder.attributeEscape(password)+"\"/>\n"
-            );
-            accessCounter++;
-          }
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\"acredential_count\" value=\""+accessCounter+"\"/>\n"
-      );
-
-      // Now, session credentials
-      i = 0;
-      accessCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
-        {
-          // A bin description node!  Look for all its parameters.
-          String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-          if (type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
-          {
-            String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-            // It's identifier will be...
-            String prefix = "scredential_" + Integer.toString(accessCounter);
-            out.print(
-"<input type=\"hidden\" name=\""+prefix+"_regexp"+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"
-            );
-            // Loop through login pages...
-            int q = 0;
-            int authPageCounter = 0;
-            while (q < cn.getChildCount())
-            {
-              ConfigNode authPageNode = cn.getChild(q++);
-              if (authPageNode.getType().equals(WebcrawlerConfig.NODE_AUTHPAGE))
-              {
-                String pageRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-                String pageType = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-                String matchRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_MATCHREGEXP);
-                if (matchRegexp == null)
-                  matchRegexp = "";
-                String overrideTargetURL = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_OVERRIDETARGETURL);
-                if (overrideTargetURL == null)
-                  overrideTargetURL = "";
-                String authpagePrefix = prefix + "_" + authPageCounter;
-                out.print(
-"<input type=\"hidden\" name=\""+authpagePrefix+"_regexp"+"\" value=\""+Encoder.attributeEscape(pageRegexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authpagePrefix+"_type"+"\" value=\""+pageType+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authpagePrefix+"_matchregexp"+"\" value=\""+Encoder.attributeEscape(matchRegexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authpagePrefix+"_overridetargeturl"+"\" value=\""+Encoder.attributeEscape(overrideTargetURL)+"\"/>\n"
-                );
-                if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
-                {
-                  int z = 0;
-                  int paramCounter = 0;
-                  while (z < authPageNode.getChildCount())
-                  {
-                    ConfigNode paramNode = authPageNode.getChild(z++);
-                    if (paramNode.getType().equals(WebcrawlerConfig.NODE_AUTHPARAMETER))
-                    {
-                      String param = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_NAMEREGEXP);
-                      if (param == null)
-                        param = "";
-                      String value = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-                      if (value == null)
-                        value = "";
-                      String password = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD);
-                      if (password == null)
-                        password = "";
-                      else
-                        password = out.mapPasswordToKey(ManifoldCF.deobfuscate(password));
-                      String authParamPrefix = authpagePrefix + "_" + paramCounter;
-                      out.print(
-"<input type=\"hidden\" name=\""+authParamPrefix+"_param"+"\" value=\""+Encoder.attributeEscape(param)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authParamPrefix+"_value"+"\" value=\""+Encoder.attributeEscape(value)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+authParamPrefix+"_password"+"\" value=\""+Encoder.attributeEscape(password)+"\"/>\n"
-                      );
-                      paramCounter++;
-                    }
-                  }
-                  out.print(
-"<input type=\"hidden\" name=\""+authpagePrefix+"_loginparamcount"+"\" value=\""+paramCounter+"\"/>\n"
-                  );
-                }
-                authPageCounter++;
-              }
-            }
-            out.print(
-"<input type=\"hidden\" name=\""+prefix+"_loginpagecount"+"\" value=\""+authPageCounter+"\"/>\n"
-            );
-            accessCounter++;
-          }
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\"scredential_count\" value=\""+accessCounter+"\"/>\n"
-      );
-    }
-
-    // "Certificates" tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Certificates")))
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.TrustCertificates") + "</nobr></td>\n"+
-"    <td class=\"boxcell\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.URLRegularExpression") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Certificate") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      int i = 0;
-      int trustsCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_TRUST))
-        {
-          // It's prefix will be...
-          String prefix = "trust_" + Integer.toString(trustsCounter);
-          // A bin description node!  Look for all its parameters.
-          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-          String trustEverything = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
-          if (trustEverything != null && trustEverything.equals("true"))
-          {
-            // We trust everything that matches this regexp
-            out.print(
-"        <tr class=\""+(((trustsCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\"><input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteTrustUrlRegularExpression")+Integer.toString(trustsCounter+1)+"\" onclick='javascript:deleteTRegexp("+Integer.toString(trustsCounter)+");'/>\n"+
-"            <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"            <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"true\"/>\n"+
-"            <input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><i>"+Messages.getBodyString(locale,"WebcrawlerConnector.TrustEverything")+"</i></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-            );
-            trustsCounter++;
-          }
-          else
-          {
-            String trustStore = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTSTORE);
-            IKeystoreManager localTruststore = KeystoreManagerFactory.make("",trustStore);
-            String[] truststoreContents = localTruststore.getContents();
-            
-            // Each trust store will have only at most one cert in it at this level.  These individual certs are assembled into the proper trust store
-            // for each individual url at fetch time.
-            
-            if (truststoreContents.length == 1)
-            {
-              String alias = truststoreContents[0];
-              String description = localTruststore.getDescription(alias);
-              String shortenedDescription = description;
-              if (shortenedDescription.length() > 100)
-                shortenedDescription = shortenedDescription.substring(0,100) + "...";
-              out.print(
-"        <tr class=\""+(((trustsCounter % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+prefix+"\">\n"+
-"              <input type=\"button\" value=\"Delete\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteTrustUrlRegularExpression")+Integer.toString(trustsCounter+1)+"\" onclick='javascript:deleteTRegexp("+Integer.toString(trustsCounter)+");'/>\n"+
-"              <input type=\"hidden\" name=\""+"op_"+prefix+"\" value=\"Continue\"/>\n"+
-"              <input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"              <input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"false\"/>\n"+
-"              <input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\""+Encoder.attributeEscape(trustStore)+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Encoder.bodyEscape(regexp)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>"+Encoder.bodyEscape(shortenedDescription)+"</nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"
-              );
-              trustsCounter++;
-            }
-          }
-
-        }
-      }
-
-      if (trustsCounter == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"3\">" + Messages.getBodyString(locale,"WebcrawlerConnector.NoTrustCertificatesSpecified") + "</td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formseparator\" colspan=\"3\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\"trust\"><input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddUrlRegularExpressionForTruststore") + "\" onclick=\"javascript:addTRegexp();\"/></a>\n"+
-"            <input type=\"hidden\" name=\"trust_count\" value=\""+trustsCounter+"\"/>\n"+
-"            <input type=\"hidden\" name=\"trust_op\" value=\"Continue\"/>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr><input type=\"text\" size=\"30\" name=\"regexp_trust\" value=\"\"/></nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.UploadCertificate") + " <input name=\"certificate_trust\" size=\"50\" type=\"file\"/>&nbsp;<input name=\"all_trust\" type=\"checkbox\" value=\"true\">" + Messages.getBodyString(locale,"WebcrawlerConnector.TrustEverything") + "</input></nobr>\n"+
-"          </td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Hiddens for Certificates tab.
-      int i = 0;
-      int trustsCounter = 0;
-      while (i < parameters.getChildCount())
-      {
-        ConfigNode cn = parameters.getChild(i++);
-        if (cn.getType().equals(WebcrawlerConfig.NODE_TRUST))
-        {
-          // It's prefix will be...
-          String prefix = "trust_" + Integer.toString(trustsCounter);
-
-          // A bin description node!  Look for all its parameters.
-          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-          String trustEverything = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
-          if (trustEverything != null && trustEverything.equals("true"))
-          {
-            // We trust everything that matches this regexp
-            out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\"\"/>\n"+
-"<input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"true\"/>\n"
-            );
-            trustsCounter++;
-          }
-          else
-          {
-            String trustStore = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTSTORE);
-            out.print(
-"<input type=\"hidden\" name=\""+"regexp_"+prefix+"\" value=\""+Encoder.attributeEscape(regexp)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"truststore_"+prefix+"\" value=\""+Encoder.attributeEscape(trustStore)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+"trustall_"+prefix+"\" value=\"false\"/>\n"
-            );
-            trustsCounter++;
-          }
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\"trust_count\" value=\""+trustsCounter+"\"/>\n"
-      );
-    }
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Access.html.vm",velocityContext);
+    //Certificates tab
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Certificates.html.vm",velocityContext);
+    // Proxy tab
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Proxy.html.vm",velocityContext);
 
   }
   
@@ -3299,367 +2293,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException, IOException
   {
-    String email = parameters.getParameter(WebcrawlerConfig.PARAMETER_EMAIL);
-    String robots = parameters.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
-    if (robots.equals("none"))
-      robots = Messages.getBodyString(locale,"WebcrawlerConnector.DontLookAtRobotsTxt");
-    else if (robots.equals("data"))
-      robots = Messages.getBodyString(locale,"WebcrawlerConnector.ObeyRobotsTxtForDataFetchesOnly");
-    else if (robots.equals("all"))
-      robots = Messages.getBodyString(locale,"WebcrawlerConnector.ObeyRobotsTxtForAllFetches");
-    String metaRobotsTagsUsage = parameters.getParameter(WebcrawlerConfig.PARAMETER_META_ROBOTS_TAGS_USAGE);
-    if (metaRobotsTagsUsage == null || metaRobotsTagsUsage.equals("all"))
-      metaRobotsTagsUsage = Messages.getBodyString(locale,"WebcrawlerConnector.ObeyMetaRobotsTags");
-    else if (metaRobotsTagsUsage.equals("none"))
-      metaRobotsTagsUsage = Messages.getBodyString(locale,"WebcrawlerConnector.DontLookAtMetaRobotsTags");
-    String proxyHost = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYHOST);
-    if (proxyHost == null)
-      proxyHost = "";
-    String proxyPort = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYPORT);
-    if (proxyPort == null)
-      proxyPort = "";
-    String proxyAuthDomain = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHDOMAIN);
-    if (proxyAuthDomain == null)
-      proxyAuthDomain = "";
-    String proxyAuthUsername = parameters.getParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHUSERNAME);
-    if (proxyAuthUsername == null)
-      proxyAuthUsername = "";
 
-    out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.EmailAddress")+"</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"3\">"+Encoder.bodyEscape(email)+"</td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.RobotsUsage")+"</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\"><nobr>"+Encoder.bodyEscape(robots)+"</nobr></td>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.MetaRobotsTagsUsage")+"</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">"+Encoder.bodyEscape(metaRobotsTagsUsage)+"</td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyHostColon") + "</nobr></td>\n"+
-"    <td class=\"value\">"+Encoder.bodyEscape(proxyHost)+"</td>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyPortColon") + "</nobr></td>\n"+
-"    <td class=\"value\">"+Encoder.bodyEscape(proxyPort)+"</td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationDomainColon") + "</nobr></td>\n"+
-"    <td class=\"value\">"+Encoder.bodyEscape(proxyAuthDomain)+"</td>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ProxyAuthenticationUserNameColon") + "</nobr></td>\n"+
-"    <td class=\"value\">"+Encoder.bodyEscape(proxyAuthUsername)+"</td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.BandwidthThrottling")+"</nobr></td>\n"+
-"    <td class=\"boxcell\" colspan=\"3\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.BinRegularExpression")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.CaseInsensitive")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.MaxConnections")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.MaxKbytesSec")+"</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.MaxFetchesMin")+"</nobr></td>\n"+
-"        </tr>\n"
-    );
-    int i = 0;
-    int instanceNumber = 0;
-    while (i < parameters.getChildCount())
-    {
-      ConfigNode cn = parameters.getChild(i++);
-      if (cn.getType().equals(WebcrawlerConfig.NODE_BINDESC))
-      {
-        // A bin description node!  Look for all its parameters.
-        String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_BINREGEXP);
-        String isCaseInsensitive = cn.getAttributeValue(WebcrawlerConfig.ATTR_INSENSITIVE);
-        String maxConnections = null;
-        String maxKBPerSecond = null;
-        String maxFetchesPerMinute = null;
-        int j = 0;
-        while (j < cn.getChildCount())
-        {
-          ConfigNode childNode = cn.getChild(j++);
-          if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXCONNECTIONS))
-            maxConnections = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-          else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXKBPERSECOND))
-            maxKBPerSecond = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-          else if (childNode.getType().equals(WebcrawlerConfig.NODE_MAXFETCHESPERMINUTE))
-            maxFetchesPerMinute = childNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-        }
-        if (maxConnections == null)
-          maxConnections = "Not limited";
-        if (maxKBPerSecond == null)
-          maxKBPerSecond = "Not limited";
-        if (maxFetchesPerMinute == null)
-          maxFetchesPerMinute = "Not limited";
-        if (isCaseInsensitive == null || isCaseInsensitive.length() == 0)
-          isCaseInsensitive = "false";
-        out.print(
-"        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\">"+isCaseInsensitive+"</td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+maxConnections+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+maxKBPerSecond+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+maxFetchesPerMinute+"</nobr></td>\n"+
-"        </tr>\n"
-        );
-        instanceNumber++;
-      }
-    }
-    if (instanceNumber == 0)
-    {
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"5\">"+Messages.getBodyString(locale,"WebcrawlerConnector.NoBandwidthThrottling")+"</td></tr>\n"
-      );
-    }
-    out.print(
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  \n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.PageAccessCredentials") + "</nobr></td>\n"+
-"    <td class=\"boxcell\" colspan=\"3\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.URLRegularExpression") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.CredentialType") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.CredentialDomain") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.UserName") + "</nobr></td>\n"+
-"        </tr>\n"
-    );
-    i = 0;
-    instanceNumber = 0;
-    while (i < parameters.getChildCount())
-    {
-      ConfigNode cn = parameters.getChild(i++);
-      if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
-      {
-        // A bin description node!  Look for all its parameters.
-        String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-        if (!type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
-        {
-          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-          // Page-based auth
-          String domain = cn.getAttributeValue(WebcrawlerConfig.ATTR_DOMAIN);
-          if (domain == null)
-            domain = "";
-          String userName = cn.getAttributeValue(WebcrawlerConfig.ATTR_USERNAME);
-          out.print(
-"        <tr>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+type+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(domain)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(userName)+"</nobr></td>\n"+
-"        </tr>\n"
-          );
-          instanceNumber++;
-        }
-      }
-    }
-    if (instanceNumber == 0)
-    {
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"4\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.NoPageAccessCredentials") + "</nobr></td></tr>\n"
-      );
-    }
-    out.print(
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.SessionBasedAccessCredentials") + "</nobr></td>\n"+
-"    <td class=\"boxcell\" colspan=\"3\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.URLRegularExpression") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.LoginPages") + "</nobr></td>\n"+
-"        </tr>\n"
-    );
-    i = 0;
-    instanceNumber = 0;
-    while (i < parameters.getChildCount())
-    {
-      ConfigNode cn = parameters.getChild(i++);
-      if (cn.getType().equals(WebcrawlerConfig.NODE_ACCESSCREDENTIAL))
-      {
-        // A bin description node!  Look for all its parameters.
-        String type = cn.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-        if (type.equals(WebcrawlerConfig.ATTRVALUE_SESSION))
-        {
-          String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-          // Session-based auth.  Display this as a nested table.
-          out.print(
-"        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
-"          <td class=\"boxcell\">\n"
-          );
-          int q = 0;
-          int authPageInstanceNumber = 0;
-          while (q < cn.getChildCount())
-          {
-            ConfigNode authPageNode = cn.getChild(q++);
-            if (authPageNode.getType().equals(WebcrawlerConfig.NODE_AUTHPAGE))
-            {
-              String authURLRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-              String pageType = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_TYPE);
-              String authMatchRegexp = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_MATCHREGEXP);
-              if (authMatchRegexp == null)
-                authMatchRegexp = "";
-              String authOverrideTargetURL = authPageNode.getAttributeValue(WebcrawlerConfig.ATTR_OVERRIDETARGETURL);
-              if (authOverrideTargetURL == null)
-                authOverrideTargetURL = "";
-              if (authPageInstanceNumber == 0)
-              {
-                out.print(
-"            <table class=\"formtable\">\n"+
-"              <tr class=\"formheaderrow\">\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.LoginURLRegularExpression") + "</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.PageType") + "</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.FormNamelinkTargetRegularExpression") + "</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.OverrideTargetURL") + "</nobr></td>\n"+
-"                <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.OverrideFormParameters") + "</nobr></td>\n"+
-"              </tr>\n"
-                );
-              }
-              out.print(
-"              <tr class=\""+(((authPageInstanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"                <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(authURLRegexp)+"</nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr>"+pageType+"</nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(authMatchRegexp)+"</nobr></td>\n"+
-"                <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(authOverrideTargetURL)+"</nobr></td>\n"+
-"                <td class=\"formcolumncell\">\n"
-              );
-              if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
-              {
-                int z = 0;
-                while (z < authPageNode.getChildCount())
-                {
-                  ConfigNode authParameter = authPageNode.getChild(z++);
-                  if (authParameter.getType().equals(WebcrawlerConfig.NODE_AUTHPARAMETER))
-                  {
-                    String paramName = authParameter.getAttributeValue(WebcrawlerConfig.ATTR_NAMEREGEXP);
-                    if (paramName == null)
-                      paramName = "";
-                    String paramValue = authParameter.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-                    if (paramValue == null)
-                      paramValue = "";
-                    String password = authParameter.getAttributeValue(WebcrawlerConfig.ATTR_PASSWORD);
-                    if (password != null && password.length() > 0)
-                      paramValue = "*****";
-                    out.print(
-"                  <nobr>"+Encoder.bodyEscape(paramName+": "+paramValue)+"</nobr><br/>\n"
-                    );
-                  }
-                }
-              }
-              out.print(
-"                </td>\n"+
-"              </tr>\n"
-              );
-              authPageInstanceNumber++;
-            }
-          }
-          if (authPageInstanceNumber == 0)
-          {
-            out.print(
-"            <nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.NoLoginPagesSpecified") + "</nobr>\n"
-            );
-          }
-          else
-          {
-            out.print(
-"            </table>\n"
-            );
-          }
-          out.print(
-"          </td>\n"+
-"        </tr>\n"
-          );
-          instanceNumber++;
-        }
-      }
-    }
-    if (instanceNumber == 0)
-    {
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"2\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.NoSessionBasedAccessCredentials") + "</nobr></td></tr>\n"
-      );
-    }
-    out.print(
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  \n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.TrustCertificates") + "</nobr></td>\n"+
-"    <td class=\"boxcell\" colspan=\"3\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.URLRegularExpression") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Certificate") + "</nobr></td>\n"+
-"        </tr>\n"
-    );
-    i = 0;
-    instanceNumber = 0;
-    while (i < parameters.getChildCount())
-    {
-      ConfigNode cn = parameters.getChild(i++);
-      if (cn.getType().equals(WebcrawlerConfig.NODE_TRUST))
-      {
-        // A bin description node!  Look for all its parameters.
-        String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
-        String trustEverything = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
-        if (trustEverything != null && trustEverything.equals("true"))
-        {
-          // We trust everything that matches this regexp
-          out.print(
-"        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><i>" + Messages.getBodyString(locale,"WebcrawlerConnector.TrustEverything") + "</i></td>\n"+
-"        </tr>\n"
-          );
-          instanceNumber++;
-        }
-        else
-        {
-          String trustStore = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTSTORE);
-          IKeystoreManager localTruststore = KeystoreManagerFactory.make("",trustStore);
-          String[] truststoreContents = localTruststore.getContents();
-            
-          // Each trust store will have only at most one cert in it at this level.  These individual certs are assembled into the proper trust store
-          // for each individual url at fetch time.
-            
-          if (truststoreContents.length == 1)
-          {
-            String alias = truststoreContents[0];
-            String description = localTruststore.getDescription(alias);
-            String shortenedDescription = description;
-            if (shortenedDescription.length() > 100)
-              shortenedDescription = shortenedDescription.substring(0,100) + "...";
-            out.print(
-"        <tr class=\""+(((instanceNumber % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(regexp)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\">"+Encoder.bodyEscape(shortenedDescription)+"</td>\n"+
-"        </tr>\n"
-            );
-            instanceNumber++;
-          }
-        }
-      }
-    }
-    if (instanceNumber == 0)
-    {
-      out.print(
-"        <tr class=\"formrow\"><td class=\"formmessage\" colspan=\"2\">" + Messages.getBodyString(locale,"WebcrawlerConnector.NoTrustCertificates") + "</td></tr>\n"
-      );
-    }
-    out.print(
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-    );
+    final Map<String,Object> velocityContext = new HashMap<String,Object>();
+
+    fillInEmailTab(velocityContext,out,parameters);
+    fillInRobotsTab(velocityContext,out,parameters);
+    fillInBandwidthTab(velocityContext,out,parameters);
+    fillInAccessTab(velocityContext,out,parameters);
+    fillInCertificatesTab(velocityContext,out,parameters);
+    fillInProxyTab(velocityContext,out,parameters);
+
+    Messages.outputResourceWithVelocity(out,locale,"viewConfiguration.html.vm",velocityContext);
+
   }
   
   /** Output the specification header section.
@@ -3685,137 +2330,270 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Exclusions"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Security"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Metadata"));
-    String seqPrefix = "s"+connectionSequenceNumber+"_";
 
-    out.print(
-"<script type=\"text/javascript\">\n"+
-"<!--\n"+
-"\n"+
-"function "+seqPrefix+"SpecOp(n, opValue, anchorvalue)\n"+
-"{\n"+
-"  eval(\"editjob.\"+n+\".value = \\\"\"+opValue+\"\\\"\");\n"+
-"  postFormSetAnchor(anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"AddRegexp(anchorvalue)\n"+
-"{\n"+
-"  if (editjob."+seqPrefix+"rssmatch.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.MatchMustHaveARegexpValue")+"\");\n"+
-"    editjob."+seqPrefix+"rssmatch.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"rssop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"RemoveRegexp(index, anchorvalue)\n"+
-"{\n"+
-"  editjob."+seqPrefix+"rssindex.value = index;\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"rssop\",\"Delete\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"URLRegexpDelete(index, anchorvalue)\n"+
-"{\n"+
-"  editjob."+seqPrefix+"urlregexpnumber.value = index;\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"urlregexpop\",\"Delete\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"URLRegexpAdd(anchorvalue)\n"+
-"{\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"urlregexpop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"checkSpecification()\n"+
-"{\n"+
-"  if ("+seqPrefix+"check_expressions(\"inclusions\",editjob."+seqPrefix+"inclusions.value) == false)\n"+
-"  {\n"+
-"    editjob."+seqPrefix+"inclusions.focus();\n"+
-"    return false;\n"+
-"  }  \n"+
-"  if ("+seqPrefix+"check_expressions(\"exclusions\",editjob."+seqPrefix+"exclusions.value) == false)\n"+
-"  {\n"+
-"    editjob."+seqPrefix+"exclusions.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  if ("+seqPrefix+"check_seedsList() == false)\n"+
-"  {\n"+
-"    editjob."+seqPrefix+"seeds.focus();\n"+
-"    return false;\n"+
-"  }\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"check_expressions(thecontext,theexpressionlist)\n"+
-"{\n"+
-"  var rval = true;\n"+
-"  var theArray = theexpressionlist.split(\"\\n\");\n"+
-"  var i = 0;\n"+
-"  while (i < theArray.length)\n"+
-"  {\n"+
-"    // For legality check, we must cut out anything useful that is java-only\n"+
-"    var theexp = theArray[i];\n"+
-"    var trimmed = theexp.replace(/^\\s+/,\"\");\n"+
-"    i = i + 1;\n"+
-"    if (trimmed.length == 0 || (trimmed.length >= 1 && trimmed.substring(0,1) == \"#\"))\n"+
-"      continue;\n"+
-"    try\n"+
-"    {\n"+
-"      var foo = \"teststring\";\n"+
-"      foo.search(theexp.replace(/\\(\\?i\\)/,\"\"));\n"+
-"    }\n"+
-"    catch (e)\n"+
-"    {\n"+
-"      alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.FoundAnIllegalRegularExpressionIn")+"\"+thecontext+\": '\"+theexp+\"'"+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.ErrorWas")+"\"+e);\n"+
-"      rval = false;\n"+
-"    }\n"+
-"  }\n"+
-"  return rval;\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"check_seedsList()\n"+
-"{\n"+
-"  var regexp = /http(s)?:\\/\\/([a-z0-9+!*(),;?&=\\$_.-]+(\\:[a-z0-9+!*(),;?&=\\$_.-]+)?@)?[a-z0-9+\\$_-]+(\\.[a-z0-9+\\$_-]+)*(\\:[0-9]{2,5})?(\\/([a-z0-9+\\$_-]\\.?)+)*\\/?(\\?[a-z+&\\$_.-][a-z0-9;:@\\/&%=+\\$_.-]*)?(#[a-z_.-][a-z0-9+\\$_.-]*)?/;\n"+
-"  var lines = editjob."+seqPrefix+"seeds.value.split(\"\\n\");\n"+
-"  var trimmedUrlList = \"\";\n"+
-"  var invalidUrlList = \"\";\n"+
-"  var i = 0;\n"+
-"  while (i < lines.length)\n"+
-"  {\n"+
-"    var line = lines[i].replace(/^\\s*/, \"\").replace(/\\s*$/, \"\");\n"+
-"    if (line.length > 0)\n"+
-"    {\n"+
-"      if (!regexp.test(line))\n"+
-"        invalidUrlList = invalidUrlList + line + \"\\n\";\n"+
-"      trimmedUrlList = trimmedUrlList + line + \"\\n\";\n"+      
-"    }\n"+
-"    i = i + 1;\n"+
-"  }\n"+
-"  editjob."+seqPrefix+"seeds.value = trimmedUrlList;\n"+ 
-"  if (invalidUrlList.length > 0)\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.InvalidUrlsInSeedsList")+"\\n\" + invalidUrlList);\n"+
-"    return false;\n"+
-"  }\n"+
-"  return true;\n"+
-"}\n"+
-"\n"+
-"function "+seqPrefix+"SpecAddToken(anchorvalue)\n"+
-"{\n"+
-"  if (editjob."+seqPrefix+"spectoken.value == \"\")\n"+
-"  {\n"+
-"    alert(\""+Messages.getBodyJavascriptString(locale,"WebcrawlerConnector.TypeInAnAccessToken")+"\");\n"+
-"    editjob."+seqPrefix+"spectoken.focus();\n"+
-"    return;\n"+
-"  }\n"+
-"  "+seqPrefix+"SpecOp(\""+seqPrefix+"accessop\",\"Add\",anchorvalue);\n"+
-"}\n"+
-"\n"+
-"//-->\n"+
-"</script>\n"
-    );
+    final Map<String,Object> velocityContext = new HashMap<String,Object>();
+    velocityContext.put("SEQNUM",connectionSequenceNumber);
+
+    Messages.outputResourceWithVelocity(out, locale, "editSpecification.js.vm", velocityContext);
   }
-  
+
+  private void fillInSeedsTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+
+    int i;
+    String seeds = "";
+
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(WebcrawlerConfig.NODE_SEEDS))
+      {
+        seeds = sn.getValue();
+        if (seeds == null)
+          seeds = "";
+      }
+    }
+
+    velocityContext.put("SEEDS",seeds);
+
+  }
+
+  private void fillInCanonicalizationTab(Map<String,Object> velocityContext, IHTTPOutput out, Locale locale, Specification ds)
+  {
+
+    int q = 0;
+    List<Map<String,String>> canonicalizationMapList = new ArrayList<>();
+    while (q < ds.getChildCount())
+    {
+      SpecificationNode specNode = ds.getChild(q++);
+      if (specNode.getType().equals(WebcrawlerConfig.NODE_URLSPEC))
+      {
+        Map<String,String> canonicalizationMap = new HashMap<>();
+        // Ok, this node matters to us
+        String regexpString = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REGEXP);
+        String description = specNode.getAttributeValue(WebcrawlerConfig.ATTR_DESCRIPTION);
+        if (description == null)
+          description = "";
+        String allowReorder = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REORDER);
+        String allowReorderOutput;
+        if (allowReorder == null || allowReorder.length() == 0)
+        {
+          allowReorder = WebcrawlerConfig.ATTRVALUE_NO;
+          allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        }
+        else
+          allowReorderOutput = allowReorder;
+        String allowJavaSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL);
+        String allowJavaSessionRemovalOutput;
+        if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
+        {
+          allowJavaSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+          allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        }
+        else
+          allowJavaSessionRemovalOutput = allowJavaSessionRemoval;
+        String allowASPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL);
+        String allowASPSessionRemovalOutput;
+        if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
+        {
+          allowASPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+          allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        }
+        else
+          allowASPSessionRemovalOutput = allowASPSessionRemoval;
+        String allowPHPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL);
+        String allowPHPSessionRemovalOutput;
+        if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
+        {
+          allowPHPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+          allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        }
+        else
+          allowPHPSessionRemovalOutput = allowPHPSessionRemoval;
+        String allowBVSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL);
+        String allowBVSessionRemovalOutput;
+        if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
+        {
+          allowBVSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
+          allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        }
+        else
+          allowBVSessionRemovalOutput = allowBVSessionRemoval;
+
+        canonicalizationMap.put("regexpString",regexpString);
+        canonicalizationMap.put("description",description);
+        canonicalizationMap.put("allowReorder",allowReorder);
+        canonicalizationMap.put("allowReorderOutput",allowReorderOutput);
+        canonicalizationMap.put("allowJavaSessionRemoval",allowJavaSessionRemoval);
+        canonicalizationMap.put("allowJavaSessionRemovalOutput",allowJavaSessionRemovalOutput);
+        canonicalizationMap.put("allowASPSessionRemoval",allowASPSessionRemoval);
+        canonicalizationMap.put("allowASPSessionRemovalOutput",allowASPSessionRemovalOutput);
+        canonicalizationMap.put("allowPHPSessionRemoval",allowPHPSessionRemoval);
+        canonicalizationMap.put("allowPHPSessionRemovalOutput",allowPHPSessionRemovalOutput);
+        canonicalizationMap.put("allowBVSessionRemoval",allowBVSessionRemoval);
+        canonicalizationMap.put("allowBVSessionRemovalOutput",allowBVSessionRemovalOutput);
+
+        canonicalizationMapList.add(canonicalizationMap);
+      }
+    }
+
+    velocityContext.put("CANONICALIZATIONMAPLIST",canonicalizationMapList);
+
+  }
+
+  private void fillInMappingsTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+
+    int i;
+    // Find the various strings
+    List<String> regexpList = new ArrayList<String>();
+    List<String> matchStrings = new ArrayList<String>();
+
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(WebcrawlerConfig.NODE_MAP))
+      {
+        String match = sn.getAttributeValue(WebcrawlerConfig.ATTR_MATCH);
+        String map = sn.getAttributeValue(WebcrawlerConfig.ATTR_MAP);
+        if (match != null)
+        {
+          regexpList.add(match);
+          if (map == null)
+            map = "";
+          matchStrings.add(map);
+        }
+      }
+    }
+
+    velocityContext.put("REGEXPLIST",regexpList);
+    velocityContext.put("MATCHSTRINGS",matchStrings);
+
+  }
+
+  private void fillInInclusionsTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+
+    int i;
+    String inclusions = ".*\n";
+    String inclusionsIndex = ".*\n";
+    boolean includeMatching = true;
+
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
+      {
+        inclusions = sn.getValue();
+        if (inclusions == null)
+          inclusions = "";
+      }
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDESINDEX))
+      {
+        inclusionsIndex = sn.getValue();
+        if (inclusionsIndex == null)
+          inclusionsIndex = "";
+      }
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
+      {
+        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+        if (value == null || value.equals("false"))
+          includeMatching = false;
+        else
+          includeMatching = true;
+      }
+    }
+
+    velocityContext.put("INCLUSIONS",inclusions);
+    velocityContext.put("INCLUSIONSINDEX",inclusionsIndex);
+    velocityContext.put("INCLUDEMATCHING",includeMatching);
+
+  }
+
+  private void fillInExclusionsTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+
+    int i;
+    String exclusions = "";
+    String exclusionsIndex = "";
+    String exclusionsContentIndex = "";
+
+    i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDES))
+      {
+        exclusions = sn.getValue();
+        if (exclusions == null)
+          exclusions = "";
+      }
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESINDEX))
+      {
+        exclusionsIndex = sn.getValue();
+        if (exclusionsIndex == null)
+          exclusionsIndex = "";
+      }
+      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESCONTENTINDEX))
+      {
+        exclusionsContentIndex = sn.getValue();
+        if (exclusionsContentIndex == null)
+          exclusionsContentIndex = "";
+      }
+    }
+
+    velocityContext.put("EXCLUSIONS",exclusions);
+    velocityContext.put("EXCLUSIONSINDEX",exclusionsIndex);
+    velocityContext.put("EXCLUSIONSCONTENTINDEX",exclusionsContentIndex);
+
+  }
+
+  private void fillInSecurityTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+
+    int i = 0;
+
+    // Go through forced ACL
+    Set<String> tokens = new HashSet<>();
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(WebcrawlerConfig.NODE_ACCESS))
+      {
+        String token = sn.getAttributeValue(WebcrawlerConfig.ATTR_TOKEN);
+        tokens.add(token);
+      }
+    }
+
+    velocityContext.put("TOKENS",tokens);
+
+  }
+
+  private void fillInMetadataTab(Map<String,Object> velocityContext, IHTTPOutput out, Specification ds)
+  {
+
+    Set<String> excludedHeaders = new HashSet<>();
+
+    // Now, loop through description
+    int i = 0;
+    while (i < ds.getChildCount())
+    {
+      SpecificationNode sn = ds.getChild(i++);
+      if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDEHEADER))
+      {
+        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+        excludedHeaders.add(value);
+      }
+    }
+
+    velocityContext.put("POTENTIALLYEXCLUDEDHEADERS",potentiallyExcludedHeaders);
+    velocityContext.put("EXCLUDEDHEADERS",excludedHeaders);
+
+  }
+
   /** Output the specification body section.
   * This method is called in the body section of a job page which has selected a repository connection of the
   * current type.  Its purpose is to present the required form elements for editing.
@@ -3835,575 +2613,35 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     int connectionSequenceNumber, int actualSequenceNumber, String tabName)
     throws ManifoldCFException, IOException
   {
-    String seqPrefix = "s"+connectionSequenceNumber+"_";
 
-    int i;
-    int k;
+    final Map<String,Object> velocityContext = new HashMap<>();
+    velocityContext.put("TABNAME",tabName);
+    velocityContext.put("SEQNUM", Integer.toString(connectionSequenceNumber));
+    velocityContext.put("SELECTEDNUM", Integer.toString(actualSequenceNumber));
 
-    // Find the various strings
-    List<String> regexp = new ArrayList<String>();
-    List<String> matchStrings = new ArrayList<String>();
-
-    String seeds = "";
-    String inclusions = ".*\n";
-    String exclusions = "";
-    String inclusionsIndex = ".*\n";
-    String exclusionsIndex = "";
-    String exclusionsContentIndex = "";
-    
-    boolean includeMatching = true;
-    Set<String> excludedHeaders = new HashSet<String>();
-    
-    // Now, loop through description
-    i = 0;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(WebcrawlerConfig.NODE_MAP))
-      {
-        String match = sn.getAttributeValue(WebcrawlerConfig.ATTR_MATCH);
-        String map = sn.getAttributeValue(WebcrawlerConfig.ATTR_MAP);
-        if (match != null)
-        {
-          regexp.add(match);
-          if (map == null)
-            map = "";
-          matchStrings.add(map);
-        }
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_SEEDS))
-      {
-        seeds = sn.getValue();
-        if (seeds == null)
-          seeds = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
-      {
-        inclusions = sn.getValue();
-        if (inclusions == null)
-          inclusions = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDES))
-      {
-        exclusions = sn.getValue();
-        if (exclusions == null)
-          exclusions = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDESINDEX))
-      {
-        inclusionsIndex = sn.getValue();
-        if (inclusionsIndex == null)
-          inclusionsIndex = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESINDEX))
-      {
-        exclusionsIndex = sn.getValue();
-        if (exclusionsIndex == null)
-          exclusionsIndex = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESCONTENTINDEX))
-      {
-        exclusionsContentIndex = sn.getValue();
-        if (exclusionsContentIndex == null)
-        	exclusionsContentIndex = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
-      {
-        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-        if (value == null || value.equals("false"))
-          includeMatching = false;
-        else
-          includeMatching = true;
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDEHEADER))
-      {
-        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-        excludedHeaders.add(value);
-      }
-
-    }
+    fillInSeedsTab(velocityContext,out,ds);
+    fillInCanonicalizationTab(velocityContext,out,locale,ds);
+    fillInMappingsTab(velocityContext,out,ds);
+    fillInInclusionsTab(velocityContext,out,ds);
+    fillInExclusionsTab(velocityContext,out,ds);
+    fillInSecurityTab(velocityContext,out,ds);
+    fillInMetadataTab(velocityContext,out,ds);
 
     // Seeds tab
-
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Seeds")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"value\" colspan=\"2\">\n"+
-"      <textarea rows=\"25\" cols=\"80\" name=\""+seqPrefix+"seeds\">"+Encoder.bodyEscape(seeds)+"</textarea>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"seeds\" value=\""+Encoder.attributeEscape(seeds)+"\"/>\n"
-      );
-    }
-
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Seeds.html.vm",velocityContext);
     // Canonicalization tab
-
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Canonicalization")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"boxcell\" colspan=\"2\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"urlregexpop\" value=\"Continue\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"urlregexpnumber\" value=\"\"/>\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.URLRegularExpression") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Description") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Reorder") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RemoveJSPSessions") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RemoveASPSessions") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RemovePHPSessions") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RemoveBVSessions") + "</nobr></td>\n"+
-"        </tr>\n"
-      );
-      int q = 0;
-      int l = 0;
-      while (q < ds.getChildCount())
-      {
-        SpecificationNode specNode = ds.getChild(q++);
-        if (specNode.getType().equals(WebcrawlerConfig.NODE_URLSPEC))
-        {
-          // Ok, this node matters to us
-          String regexpString = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REGEXP);
-          String description = specNode.getAttributeValue(WebcrawlerConfig.ATTR_DESCRIPTION);
-          if (description == null)
-            description = "";
-          String allowReorder = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REORDER);
-          String allowReorderOutput;
-          if (allowReorder == null || allowReorder.length() == 0)
-          {
-            allowReorder = WebcrawlerConfig.ATTRVALUE_NO;
-            allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-          }
-          else
-            allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-          String allowJavaSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL);
-          String allowJavaSessionRemovalOutput;
-          if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-          {
-            allowJavaSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-            allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-          }
-          else
-            allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-          String allowASPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL);
-          String allowASPSessionRemovalOutput;
-          if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-          {
-            allowASPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-            allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-          }
-          else
-            allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-          String allowPHPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL);
-          String allowPHPSessionRemovalOutput;
-          if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-          {
-            allowPHPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-            allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-          }
-          else
-            allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-          String allowBVSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL);
-          String allowBVSessionRemovalOutput;
-          if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-          {
-            allowBVSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-            allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-          }
-          else
-            allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-          out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteUrlRegexp")+Encoder.attributeEscape(regexpString)+"\" onclick='javascript:"+seqPrefix+"URLRegexpDelete("+Integer.toString(l)+",\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\");'/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(regexpString)+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(description)+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpphp_"+Integer.toString(l)+"\" value=\""+allowPHPSessionRemoval+"\"/>\n"+
-"            <input type=\"hidden\" name=\""+seqPrefix+"urlregexpbv_"+Integer.toString(l)+"\" value=\""+allowBVSessionRemoval+"\"/>\n"+
-"            <nobr>"+Encoder.bodyEscape(regexpString)+"</nobr>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\">"+Encoder.bodyEscape(description)+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowReorderOutput+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowJavaSessionRemovalOutput+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowASPSessionRemovalOutput+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowPHPSessionRemovalOutput+"</td>\n"+
-"          <td class=\"formcolumncell\">"+allowBVSessionRemovalOutput+"</td>\n"+
-"        </tr>\n"
-          );
-
-          l++;
-        }
-      }
-      if (l == 0)
-      {
-        out.print(
-"        <tr class=\"formrow\"><td colspan=\"8\" class=\"formcolumnmessage\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.NoCanonicalizationSpecified") + "</nobr></td></tr>\n"
-        );
-      }
-      out.print(
-"        <tr class=\"formrow\"><td colspan=\"8\" class=\"formseparator\"><hr/></td></tr>\n"+
-"        <tr class=\"formrow\">\n"+
-"          <td class=\"formcolumncell\">\n"+
-"            <a name=\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\">\n"+
-"              <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddUrlRegexp") + "\" onclick='javascript:"+seqPrefix+"URLRegexpAdd(\""+seqPrefix+"urlregexp_"+Integer.toString(l+1)+"\");'/>\n"+
-"              <input type=\"hidden\" name=\""+seqPrefix+"urlregexpcount\" value=\""+Integer.toString(l)+"\"/>\n"+
-"            </a>\n"+
-"          </td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"text\" name=\""+seqPrefix+"urlregexp\" size=\"30\" value=\"\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"text\" name=\""+seqPrefix+"urlregexpdesc\" size=\"30\" value=\"\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpreorder\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpjava\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpasp\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpphp\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
-"          <td class=\"formcolumncell\"><input type=\"checkbox\" name=\""+seqPrefix+"urlregexpbv\" value=\""+WebcrawlerConfig.ATTRVALUE_YES+"\" checked=\"true\"/></td>\n"+
-"        </tr>\n"+
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Post the canonicalization specification
-      int q = 0;
-      int l = 0;
-      while (q < ds.getChildCount())
-      {
-        SpecificationNode specNode = ds.getChild(q++);
-        if (specNode.getType().equals(WebcrawlerConfig.NODE_URLSPEC))
-        {
-          // Ok, this node matters to us
-          String regexpString = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REGEXP);
-          String description = specNode.getAttributeValue(WebcrawlerConfig.ATTR_DESCRIPTION);
-          if (description == null)
-            description = "";
-          String allowReorder = specNode.getAttributeValue(WebcrawlerConfig.ATTR_REORDER);
-          if (allowReorder == null || allowReorder.length() == 0)
-            allowReorder = WebcrawlerConfig.ATTRVALUE_NO;
-          String allowJavaSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL);
-          if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-            allowJavaSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-          String allowASPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL);
-          if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-            allowASPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-          String allowPHPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL);
-          if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-            allowPHPSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-          String allowBVSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL);
-          if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-            allowBVSessionRemoval = WebcrawlerConfig.ATTRVALUE_NO;
-          out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexp_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(regexpString)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+Encoder.attributeEscape(description)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpreorder_"+Integer.toString(l)+"\" value=\""+allowReorder+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpjava_"+Integer.toString(l)+"\" value=\""+allowJavaSessionRemoval+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpasp_"+Integer.toString(l)+"\" value=\""+allowASPSessionRemoval+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpphp_"+Integer.toString(l)+"\" value=\""+allowPHPSessionRemoval+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpbv_"+Integer.toString(l)+"\" value=\""+allowBVSessionRemoval+"\"/>\n"
-          );
-          l++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"urlregexpcount\" value=\""+Integer.toString(l)+"\"/>\n"
-      );
-    }
-
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Canonicalization.html.vm",velocityContext);
     // Mappings tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.URLMappings")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"rssop\" value=\"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"rssindex\" value=\"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"rssmapcount\" value=\""+Integer.toString(regexp.size())+"\"/>\n"+
-"\n"+
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"
-      );
-
-      i = 0;
-      while (i < regexp.size())
-      {
-        String prefix = seqPrefix+"rssregexp_"+Integer.toString(i)+"_";
-        out.print(
-"  <tr>\n"+
-"    <td class=\"value\">\n"+
-"      <a name=\""+seqPrefix+"regexp_"+Integer.toString(i)+"\">\n"+
-"        <input type=\"button\" value=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.Remove")+"\" onclick='javascript:"+seqPrefix+"RemoveRegexp("+Integer.toString(i)+",\""+seqPrefix+"regexp_"+Integer.toString(i)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.RemoveRegexp")+Integer.toString(i)+"\"/>\n"+
-"      </a>\n"+
-"    </td>\n"+
-"    <td class=\"value\"><input type=\"hidden\" name=\""+prefix+"match"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape((String)regexp.get(i))+"\"/>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape((String)regexp.get(i))+"</td>\n"+
-"    <td class=\"value\">--&gt;</td>\n"+
-"    <td class=\"value\">\n"
-        );
-        String match = (String)matchStrings.get(i);
-        out.print(
-"      <input type=\"hidden\" name=\""+prefix+"map"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"
-        );
-        if (match.length() == 0)
-        {
-          out.print(
-"      &lt;as is&gt;\n"
-          );
-        }
-        else
-        {
-          out.print(
-"      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(match)+"\n"
-          );
-        }
-        out.print(
-"    </td>\n"+
-"  </tr>\n"
-        );
-        i++;
-      }
-      out.print(
-"  <tr>\n"+
-"    <td class=\"value\"><a name=\""+seqPrefix+"regexp_"+Integer.toString(i)+"\"><input type=\"button\" value=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.Add")+"\" onclick='javascript:"+seqPrefix+"AddRegexp(\""+seqPrefix+"regexp_"+Integer.toString(i+1)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.AddRegexp")+"\"/></a></td>\n"+
-"    <td class=\"value\"><input type=\"text\" name=\""+seqPrefix+"rssmatch\" size=\"16\" value=\"\"/></td>\n"+
-"    <td class=\"value\">--&gt;</td>\n"+
-"    <td class=\"value\"><input type=\"text\" name=\""+seqPrefix+"rssmap\" size=\"16\" value=\"\"/></td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"rssmapcount\" value=\""+Integer.toString(regexp.size())+"\"/>\n"
-      );
-      i = 0;
-      while (i < regexp.size())
-      {
-        String prefix = seqPrefix+"rssregexp_"+Integer.toString(i)+"_";
-        String match = (String)matchStrings.get(i);
-        out.print(
-"<input type=\"hidden\" name=\""+prefix+"match"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape((String)regexp.get(i))+"\"/>\n"+
-"<input type=\"hidden\" name=\""+prefix+"map"+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(match)+"\"/>\n"
-        );
-        i++;
-      }
-    }
-
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Mappings.html.vm",velocityContext);
     // Inclusions tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Inclusions")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeInCrawl") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"25\" cols=\"60\" name=\""+seqPrefix+"inclusions\">"+Encoder.bodyEscape(inclusions)+"</textarea>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeInIndex") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"10\" cols=\"60\" name=\""+seqPrefix+"inclusionsindex\">"+Encoder.bodyEscape(inclusionsIndex)+"</textarea>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeOnlyHostsMatchingSeeds") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"checkbox\" name=\""+seqPrefix+"matchinghosts\" value=\"true\""+(includeMatching?" checked=\"yes\"":"")+"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"matchinghosts_present\" value=\"true\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"inclusions\" value=\""+Encoder.attributeEscape(inclusions)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"inclusionsindex\" value=\""+Encoder.attributeEscape(inclusionsIndex)+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"matchinghosts\" value=\""+(includeMatching?"true":"false")+"\"/>\n"+
-"<input type=\"hidden\" name=\""+seqPrefix+"matchinghosts_present\" value=\"true\"/>\n"
-      );
-    }
-
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Inclusions.html.vm",velocityContext);
     // Exclusions tab
-
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Exclusions")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeFromCrawl") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"25\" cols=\"60\" name=\""+seqPrefix+"exclusions\">"+Encoder.bodyEscape(exclusions)+"</textarea>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeFromIndex") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"10\" cols=\"60\" name=\""+seqPrefix+"exclusionsindex\">"+Encoder.bodyEscape(exclusionsIndex)+"</textarea>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeContentFromIndex") + "</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"1\">\n"+
-"      <textarea rows=\"10\" cols=\"60\" name=\""+seqPrefix+"exclusionscontentindex\">"+Encoder.bodyEscape(exclusionsContentIndex)+"</textarea>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-              "<input type=\"hidden\" name=\"" + seqPrefix + "exclusions\" value=\"" + Encoder.attributeEscape(exclusions) + "\"/>\n" +
-                      "<input type=\"hidden\" name=\"" + seqPrefix + "exclusionsindex\" value=\"" + Encoder.attributeEscape(exclusionsIndex) + "\"/>\n" +
-                      "<input type=\"hidden\" name=\"" + seqPrefix + "exclusionscontentindex\" value=\"" + Encoder.attributeEscape(exclusionsContentIndex) + "\"/>\n"
-      );
-    }
-  
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Exclusions.html.vm",velocityContext);
     // Security tab
-    // There is no native security, so all we care about are the tokens.
-    i = 0;
-
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Security")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-      );
-      // Go through forced ACL
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals(WebcrawlerConfig.NODE_ACCESS))
-        {
-          String accessDescription = "_"+Integer.toString(k);
-          String accessOpName = seqPrefix+"accessop"+accessDescription;
-          String token = sn.getAttributeValue(WebcrawlerConfig.ATTR_TOKEN);
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+accessOpName+"\" value=\"\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+Encoder.attributeEscape(token)+"\"/>\n"+
-"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Delete") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\""+accessOpName+"\",\"Delete\",\""+seqPrefix+"token_"+Integer.toString(k)+"\")' alt=\""+Messages.getAttributeString(locale,"WebcrawlerConnector.DeleteToken")+Integer.toString(k)+"\"/>\n"+
-"      </a>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      "+Encoder.bodyEscape(token)+"\n"+
-"    </td>\n"+
-"  </tr>\n"
-          );
-          k++;
-        }
-      }
-      if (k == 0)
-      {
-        out.print(
-"  <tr>\n"+
-"    <td class=\"message\" colspan=\"2\">" + Messages.getBodyString(locale,"WebcrawlerConnector.NoAccessTokensPresent") + "</td>\n"+
-"  </tr>\n"
-        );
-      }
-      out.print(
-"  <tr><td class=\"lightseparator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"accessop\" value=\"\"/>\n"+
-"      <a name=\""+seqPrefix+"token_"+Integer.toString(k)+"\">\n"+
-"        <input type=\"button\" value=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.Add") + "\" onClick='Javascript:"+seqPrefix+"SpecAddToken(\""+seqPrefix+"token_"+Integer.toString(k+1)+"\")' alt=\"" + Messages.getAttributeString(locale,"WebcrawlerConnector.AddAccessToken") + "\"/>\n"+
-"      </a>&nbsp;\n"+
-"    </td>\n"+
-"    <td class=\"value\">\n"+
-"      <input type=\"text\" size=\"30\" name=\""+seqPrefix+"spectoken\" value=\"\"/>\n"+
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      // Finally, go through forced ACL
-      i = 0;
-      k = 0;
-      while (i < ds.getChildCount())
-      {
-        SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals(WebcrawlerConfig.NODE_ACCESS))
-        {
-          String accessDescription = "_"+Integer.toString(k);
-          String token = sn.getAttributeValue(WebcrawlerConfig.ATTR_TOKEN);
-          out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"spectoken"+accessDescription+"\" value=\""+Encoder.attributeEscape(token)+"\"/>\n"
-          );
-          k++;
-        }
-      }
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"tokencount\" value=\""+Integer.toString(k)+"\"/>\n"
-      );
-    }
-
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Security.html.vm",velocityContext);
     // "Metadata" tab
-    if (tabName.equals(Messages.getString(locale,"WebcrawlerConnector.Metadata")) && connectionSequenceNumber == actualSequenceNumber)
-    {
-      out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"4\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale, "WebcrawlerConnector.ExcludedHeadersColon")+"</nobr></td>\n"+
-"    <td class=\"value\" colspan=\"3\">\n"+
-"      <input type=\"hidden\" name=\""+seqPrefix+"excludedheaders_present\" value=\"true\"/>\n"
-      );
-      
-      for (String potentiallyExcludedHeader : potentiallyExcludedHeaders)
-      {
-        out.print(
-"      <input type=\"checkbox\" name=\""+seqPrefix+"excludedheaders\" value=\""+Encoder.attributeEscape(potentiallyExcludedHeader)+"\""+(excludedHeaders.contains(potentiallyExcludedHeader)?" checked=\"true\"":"")+">"+Encoder.bodyEscape(potentiallyExcludedHeader)+"</input><br/>\n"
-        );
-      }
-      out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"excludedheaders_present\" value=\"true\"/>\n"
-      );
-      for (String excludedHeader : excludedHeaders)
-      {
-        out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"excludedheaders\" value=\""+Encoder.attributeEscape(excludedHeader)+"\"/>\n"
-        );
-      }
-    }
+    Messages.outputResourceWithVelocity(out,locale,"editSpecification_Metadata.html.vm",velocityContext);
+
   }
   
   /** Process a specification post.
@@ -4807,536 +3045,20 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     int connectionSequenceNumber)
     throws ManifoldCFException, IOException
   {
-    int j;
-    boolean seenAny;
 
-    String seeds = "";
-    String inclusions = ".*\n";
-    String exclusions = "";
-    String inclusionsIndex = ".*\n";
-    String exclusionsIndex = "";
-    String exclusionsContentIndex = "";
+    final Map<String,Object> velocityContext = new HashMap<>();
+    velocityContext.put("SEQNUM", Integer.toString(connectionSequenceNumber));
 
-    boolean includeMatching = false;
-    Set<String> excludedHeaders = new HashSet<String>();
-    
-    int i = 0;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(WebcrawlerConfig.NODE_SEEDS))
-      {
-        seeds = sn.getValue();
-        if (seeds == null)
-          seeds = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
-      {
-        inclusions = sn.getValue();
-        if (inclusions == null)
-          inclusions = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDES))
-      {
-        exclusions = sn.getValue();
-        if (exclusions == null)
-          exclusions = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDESINDEX))
-      {
-        inclusionsIndex = sn.getValue();
-        if (inclusionsIndex == null)
-          inclusionsIndex = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESINDEX))
-      {
-        exclusionsIndex = sn.getValue();
-        if (exclusionsIndex == null)
-          exclusionsIndex = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDESCONTENTINDEX))
-      {
-        exclusionsContentIndex = sn.getValue();
-        if (exclusionsContentIndex == null)
-        	exclusionsContentIndex = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
-      {
-        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-        if (value == null || value.equals("false"))
-          includeMatching = false;
-        else
-          includeMatching = true;
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_EXCLUDEHEADER))
-      {
-        String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
-        excludedHeaders.add(value);
-      }
-    }
-    out.print(
-"<table class=\"displaytable\">\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.SeedsColon") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"
-    );
-    try
-    {
-      java.io.Reader str = new java.io.StringReader(seeds);
-      try
-      {
-        java.io.BufferedReader is = new java.io.BufferedReader(str);
-        try
-        {
-          while (true)
-          {
-            String nextString = is.readLine();
-            if (nextString == null)
-              break;
-            if (nextString.length() == 0)
-              continue;
-            out.print(
-"      <nobr>"+Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
-            );
-          }
-        }
-        finally
-        {
-          is.close();
-        }
-      }
-      finally
-      {
-        str.close();
-      }
-    }
-    catch (java.io.IOException e)
-    {
-      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
-    }
-    out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
-    i = 0;
-    int l = 0;
-    seenAny = false;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(WebcrawlerConfig.NODE_URLSPEC))
-      {
-        if (l == 0)
-        {
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.URLCanonicalization") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"      <table class=\"formtable\">\n"+
-"        <tr class=\"formheaderrow\">\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.URLRegexp") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Description") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.Reorder") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RemoveJSPSessions") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RemoveASPSessions") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RemovePHPSessions") + "</nobr></td>\n"+
-"          <td class=\"formcolumnheader\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.RemoveBVSessions") + "</nobr></td>\n"+
-"        </tr>\n"
-          );
-        }
-        String regexpString = sn.getAttributeValue(WebcrawlerConfig.ATTR_REGEXP);
-        String description = sn.getAttributeValue(WebcrawlerConfig.ATTR_DESCRIPTION);
-        if (description == null)
-          description = "";
-        String allowReorder = sn.getAttributeValue(WebcrawlerConfig.ATTR_REORDER);
-        String allowReorderOutput;
-        if (allowReorder == null || allowReorder.length() == 0)
-          allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-        else
-          allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-        String allowJavaSessionRemoval = sn.getAttributeValue(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL);
-        String allowJavaSessionRemovalOutput;
-        if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-          allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-        else
-          allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-        String allowASPSessionRemoval = sn.getAttributeValue(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL);
-        String allowASPSessionRemovalOutput;
-        if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-          allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-        else
-          allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-        String allowPHPSessionRemoval = sn.getAttributeValue(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL);
-        String allowPHPSessionRemovalOutput;
-        if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-          allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-        else
-          allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-        String allowBVSessionRemoval = sn.getAttributeValue(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL);
-        String allowBVSessionRemovalOutput;
-        if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-          allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
-        else
-          allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.yes");
-          
-        out.print(
-"        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
-"          <td class=\"formcolumncell\"><nobr>"+Encoder.bodyEscape(regexpString)+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\">"+Encoder.bodyEscape(description)+"</td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+allowReorderOutput+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+allowJavaSessionRemovalOutput+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+allowASPSessionRemovalOutput+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+allowPHPSessionRemovalOutput+"</nobr></td>\n"+
-"          <td class=\"formcolumncell\"><nobr>"+allowBVSessionRemovalOutput+"</nobr></td>\n"+
-"        </tr>\n"
-        );
-        l++;
-      }
-    }
-    if (l > 0)
-    {
-      out.print(
-"      </table>\n"+
-"    </td>\n"+
-"  </tr>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"  <tr><td class=\"message\" colspan=\"2\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.NoCanonicalizationSpecified") + "</nobr></td></tr>\n"
-      );
-    }
+    fillInSeedsTab(velocityContext,out,ds);
+    fillInCanonicalizationTab(velocityContext,out,locale,ds);
+    fillInMappingsTab(velocityContext,out,ds);
+    fillInInclusionsTab(velocityContext,out,ds);
+    fillInExclusionsTab(velocityContext,out,ds);
+    fillInSecurityTab(velocityContext,out,ds);
+    fillInMetadataTab(velocityContext,out,ds);
 
-    out.print(
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
-    i = 0;
-    seenAny = false;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(WebcrawlerConfig.NODE_MAP))
-      {
-        if (seenAny == false)
-        {
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.URLMappingsColon")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"
-          );
-          seenAny = true;
-        }
-        String match = sn.getAttributeValue(WebcrawlerConfig.ATTR_MATCH);
-        String map = sn.getAttributeValue(WebcrawlerConfig.ATTR_MAP);
-        out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(match)+"</nobr>\n"
-        );
-        if (map != null && map.length() > 0)
-        {
-          out.print(
-"      &nbsp;--&gt;&nbsp;<nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(map)+"</nobr>\n"
-          );
-        }
-        out.print(
-"      <br/>\n"
-        );
-      }
-    }
+    Messages.outputResourceWithVelocity(out,locale,"viewSpecification.html.vm",velocityContext);
 
-    if (seenAny)
-    {
-      out.print(
-"    </td>\n"+
-"  </tr>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"  <tr><td class=\"message\" colspan=\"2\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.NoMappingsSpecifiedWillAcceptAllUrls")+"</nobr></td></tr>\n"
-      );
-    }
-
-    out.print(
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeOnlyHostsMatchingSeeds") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"+
-"    "+(includeMatching?Messages.getBodyString(locale,"WebcrawlerConnector.yes"):Messages.getBodyString(locale,"WebcrawlerConnector.no"))+"\n"+
-"    </td>\n"+
-"  </tr>\n"
-    );
-
-    out.print(
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeInCrawl") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"
-    );
-    try
-    {
-      java.io.Reader str = new java.io.StringReader(inclusions);
-      try
-      {
-        java.io.BufferedReader is = new java.io.BufferedReader(str);
-        try
-        {
-          while (true)
-          {
-            String nextString = is.readLine();
-            if (nextString == null)
-              break;
-            if (nextString.length() == 0)
-              continue;
-            out.print(
-"      <nobr>"+Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
-            );
-          }
-        }
-        finally
-        {
-          is.close();
-        }
-      }
-      finally
-      {
-        str.close();
-      }
-    }
-    catch (java.io.IOException e)
-    {
-      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
-    }
-    out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.IncludeInIndex") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"
-    );
-    try
-    {
-      java.io.Reader str = new java.io.StringReader(inclusionsIndex);
-      try
-      {
-        java.io.BufferedReader is = new java.io.BufferedReader(str);
-        try
-        {
-          while (true)
-          {
-            String nextString = is.readLine();
-            if (nextString == null)
-              break;
-            if (nextString.length() == 0)
-              continue;
-            out.print(
-"      <nobr>"+Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
-            );
-          }
-        }
-        finally
-        {
-          is.close();
-        }
-      }
-      finally
-      {
-        str.close();
-      }
-    }
-    catch (java.io.IOException e)
-    {
-      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
-    }
-    out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeFromCrawl") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"
-    );
-    try
-    {
-      java.io.Reader str = new java.io.StringReader(exclusions);
-      try
-      {
-        java.io.BufferedReader is = new java.io.BufferedReader(str);
-        try
-        {
-          while (true)
-          {
-            String nextString = is.readLine();
-            if (nextString == null)
-              break;
-            if (nextString.length() == 0)
-              continue;
-            out.print(
-"      <nobr>"+Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
-            );
-          }
-        }
-        finally
-        {
-          is.close();
-        }
-      }
-      finally
-      {
-        str.close();
-      }
-    }
-    catch (java.io.IOException e)
-    {
-      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
-    }
-    out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeFromIndex") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"
-    );
-    try
-    {
-      java.io.Reader str = new java.io.StringReader(exclusionsIndex);
-      try
-      {
-        java.io.BufferedReader is = new java.io.BufferedReader(str);
-        try
-        {
-          while (true)
-          {
-            String nextString = is.readLine();
-            if (nextString == null)
-              break;
-            if (nextString.length() == 0)
-              continue;
-            out.print(
-"      <nobr>"+Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
-            );
-          }
-        }
-        finally
-        {
-          is.close();
-        }
-      }
-      finally
-      {
-        str.close();
-      }
-    }
-    catch (java.io.IOException e)
-    {
-      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
-    }
-    out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.ExcludeContentFromIndex") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"
-    );
-    try
-    {
-      java.io.Reader str = new java.io.StringReader(exclusionsContentIndex);
-      try
-      {
-        java.io.BufferedReader is = new java.io.BufferedReader(str);
-        try
-        {
-          while (true)
-          {
-            String nextString = is.readLine();
-            if (nextString == null)
-              break;
-            if (nextString.length() == 0)
-              continue;
-            out.print(
-"      <nobr>"+Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
-            );
-          }
-        }
-        finally
-        {
-          is.close();
-        }
-      }
-      finally
-      {
-        str.close();
-      }
-    }
-    catch (java.io.IOException e)
-    {
-      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
-    }
-    out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"    \n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
-    );
-    // Go through looking for access tokens
-    seenAny = false;
-    i = 0;
-    while (i < ds.getChildCount())
-    {
-      SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(WebcrawlerConfig.NODE_ACCESS))
-      {
-        if (seenAny == false)
-        {
-          out.print(
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.AccessTokens") + "</nobr></td>\n"+
-"    <td class=\"value\">\n"
-          );
-          seenAny = true;
-        }
-        String token = sn.getAttributeValue(WebcrawlerConfig.ATTR_TOKEN);
-        out.print(
-"      "+Encoder.bodyEscape(token)+"<br/>\n"
-        );
-      }
-    }
-
-    if (seenAny)
-    {
-      out.print(
-"    </td>\n"+
-"  </tr>\n"
-      );
-    }
-    else
-    {
-      out.print(
-"  <tr><td class=\"message\" colspan=\"2\"><nobr>" + Messages.getBodyString(locale,"WebcrawlerConnector.NoAccessTokensSpecified") + "</nobr></td></tr>\n"
-      );
-    }
-    out.print(
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
-"  <tr>\n"+
-"    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"WebcrawlerConnector.ExcludedHeadersColon")+"</nobr></td>\n"+
-"    <td class=\"value\">\n"
-    );
-    for (String excludedHeader : excludedHeaders)
-    {
-      out.print(
-"      "+Encoder.bodyEscape(excludedHeader)+"<br/>\n"
-      );
-    }
-    out.print(
-"    </td>\n"+
-"  </tr>\n"+
-"</table>\n"
-    );
   }
 
   // Protected methods and classes

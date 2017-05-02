@@ -310,7 +310,7 @@ public class SeleniumTester
     element.click();*/
 
     boolean found = false;
-    List<WebElement> elements = driver.findElements(By.xpath("//a[contains(concat(' ',@class,' '), ' btn ')]"));
+    List<WebElement> elements = driver.findElements(By.xpath("//a[contains(concat(' ',@class,' '), ' btn ')] | //button[contains(concat(' ',@class,' '), ' btn ')]"));
 
     for (int i = 0; i < elements.size(); i++)
     {
