@@ -247,6 +247,9 @@
             </li>
               #set( $AUTHPARAMCOUNTER = $AUTHPARAMCOUNTER + 1)
             #end
+            #if($AUTHPAGEPARAMMAPLIST.size() == 0)
+            <li class="list-group-item list-group-item-warning">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoFormParametersSpecified'))</li>
+            #end
             <li class="list-group-item">
               <div class="row">
                 <div class="col-md-2">
@@ -328,7 +331,7 @@
 </div>
 
 #if($COUNTER == 0)
-<div class="alert alert-warning">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoSessionBasedAccessCredentialsSpecified'))</div>
+<div class="callout callout-warning">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoSessionBasedAccessCredentialsSpecified'))</div>
 #end
 <hr/>
 <div class="row">

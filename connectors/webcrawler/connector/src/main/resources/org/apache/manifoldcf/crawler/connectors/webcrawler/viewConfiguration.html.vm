@@ -183,6 +183,9 @@
                     </tr>
                     #set( $AUTHPARAMCOUNTER = $AUTHPARAMCOUNTER + 1)
                   #end
+                  #if($AUTHPAGEPARAMMAPLIST.size() == 0)
+                    <tr><td colspan="3"><div class="callout callout-info">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoFormParametersSpecified'))</div></td></tr>
+                  #end
                   </table>
                 </td>
                 #else
@@ -192,7 +195,7 @@
                 #set( $AUTHPAGECOUNTER = $AUTHPAGECOUNTER + 1 )
               #end
               #if($AUTHPAGECOUNTER == 0)
-                <tr><td><div class="callout callout-info">$ResourceBundle.getString('WebcrawlerConnector.NoLoginPagesSpecified')</div></td></tr>
+                <tr><td colspan="5"><div class="callout callout-info">$ResourceBundle.getString('WebcrawlerConnector.NoLoginPagesSpecified')</div></td></tr>
               #end
             </table>
           </td>
