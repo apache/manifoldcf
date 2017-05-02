@@ -23,21 +23,21 @@
   <tr>
     <th colspan="1">$ResourceBundle.getString('WebcrawlerConnector.RobotsUsage')</th>
     <td colspan="1">
-    #if($ROBOTSUSAGE == 'none')
+#if($ROBOTSUSAGE == 'none')
       $ResourceBundle.getString('WebcrawlerConnector.DontLookAtRobotsTxt')
-    #elseif($ROBOTUSAGE == 'data')
+#elseif($ROBOTUSAGE == 'data')
       $ResourceBundle.getString('WebcrawlerConnector.ObeyRobotsTxtForDataFetchesOnly')
-    #elseif($ROBOTUSAGE == 'all')
+#elseif($ROBOTUSAGE == 'all')
       $ResourceBundle.getString('WebcrawlerConnector.ObeyRobotsTxtForAllFetches')
-    #end
+#end
     </td>
     <th colspan="1">$ResourceBundle.getString('WebcrawlerConnector.MetaRobotsTagsUsage')</th>
     <td colspan="1">
-    #if($METAROBOTSTAGSUSAGE == 'none')
+#if($METAROBOTSTAGSUSAGE == 'none')
       $ResourceBundle.getString('WebcrawlerConnector.DontLookAtMetaRobotsTags')
-    #elseif($METAROBOTSTAGSUSAGE == 'all')
+#elseif($METAROBOTSTAGSUSAGE == 'all')
       $ResourceBundle.getString('WebcrawlerConnector.ObeyMetaRobotsTags')
-    #end
+#end
     </td>
   </tr>
   <tr>
@@ -63,40 +63,41 @@
           <th>$ResourceBundle.getString('WebcrawlerConnector.MaxKbytesSec')</th>
           <th>$ResourceBundle.getString('WebcrawlerConnector.MaxFetchesMin')</th>
         </tr>
-        #set( $BINCOUNTER = 0)
-        #foreach($throttleMap in $THROTTLESMAPLIST)
+#set( $BINCOUNTER = 0)
+#foreach($throttleMap in $THROTTLESMAPLIST)
         <tr>
           <td>
             $Encoder.bodyEscape($throttleMap.get("regexp"))
           </td>
           <td>$throttleMap["isCaseInsensitive"]</td>
           <td>
-          #if($throttleMap["maxConnections"] == "")
+  #if($throttleMap["maxConnections"] == "")
             Not limited
-          #else
+  #else
             $throttleMap["maxConnections"]
-          #end
+  #end
           </td>
           <td>
-          #if($throttleMap["maxKBPerSecond"] == "")
+  #if($throttleMap["maxKBPerSecond"] == "")
             Not limited
-          #else
+  #else
             $throttleMap["maxKBPerSecond"]
-          #end
+  #end
           </td>
           <td>
-          #if($throttleMap["maxFetchesPerMinute"] == "")
+  #if($throttleMap["maxFetchesPerMinute"] == "")
             Not limited
-          #else
+  #else
             $throttleMap["maxFetchesPerMinute"]
-          #end
+  #end
           </td>
         </tr>
-          #set( $BINCOUNTER = $BINCOUNTER + 1)
-        #end
-        #if($BINCOUNTER == 0)
+  #set( $BINCOUNTER = $BINCOUNTER + 1)
+#end
+
+#if($BINCOUNTER == 0)
           <tr class="formrow"><td class="formmessage" colspan="5"><div class="callout callout-info">$ResourceBundle.getString('WebcrawlerConnector.NoBandwidthThrottling')</div></td></tr>
-        #end
+#end
       </table>
     </td>
   </tr>
@@ -111,8 +112,8 @@
           <th>$ResourceBundle.getString('WebcrawlerConnector.CredentialDomain')</th>
           <th>$ResourceBundle.getString('WebcrawlerConnector.UserName')</th>
         </tr>
-        #set( $COUNTER = 0)
-        #foreach($pageAccessMap in $PAGEACCESSMAPLIST)
+#set( $COUNTER = 0)
+#foreach($pageAccessMap in $PAGEACCESSMAPLIST)
         <tr>
           <td>
             $Encoder.bodyEscape($pageAccessMap["regexp"])
@@ -123,11 +124,12 @@
           <td>$Encoder.bodyEscape($pageAccessMap["domain"])</td>
           <td>$Encoder.attributeEscape($pageAccessMap["userName"])</td>
         </tr>
-          #set( $COUNTER = $COUNTER + 1)
-        #end
-        #if($COUNTER == 0)
+  #set( $COUNTER = $COUNTER + 1)
+#end
+
+#if($COUNTER == 0)
           <tr class="formrow"><td class="formmessage" colspan="4"><div class="callout callout-info">$ResourceBundle.getString('WebcrawlerConnector.NoPageAccessCredentials')</div></td></tr>
-        #end
+#end
       </table>
     </td>
   </tr>
@@ -140,8 +142,8 @@
           <th>$ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression')</th>
           <th>$ResourceBundle.getString('WebcrawlerConnector.LoginPages')</th>
         </tr>
-        #set( $COUNTER = 0)
-        #foreach($sessionAccessMap in $SESSIONACCESSMAPLIST)
+#set( $COUNTER = 0)
+#foreach($sessionAccessMap in $SESSIONACCESSMAPLIST)
         <tr>
           <td>$Encoder.bodyEscape($sessionAccessMap["regexp"])</td>
           <td>
@@ -153,15 +155,15 @@
                 <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.OverrideTargetURL'))</th>
                 <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.OverrideFormParameters'))</th>
               </tr>
-              #set( $AUTHPAGECOUNTER = 0 )
-              #set( $AUTHPAGEMAPLIST = $sessionAccessMap["authPageMapList"])
-              #foreach($authPageMap in $AUTHPAGEMAPLIST)
+  #set( $AUTHPAGECOUNTER = 0 )
+  #set( $AUTHPAGEMAPLIST = $sessionAccessMap["authPageMapList"])
+  #foreach($authPageMap in $AUTHPAGEMAPLIST)
               <tr>
                 <td>$Encoder.bodyEscape($authPageMap["pageRegexp"])</td>
                 <td>$authPageMap["pageType"]</td>
                 <td>$Encoder.bodyEscape($authPageMap["matchRegexp"])</td>
                 <td>$Encoder.bodyEscape($authPageMap["overrideTargetURL"])</td>
-                #if($authPageMap["pageType"] == "form")
+    #if($authPageMap["pageType"] == "form")
                 <td>
                   <table class="table">
                     <tr class="active">
@@ -169,42 +171,45 @@
                       <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Value'))</th>
                       <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Password'))</th>
                     </tr>
-                  #set( $AUTHPARAMCOUNTER = 0)
-                  #set( $AUTHPAGEPARAMMAPLIST = $authPageMap["authPageParamMapList"] )
-                  #foreach($authPageParamMap in $AUTHPAGEPARAMMAPLIST)
+      #set( $AUTHPARAMCOUNTER = 0)
+      #set( $AUTHPAGEPARAMMAPLIST = $authPageMap["authPageParamMapList"] )
+      #foreach($authPageParamMap in $AUTHPAGEPARAMMAPLIST)
                     <tr>
                       <td>$Encoder.bodyEscape($authPageParamMap["param"])</td>
                       <td>$Encoder.bodyEscape($authPageParamMap["value"])</td>
                       <td>
-                      #if($authPageParamMap["password"] != "")
+        #if($authPageParamMap["password"] != "")
                         *****
-                      #end
+        #end
                       </td>
                     </tr>
-                    #set( $AUTHPARAMCOUNTER = $AUTHPARAMCOUNTER + 1)
-                  #end
-                  #if($AUTHPAGEPARAMMAPLIST.size() == 0)
+        #set( $AUTHPARAMCOUNTER = $AUTHPARAMCOUNTER + 1)
+      #end
+
+      #if($AUTHPAGEPARAMMAPLIST.size() == 0)
                     <tr><td colspan="3"><div class="callout callout-info">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoFormParametersSpecified'))</div></td></tr>
-                  #end
+      #end
                   </table>
                 </td>
-                #else
+    #else
                 <td></td>
-                #end
+    #end
               </tr>
-                #set( $AUTHPAGECOUNTER = $AUTHPAGECOUNTER + 1 )
-              #end
-              #if($AUTHPAGECOUNTER == 0)
+    #set( $AUTHPAGECOUNTER = $AUTHPAGECOUNTER + 1 )
+  #end
+
+  #if($AUTHPAGECOUNTER == 0)
                 <tr><td colspan="5"><div class="callout callout-info">$ResourceBundle.getString('WebcrawlerConnector.NoLoginPagesSpecified')</div></td></tr>
-              #end
+  #end
             </table>
           </td>
         </tr>
-          #set( $COUNTER = $COUNTER + 1)
-        #end
-        #if($COUNTER == 0)
+  #set( $COUNTER = $COUNTER + 1)
+#end
+
+#if($COUNTER == 0)
           <tr><td colspan="2"><div class="callout callout-info">$ResourceBundle.getString('WebcrawlerConnector.NoSessionBasedAccessCredentials')</div></td></tr>
-        #end
+#end
       </table>
     </td>
   </tr>
@@ -217,20 +222,21 @@
           <th>$ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression')</th>
           <th>$ResourceBundle.getString('WebcrawlerConnector.Certificate')</th>
         </tr>
-        #set( $COUNTER = 0)
-        #foreach($trustMap in $TRUSTMAPLIST)
+#set( $COUNTER = 0)
+#foreach($trustMap in $TRUSTMAPLIST)
         <tr>
           <td>$Encoder.bodyEscape($trustMap["regexp"])</td>
-          #if($trustMap["trustEverything"] == "true")
+  #if($trustMap["trustEverything"] == "true")
           <td><i>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.TrustEverything"))</i></td>
-          #else
+  #else
           <td>$Encoder.bodyEscape($trustMap["shortenedDescription"])</td>
-          #end
-          #set( $COUNTER = $COUNTER + 1)
-        #end
-        #if($COUNTER == 0)
+  #end
+  #set( $COUNTER = $COUNTER + 1)
+#end
+
+#if($COUNTER == 0)
           <tr><td colspan="2"><div class="callout callout-info">$ResourceBundle.getString('WebcrawlerConnector.NoTrustCertificates')</div></td></tr>
-        #end
+#end
       </table>
     </td>
   </tr>

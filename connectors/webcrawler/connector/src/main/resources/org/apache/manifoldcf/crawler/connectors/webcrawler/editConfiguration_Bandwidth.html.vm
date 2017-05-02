@@ -26,8 +26,8 @@
   <div class="col-md-12">
     <h5>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Throttles'))</h5>
     <ul id="webcrawler-bandwidth-throttles" class="list-group">
-      #foreach($throttleMap in $THROTTLESMAPLIST)
-        #set( $THROTTLEPREFIX = "bandwidth_" + $BINCOUNTER )
+  #foreach($throttleMap in $THROTTLESMAPLIST)
+    #set( $THROTTLEPREFIX = "bandwidth_" + $BINCOUNTER )
       <li class="list-group-item">
         <div class="row form-inline">
           <div class="col-md-1">
@@ -67,11 +67,11 @@
         </div>
       </li>
         #set( $BINCOUNTER = $BINCOUNTER + 1)
-      #end
+  #end
       ## If it looks like this is a brand-new configuration, add in a default throttle.
       ## This only works because other nodes must get created on the first post, and cannot then be deleted.
-      #if($BRANDNEW)
-        #set( $THROTTLEPREFIX = "bandwidth_" + $BINCOUNTER )
+  #if($BRANDNEW)
+    #set( $THROTTLEPREFIX = "bandwidth_" + $BINCOUNTER )
       <li class="list-group-item">
         <div class="row form-inline">
           <div class="col-md-1">
@@ -110,13 +110,13 @@
           </div>
         </div>
       </li>
-        #set( $BINCOUNTER = $BINCOUNTER + 1)
-      #end
-      #if($BINCOUNTER == "0")
+    #set( $BINCOUNTER = $BINCOUNTER + 1)
+  #end
+  #if($BINCOUNTER == "0")
       <li class="list-group-item list-group-item-warning">
         $Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoBandwidthOrConnectionThrottlingSpecified'))
       </li>
-      #end
+  #end
       <li class="list-group-item">
         <div class="row form-inline">
           <div class="col-md-1">

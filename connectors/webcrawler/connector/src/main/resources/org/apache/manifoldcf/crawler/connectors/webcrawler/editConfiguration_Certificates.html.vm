@@ -27,17 +27,17 @@
           <div class="col-md-2"></div>
         </div>
       </li>
-      #foreach($trustMap in $TRUSTMAPLIST)
-        #set( $PREFIX = "trust_" + $COUNTER )
+  #foreach($trustMap in $TRUSTMAPLIST)
+    #set( $PREFIX = "trust_" + $COUNTER )
       <li class="list-group-item">
         <div class="row">
           <div class="col-md-5">$Encoder.bodyEscape($trustMap["regexp"])</div>
           <div class="col-md-5">
-            #if($trustMap["trustEverything"] == "true")
+    #if($trustMap["trustEverything"] == "true")
             <i>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.TrustEverything"))</i>
-            #else
+    #else
             $Encoder.bodyEscape($trustMap["shortenedDescription"])
-            #end
+  #end
           </div>
           <div class="col-md-2">
             <button class="btn btn-danger btn-xs pull-right" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteTrustUrlRegularExpression'))$foreach.count" onclick="javascript:deleteTRegexp($COUNTER);"><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
@@ -48,18 +48,18 @@
           </div>
         </div>
       </li>
-        #set( $COUNTER = $COUNTER + 1)
-      #end
+    #set( $COUNTER = $COUNTER + 1)
+  #end
     </ul>
   </div>
 </div>
-#if($COUNTER == "0")
+  #if($COUNTER == "0")
 <div class="row">
   <div class="col-xs-12">
     <div class="callout callout-warning">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoTrustCertificatesSpecified'))</div>
   </div>
 </div>
-#end
+  #end
 <hr/>
 <div class="row">
   <div class="col-md-6 col-lg-4">

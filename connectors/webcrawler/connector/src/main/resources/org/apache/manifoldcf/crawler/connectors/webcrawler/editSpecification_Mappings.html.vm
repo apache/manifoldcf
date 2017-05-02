@@ -44,34 +44,34 @@
 <div class="row">
   <div class="col-md-8">
     <ul class="list-group">
-    #foreach($REGEXP in $REGEXPLIST)
-      #set( $PREFIX = $SEQPREFIX + "rssregexp_" + $foreach.index +"_" )
+  #foreach($REGEXP in $REGEXPLIST)
+    #set( $PREFIX = $SEQPREFIX + "rssregexp_" + $foreach.index +"_" )
       <li class="list-group-item">
         <input type="hidden" name="${PREFIX}match" value="$Encoder.attributeEscape($REGEXP)"/>
         <div class="mapping">
           <div class="text-right mapping-regexp">$Encoder.bodyEscape($REGEXP)</div>
           <div class="text-center mapping-arrow"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></div>
           <div class="text-left mapping-match">
-          #set( $MATCH = $MATCHSTRINGS.get($foreach.index))
+    #set( $MATCH = $MATCHSTRINGS.get($foreach.index))
             <input type="hidden" name="${PREFIX}map" value="$Encoder.attributeEscape($MATCH)"/>
-          #if($MATCH.length() == 0)
+    #if($MATCH.length() == 0)
             &lt;as is&gt;
-          #else
+    #else
             $Encoder.bodyEscape($MATCH)
-          #end
+    #end
           </div>
           <div class="pull-right">
             <button class="btn btn-xs btn-danger" type="button" onclick='javascript:${SEQPREFIX}RemoveRegexp($foreach.index,"${SEQPREFIX}regexp_$foreach.index")' title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.RemoveRegexp'))$foreach.index"><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Remove'))</button>
           </div>
         </div>
       </li>
-    #end
+  #end
     </ul>
   </div>
 </div>
 <hr/>
-#set( $COUNTER = $REGEXPLIST.size() )
-#set( $NEXTCOUNTER = $COUNTER + 1 )
+  #set( $COUNTER = $REGEXPLIST.size() )
+  #set( $NEXTCOUNTER = $COUNTER + 1 )
 <div class="row">
   <div class="col-lg-8 form-inline">
     <div class="form-group">

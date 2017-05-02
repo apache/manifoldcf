@@ -22,11 +22,11 @@
     <h5>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.ExcludedHeadersColon'))</h5>
     <input type="hidden" name="${SEQPREFIX}excludedheaders_present" value="true"/>
     <div class="list-group">
-    #foreach($potentiallyExcludedHeader in $POTENTIALLYEXCLUDEDHEADERS)
+  #foreach($potentiallyExcludedHeader in $POTENTIALLYEXCLUDEDHEADERS)
       <label class="list-group-item">
         <input type="checkbox" name="${SEQPREFIX}excludedheaders" value="$Encoder.attributeEscape($potentiallyExcludedHeader)" #if($EXCLUDEDHEADERS.contains($potentiallyExcludedHeader)) checked="true" #end />&nbsp;&nbsp;$Encoder.bodyEscape($potentiallyExcludedHeader)
       </label>
-    #end
+  #end
     </div>
   </div>
 </div>

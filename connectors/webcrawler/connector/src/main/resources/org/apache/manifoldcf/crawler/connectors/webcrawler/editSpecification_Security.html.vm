@@ -20,9 +20,9 @@
 <div class="row">
   <div class="col-md-8">
     <ul class="list-group">
-    #foreach($TOKEN in $TOKENS)
-      #set( $ACCESSDESC = "_" + $foreach.index )
-      #set( $ACCESSOPNAME = $SEQPREFIX + "accessop" + $ACCESSDESC )
+  #foreach($TOKEN in $TOKENS)
+    #set( $ACCESSDESC = "_" + $foreach.index )
+    #set( $ACCESSOPNAME = $SEQPREFIX + "accessop" + $ACCESSDESC )
       <li class="list-group-item">
         <input type="hidden" name="$ACCESSOPNAME" value=""/>
         <input type="hidden" name="${SEQPREFIX}spectoken${ACCESSDESC}" value="$Encoder.attributeEscape($TOKEN)" />
@@ -31,18 +31,20 @@
           <button class="btn btn-xs btn-danger" type="button" onClick='Javascript:${SEQPREFIX}SpecOp("$ACCESSOPNAME","Delete","${SEQPREFIX}token_${foreach.index}")' alt="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteToken'))$foreach.index"><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
         </span>
       </li>
-    #end
+  #end
     </ul>
   </div>
 </div>
-#set( $COUNTER = $TOKENS.size() )
-#if($COUNTER == 0)
+
+  #set( $COUNTER = $TOKENS.size() )
+  #if($COUNTER == 0)
 <div class="row">
   <div class="col-xs-12">
     <div class="alert alert-warning">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoAccessTokensPresent'))</div>
   </div>
 </div>
-#end
+  #end
+
 <hr/>
 <div class="row">
   <div class="col-md-8 form-inline">
