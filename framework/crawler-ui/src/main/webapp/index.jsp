@@ -22,6 +22,10 @@
 */
 %>
 
+<%
+  String mcfVersion = org.apache.manifoldcf.core.system.ManifoldCF.getMcfVersion();
+%>
+
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
 <html lang="en">
@@ -76,7 +80,7 @@
         </section>
       </div>
       <footer class="main-footer">
-        <div class="pull-right hidden-xs"><b>Version</b>&nbsp;<%= org.apache.manifoldcf.core.system.ManifoldCF.getMcfVersion() %></div>
+        <div class="pull-right hidden-xs"><b>Version</b>&nbsp;<%= mcfVersion %></div>
         <strong><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.Copyright")%>&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" href="https://www.apache.org/"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"index.TheApacheSoftwareFoundation")%></a></strong>
       </footer>
     </div>
@@ -110,7 +114,7 @@
     <script src="bootstrap-select/js/bootstrap-select.min.js" type="text/javascript"></script>
     <script src="javascript/jquery.slimscroll.min.js" type="text/javascript"></script>
     <!-- ManifoldCF -->
-    <script src="javascript/mcf.js" type="text/javascript"></script>
+    <script src="javascript/mcf.js?v=<%= mcfVersion %>" type="text/javascript"></script>
 <%
   String reqPage = request.getParameter("p");
   if (reqPage != null && reqPage.length() > 0)
