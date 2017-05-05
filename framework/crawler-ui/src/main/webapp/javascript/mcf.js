@@ -441,15 +441,21 @@ $.ManifoldCF.loadContent=function (url)
 $.ManifoldCF.submit=function (form)
 {
   $('.overlay,#loader').show();
-  var $form=$(form);
-  var action=$form.attr('action');
-  console.log("Ajax URL: " + action);
-  console.log($form.serialize());
+
+  var formData = new FormData(form),
+      $form = $(form),
+      action = $form.attr('action'),
+      method = $form.attr('method');
+
   _preLoadContent();
+
   $.ajax({
-    type: $form.attr('method'),
+    type: method,
     url: action,
-    data: $form.serialize()
+    data: formData,
+    cache: false,
+    contentType: false,
+    processData: false
   }).done(function (data,textStatus,jqXHR)
   {
     var page=jqXHR.getResponseHeader("page");
