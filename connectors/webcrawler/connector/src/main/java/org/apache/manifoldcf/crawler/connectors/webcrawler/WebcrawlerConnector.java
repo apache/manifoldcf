@@ -1687,13 +1687,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         String regexp = cn.getAttributeValue(WebcrawlerConfig.ATTR_URLREGEXP);
         String trustEverything = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTEVERYTHING);
 
+        if(trustEverything == null)
+        {
+          trustEverything = "false";
+        }
+
         trustMap.put("trustEverything",trustEverything);
         trustMap.put("regexp",regexp);
 
-        if (trustEverything != null && trustEverything.equals("true"))
-        {
-        }
-        else
+        if(trustEverything == "false")
         {
           String trustStore = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTSTORE);
           IKeystoreManager localTruststore = KeystoreManagerFactory.make("",trustStore);
