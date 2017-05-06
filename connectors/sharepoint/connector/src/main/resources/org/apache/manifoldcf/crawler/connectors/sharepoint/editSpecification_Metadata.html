@@ -149,7 +149,7 @@
             <nobr>
               <select name="s${SeqNum}_metafields" multiple="true" size="5">
     #foreach($field in $METAFIELDLIST)
-                <option value="$Encoder.attributeEscape($field.getValue())"/>$Encoder.bodyEscape($field.getPrettyName())</option>
+                <option value="$Encoder.attributeEscape($field.getValue())">$Encoder.bodyEscape($field.getPrettyName())</option>
     #end
               </select>
             </nobr>

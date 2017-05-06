@@ -6,6 +6,9 @@ $Id$
 CONNECTORS-1423: Fix the new UI to add certificates to connections with certificate stores.
 (Karl Wright, Kishore Kumar)
 
+CONNECTORS-1422: Fix an HTML problem in SharePoint metadata UI.
+(David Hotchkiss)
+
 ======================= Release 2.7 =====================
 
 CONNECTORS-1411: Fix attachment URL template reset bug.
