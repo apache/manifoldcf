@@ -3,6 +3,8 @@ $Id$
 
 ======================= Release 2.7.1 =====================
 
+CONNECTORS-1423: Fix the new UI to add certificates to connections with certificate stores.
+(Karl Wright, Kishore Kumar)
 
 ======================= Release 2.7 =====================
 
