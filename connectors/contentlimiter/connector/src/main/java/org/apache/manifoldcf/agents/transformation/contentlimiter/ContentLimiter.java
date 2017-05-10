@@ -85,14 +85,14 @@ public class ContentLimiter extends org.apache.manifoldcf.agents.transformation.
   public boolean checkMimeTypeIndexable(VersionContext outputDescription, String mimeType, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption
   {
-    return true;
+    return activities.checkMimeTypeIndexable(mimeType);
   }
 
   @Override
   public boolean checkLengthIndexable(VersionContext outputDescription, long length, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption {
-    // Always true;
-    return true;
+    final SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
+    return activities.checkLengthIndexable(Math.min(length, sp.lengthCutoff));
   }
   
   /** Add (or replace) a document in the output data store using the connector.
@@ -110,6 +110,8 @@ public class ContentLimiter extends org.apache.manifoldcf.agents.transformation.
   public int addOrReplaceDocumentWithException(String documentURI, VersionContext outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
+    final SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
+    
     InputStream is = null;
     DestinationStorage ds = null;
     try {
@@ -118,7 +120,6 @@ public class ContentLimiter extends org.apache.manifoldcf.agents.transformation.
       long startTime = System.currentTimeMillis();
       String resultCode = "OK";
       String description = null;
-      SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
       
       if(document.getBinaryLength() > sp.lengthCutoff) {
           
