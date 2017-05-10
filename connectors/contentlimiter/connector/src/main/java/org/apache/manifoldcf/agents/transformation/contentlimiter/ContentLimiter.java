@@ -1,4 +1,4 @@
-/* $Id: DocumentFilter.java 1756230 2016-08-12 22:20:00Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -91,7 +91,7 @@ public class ContentLimiter extends org.apache.manifoldcf.agents.transformation.
   @Override
   public boolean checkLengthIndexable(VersionContext outputDescription, long length, IOutputCheckActivity activities)
     throws ManifoldCFException, ServiceInterruption {
-	// Always true;
+    // Always true;
     return true;
   }
   
@@ -110,62 +110,62 @@ public class ContentLimiter extends org.apache.manifoldcf.agents.transformation.
   public int addOrReplaceDocumentWithException(String documentURI, VersionContext outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
-	InputStream is = null;
-	DestinationStorage ds = null;
-	try {
-		RepositoryDocument finalDocument;
-		long length;
-		long startTime = System.currentTimeMillis();
-		String resultCode = "OK";
-		String description = null;
-		SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
-		
-		if(document.getBinaryLength() > sp.lengthCutoff) {
-		      
-		    if (document.getBinaryLength() <= inMemoryMaximumFile)
-		    {
-		      ds = new MemoryDestinationStorage((int)document.getBinaryLength());
-		    }
-		    else
-		    {
-		      ds = new FileDestinationStorage();
-		    }
-		    
-		    // Create a copy of Repository Document
-		    finalDocument = document.duplicate();
-		    
-		    InputStream docIs = document.getBinaryStream();
-		    try {
-			    IOUtils.copyLarge(docIs, ds.getOutputStream(), 0L, sp.lengthCutoff);
-			    
-			    // Get new stream length
-			    length = ds.getBinaryLength();
-			    is = ds.getInputStream();
-			    finalDocument.setBinary(is,length);
-			    resultCode = "TRUNCATEDOK";
-		    } catch(IOException e) {
-		    	resultCode = "TRUNCATEDERROR";
-		    	description = e.getMessage();
-		    	return DOCUMENTSTATUS_REJECTED;
-		    } finally {
-		    	docIs.close();
-		    }
-		} else {
-			finalDocument = document;
-			length = document.getBinaryLength();
-		}
-		
-		activities.recordActivity(new Long(startTime), ACTIVITY_LIMIT, length, documentURI,
-	            resultCode, description);
-		return activities.sendDocument(documentURI, finalDocument);
-	} finally {
-		if(is != null) {
-			is.close();
-		}
-		if(ds != null) {
-			ds.close();
-		}
-	}
+    InputStream is = null;
+    DestinationStorage ds = null;
+    try {
+      RepositoryDocument finalDocument;
+      long length;
+      long startTime = System.currentTimeMillis();
+      String resultCode = "OK";
+      String description = null;
+      SpecPacker sp = new SpecPacker(outputDescription.getSpecification());
+      
+      if(document.getBinaryLength() > sp.lengthCutoff) {
+          
+        if (document.getBinaryLength() <= inMemoryMaximumFile)
+        {
+          ds = new MemoryDestinationStorage((int)document.getBinaryLength());
+        }
+        else
+        {
+          ds = new FileDestinationStorage();
+        }
+        
+        // Create a copy of Repository Document
+        finalDocument = document.duplicate();
+        
+        InputStream docIs = document.getBinaryStream();
+        try {
+          IOUtils.copyLarge(docIs, ds.getOutputStream(), 0L, sp.lengthCutoff);
+          
+          // Get new stream length
+          length = ds.getBinaryLength();
+          is = ds.getInputStream();
+          finalDocument.setBinary(is,length);
+          resultCode = "TRUNCATEDOK";
+        } catch(IOException e) {
+          resultCode = "TRUNCATEDERROR";
+          description = e.getMessage();
+          return DOCUMENTSTATUS_REJECTED;
+        } finally {
+          docIs.close();
+        }
+      } else {
+        finalDocument = document;
+        length = document.getBinaryLength();
+      }
+      
+      activities.recordActivity(new Long(startTime), ACTIVITY_LIMIT, length, documentURI,
+                resultCode, description);
+      return activities.sendDocument(documentURI, finalDocument);
+    } finally {
+      if(is != null) {
+        is.close();
+      }
+      if(ds != null) {
+        ds.close();
+      }
+    }
   }
   
   protected static void fillInContentSpecificationMap(Map<String,Object> paramMap, Specification os)
