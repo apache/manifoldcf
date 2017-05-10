@@ -70,6 +70,7 @@
     <module>kafka</module>
     <module>opennlp</module>
     <module>nuxeo</module>
+    <module>contentlimiter</module>
   </modules>
 
 </project>
