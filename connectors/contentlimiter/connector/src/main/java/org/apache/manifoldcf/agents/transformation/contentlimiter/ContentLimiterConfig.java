@@ -1,4 +1,4 @@
-/* $Id: DocumentFilterConfig.java 1630623 2014-10-10 00:11:30Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more

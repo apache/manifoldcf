@@ -1,4 +1,4 @@
-/* $Id: Messages.java 1604371 2014-06-21 13:36:55Z kwright $ */
+/* $Id$ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
