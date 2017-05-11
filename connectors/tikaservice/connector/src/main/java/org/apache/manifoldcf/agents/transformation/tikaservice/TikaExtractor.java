@@ -302,12 +302,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             IOUtils.copy(document.getBinaryStream(), ds.getOutputStream());
 
             // Metadata
-            final HttpPut httpPut = new HttpPut(sp.metaURI);
+            HttpPut httpPut = new HttpPut(sp.metaURI);
             if (!mime.isEmpty()) {
               httpPut.addHeader("Content-Type", mime);
             }
             httpPut.addHeader("Accept", "application/json");
-            final HttpEntity entity = new InputStreamEntity(ds.getInputStream());
+            HttpEntity entity = new InputStreamEntity(ds.getInputStream());
             httpPut.setEntity(entity);
             while (retry < 3 && response == null) {
               try {
