@@ -16,102 +16,55 @@
 -->
 
 <table class="displaytable">
-	<tr>
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.TikaType'))</nobr></td>
-		#if($TIKASERVER == 'true')
-		<td class="value"><nobr>$ResourceBundle.getString('TikaExtractor.TikaServerSelected')</nobr></td>
-		#else
-		<td class="value"><nobr>$ResourceBundle.getString('TikaExtractor.TikaParsersSelected')</nobr></td>
-		#end
-	</tr>
-	#if($TIKASERVER == 'true')
-	<tr>
-		<td class="separator" colspan="2"><hr /></td>
-	</tr>
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.TikaHostname'))</nobr></td>
-		<td class="value"><nobr>$Encoder.bodyEscape($TIKAHOSTNAME)</nobr></td>
-	</tr>
-	<tr>
-		<td class="separator" colspan="2"><hr /></td>
-	</tr>
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.TikaPort'))</nobr></td>
-		<td class="value"><nobr>$Encoder.bodyEscape($TIKAPORT)</nobr></td>
-	</tr>
-	<tr>
-		<td class="separator" colspan="2"><hr /></td>
-	</tr>
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.TikaRetry'))</nobr></td>
-		<td class="value"><nobr>$Encoder.bodyEscape($TIKARETRY)</nobr></td>
-	</tr>
-	#end
-	<tr>
-		<td class="separator" colspan="2"><hr /></td>
-	</tr>
-	<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.FieldMappings'))</nobr></td>
-	<td class="boxcell">
-		<table class="formtable">
-			<tr class="formheaderrow">
-				<td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.MetadataFieldName'))</nobr></td>
-				<td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.FinalFieldName'))</nobr></td>
-			</tr>
-			#set($fieldcounter = 0) #foreach($fieldmapping in $FIELDMAPPINGS)
-			#if(($fieldcounter % 2) == 0)
-			<tr class="evenformrow">#else
-			<tr class="oddformrow">
-				#end
-				<td class="formcolumncell"><nobr>$Encoder.bodyEscape($fieldmapping.get('SOURCE'))</nobr>
-				</td>
-				<td class="formcolumncell"><nobr>$Encoder.bodyEscape($fieldmapping.get('TARGETDISPLAY'))</nobr>
-				</td>
-			</tr>
-			#set($fieldcounter = $fieldcounter + 1) #end #if($fieldcounter == 0)
-			<tr class="formrow">
-				<td class="formmessage" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.NoFieldMappingSpecified'))</td>
-			</tr>
-			#end
-		</table>
-	</td>
-	</tr>
-	<tr>
-		<td class="separator" colspan="2"><hr /></td>
-	</tr>
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.KeepAllMetadata'))</nobr></td>
-		<td class="value"><nobr>$Encoder.bodyEscape($KEEPALLMETADATA)</nobr></td>
-	</tr>
-	<tr>
-		<td class="separator" colspan="2"><hr /></td>
-	</tr>
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.LowerNames'))</nobr></td>
-		<td class="value"><nobr>$Encoder.bodyEscape($LOWERNAMES)</nobr></td>
-	</tr>
-	<tr>
-		<td class="separator" colspan="2"><hr /></td>
-	</tr>
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.WriteLimit'))</nobr></td>
-		<td class="value"><nobr>$Encoder.bodyEscape($WRITELIMIT)</nobr></td>
-	</tr>
-	<tr>
-		<td class="separator" colspan="2"><hr /></td>
-	</tr>
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.IgnoreTikaExceptions'))</nobr></td>
-		<td class="value"><nobr>$Encoder.bodyEscape($IGNORETIKAEXCEPTIONS)</nobr></td>
-	</tr>
-	<tr>
-		<td class="separator" colspan="2"><hr /></td>
-	</tr>
-	<tr>
-		<td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.BoilerplateExtractorColon'))</nobr></td>
-		<td class="value">#if ($BOILERPLATECLASSNAME == '') <nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.NoExtractionSelected'))</nobr>
-			#else <nobr>$Encoder.bodyEscape($BOILERPLATECLASSNAME)</nobr> #end
-		</td>
-	</tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.FieldMappings'))</nobr></td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.MetadataFieldName'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.FinalFieldName'))</nobr></td>
+        </tr>
+#set($fieldcounter = 0)
+#foreach($fieldmapping in $FIELDMAPPINGS)
+  #if(($fieldcounter % 2) == 0)
+        <tr class="evenformrow">
+  #else
+        <tr class="oddformrow">
+  #end
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($fieldmapping.get('SOURCE'))</nobr>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($fieldmapping.get('TARGETDISPLAY'))</nobr>
+          </td>
+        </tr>
+  #set($fieldcounter = $fieldcounter + 1)
+#end
+#if($fieldcounter == 0)
+        <tr class="formrow"><td class="formmessage" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.NoFieldMappingSpecified'))</td></tr>
+#end
+      </table>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.KeepAllMetadata'))</nobr></td>
+    <td class="value"><nobr>$Encoder.bodyEscape($KEEPALLMETADATA)</nobr></td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.LowerNames'))</nobr></td>
+    <td class="value"><nobr>$Encoder.bodyEscape($LOWERNAMES)</nobr></td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.WriteLimit'))</nobr></td>
+    <td class="value"><nobr>$Encoder.bodyEscape($WRITELIMIT)</nobr></td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.IgnoreTikaExceptions'))</nobr></td>
+    <td class="value"><nobr>$Encoder.bodyEscape($IGNORETIKAEXCEPTIONS)</nobr></td>
+  </tr>
 
 </table>
