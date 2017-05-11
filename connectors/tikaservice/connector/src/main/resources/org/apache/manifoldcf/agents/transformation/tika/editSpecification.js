@@ -42,5 +42,17 @@ function s${SEQNUM}_deleteFieldMapping(i)
   eval("editjob.s${SEQNUM}_fieldmapping_op_"+i+".value=\"Continue\"");
 }
 
+function s${SEQNUM}_tikaTypeChanged(tikaServer)
+{
+	var elements = document.getElementsByClassName("hiddenParam");
+	for(var i=0; i < elements.length; i++) {
+		if(tikaServer.value == 'false') {
+			elements[i].style.visibility = 'hidden';
+		} else {
+			elements[i].style.visibility = 'visible';
+		}
+	}
+}
+
 //-->
 </script>

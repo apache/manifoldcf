@@ -37,5 +37,12 @@ public class TikaConfig {
   public static final String ATTRIBUTE_SOURCE = "source";
   public static final String ATTRIBUTE_TARGET = "target";
   public static final String ATTRIBUTE_VALUE = "value";
+  public static final String TIKAHOSTNAME_DEFAULT = "localhost";
+  public static final int TIKAPORT_DEFAULT = 9998;
+  public static final String NODE_TIKAHOSTNAME = "tikaHostname";
+  public static final String NODE_TIKAPORT = "tikaPort";
+  public static final String NODE_TIKASERVER = "tikaServer";
+  public static final long TIKARETRY_DEFAULT = 10000;
+  public static final String NODE_TIKARETRY = "tikaRetry";
   
 }
