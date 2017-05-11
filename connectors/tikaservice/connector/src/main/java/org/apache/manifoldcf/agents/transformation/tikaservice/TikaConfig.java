@@ -24,7 +24,10 @@ package org.apache.manifoldcf.agents.transformation.tikaservice;
 public class TikaConfig {
 
   // Configuration parameters
-  // None
+  public static final String PARAM_TIKAHOSTNAME = "tikaHostname";
+  public static final String PARAM_TIKAPORT = "tikaPort";
+  public static final String TIKAHOSTNAME_DEFAULT = "localhost";
+  public static final String TIKAPORT_DEFAULT = "9998";
 
   // Specification nodes and values
   public static final String NODE_FIELDMAP = "fieldmap";
@@ -33,16 +36,8 @@ public class TikaConfig {
   public static final String NODE_WRITELIMIT = "writeLimit";
   public static final int WRITELIMIT_DEFAULT = -1;
   public static final String NODE_IGNORETIKAEXCEPTION = "ignoreException";
-  public static final String NODE_BOILERPLATEPROCESSOR = "boilerplateprocessor";
   public static final String ATTRIBUTE_SOURCE = "source";
   public static final String ATTRIBUTE_TARGET = "target";
   public static final String ATTRIBUTE_VALUE = "value";
-  public static final String TIKAHOSTNAME_DEFAULT = "localhost";
-  public static final int TIKAPORT_DEFAULT = 9998;
-  public static final String NODE_TIKAHOSTNAME = "tikaHostname";
-  public static final String NODE_TIKAPORT = "tikaPort";
-  public static final String NODE_TIKASERVER = "tikaServer";
-  public static final long TIKARETRY_DEFAULT = 10000;
-  public static final String NODE_TIKARETRY = "tikaRetry";
   
 }
