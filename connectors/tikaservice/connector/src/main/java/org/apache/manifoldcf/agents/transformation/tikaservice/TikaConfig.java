@@ -17,7 +17,7 @@
 * limitations under the License.
 */
 
-package org.apache.manifoldcf.agents.transformation.tika;
+package org.apache.manifoldcf.agents.transformation.tikaservice;
 
 /** Parameters for Tika transformation connector.
  */
