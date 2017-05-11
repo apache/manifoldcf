@@ -28,6 +28,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.system.Logging;
@@ -58,20 +60,183 @@ import org.xml.sax.SAXException;
 public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.BaseTransformationConnector {
   public static final String _rcsid = "@(#)$Id$";
 
+  private static final String EDIT_CONFIGURATION_JS = "editConfiguration.js";
+  private static final String EDIT_CONFIGURATION_SERVER_HTML = "editConfiguration_Server.html";
+  private static final String VIEW_CONFIGURATION_HTML = "viewConfiguration.html";
   private static final String EDIT_SPECIFICATION_JS = "editSpecification.js";
-  private static final String EDIT_SPECIFICATION_TIKATYPE_HTML = "editSpecification_TikaType.html";
   private static final String EDIT_SPECIFICATION_FIELDMAPPING_HTML = "editSpecification_FieldMapping.html";
   private static final String EDIT_SPECIFICATION_EXCEPTIONS_HTML = "editSpecification_Exceptions.html";
-  private static final String EDIT_SPECIFICATION_BOILERPLATE_HTML = "editSpecification_Boilerplate.html";
   private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
 
   protected static final String ACTIVITY_EXTRACT = "extract";
 
   protected static final String[] activitiesList = new String[] { ACTIVITY_EXTRACT };
-
+  protected final static long sessionExpirationInterval = 300000L;
+  
   /** We handle up to 64K in memory; after that we go to disk. */
   protected static final long inMemoryMaximumFile = 65536;
 
+  // Raw parameters
+  
+  /** Tika host name */
+  private String tikaHostname = null;
+  
+  /** Tika port */
+  private String tikaPortString = null;
+
+  // Computed parameters
+
+  /** Session timeout */
+  private long sessionTimeout = -1L;
+  
+  /** Tika port */
+  private int tikaPort = -1;
+
+  /** Connection manager */
+  private HttpClientConnectionManager connectionManager = null;
+  
+  /** Httpclient instance */
+  private HttpClient httpClient = null;
+
+  /** HttpHost */
+  private HttpHost tikaHost = null;
+  
+  // Static data
+  
+  /** Metadata URI */
+  protected final static URI metaURI;
+  /** Content URI */
+  protected final static URI contentURI;
+  
+  static {
+    try {
+      metaURI = new URI("/meta");
+      contentURI = new URI("/tika");
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e.getMessage());
+    }
+  }
+  
+s  /** Connect.
+  *@param configParameters is the set of configuration parameters, which
+  * in this case describe the root directory.
+  */
+  @Override
+  public void connect(ConfigParams configParameters)
+  {
+    super.connect(configParameters);
+    tikaHostname = configParameters.getParameter(TikaConfig.PARAM_TIKAHOSTNAME);
+    tikaPortString = configParameters.getParameter(TikaConfig.PARAM_TIKAPORT);
+  }
+
+  /** Close the connection.  Call this before discarding the repository connector.
+  */
+  @Override
+  public void disconnect()
+    throws ManifoldCFException
+  {
+    expireSession();
+
+    super.disconnect();
+  }
+
+  /** This method is periodically called for all connectors that are connected but not
+  * in active use.
+  */
+  @Override
+  public void poll()
+    throws ManifoldCFException
+  {
+    if (System.currentTimeMillis() >= sessionTimeout)
+    {
+      expireSession();
+    }
+    if (connectionManager != null)
+      connectionManager.closeIdleConnections(60000L,TimeUnit.MILLISECONDS);
+  }
+
+  /** This method is called to assess whether to count this connector instance should
+  * actually be counted as being connected.
+  *@return true if the connector instance is actually connected.
+  */
+  @Override
+  public boolean isConnected()
+  {
+    return sessionTimeout != -1L;
+  }
+
+  /** Set up a session */
+  protected void getSession()
+    throws ManifoldCFException
+  {
+    if (sessionTimeout == -1L)
+    {
+      this.tikaPort = Integer.parseInt(tikaPortString);
+
+      final int connectionTimeout = 60000;
+      final int socketTimeout = 900000;
+
+      final PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+        .register("https", myFactory)
+        .build());
+      poolingConnectionManager.setDefaultMaxPerRoute(1);
+      poolingConnectionManager.setValidateAfterInactivity(2000);
+      poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
+        .setTcpNoDelay(true)
+        .setSoTimeout(socketTimeout)
+        .build());
+
+      this.connectionManager = poolingConnectionManager;
+      
+      final RequestConfig.Builder requestBuilder = RequestConfig.custom()
+          .setCircularRedirectsAllowed(true)
+          .setSocketTimeout(socketTimeout)
+          .setExpectContinueEnabled(false)
+          .setConnectTimeout(connectionTimeout)
+          .setConnectionRequestTimeout(socketTimeout);
+
+      final HttpClientBuilder builder = HttpClients.custom()
+        .setConnectionManager(connectionManager)
+        .disableAutomaticRetries()
+        .setDefaultRequestConfig(requestBuilder.build());
+      builder.setRequestExecutor(new HttpRequestExecutor(socketTimeout))
+        .setRedirectStrategy(new DefaultRedirectStrategy());
+      this.httpClient = builder.build();
+
+      this.tikaHost = new HttpHost(tikaHostname, tikaPort);
+
+    }
+    sessionTimeout = System.currentTimeMillis() + sessionExpirationInterval;
+  }
+
+  /** Expire the current session */
+  protected void expireSession()
+    throws ManifoldCFException
+  {
+    tikaHostname = null;
+    tikaPortString = null;
+    tikaPort = -1;
+    httpClient = null;
+    tikaHost = null;
+    if (connectionManager != null)
+      connectionManager.shutdown();
+    connectionManager = null;
+    sessionTimeout = -1L;
+  }
+
+  /** Test the connection.  Returns a string describing the connection integrity.
+  *@return the connection's status as a displayable string.
+  */
+  @Override
+  public String check()
+    throws ManifoldCFException
+  {
+    getSession();
+    // MHL
+    return super.check();
+  }
+  
   /**
    * Return a list of activities that this connector generates. The connector
    * does NOT need to be connected before this method is called.
@@ -81,6 +246,103 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   @Override
   public String[] getActivitiesList() {
     return activitiesList;
+  }
+
+  /** Output the configuration header section.
+  * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+  * javascript methods that might be needed by the configuration editing HTML.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+  */
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, List<String> tabsArray)
+    throws ManifoldCFException, IOException
+  {
+    tabsArray.add(Messages.getString(locale,"TikaExtractor.TikaServerTabName"));
+    Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIGURATION_JS,null);
+  }
+  
+  /** Output the configuration body section.
+  * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@param tabName is the current tab name.
+  */
+  @Override
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters, String tabName)
+    throws ManifoldCFException, IOException
+  {
+    Map<String,Object> velocityContext = new HashMap<String,Object>();
+    velocityContext.put("TabName",tabName);
+    fillInServerTab(velocityContext,out,parameters);
+    Messages.outputResourceWithVelocity(out,locale,EDIT_CONFIGURATION_SERVER_HTML,velocityContext);
+  }
+  
+  
+  /** Process a configuration post.
+  * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
+  * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
+  * The name of the posted form is "editconnection".
+  *@param threadContext is the local thread context.
+  *@param variableContext is the set of variables available from the post, including binary file post information.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  *@return null if all is well, or a string error message if there is an error that should prevent saving of the connection (and cause a redirection to an error page).
+  */
+  @Override
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
+    Locale locale, ConfigParams parameters)
+    throws ManifoldCFException
+  {
+    String tikaHostname = variableContext.getParameter("tikaHostname");
+
+    if (tikaHostname != null)
+      parameters.setParameter(TikaConfig.PARAM_TIKAHOSTNAME,tikaHostname);
+
+    String tikaPort = variableContext.getParameter("tikaPort");
+    if (tikaPort != null)
+      parameters.setParameter(TikaConfig.PARAM_TIKAPORT,tikaPort);
+
+    return null;
+  }
+  
+  /** View configuration.
+  * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  *@param threadContext is the local thread context.
+  *@param out is the output to which any HTML should be sent.
+  *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+  */
+  @Override
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
+    Locale locale, ConfigParams parameters)
+    throws ManifoldCFException, IOException
+  {
+    Map<String,Object> velocityContext = new HashMap<String,Object>();
+    fillInServerTab(velocityContext,out,parameters);
+    Messages.outputResourceWithVelocity(out,locale,VIEW_CONFIGURATION_HTML,velocityContext);
+  }
+
+  protected static void fillInServerTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+    throws ManifoldCFException
+  {
+    String tikaHostname = parameters.getParameter(TikaConfig.PARAM_TIKAHOSTNAME);
+    if (tikaHostname == null)
+      tikaHostname = TikaConfig.TIKAHOSTNAME_DEFAULT;
+
+    String tikaPort = parameters.getParameter(TikaConfig.PARAM_TIKAPORT);
+    if (tikaPort == null)
+      tikaPort = TikaConfig.TIKAPORT_DEFAULT;
+
+    // Fill in context
+    velocityContext.put("TIKAHOSTNAME", tikaHostname);
+    velocityContext.put("TIKAPORT", tikaPort);
   }
 
   /**
@@ -229,14 +491,13 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
     SpecPacker sp = new SpecPacker(pipelineDescription.getSpecification());
 
+    getSession();
+    
     // Tika server variables
     String mime = "";
     InputStream tikaServerIs = null;
-    int retry = 0;
     HttpResponse response = null;
     IOException tikaServerDownException = null;
-
-    BoilerpipeExtractor extractorClassInstance = sp.getExtractorClassInstance();
 
     // Tika's API reads from an input stream and writes to an output Writer.
     // Since a RepositoryDocument includes readers and inputstreams exclusively,
@@ -291,194 +552,121 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       Long length = null;
 
       try {
-        if (sp.tikaServer) {
-          try {
-            final HttpClient client = HttpClientBuilder.create().build();
-            final HttpHost tikaHost = new HttpHost(sp.tikaHostname, sp.tikaPort);
+        try {
 
-            // Make a copy of the original stream as it needs to be sent two
-            // times to Tika
-            // one for the metadata and one for the content
-            IOUtils.copy(document.getBinaryStream(), ds.getOutputStream());
+          // Make a copy of the original stream as it needs to be sent two
+          // times to Tika
+          // one for the metadata and one for the content
+          IOUtils.copy(document.getBinaryStream(), ds.getOutputStream());
 
-            // Metadata
-            HttpPut httpPut = new HttpPut(sp.metaURI);
-            if (!mime.isEmpty()) {
-              httpPut.addHeader("Content-Type", mime);
-            }
-            httpPut.addHeader("Accept", "application/json");
-            HttpEntity entity = new InputStreamEntity(ds.getInputStream());
-            httpPut.setEntity(entity);
-            while (retry < 3 && response == null) {
-              try {
-                response = client.execute(tikaHost, httpPut);
-                tikaServerDownException = null;
-              } catch (IOException e) {
-                tikaServerDownException = e;
-                retry++;
-                if (retry < 3) {
-                  try {
-                    Thread.sleep(sp.tikaRetry);
-                  } catch (InterruptedException e1) {
-                    // Should not happen
-                  }
-                }
-              }
-            }
-            if (tikaServerDownException != null) {
-              throw tikaServerDownException;
-            }
-            int responseCode = response.getStatusLine().getStatusCode();
-            if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
-              tikaServerIs = response.getEntity().getContent();
-              try {
-                final BufferedReader br = new BufferedReader(new InputStreamReader(tikaServerIs));
-                final JSONParser parser = new JSONParser();
-                JSONObject metaJson;
-                final StringBuilder sb = new StringBuilder();
-                String output;
-                while ((output = br.readLine()) != null) {
-                  sb.append(output);
-                }
-                metaJson = (JSONObject) parser.parse(sb.toString());
-                for (Object key : metaJson.keySet()) {
-                  metadata.add(key.toString(), metaJson.get(key).toString());
-                }
-              } finally {
-                tikaServerIs.close();
-              }
-            } else {
-              activities.noDocument();
-              if (responseCode == 422) {
-                resultCode = "TIKASERVERREJECTS";
-                description = "Tika Server rejected document with the following reason: "
-                    + response.getStatusLine().getReasonPhrase();
-                handleTikaServerRejects(description);
-              } else {
-                resultCode = "TIKASERVERERROR";
-                description = "Tika Server failed to parse document with the following error: "
-                    + response.getStatusLine().getReasonPhrase();
-                handleTikaServerError(description);
-              }
-              return DOCUMENTSTATUS_REJECTED;
-            }
-
-            // Content
-            httpPut = new HttpPut(sp.contentURI);
-            if (!mime.isEmpty()) {
-              httpPut.addHeader("Content-Type", mime);
-            }
-            httpPut.addHeader("Accept", "text/plain");
-            entity = new InputStreamEntity(ds.getInputStream());
-            httpPut.setEntity(entity);
-
-            // Retry mecanism
-            retry = 0;
-            response = null;
-            while (retry < 3 && response == null) {
-              try {
-                response = client.execute(tikaHost, httpPut);
-                tikaServerDownException = null;
-              } catch (IOException e) {
-                tikaServerDownException = e;
-                retry++;
-                if (retry < 3) {
-                  try {
-                    Thread.sleep(sp.tikaRetry);
-                  } catch (InterruptedException e1) {
-                    // Should not happen
-                  }
-                }
-              }
-            }
-            if (tikaServerDownException != null) {
-              throw tikaServerDownException;
-            }
-
-            responseCode = response.getStatusLine().getStatusCode();
-            if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
-              tikaServerIs = response.getEntity().getContent();
-              try {
-                ds.close();
-                ds = new FileDestinationStorage();
-                IOUtils.copyLarge(tikaServerIs, ds.getOutputStream(), 0L, sp.writeLimit);
-                length = new Long(ds.getBinaryLength());
-              } finally {
-                tikaServerIs.close();
-              }
-            } else {
-              activities.noDocument();
-              if (responseCode == 422) {
-                resultCode = "TIKASERVERREJECTS";
-                description = "Tika Server rejected document with the following reason: "
-                    + response.getStatusLine().getReasonPhrase();
-                handleTikaServerRejects(description);
-              } else {
-                resultCode = "TIKASERVERERROR";
-                description = "Tika Server failed to parse document with the following error: "
-                    + response.getStatusLine().getReasonPhrase();
-                handleTikaServerError(description);
-              }
-              return DOCUMENTSTATUS_REJECTED;
-            }
-
-          } catch (IOException | ParseException e) {
-            resultCode = "TIKASERVERRESPONSEISSUE";
-            description = e.getMessage();
-            int rval;
-            if (e instanceof IOException) {
-              rval = handleTikaServerException((IOException) e);
-            } else {
-              rval = handleTikaServerException((ParseException) e);
-            }
-            if (rval == DOCUMENTSTATUS_REJECTED) {
-              activities.noDocument();
-            }
-            return rval;
+          // Metadata
+          HttpPut httpPut = new HttpPut(metaURI);
+          if (!mime.isEmpty()) {
+            httpPut.addHeader("Content-Type", mime);
           }
-        } else {
-
-          OutputStream os = ds.getOutputStream();
+          httpPut.addHeader("Accept", "application/json");
+          HttpEntity entity = new InputStreamEntity(ds.getInputStream());
+          httpPut.setEntity(entity);
           try {
-            Writer w = new OutputStreamWriter(os, "utf-8");
+            response = client.execute(tikaHost, httpPut);
+          } catch (IOExceptione e) {
+            // Retry 3 times, 10000 ms between retries, and abort if doesn't work
+            final long currentTime = System.currentTimeMillis();
+            throw new ServiceInterruption("Tika down, retrying: "+e.getMessage(),e,currentTime + 10000L,
+              -1L,3,true);
+          }
+          int responseCode = response.getStatusLine().getStatusCode();
+          if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
+            tikaServerIs = response.getEntity().getContent();
             try {
-              // Use tika to parse stuff
-              ContentHandler handler = TikaParser.newWriteOutBodyContentHandler(w, sp.writeLimit());
-              if (extractorClassInstance != null)
-                handler = new BoilerpipeContentHandler(handler, extractorClassInstance);
-              try {
-                TikaParser.parse(document.getBinaryStream(), metadata, handler);
-              } catch (TikaException e) {
-                if (sp.ignoreTikaException()) {
-                  resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-                  description = e.getMessage();
-                } else {
-                  resultCode = "TIKAREJECTION";
-                  description = e.getMessage();
-                  int rval = handleTikaException(e);
-                  if (rval == DOCUMENTSTATUS_REJECTED)
-                    activities.noDocument();
-                  return rval;
-                }
-              } catch (SAXException e) {
-                resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-                description = e.getMessage();
-                int rval = handleSaxException(e);
-                if (rval == DOCUMENTSTATUS_REJECTED)
-                  activities.noDocument();
-                return rval;
-              } catch (IOException e) {
-                resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-                description = e.getMessage();
-                throw e;
+              final BufferedReader br = new BufferedReader(new InputStreamReader(tikaServerIs));
+              final JSONParser parser = new JSONParser();
+              JSONObject metaJson;
+              final StringBuilder sb = new StringBuilder();
+              String output;
+              while ((output = br.readLine()) != null) {
+                sb.append(output);
+              }
+              metaJson = (JSONObject) parser.parse(sb.toString());
+              for (Object key : metaJson.keySet()) {
+                metadata.add(key.toString(), metaJson.get(key).toString());
               }
             } finally {
-              w.flush();
+              tikaServerIs.close();
             }
-          } finally {
-            os.close();
-            length = new Long(ds.getBinaryLength());
+          } else {
+            activities.noDocument();
+            if (responseCode == 422) {
+              resultCode = "TIKASERVERREJECTS";
+              description = "Tika Server rejected document with the following reason: "
+                  + response.getStatusLine().getReasonPhrase();
+              handleTikaServerRejects(description);
+            } else {
+              resultCode = "TIKASERVERERROR";
+              description = "Tika Server failed to parse document with the following error: "
+                  + response.getStatusLine().getReasonPhrase();
+              handleTikaServerError(description);
+            }
+            return DOCUMENTSTATUS_REJECTED;
           }
+
+          // Content
+          httpPut = new HttpPut(sp.contentURI);
+          if (!mime.isEmpty()) {
+            httpPut.addHeader("Content-Type", mime);
+          }
+          httpPut.addHeader("Accept", "text/plain");
+          entity = new InputStreamEntity(ds.getInputStream());
+          httpPut.setEntity(entity);
+          try {
+            response = client.execute(tikaHost, httpPut);
+          } catch (IOException e) {
+            // Retry 3 times, 10000 ms between retries, and abort if doesn't work
+            final long currentTime = System.currentTimeMillis();
+            throw new ServiceInterruption("Tika down, retrying: "+e.getMessage(),e,currentTime + 10000L,
+              -1L,3,true);
+          }
+
+          responseCode = response.getStatusLine().getStatusCode();
+          if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
+            tikaServerIs = response.getEntity().getContent();
+            try {
+              ds.close();
+              ds = new FileDestinationStorage();
+              IOUtils.copyLarge(tikaServerIs, ds.getOutputStream(), 0L, sp.writeLimit);
+              length = new Long(ds.getBinaryLength());
+            } finally {
+              tikaServerIs.close();
+            }
+          } else {
+            activities.noDocument();
+            if (responseCode == 422) {
+              resultCode = "TIKASERVERREJECTS";
+              description = "Tika Server rejected document with the following reason: "
+                  + response.getStatusLine().getReasonPhrase();
+              handleTikaServerRejects(description);
+            } else {
+              resultCode = "TIKASERVERERROR";
+              description = "Tika Server failed to parse document with the following error: "
+                  + response.getStatusLine().getReasonPhrase();
+              handleTikaServerError(description);
+            }
+            return DOCUMENTSTATUS_REJECTED;
+          }
+
+        } catch (IOException | ParseException e) {
+          resultCode = "TIKASERVERRESPONSEISSUE";
+          description = e.getMessage();
+          int rval;
+          if (e instanceof IOException) {
+            rval = handleTikaServerException((IOException) e);
+          } else {
+            rval = handleTikaServerException((ParseException) e);
+          }
+          if (rval == DOCUMENTSTATUS_REJECTED) {
+            activities.noDocument();
+          }
+          return rval;
         }
 
         if (!activities.checkLengthIndexable(ds.getBinaryLength())) {
@@ -591,16 +779,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
 
-    tabsArray.add(Messages.getString(locale, "TikaExtractor.TikaTypeTabName"));
     tabsArray.add(Messages.getString(locale, "TikaExtractor.FieldMappingTabName"));
     tabsArray.add(Messages.getString(locale, "TikaExtractor.ExceptionsTabName"));
-    tabsArray.add(Messages.getString(locale, "TikaExtractor.BoilerplateTabName"));
 
     // Fill in the specification header map, using data from all tabs.
-    fillInTikaTypeSpecificationMap(paramMap, os);
     fillInFieldMappingSpecificationMap(paramMap, os);
     fillInExceptionsSpecificationMap(paramMap, os);
-    fillInBoilerplateSpecificationMap(paramMap, os);
 
     Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_JS, paramMap);
   }
@@ -637,15 +821,11 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     paramMap.put("SELECTEDNUM", Integer.toString(actualSequenceNumber));
 
     // Fill in the field mapping tab data
-    fillInTikaTypeSpecificationMap(paramMap, os);
     fillInFieldMappingSpecificationMap(paramMap, os);
     fillInExceptionsSpecificationMap(paramMap, os);
-    fillInBoilerplateSpecificationMap(paramMap, os);
 
-    Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_TIKATYPE_HTML, paramMap);
     Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_FIELDMAPPING_HTML, paramMap);
     Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_EXCEPTIONS_HTML, paramMap);
-    Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_BOILERPLATE_HTML, paramMap);
   }
 
   /**
@@ -767,24 +947,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       os.addChild(os.getChildCount(), node);
     }
 
-    x = variableContext.getParameter(seqPrefix + "boilerplateclassname");
-    if (x != null) {
-      int i = 0;
-      while (i < os.getChildCount()) {
-        SpecificationNode node = os.getChild(i);
-        if (node.getType().equals(TikaConfig.NODE_BOILERPLATEPROCESSOR))
-          os.removeChild(i);
-        else
-          i++;
-      }
-
-      if (x.length() > 0) {
-        SpecificationNode node = new SpecificationNode(TikaConfig.NODE_BOILERPLATEPROCESSOR);
-        node.setAttribute(TikaConfig.ATTRIBUTE_VALUE, x);
-        os.addChild(os.getChildCount(), node);
-      }
-    }
-
     x = variableContext.getParameter(seqPrefix + "tikaserver");
     if (x != null) {
       int i = 0;
@@ -863,10 +1025,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
 
     // Fill in the map with data from all tabs
-    fillInTikaTypeSpecificationMap(paramMap, os);
     fillInFieldMappingSpecificationMap(paramMap, os);
     fillInExceptionsSpecificationMap(paramMap, os);
-    fillInBoilerplateSpecificationMap(paramMap, os);
 
     Messages.outputResourceWithVelocity(out, locale, VIEW_SPECIFICATION_HTML, paramMap);
 
@@ -940,17 +1100,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       }
     }
     paramMap.put("IGNORETIKAEXCEPTIONS", ignoreTikaExceptions);
-  }
-
-  protected static void fillInBoilerplateSpecificationMap(Map<String, Object> paramMap, Specification os) {
-    String boilerplateClassName = "";
-    for (int i = 0; i < os.getChildCount(); i++) {
-      SpecificationNode sn = os.getChild(i);
-      if (sn.getType().equals(TikaConfig.NODE_BOILERPLATEPROCESSOR)) {
-        boilerplateClassName = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
-      }
-    }
-    paramMap.put("BOILERPLATECLASSNAME", boilerplateClassName);
   }
 
   protected static int handleTikaException(TikaException e)
@@ -1128,33 +1277,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     private final boolean lowerNames;
     private final int writeLimit;
     private final boolean ignoreTikaException;
-    private final String extractorClassName;
-    private URI metaURI;
-    private URI contentURI;
-    private final String tikaHostname;
-    private final int tikaPort;
-    private final boolean tikaServer;
-    private final long tikaRetry;
 
     public SpecPacker(Specification os) {
       boolean keepAllMetadata = true;
       boolean lowerNames = false;
       int writeLimit = TikaConfig.WRITELIMIT_DEFAULT;
       boolean ignoreTikaException = true;
-      String extractorClassName = null;
-      String tikaHostname = TikaConfig.TIKAHOSTNAME_DEFAULT;
-      int tikaPort = TikaConfig.TIKAPORT_DEFAULT;
-      boolean tikaServer = false;
-      long tikaRetry = TikaConfig.TIKARETRY_DEFAULT;
-      try {
-        metaURI = new URI("/meta");
-        contentURI = new URI("/tika");
-      } catch (URISyntaxException e) {
-        // Should be impossible
-        metaURI = null;
-        contentURI = null;
-      }
-
       for (int i = 0; i < os.getChildCount(); i++) {
         SpecificationNode sn = os.getChild(i);
 
@@ -1276,14 +1404,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         sb.append('-');
 
       return sb.toString();
-    }
-
-    public URI metaURI() {
-      return metaURI;
-    }
-
-    public URI contentURI() {
-      return contentURI;
     }
 
     public String getMapping(String source) {
