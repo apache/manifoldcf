@@ -17,30 +17,5 @@
 
 <script type="text/javascript">
 <!--
-function s${SEQNUM}_addFieldMapping()
-{
-  if (editjob.s${SEQNUM}_fieldmapping_source.value == "")
-  {
-    alert("$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.NoFieldNameSpecified'))");
-    editjob.s${SEQNUM}_fieldmapping_source.focus();
-    return;
-  }
-  editjob.s${SEQNUM}_fieldmapping_op.value="Add";
-  postFormSetAnchor("s${SEQNUM}_fieldmapping");
-}
-
-function s${SEQNUM}_deleteFieldMapping(i)
-{
-  // Set the operation
-  eval("editjob.s${SEQNUM}_fieldmapping_op_"+i+".value=\"Delete\"");
-  // Submit
-  if (editjob.s${SEQNUM}_fieldmapping_count.value==i)
-    postFormSetAnchor("s${SEQNUM}_fieldmapping");
-  else
-    postFormSetAnchor("s${SEQNUM}_fieldmapping_"+i)
-  // Undo, so we won't get two deletes next time
-  eval("editjob.s${SEQNUM}_fieldmapping_op_"+i+".value=\"Continue\"");
-}
-
 //-->
 </script>
