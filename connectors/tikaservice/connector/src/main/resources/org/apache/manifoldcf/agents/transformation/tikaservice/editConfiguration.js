@@ -17,5 +17,29 @@
 
 <script type="text/javascript">
 <!--
+
+function checkConfig()
+{
+  if (editconnection.tikaPort.value != "" && !isInteger(editconnection.tikaPort.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('TikaExtractor.PleaseSupplyAValidNumber'))");
+    editconnection.tikaPort.focus();
+    return false;
+  }
+  if (editconnection.tikaHostname.value.indexOf("/") >= 0)
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('TikaExtractor.PleaseDontSpecifyAnyServerPathInformation'))");
+    editconnection.tikaHostname.focus();
+    return false;
+  }
+  if (editconnection.tikaHostname.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('TikaExtractor.HostNameCannotBeNull'))");
+    editconnection.tikaHostname.focus();
+    return false;
+  }
+  return true;
+}
+
 //-->
 </script>
