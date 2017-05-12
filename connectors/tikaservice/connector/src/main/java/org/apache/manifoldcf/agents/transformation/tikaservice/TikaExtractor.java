@@ -70,7 +70,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   private static final String VIEW_CONFIGURATION_HTML = "viewConfiguration.html";
   private static final String EDIT_SPECIFICATION_JS = "editSpecification.js";
   private static final String EDIT_SPECIFICATION_FIELDMAPPING_HTML = "editSpecification_FieldMapping.html";
-  private static final String EDIT_SPECIFICATION_EXCEPTIONS_HTML = "editSpecification_Exceptions.html";
   private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
 
   protected static final String ACTIVITY_EXTRACT = "extract";
@@ -658,14 +657,13 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
               resultCode = "TIKASERVERREJECTS";
               description = "Tika Server rejected document with the following reason: "
                   + response.getStatusLine().getReasonPhrase();
-              handleTikaServerRejects(description);
+              return handleTikaServerRejects(description);
             } else {
               resultCode = "TIKASERVERERROR";
               description = "Tika Server failed to parse document with the following error: "
                   + response.getStatusLine().getReasonPhrase();
-              handleTikaServerError(description);
+              return handleTikaServerError(description);
             }
-            return DOCUMENTSTATUS_REJECTED;
           }
 
         } catch (IOException | ParseException e) {
@@ -794,11 +792,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
 
     tabsArray.add(Messages.getString(locale, "TikaExtractor.FieldMappingTabName"));
-    tabsArray.add(Messages.getString(locale, "TikaExtractor.ExceptionsTabName"));
 
     // Fill in the specification header map, using data from all tabs.
     fillInFieldMappingSpecificationMap(paramMap, os);
-    fillInExceptionsSpecificationMap(paramMap, os);
 
     Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_JS, paramMap);
   }
@@ -836,10 +832,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
     // Fill in the field mapping tab data
     fillInFieldMappingSpecificationMap(paramMap, os);
-    fillInExceptionsSpecificationMap(paramMap, os);
 
     Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_FIELDMAPPING_HTML, paramMap);
-    Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_EXCEPTIONS_HTML, paramMap);
   }
 
   /**
@@ -942,25 +936,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       os.addChild(os.getChildCount(), node3);
     }
 
-    if (variableContext.getParameter(seqPrefix + "ignoretikaexceptions_present") != null) {
-      int i = 0;
-      while (i < os.getChildCount()) {
-        SpecificationNode node = os.getChild(i);
-        if (node.getType().equals(TikaConfig.NODE_IGNORETIKAEXCEPTION))
-          os.removeChild(i);
-        else
-          i++;
-      }
-
-      String value = variableContext.getParameter(seqPrefix + "ignoretikaexceptions");
-      if (value == null)
-        value = "false";
-
-      SpecificationNode node = new SpecificationNode(TikaConfig.NODE_IGNORETIKAEXCEPTION);
-      node.setAttribute(TikaConfig.ATTRIBUTE_VALUE, value);
-      os.addChild(os.getChildCount(), node);
-    }
-
     return null;
   }
 
@@ -987,7 +962,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
     // Fill in the map with data from all tabs
     fillInFieldMappingSpecificationMap(paramMap, os);
-    fillInExceptionsSpecificationMap(paramMap, os);
 
     Messages.outputResourceWithVelocity(out, locale, VIEW_SPECIFICATION_HTML, paramMap);
 
@@ -1027,17 +1001,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     paramMap.put("KEEPALLMETADATA", keepAllMetadataValue);
     paramMap.put("LOWERNAMES", lowernamesValue);
     paramMap.put("WRITELIMIT", writeLimitValue);
-  }
-
-  protected static void fillInExceptionsSpecificationMap(Map<String, Object> paramMap, Specification os) {
-    String ignoreTikaExceptions = "true";
-    for (int i = 0; i < os.getChildCount(); i++) {
-      SpecificationNode sn = os.getChild(i);
-      if (sn.getType().equals(TikaConfig.NODE_IGNORETIKAEXCEPTION)) {
-        ignoreTikaExceptions = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
-      }
-    }
-    paramMap.put("IGNORETIKAEXCEPTIONS", ignoreTikaExceptions);
   }
 
   protected static int handleTikaServerRejects(String reason)
@@ -1201,7 +1164,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     private final boolean keepAllMetadata;
     private final boolean lowerNames;
     private final int writeLimit;
-    private final boolean ignoreTikaException;
 
     public SpecPacker(Specification os) {
       boolean keepAllMetadata = true;
@@ -1232,15 +1194,11 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             target = "";
           }
           sourceTargets.put(source, target);
-        } else if (sn.getType().equals(TikaConfig.NODE_IGNORETIKAEXCEPTION)) {
-          String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
-          ignoreTikaException = Boolean.parseBoolean(value);
         }
       }
       this.keepAllMetadata = keepAllMetadata;
       this.lowerNames = lowerNames;
       this.writeLimit = writeLimit;
-      this.ignoreTikaException = ignoreTikaException;
     }
 
     public String toPackedString() {
@@ -1282,11 +1240,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         sb.append(writeLimit);
       }
 
-      if (ignoreTikaException)
-        sb.append('+');
-      else
-        sb.append('-');
-
       return sb.toString();
     }
 
@@ -1304,10 +1257,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
     public int writeLimit() {
       return writeLimit;
-    }
-
-    public boolean ignoreTikaException() {
-      return ignoreTikaException;
     }
 
   }
