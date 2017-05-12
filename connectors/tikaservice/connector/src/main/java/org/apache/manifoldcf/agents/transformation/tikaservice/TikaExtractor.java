@@ -144,6 +144,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     throws ManifoldCFException
   {
     expireSession();
+    tikaHostname = null;
+    tikaPortString = null;
 
     super.disconnect();
   }
@@ -231,8 +233,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   protected void expireSession()
     throws ManifoldCFException
   {
-    tikaHostname = null;
-    tikaPortString = null;
     tikaPort = -1;
     httpClient = null;
     tikaHost = null;
@@ -588,7 +588,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             // Make a copy of the original stream as it needs to be sent two
             // times to Tika
             // one for the metadata and one for the content
-            IOUtils.copy(document.getBinaryStream(), ds.getOutputStream());
+            final OutputStream os = ds.getOutputStream();
+            try {
+              IOUtils.copyLarge(document.getBinaryStream(), os);
+            } finally {
+              os.close();
+            }
 
             // Metadata
             HttpPut httpPut = new HttpPut(metaURI);
@@ -599,7 +604,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             HttpEntity entity = new InputStreamEntity(ds.getInputStream());
             httpPut.setEntity(entity);
             try {
+              System.out.println("About to PUT");
               response = this.httpClient.execute(tikaHost, httpPut);
+              System.out.println("PUT successful");
             } catch (IOException e) {
               // Retry 3 times, 10000 ms between retries, and abort if doesn't work
               final long currentTime = System.currentTimeMillis();
@@ -663,7 +670,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
               tikaServerIs = response.getEntity().getContent();
               try {
                 responseDs = new FileDestinationStorage();
-                IOUtils.copyLarge(tikaServerIs, responseDs.getOutputStream(), 0L, sp.writeLimit);
+                final OutputStream os2 = responseDs.getOutputStream();
+                try {
+                  IOUtils.copyLarge(tikaServerIs, os2, 0L, sp.writeLimit);
+                } finally {
+                  os2.close();
+                }
                 length = new Long(responseDs.getBinaryLength());
               } finally {
                 tikaServerIs.close();
