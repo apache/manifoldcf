@@ -819,7 +819,7 @@ function isRegularExpression(value)
     {
 %>
           <div class="btn-group" sequenceNumber="<%= (sequenceNumberInt + 1) %>">
-            <a class="btn btn-md <%= activeClass %>" href="#tab_<%=tabNum%>" data-toggle="tab" 
+            <a class="btn btn-md <%= activeClass %>" href="#tab_<%=tabNum%>" 
                     alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.tab")%>'
 <%
       if(activeClass.length() == 0)
@@ -852,7 +852,7 @@ function isRegularExpression(value)
 <% 
       }
 %>                    
-            <a class="btn btn-md <%= activeClass %>" href="#tab_<%=tabNum%>" data-toggle="tab" 
+            <a class="btn btn-md <%= activeClass %>" href="#tab_<%=tabNum%>" 
                     alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editjob.tab")%>'
 <%
       if(activeClass.length() == 0)

@@ -268,14 +268,14 @@ try
       if (tab.equals(tabName))
       {
 %>
-            <li class="active"><a href="#tab_<%=tabNum%>" data-toggle="tab"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></li>
+            <li class="active"><a href="#tab_<%=tabNum%>"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a></li>
 <%
       }
       else
       {
 %>
             <li>
-              <a href="#tab_<%=tabNum%>" data-toggle="tab"
+              <a href="#tab_<%=tabNum%>"
                       alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editnotification.tab")%>'
                       onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a>
             </li>
