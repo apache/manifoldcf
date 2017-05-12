@@ -176,8 +176,17 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   {
     if (sessionTimeout == -1L)
     {
-      this.tikaPort = Integer.parseInt(tikaPortString);
-
+      if (tikaHostname == null || tikaHostname.length() == 0) {
+        throw new ManifoldCFException("Missing host name");
+      }
+      if (tikaPortString == null) {
+        throw new ManifoldCFException("Missing port value");
+      }
+      try {
+        this.tikaPort = Integer.parseInt(tikaPortString);
+      } catch (NumberFormatException e) {
+        throw new ManifoldCFException("Bad port number: "+tikaPortString);
+      }
       final int connectionTimeout = 60000;
       final int socketTimeout = 900000;
 
@@ -305,12 +314,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     Locale locale, ConfigParams parameters)
     throws ManifoldCFException
   {
-    String tikaHostname = variableContext.getParameter("tikaHostname");
+    final String tikaHostname = variableContext.getParameter("tikaHostname");
 
     if (tikaHostname != null)
       parameters.setParameter(TikaConfig.PARAM_TIKAHOSTNAME,tikaHostname);
 
-    String tikaPort = variableContext.getParameter("tikaPort");
+    final String tikaPort = variableContext.getParameter("tikaPort");
     if (tikaPort != null)
       parameters.setParameter(TikaConfig.PARAM_TIKAPORT,tikaPort);
 

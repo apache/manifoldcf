@@ -15,19 +15,19 @@
  limitations under the License.
 -->
 
-#if($TABNAME == $ResourceBundle.getString('TikaExtractor.TikaServerTabName'))
+#if($TabName == $ResourceBundle.getString('TikaExtractor.TikaServerTabName'))
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.TikaHostname'))</nobr></td>
-    <td class="value"><input name="tikahostname" type="text"
+    <td class="value"><input name="tikaHostname" type="text"
       value="$Encoder.attributeEscape($TIKAHOSTNAME)" size="16" />
     </td>
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.TikaPort'))</nobr></td>
-    <td class="value"><input name="tikaport" type="text"
+    <td class="value"><input name="tikaPort" type="text"
       value="$Encoder.attributeEscape($TIKAPORT)" size="5" />
     </td>
   </tr>
@@ -35,7 +35,7 @@
 
 #else
 
-<input type="hidden" name="tikahostname" value="$Encoder.attributeEscape($TIKAHOSTNAME)"/>
-<input type="hidden" name="tikaport" value="$Encoder.attributeEscape($TIKAPORT)"/>
+<input type="hidden" name="tikaHostname" value="$Encoder.attributeEscape($TIKAHOSTNAME)"/>
+<input type="hidden" name="tikaPort" value="$Encoder.attributeEscape($TIKAPORT)"/>
 
 #end
