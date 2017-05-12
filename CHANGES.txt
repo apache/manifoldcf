@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1426: Fix New UI to prevent Bootstrap tab click event.
+(Karl Wright, Kishore Kumar)
+
 CONNECTORS-1425: Add tikaservice transformation connector.
 (Julien Massiera, Karl Wright)
 
