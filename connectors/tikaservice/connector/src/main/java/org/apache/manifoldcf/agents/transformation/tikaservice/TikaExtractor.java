@@ -31,6 +31,19 @@ import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.metadata.TikaMetadataKeys;
+
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.system.Logging;
 
@@ -38,19 +51,11 @@ import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.tika.exception.TikaException;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.TikaMetadataKeys;
-import org.apache.tika.parser.html.BoilerpipeContentHandler;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
-import de.l3s.boilerpipe.BoilerpipeExtractor;
-
-import org.xml.sax.ContentHandler;
-import org.xml.sax.SAXException;
 
 /**
  * This connector works as a transformation connector, but does nothing other
@@ -117,7 +122,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     }
   }
   
-s  /** Connect.
+  /** Connect.
   *@param configParameters is the set of configuration parameters, which
   * in this case describe the root directory.
   */
@@ -178,7 +183,7 @@ s  /** Connect.
 
       final PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
         .register("http", PlainConnectionSocketFactory.getSocketFactory())
-        .register("https", myFactory)
+        //.register("https", myFactory)
         .build());
       poolingConnectionManager.setDefaultMaxPerRoute(1);
       poolingConnectionManager.setValidateAfterInactivity(2000);
@@ -568,8 +573,8 @@ s  /** Connect.
           HttpEntity entity = new InputStreamEntity(ds.getInputStream());
           httpPut.setEntity(entity);
           try {
-            response = client.execute(tikaHost, httpPut);
-          } catch (IOExceptione e) {
+            response = this.httpClient.execute(tikaHost, httpPut);
+          } catch (IOException e) {
             // Retry 3 times, 10000 ms between retries, and abort if doesn't work
             final long currentTime = System.currentTimeMillis();
             throw new ServiceInterruption("Tika down, retrying: "+e.getMessage(),e,currentTime + 10000L,
@@ -611,7 +616,7 @@ s  /** Connect.
           }
 
           // Content
-          httpPut = new HttpPut(sp.contentURI);
+          httpPut = new HttpPut(contentURI);
           if (!mime.isEmpty()) {
             httpPut.addHeader("Content-Type", mime);
           }
@@ -619,7 +624,7 @@ s  /** Connect.
           entity = new InputStreamEntity(ds.getInputStream());
           httpPut.setEntity(entity);
           try {
-            response = client.execute(tikaHost, httpPut);
+            response = this.httpClient.execute(tikaHost, httpPut);
           } catch (IOException e) {
             // Retry 3 times, 10000 ms between retries, and abort if doesn't work
             final long currentTime = System.currentTimeMillis();
@@ -947,59 +952,6 @@ s  /** Connect.
       os.addChild(os.getChildCount(), node);
     }
 
-    x = variableContext.getParameter(seqPrefix + "tikaserver");
-    if (x != null) {
-      int i = 0;
-      while (i < os.getChildCount()) {
-        SpecificationNode node = os.getChild(i);
-        if (node.getType().equals(TikaConfig.NODE_TIKASERVER) || node.getType().equals(TikaConfig.NODE_TIKAHOSTNAME)
-            || node.getType().equals(TikaConfig.NODE_TIKAPORT) || node.getType().equals(TikaConfig.NODE_TIKARETRY))
-          os.removeChild(i);
-        else
-          i++;
-      }
-
-      SpecificationNode node = new SpecificationNode(TikaConfig.NODE_TIKASERVER);
-      String tikaServer = variableContext.getParameter(seqPrefix + "tikaserver");
-      if (tikaServer != null) {
-        node.setAttribute(TikaConfig.ATTRIBUTE_VALUE, tikaServer);
-      } else {
-        node.setAttribute(TikaConfig.ATTRIBUTE_VALUE, "false");
-      }
-      // Add the new tikaserver config parameter
-      os.addChild(os.getChildCount(), node);
-
-      SpecificationNode node2 = new SpecificationNode(TikaConfig.NODE_TIKAHOSTNAME);
-      String tikaHostname = variableContext.getParameter(seqPrefix + "tikahostname");
-      if (tikaHostname != null) {
-        node2.setAttribute(TikaConfig.ATTRIBUTE_VALUE, tikaHostname);
-      } else {
-        node2.setAttribute(TikaConfig.ATTRIBUTE_VALUE, "");
-      }
-      // Add the new tikahostname config parameter
-      os.addChild(os.getChildCount(), node2);
-
-      SpecificationNode node3 = new SpecificationNode(TikaConfig.NODE_TIKAPORT);
-      String tikaPort = variableContext.getParameter(seqPrefix + "tikaport");
-      if (tikaPort != null) {
-        node3.setAttribute(TikaConfig.ATTRIBUTE_VALUE, tikaPort);
-      } else {
-        node3.setAttribute(TikaConfig.ATTRIBUTE_VALUE, "");
-      }
-      // Add the new tikaport config parameter
-      os.addChild(os.getChildCount(), node3);
-
-      SpecificationNode node4 = new SpecificationNode(TikaConfig.NODE_TIKARETRY);
-      String tikaRetry = variableContext.getParameter(seqPrefix + "tikaretry");
-      if (tikaRetry != null) {
-        node4.setAttribute(TikaConfig.ATTRIBUTE_VALUE, tikaRetry);
-      } else {
-        node4.setAttribute(TikaConfig.ATTRIBUTE_VALUE, "");
-      }
-      // Add the new tikaport config parameter
-      os.addChild(os.getChildCount(), node4);
-    }
-
     return null;
   }
 
@@ -1030,29 +982,6 @@ s  /** Connect.
 
     Messages.outputResourceWithVelocity(out, locale, VIEW_SPECIFICATION_HTML, paramMap);
 
-  }
-
-  protected static void fillInTikaTypeSpecificationMap(Map<String, Object> paramMap, Specification os) {
-    String tikaServer = "false";
-    String tikaHostname = TikaConfig.TIKAHOSTNAME_DEFAULT;
-    String tikaPort = String.valueOf(TikaConfig.TIKAPORT_DEFAULT);
-    String tikaRetry = String.valueOf(TikaConfig.TIKARETRY_DEFAULT);
-    for (int i = 0; i < os.getChildCount(); i++) {
-      SpecificationNode sn = os.getChild(i);
-      if (sn.getType().equals(TikaConfig.NODE_TIKASERVER)) {
-        tikaServer = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
-      } else if (sn.getType().equals(TikaConfig.NODE_TIKAHOSTNAME)) {
-        tikaHostname = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
-      } else if (sn.getType().equals(TikaConfig.NODE_TIKAPORT)) {
-        tikaPort = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
-      } else if (sn.getType().equals(TikaConfig.NODE_TIKARETRY)) {
-        tikaRetry = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
-      }
-    }
-    paramMap.put("TIKASERVER", tikaServer);
-    paramMap.put("TIKAHOSTNAME", tikaHostname);
-    paramMap.put("TIKAPORT", tikaPort);
-    paramMap.put("TIKARETRY", tikaRetry);
   }
 
   protected static void fillInFieldMappingSpecificationMap(Map<String, Object> paramMap, Specification os) {
@@ -1102,13 +1031,6 @@ s  /** Connect.
     paramMap.put("IGNORETIKAEXCEPTIONS", ignoreTikaExceptions);
   }
 
-  protected static int handleTikaException(TikaException e)
-      throws IOException, ManifoldCFException, ServiceInterruption {
-    // MHL - what does Tika throw if it gets an IOException reading the stream??
-    Logging.ingest.warn("Tika: Tika exception extracting: " + e.getMessage(), e);
-    return DOCUMENTSTATUS_REJECTED;
-  }
-
   protected static int handleTikaServerRejects(String reason)
       throws IOException, ManifoldCFException, ServiceInterruption {
     // MHL - what does Tika throw if it gets an IOException reading the stream??
@@ -1134,12 +1056,6 @@ s  /** Connect.
       throws IOException, ManifoldCFException, ServiceInterruption {
     // MHL - what does Tika throw if it gets an IOException reading the stream??
     Logging.ingest.warn("Tika: Tika exception extracting: " + e.getMessage(), e);
-    return DOCUMENTSTATUS_REJECTED;
-  }
-
-  protected static int handleSaxException(SAXException e) throws IOException, ManifoldCFException, ServiceInterruption {
-    // MHL - what does this mean?
-    Logging.ingest.warn("Tika: SAX exception extracting: " + e.getMessage(), e);
     return DOCUMENTSTATUS_REJECTED;
   }
 
@@ -1310,47 +1226,12 @@ s  /** Connect.
         } else if (sn.getType().equals(TikaConfig.NODE_IGNORETIKAEXCEPTION)) {
           String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
           ignoreTikaException = Boolean.parseBoolean(value);
-        } else if (sn.getType().equals(TikaConfig.NODE_BOILERPLATEPROCESSOR)) {
-          extractorClassName = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
-        } else if (sn.getType().equals(TikaConfig.NODE_TIKAHOSTNAME)) {
-          String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
-          if (value.length() == 0) {
-            tikaHostname = TikaConfig.TIKAHOSTNAME_DEFAULT;
-          } else {
-            tikaHostname = value;
-          }
-        } else if (sn.getType().equals(TikaConfig.NODE_TIKAPORT)) {
-          String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
-          if (value.length() == 0) {
-            tikaPort = TikaConfig.TIKAPORT_DEFAULT;
-          } else {
-            tikaPort = Integer.parseInt(value);
-          }
-        } else if (sn.getType().equals(TikaConfig.NODE_TIKASERVER)) {
-          String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
-          if (value.length() == 0) {
-            tikaServer = false;
-          } else {
-            tikaServer = Boolean.parseBoolean(value);
-          }
-        } else if (sn.getType().equals(TikaConfig.NODE_TIKARETRY)) {
-          String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
-          if (value.length() == 0) {
-            tikaRetry = TikaConfig.TIKARETRY_DEFAULT;
-          } else {
-            tikaRetry = Long.parseLong(value);
-          }
         }
       }
       this.keepAllMetadata = keepAllMetadata;
       this.lowerNames = lowerNames;
       this.writeLimit = writeLimit;
       this.ignoreTikaException = ignoreTikaException;
-      this.extractorClassName = extractorClassName;
-      this.tikaHostname = tikaHostname;
-      this.tikaPort = tikaPort;
-      this.tikaServer = tikaServer;
-      this.tikaRetry = tikaRetry;
     }
 
     public String toPackedString() {
@@ -1397,12 +1278,6 @@ s  /** Connect.
       else
         sb.append('-');
 
-      if (extractorClassName != null) {
-        sb.append('+');
-        sb.append(extractorClassName);
-      } else
-        sb.append('-');
-
       return sb.toString();
     }
 
@@ -1424,23 +1299,6 @@ s  /** Connect.
 
     public boolean ignoreTikaException() {
       return ignoreTikaException;
-    }
-
-    public BoilerpipeExtractor getExtractorClassInstance() throws ManifoldCFException {
-      if (extractorClassName == null)
-        return null;
-      try {
-        ClassLoader loader = BoilerpipeExtractor.class.getClassLoader();
-        Class extractorClass = loader.loadClass(extractorClassName);
-        java.lang.reflect.Field f = extractorClass.getField("INSTANCE");
-        return (BoilerpipeExtractor) f.get(null);
-      } catch (ClassNotFoundException e) {
-        throw new ManifoldCFException(
-            "Boilerpipe extractor class '" + extractorClassName + "' not found: " + e.getMessage(), e);
-      } catch (Exception e) {
-        throw new ManifoldCFException(
-            "Boilerpipe extractor class '" + extractorClassName + "' exception on instantiation: " + e.getMessage(), e);
-      }
     }
 
   }
