@@ -604,9 +604,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             HttpEntity entity = new InputStreamEntity(ds.getInputStream());
             httpPut.setEntity(entity);
             try {
-              System.out.println("About to PUT");
+              //System.out.println("About to PUT");
               response = this.httpClient.execute(tikaHost, httpPut);
-              System.out.println("PUT successful");
+              //System.out.println("PUT successful");
             } catch (IOException e) {
               // Retry 3 times, 10000 ms between retries, and abort if doesn't work
               final long currentTime = System.currentTimeMillis();
@@ -657,7 +657,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             entity = new InputStreamEntity(ds.getInputStream());
             httpPut.setEntity(entity);
             try {
+              //System.out.println("About to do a content PUT");
               response = this.httpClient.execute(tikaHost, httpPut);
+              //System.out.println("... content PUT succeeded");
             } catch (IOException e) {
               // Retry 3 times, 10000 ms between retries, and abort if doesn't work
               final long currentTime = System.currentTimeMillis();
