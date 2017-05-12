@@ -298,7 +298,7 @@ try
       {
 %>
             <li class="active">
-              <a href="#tab_<%=tabNum%>" data-toggle="tab"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a>
+              <a href="#tab_<%=tabNum%>"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a>
             </li>
 <%
       }
@@ -306,7 +306,7 @@ try
       {
 %>
             <li>
-              <a href="#tab_<%=tabNum%>" data-toggle="tab"
+              <a href="#tab_<%=tabNum%>"
                       alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editconnection.tab")%>'
                       onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a>
             </li>
