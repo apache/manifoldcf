@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1425: Add tikaservice transformation connector.
+(Julien Massiera, Karl Wright)
+
 CONNECTORS-1424: Add contentlimiter transformation connector.
 (Julien Massiera)
 
@@ -29,7 +32,7 @@ CONNECTORS-1419: Handle the JDBC no-version-query case so that
 deletes work.
 (Julien Massiera, Karl Wright)
 
-CONNECTORS-1417: Accept multipart/alternal email format.
+CONNECTORS-1417: Accept multipart/alternate email format.
 (Cihad Guzel)
 
 CONNECTORS-1416: Use a 4-character year for email dates.
