@@ -43,10 +43,13 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   public static final String _rcsid = "@(#)$Id$";
 
   private static final String EDIT_SPECIFICATION_JS = "editSpecification.js";
+  private static final String EDIT_CONFIGURATION_JS = "editConfiguration.js";
+  private static final String EDIT_CONFIGURATION_TIKACONFIG_HTML = "editConfiguration_TikaConfig.html";
   private static final String EDIT_SPECIFICATION_FIELDMAPPING_HTML = "editSpecification_FieldMapping.html";
   private static final String EDIT_SPECIFICATION_EXCEPTIONS_HTML = "editSpecification_Exceptions.html";
   private static final String EDIT_SPECIFICATION_BOILERPLATE_HTML = "editSpecification_Boilerplate.html";
   private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
+  private static final String VIEW_CONFIGURATION_HTML = "viewConfiguration.html";
 
   protected static final String ACTIVITY_EXTRACT = "extract";
 
@@ -54,6 +57,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   
   /** We handle up to 64K in memory; after that we go to disk. */
   protected static final long inMemoryMaximumFile = 65536;
+
+  protected String tikaConfig = null;
+  protected TikaParser tikaParser = null;
   
   /** Return a list of activities that this connector generates.
   * The connector does NOT need to be connected before this method is called.
@@ -155,6 +161,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
     throws ManifoldCFException, ServiceInterruption, IOException
   {
+    initializeTikaParser();
+
     // First, make sure downstream pipeline will now accept text/plain;charset=utf-8
     if (!activities.checkMimeTypeIndexable("text/plain;charset=utf-8"))
     {
@@ -219,12 +227,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
           try
           {
             // Use tika to parse stuff
-            ContentHandler handler = TikaParser.newWriteOutBodyContentHandler(w, sp.writeLimit());
+            ContentHandler handler = tikaParser.newWriteOutBodyContentHandler(w, sp.writeLimit());
             if (extractorClassInstance != null)
               handler = new BoilerpipeContentHandler(handler, extractorClassInstance);
             try
             {
-              TikaParser.parse(document.getBinaryStream(), metadata, handler);
+              tikaParser.parse(document.getBinaryStream(), metadata, handler);
             }
             catch (TikaException e)
             {
@@ -362,6 +370,119 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   {
     return "s"+connectionSequenceNumber+"_checkSpecificationForSave";
   }
+  
+  
+
+  /** Output the configuration header section.
+   * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
+   * javascript methods that might be needed by the configuration editing HTML.
+   *@param threadContext is the local thread context.
+   *@param out is the output to which any HTML should be sent.
+   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+   */
+  @Override
+  public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out, Locale locale,
+      ConfigParams parameters, List<String> tabsArray) throws ManifoldCFException, IOException {
+    tabsArray.add(Messages.getString(locale, "TikaExtractor.TikaConfigTabName"));
+
+    final Map<String,Object> paramMap = new HashMap<String,Object>();
+    fillInTikaConfigTab(paramMap, out, parameters);
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_JS, paramMap);  
+  }
+
+  /** Output the configuration body section.
+   * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
+   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+   * form is "editconnection".
+   *@param threadContext is the local thread context.
+   *@param out is the output to which any HTML should be sent.
+   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+   *@param tabName is the current tab name.
+   */
+  @Override
+  public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out, Locale locale,
+      ConfigParams parameters, String tabName) throws ManifoldCFException, IOException {
+    final Map<String,Object> paramMap = new HashMap<String,Object>();
+    paramMap.put("TABNAME",tabName);
+    fillInTikaConfigTab(paramMap, out, parameters);
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_TIKACONFIG_HTML, paramMap);    
+  }
+  
+  
+  /**
+   * Process a configuration post. This method is called at the start of the
+   * authority connector's configuration page, whenever there is a possibility
+   * that form data for a connection has been posted. Its purpose is to gather
+   * form information and modify the configuration parameters accordingly. The
+   * name of the posted form is "editconnection".
+   *
+   * @param threadContext is the local thread context.
+   * @param variableContext is the set of variables available from the post,
+   * including binary file post information.
+   * @param parameters are the configuration parameters, as they currently
+   * exist, for this connection being configured.
+   * @return null if all is well, or a string error message if there is an error
+   * that should prevent saving of the connection (and cause a redirection to an
+   * error page).
+   */
+  @Override
+  public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext, Locale locale,
+      ConfigParams parameters) throws ManifoldCFException {
+    
+    String tikaConfigValue = "";
+    if (variableContext.getParameter(TikaConfig.PARAM_TIKACONFIG) != null)
+    {
+      tikaConfigValue = variableContext.getParameter(TikaConfig.PARAM_TIKACONFIG);
+    }
+    parameters.setParameter(TikaConfig.PARAM_TIKACONFIG, tikaConfigValue);
+    
+    return null;
+  }
+  
+  /**
+   * Connect. The configuration parameters are included.
+   *
+   * @param configParams are the configuration parameters for this connection.
+   */
+  @Override
+  public void connect(ConfigParams configParams) {
+    super.connect(configParams);
+    tikaConfig = configParams.getParameter(TikaConfig.PARAM_TIKACONFIG);
+  }
+
+  @Override
+  public void disconnect() throws ManifoldCFException {
+    super.disconnect();
+    tikaConfig = null;
+    tikaParser = null;
+  }
+
+  protected void initializeTikaParser() throws ManifoldCFException {
+    if (tikaParser == null) {
+      tikaParser = new TikaParser(tikaConfig);
+    }
+  }
+  
+  /**
+   * View configuration. This method is called in the body section of the
+   * authority connector's view configuration page. Its purpose is to present
+   * the connection information to the user. The coder can presume that the HTML
+   * that is output from this configuration will be within appropriate <html>
+   * and <body> tags.
+   *
+   * @param threadContext is the local thread context.
+   * @param out is the output to which any HTML should be sent.
+   * @param parameters are the configuration parameters, as they currently
+   * exist, for this connection being configured.
+   */
+  @Override
+  public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out, Locale locale, ConfigParams parameters)
+      throws ManifoldCFException, IOException {
+    final Map<String,Object> paramMap = new HashMap<String,Object>();
+    fillInTikaConfigTab(paramMap, out, parameters);
+    Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIGURATION_HTML, paramMap);
+  }
 
   /** Output the specification header section.
   * This method is called in the head section of a job page which has selected a pipeline connection of the current type.  Its purpose is to add the required tabs
@@ -441,9 +562,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     throws ManifoldCFException {
     String seqPrefix = "s"+connectionSequenceNumber+"_";
 
-    String x;
-        
-    x = variableContext.getParameter(seqPrefix+"fieldmapping_count");
+    String x = variableContext.getParameter(seqPrefix+"fieldmapping_count");
     if (x != null && x.length() > 0)
     {
       // About to gather the fieldmapping nodes, so get rid of the old ones.
@@ -601,6 +720,16 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     fillInBoilerplateSpecificationMap(paramMap, os);
 
     Messages.outputResourceWithVelocity(out,locale,VIEW_SPECIFICATION_HTML,paramMap);
+    
+  }
+  
+  protected static void fillInTikaConfigTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
+    String tikaConfigValue = parameters.getParameter(TikaConfig.PARAM_TIKACONFIG);
+    if(tikaConfigValue == null) {
+      tikaConfigValue = "";
+    }
+    velocityContext.put("TIKACONFIG", tikaConfigValue); 
     
   }
 
@@ -949,7 +1078,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       
       return sb.toString();
     }
-    
+
     public String getMapping(String source) {
       return sourceTargets.get(source);
     }

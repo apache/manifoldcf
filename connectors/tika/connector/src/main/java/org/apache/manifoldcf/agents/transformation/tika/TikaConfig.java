@@ -19,7 +19,8 @@
 
 package org.apache.manifoldcf.agents.transformation.tika;
 
-/** Parameters for Tika transformation connector.
+/**
+ * Parameters for Tika transformation connector.
  */
 public class TikaConfig {
 
@@ -27,6 +28,7 @@ public class TikaConfig {
   // None
 
   // Specification nodes and values
+  public static final String PARAM_TIKACONFIG = "tikaconfig";
   public static final String NODE_FIELDMAP = "fieldmap";
   public static final String NODE_KEEPMETADATA = "keepAllMetadata";
   public static final String NODE_LOWERNAMES = "lowerNames";
@@ -37,5 +39,5 @@ public class TikaConfig {
   public static final String ATTRIBUTE_SOURCE = "source";
   public static final String ATTRIBUTE_TARGET = "target";
   public static final String ATTRIBUTE_VALUE = "value";
-  
+
 }

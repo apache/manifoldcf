@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1428: Add support for configuring Tika extractor.
+(Julien Massiera, Karl Wright)
+
 CONNECTORS-1426: Fix New UI to prevent Bootstrap tab click event.
 (Karl Wright, Kishore Kumar)
 
