@@ -16,32 +16,58 @@
 */
 package org.apache.manifoldcf.agents.transformation.tika;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.util.Map;
 
+import org.apache.tika.config.TikaConfig;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
+import org.apache.tika.parser.html.HtmlParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.WriteOutContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+
 public class TikaParser {
 
-  private static Parser parser = new AutoDetectParser();
+  private final Parser parser;
 
-  private TikaParser() { }
+  public TikaParser(final String tikaConfig)
+    throws ManifoldCFException {
+    if (tikaConfig == null || tikaConfig.length() == 0) {
+      parser = new AutoDetectParser();
+    } else {
+      final InputStream is = new ByteArrayInputStream(tikaConfig.getBytes());
+      try {
+        final TikaConfig conf = new TikaConfig(is);
+        parser = new AutoDetectParser(conf);
+      } catch (TikaException | IOException | SAXException e) {
+        throw new ManifoldCFException(e.getMessage(), e);
+      }
+    }
+  }
+  
+  /*
+      Map<MediaType, Parser> parsers = ((AutoDetectParser) parser).getParsers();
+      parsers.put(MediaType.APPLICATION_XML, new HtmlParser());
+      ((AutoDetectParser) parser).setParsers(parsers);
+  */
 
   public static ContentHandler newWriteOutBodyContentHandler(Writer w, int writeLimit) {
-    ContentHandler writeOutContentHandler = new WriteOutContentHandler(w, writeLimit);
+    final ContentHandler writeOutContentHandler = new WriteOutContentHandler(w, writeLimit);
     return new BodyContentHandler(writeOutContentHandler);
   }
 
-  public static void parse(InputStream stream, Metadata metadata, ContentHandler handler)
+  public void parse(InputStream stream, Metadata metadata, ContentHandler handler)
     throws IOException, SAXException, TikaException {
     ParseContext context = new ParseContext();
     context.set(Parser.class, parser);
