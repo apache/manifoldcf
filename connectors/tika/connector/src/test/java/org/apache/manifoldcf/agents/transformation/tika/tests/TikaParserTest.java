@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.manifoldcf.agents.transformation.tika.TikaParser;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaMetadataKeys;
@@ -45,15 +46,16 @@ public class TikaParserTest {
   }
 
   @Test
-  public void testSimple() throws IOException, SAXException, TikaException {
+  public void testSimple() throws IOException, SAXException, TikaException, ManifoldCFException {
     for (String doc : docs) {
       String path = doc;
       InputStream stream = getClass().getResourceAsStream(path);
       Metadata metadata = new Metadata();
       metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, new File(getClass().getResource(path).getFile()).getName());
+      TikaParser tikaParser = new TikaParser(null);
       ContentHandler unlimitedHandler
-        = TikaParser.newWriteOutBodyContentHandler(new StringWriter(), -1);
-      TikaParser.parse(stream, metadata, unlimitedHandler);
+        = tikaParser.newWriteOutBodyContentHandler(new StringWriter(), -1);
+      tikaParser.parse(stream, metadata, unlimitedHandler);
  
       assertThat(unlimitedHandler.toString().length(), not(0));
       assertThat(metadata.get("Content-Type"), notNullValue());
@@ -62,15 +64,16 @@ public class TikaParserTest {
   }
 
   @Test
-  public void testExtractWithWriteLimit() throws IOException, SAXException, TikaException {
+  public void testExtractWithWriteLimit() throws IOException, SAXException, TikaException, ManifoldCFException {
     for (String doc : docs) {
       String path = doc;
       InputStream stream = getClass().getResourceAsStream(path);
       Metadata metadata = new Metadata();
       metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, new File(getClass().getResource(path).getFile()).getName());
+      TikaParser tikaParser = new TikaParser(null);
       ContentHandler limitedHandler
-        = TikaParser.newWriteOutBodyContentHandler(new StringWriter(), 100 * 1000);
-      TikaParser.parse(stream, metadata, limitedHandler);
+        = tikaParser.newWriteOutBodyContentHandler(new StringWriter(), 100 * 1000);
+      tikaParser.parse(stream, metadata, limitedHandler);
 
       assertThat(limitedHandler.toString().length(), not(0));
       assertThat(metadata.get("Content-Type"), notNullValue());
@@ -80,16 +83,17 @@ public class TikaParserTest {
 
   @Test
   @Ignore
-  public void testExtractWithTooShortWriteLimit() {
+  public void testExtractWithTooShortWriteLimit() throws ManifoldCFException {
     for (String doc : docs) {
       String path = doc;
       InputStream stream = getClass().getResourceAsStream(path);
       Metadata metadata = new Metadata();
       metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, new File(getClass().getResource(path).getFile()).getName());
+      TikaParser tikaParser = new TikaParser(null);
       ContentHandler limitedHandler
-        = TikaParser.newWriteOutBodyContentHandler(new StringWriter(), 10);
+        = tikaParser.newWriteOutBodyContentHandler(new StringWriter(), 10);
       try {
-        TikaParser.parse(stream, metadata, limitedHandler);
+        tikaParser.parse(stream, metadata, limitedHandler);
         fail("Should not get here");
       } catch (Exception e) {
         assert e instanceof SAXException;
