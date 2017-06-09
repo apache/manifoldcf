@@ -35,6 +35,7 @@ public class ElasticSearchConfig extends ElasticSearchParam
   /** Parameters used for the configuration */
   final private static ParameterEnum[] CONFIGURATIONLIST =
   {
+    ParameterEnum.SERVERVERSION,
     ParameterEnum.SERVERLOCATION,
     ParameterEnum.INDEXNAME,
     ParameterEnum.INDEXTYPE,
@@ -95,6 +96,37 @@ public class ElasticSearchConfig extends ElasticSearchParam
     }
   }
 
+  final public boolean isServerAfter5()
+  {
+    return getMajorVersion() >= 5;
+  }
+      
+  final public int getMajorVersion() {
+    final String version = getServerVersion();
+    if (version == null || version.length() == 0) {
+      return 0;
+    }
+    final int index = version.indexOf(".");
+    final String upperVersion;
+    if (index == -1) {
+      upperVersion = version;
+    } else {
+      upperVersion = version.substring(0, index);
+    }
+    int majorVersion;
+    try {
+      majorVersion = Integer.parseInt(upperVersion);
+    } catch (Exception e) {
+      majorVersion = 0;
+    }
+    return majorVersion;
+  }
+  
+  final public String getServerVersion()
+  {
+    return get(ParameterEnum.SERVERVERSION);
+  }
+  
   final public String getServerLocation()
   {
     return get(ParameterEnum.SERVERLOCATION);
