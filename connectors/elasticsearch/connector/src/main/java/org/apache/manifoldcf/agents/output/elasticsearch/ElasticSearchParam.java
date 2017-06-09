@@ -33,6 +33,8 @@ public class ElasticSearchParam extends HashMap<ParameterEnum, String>
   /** Parameters constants */
   public enum ParameterEnum
   {
+    SERVERVERSION(""),
+    
     SERVERLOCATION("http://localhost:9200/"),
 
     INDEXNAME("index"),

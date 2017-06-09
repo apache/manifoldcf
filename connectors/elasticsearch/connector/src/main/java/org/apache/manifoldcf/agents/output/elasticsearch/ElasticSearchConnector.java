@@ -427,12 +427,13 @@ public class ElasticSearchConnector extends BaseOutputConnector
   public void noteJobComplete(IOutputNotifyActivity activities)
       throws ManifoldCFException, ServiceInterruption
   {
+    ElasticSearchConfig config = getConfigParameters(null);
     HttpClient client = getSession();
     long startTime = System.currentTimeMillis();
-    ElasticSearchAction oo = new ElasticSearchAction(client, getConfigParameters(null));
+    ElasticSearchAction oo = new ElasticSearchAction(client, config);
     try
     {
-      oo.execute(CommandEnum._optimize, false);
+      oo.execute(config.isServerAfter5()?CommandEnum._forcemerge:CommandEnum._optimize, false);
     }
     finally
     {
