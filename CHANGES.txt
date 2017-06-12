@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1251: Fix encoding issues with confluence connector.
+(Marisol Redondo, Karl Wright)
+
 CONNECTORS-1431: Support different versions of ES (including 5.x and
 up).
 (Karl Wright, Hans Van Goethem)
