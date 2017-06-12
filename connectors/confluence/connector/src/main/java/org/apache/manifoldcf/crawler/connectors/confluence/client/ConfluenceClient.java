@@ -337,7 +337,7 @@ public class ConfluenceClient {
    */
   private <T extends ConfluenceResource> ConfluenceResponse<T> responseFromHttpEntity(HttpEntity entity, ConfluenceResourceBuilder<T> builder)
       throws Exception {
-    String stringEntity = EntityUtils.toString(entity);
+    String stringEntity = EntityUtils.toString(entity, "UTF-8");
 
     final JSONParser parser = new JSONParser();
     final JSONObject responseObject = (JSONObject)parser.parse(new StringReader(stringEntity));
@@ -584,7 +584,7 @@ public class ConfluenceClient {
    * @throws Exception
    */
   private MutablePage pageFromHttpEntity(HttpEntity entity) throws Exception {
-    String stringEntity = EntityUtils.toString(entity);
+    String stringEntity = EntityUtils.toString(entity, "UTF-8");
 
     final JSONParser parser = new JSONParser();
     final JSONObject responseObject = (JSONObject)parser.parse(new StringReader(stringEntity));
@@ -601,7 +601,7 @@ public class ConfluenceClient {
    */
   private MutableAttachment attachmentFromHttpEntity(HttpEntity entity)
       throws Exception {
-    String stringEntity = EntityUtils.toString(entity);
+    String stringEntity = EntityUtils.toString(entity, "UTF-8");
     final JSONParser parser = new JSONParser();
     final JSONObject responseObject = (JSONObject)parser.parse(new StringReader(stringEntity));;
     MutableAttachment response = (MutableAttachment) Attachment
@@ -685,7 +685,7 @@ public class ConfluenceClient {
   }
 
   private Spaces spacesFromHttpEntity(HttpEntity entity) throws Exception {
-    String stringEntity = EntityUtils.toString(entity);
+    String stringEntity = EntityUtils.toString(entity, "UTF-8");
     final JSONParser parser = new JSONParser();
     final JSONArray responseObject = (JSONArray)parser.parse(new StringReader(stringEntity));
     Spaces response = Spaces.fromJson(responseObject);
@@ -694,7 +694,7 @@ public class ConfluenceClient {
   }
   
   private List<String> permissionsFromHttpEntity(HttpEntity entity) throws Exception {
-    String stringEntity = EntityUtils.toString(entity);
+    String stringEntity = EntityUtils.toString(entity, "UTF-8");
     final JSONParser parser = new JSONParser();
     final JSONArray responseObject = (JSONArray)parser.parse(new StringReader(stringEntity));
     final List<String> permissions = Lists.newArrayList();
