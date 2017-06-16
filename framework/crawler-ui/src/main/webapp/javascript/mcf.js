@@ -396,19 +396,26 @@ function displayError(xhr)
   $("#content").html(errorTemplate);
 }
 
+function _endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
+
 function _preLoadContent()
 {
   console.log('_preLoadContent');
   $($.ManifoldCF.options.BSTooltipSelector).tooltip('destroy');
 
   //Temporary fix for Javascript bug, when loading connector javascript.
-  if (window.checkConfig)
-  {
-    window.checkConfig=null;
-  }
-  if (window.checkConfigForSave)
-  {
-    window.checkConfigForSave=null;
+  //Get all the global methods
+  var methods = Object.keys(window);
+  for(var i=0; i<=methods.length; i++){
+    var method = methods[i];
+      if (method && (_endsWith(method, 'checkConfig') ||
+          _endsWith(method, 'checkConfigForSave') ||
+          _endsWith(method, 'checkSpecification') ||
+          _endsWith(method, 'checkSpecificationForSave'))) {
+          delete window[method];
+      }
   }
 }
 

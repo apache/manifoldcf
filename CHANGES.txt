@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1432: Fix deleting stale check methods from window object
+(Steph van Schalkwyk, Karl Wright, Kishore Kumar)
+
 CONNECTORS-1251: Fix encoding issues with confluence connector.
 (Marisol Redondo, Karl Wright)
 
