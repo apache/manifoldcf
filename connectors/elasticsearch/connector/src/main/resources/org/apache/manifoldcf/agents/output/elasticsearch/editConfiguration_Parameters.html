@@ -58,7 +58,12 @@
   #end
     </td>
   </tr>
-  
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.PipelineNameColon'))</nobr></td>
+    <td class="value"><input name="pipelinename" type="text" value="$Encoder.attributeEscape($PIPELINENAME)"
+      size="24" /></td>
+  </tr>
+
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.ContentAttributeNameColon'))</nobr></td>
     <td class="value"><input name="contentattributename" type="text" value="$Encoder.attributeEscape($CONTENTATTRIBUTENAME)"
@@ -96,6 +101,7 @@
 <input type="hidden" name="usemapperattachments_checkbox" value="false"/>
 <input type="hidden" name="usemapperattachments_present" value="true"/>
 <input type="hidden" name="usemapperattachments" value="$Encoder.bodyEscape($USEMAPPERATTACHMENTS)" />
+<input type="hidden" name="pipelinename" value="$Encoder.attributeEscape($PIPELINENAME)" />
 <input type="hidden" name="contentattributename" value="$Encoder.attributeEscape($CONTENTATTRIBUTENAME)" />
 <input type="hidden" name="createddateattributename" value="$Encoder.attributeEscape($CREATEDDATEATTRIBUTENAME)" />
 <input type="hidden" name="modifieddateattributename" value="$Encoder.attributeEscape($MODIFIEDDATEATTRIBUTENAME)" />

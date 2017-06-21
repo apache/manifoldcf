@@ -193,11 +193,11 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
             if (name == null) {
               name = "";
             }
-            parts.add(new FormBodyPart(name,
+            parts.add(new FormBodyPart(encodeForHeader(name),
                 new InputStreamBody(
                     content.getStream(),
                     contentType,
-                    content.getName())));
+                    encodeForHeader(content.getName()))));
           }
         }
 
@@ -290,6 +290,23 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
       }
     }
     catch (IOException e) {throw new RuntimeException(e);}  // can't happen
+    return sb.toString();
+  }
+  
+  // This is a hack added by KDW on 6/21/2017 because HttpClient doesn't do any character
+  // escaping when it puts together header and file names
+  private static String encodeForHeader(final String headerName) {
+    if (headerName == null) {
+      return null;
+    }
+    final StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < headerName.length(); i++) {
+      final char x = headerName.charAt(i);
+      if (x == '"' || x == '\\') {
+        sb.append("\\");
+      }
+      sb.append(x);
+    }
     return sb.toString();
   }
   
