@@ -65,5 +65,6 @@ public class CmisOutputConfig {
   public static final String REPOSITORY_ID_DEFAULT_VALUE = StringUtils.EMPTY;
   public static final String BINDING_ATOM_VALUE = "atom";
   public static final String BINDING_WS_VALUE = "ws";
+  public static final String CMIS_QUERY_DEFAULT_VALUE = "SELECT * FROM cmis:folder WHERE cmis:name='Apache ManifoldCF'";
   
 }

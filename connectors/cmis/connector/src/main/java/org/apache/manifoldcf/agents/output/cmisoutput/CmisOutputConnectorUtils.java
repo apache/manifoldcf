@@ -48,13 +48,14 @@ public class CmisOutputConnectorUtils {
 
     private static final String LOAD_LINK_METHOD_NAME = "loadLink";
     private static final String FROM_TOKEN = "from";
-    private static final String SEP = " ";
+    public static final String SEP = " ";
     private static final String SELECT_STAR_CLAUSE = "select *";
     private static final String OBJECT_ID_PROPERTY = "cmis:objectId";
     private static final String OBJECT_ID_TERM = OBJECT_ID_PROPERTY + ",";
     private static final String SELECT_CLAUSE_TERM_SEP = ",";
     private static final String SELECT_PREFIX = "select ";
     private final static String TOKENIZER_SEP = ",\n\t";
+    public static final String SLASH = "/";
 
     public static final String getDocumentURL(final Document document, final Session session)
             throws ManifoldCFException {

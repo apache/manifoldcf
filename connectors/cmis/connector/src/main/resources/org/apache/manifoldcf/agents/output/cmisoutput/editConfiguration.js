@@ -76,6 +76,12 @@ function checkConfigForSave()
     editconnection.path.focus();
     return false;
   }
+  if(editconnection.cmisQuery.value == ""){
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CmisOutputConnector.CMISQueryMustNotBeNull'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CmisOutputConnector.Server'))");
+    editconnection.cmisQuery.focus();
+    return false;
+  }
   return true;
 }
 //-->

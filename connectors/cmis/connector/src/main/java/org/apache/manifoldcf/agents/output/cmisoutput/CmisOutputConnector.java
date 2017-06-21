@@ -49,6 +49,7 @@ import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisContentAlreadyExistsException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.commons.lang.StringUtils;
@@ -63,8 +64,6 @@ import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-import org.apache.manifoldcf.core.interfaces.Specification;
-import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
 import org.apache.manifoldcf.crawler.system.Logging;
 
@@ -75,8 +74,6 @@ import org.apache.manifoldcf.crawler.system.Logging;
  */
 public class CmisOutputConnector extends BaseOutputConnector {
 
-	private static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";
-
 	protected final static String ACTIVITY_READ = "read document";
 	protected static final String RELATIONSHIP_CHILD = "child";
 
@@ -85,7 +82,6 @@ public class CmisOutputConnector extends BaseOutputConnector {
 	// Tab name properties
 
 	private static final String CMIS_SERVER_TAB_PROPERTY = "CmisOutputConnector.Server";
-	private static final String CMIS_QUERY_TAB_PROPERTY = "CmisOutputConnector.CMISQuery";
 
 	// Template names
 
@@ -95,23 +91,8 @@ public class CmisOutputConnector extends BaseOutputConnector {
 	/** Server tab template */
 	private static final String EDIT_CONFIG_FORWARD_SERVER = "editConfiguration_Server.html";
 
-	/**
-	 * Forward to the javascript to check the specification parameters for the job
-	 */
-	private static final String EDIT_SPEC_HEADER_FORWARD = "editSpecification.js";
-
-	/**
-	 * Forward to the template to edit the configuration parameters for the job
-	 */
-	private static final String EDIT_SPEC_FORWARD_CMISQUERY = "editSpecification_CMISQuery.html";
-
 	/** Forward to the HTML template to view the configuration parameters */
 	private static final String VIEW_CONFIG_FORWARD = "viewConfiguration.html";
-
-	/**
-	 * Forward to the template to view the specification parameters for the job
-	 */
-	private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
 
 	/**
 	 * CMIS Session handle
@@ -361,6 +342,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		path = null;
 		binding = null;
 		repositoryId = null;
+		cmisQuery = null;
 
 	}
 
@@ -386,6 +368,8 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		path = params.getParameter(CmisOutputConfig.PATH_PARAM);
 
 		binding = params.getParameter(CmisOutputConfig.BINDING_PARAM);
+		cmisQuery = params.getParameter(CmisOutputConfig.CMIS_QUERY_PARAM);
+		
 		if (StringUtils.isNotEmpty(params.getParameter(CmisOutputConfig.REPOSITORY_ID_PARAM)))
 			repositoryId = params.getParameter(CmisOutputConfig.REPOSITORY_ID_PARAM);
 	}
@@ -437,6 +421,9 @@ public class CmisOutputConnector extends BaseOutputConnector {
 
 			if (StringUtils.isEmpty(path))
 				throw new ManifoldCFException("Parameter " + CmisOutputConfig.PATH_PARAM + " required but not set");
+			
+			if (StringUtils.isEmpty(cmisQuery))
+				throw new ManifoldCFException("Parameter " + CmisOutputConfig.CMIS_QUERY_PARAM + " required but not set");
 
 			long currentTime;
 			GetSessionThread t = new GetSessionThread();
@@ -643,6 +630,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		String path = parameters.getParameter(CmisOutputConfig.PATH_PARAM);
 		String repositoryId = parameters.getParameter(CmisOutputConfig.REPOSITORY_ID_PARAM);
 		String binding = parameters.getParameter(CmisOutputConfig.BINDING_PARAM);
+		String cmisQuery = parameters.getParameter(CmisOutputConfig.CMIS_QUERY_PARAM);
 
 		if (username == null)
 			username = StringUtils.EMPTY;
@@ -662,6 +650,8 @@ public class CmisOutputConnector extends BaseOutputConnector {
 			repositoryId = StringUtils.EMPTY;
 		if (binding == null)
 			binding = CmisOutputConfig.BINDING_ATOM_VALUE;
+		if (cmisQuery == null)
+			cmisQuery = CmisOutputConfig.CMIS_QUERY_DEFAULT_VALUE;
 
 		newMap.put(CmisOutputConfig.USERNAME_PARAM, username);
 		newMap.put(CmisOutputConfig.PASSWORD_PARAM, password);
@@ -671,6 +661,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		newMap.put(CmisOutputConfig.PATH_PARAM, path);
 		newMap.put(CmisOutputConfig.REPOSITORY_ID_PARAM, repositoryId);
 		newMap.put(CmisOutputConfig.BINDING_PARAM, binding);
+		newMap.put(CmisOutputConfig.CMIS_QUERY_PARAM, cmisQuery);
 	}
 
 	/**
@@ -807,6 +798,11 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		if (path != null) {
 			parameters.setParameter(CmisOutputConfig.PATH_PARAM, path);
 		}
+		
+		String cmisQuery = variableContext.getParameter(CmisOutputConfig.CMIS_QUERY_PARAM);
+		if (cmisQuery != null) {
+			parameters.setParameter(CmisOutputConfig.CMIS_QUERY_PARAM, cmisQuery);
+		}
 
 		String repositoryId = variableContext.getParameter(CmisOutputConfig.REPOSITORY_ID_PARAM);
 		if (repositoryId != null) {
@@ -814,179 +810,6 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		}
 
 		return null;
-	}
-
-	/**
-	 * Fill in specification Velocity parameter map for CMISQuery tab.
-	 */
-	private static void fillInCMISQuerySpecificationMap(Map<String, String> newMap, Specification ds) {
-		int i = 0;
-		String cmisQuery = StringUtils.EMPTY;
-		String createTimestampTree = StringUtils.EMPTY;
-		while (i < ds.getChildCount()) {
-			SpecificationNode sn = ds.getChild(i);
-			if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-				cmisQuery = sn.getAttributeValue(CmisOutputConfig.CMIS_QUERY_PARAM);
-				createTimestampTree = sn.getAttributeValue(CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM);
-			}
-			i++;
-		}
-		newMap.put(CmisOutputConfig.CMIS_QUERY_PARAM, cmisQuery);
-		newMap.put(CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM, createTimestampTree);
-	}
-
-	/**
-	 * View specification. This method is called in the body section of a job's
-	 * view page. Its purpose is to present the document specification information
-	 * to the user. The coder can presume that the HTML that is output from this
-	 * configuration will be within appropriate <html> and <body> tags. The
-	 * connector will be connected before this method can be called.
-	 * 
-	 * @param out
-	 *          is the output to which any HTML should be sent.
-	 * @param locale
-	 *          is the locale the output is preferred to be in.
-	 * @param ds
-	 *          is the current document specification for this job.
-	 * @param connectionSequenceNumber
-	 *          is the unique number of this connection within the job.
-	 */
-	@Override
-	public void viewSpecification(IHTTPOutput out, Locale locale, Specification ds, int connectionSequenceNumber)
-	    throws ManifoldCFException, IOException {
-
-		Map<String, String> paramMap = new HashMap<String, String>();
-		paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
-
-		// Fill in the map with data from all tabs
-		fillInCMISQuerySpecificationMap(paramMap, ds);
-
-		outputResource(VIEW_SPEC_FORWARD, out, locale, paramMap);
-	}
-
-	/**
-	 * Process a specification post. This method is called at the start of job's
-	 * edit or view page, whenever there is a possibility that form data for a
-	 * connection has been posted. Its purpose is to gather form information and
-	 * modify the document specification accordingly. The name of the posted form
-	 * is always "editjob". The connector will be connected before this method can
-	 * be called.
-	 * 
-	 * @param variableContext
-	 *          contains the post data, including binary file-upload information.
-	 * @param locale
-	 *          is the locale the output is preferred to be in.
-	 * @param ds
-	 *          is the current document specification for this job.
-	 * @param connectionSequenceNumber
-	 *          is the unique number of this connection within the job.
-	 * @return null if all is well, or a string error message if there is an error
-	 *         that should prevent saving of the job (and cause a redirection to
-	 *         an error page).
-	 */
-	@Override
-	public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
-	    int connectionSequenceNumber) throws ManifoldCFException {
-		String seqPrefix = "s" + connectionSequenceNumber + "_";
-
-		String cmisQuery = variableContext.getParameter(seqPrefix + CmisOutputConfig.CMIS_QUERY_PARAM);
-		String createTimestampTree = variableContext.getParameter(seqPrefix + CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM);
-		if (cmisQuery != null) {
-			int i = 0;
-			while (i < ds.getChildCount()) {
-				SpecificationNode oldNode = ds.getChild(i);
-				if (oldNode.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
-					ds.removeChild(i);
-					break;
-				}
-				i++;
-			}
-			SpecificationNode node = new SpecificationNode(JOB_STARTPOINT_NODE_TYPE);
-			
-			//cmisQuery
-			node.setAttribute(CmisOutputConfig.CMIS_QUERY_PARAM, cmisQuery);
-			variableContext.setParameter(CmisOutputConfig.CMIS_QUERY_PARAM, cmisQuery);
-			
-			//createTimestampTree
-			node.setAttribute(CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM, createTimestampTree);
-			variableContext.setParameter(CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM, createTimestampTree);
-			
-			ds.addChild(ds.getChildCount(), node);
-			
-			this.cmisQuery = cmisQuery;
-			this.createTimestampTree = Boolean.valueOf(createTimestampTree);
-		}
-		return null;
-	}
-
-	/**
-	 * Output the specification body section. This method is called in the body
-	 * section of a job page which has selected a repository connection of the
-	 * current type. Its purpose is to present the required form elements for
-	 * editing. The coder can presume that the HTML that is output from this
-	 * configuration will be within appropriate <html>, <body>, and <form> tags.
-	 * The name of the form is always "editjob". The connector will be connected
-	 * before this method can be called.
-	 * 
-	 * @param out
-	 *          is the output to which any HTML should be sent.
-	 * @param locale
-	 *          is the locale the output is preferred to be in.
-	 * @param ds
-	 *          is the current document specification for this job.
-	 * @param connectionSequenceNumber
-	 *          is the unique number of this connection within the job.
-	 * @param actualSequenceNumber
-	 *          is the connection within the job that has currently been selected.
-	 * @param tabName
-	 *          is the current tab name. (actualSequenceNumber, tabName) form a
-	 *          unique tuple within the job.
-	 */
-	@Override
-	public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification ds, int connectionSequenceNumber,
-	    int actualSequenceNumber, String tabName) throws ManifoldCFException, IOException {
-
-		// Output CMISQuery tab
-		Map<String, String> paramMap = new HashMap<String, String>();
-		paramMap.put("TabName", tabName);
-		paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
-		paramMap.put("SelectedNum", Integer.toString(actualSequenceNumber));
-
-		fillInCMISQuerySpecificationMap(paramMap, ds);
-		outputResource(EDIT_SPEC_FORWARD_CMISQUERY, out, locale, paramMap);
-	}
-
-	/**
-	 * Output the specification header section. This method is called in the head
-	 * section of a job page which has selected a repository connection of the
-	 * current type. Its purpose is to add the required tabs to the list, and to
-	 * output any javascript methods that might be needed by the job editing HTML.
-	 * The connector will be connected before this method can be called.
-	 * 
-	 * @param out
-	 *          is the output to which any HTML should be sent.
-	 * @param locale
-	 *          is the locale the output is preferred to be in.
-	 * @param ds
-	 *          is the current document specification for this job.
-	 * @param connectionSequenceNumber
-	 *          is the unique number of this connection within the job.
-	 * @param tabsArray
-	 *          is an array of tab names. Add to this array any tab names that are
-	 *          specific to the connector.
-	 */
-	@Override
-	public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification ds, int connectionSequenceNumber,
-	    List<String> tabsArray) throws ManifoldCFException, IOException {
-		tabsArray.add(Messages.getString(locale, CMIS_QUERY_TAB_PROPERTY));
-
-		Map<String, String> paramMap = new HashMap<String, String>();
-		paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
-
-		// Fill in the specification header map, using data from all tabs.
-		fillInCMISQuerySpecificationMap(paramMap, ds);
-
-		outputResource(EDIT_SPEC_HEADER_FORWARD, out, locale, paramMap);
 	}
 
 	protected static void handleIOException(IOException e, String context)
@@ -1035,6 +858,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		}
 		return false;
 	}
+	
 
 	@Override
 	public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription,
@@ -1042,15 +866,19 @@ public class CmisOutputConnector extends BaseOutputConnector {
 	        throws ManifoldCFException, ServiceInterruption, IOException {
 
 		getSession();
+		
 		boolean isDropZoneFolder = isDropZoneFolder(cmisQuery);
 		long startTime = System.currentTimeMillis();
 		Document injectedDocument = null;
 		String resultDescription = StringUtils.EMPTY;
+		Folder leafParent = null;
+		String fileName = StringUtils.EMPTY;
+		ContentStream contentStream = null;
 		try {
 			if (isDropZoneFolder) {
 
 				// Creation of the new Repository Node
-				String fileName = document.getFileName();
+				fileName = document.getFileName();
 				Date creationDate = document.getCreatedDate();
 				Date lastModificationDate = document.getModifiedDate();
 				String mimeType = document.getMimeType();
@@ -1075,11 +903,11 @@ public class CmisOutputConnector extends BaseOutputConnector {
 
 				// Content Stream
 				InputStream inputStream = document.getBinaryStream();
-				ContentStream contentStream = new ContentStreamImpl(fileName, BigInteger.valueOf(binaryLength), mimeType,
+				contentStream = new ContentStreamImpl(fileName, BigInteger.valueOf(binaryLength), mimeType,
 				    inputStream);
 
 				// create a major version
-				Folder leafParent = getOrCreateLeafParent(parentDropZoneFolder, creationDate, false);
+				leafParent = getOrCreateLeafParent(parentDropZoneFolder, creationDate, false);
 				injectedDocument = leafParent.createDocument(properties, contentStream, VersioningState.MAJOR);
 				resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
 				return DOCUMENT_STATUS_ACCEPTED;
@@ -1089,6 +917,18 @@ public class CmisOutputConnector extends BaseOutputConnector {
 				return DOCUMENT_STATUS_REJECTED;
 			}
 
+		} catch (CmisContentAlreadyExistsException e) {
+			
+			String documentFullPath = leafParent.getPath() + CmisOutputConnectorUtils.SLASH + fileName;
+			injectedDocument = (Document) session.getObjectByPath(documentFullPath);
+			injectedDocument.setContentStream(contentStream, true);
+			
+			Logging.connectors.warn(
+					"CMIS: Document already exists: " + documentFullPath+ CmisOutputConnectorUtils.SEP + e.getMessage(), e);
+
+			resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
+			return DOCUMENT_STATUS_ACCEPTED;
+			
 		} catch (Exception e) {
 			resultDescription = DOCUMENT_STATUS_REJECTED_DESC;
 			throw new ManifoldCFException(e.getMessage(), e);

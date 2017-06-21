@@ -25,8 +25,8 @@ import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 
 public class Messages extends org.apache.manifoldcf.ui.i18n.Messages
 {
-  public static final String DEFAULT_BUNDLE_NAME="org.apache.manifoldcf.crawler.connectors.cmisoutput.common";
-  public static final String DEFAULT_PATH_NAME="org.apache.manifoldcf.crawler.connectors.cmisoutput";
+  public static final String DEFAULT_BUNDLE_NAME="org.apache.manifoldcf.agents.output.cmisoutput.common";
+  public static final String DEFAULT_PATH_NAME="org.apache.manifoldcf.agents.output.cmisoutput";
   
   /** Constructor - do no instantiate
   */
