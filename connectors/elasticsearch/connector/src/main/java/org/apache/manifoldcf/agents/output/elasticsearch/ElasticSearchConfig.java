@@ -40,6 +40,7 @@ public class ElasticSearchConfig extends ElasticSearchParam
     ParameterEnum.INDEXNAME,
     ParameterEnum.INDEXTYPE,
     ParameterEnum.USEMAPPERATTACHMENTS,
+    ParameterEnum.PIPELINENAME,
     ParameterEnum.CONTENTATTRIBUTENAME,
     ParameterEnum.CREATEDDATEATTRIBUTENAME,
     ParameterEnum.MODIFIEDDATEATTRIBUTENAME,
@@ -147,6 +148,11 @@ public class ElasticSearchConfig extends ElasticSearchParam
     return Boolean.valueOf(get(ParameterEnum.USEMAPPERATTACHMENTS));
   }
 
+  final public String getPipelineName()
+  {
+    return get(ParameterEnum.PIPELINENAME);
+  }
+  
   final public String getContentAttributeName()
   {
     return get(ParameterEnum.CONTENTATTRIBUTENAME);

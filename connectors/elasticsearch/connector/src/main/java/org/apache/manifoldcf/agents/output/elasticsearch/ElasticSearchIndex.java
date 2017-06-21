@@ -392,11 +392,15 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls, String[] parentAcls, String[] parentDenyAcls)
     throws ManifoldCFException, ServiceInterruption
   {
-    String idField;
 
-    idField = URLEncoder.encode(documentURI);
 
-    StringBuffer url = getApiUrl(config.getIndexType() + "/" + idField, false);
+    final String idField = URLEncoder.encode(documentURI);
+    final String encodedPipelineName = (config.getPipelineName() == null || config.getPipelineName().length() == 0)?null:URLEncoder.encode(config.getPipelineName());
+    
+    final String command = config.getIndexType() + "/" + idField;
+    final String fullCommand = (encodedPipelineName == null)?command:(command + "?pipeline=" + encodedPipelineName);
+    
+    StringBuffer url = getApiUrl(fullCommand, false);
     HttpPut put = new HttpPut(url.toString());
     put.setEntity(new IndexRequestEntity(document, inputStream,
       acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls,
