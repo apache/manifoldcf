@@ -302,7 +302,7 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
     final StringBuilder sb = new StringBuilder();
     for (int i = 0; i < headerName.length(); i++) {
       final char x = headerName.charAt(i);
-      if (x == '"' || x == '\\') {
+      if (x == '"' || x == '\\' || x == '\r') {
         sb.append("\\");
       }
       sb.append(x);
