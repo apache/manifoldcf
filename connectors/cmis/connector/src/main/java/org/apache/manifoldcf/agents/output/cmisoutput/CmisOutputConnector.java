@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.ItemIterable;
@@ -50,6 +49,7 @@ import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisContentAlreadyExistsException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.commons.lang.StringUtils;
@@ -121,7 +121,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 	protected String cmisQuery = null;
 	
 	/** Flag for creating the new tree structure using timestamp**/
-	protected boolean createTimestampTree = false;
+	protected String createTimestampTree = Boolean.FALSE.toString();
 	
 	protected SessionFactory factory = SessionFactoryImpl.newInstance();
 	protected Map<String, String> parameters = new HashMap<String, String>();
@@ -343,6 +343,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		binding = null;
 		repositoryId = null;
 		cmisQuery = null;
+		createTimestampTree = Boolean.FALSE.toString();
 
 	}
 
@@ -366,12 +367,15 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		server = params.getParameter(CmisOutputConfig.SERVER_PARAM);
 		port = params.getParameter(CmisOutputConfig.PORT_PARAM);
 		path = params.getParameter(CmisOutputConfig.PATH_PARAM);
-
+		
 		binding = params.getParameter(CmisOutputConfig.BINDING_PARAM);
 		cmisQuery = params.getParameter(CmisOutputConfig.CMIS_QUERY_PARAM);
+		createTimestampTree = params.getParameter(CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM);
 		
-		if (StringUtils.isNotEmpty(params.getParameter(CmisOutputConfig.REPOSITORY_ID_PARAM)))
+		if (StringUtils.isNotEmpty(params.getParameter(CmisOutputConfig.REPOSITORY_ID_PARAM))) {
 			repositoryId = params.getParameter(CmisOutputConfig.REPOSITORY_ID_PARAM);
+		}
+		
 	}
 
 	/**
@@ -631,7 +635,8 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		String repositoryId = parameters.getParameter(CmisOutputConfig.REPOSITORY_ID_PARAM);
 		String binding = parameters.getParameter(CmisOutputConfig.BINDING_PARAM);
 		String cmisQuery = parameters.getParameter(CmisOutputConfig.CMIS_QUERY_PARAM);
-
+		String createTimestampTree = parameters.getParameter(CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM);
+		
 		if (username == null)
 			username = StringUtils.EMPTY;
 		if (password == null)
@@ -652,7 +657,9 @@ public class CmisOutputConnector extends BaseOutputConnector {
 			binding = CmisOutputConfig.BINDING_ATOM_VALUE;
 		if (cmisQuery == null)
 			cmisQuery = CmisOutputConfig.CMIS_QUERY_DEFAULT_VALUE;
-
+		if(createTimestampTree == null)
+			createTimestampTree = CmisOutputConfig.CREATE_TIMESTAMP_TREE_DEFAULT_VALUE;
+		
 		newMap.put(CmisOutputConfig.USERNAME_PARAM, username);
 		newMap.put(CmisOutputConfig.PASSWORD_PARAM, password);
 		newMap.put(CmisOutputConfig.PROTOCOL_PARAM, protocol);
@@ -662,6 +669,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		newMap.put(CmisOutputConfig.REPOSITORY_ID_PARAM, repositoryId);
 		newMap.put(CmisOutputConfig.BINDING_PARAM, binding);
 		newMap.put(CmisOutputConfig.CMIS_QUERY_PARAM, cmisQuery);
+		newMap.put(CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM, createTimestampTree);
 	}
 
 	/**
@@ -803,6 +811,11 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		if (cmisQuery != null) {
 			parameters.setParameter(CmisOutputConfig.CMIS_QUERY_PARAM, cmisQuery);
 		}
+		
+		String createTimestampTree = variableContext.getParameter(CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM);
+		if (createTimestampTree != null) {
+			parameters.setParameter(CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM, createTimestampTree);
+		}
 
 		String repositoryId = variableContext.getParameter(CmisOutputConfig.REPOSITORY_ID_PARAM);
 		if (repositoryId != null) {
@@ -907,7 +920,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 				    inputStream);
 
 				// create a major version
-				leafParent = getOrCreateLeafParent(parentDropZoneFolder, creationDate, false);
+				leafParent = getOrCreateLeafParent(parentDropZoneFolder, creationDate, Boolean.valueOf(createTimestampTree));
 				injectedDocument = leafParent.createDocument(properties, contentStream, VersioningState.MAJOR);
 				resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
 				return DOCUMENT_STATUS_ACCEPTED;
@@ -921,7 +934,10 @@ public class CmisOutputConnector extends BaseOutputConnector {
 			
 			String documentFullPath = leafParent.getPath() + CmisOutputConnectorUtils.SLASH + fileName;
 			injectedDocument = (Document) session.getObjectByPath(documentFullPath);
-			injectedDocument.setContentStream(contentStream, true);
+			
+			if(injectedDocument != null) {
+				injectedDocument.setContentStream(contentStream, true);
+			}
 			
 			Logging.connectors.warn(
 					"CMIS: Document already exists: " + documentFullPath+ CmisOutputConnectorUtils.SEP + e.getMessage(), e);
@@ -935,11 +951,9 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		} finally {
 
 			String injectedId = StringUtils.EMPTY;
-			String injectedContentUrl = StringUtils.EMPTY;
-
+			
 			if (injectedDocument != null) {
 				injectedId = injectedDocument.getId();
-				injectedContentUrl = injectedDocument.getContentUrl();
 
 				// override documentURI in a CMIS standard way for the removeDocument
 				// method
@@ -948,101 +962,61 @@ public class CmisOutputConnector extends BaseOutputConnector {
 			}
 
 			activities.recordActivity(startTime, ACTIVITY_INJECTION, document.getBinaryLength(), documentURI, injectedId,
-			    resultDescription + injectedContentUrl);
+			    resultDescription);
 
 		}
 
 	}
 
+	/**
+	 * Check and create the leaf folder dedicate to inject the content
+	 * @param folder: this is the root folder where starts the tree
+	 * @param creationDate: this is the creation date of the current content
+	 * @param createTimestampTree: this is the flag checked in the ManifoldCF configuration panel
+	 * @return the target folder created using the creationDate related to the injected content
+	 */
 	private Folder getOrCreateLeafParent(Folder folder, Date creationDate, boolean createTimestampTree) {
 		Folder leafParent = folder;
 		if (createTimestampTree) {
 			GregorianCalendar calendar = new GregorianCalendar();
 			calendar.setTime(creationDate);
 			String year = String.valueOf(calendar.get(GregorianCalendar.YEAR));
-			String month = String.valueOf(calendar.get(GregorianCalendar.MONTH));
-			String day = String.valueOf(GregorianCalendar.DAY_OF_MONTH);
-			ItemIterable<CmisObject> yearChildren = folder.getChildren();
-
-			// check for the year folder
-			Iterator<CmisObject> iteratorYear = yearChildren.iterator();
-			boolean existYear = false;
-			Folder yearFolder = null;
-			while (iteratorYear.hasNext()) {
-				CmisObject yearObject = (CmisObject) iteratorYear.next();
-				String baseType = yearObject.getBaseTypeId().toString();
-				String name = yearObject.getName();
-				if (StringUtils.equals(baseType, CMIS_FOLDER_BASE_TYPE) && StringUtils.equals(name, year)) {
-					existYear = true;
-					// get for the year folder
-					yearFolder = (Folder) yearObject;
-					break;
-				}
-			}
-
-			if (!existYear) {
-				// create a new year folder
-				Map<String, String> newFolderYearProps = new HashMap<String, String>();
-				newFolderYearProps.put(PropertyIds.OBJECT_TYPE_ID, CMIS_FOLDER_BASE_TYPE);
-				newFolderYearProps.put(PropertyIds.NAME, year);
-				yearFolder = folder.createFolder(newFolderYearProps);
-			}
-
-			ItemIterable<CmisObject> monthChildren = yearFolder.getChildren();
-			Iterator<CmisObject> iteratorMonth = monthChildren.iterator();
-			boolean existMonth = false;
-			Folder monthFolder = null;
-			while (iteratorMonth.hasNext()) {
-				CmisObject monthObject = (CmisObject) iteratorMonth.next();
-				String baseTypeMonth = monthObject.getBaseTypeId().toString();
-				String nameMonth = monthObject.getName();
-
-				if (StringUtils.equals(baseTypeMonth, CMIS_FOLDER_BASE_TYPE) && StringUtils.equals(nameMonth, month)) {
-					existMonth = true;
-					// get the month folder
-					monthFolder = (Folder) monthObject;
-					break;
-				}
-			}
-
-			if (!existMonth) {
-				// create a new month folder
-				Map<String, String> newFolderMonthProps = new HashMap<String, String>();
-				newFolderMonthProps.put(PropertyIds.OBJECT_TYPE_ID, CMIS_FOLDER_BASE_TYPE);
-				newFolderMonthProps.put(PropertyIds.NAME, month);
-				monthFolder = yearFolder.createFolder(newFolderMonthProps);
-			}
+			String month = String.valueOf((calendar.get(GregorianCalendar.MONTH)+1));
+			String day = String.valueOf(calendar.get(GregorianCalendar.DAY_OF_MONTH));
 			
-			ItemIterable<CmisObject> dayChildren = monthFolder.getChildren();
-			Iterator<CmisObject> iteratorDay = dayChildren.iterator();
-			boolean existDay = false;
-			Folder dayFolder = null;
-			while (iteratorDay.hasNext()) {
-				CmisObject dayObject = (CmisObject) iteratorDay.next();
-				String baseTypeDay = dayObject.getBaseTypeId().toString();
-				String nameDay = dayObject.getName();
-				if (StringUtils.equals(baseTypeDay, CMIS_FOLDER_BASE_TYPE) && StringUtils.equals(nameDay, month)) {
-					existDay = true;
-					// get the date folder
-					dayFolder = (Folder) dayObject;
-					break;
-				}
-			}
-
-			if (!existDay) {
-				// create a new month folder
-				Map<String, String> newFolderDayProps = new HashMap<String, String>();
-				newFolderDayProps.put(PropertyIds.OBJECT_TYPE_ID, CMIS_FOLDER_BASE_TYPE);
-				newFolderDayProps.put(PropertyIds.NAME, day);
-				dayFolder = monthFolder.createFolder(newFolderDayProps);
-			}
+			//Check and create all the new folders
+			Folder yearFolder = createFolderIfNotExist(leafParent, year);
+			Folder monthFolder = createFolderIfNotExist(yearFolder, month);
+			Folder dayFolder = createFolderIfNotExist(monthFolder, day);
 			
 			leafParent = dayFolder;
-			
 		}
-		
 		return leafParent;
+	}
 
+	/**
+	 * Create a new CMIS folder as a child node of leafParent
+	 * @param leafParent
+	 * @param folderName
+	 * @return the current CMIS folder if exists otherwise it will return a new one 
+	 */
+	private Folder createFolderIfNotExist(Folder leafParent, String folderName) {
+		Folder folder = null;
+		try {
+			folder = (Folder) session.getObjectByPath(leafParent.getPath() + CmisOutputConnectorUtils.SLASH + folderName);
+		} catch (CmisObjectNotFoundException onfe) {
+			Map<String, Object> props = new HashMap<String, Object>();
+		  props.put(PropertyIds.OBJECT_TYPE_ID,  "cmis:folder");
+		  props.put(PropertyIds.NAME, folderName);
+		  folder = leafParent.createFolder(props);
+		  
+		  String folderId = folder.getId();
+		  String folderPath = folder.getPath();
+		  Logging.connectors.info(
+					"CMIS: Created a new folder - id: " + folderId +
+					" | Path: " + folderPath);
+		}
+		return folder;
 	}
 
 	@Override

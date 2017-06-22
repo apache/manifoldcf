@@ -122,6 +122,27 @@
   <tr>
     <td class="description">
       <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.CreateTimestampTreeColon'))
+      </nobr>
+    </td> 
+    <td class="value">
+        <!-- 
+        <input type="text" id="createTimestampTree" name="createTimestampTree" size="5" value="$Encoder.attributeEscape($CREATETIMESTAMPTREE)" />
+         -->
+         <select id="createTimestampTree" name="createTimestampTree">
+#if($CREATETIMESTAMPTREE == "true")
+        <option value="false">Disabled</option>
+        <option value="true" selected="selected">Enabled</option>
+#else
+        <option value="false" selected="selected">Disabled</option>
+        <option value="true">Enabled</option>
+#end
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
         $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.RepositoryIDColon'))
       </nobr>
     </td>
@@ -144,6 +165,7 @@
 <input type="hidden" name="path" value="$Encoder.attributeEscape($PATH)" />
 <input type="hidden" name="binding" value="$Encoder.attributeEscape($BINDING)" />
 <input type="hidden" name="cmisQuery" value="$Encoder.attributeEscape($CMISQUERY)" />
+<input type="hidden" name="createTimestampTree" value="$Encoder.attributeEscape($CREATETIMESTAMPTREE)"/>
 <input type="hidden" name="repositoryId" value="$Encoder.attributeEscape($REPOSITORYID)" />
 
 #end
