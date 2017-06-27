@@ -3,6 +3,15 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1436: Porting of CMIS Output Connector from 2.6 to 2.8
+(Piergiorgio Lucidi)
+
+CONNECTORS-1356: Initial implementation of the CMIS Output Connector
+(Piergiorgio Lucidi)
+
+CONNECTORS-1356: Initial implementation of the CMIS Output Connector
+(Piergiorgio Lucidi)
+
 CONNECTORS-1434: Escape filenames in Solr Http headers to match spec.
 This is a workaround for a fix that really should be in HttpClient.
 (Karl Wright, Tamizh Kumaran Thamizharasan)
