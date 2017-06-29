@@ -196,7 +196,7 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
             parts.add(new FormBodyPart(encodeForHeader(name),
                 new InputStreamBody(
                     content.getStream(),
-                    contentType,
+                    ContentType.parse(contentType),
                     encodeForHeader(content.getName()))));
           }
         }
