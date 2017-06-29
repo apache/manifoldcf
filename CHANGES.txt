@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1438: Wrong content-type parse in Solr connector caused
+failure when content type contained a charset.
+(Kenta Kasahara, Karl Wright)
+
 CONNECTORS-1434: Escape filenames in Solr Http headers to match spec.
 This is a workaround for a fix that really should be in HttpClient.
 (Karl Wright, Tamizh Kumaran Thamizharasan)
