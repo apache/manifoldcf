@@ -49,6 +49,7 @@ import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisContentAlreadyExistsException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisNameConstraintViolationException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
@@ -921,7 +922,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 
 				// create a major version
 				leafParent = getOrCreateLeafParent(parentDropZoneFolder, creationDate, Boolean.valueOf(createTimestampTree));
-				injectedDocument = leafParent.createDocument(properties, contentStream, VersioningState.MAJOR);
+				injectedDocument = leafParent.createDocument(properties, contentStream, VersioningState.NONE);
 				resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
 				return DOCUMENT_STATUS_ACCEPTED;
 
@@ -930,7 +931,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 				return DOCUMENT_STATUS_REJECTED;
 			}
 
-		} catch (CmisContentAlreadyExistsException e) {
+		} catch (CmisContentAlreadyExistsException | CmisNameConstraintViolationException e) {
 			
 			String documentFullPath = leafParent.getPath() + CmisOutputConnectorUtils.SLASH + fileName;
 			injectedDocument = (Document) session.getObjectByPath(documentFullPath);
@@ -940,7 +941,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 			}
 			
 			Logging.connectors.warn(
-					"CMIS: Document already exists: " + documentFullPath+ CmisOutputConnectorUtils.SEP + e.getMessage(), e);
+					"CMIS: Document already exists: " + documentFullPath + CmisOutputConnectorUtils.SEP + e.getMessage(), e);
 
 			resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
 			return DOCUMENT_STATUS_ACCEPTED;
@@ -1037,4 +1038,6 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		}
 	}
 
+	
+	
 }

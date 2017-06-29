@@ -57,7 +57,8 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
 	
 	private static final String REPLACER = "?";
   private static final String CMIS_TEST_QUERY_CHANGE_DOC = "SELECT * FROM cmis:document WHERE cmis:name='"+REPLACER+"'";
-	
+	private static final String CMIS_TEST_QUERY_TARGET_REPO_ALL = "SELECT * FROM cmis:document WHERE CONTAINS('testdata')";
+  
   private Session cmisSourceClientSession = null;
   private Session cmisTargetClientSession = null;
   
@@ -107,7 +108,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
     return factory.getRepositories(parameters).get(0).createSession();
   }
   
-  public Folder getTestFolder(Session session){
+  private Folder getTestFolder(Session session) {
     Folder testFolder = null;
     ItemIterable<QueryResult> results = session.query(CmisOutputConfig.CMIS_QUERY_DEFAULT_VALUE, false);
     for (QueryResult result : results) {
@@ -117,7 +118,13 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
     return testFolder;
   }
   
-  public void createNewDocument(Folder folder, String name) throws IOException{
+  private long queryTestContents(Session session) {
+  	ItemIterable<QueryResult> results = session.query(CMIS_TEST_QUERY_TARGET_REPO_ALL, false);
+    return results.getTotalNumItems();
+  }
+  
+  
+  private void createNewDocument(Folder folder, String name) throws IOException{
     // properties 
     // (minimal set: name and object type id)
     Map<String, Object> contentProperties = new HashMap<String, Object>();
@@ -439,14 +446,21 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString, 120000L);
+      waitJobInactive(jobIDString, 240000L);
 
       // Check to be sure we actually processed the right number of documents.
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       long count;
       count = getJobDocumentsProcessed(jobIDString);
+      
       if (count != 3)
         throw new ManifoldCFException("Wrong number of documents processed - expected 3, saw "+new Long(count).toString());
+      
+      //Tests if these two contents are stored in the target repo
+      long targetRepoNumberOfContents = queryTestContents(cmisTargetClientSession);
+      if(targetRepoNumberOfContents != 2)
+        throw new ManifoldCFException("Wrong number of documents stored in the CMIS Target repo - expected 2, saw "+new Long(targetRepoNumberOfContents).toString());
+
       
       // Add a file and recrawl
       Folder testFolder = getTestFolder(cmisSourceClientSession);
@@ -455,25 +469,36 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
 
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString, 120000L);
+      waitJobInactive(jobIDString, 240000L);
 
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 5)
         throw new ManifoldCFException("Wrong number of documents processed after add - expected 5, saw "+new Long(count).toString());
 
+      //Tests if there are 4 documents in the target repo
+      targetRepoNumberOfContents = queryTestContents(cmisTargetClientSession);
+      if(targetRepoNumberOfContents != 4)
+        throw new ManifoldCFException("Wrong number of documents stored in the CMIS Target repo - expected 4, saw "+new Long(targetRepoNumberOfContents).toString());
+
+      
       // Change a document, and recrawl
       changeDocument(cmisSourceClientSession,"testdata1.txt","MODIFIED - CMIS Testdata - MODIFIED");
       
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString, 120000L);
+      waitJobInactive(jobIDString, 240000L);
 
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 5)
         throw new ManifoldCFException("Wrong number of documents processed after change - expected 5, saw "+new Long(count).toString());
       
+      //Tests if there are 4 documents in the target repo
+      targetRepoNumberOfContents = queryTestContents(cmisTargetClientSession);
+      if(targetRepoNumberOfContents != 4)
+        throw new ManifoldCFException("Wrong number of documents stored in the CMIS Target repo - expected 4, saw "+new Long(targetRepoNumberOfContents).toString());
+
       // We also need to make sure the new document was indexed.  Have to think about how to do this though.
       // MHL
       //System.out.println("Starting delete...");
@@ -482,18 +507,23 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString, 120000L);
+      waitJobInactive(jobIDString, 240000L);
 
       // Check to be sure we actually processed the right number of documents.
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 4)
-        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(count).toString());
-
+        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 4, saw "+new Long(count).toString());
+      
+      //Tests if there are 3 documents in the target repo
+      targetRepoNumberOfContents = queryTestContents(cmisTargetClientSession);
+      if(targetRepoNumberOfContents != 3)
+        throw new ManifoldCFException("Wrong number of documents stored in the CMIS Target repo - expected 3, saw "+new Long(targetRepoNumberOfContents).toString());
+      
       // Now, delete the job.
       deleteJob(jobIDString);
 
-      waitJobDeleted(jobIDString, 120000L);
+      waitJobDeleted(jobIDString, 240000L);
       
       // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
     }

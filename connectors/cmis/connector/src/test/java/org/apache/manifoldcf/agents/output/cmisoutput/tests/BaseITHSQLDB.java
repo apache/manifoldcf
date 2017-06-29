@@ -46,12 +46,12 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
   
   protected String[] getOutputNames()
   {
-    return new String[]{"org.apache.manifoldcf.agents.output.cmisoutput.CmisOutputConnector"};
+    return new String[]{"CMIS"};
   }
   
   protected String[] getOutputClasses()
   {
-    return new String[]{"org.apache.manifoldcf.agents.tests.TestingOutputConnector"};
+    return new String[]{"org.apache.manifoldcf.agents.output.cmisoutput.CmisOutputConnector"};
   }
   
   // Setup/teardown
