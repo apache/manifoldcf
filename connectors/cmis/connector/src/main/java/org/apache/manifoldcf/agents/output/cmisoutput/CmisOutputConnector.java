@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.math.BigInteger;
+import java.net.URISyntaxException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Date;
@@ -54,6 +55,8 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundExcept
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
@@ -873,6 +876,22 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		return false;
 	}
 	
+	private String getObjectIdFromDocumentURI(String documentURI) throws URISyntaxException {
+		String objectId = StringUtils.EMPTY;
+		URIBuilder uriBuilder = new URIBuilder(documentURI);
+		List<NameValuePair> params = uriBuilder.getQueryParams();
+		Iterator<NameValuePair> iteratorParams = params.iterator();
+		while (iteratorParams.hasNext()) {
+			NameValuePair nameValuePair = (NameValuePair) iteratorParams.next();
+			String name = nameValuePair.getName();
+			if(StringUtils.equals(name, "id")
+					|| StringUtils.equals(name, PropertyIds.OBJECT_ID)) {
+				objectId = nameValuePair.getValue();
+			}
+		}
+		return objectId;
+	}
+	
 
 	@Override
 	public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription,
@@ -897,23 +916,41 @@ public class CmisOutputConnector extends BaseOutputConnector {
 				Date lastModificationDate = document.getModifiedDate();
 				String mimeType = document.getMimeType();
 				Long binaryLength = document.getBinaryLength();
-
-				// properties
+				String objectId = StringUtils.EMPTY;
+				
+			  // properties
 				// (minimal set: name and object type id)
 				Map<String, Object> properties = new HashMap<String, Object>();
+				
+				//if the source is CMIS Repository Connector we override the objectId for synchronizing with removeDocument method
+				if(isSourceRepoCmisCompliant(document)) {
+					String[] cmisObjectIdArray = (String[]) document.getField(PropertyIds.OBJECT_ID);
+					if(cmisObjectIdArray!=null && cmisObjectIdArray.length>0) {
+						objectId = cmisObjectIdArray[0];
+					}
+
+					//Mapping all the CMIS properties ...
+					/*
+					Iterator<String> fields = document.getFields();
+					while (fields.hasNext()) {
+						String field = (String) fields.next();
+						if(!StringUtils.equals(field, "cm:lastThumbnailModification")
+								|| !StringUtils.equals(field, "cmis:secondaryObjectTypeIds")) {
+							String[] valuesArray = (String[]) document.getField(field);
+							properties.put(field,valuesArray);
+						}
+					}
+					*/
+				}
+
+				//Agnostic metadata
 				properties.put(PropertyIds.OBJECT_TYPE_ID, CMIS_DOCUMENT_TYPE);
 				properties.put(PropertyIds.NAME, fileName);
 				properties.put(PropertyIds.CREATION_DATE, creationDate);
 				properties.put(PropertyIds.LAST_MODIFICATION_DATE, lastModificationDate);
-
-				// TODO add fields management for extended properties
-				// if (isSourceRepoCmisCompliant(document)) {
-				// Iterator<String> fields = document.getFields();
-				// while (fields.hasNext()) {
-				// String fieldName = (String) fields.next();
-				// // ????
-				// }
-				// }
+				
+				ObjectId objId = new ObjectIdImpl(objectId);
+				properties.put(PropertyIds.OBJECT_ID, objId);
 
 				// Content Stream
 				InputStream inputStream = document.getBinaryStream();
@@ -922,7 +959,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 
 				// create a major version
 				leafParent = getOrCreateLeafParent(parentDropZoneFolder, creationDate, Boolean.valueOf(createTimestampTree));
-				injectedDocument = leafParent.createDocument(properties, contentStream, VersioningState.NONE);
+				injectedDocument = leafParent.createDocument(properties, contentStream, VersioningState.MAJOR);
 				resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
 				return DOCUMENT_STATUS_ACCEPTED;
 
@@ -934,14 +971,8 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		} catch (CmisContentAlreadyExistsException | CmisNameConstraintViolationException e) {
 			
 			String documentFullPath = leafParent.getPath() + CmisOutputConnectorUtils.SLASH + fileName;
-			injectedDocument = (Document) session.getObjectByPath(documentFullPath);
-			
-			if(injectedDocument != null) {
-				injectedDocument.setContentStream(contentStream, true);
-			}
-			
 			Logging.connectors.warn(
-					"CMIS: Document already exists: " + documentFullPath + CmisOutputConnectorUtils.SEP + e.getMessage(), e);
+					"CMIS: Document already exists: " + documentFullPath);
 
 			resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
 			return DOCUMENT_STATUS_ACCEPTED;
@@ -950,21 +981,8 @@ public class CmisOutputConnector extends BaseOutputConnector {
 			resultDescription = DOCUMENT_STATUS_REJECTED_DESC;
 			throw new ManifoldCFException(e.getMessage(), e);
 		} finally {
-
-			String injectedId = StringUtils.EMPTY;
-			
-			if (injectedDocument != null) {
-				injectedId = injectedDocument.getId();
-
-				// override documentURI in a CMIS standard way for the removeDocument
-				// method
-				// documentURI -> Node UUID
-				documentURI = injectedId;
-			}
-
-			activities.recordActivity(startTime, ACTIVITY_INJECTION, document.getBinaryLength(), documentURI, injectedId,
+			activities.recordActivity(startTime, ACTIVITY_INJECTION, document.getBinaryLength(), documentURI, resultDescription,
 			    resultDescription);
-
 		}
 
 	}
@@ -1019,14 +1037,22 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		}
 		return folder;
 	}
-
+	
 	@Override
 	public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
 	    throws ManifoldCFException, ServiceInterruption {
 		getSession();
 		long startTime = System.currentTimeMillis();
-		ObjectId objectId = new ObjectIdImpl(documentURI);
 		String result = StringUtils.EMPTY;
+		String objectIdValue = StringUtils.EMPTY;
+		try {
+			objectIdValue = getObjectIdFromDocumentURI(documentURI);
+		} catch (URISyntaxException e) {
+			result = DOCUMENT_DELETION_STATUS_REJECTED;
+			throw new ManifoldCFException(e.getMessage(), e);
+		}
+		
+		ObjectId objectId = new ObjectIdImpl(objectIdValue);
 		try {
 			session.delete(objectId);
 			result = DOCUMENT_DELETION_STATUS_ACCEPTED;

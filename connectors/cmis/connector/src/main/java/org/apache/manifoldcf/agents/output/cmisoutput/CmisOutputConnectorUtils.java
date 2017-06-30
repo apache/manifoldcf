@@ -56,6 +56,8 @@ public class CmisOutputConnectorUtils {
     private static final String SELECT_PREFIX = "select ";
     private final static String TOKENIZER_SEP = ",\n\t";
     public static final String SLASH = "/";
+    public static final String REPLACE = "?";
+    public static final String SELECT_FOR_REMOVAL = "SELECT * FROM cmis:document WHERE cmis:name='"+REPLACE+"'";
 
     public static final String getDocumentURL(final Document document, final Session session)
             throws ManifoldCFException {
