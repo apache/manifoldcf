@@ -27,6 +27,10 @@ import java.util.*;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 
 /** This is the "repository connector" for a file system.  It's a relative of the share crawler, and should have
 * comparable basic functionality, with the exception of the ability to use ActiveDirectory and look at other shares.
@@ -297,12 +301,13 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       
       // It's a file
+      final Path path = file.toPath();
       String versionString;
       String convertPath;
       long fileLength = file.length();
       // Get the file's modified date.
       long lastModified = file.lastModified();
-            
+
       // Check if the path is to be converted.  We record that info in the version string so that we'll reindex documents whose
       // URI's change.
       convertPath = findConvertPath(spec, file);
@@ -336,7 +341,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
         
         String fileName = file.getName();
-        Date modifiedDate = new Date(file.lastModified());
+        final Date modifiedDate = new Date(file.lastModified());
         String mimeType = mapExtensionToMimeType(fileName);
         String uri;
         if (convertPath != null) {
@@ -381,7 +386,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
           activities.noDocument(documentIdentifier,versionString);
           continue;
         }
-        
+
         RepositoryDocument data = new RepositoryDocument();
         data.setFileName(fileName);
         data.setMimeType(mimeType);
@@ -397,6 +402,10 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // Ingest the document.
         try
         {
+          final BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);
+          final Date createdDate = new Date(attributes.creationTime().toMillis());
+          data.setCreatedDate(createdDate);
+
           InputStream is = new FileInputStream(file);
           try
           {
