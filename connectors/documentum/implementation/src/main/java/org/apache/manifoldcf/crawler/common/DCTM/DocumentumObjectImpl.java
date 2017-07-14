@@ -360,12 +360,19 @@ public class DocumentumObjectImpl extends UnicastRemoteObject implements IDocume
       // Can't decide what to do without looking at the exception text.
       // This is crappy but it's the best we can manage, apparently.
       String errorMessage = dfe.getMessage();
-      if (errorMessage.indexOf("[DM_CONTENT_E_CANT_START_PULL]") == -1)
-        // Treat it as transient, and retry
-        throw new DocumentumException(dfe.getMessage(),DocumentumException.TYPE_SERVICEINTERRUPTION);
-      // It's probably not a transient error.  Report it as an access violation, even though it
-      // may well not be.  We don't have much info as to what's happening.
-      throw new DocumentumException(dfe.getMessage(),DocumentumException.TYPE_NOTALLOWED);
+      if (errorMessage.indexOf("[DM_CONTENT_E_CANT_START_PULL]") != -1)
+      {
+        // It's probably not a transient error.  Report it as an access violation, even though it
+        // may well not be.  We don't have much info as to what's happening.
+        throw new DocumentumException(dfe.getMessage(),DocumentumException.TYPE_NOTALLOWED);
+      }
+      else if (errorMessage.indexOf("[DM_OBJECT_E_LOAD_INVALID_STRING_LEN]") != -1 ||
+        errorMessage.indexOf("[DM_PLATFORM_E_INTEGER_CONVERSION_ERROR]") != -1)
+      {
+        throw new DocumentumException(dfe.getMessage(),DocumentumException.TYPE_CORRUPTEDDOCUMENT);
+      }
+      // Treat it as transient, and retry
+      throw new DocumentumException(dfe.getMessage(),DocumentumException.TYPE_SERVICEINTERRUPTION);
     }
   }
 

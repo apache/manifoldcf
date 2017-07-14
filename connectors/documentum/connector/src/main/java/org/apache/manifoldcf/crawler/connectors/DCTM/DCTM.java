@@ -1482,11 +1482,18 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           catch (DocumentumException dfe)
           {
             // Fetch failed, so log it
-            activityStatus = "NOCONTENT";
             activityMessage = dfe.getMessage();
-            if (dfe.getType() != DocumentumException.TYPE_NOTALLOWED)
-              throw dfe;
-            return;
+            if (dfe.getType() == DocumentumException.TYPE_NOTALLOWED)
+            {
+              activityStatus = "NOTALLOWED";
+              return;
+            }
+            else if (dfe.getType() != DocumentumException.TYPE_CORRUPTEDDOCUMENT)
+            {
+              activityStatus = "CORRUPTEDDOCUMENT";
+              return;
+            }
+            throw dfe;
           }
           long fileLength = objFileTemp.length();
           activityFileLength = new Long(fileLength);
