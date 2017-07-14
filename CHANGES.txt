@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1444: Documentum connector needs the ability to skip
+corrupted files.
+(Tamizh Kumaran Thamizharasan, Karl Wright)
+
 CONNECTORS-1440: Add support for created date in File System connector.
 (Steph van Schalkwyk, Karl Wright)
 

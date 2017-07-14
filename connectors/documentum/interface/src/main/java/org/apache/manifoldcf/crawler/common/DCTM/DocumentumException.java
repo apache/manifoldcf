@@ -28,6 +28,7 @@ public class DocumentumException extends Exception
   public static final int TYPE_BADCONNECTIONPARAMS = 2;
   public static final int TYPE_NOTALLOWED = 3;
   public static final int TYPE_GENERAL = 4;
+  public static final int TYPE_CORRUPTEDDOCUMENT = 5;
 
   protected int errType;
 
