@@ -411,7 +411,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
     ElasticSearchAction oss = new ElasticSearchAction(client, getConfigParameters(null));
     try
     {
-      oss.execute(CommandEnum._stats, true);
+      oss.executeGET(CommandEnum._stats, true);
       String resultName = oss.getResult().name();
       if (resultName.equals("OK"))
         return super.check();
@@ -433,7 +433,11 @@ public class ElasticSearchConnector extends BaseOutputConnector
     ElasticSearchAction oo = new ElasticSearchAction(client, config);
     try
     {
-      oo.execute(config.isServerAfter5()?CommandEnum._forcemerge:CommandEnum._optimize, false);
+      if (config.isServerAfter5()) {
+        oo.executePOST(CommandEnum._forcemerge, false);
+      } else {
+        oo.executeGET(CommandEnum._optimize, false);
+      }
     }
     finally
     {
