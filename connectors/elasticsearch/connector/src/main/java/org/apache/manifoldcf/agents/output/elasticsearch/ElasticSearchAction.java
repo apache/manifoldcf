@@ -20,6 +20,7 @@
 package org.apache.manifoldcf.agents.output.elasticsearch;
 
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.HttpClient;
 
 import java.io.IOException;
@@ -44,11 +45,24 @@ public class ElasticSearchAction extends ElasticSearchConnection
     super(config, client);
   }
   
-  public void execute(CommandEnum cmd, boolean checkConnection)
+  public void executeGET(CommandEnum cmd, boolean checkConnection)
       throws ManifoldCFException, ServiceInterruption
   {
     StringBuffer url = getApiUrl(cmd.toString(), checkConnection);
     HttpGet method = new HttpGet(url.toString());
+    call(method);
+    String error = checkJson(jsonException);
+    if (getResult() == Result.OK && error == null)
+      return;
+    setResult("JSONERROR",Result.ERROR, error);
+    Logging.connectors.warn("ES: Commit failed: "+getResponse());
+  }
+
+  public void executePOST(CommandEnum cmd, boolean checkConnection)
+      throws ManifoldCFException, ServiceInterruption
+  {
+    StringBuffer url = getApiUrl(cmd.toString(), checkConnection);
+    HttpPost method = new HttpPost(url.toString());
     call(method);
     String error = checkJson(jsonException);
     if (getResult() == Result.OK && error == null)
