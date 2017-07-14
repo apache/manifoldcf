@@ -1567,6 +1567,22 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         }
 
       }
+      catch (DocumentumException dfe)
+      {
+        // Fetch by qualification failed
+        activityMessage = dfe.getMessage();
+        if (dfe.getType() == DocumentumException.TYPE_NOTALLOWED)
+        {
+          activityStatus = "NOTALLOWED";
+          return;
+        }
+        else if (dfe.getType() != DocumentumException.TYPE_CORRUPTEDDOCUMENT)
+        {
+          activityStatus = "CORRUPTEDDOCUMENT";
+          return;
+        }
+        this.exception = dfe;
+      }
       catch (Throwable e)
       {
         this.exception = e;
