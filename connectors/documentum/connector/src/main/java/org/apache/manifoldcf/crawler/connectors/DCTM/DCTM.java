@@ -1488,7 +1488,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
               activityStatus = "NOTALLOWED";
               return;
             }
-            else if (dfe.getType() != DocumentumException.TYPE_CORRUPTEDDOCUMENT)
+            else if (dfe.getType() == DocumentumException.TYPE_CORRUPTEDDOCUMENT)
             {
               activityStatus = "CORRUPTEDDOCUMENT";
               return;
@@ -1576,7 +1576,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           activityStatus = "NOTALLOWED";
           return;
         }
-        else if (dfe.getType() != DocumentumException.TYPE_CORRUPTEDDOCUMENT)
+        else if (dfe.getType() == DocumentumException.TYPE_CORRUPTEDDOCUMENT)
         {
           activityStatus = "CORRUPTEDDOCUMENT";
           return;
