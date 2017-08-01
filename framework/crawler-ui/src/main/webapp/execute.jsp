@@ -1132,8 +1132,14 @@
               EnumeratedValues srHourOfDay = null;
               EnumeratedValues srMinutesOfHour = null;
               Long srDuration = null;
+              String srTimezone = null;
               boolean srRequestMinimum = false;
 
+              srTimezone = variableContext.getParameter("timezone"+indexValue);
+              if (srTimezone != null && srTimezone.length() == 0)
+              {
+                srTimezone = null;
+              }
               y = variableContext.getParameterValues("dayofweek"+indexValue);
               if (y != null)
               {
@@ -1200,7 +1206,7 @@
               if (x == null || !x.equals("Remove Schedule"))
               {
                 ScheduleRecord sr = new ScheduleRecord(srDayOfWeek,srMonthOfYear,srDayOfMonth,srYear,srHourOfDay,srMinutesOfHour,
-                  null,srDuration,srRequestMinimum);
+                  srTimezone,srDuration,srRequestMinimum);
                 job.addScheduleRecord(sr);
               }
               j++;
@@ -1217,9 +1223,15 @@
             EnumeratedValues srYear = null;
             EnumeratedValues srHourOfDay = null;
             EnumeratedValues srMinutesOfHour = null;
+            String srTimezone = null;
             Long srDuration = null;
             boolean srRequestMinimum = false;
 
+            x = variableContext.getParameter("timezone");
+            if (x != null)
+            {
+              srTimezone = x;
+            }
             y = variableContext.getParameterValues("dayofweek");
             if (y != null)
             {
@@ -1283,7 +1295,7 @@
             }
 
             ScheduleRecord sr = new ScheduleRecord(srDayOfWeek,srMonthOfYear,srDayOfMonth,srYear,srHourOfDay,srMinutesOfHour,
-              null,srDuration,srRequestMinimum);
+              srTimezone,srDuration,srRequestMinimum);
             job.addScheduleRecord(sr);
           }
 
