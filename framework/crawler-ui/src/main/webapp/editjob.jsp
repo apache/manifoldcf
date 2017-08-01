@@ -1383,6 +1383,10 @@ function isRegularExpression(value)
                 <input type="hidden" name="expirationinterval" value='<%=((expirationInterval==null)?"":expirationInterval.toString())%>'/>
 <%
     }
+    
+    String[] availableIDs = java.util.TimeZone.getAvailableIDs();
+    String localTimezone = java.util.TimeZone.getDefault().getID();
+
     if (scheduleRecords.size() == 0)
     {
 %>
@@ -1405,6 +1409,12 @@ function isRegularExpression(value)
         EnumeratedValues srHourOfDay = sr.getHourOfDay();
         EnumeratedValues srMinutesOfHour = sr.getMinutesOfHour();
         boolean srRequestMinimum = sr.getRequestMinimum();
+        String srTimezone = sr.getTimezone();
+        if (srTimezone == null)
+        {
+          srTimezone = java.util.TimeZone.getDefault().getID();
+        }
+        
         String postFix = Integer.toString(l);
         int k;
 
@@ -1412,6 +1422,28 @@ function isRegularExpression(value)
                 <tr>
                   <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></th>
                   <td colspan="3" class="value">
+                    <select class="selectpicker" multiple="false" name='<%="timezone"+postFix%>'>
+<%
+        k = 0;
+        while (k < availableIDs.length)
+        {
+          String id = availableIDs[k];
+          if (id.equals(srTimezone))
+          {
+%>
+                      <option value='<%=id%>' selected=\"selected\"><%=id%></option>
+<%
+          }
+          else
+          {
+%>
+                      <option value='<%=id%>'><%=id%></option>
+<%
+          }
+          k++;
+        }
+%>
+                    </select>: 
                     <select class="selectpicker" multiple="true" name='<%="dayofweek"+postFix%>'>
                       <option value="none" <%=(srDayOfWeek==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfWeek")%></option>
                       <option value="0" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Sundays")%></option>
@@ -1532,6 +1564,28 @@ function isRegularExpression(value)
                   <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></th>
                   <td colspan="3" class="value">
                     <div class="input-group">
+                      <select class="selectpicker" multiple="false" name="timezone">
+<%
+    int k = 0;
+    while (k < availableIDs.length)
+    {
+      String id = availableIDs[k];
+      if (id.equals(localTimezone))
+      {
+%>
+                        <option value='<%=id%>' selected=\"selected\"><%=id%></option>
+<%
+      }
+      else
+      {
+%>
+                        <option value='<%=id%>'><%=id%></option>
+<%
+      }
+      k++;
+    }
+%>
+                      </select>: 
                       <select class="selectpicker" multiple="true" name="dayofweek">
                         <option value="none" <%=(dayOfWeek==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfWeek")%></option>
                         <option value="0" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Sundays")%></option>
@@ -1546,7 +1600,7 @@ function isRegularExpression(value)
                       <select class="selectpicker" multiple="true" name="hourofday">
                         <option value="none" <%=(hourOfDay==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MidnightAnyHourOfDay")%></option>
 <%
-    int k = 0;
+    k = 0;
     while (k < 24)
     {
       int q = k;
@@ -1674,8 +1728,12 @@ function isRegularExpression(value)
       EnumeratedValues srHourOfDay = sr.getHourOfDay();
       EnumeratedValues srMinutesOfHour = sr.getMinutesOfHour();
       boolean srRequestMinimum = sr.getRequestMinimum();
+      String srTimezone = sr.getTimezone();
       String postFix = Integer.toString(l);
 
+%>
+              <input type="hidden" name='<%="timezone"+postFix%>' value='<%=((srTimezone==null)?"":srTimezone)%>'/>
+<%
       if (srDayOfWeek == null)
       {
 %>

@@ -277,6 +277,7 @@ try
         ScheduleRecord sr = job.getScheduleRecord(j);
         Long srDuration = sr.getDuration();
         boolean srRequestMinimum = sr.getRequestMinimum();
+        String srTimezone = sr.getTimezone();
         EnumeratedValues srDayOfWeek = sr.getDayOfWeek();
         EnumeratedValues srMonthOfYear = sr.getMonthOfYear();
         EnumeratedValues srDayOfMonth = sr.getDayOfMonth();
@@ -289,6 +290,10 @@ try
               <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ScheduledTimeColon")%></nobr></th>
               <td colspan="3">
 <%
+          if (srTimezone != null)
+          {
+            out.println(id + ": ");
+          }
           if (srDayOfWeek == null)
             out.println(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Anydayoftheweek"));
           else
