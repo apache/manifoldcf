@@ -292,7 +292,7 @@ try
 <%
           if (srTimezone != null)
           {
-            out.println(id + ": ");
+            out.println(srTimezone + ": ");
           }
           if (srDayOfWeek == null)
             out.println(Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Anydayoftheweek"));
