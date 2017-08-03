@@ -1423,7 +1423,7 @@ function isRegularExpression(value)
                   <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></th>
                   <td colspan="3" class="value">
                     <div class="input-group">
-                      <select class="form-control schedulepulldown" name='<%="timezone"+postFix%>'>
+                      <select class="selectpicker schedulepulldown" data-size="10" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains" name='<%="timezone"+postFix%>'>
 <%
         k = 0;
         while (k < availableIDs.length)
@@ -1446,7 +1446,7 @@ function isRegularExpression(value)
 %>
                       </select>
                       <span class="label">:</span>
-                      <select class="selectpicker" multiple="true" name='<%="dayofweek"+postFix%>'>
+                      <select class="selectpicker" data-size="10" data-selected-text-format="count > 2"  multiple="true" name='<%="dayofweek"+postFix%>'>
                         <option value="none" <%=(srDayOfWeek==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfWeek")%></option>
                         <option value="0" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Sundays")%></option>
                         <option value="1" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Mondays")%></option>
@@ -1457,7 +1457,7 @@ function isRegularExpression(value)
                         <option value="6" <%=(srDayOfWeek!=null&&srDayOfWeek.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Saturdays")%></option>
                       </select>
                       <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.at")%></span>
-                      <select class="selectpicker" multiple="true" name='<%="hourofday"+postFix%>'>
+                      <select class="selectpicker" data-size="10" data-selected-text-format="count > 2" multiple="true" name='<%="hourofday"+postFix%>'>
                         <option value="none" <%=(srHourOfDay==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MidnightAnyHourOfDay")%></option>
 <%
         k = 0;
@@ -1483,7 +1483,7 @@ function isRegularExpression(value)
 %>
                       </select>
                       <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.plus")%></span>
-                      <select class="selectpicker" multiple="true" name='<%="minutesofhour"+postFix%>'>
+                      <select class="selectpicker" data-size="10" data-selected-text-format="count > 2" multiple="true" name='<%="minutesofhour"+postFix%>'>
                         <option value="none" <%=(srMinutesOfHour==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Nothing")%></option>
 <%
         k = 0;
@@ -1497,7 +1497,7 @@ function isRegularExpression(value)
 %>
                       </select>
                       <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.in")%></span>
-                      <select class="selectpicker" multiple="true" name='<%="monthofyear"+postFix%>'>
+                      <select class="selectpicker" multiple="true" data-size="10" data-selected-text-format="count > 2" name='<%="monthofyear"+postFix%>'>
                         <option value="none" <%=(srMonthOfYear==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EveryMonthOfYear")%></option>
                         <option value="0" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.January")%></option>
                         <option value="1" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.February")%></option>
@@ -1513,7 +1513,7 @@ function isRegularExpression(value)
                         <option value="11" <%=(srMonthOfYear!=null&&srMonthOfYear.checkValue(11))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.December")%></option>
                       </select>
                       <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.on")%></span>
-                      <select class="selectpicker schedulepulldown" multiple="true" name='<%="dayofmonth"+postFix%>'>
+                      <select class="selectpicker schedulepulldown" data-size="10" data-selected-text-format="count > 2" multiple="true" name='<%="dayofmonth"+postFix%>'>
                         <option value="none" <%=(srDayOfMonth==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfMonth")%></option>
 <%
         k = 0;
@@ -1572,7 +1572,7 @@ function isRegularExpression(value)
                   <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.ScheduledTimeColon")%></nobr></th>
                   <td colspan="3" class="value">
                     <div class="input-group">
-                      <select class="form-control schedulepulldown" name="timezone">
+                      <select class="selectpicker schedulepulldown" data-size="10" data-live-search="true" data-live-search-normalize="true" data-live-search-style="contains" name="timezone">
 <%
     int k = 0;
     while (k < availableIDs.length)
@@ -1595,7 +1595,7 @@ function isRegularExpression(value)
 %>
                       </select>
                       <span class="label">:</span>
-                      <select class="selectpicker" multiple="true" name="dayofweek">
+                      <select class="selectpicker" data-size="10" data-selected-text-format="count > 2" multiple="true" name="dayofweek">
                         <option value="none" <%=(dayOfWeek==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfWeek")%></option>
                         <option value="0" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Sundays")%></option>
                         <option value="1" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Mondays")%></option>
@@ -1606,7 +1606,7 @@ function isRegularExpression(value)
                         <option value="6" <%=(dayOfWeek!=null&&dayOfWeek.checkValue(6))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Saturdays")%></option>
                       </select>
                       <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.at")%></span>
-                      <select class="selectpicker" multiple="true" name="hourofday">
+                      <select class="selectpicker" data-size="10" data-selected-text-format="count > 2" multiple="true" name="hourofday">
                         <option value="none" <%=(hourOfDay==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.MidnightAnyHourOfDay")%></option>
 <%
     k = 0;
@@ -1632,7 +1632,7 @@ function isRegularExpression(value)
 %>
                       </select>
                       <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.plus")%></span>
-                      <select class="selectpicker" multiple="true" name="minutesofhour">
+                      <select class="selectpicker" data-size="10" data-selected-text-format="count > 2" multiple="true" name="minutesofhour">
                         <option value="none" <%=(minutesOfHour==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Nothing")%></option>
 <%
     k = 0;
@@ -1646,7 +1646,7 @@ function isRegularExpression(value)
 %>
                       </select>
                       <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.in")%></span>
-                      <select class="selectpicker" multiple="true" name="monthofyear">
+                      <select class="selectpicker" data-size="10" data-selected-text-format="count > 2" multiple="true" name="monthofyear">
                         <option value="none" <%=(monthOfYear==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.EveryMonthOfYear")%></option>
                         <option value="0" <%=(monthOfYear!=null&&monthOfYear.checkValue(0))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.January")%></option>
                         <option value="1" <%=(monthOfYear!=null&&monthOfYear.checkValue(1))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.February")%></option>
@@ -1662,7 +1662,7 @@ function isRegularExpression(value)
                         <option value="11" <%=(monthOfYear!=null&&monthOfYear.checkValue(11))?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.December")%></option>
                       </select>
                       <span class="label"><%=Messages.getBodyString(pageContext.getRequest().getLocale(), "editjob.on")%></span>
-                      <select class="selectpicker" multiple="true" name="dayofmonth">
+                      <select class="selectpicker" data-size="10" data-selected-text-format="count > 2" multiple="true" name="dayofmonth">
                         <option value="none" <%=(dayOfMonth==null)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.AnyDayOfMonth")%></option>
 <%
     k = 0;
@@ -1696,7 +1696,7 @@ function isRegularExpression(value)
                   </td>
                   <th><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.JobInvocationColon")%></nobr></th>
                   <td class="value">
-                    <select class="selectpicker" name="invocation" class="form-control">
+                    <select class="selectpicker" data-size="10" name="invocation" class="form-control">
                       <option value="complete" <%=(requestMinimum==false)?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Complete")%></option>
                       <option value="minimal" <%=requestMinimum ?"selected=\"selected\"":""%>><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"editjob.Minimal")%></option>
                     </select>
