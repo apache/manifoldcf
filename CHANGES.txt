@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1447: Update postgresql driver to the most current version.
+This should allow error free operation with Postgresql versions back to
+version 8.
+(Karl Wright)
+
 CONNECTORS-1446: Confluence connector's UI was broken; protocol
 selection was not working.
 (Ty Taylor, Karl Wright)
