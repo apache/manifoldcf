@@ -457,8 +457,10 @@ $.ManifoldCF.submit=function (form)
   _preLoadContent();
 
   //Add Client Timezone Offset
-  var timezone = new Date().getTimezoneOffset();
-  formData.set('client_timezone_offset',timezone);
+  var timezone_offset = new Date().getTimezoneOffset();
+  var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  formData.set('client_timezone_offset',timezone_offset);
+  formData.set('client_timezone',timezone);
 
   $.ajax({
     type: method,
