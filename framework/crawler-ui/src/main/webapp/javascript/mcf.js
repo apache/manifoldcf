@@ -434,7 +434,12 @@ $.ManifoldCF.loadContent=function (url)
   $('.overlay,#loader').show();
   console.log("URL: " + url);
   _preLoadContent();
-  $('#content').load(decodeURIComponent(url),function (response,status,xhr)
+
+  //Add Client Timezone Offset
+  var timezone_offset = new Date().getTimezoneOffset();
+  var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  $('#content').load(decodeURIComponent(url), { client_timezone_offset : timezone_offset, client_timezone : timezone } ,function (response,status,xhr)
   {
     if (status == 'error')
     {
