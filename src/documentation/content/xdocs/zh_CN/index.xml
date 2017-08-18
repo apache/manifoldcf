@@ -36,7 +36,7 @@
 
     <section>
 	<title>项目的状况</title>
-	<p>Apache ManifoldCF 2.7.1可从<a href="download.html">这里</a>下载。</p>
+	<p>Apache ManifoldCF 2.8可从<a href="download.html">这里</a>下载。</p>
     </section>
 
     <section>
@@ -47,6 +47,10 @@
 
     <section>
         <title>新闻</title>
+          <section>
+              <title>2017年08月18日 - ManifoldCF 2.8发布了！</title>
+                <p>开发人员社区批准发布2.8版</p>
+          </section>
           <section>
               <title>2017年05月10日 - ManifoldCF 2.7.1发布了！</title>
                 <p>开发人员社区批准发布Bug修改版</p>
