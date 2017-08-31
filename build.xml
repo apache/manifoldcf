@@ -553,7 +553,7 @@
     <target name="doc" depends="deliver-site-doc"/>
     
     <target name="set-version">
-      <property name="release-version" value="2.8"/>
+      <property name="release-version" value="2.8.1"/>
     </target>
     
     <target name="create-source-zip" depends="set-version">

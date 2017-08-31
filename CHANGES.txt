@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= Release 2.8.1 =====================
+
+
 ======================= Release 2.8 =====================
 
 CONNECTORS-1445: Fix timezone handling in reports to use browser timezone
