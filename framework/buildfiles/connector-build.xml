@@ -116,6 +116,10 @@
         </fileset>
         <fileset dir="${mcf-dist}/lib">
             <include name="mail*.jar"/>
+            <include name="poi*.jar"/>
+            <include name="dom4j*.jar"/>
+            <include name="xmlbeans*.jar"/>
+            <include name="curvesapi*.jar"/>
             <include name="commons-exec*.jar"/>
             <include name="guava*.jar"/>
             <include name="gson*.jar"/>
@@ -123,6 +127,7 @@
             <include name="json-simple*.jar"/>
             <include name="commons-codec*.jar"/>
             <include name="commons-collections*.jar"/>
+            <include name="commons-collections4*.jar"/>
             <include name="commons-el*.jar"/>
             <include name="commons-fileupload*.jar"/>
             <include name="httpcore*.jar"/>
@@ -179,7 +184,6 @@
             <include name="quartz*.jar"/>
             <include name="c3p0*.jar"/>
             <include name="tagsoup*.jar"/>
-            <include name="poi*.jar"/>
             <include name="vorbis-java*.jar"/>
             <include name="apache-mime4j-core*.jar"/>
             <include name="apache-mime4j-dom*.jar"/>
@@ -190,9 +194,6 @@
             <include name="bcmail-jdk15on*.jar"/>
             <include name="bcprov-jdk15on*.jar"/>
             <include name="bcpkix-jdk15on*.jar"/>
-            <include name="curvesapi*.jar"/>
-            <include name="xmlbeans*.jar"/>
-            <include name="dom4j*.jar"/>
             <include name="geronimo-stax-api_1.0_spec*.jar"/>
             <include name="asm*.jar"/>
             <include name="isoparser*.jar"/>

@@ -30,22 +30,6 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
-    <path id="connector-classpath">
-        <path refid="mcf-connector-build.connector-classpath"/>
-        <fileset dir="../../lib">
-            <include name="poi*.jar"/>
-        </fileset>
-    </path>
-    
-    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
-        <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib">
-            <fileset dir="../../lib">
-                <include name="poi*.jar"/>
-            </fileset>
-        </copy>
-    </target>
-    
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-output-connector">
             <param name="connector-label" value="MetaCarta GTS"/>
