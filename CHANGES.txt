@@ -3,12 +3,18 @@ $Id$
 
 ======================= Release 2.8.1 =====================
 
+CONNECTORS-1451: Tika extractor was causing some out-of-memory
+events to occur for simple crawls, so I increased the default memory
+allocated in the examples to 512M.
+(Karl Wright)
+
 CONNECTORS-1450: Tika extractor cannot process MS Office files due
 to a dependency problem.  The dependency issue is that poi-ooxml-schemas
 is apparently accessed via reflection, and the class lookup does not
 apparently use the current classloader, but rather some other classloader.
 This requires the entire poi* set of jars, and all dependencies, to be
 included in ManifoldCF's core jar list.
+(Karl Wright)
 
 ======================= Release 2.8 =====================
 
