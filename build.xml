@@ -71,6 +71,7 @@
     <property name="junit.version" value="4.12"/>
     <property name="selenium.version" value="3.3.1"/>
     <property name="hamcrest.version" value="1.3"/>
+    <property name="log4j12.version" value="1.2.17"/>
     <property name="log4j.version" value="2.4.1"/>
     <property name="mail.version" value="1.4.5"/>
     <property name="mimepull.version" value="1.3"/>
@@ -1697,6 +1698,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
 
     <target name="download-log4j">
         <mkdir dir="lib"/>
+        <!-- For zookeeper -->
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="log4j"/>
+            <param name="artifact-version" value="${log4j12.version}"/>
+            <param name="artifact-name" value="log4j"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/logging/log4j"/>
             <param name="artifact-version" value="${log4j.version}"/>

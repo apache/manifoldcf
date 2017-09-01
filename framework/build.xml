@@ -60,7 +60,9 @@
             <include name="slf4j*.jar"/>
             <include name="jsp-2.1*.jar"/>
             <include name="jsp-api*.jar"/>
-            <include name="log4j*.jar"/>
+            <include name="log4j-api-*.jar"/>
+            <include name="log4j-core-*.jar"/>
+            <include name="log4j-1.2-api-*.jar"/>
             <include name="serializer*.jar"/>
             <include name="javax.servlet-api*.jar"/>
             <include name="juli*.jar"/>
@@ -489,7 +491,9 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
+                <include name="log4j-api-*.jar"/>
+                <include name="log4j-core-*.jar"/>
+                <include name="log4j-1.2-api-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -537,7 +541,9 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
+                <include name="log4j-api-*.jar"/>
+                <include name="log4j-core-*.jar"/>
+                <include name="log4j-1.2-api-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -591,7 +597,9 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
+                <include name="log4j-api-*.jar"/>
+                <include name="log4j-core-*.jar"/>
+                <include name="log4j-1.2-api-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -640,7 +648,9 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
+                <include name="log4j-api-*.jar"/>
+                <include name="log4j-core-*.jar"/>
+                <include name="log4j-1.2-api-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -696,7 +706,9 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
+                <include name="log4j-api-*.jar"/>
+                <include name="log4j-core-*.jar"/>
+                <include name="log4j-1.2-api-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -757,7 +769,9 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
+                <include name="log4j-api-*.jar"/>
+                <include name="log4j-core-*.jar"/>
+                <include name="log4j-1.2-api-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -822,7 +836,9 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
+                <include name="log4j-api-*.jar"/>
+                <include name="log4j-core-*.jar"/>
+                <include name="log4j-1.2-api-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -881,7 +897,9 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
+                <include name="log4j-api-*.jar"/>
+                <include name="log4j-core-*.jar"/>
+                <include name="log4j-1.2-api-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -1009,7 +1027,10 @@
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
-                <include name="log4j*.jar"/>
+                <include name="log4j-1.2.*.jar"/>
+                <include name="log4j-api-*.jar"/>
+                <include name="log4j-core-*.jar"/>
+                <include name="log4j-1.2-api-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="javax.servlet-api*.jar"/>
                 <include name="xalan*.jar"/>
@@ -1239,7 +1260,7 @@
             <include name="zookeeper*.jar"/>
             <include name="slf4j-api*.jar"/>
             <include name="slf4j-simple*.jar"/>
-            <include name="log4j*.jar"/>
+            <include name="log4j-1.2.*.jar"/>
         </fileset>
     </path>
     
@@ -1257,7 +1278,9 @@
             <include name="jasper*.jar"/>
             <include name="jsp-api-2.1-glassfish*.jar"/>
             <include name="json-simple*.jar"/>
-            <include name="log4j*.jar"/>
+            <include name="log4j-api-*.jar"/>
+            <include name="log4j-core-*.jar"/>
+            <include name="log4j-1.2-api-*.jar"/>
             <include name="serializer*.jar"/>
             <include name="javax.servlet-api*.jar"/>
             <include name="juli*.jar"/>
