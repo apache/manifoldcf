@@ -3,6 +3,13 @@ $Id$
 
 ======================= Release 2.8.1 =====================
 
+CONNECTORS-1452: The runzookeeper.bat/runzookeeper.sh scripts
+were not properly starting zookeeper, because the zookeeper "main
+process" uses log4j 1.2.x methods not compatible with the log4j-1.2-api
+shim.  We have to include a 1.2.x jar and use that when starting the
+zookeeper process.
+(Karl Wright)
+
 CONNECTORS-1451: Tika extractor was causing some out-of-memory
 events to occur for simple crawls, so I increased the default memory
 allocated in the examples to 512M.
