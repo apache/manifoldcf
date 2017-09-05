@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.9-dev =====================
 
+CONNECTORS-1455: Eventually skip a locked shared drive file, rather
+than aborting the job.
+(Julien Massiera, Karl Wright)
+
 CONNECTORS-1452: The runzookeeper.bat/runzookeeper.sh scripts
 were not properly starting zookeeper, because the zookeeper "main
 process" uses log4j 1.2.x methods not compatible with the log4j-1.2-api
