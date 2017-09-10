@@ -21,13 +21,9 @@ package org.apache.manifoldcf.crawler.connectors.cmis;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -37,7 +33,6 @@ import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.ItemIterable;
-import org.apache.chemistry.opencmis.client.api.Property;
 import org.apache.chemistry.opencmis.client.api.QueryResult;
 import org.apache.chemistry.opencmis.client.api.Repository;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -46,28 +41,25 @@ import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
-import org.apache.chemistry.opencmis.commons.impl.Constants;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-
+import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
-import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
+import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
-import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 /**
@@ -84,8 +76,6 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   private static final String CMIS_FOLDER_BASE_TYPE = "cmis:folder";
   private static final String CMIS_DOCUMENT_BASE_TYPE = "cmis:document";
-  private static final SimpleDateFormat ISO8601_DATE_FORMATTER = new SimpleDateFormat(
-      "yyyy-MM-dd'T'HH:mm:ssZ", Locale.ROOT);
 
   // Tab name properties
 
@@ -112,7 +102,6 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   /** Forward to the template to view the specification parameters for the job */
   private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
-
 
   /**
    * CMIS Session handle
@@ -144,6 +133,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   protected static final long timeToRelease = 300000L;
   protected long lastSessionFetch = -1L;
+  
+  private boolean enableContentMigration = false;
+  
+  private static final char SLASH = '/';
 
   /**
    * Constructor
@@ -667,6 +660,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
         cmisQuery = sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
+        if(StringUtils.isNotEmpty(sn.getAttributeValue(CmisConfig.CONTENT_MIGRATION_PARAM))){
+        	enableContentMigration = Boolean.valueOf(sn.getAttributeValue(CmisConfig.CONTENT_MIGRATION_PARAM));
+        }
         break;
       }
     }
@@ -676,18 +672,18 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       ItemIterable<CmisObject> cmisObjects = session.getRootFolder()
           .getChildren();
       for (CmisObject cmisObject : cmisObjects) {
-        activities.addSeedDocument(cmisObject.getId());
-      }
+          activities.addSeedDocument(cmisObject.getId());
+      	}
     } else {
       cmisQuery = CmisRepositoryConnectorUtils.getCmisQueryWithObjectId(cmisQuery);
       ItemIterable<QueryResult> results = session.query(cmisQuery, false).getPage(1000000000);
       for (QueryResult result : results) {
-        String id = result.getPropertyValueById(PropertyIds.OBJECT_ID);
-        activities.addSeedDocument(id);
-      }
+      		String id = result.getPropertyValueById(PropertyIds.OBJECT_ID);
+          activities.addSeedDocument(id);
+      	}
     }
 
-    return "";
+    return StringUtils.EMPTY;
   }
 
 
@@ -919,15 +915,19 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   private static void fillInCMISQuerySpecificationMap(Map<String,String> newMap, Specification ds)
   {
     int i = 0;
-    String cmisQuery = "";
+    String cmisQuery = StringUtils.EMPTY;
+    String contentMigration = StringUtils.EMPTY;
     while (i < ds.getChildCount()) {
       SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
         cmisQuery = sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
+        contentMigration = sn.getAttributeValue(CmisConfig.CONTENT_MIGRATION_PARAM);
       }
       i++;
     }
     newMap.put(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
+    newMap.put(CmisConfig.CONTENT_MIGRATION_PARAM, contentMigration);
+
   }
 
   /** View specification.
@@ -973,7 +973,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     String seqPrefix = "s"+connectionSequenceNumber+"_";
 
     String cmisQuery = variableContext.getParameter(seqPrefix + CmisConfig.CMIS_QUERY_PARAM);
-    if (cmisQuery != null) {
+    String contentMigration = variableContext.getParameter(seqPrefix + CmisConfig.CONTENT_MIGRATION_PARAM);
+    if (cmisQuery != null || contentMigration != null) {
       int i = 0;
       while (i < ds.getChildCount()) {
         SpecificationNode oldNode = ds.getChild(i);
@@ -983,9 +984,24 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         }
         i++;
       }
+  
       SpecificationNode node = new SpecificationNode(JOB_STARTPOINT_NODE_TYPE);
       node.setAttribute(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
       variableContext.setParameter(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
+      
+      //Content Migration
+      if(StringUtils.isEmpty(contentMigration)
+      		|| StringUtils.equalsIgnoreCase(contentMigration, Boolean.FALSE.toString()) ){
+      	contentMigration = Boolean.FALSE.toString();
+      	enableContentMigration = false;
+      } else {
+      	contentMigration = Boolean.TRUE.toString();
+      	enableContentMigration = true;
+      }
+
+      node.setAttribute(CmisConfig.CONTENT_MIGRATION_PARAM, contentMigration);
+      variableContext.setParameter(CmisConfig.CONTENT_MIGRATION_PARAM, contentMigration);
+      
       ds.addChild(ds.getChildCount(), node);
     }
     return null;
@@ -1093,7 +1109,6 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       }
 
       if (cmisObject == null) {
-        //System.out.println(" doesn't exist");
         activities.deleteDocument(documentIdentifier);
         continue;
       }
@@ -1119,8 +1134,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             long lmdSeconds = document.getLastModificationDate().getTimeInMillis();
             versionString = documentIdentifier + lmdSeconds + ":" + cmisQuery;
         } else {
-          //System.out.println(" is NOT latest vrersion");
-          activities.deleteDocument(documentIdentifier);
+          //System.out.println(" is NOT latest version");
+        	activities.deleteDocument(documentIdentifier);
           continue;
         }
       } else {
@@ -1159,41 +1174,51 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             String fileName = document.getContentStreamFileName();
             String mimeType = document.getContentStreamMimeType();
             //documentURI
-            String documentURI = CmisRepositoryConnectorUtils.getDocumentURL(document, session);
+            String documentURI = StringUtils.EMPTY;
+            if(enableContentMigration) {
+            	String path = document.getPropertyValue(PropertyIds.PATH);
+            	String name = document.getName();
+            	String fullContentPath = path + SLASH + name;
+            	documentURI = fullContentPath;
+            } else {
+            	documentURI = CmisRepositoryConnectorUtils.getDocumentURL(document, session);
+            }
 
             // Do any filtering (which will save us work)
-            if (!activities.checkURLIndexable(documentURI))
-            {
-              activities.noDocument(documentIdentifier,versionString);
-              errorCode = activities.EXCLUDED_URL;
-              errorDesc = "Excluding due to URL ('"+documentURI+"')";
-              continue;
+            if(!enableContentMigration) {
+	            if (!activities.checkURLIndexable(documentURI))
+	            {
+	              activities.noDocument(documentIdentifier,versionString);
+	              errorCode = IProcessActivity.EXCLUDED_URL;
+	              errorDesc = "Excluding due to URL ('"+documentURI+"')";
+	              continue;
+	            }
+	
+	            if (!activities.checkMimeTypeIndexable(mimeType))
+	            {
+	              activities.noDocument(documentIdentifier,versionString);
+	              errorCode = IProcessActivity.EXCLUDED_MIMETYPE;
+	              errorDesc = "Excluding due to mime type ("+mimeType+")";
+	              continue;
+	            }
+	
+	            if (!activities.checkLengthIndexable(fileLength))
+	            {
+	              activities.noDocument(documentIdentifier,versionString);
+	              errorCode = IProcessActivity.EXCLUDED_LENGTH;
+	              errorDesc = "Excluding due to length ("+fileLength+")";
+	              continue;
+	            }
+	
+	            if (!activities.checkDateIndexable(modifiedDate))
+	            {
+	              activities.noDocument(documentIdentifier,versionString);
+	              errorCode = IProcessActivity.EXCLUDED_DATE;
+	              errorDesc = "Excluding due to date ("+modifiedDate+")";
+	              continue;
+	            }
             }
-
-            if (!activities.checkMimeTypeIndexable(mimeType))
-            {
-              activities.noDocument(documentIdentifier,versionString);
-              errorCode = activities.EXCLUDED_MIMETYPE;
-              errorDesc = "Excluding due to mime type ("+mimeType+")";
-              continue;
-            }
-
-            if (!activities.checkLengthIndexable(fileLength))
-            {
-              activities.noDocument(documentIdentifier,versionString);
-              errorCode = activities.EXCLUDED_LENGTH;
-              errorDesc = "Excluding due to length ("+fileLength+")";
-              continue;
-            }
-
-            if (!activities.checkDateIndexable(modifiedDate))
-            {
-              activities.noDocument(documentIdentifier,versionString);
-              errorCode = activities.EXCLUDED_DATE;
-              errorDesc = "Excluding due to date ("+modifiedDate+")";
-              continue;
-            }
-
+            
             RepositoryDocument rd = new RepositoryDocument();
             rd.setFileName(fileName);
             rd.setMimeType(mimeType);
@@ -1208,8 +1233,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
                 is = null;
             } catch (CmisObjectNotFoundException e) {
               // Document gone
-              activities.deleteDocument(documentIdentifier);
+            	activities.deleteDocument(documentIdentifier);
               continue;
+
             }
 
             try {
@@ -1224,7 +1250,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
               String modifiedQuery = CmisRepositoryConnectorUtils.getCmisQueryWithObjectId(cmisQuery);
 
               //filter the fields selected in the query
-              CmisRepositoryConnectorUtils.addValuesOfProperties(cmisObject.getProperties(), rd, modifiedQuery);
+              CmisRepositoryConnectorUtils.addValuesOfProperties(document, rd, modifiedQuery);
               //ingestion
 
               try {

@@ -55,6 +55,9 @@ public class CmisRepositoryConnectorUtils {
     private static final String SELECT_CLAUSE_TERM_SEP = ",";
     private static final String SELECT_PREFIX = "select ";
     private final static String TOKENIZER_SEP = ",\n\t";
+    
+    /** The standard Path property for ManifoldCF used for migrate contents **/
+    private static final String CONTENT_MIGRATION_PATH_PROPERTY = "manifoldcf:path";
 
     public static final String getDocumentURL(final Document document, final Session session)
             throws ManifoldCFException {
@@ -168,7 +171,18 @@ public class CmisRepositoryConnectorUtils {
      * @param rd : object that contains the properties to pass to connector
      * @param cmisQuery : cmis query
      */
-    public static void addValuesOfProperties(final List<Property<?>> props, RepositoryDocument rd, String cmisQuery) {
+    public static void addValuesOfProperties(Document document, RepositoryDocument rd, String cmisQuery) {
+    		String primaryPath = StringUtils.EMPTY;
+    		if(document.getPaths() != null) {
+    			primaryPath = document.getPaths().get(0);
+    			try {
+						rd.addField(CONTENT_MIGRATION_PATH_PROPERTY, primaryPath);
+					} catch (ManifoldCFException e) {
+            Logging.connectors.error("Error when adding property[" + CONTENT_MIGRATION_PATH_PROPERTY + "] msg=[" + e.getMessage() + "]", e);
+					}
+    		}
+    		
+    		List<Property<?>> props = document.getProperties();
         Map<String, String> cmisQueryColumns = CmisRepositoryConnectorUtils.getSelectMap(cmisQuery);
         boolean isWildcardQuery = CmisRepositoryConnectorUtils.isWildcardQuery(cmisQuery);
         addValuesOfProperty(props, isWildcardQuery, cmisQueryColumns, rd);

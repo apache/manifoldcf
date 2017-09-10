@@ -131,7 +131,7 @@
                 <artifactItem>
                   <groupId>org.apache.chemistry.opencmis</groupId>
                   <artifactId>chemistry-opencmis-server-inmemory</artifactId>
-                  <version>0.13.0</version>
+                  <version>1.1.0</version>
                   <type>war</type>
                   <overWrite>false</overWrite>
                   <destFileName>chemistry-opencmis-server-inmemory.war</destFileName>
@@ -257,7 +257,7 @@
     <dependency>
         <groupId>org.apache.chemistry.opencmis</groupId>
         <artifactId>chemistry-opencmis-client-impl</artifactId>
-        <version>0.13.0</version>
+        <version>1.1.0</version>
      </dependency>
      <dependency>
         <groupId>commons-lang</groupId>
@@ -307,7 +307,7 @@
     <dependency>
       <groupId>org.apache.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-server-inmemory</artifactId>
-      <version>0.13.0</version>
+      <version>1.1.0</version>
       <type>war</type>
       <scope>test</scope>
     </dependency>

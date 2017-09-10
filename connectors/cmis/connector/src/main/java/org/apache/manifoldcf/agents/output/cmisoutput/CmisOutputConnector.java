@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.math.BigInteger;
-import java.net.URISyntaxException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Date;
@@ -55,8 +54,6 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundExcept
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
@@ -160,6 +157,11 @@ public class CmisOutputConnector extends BaseOutputConnector {
 
 	/** Document remove permanently rejected */
 	private final static String DOCUMENT_DELETION_STATUS_REJECTED = "Remove request rejected";
+	
+	/** The standard Path property for ManifoldCF used for migrate contents **/
+  private static final String CONTENT_MIGRATION_PATH_PROPERTY = "manifoldcf:path";
+
+  private static final char CMIS_PATH_SEP = '/';
 
 	/**
 	 * Constructor
@@ -876,21 +878,21 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		return false;
 	}
 	
-	private String getObjectIdFromDocumentURI(String documentURI) throws URISyntaxException {
-		String objectId = StringUtils.EMPTY;
-		URIBuilder uriBuilder = new URIBuilder(documentURI);
-		List<NameValuePair> params = uriBuilder.getQueryParams();
-		Iterator<NameValuePair> iteratorParams = params.iterator();
-		while (iteratorParams.hasNext()) {
-			NameValuePair nameValuePair = (NameValuePair) iteratorParams.next();
-			String name = nameValuePair.getName();
-			if(StringUtils.equals(name, "id")
-					|| StringUtils.equals(name, PropertyIds.OBJECT_ID)) {
-				objectId = nameValuePair.getValue();
-			}
-		}
-		return objectId;
-	}
+//	private String getObjectIdFromDocumentURI(String documentURI) throws URISyntaxException {
+//		String objectId = StringUtils.EMPTY;
+//		URIBuilder uriBuilder = new URIBuilder(documentURI);
+//		List<NameValuePair> params = uriBuilder.getQueryParams();
+//		Iterator<NameValuePair> iteratorParams = params.iterator();
+//		while (iteratorParams.hasNext()) {
+//			NameValuePair nameValuePair = (NameValuePair) iteratorParams.next();
+//			String name = nameValuePair.getName();
+//			if(StringUtils.equals(name, "id")
+//					|| StringUtils.equals(name, PropertyIds.OBJECT_ID)) {
+//				objectId = nameValuePair.getValue();
+//			}
+//		}
+//		return objectId;
+//	}
 	
 
 	@Override
@@ -917,6 +919,13 @@ public class CmisOutputConnector extends BaseOutputConnector {
 				String mimeType = document.getMimeType();
 				Long binaryLength = document.getBinaryLength();
 				String objectId = StringUtils.EMPTY;
+				
+				//check if the repository connector includes the content path
+				String primaryPath = StringUtils.EMPTY;
+				if(document.getField(CONTENT_MIGRATION_PATH_PROPERTY) != null) {
+					primaryPath = ((String[]) document.getField(CONTENT_MIGRATION_PATH_PROPERTY))[0];
+				}
+				
 				
 			  // properties
 				// (minimal set: name and object type id)
@@ -958,7 +967,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 				    inputStream);
 
 				// create a major version
-				leafParent = getOrCreateLeafParent(parentDropZoneFolder, creationDate, Boolean.valueOf(createTimestampTree));
+				leafParent = getOrCreateLeafParent(parentDropZoneFolder, creationDate, Boolean.valueOf(createTimestampTree), primaryPath);
 				injectedDocument = leafParent.createDocument(properties, contentStream, VersioningState.MAJOR);
 				resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
 				return DOCUMENT_STATUS_ACCEPTED;
@@ -994,7 +1003,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 	 * @param createTimestampTree: this is the flag checked in the ManifoldCF configuration panel
 	 * @return the target folder created using the creationDate related to the injected content
 	 */
-	private Folder getOrCreateLeafParent(Folder folder, Date creationDate, boolean createTimestampTree) {
+	private Folder getOrCreateLeafParent(Folder folder, Date creationDate, boolean createTimestampTree, String primaryPath) {
 		Folder leafParent = folder;
 		if (createTimestampTree) {
 			GregorianCalendar calendar = new GregorianCalendar();
@@ -1009,6 +1018,15 @@ public class CmisOutputConnector extends BaseOutputConnector {
 			Folder dayFolder = createFolderIfNotExist(monthFolder, day);
 			
 			leafParent = dayFolder;
+			
+		} else if(StringUtils.isNotEmpty(primaryPath)) {
+			String[] primaryPathArray = StringUtils.split(primaryPath, CMIS_PATH_SEP);
+			leafParent = folder;
+			for (int i = 0; i < primaryPathArray.length - 1; i++) {
+				String pathSegment = primaryPathArray[i];
+				Folder pathSegmentFolder = createFolderIfNotExist(leafParent, pathSegment);
+				leafParent = pathSegmentFolder;
+			}
 		}
 		return leafParent;
 	}
@@ -1044,23 +1062,14 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		getSession();
 		long startTime = System.currentTimeMillis();
 		String result = StringUtils.EMPTY;
-		String objectIdValue = StringUtils.EMPTY;
 		try {
-			objectIdValue = getObjectIdFromDocumentURI(documentURI);
-		} catch (URISyntaxException e) {
-			result = DOCUMENT_DELETION_STATUS_REJECTED;
-			throw new ManifoldCFException(e.getMessage(), e);
-		}
-		
-		ObjectId objectId = new ObjectIdImpl(objectIdValue);
-		try {
-			session.delete(objectId);
+			session.deleteByPath(documentURI);
 			result = DOCUMENT_DELETION_STATUS_ACCEPTED;
 		} catch (Exception e) {
 			result = DOCUMENT_DELETION_STATUS_REJECTED;
 			throw new ManifoldCFException(e.getMessage(), e);
 		} finally {
-			activities.recordActivity(startTime, ACTIVITY_DELETE, null, documentURI, objectId.toString(), result);
+			activities.recordActivity(startTime, ACTIVITY_DELETE, null, documentURI, null, result);
 		}
 	}
 
