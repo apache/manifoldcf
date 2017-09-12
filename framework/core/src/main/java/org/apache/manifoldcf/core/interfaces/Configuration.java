@@ -794,7 +794,13 @@ public class Configuration implements IHierarchyParent
     }
     
     public void value(final String value) {
-      currentObject.put(currentKey, value);
+      if (currentKey != null) {
+        currentObject.put(currentKey, value);
+      } else if (currentArray != null) {
+        currentArray.add(value);
+      } else {
+        throw new RuntimeException("Naked value found with no context!");
+      }
     }
     
     public void endObject() {
