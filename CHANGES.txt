@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.9-dev =====================
 
+CONNECTORS-1456: Tentative fix for API issue exporting jobs in JSON
+format.  Basically, simple valued array elements did not work.
+(Adrian Conlon, Karl Wright)
+
 CONNECTORS-1455: Eventually skip a locked shared drive file, rather
 than aborting the job.
 (Julien Massiera, Karl Wright)
