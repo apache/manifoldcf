@@ -958,9 +958,12 @@ public class CmisOutputConnector extends BaseOutputConnector {
 				properties.put(PropertyIds.CREATION_DATE, creationDate);
 				properties.put(PropertyIds.LAST_MODIFICATION_DATE, lastModificationDate);
 				
-				ObjectId objId = new ObjectIdImpl(objectId);
-				properties.put(PropertyIds.OBJECT_ID, objId);
-
+				//check objectId
+				if(StringUtils.isNotEmpty(objectId)){
+					ObjectId objId = new ObjectIdImpl(objectId);
+					properties.put(PropertyIds.OBJECT_ID, objId);
+				}
+				
 				// Content Stream
 				InputStream inputStream = document.getBinaryStream();
 				contentStream = new ContentStreamImpl(fileName, BigInteger.valueOf(binaryLength), mimeType,
