@@ -40,6 +40,7 @@ import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
@@ -48,6 +49,7 @@ import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.agents.output.cmisoutput.CmisOutputConnectorUtils;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
@@ -73,9 +75,6 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   protected final static String ACTIVITY_READ = "read document";
   protected static final String RELATIONSHIP_CHILD = "child";
-
-  private static final String CMIS_FOLDER_BASE_TYPE = "cmis:folder";
-  private static final String CMIS_DOCUMENT_BASE_TYPE = "cmis:document";
 
   // Tab name properties
 
@@ -1115,7 +1114,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
       String versionString;
 
-      if (cmisObject.getBaseType().getId().equals(CMIS_DOCUMENT_BASE_TYPE)) {
+      if (cmisObject.getBaseType().getId().equals(BaseTypeId.CMIS_DOCUMENT.value())) {
         Document document = (Document) cmisObject;
 
         // Since documents that are not current have different node id's, we can return a constant version,
@@ -1153,17 +1152,15 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         try {
           String baseTypeId = cmisObject.getBaseType().getId();
 
-          if (baseTypeId.equals(CMIS_FOLDER_BASE_TYPE)) {
-
+          if (baseTypeId.equals(BaseTypeId.CMIS_FOLDER.value())) {
             // adding all the children for a folder
-
             Folder folder = (Folder) cmisObject;
             ItemIterable<CmisObject> children = folder.getChildren();
             for (CmisObject child : children) {
               activities.addDocumentReference(child.getId(), documentIdentifier,
                   RELATIONSHIP_CHILD);
             }
-          } else if(baseTypeId.equals(CMIS_DOCUMENT_BASE_TYPE)) {
+          } else if(baseTypeId.equals(BaseTypeId.CMIS_DOCUMENT.value())) {
             // content ingestion
 
             Document document = (Document) cmisObject;
@@ -1173,16 +1170,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             long fileLength = document.getContentStreamLength();
             String fileName = document.getContentStreamFileName();
             String mimeType = document.getContentStreamMimeType();
+            
             //documentURI
-            String documentURI = StringUtils.EMPTY;
-            if(enableContentMigration) {
-            	String path = document.getPropertyValue(PropertyIds.PATH);
-            	String name = document.getName();
-            	String fullContentPath = path + SLASH + name;
-            	documentURI = fullContentPath;
-            } else {
-            	documentURI = CmisRepositoryConnectorUtils.getDocumentURL(document, session);
-            }
+            String documentURI = getDocumentURI(cmisObject, enableContentMigration);
 
             // Do any filtering (which will save us work)
             if(!enableContentMigration) {
@@ -1293,6 +1283,32 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       }
     }
 
+  }
+  
+  private String getDocumentURI(CmisObject cmisObject, boolean enableContentMigration) throws ManifoldCFException {
+  	String documentURI = StringUtils.EMPTY;
+  	String currentBaseTypeId = cmisObject.getBaseTypeId().value();
+  	if(StringUtils.equals(currentBaseTypeId, BaseTypeId.CMIS_DOCUMENT.value())) {
+  		Document currentDocument = (Document) cmisObject;
+  		if(enableContentMigration) {
+  			if(currentDocument.getParents() != null
+  					&& !currentDocument.getParents().isEmpty()) {
+  				String path = currentDocument.getParents().get(0).getPath();
+        	String name = currentDocument.getName();
+        	String fullContentPath = path + CmisRepositoryConnectorUtils.SLASH + name;
+        	documentURI = fullContentPath;
+  			}
+      } else {
+      	documentURI = CmisRepositoryConnectorUtils.getDocumentURL(currentDocument, session);
+      }
+  	} else if(StringUtils.equals(currentBaseTypeId, BaseTypeId.CMIS_FOLDER.value())) {
+  		Folder currentFolder = (Folder) cmisObject;
+  		String path = currentFolder.getPath();
+  		String name = currentFolder.getName();
+  		String fullContentPath = path + CmisRepositoryConnectorUtils.SLASH + name;
+  		documentURI = fullContentPath;
+  	}
+  	return documentURI;
   }
 
   protected static void handleIOException(IOException e, String context) throws ManifoldCFException, ServiceInterruption {

@@ -45,6 +45,7 @@ import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
@@ -1046,7 +1047,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 			folder = (Folder) session.getObjectByPath(leafParent.getPath() + CmisOutputConnectorUtils.SLASH + folderName);
 		} catch (CmisObjectNotFoundException onfe) {
 			Map<String, Object> props = new HashMap<String, Object>();
-		  props.put(PropertyIds.OBJECT_TYPE_ID,  "cmis:folder");
+		  props.put(PropertyIds.OBJECT_TYPE_ID,  BaseTypeId.CMIS_FOLDER.value());
 		  props.put(PropertyIds.NAME, folderName);
 		  folder = leafParent.createFolder(props);
 		  
@@ -1065,9 +1066,17 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		getSession();
 		long startTime = System.currentTimeMillis();
 		String result = StringUtils.EMPTY;
+		
+		//append the prefix for the relative path in the target repo
+		String parentDropZonePath = parentDropZoneFolder.getPath();
+		String fullDocumentURIinTargetRepo = parentDropZonePath + documentURI;
 		try {
-			session.deleteByPath(documentURI);
-			result = DOCUMENT_DELETION_STATUS_ACCEPTED;
+			if(session.existsPath(fullDocumentURIinTargetRepo)) {
+				session.deleteByPath(fullDocumentURIinTargetRepo);
+				result = DOCUMENT_DELETION_STATUS_ACCEPTED;
+			} else {
+				result = DOCUMENT_DELETION_STATUS_REJECTED;
+			}
 		} catch (Exception e) {
 			result = DOCUMENT_DELETION_STATUS_REJECTED;
 			throw new ManifoldCFException(e.getMessage(), e);

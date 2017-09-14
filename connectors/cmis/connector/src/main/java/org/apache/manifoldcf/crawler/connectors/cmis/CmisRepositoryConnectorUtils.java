@@ -55,6 +55,7 @@ public class CmisRepositoryConnectorUtils {
     private static final String SELECT_CLAUSE_TERM_SEP = ",";
     private static final String SELECT_PREFIX = "select ";
     private final static String TOKENIZER_SEP = ",\n\t";
+    public static final String SLASH = "/";
     
     /** The standard Path property for ManifoldCF used for migrate contents **/
     private static final String CONTENT_MIGRATION_PATH_PROPERTY = "manifoldcf:path";
