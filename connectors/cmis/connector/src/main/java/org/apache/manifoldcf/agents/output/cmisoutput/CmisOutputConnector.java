@@ -878,23 +878,6 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		}
 		return false;
 	}
-	
-//	private String getObjectIdFromDocumentURI(String documentURI) throws URISyntaxException {
-//		String objectId = StringUtils.EMPTY;
-//		URIBuilder uriBuilder = new URIBuilder(documentURI);
-//		List<NameValuePair> params = uriBuilder.getQueryParams();
-//		Iterator<NameValuePair> iteratorParams = params.iterator();
-//		while (iteratorParams.hasNext()) {
-//			NameValuePair nameValuePair = (NameValuePair) iteratorParams.next();
-//			String name = nameValuePair.getName();
-//			if(StringUtils.equals(name, "id")
-//					|| StringUtils.equals(name, PropertyIds.OBJECT_ID)) {
-//				objectId = nameValuePair.getValue();
-//			}
-//		}
-//		return objectId;
-//	}
-	
 
 	@Override
 	public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription,

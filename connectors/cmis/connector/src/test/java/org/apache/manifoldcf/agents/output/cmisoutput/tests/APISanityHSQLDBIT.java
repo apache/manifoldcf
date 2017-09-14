@@ -422,6 +422,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       //Job configuration
       ConfigurationNode sn = new ConfigurationNode("startpoint");
       sn.setAttribute(CmisOutputConfig.CMIS_QUERY_PARAM, CmisOutputConfig.CMIS_QUERY_DEFAULT_VALUE);
+      sn.setAttribute(CmisConfig.CONTENT_MIGRATION_PARAM, Boolean.TRUE.toString());
       
       child.addChild(child.getChildCount(),sn);
       jobObject.addChild(jobObject.getChildCount(),child);
@@ -493,7 +494,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 5)
         throw new ManifoldCFException("Wrong number of documents processed after change - expected 5, saw "+new Long(count).toString());
-      
+      	
       //Tests if there are 4 documents in the target repo
       targetRepoNumberOfContents = queryTestContents(cmisTargetClientSession);
       if(targetRepoNumberOfContents != 4)
