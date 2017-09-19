@@ -1,0 +1,15 @@
+{
+	"path": "A/B/C",
+	"readableAuthorities": [ "1", "2", "3" ],
+	"properties": [ {
+			"name": "pippo",
+			"value": "pluto",
+			"type": "java.lang.String"
+		}, {
+			"name": "foo",
+			"value": "5",
+			"type": "java.lang.Double"
+		}
+	],
+	"aspects": [ "a", "b", "c" ]
+}

@@ -30,7 +30,7 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
     
-    <property name="chemistry.version" value="0.13.0"/>
+    <property name="chemistry.version" value="1.1.0"/>
     
     <target name="download-dependencies">
         <property name="chemistry-package" value="org/apache/chemistry/opencmis"/>

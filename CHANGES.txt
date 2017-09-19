@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.9-dev =====================
 
+CONNECTORS-1442: Added the new Alfresco BFSI Output Connector 
+(Luis Cabaceira)
+
 CONNECTORS-1456: Tentative fix for API issue exporting jobs in JSON
 format.  Basically, simple valued array elements did not work.
 (Adrian Conlon, Karl Wright)
