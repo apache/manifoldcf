@@ -116,10 +116,6 @@
         </fileset>
         <fileset dir="${mcf-dist}/lib">
             <include name="mail*.jar"/>
-            <include name="poi*.jar"/>
-            <include name="dom4j*.jar"/>
-            <include name="xmlbeans*.jar"/>
-            <include name="curvesapi*.jar"/>
             <include name="commons-exec*.jar"/>
             <include name="guava*.jar"/>
             <include name="gson*.jar"/>
@@ -160,6 +156,10 @@
             <include name="jackson-databind*.jar"/>
             <include name="jackson-annotations*.jar"/>
             <include name="tika-parsers*.jar"/>
+            <include name="poi*.jar"/>
+            <include name="dom4j*.jar"/>
+            <include name="xmlbeans*.jar"/>
+            <include name="curvesapi*.jar"/>
             <include name="geoapi*.jar"/>
             <include name="sis-metadata*.jar"/>
             <include name="sis-utility*.jar"/>

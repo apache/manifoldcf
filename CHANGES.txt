@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.9-dev =====================
 
+CONNECTORS-1453: Integrate poi 3.17, which seems to fix the
+classloader issue in 3.15.  Reverted the reassignment of poi and
+dependencies to root-level classpath accordingly.
+(Karl Wright)
+
 CONNECTORS-1456: Tentative fix for API issue exporting jobs in JSON
 format.  Basically, simple valued array elements did not work.
 (Adrian Conlon, Karl Wright)
