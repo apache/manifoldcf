@@ -20,15 +20,25 @@ package org.apache.manifoldcf.agents.output.cmisoutput.tests;
 
 
 /** This is a testing base class that is responsible for setting up/tearing down the agents framework. */
-public class BaseHSQLDB extends org.apache.manifoldcf.agents.tests.BaseHSQLDB
+public class BaseHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseHSQLDB
 {
   
   protected String[] getConnectorNames()
   {
-    return new String[]{"CMIS"};
+    return new String[]{"Test Connector"};
   }
   
   protected String[] getConnectorClasses()
+  {
+    return new String[]{"org.apache.manifoldcf.crawler.tests.TestingRepositoryConnector"};
+  }
+  
+  protected String[] getOutputNames()
+  {
+    return new String[]{"CMIS"};
+  }
+  
+  protected String[] getOutputClasses()
   {
     return new String[]{"org.apache.manifoldcf.agents.output.cmisoutput.CmisOutputConnector"};
   }

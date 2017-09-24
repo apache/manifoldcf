@@ -29,6 +29,7 @@ import java.util.Map;
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.ItemIterable;
+import org.apache.chemistry.opencmis.client.api.ObjectId;
 import org.apache.chemistry.opencmis.client.api.QueryResult;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.api.SessionFactory;
@@ -38,6 +39,7 @@ import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
+import org.apache.chemistry.opencmis.commons.impl.jaxb.EnumBaseObjectTypeIds;
 import org.apache.chemistry.opencmis.commons.spi.ObjectService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.output.cmisoutput.CmisOutputConfig;
@@ -61,6 +63,8 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
   
   private Session cmisSourceClientSession = null;
   private Session cmisTargetClientSession = null;
+  
+  private static final String CMIS_QUERY_TARGET_DEFAULT_VALUE = "SELECT * FROM cmis:folder WHERE cmis:name='Target'";
   
   private Session getCmisSourceClientSession(){
     // default factory implementation
@@ -153,7 +157,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       
       //creating a new folder
       
-      Folder newSourceRepoFolder = createTestFolder(cmisSourceClientSession);
+      Folder newSourceRepoFolder = createTestFolderInTheSource(cmisSourceClientSession);
       String name = StringUtils.EMPTY;
       for(int i=1; i<=2; i++){
       	name = "testdata" + String.valueOf(i) + ".txt";
@@ -161,7 +165,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       }
       
       //Creating the target folder in the target repo
-      createTestFolder(cmisTargetClientSession);
+      createTestFolderInTheTarget(cmisTargetClientSession);
 
     }
     catch (Exception e)
@@ -170,8 +174,8 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       throw e;
     }
   }
-
-	private Folder createTestFolder(Session session) {
+  
+  private Folder createTestFolderInTheSource(Session session) {
 		Folder root = session.getRootFolder();
 		ItemIterable<QueryResult> results = session.query(CmisOutputConfig.CMIS_QUERY_DEFAULT_VALUE, false);
 		for (QueryResult result : results) {
@@ -181,8 +185,26 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
 		}
 		
 		Map<String, Object> folderProperties = new HashMap<String, Object>();
-		folderProperties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
+		folderProperties.put(PropertyIds.OBJECT_TYPE_ID, EnumBaseObjectTypeIds.CMIS_FOLDER.value());
 		folderProperties.put(PropertyIds.NAME, "Apache ManifoldCF");
+ 
+		//Creating sample contents on the source repo
+		Folder newFolder = root.createFolder(folderProperties);
+		return newFolder;
+	}
+
+	private Folder createTestFolderInTheTarget(Session session) {
+		Folder root = session.getRootFolder();
+		ItemIterable<QueryResult> results = session.query(CMIS_QUERY_TARGET_DEFAULT_VALUE, false);
+		for (QueryResult result : results) {
+		  String repositoryId = cmisSourceClientSession.getRepositoryInfo().getId();
+		  String folderId = result.getPropertyById(PropertyIds.OBJECT_ID).getFirstValue().toString();
+		  cmisSourceClientSession.getBinding().getObjectService().deleteTree(repositoryId, folderId, true, null, false, null);
+		}
+		
+		Map<String, Object> folderProperties = new HashMap<String, Object>();
+		folderProperties.put(PropertyIds.OBJECT_TYPE_ID, EnumBaseObjectTypeIds.CMIS_FOLDER.value());
+		folderProperties.put(PropertyIds.NAME, "Target");
  
 		//Creating sample contents on the source repo
 		Folder newFolder = root.createFolder(folderProperties);
@@ -226,7 +248,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
       child = new ConfigurationNode("max_connections");
-      child.setValue("10");
+      child.setValue("1");
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       child = new ConfigurationNode("configuration");
@@ -306,7 +328,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
       child = new ConfigurationNode("max_connections");
-      child.setValue("10");
+      child.setValue("1");
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
       child = new ConfigurationNode("configuration");
@@ -356,7 +378,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       //cmisQuery
       ConfigurationNode cmisOutputCmisQueryNode = new ConfigurationNode("_PARAMETER_");
       cmisOutputCmisQueryNode.setAttribute("name", CmisOutputConfig.CMIS_QUERY_PARAM);
-      cmisOutputCmisQueryNode.setValue(CmisOutputConfig.CMIS_QUERY_DEFAULT_VALUE);
+      cmisOutputCmisQueryNode.setValue(CMIS_QUERY_TARGET_DEFAULT_VALUE);
       child.addChild(child.getChildCount(), cmisOutputCmisQueryNode);
       
       //createTimestampTree
@@ -500,10 +522,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       if(targetRepoNumberOfContents != 4)
         throw new ManifoldCFException("Wrong number of documents stored in the CMIS Target repo - expected 4, saw "+new Long(targetRepoNumberOfContents).toString());
 
-      // We also need to make sure the new document was indexed.  Have to think about how to do this though.
-      // MHL
-      //System.out.println("Starting delete...");
-      // Delete a file, and recrawl
+      // Delete a content and recrawl
       removeDocument(cmisSourceClientSession, "testdata2.txt");
       
       // Now, start the job, and wait until it completes.
@@ -513,6 +532,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       // Check to be sure we actually processed the right number of documents.
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
+      waitJobInactive(jobIDString, 240000L);
       if (count != 4)
         throw new ManifoldCFException("Wrong number of documents processed after delete - expected 4, saw "+new Long(count).toString());
       
@@ -619,13 +639,11 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
   public void removeDocument(Session session, String name){
     String cmisQuery = StringUtils.replace(CMIS_TEST_QUERY_CHANGE_DOC, REPLACER, name);
     ItemIterable<QueryResult> results = session.query(cmisQuery, false);
-    String objectId = StringUtils.EMPTY;
+    String objectId = null;
     for (QueryResult result : results) {
       objectId = result.getPropertyById(PropertyIds.OBJECT_ID).getFirstValue().toString();
     }
-    String repositoryId = session.getRepositoryInfo().getId();
-    ObjectService objectService = session.getBinding().getObjectService();
-    objectService.deleteObject(repositoryId, objectId, true, null);
+    session.getObject(objectId).delete();
   }
 
   protected void waitJobInactive(String jobIDString, long maxTime)

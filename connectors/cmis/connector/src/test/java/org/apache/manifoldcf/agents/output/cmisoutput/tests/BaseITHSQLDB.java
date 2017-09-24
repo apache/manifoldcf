@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.crawler.connectors.cmis.tests.CMISServer;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 
 /** Tests that run the "agents daemon" should be derived from this 
  * 

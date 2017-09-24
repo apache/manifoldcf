@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.ItemIterable;
 import org.apache.chemistry.opencmis.client.api.ObjectId;
@@ -54,6 +53,7 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisNameConstraintViolat
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
+import org.apache.chemistry.opencmis.commons.impl.jaxb.EnumBaseObjectTypeIds;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
@@ -78,8 +78,6 @@ public class CmisOutputConnector extends BaseOutputConnector {
 
 	protected final static String ACTIVITY_READ = "read document";
 	protected static final String RELATIONSHIP_CHILD = "child";
-
-	private static final String CMIS_FOLDER_BASE_TYPE = "cmis:folder";
 
 	// Tab name properties
 
@@ -141,8 +139,6 @@ public class CmisOutputConnector extends BaseOutputConnector {
 
 	private static final String CMIS_PROPERTY_PREFIX = "cmis:";
 
-	private static final String CMIS_DOCUMENT_TYPE = "cmis:document";
-
 	/** Document accepted */
 	private final static int DOCUMENT_STATUS_ACCEPTED = 0;
 
@@ -161,8 +157,6 @@ public class CmisOutputConnector extends BaseOutputConnector {
 	
 	/** The standard Path property for ManifoldCF used for migrate contents **/
   private static final String CONTENT_MIGRATION_PATH_PROPERTY = "manifoldcf:path";
-
-  private static final char CMIS_PATH_SEP = '/';
 
 	/**
 	 * Constructor
@@ -859,7 +853,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 
 			// check if it is a base folder content type
 			baseTypeId = dropZoneResult.getPropertyByQueryName(PropertyIds.BASE_TYPE_ID).getFirstValue().toString();
-			if (StringUtils.isNotEmpty(baseTypeId) && StringUtils.equals(baseTypeId, CMIS_FOLDER_BASE_TYPE)) {
+			if (StringUtils.isNotEmpty(baseTypeId) && StringUtils.equals(baseTypeId, EnumBaseObjectTypeIds.CMIS_FOLDER.value())) {
 				String objectId = dropZoneResult.getPropertyValueById(PropertyIds.OBJECT_ID);
 				parentDropZoneFolder = (Folder) session.getObject(objectId);
 				isDropZoneFolder = true;
@@ -888,7 +882,6 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		
 		boolean isDropZoneFolder = isDropZoneFolder(cmisQuery);
 		long startTime = System.currentTimeMillis();
-		Document injectedDocument = null;
 		String resultDescription = StringUtils.EMPTY;
 		Folder leafParent = null;
 		String fileName = StringUtils.EMPTY;
@@ -937,7 +930,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 				}
 
 				//Agnostic metadata
-				properties.put(PropertyIds.OBJECT_TYPE_ID, CMIS_DOCUMENT_TYPE);
+				properties.put(PropertyIds.OBJECT_TYPE_ID, EnumBaseObjectTypeIds.CMIS_DOCUMENT.value());
 				properties.put(PropertyIds.NAME, fileName);
 				properties.put(PropertyIds.CREATION_DATE, creationDate);
 				properties.put(PropertyIds.LAST_MODIFICATION_DATE, lastModificationDate);
@@ -955,7 +948,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 
 				// create a major version
 				leafParent = getOrCreateLeafParent(parentDropZoneFolder, creationDate, Boolean.valueOf(createTimestampTree), primaryPath);
-				injectedDocument = leafParent.createDocument(properties, contentStream, VersioningState.MAJOR);
+				leafParent.createDocument(properties, contentStream, VersioningState.NONE);
 				resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
 				return DOCUMENT_STATUS_ACCEPTED;
 
@@ -1007,7 +1000,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 			leafParent = dayFolder;
 			
 		} else if(StringUtils.isNotEmpty(primaryPath)) {
-			String[] primaryPathArray = StringUtils.split(primaryPath, CMIS_PATH_SEP);
+			String[] primaryPathArray = StringUtils.split(primaryPath, CmisOutputConnectorUtils.SLASH);
 			leafParent = folder;
 			for (int i = 0; i < primaryPathArray.length - 1; i++) {
 				String pathSegment = primaryPathArray[i];
@@ -1051,13 +1044,18 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		String result = StringUtils.EMPTY;
 		
 		//append the prefix for the relative path in the target repo
-		String parentDropZonePath = parentDropZoneFolder.getPath();
-		String fullDocumentURIinTargetRepo = parentDropZonePath + documentURI;
 		try {
-			if(session.existsPath(fullDocumentURIinTargetRepo)) {
-				session.deleteByPath(fullDocumentURIinTargetRepo);
-				result = DOCUMENT_DELETION_STATUS_ACCEPTED;
-			} else {
+			if(parentDropZoneFolder != null && StringUtils.isNotEmpty(documentURI)) {
+				String parentDropZonePath = parentDropZoneFolder.getPath();
+				String fullDocumentURIinTargetRepo = parentDropZonePath + documentURI;
+				
+					if(session.existsPath(fullDocumentURIinTargetRepo)) {
+						session.deleteByPath(fullDocumentURIinTargetRepo);
+						result = DOCUMENT_DELETION_STATUS_ACCEPTED;
+					} else {
+						result = DOCUMENT_DELETION_STATUS_REJECTED;
+					}
+			} else { 
 				result = DOCUMENT_DELETION_STATUS_REJECTED;
 			}
 		} catch (Exception e) {
@@ -1067,7 +1065,6 @@ public class CmisOutputConnector extends BaseOutputConnector {
 			activities.recordActivity(startTime, ACTIVITY_DELETE, null, documentURI, null, result);
 		}
 	}
-
 	
 	
 }

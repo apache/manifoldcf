@@ -20,7 +20,7 @@ package org.apache.manifoldcf.agents.output.cmisoutput.tests;
 
 
 /** This is a testing base class that is responsible for setting up/tearing down the agents framework. */
-public class BasePostgresql extends org.apache.manifoldcf.agents.tests.BasePostgresql
+public class BasePostgresql extends org.apache.manifoldcf.crawler.tests.BasePostgresql
 {
   
   protected String[] getConnectorNames()
