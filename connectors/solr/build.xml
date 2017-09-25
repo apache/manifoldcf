@@ -73,6 +73,10 @@
         <copy todir="dist/integration/solr-6.x">
           <fileset dir="../../lib/solr-6.x"/>
         </copy>
+        <mkdir dir="dist/integration/solr-7.x"/>
+        <copy todir="dist/integration/solr-7.x">
+          <fileset dir="../../lib/solr-7.x"/>
+        </copy>
     </target>
 
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
