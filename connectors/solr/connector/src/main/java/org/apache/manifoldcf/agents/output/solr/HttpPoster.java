@@ -134,7 +134,7 @@ public class HttpPoster
     String originalSizeAttributeName, String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
     String fileNameAttributeName, String mimeTypeAttributeName, String contentAttributeName,
     Long maxDocumentLength,
-    String commitWithin, boolean useExtractUpdateHandler)
+    String commitWithin, boolean useExtractUpdateHandler, boolean allowCompression)
     throws ManifoldCFException
   {
     // These are the paths to the handlers in Solr that deal with the actions we need to do
@@ -162,7 +162,7 @@ public class HttpPoster
     {
       CloudSolrClient cloudSolrServer = new CloudSolrClient.Builder()
         .withZkHost(zookeeperHosts)
-        .withLBHttpSolrClient(new ModifiedLBHttpSolrClient(HttpClientUtil.createClient(null)))
+        .withLBHttpSolrClient(new ModifiedLBHttpSolrClient(HttpClientUtil.createClient(null), allowCompression))
         .build();
       cloudSolrServer.setZkClientTimeout(zkClientTimeout);
       cloudSolrServer.setZkConnectTimeout(zkConnectTimeout);
@@ -186,7 +186,7 @@ public class HttpPoster
     String originalSizeAttributeName, String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
     String fileNameAttributeName, String mimeTypeAttributeName, String contentAttributeName,
     IKeystoreManager keystoreManager, Long maxDocumentLength,
-    String commitWithin, boolean useExtractUpdateHandler)
+    String commitWithin, boolean useExtractUpdateHandler, boolean allowCompression)
     throws ManifoldCFException
   {
     // These are the paths to the handlers in Solr that deal with the actions we need to do
@@ -276,7 +276,7 @@ public class HttpPoster
 
 
     String httpSolrServerUrl = protocol + "://" + server + ":" + port + location;
-    solrServer = new ModifiedHttpSolrClient(httpSolrServerUrl, localClient, new XMLResponseParser());
+    solrServer = new ModifiedHttpSolrClient(httpSolrServerUrl, localClient, new XMLResponseParser(), allowCompression);
   }
 
   /** Shut down the poster.

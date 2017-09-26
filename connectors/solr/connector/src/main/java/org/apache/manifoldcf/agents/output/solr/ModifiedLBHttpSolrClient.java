@@ -33,28 +33,30 @@ public class ModifiedLBHttpSolrClient extends LBHttpSolrClient
 {
   private final HttpClient httpClient;
   private final ResponseParser parser;
+  private final boolean allowCompression;
   
-  public ModifiedLBHttpSolrClient(String... solrServerUrls) throws MalformedURLException {
-    this(null, solrServerUrls);
+  public ModifiedLBHttpSolrClient(boolean allowCompression, String... solrServerUrls) throws MalformedURLException {
+    this(null, allowCompression, solrServerUrls);
   }
   
   /** The provided httpClient should use a multi-threaded connection manager */ 
-  public ModifiedLBHttpSolrClient(HttpClient httpClient, String... solrServerUrl)
+  public ModifiedLBHttpSolrClient(HttpClient httpClient, boolean allowCompression, String... solrServerUrl)
           throws MalformedURLException {
-    this(httpClient, new BinaryResponseParser(), solrServerUrl);
+    this(httpClient, new BinaryResponseParser(), allowCompression, solrServerUrl);
   }
 
   /** The provided httpClient should use a multi-threaded connection manager */  
-  public ModifiedLBHttpSolrClient(HttpClient httpClient, ResponseParser parser, String... solrServerUrl)
+  public ModifiedLBHttpSolrClient(HttpClient httpClient, ResponseParser parser, boolean allowCompression, String... solrServerUrl)
           throws MalformedURLException {
     super(httpClient, parser, solrServerUrl);
     this.httpClient = httpClient;
     this.parser = parser;
+    this.allowCompression = allowCompression;
   }
   
   @Override
   protected HttpSolrClient makeSolrClient(String server) {
-    HttpSolrClient client = new ModifiedHttpSolrClient(server, httpClient, parser);
+    HttpSolrClient client = new ModifiedHttpSolrClient(server, httpClient, parser, allowCompression);
     if (getRequestWriter() != null) {
       client.setRequestWriter(getRequestWriter());
     }

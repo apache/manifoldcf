@@ -34,6 +34,7 @@
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
             <include name="solr-solrj*.jar"/>
+            <include name="commons-math3*.jar"/>
             <include name="noggit*.jar"/>
             <include name="httpmime*.jar"/>
             <include name="woodstox-core-asl*.jar"/>
@@ -47,6 +48,7 @@
         <copy todir="dist/lib">
             <fileset dir="../../lib">
                 <include name="solr-solrj*.jar"/>
+                <include name="commons-math3*.jar"/>
                 <include name="noggit*.jar"/>
                 <include name="httpmime*.jar"/>
                 <include name="woodstox-core-asl*.jar"/>
