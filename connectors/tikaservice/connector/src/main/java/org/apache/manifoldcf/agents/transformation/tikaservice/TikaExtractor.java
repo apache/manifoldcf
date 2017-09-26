@@ -627,7 +627,15 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                 }
                 metaJson = (JSONObject) parser.parse(sb.toString());
                 for (Object key : metaJson.keySet()) {
-                  metadata.add(key.toString(), metaJson.get(key).toString());
+                  String metadataKey = key.toString();
+                  String metadataValue =  metaJson.get(key).toString();
+                  
+                  // Replace the content type by the one found by Tika
+                  if(metadataKey.equals("Content-Type")) {
+                    metadata.remove(metadataKey);
+                  }
+                  
+                  metadata.add(metadataKey, metadataValue);
                 }
               } finally {
                 tikaServerIs.close();
