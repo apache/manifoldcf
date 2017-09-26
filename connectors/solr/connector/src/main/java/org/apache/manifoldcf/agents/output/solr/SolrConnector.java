@@ -94,7 +94,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   protected String contentAttributeName = null;
   /** Use extractiing update handler? */
   protected boolean useExtractUpdateHandler = true;
-  
+  /** Allow compression?  Currently static */
+  protected final static boolean allowCompression = true;
+
   /** Whether or not to commit */
   protected boolean doCommits = false;
 
@@ -363,7 +365,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             allowAttributeName,denyAttributeName,idAttributeName,
             originalSizeAttributeName,modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
             fileNameAttributeName,mimeTypeAttributeName,contentAttributeName,
-            keystoreManager,maxDocumentLength,commitWithin,useExtractUpdateHandler);
+            keystoreManager,maxDocumentLength,commitWithin,useExtractUpdateHandler,allowCompression);
           
         }
         catch (NumberFormatException e)
@@ -412,14 +414,14 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
         {
           int zkClientTimeout = Integer.parseInt(zkClientTimeoutString) * 1000;
           int zkConnectTimeout = Integer.parseInt(zkConnectTimeoutString) * 1000;
-          
+
           poster = new HttpPoster(zookeeperHost,collection,
             zkClientTimeout,zkConnectTimeout,
             updatePath,removePath,statusPath,
             allowAttributeName,denyAttributeName,idAttributeName,
             originalSizeAttributeName,modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
             fileNameAttributeName,mimeTypeAttributeName,contentAttributeName,
-            maxDocumentLength,commitWithin,useExtractUpdateHandler);
+            maxDocumentLength,commitWithin,useExtractUpdateHandler,allowCompression);
           
         }
         catch (NumberFormatException e)

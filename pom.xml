@@ -65,8 +65,8 @@
     <httpcomponent.httpclient.version>4.5.3</httpcomponent.httpclient.version>
     <httpcomponent.httpcore.version>4.4.6</httpcomponent.httpcore.version>
     <httpcomponent.httpmime.version>4.5.3</httpcomponent.httpmime.version>
-    <solr.version>6.3.0</solr.version>
-    <noggit.version>0.6</noggit.version>
+    <solr.version>7.0.0</solr.version>
+    <noggit.version>0.8</noggit.version>
     <commons-el.version>1.0</commons-el.version>
     <commons-lang.version>2.6</commons-lang.version>
     <xalan.version>2.7.1</xalan.version>
@@ -81,7 +81,7 @@
     <velocity.version>1.7</velocity.version>
     <slf4j.version>1.7.7</slf4j.version>
     <jaxb.version>2.2.6</jaxb.version>
-    <zookeeper.version>3.4.8</zookeeper.version>
+    <zookeeper.version>3.4.10</zookeeper.version>
     <xmlbeans.version>2.6.0</xmlbeans.version>
     <poi.version>3.17</poi.version>
     <tika.version>1.14</tika.version>

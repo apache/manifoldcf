@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.9-dev =====================
 
+CONNECTORS-1458: Update to use SolrJ 7.0.0.  This required some
+revision to the connector, and also to make zookeeper.jar available
+to all connectors as a root dependency.
+(Karl Wright)
+
 CONNECTORS-1453: Integrate poi 3.17, which seems to fix the
 classloader issue in 3.15.  Reverted the reassignment of poi and
 dependencies to root-level classpath accordingly.

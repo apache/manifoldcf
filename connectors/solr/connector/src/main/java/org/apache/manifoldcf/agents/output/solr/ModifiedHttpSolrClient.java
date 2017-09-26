@@ -97,8 +97,8 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
   private final HttpClient httpClient;
   private final boolean useMultiPartPost = true;
 
-  public ModifiedHttpSolrClient(String baseURL, HttpClient client, ResponseParser parser) {
-    super(baseURL, client, parser);
+  public ModifiedHttpSolrClient(String baseURL, HttpClient client, ResponseParser parser, boolean allowCompression) {
+    super(baseURL, client, parser, allowCompression);
     httpClient = client;
   }
   
