@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.9-dev =====================
 
+CONNECTORS-1459: Allow the Tika service to override the mime type
+in the metadata.
+(Julien Massiera)
+
 CONNECTORS-1458: Update to use SolrJ 7.0.0.  This required some
 revision to the connector, and also to make zookeeper.jar available
 to all connectors as a root dependency.
