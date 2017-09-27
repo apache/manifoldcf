@@ -52,6 +52,7 @@ public class RepositoryDocument
   protected final Map<String,Reader[]> readerFields = new HashMap<String,Reader[]>();
   protected final Map<String,Date[]> dateFields = new HashMap<String,Date[]>();
   protected final Map<String,Security> securityLevels = new HashMap<String,Security>();
+  protected final List<String> sourcePath = new ArrayList<String>();
   protected String fileName = "docname";
   protected String contentMimeType = "application/octet-stream";
   protected Date createdDate = null;
@@ -106,6 +107,10 @@ public class RepositoryDocument
     {
       rval.securityLevels.put(key,securityLevels.get(key));
     }
+    for (String pathElement : sourcePath)
+    {
+      rval.sourcePath.add(pathElement);
+    }
     return rval;
   }
   
@@ -118,6 +123,23 @@ public class RepositoryDocument
     stringFields.clear();
     dateFields.clear();
     readerFields.clear();
+  }
+  
+  /** Set the source path for the document.
+  *@param sourcePath is the path.
+  */
+  public void setSourcePath(final List<String> sourcePath) {
+    sourcePath.clear();
+    for (final String pathElement : sourcePath) {
+      sourcePath.add(pathElement);
+    }
+  }
+
+  /** Get the source path for the document.
+  *@return the source path.
+  */
+  public List<String> getSourcePath() {
+    return sourcePath;
   }
   
   /** Set the document's original (repository) size.  Use null to indicate that the size is
