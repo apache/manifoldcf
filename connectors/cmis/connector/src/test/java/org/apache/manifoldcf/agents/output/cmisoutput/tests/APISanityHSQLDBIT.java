@@ -242,7 +242,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
       child = new ConfigurationNode("max_connections");
-      child.setValue("1");
+      child.setValue("10");
       connectionObject.addChild(connectionObject.getChildCount(),child);
       
       child = new ConfigurationNode("configuration");
@@ -322,7 +322,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
       child = new ConfigurationNode("max_connections");
-      child.setValue("1");
+      child.setValue("10");
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
       child = new ConfigurationNode("configuration");

@@ -960,7 +960,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 				return DOCUMENT_STATUS_REJECTED;
 			}
 
-		} catch (CmisContentAlreadyExistsException e) {
+		} catch (CmisContentAlreadyExistsException | CmisNameConstraintViolationException e) {
 			
 			//updating the existing content
 			if(leafParent != null) {
@@ -978,10 +978,6 @@ public class CmisOutputConnector extends BaseOutputConnector {
 
 			resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
 			return DOCUMENT_STATUS_ACCEPTED;
-			
-		} catch (CmisNameConstraintViolationException e) {
-			resultDescription = DOCUMENT_STATUS_REJECTED_DESC;
-			throw new ManifoldCFException(e.getMessage(), e);
 			
 		} catch (Exception e) {
 			resultDescription = DOCUMENT_STATUS_REJECTED_DESC;
