@@ -35,28 +35,10 @@
       </nobr>
     </td>
   </tr>
-  <tr>
-    <td class="description">
-      <nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('CmisRepositoryConnector.ContentMigrationColon'))
-      </nobr>
-    </td>
-    <td class="value">
-      <nobr>
-        <input type="checkbox" 
-               name="s${SEQNUM}_contentMigration" 
-               value="true" 
-               #if($CONTENTMIGRATION==true) checked 
-               #end
-               />
-      </nobr>
-    </td>
-  </tr>
 </table>
 
 #else
 
 <input type="hidden" name="s${SEQNUM}_cmisQuery" value="$Encoder.attributeEscape($CMISQUERY)" />
-<input type="hidden" name="s${SEQNUM}_contentMigration" value="$CONTENTMIGRATION" />
 
 #end

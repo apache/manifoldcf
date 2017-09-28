@@ -49,7 +49,6 @@ import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
-import org.apache.manifoldcf.agents.output.cmisoutput.CmisOutputConnectorUtils;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
@@ -132,11 +131,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   protected static final long timeToRelease = 300000L;
   protected long lastSessionFetch = -1L;
-  
-  private boolean enableContentMigration = false;
-  
-  private static final char SLASH = '/';
-
+    
   /**
    * Constructor
    */
@@ -659,9 +654,6 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
         cmisQuery = sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
-        if(StringUtils.isNotEmpty(sn.getAttributeValue(CmisConfig.CONTENT_MIGRATION_PARAM))){
-        	enableContentMigration = Boolean.valueOf(sn.getAttributeValue(CmisConfig.CONTENT_MIGRATION_PARAM));
-        }
         break;
       }
     }
@@ -915,18 +907,14 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   {
     int i = 0;
     String cmisQuery = StringUtils.EMPTY;
-    String contentMigration = StringUtils.EMPTY;
     while (i < ds.getChildCount()) {
       SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
         cmisQuery = sn.getAttributeValue(CmisConfig.CMIS_QUERY_PARAM);
-        contentMigration = sn.getAttributeValue(CmisConfig.CONTENT_MIGRATION_PARAM);
       }
       i++;
     }
     newMap.put(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
-    newMap.put(CmisConfig.CONTENT_MIGRATION_PARAM, contentMigration);
-
   }
 
   /** View specification.
@@ -972,8 +960,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     String seqPrefix = "s"+connectionSequenceNumber+"_";
 
     String cmisQuery = variableContext.getParameter(seqPrefix + CmisConfig.CMIS_QUERY_PARAM);
-    String contentMigration = variableContext.getParameter(seqPrefix + CmisConfig.CONTENT_MIGRATION_PARAM);
-    if (cmisQuery != null || contentMigration != null) {
+    if (cmisQuery != null) {
       int i = 0;
       while (i < ds.getChildCount()) {
         SpecificationNode oldNode = ds.getChild(i);
@@ -987,19 +974,6 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       SpecificationNode node = new SpecificationNode(JOB_STARTPOINT_NODE_TYPE);
       node.setAttribute(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
       variableContext.setParameter(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
-      
-      //Content Migration
-      if(StringUtils.isEmpty(contentMigration)
-      		|| StringUtils.equalsIgnoreCase(contentMigration, Boolean.FALSE.toString()) ){
-      	contentMigration = Boolean.FALSE.toString();
-      	enableContentMigration = false;
-      } else {
-      	contentMigration = Boolean.TRUE.toString();
-      	enableContentMigration = true;
-      }
-
-      node.setAttribute(CmisConfig.CONTENT_MIGRATION_PARAM, contentMigration);
-      variableContext.setParameter(CmisConfig.CONTENT_MIGRATION_PARAM, contentMigration);
       
       ds.addChild(ds.getChildCount(), node);
     }
@@ -1172,42 +1146,41 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             String mimeType = document.getContentStreamMimeType();
             
             //documentURI
-            String documentURI = getDocumentURI(cmisObject, enableContentMigration);
+            String documentURI = getDocumentURI(cmisObject);
 
             // Do any filtering (which will save us work)
-            if(!enableContentMigration) {
-	            if (!activities.checkURLIndexable(documentURI))
-	            {
-	              activities.noDocument(documentIdentifier,versionString);
-	              errorCode = IProcessActivity.EXCLUDED_URL;
-	              errorDesc = "Excluding due to URL ('"+documentURI+"')";
-	              continue;
-	            }
-	
-	            if (!activities.checkMimeTypeIndexable(mimeType))
-	            {
-	              activities.noDocument(documentIdentifier,versionString);
-	              errorCode = IProcessActivity.EXCLUDED_MIMETYPE;
-	              errorDesc = "Excluding due to mime type ("+mimeType+")";
-	              continue;
-	            }
-	
-	            if (!activities.checkLengthIndexable(fileLength))
-	            {
-	              activities.noDocument(documentIdentifier,versionString);
-	              errorCode = IProcessActivity.EXCLUDED_LENGTH;
-	              errorDesc = "Excluding due to length ("+fileLength+")";
-	              continue;
-	            }
-	
-	            if (!activities.checkDateIndexable(modifiedDate))
-	            {
-	              activities.noDocument(documentIdentifier,versionString);
-	              errorCode = IProcessActivity.EXCLUDED_DATE;
-	              errorDesc = "Excluding due to date ("+modifiedDate+")";
-	              continue;
-	            }
+            if (!activities.checkURLIndexable(documentURI))
+            {
+              activities.noDocument(documentIdentifier,versionString);
+              errorCode = IProcessActivity.EXCLUDED_URL;
+              errorDesc = "Excluding due to URL ('"+documentURI+"')";
+              continue;
             }
+
+            if (!activities.checkMimeTypeIndexable(mimeType))
+            {
+              activities.noDocument(documentIdentifier,versionString);
+              errorCode = IProcessActivity.EXCLUDED_MIMETYPE;
+              errorDesc = "Excluding due to mime type ("+mimeType+")";
+              continue;
+            }
+
+            if (!activities.checkLengthIndexable(fileLength))
+            {
+              activities.noDocument(documentIdentifier,versionString);
+              errorCode = IProcessActivity.EXCLUDED_LENGTH;
+              errorDesc = "Excluding due to length ("+fileLength+")";
+              continue;
+            }
+
+            if (!activities.checkDateIndexable(modifiedDate))
+            {
+              activities.noDocument(documentIdentifier,versionString);
+              errorCode = IProcessActivity.EXCLUDED_DATE;
+              errorDesc = "Excluding due to date ("+modifiedDate+")";
+              continue;
+            }
+            
             
             RepositoryDocument rd = new RepositoryDocument();
             rd.setFileName(fileName);
@@ -1215,7 +1188,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             rd.setCreatedDate(createdDate);
             rd.setModifiedDate(modifiedDate);
 
-            InputStream is;
+            InputStream is = null;
             try {
               if (fileLength > 0)
                 is = document.getContentStream().getStream();
@@ -1285,22 +1258,20 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   }
   
-  private String getDocumentURI(CmisObject cmisObject, boolean enableContentMigration) throws ManifoldCFException {
+  private String getDocumentURI(CmisObject cmisObject) throws ManifoldCFException {
   	String documentURI = StringUtils.EMPTY;
   	String currentBaseTypeId = cmisObject.getBaseTypeId().value();
   	if(StringUtils.equals(currentBaseTypeId, BaseTypeId.CMIS_DOCUMENT.value())) {
   		Document currentDocument = (Document) cmisObject;
-  		if(enableContentMigration) {
-  			if(currentDocument.getParents() != null
-  					&& !currentDocument.getParents().isEmpty()) {
-  				String path = currentDocument.getParents().get(0).getPath();
-        	String name = currentDocument.getName();
-        	String fullContentPath = path + CmisRepositoryConnectorUtils.SLASH + name;
-        	documentURI = fullContentPath;
-  			}
-      } else {
-      	documentURI = CmisRepositoryConnectorUtils.getDocumentURL(currentDocument, session);
-      }
+			if(currentDocument.getParents() != null 
+					&& !currentDocument.getParents().isEmpty()) {
+				String path = currentDocument.getParents().get(0).getPath();
+      	String name = currentDocument.getName();
+      	String fullContentPath = path + CmisRepositoryConnectorUtils.SLASH + name;
+      	documentURI = fullContentPath;
+			} else {
+				documentURI = CmisRepositoryConnectorUtils.getDocumentURL(currentDocument, session);
+			}
   	} else if(StringUtils.equals(currentBaseTypeId, BaseTypeId.CMIS_FOLDER.value())) {
   		Folder currentFolder = (Folder) cmisObject;
   		String path = currentFolder.getPath();

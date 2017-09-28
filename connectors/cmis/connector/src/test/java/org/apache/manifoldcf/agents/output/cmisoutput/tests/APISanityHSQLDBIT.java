@@ -29,7 +29,6 @@ import java.util.Map;
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.ItemIterable;
-import org.apache.chemistry.opencmis.client.api.ObjectId;
 import org.apache.chemistry.opencmis.client.api.QueryResult;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.api.SessionFactory;
@@ -40,7 +39,6 @@ import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.impl.jaxb.EnumBaseObjectTypeIds;
-import org.apache.chemistry.opencmis.commons.spi.ObjectService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.output.cmisoutput.CmisOutputConfig;
 import org.apache.manifoldcf.core.interfaces.Configuration;
@@ -57,10 +55,6 @@ import org.junit.Test;
  */
 public class APISanityHSQLDBIT extends BaseITHSQLDB {    
 	
-	private static final String REPLACER = "?";
-  private static final String CMIS_TEST_QUERY_CHANGE_DOC = "SELECT * FROM cmis:document WHERE cmis:name='"+REPLACER+"'";
-	private static final String CMIS_TEST_QUERY_TARGET_REPO_ALL = "SELECT * FROM cmis:document WHERE CONTAINS('testdata')";
-  
   private Session cmisSourceClientSession = null;
   private Session cmisTargetClientSession = null;
   
@@ -72,15 +66,15 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
     Map<String, String> parameters = new HashMap<String, String>();
 
     // user credentials
-    parameters.put(SessionParameter.USER, CmisConfig.USERNAME_DEFAULT_VALUE);
-    parameters.put(SessionParameter.PASSWORD, CmisConfig.PASSWORD_DEFAULT_VALUE);
+    parameters.put(SessionParameter.USER, BaseITSanityTestUtils.SOURCE_USERNAME_VALUE);
+    parameters.put(SessionParameter.PASSWORD, BaseITSanityTestUtils.SOURCE_PASSWORD_VALUE);
 
     // connection settings
     String endpoint =
-        CmisConfig.PROTOCOL_DEFAULT_VALUE + "://" + 
-        CmisConfig.SERVER_DEFAULT_VALUE + ":" +
-        CmisConfig.PORT_DEFAULT_VALUE + 
-        CmisConfig.PATH_DEFAULT_VALUE;
+    		BaseITSanityTestUtils.SOURCE_PROTOCOL_VALUE + "://" + 
+    		BaseITSanityTestUtils.SOURCE_SERVER_VALUE + ":" +
+        BaseITSanityTestUtils.SOURCE_PORT_VALUE + 
+        BaseITSanityTestUtils.SOURCE_PATH_VALUE;
     
     parameters.put(SessionParameter.ATOMPUB_URL, endpoint);
     parameters.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
@@ -95,15 +89,15 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
     Map<String, String> parameters = new HashMap<String, String>();
 
     // user credentials
-    parameters.put(SessionParameter.USER, CmisOutputConfig.USERNAME_DEFAULT_VALUE);
-    parameters.put(SessionParameter.PASSWORD, CmisOutputConfig.PASSWORD_DEFAULT_VALUE);
+    parameters.put(SessionParameter.USER, BaseITSanityTestUtils.TARGET_USERNAME_VALUE);
+    parameters.put(SessionParameter.PASSWORD, BaseITSanityTestUtils.TARGET_PASSWORD_VALUE);
 
     // connection settings
     String endpoint =
-    		CmisOutputConfig.PROTOCOL_DEFAULT_VALUE + "://" + 
-				CmisOutputConfig.SERVER_DEFAULT_VALUE + ":" +
-				CmisOutputConfig.PORT_DEFAULT_VALUE + 
-        CmisOutputConfig.PATH_DEFAULT_VALUE;
+    		BaseITSanityTestUtils.TARGET_PROTOCOL_VALUE + "://" + 
+    		BaseITSanityTestUtils.TARGET_SERVER_VALUE + ":" +
+    		BaseITSanityTestUtils.TARGET_PORT_VALUE + 
+        BaseITSanityTestUtils.TARGET_PATH_VALUE;
     
     parameters.put(SessionParameter.ATOMPUB_URL, endpoint);
     parameters.put(SessionParameter.BINDING_TYPE, BindingType.ATOMPUB.value());
@@ -123,7 +117,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
   }
   
   private long queryTestContents(Session session) {
-  	ItemIterable<QueryResult> results = session.query(CMIS_TEST_QUERY_TARGET_REPO_ALL, false);
+  	ItemIterable<QueryResult> results = session.query(BaseITSanityTestUtils.CMIS_TEST_QUERY_TARGET_REPO_ALL, false);
     return results.getTotalNumItems();
   }
   
@@ -132,7 +126,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
     // properties 
     // (minimal set: name and object type id)
     Map<String, Object> contentProperties = new HashMap<String, Object>();
-    contentProperties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
+    contentProperties.put(PropertyIds.OBJECT_TYPE_ID, EnumBaseObjectTypeIds.CMIS_DOCUMENT.value());
     contentProperties.put(PropertyIds.NAME, name);
   
     // content
@@ -215,7 +209,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
   public void removeTestArea()
     throws Exception
   {
-    // we don't need to remove anything
+    // we don't need to remove anything from the CMIS In-Memory Server, each bootstrap will create a new repo from scratch
   }
   
   @Test
@@ -258,43 +252,43 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       //binding
       ConfigurationNode cmisBindingNode = new ConfigurationNode("_PARAMETER_");
       cmisBindingNode.setAttribute("name", CmisConfig.BINDING_PARAM);
-      cmisBindingNode.setValue(CmisConfig.BINDING_DEFAULT_VALUE);
+      cmisBindingNode.setValue(BaseITSanityTestUtils.SOURCE_BINDING_VALUE);
       child.addChild(child.getChildCount(), cmisBindingNode);
       
       //username
       ConfigurationNode cmisUsernameNode = new ConfigurationNode("_PARAMETER_");
       cmisUsernameNode.setAttribute("name", CmisConfig.USERNAME_PARAM);
-      cmisUsernameNode.setValue(CmisConfig.USERNAME_DEFAULT_VALUE);
+      cmisUsernameNode.setValue(BaseITSanityTestUtils.SOURCE_USERNAME_VALUE);
       child.addChild(child.getChildCount(), cmisUsernameNode);
       
       //password
       ConfigurationNode cmisPasswordNode = new ConfigurationNode("_PARAMETER_");
       cmisPasswordNode.setAttribute("name", CmisConfig.PASSWORD_PARAM);
-      cmisPasswordNode.setValue(CmisConfig.PASSWORD_DEFAULT_VALUE);
+      cmisPasswordNode.setValue(BaseITSanityTestUtils.SOURCE_PASSWORD_VALUE);
       child.addChild(child.getChildCount(), cmisPasswordNode);
       
       //protocol
       ConfigurationNode cmisProtocolNode = new ConfigurationNode("_PARAMETER_");
       cmisProtocolNode.setAttribute("name", CmisConfig.PROTOCOL_PARAM);
-      cmisProtocolNode.setValue(CmisConfig.PROTOCOL_DEFAULT_VALUE);
+      cmisProtocolNode.setValue(BaseITSanityTestUtils.SOURCE_PROTOCOL_VALUE);
       child.addChild(child.getChildCount(), cmisProtocolNode);
       
       //server
       ConfigurationNode cmisServerNode = new ConfigurationNode("_PARAMETER_");
       cmisServerNode.setAttribute("name", CmisConfig.SERVER_PARAM);
-      cmisServerNode.setValue(CmisConfig.SERVER_DEFAULT_VALUE);
+      cmisServerNode.setValue(BaseITSanityTestUtils.SOURCE_SERVER_VALUE);
       child.addChild(child.getChildCount(), cmisServerNode);
       
       //port
       ConfigurationNode cmisPortNode = new ConfigurationNode("_PARAMETER_");
       cmisPortNode.setAttribute("name", CmisConfig.PORT_PARAM);
-      cmisPortNode.setValue(CmisConfig.PORT_DEFAULT_VALUE);
+      cmisPortNode.setValue(BaseITSanityTestUtils.SOURCE_PORT_VALUE);
       child.addChild(child.getChildCount(), cmisPortNode);
       
       //path
       ConfigurationNode cmisPathNode = new ConfigurationNode("_PARAMETER_");
       cmisPathNode.setAttribute("name", CmisConfig.PATH_PARAM);
-      cmisPathNode.setValue(CmisConfig.PATH_DEFAULT_VALUE);
+      cmisPathNode.setValue(BaseITSanityTestUtils.SOURCE_PATH_VALUE);
       child.addChild(child.getChildCount(), cmisPathNode);
       
       connectionObject.addChild(connectionObject.getChildCount(),child);
@@ -336,43 +330,43 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       //binding
       ConfigurationNode cmisOutputBindingNode = new ConfigurationNode("_PARAMETER_");
       cmisOutputBindingNode.setAttribute("name", CmisOutputConfig.BINDING_PARAM);
-      cmisOutputBindingNode.setValue(CmisOutputConfig.BINDING_DEFAULT_VALUE);
+      cmisOutputBindingNode.setValue(BaseITSanityTestUtils.TARGET_BINDING_VALUE);
       child.addChild(child.getChildCount(), cmisOutputBindingNode);
       
       //username
       ConfigurationNode cmisOutputUsernameNode = new ConfigurationNode("_PARAMETER_");
       cmisOutputUsernameNode.setAttribute("name", CmisOutputConfig.USERNAME_PARAM);
-      cmisOutputUsernameNode.setValue(CmisOutputConfig.USERNAME_DEFAULT_VALUE);
+      cmisOutputUsernameNode.setValue(BaseITSanityTestUtils.TARGET_USERNAME_VALUE);
       child.addChild(child.getChildCount(), cmisOutputUsernameNode);
       
       //password
       ConfigurationNode cmisOutputPasswordNode = new ConfigurationNode("_PARAMETER_");
       cmisOutputPasswordNode.setAttribute("name", CmisOutputConfig.PASSWORD_PARAM);
-      cmisOutputPasswordNode.setValue(CmisOutputConfig.PASSWORD_DEFAULT_VALUE);
+      cmisOutputPasswordNode.setValue(BaseITSanityTestUtils.TARGET_PASSWORD_VALUE);
       child.addChild(child.getChildCount(), cmisOutputPasswordNode);
       
       //protocol
       ConfigurationNode cmisOutputProtocolNode = new ConfigurationNode("_PARAMETER_");
       cmisOutputProtocolNode.setAttribute("name", CmisOutputConfig.PROTOCOL_PARAM);
-      cmisOutputProtocolNode.setValue(CmisOutputConfig.PROTOCOL_DEFAULT_VALUE);
+      cmisOutputProtocolNode.setValue(BaseITSanityTestUtils.TARGET_PROTOCOL_VALUE);
       child.addChild(child.getChildCount(), cmisOutputProtocolNode);
       
       //server
       ConfigurationNode cmisOutputServerNode = new ConfigurationNode("_PARAMETER_");
       cmisOutputServerNode.setAttribute("name", CmisOutputConfig.SERVER_PARAM);
-      cmisOutputServerNode.setValue(CmisOutputConfig.SERVER_DEFAULT_VALUE);
+      cmisOutputServerNode.setValue(BaseITSanityTestUtils.TARGET_SERVER_VALUE);
       child.addChild(child.getChildCount(), cmisOutputServerNode);
       
       //port
       ConfigurationNode cmisOutputPortNode = new ConfigurationNode("_PARAMETER_");
       cmisOutputPortNode.setAttribute("name", CmisConfig.PORT_PARAM);
-      cmisOutputPortNode.setValue(CmisOutputConfig.PORT_DEFAULT_VALUE);
+      cmisOutputPortNode.setValue(BaseITSanityTestUtils.TARGET_PORT_VALUE);
       child.addChild(child.getChildCount(), cmisOutputPortNode);
       
       //path
       ConfigurationNode cmisOutputPathNode = new ConfigurationNode("_PARAMETER_");
       cmisOutputPathNode.setAttribute("name", CmisOutputConfig.PATH_PARAM);
-      cmisOutputPathNode.setValue(CmisOutputConfig.PATH_DEFAULT_VALUE);
+      cmisOutputPathNode.setValue(BaseITSanityTestUtils.TARGET_PATH_VALUE);
       child.addChild(child.getChildCount(), cmisOutputPathNode);
       
       //cmisQuery
@@ -444,7 +438,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       //Job configuration
       ConfigurationNode sn = new ConfigurationNode("startpoint");
       sn.setAttribute(CmisOutputConfig.CMIS_QUERY_PARAM, CmisOutputConfig.CMIS_QUERY_DEFAULT_VALUE);
-      sn.setAttribute(CmisConfig.CONTENT_MIGRATION_PARAM, Boolean.TRUE.toString());
       
       child.addChild(child.getChildCount(),sn);
       jobObject.addChild(jobObject.getChildCount(),child);
@@ -532,7 +525,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       // Check to be sure we actually processed the right number of documents.
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
-      waitJobInactive(jobIDString, 240000L);
       if (count != 4)
         throw new ManifoldCFException("Wrong number of documents processed after delete - expected 4, saw "+new Long(count).toString());
       
@@ -637,7 +629,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
   }
   
   public void removeDocument(Session session, String name){
-    String cmisQuery = StringUtils.replace(CMIS_TEST_QUERY_CHANGE_DOC, REPLACER, name);
+    String cmisQuery = StringUtils.replace(BaseITSanityTestUtils.CMIS_TEST_QUERY_CHANGE_DOC, BaseITSanityTestUtils.REPLACER, name);
     ItemIterable<QueryResult> results = session.query(cmisQuery, false);
     String objectId = null;
     for (QueryResult result : results) {
@@ -674,7 +666,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
    * @param newContent
    */
   public void changeDocument(Session session, String name, String newContent){
-    String cmisQuery = StringUtils.replace(CMIS_TEST_QUERY_CHANGE_DOC, REPLACER, name);
+    String cmisQuery = StringUtils.replace(BaseITSanityTestUtils.CMIS_TEST_QUERY_CHANGE_DOC, BaseITSanityTestUtils.REPLACER, name);
     ItemIterable<QueryResult> results = session.query(cmisQuery, false);
     String objectId = StringUtils.EMPTY;
     for (QueryResult result : results) {
@@ -683,6 +675,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
 
     byte[] newContentByteArray = newContent.getBytes(StandardCharsets.UTF_8);
     InputStream stream = new ByteArrayInputStream(newContentByteArray);
+    
     ContentStream contentStream = new ContentStreamImpl(name, new BigInteger(newContentByteArray), "text/plain", stream);
     Document documentToUpdate = (Document) session.getObject(objectId);
     documentToUpdate.setContentStream(contentStream, true);

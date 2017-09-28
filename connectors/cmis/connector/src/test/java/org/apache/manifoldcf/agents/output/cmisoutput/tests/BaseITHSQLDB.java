@@ -66,12 +66,12 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
       openCmisServerWarPath = System.getProperty("openCmisServerWarPath");
     }
   	
-  	//CMIS Source repo server on port 9090
-    sourceCmisServer = new CMISServer(9090, openCmisServerWarPath);
+  	//CMIS Source repo server on port 9091
+    sourceCmisServer = new CMISServer(9091, openCmisServerWarPath);
     sourceCmisServer.start();
     
-    //CMIS target repo server on port 9091
-    targetCmisServer = new CMISServer(9091, openCmisServerWarPath);
+    //CMIS target repo server on port 9092
+    targetCmisServer = new CMISServer(9092, openCmisServerWarPath);
     targetCmisServer.start();
     
   }

@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.ItemIterable;
 import org.apache.chemistry.opencmis.client.api.ObjectId;
@@ -155,9 +157,6 @@ public class CmisOutputConnector extends BaseOutputConnector {
 	/** Document remove permanently rejected */
 	private final static String DOCUMENT_DELETION_STATUS_REJECTED = "Remove request rejected";
 	
-	/** The standard Path property for ManifoldCF used for migrate contents **/
-  private static final String CONTENT_MIGRATION_PATH_PROPERTY = "manifoldcf:path";
-
 	/**
 	 * Constructor
 	 */
@@ -885,7 +884,13 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		String resultDescription = StringUtils.EMPTY;
 		Folder leafParent = null;
 		String fileName = StringUtils.EMPTY;
+		InputStream inputStream = null;
 		ContentStream contentStream = null;
+		 // properties
+		// (minimal set: name and object type id)
+		Map<String, Object> properties = new HashMap<String, Object>();
+		Long binaryLength = null;
+		String mimeType = StringUtils.EMPTY;
 		try {
 			if (isDropZoneFolder) {
 
@@ -893,20 +898,18 @@ public class CmisOutputConnector extends BaseOutputConnector {
 				fileName = document.getFileName();
 				Date creationDate = document.getCreatedDate();
 				Date lastModificationDate = document.getModifiedDate();
-				String mimeType = document.getMimeType();
-				Long binaryLength = document.getBinaryLength();
 				String objectId = StringUtils.EMPTY;
+				mimeType = document.getMimeType();
+				binaryLength = document.getBinaryLength();
 				
 				//check if the repository connector includes the content path
 				String primaryPath = StringUtils.EMPTY;
-				if(document.getField(CONTENT_MIGRATION_PATH_PROPERTY) != null) {
-					primaryPath = ((String[]) document.getField(CONTENT_MIGRATION_PATH_PROPERTY))[0];
+				List<String> sourcePath = document.getSourcePath();
+				if(sourcePath != null && !sourcePath.isEmpty()) {
+					primaryPath = sourcePath.get(0);
 				}
-				
-				
-			  // properties
-				// (minimal set: name and object type id)
-				Map<String, Object> properties = new HashMap<String, Object>();
+	
+			 
 				
 				//if the source is CMIS Repository Connector we override the objectId for synchronizing with removeDocument method
 				if(isSourceRepoCmisCompliant(document)) {
@@ -942,7 +945,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 				}
 				
 				// Content Stream
-				InputStream inputStream = document.getBinaryStream();
+				inputStream = document.getBinaryStream();
 				contentStream = new ContentStreamImpl(fileName, BigInteger.valueOf(binaryLength), mimeType,
 				    inputStream);
 
@@ -957,19 +960,39 @@ public class CmisOutputConnector extends BaseOutputConnector {
 				return DOCUMENT_STATUS_REJECTED;
 			}
 
-		} catch (CmisContentAlreadyExistsException | CmisNameConstraintViolationException e) {
+		} catch (CmisContentAlreadyExistsException e) {
 			
-			String documentFullPath = leafParent.getPath() + CmisOutputConnectorUtils.SLASH + fileName;
-			Logging.connectors.warn(
-					"CMIS: Document already exists: " + documentFullPath);
+			//updating the existing content
+			if(leafParent != null) {
+				String documentFullPath = leafParent.getPath() + CmisOutputConnectorUtils.SLASH + fileName;
+				String newFileName = fileName+System.currentTimeMillis();
+				
+				Document currentContent = (Document) session.getObjectByPath(documentFullPath);
+				currentContent.updateProperties(properties);
+				contentStream = new ContentStreamImpl(newFileName, BigInteger.valueOf(binaryLength), mimeType, inputStream);
+				currentContent.setContentStream(contentStream, true);
+				
+				Logging.connectors.warn(
+						"CMIS: Document already exists - Updating: " + documentFullPath);
+			}
 
 			resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
 			return DOCUMENT_STATUS_ACCEPTED;
 			
+		} catch (CmisNameConstraintViolationException e) {
+			resultDescription = DOCUMENT_STATUS_REJECTED_DESC;
+			throw new ManifoldCFException(e.getMessage(), e);
+			
 		} catch (Exception e) {
 			resultDescription = DOCUMENT_STATUS_REJECTED_DESC;
 			throw new ManifoldCFException(e.getMessage(), e);
+			
 		} finally {
+			
+			if(inputStream != null) {
+				inputStream.close();
+			}
+			
 			activities.recordActivity(startTime, ACTIVITY_INJECTION, document.getBinaryLength(), documentURI, resultDescription,
 			    resultDescription);
 		}
@@ -1035,6 +1058,8 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		}
 		return folder;
 	}
+	
+	
 	
 	@Override
 	public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)

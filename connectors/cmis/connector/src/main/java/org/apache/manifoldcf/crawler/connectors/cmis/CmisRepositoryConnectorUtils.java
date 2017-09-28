@@ -21,13 +21,19 @@ package org.apache.manifoldcf.crawler.connectors.cmis;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Property;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.bindings.spi.atompub.AbstractAtomPubService;
 import org.apache.chemistry.opencmis.client.bindings.spi.atompub.AtomPubParser;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
@@ -50,19 +56,16 @@ public class CmisRepositoryConnectorUtils {
     private static final String FROM_TOKEN = "from";
     private static final String SEP = " ";
     private static final String SELECT_STAR_CLAUSE = "select *";
-    private static final String OBJECT_ID_PROPERTY = "cmis:objectId";
-    private static final String OBJECT_ID_TERM = OBJECT_ID_PROPERTY + ",";
+    private static final String OBJECT_ID_TERM = PropertyIds.OBJECT_ID + ",";
     private static final String SELECT_CLAUSE_TERM_SEP = ",";
     private static final String SELECT_PREFIX = "select ";
     private final static String TOKENIZER_SEP = ",\n\t";
     public static final String SLASH = "/";
-    
-    /** The standard Path property for ManifoldCF used for migrate contents **/
-    private static final String CONTENT_MIGRATION_PATH_PROPERTY = "manifoldcf:path";
 
     public static final String getDocumentURL(final Document document, final Session session)
             throws ManifoldCFException {
-        String link = null;
+            	
+    		String link = null;
         try {
             Method loadLink = AbstractAtomPubService.class.getDeclaredMethod(LOAD_LINK_METHOD_NAME,
                     new Class[]{String.class, String.class, String.class, String.class});
@@ -105,7 +108,7 @@ public class CmisRepositoryConnectorUtils {
                     selectTerm = term;
                     firstTermSelectClause = false;
                 } else {
-                    if (term.contains(OBJECT_ID_PROPERTY)){
+                    if (term.contains(PropertyIds.OBJECT_ID)){
                         foundObjIdClause = true;
                         cmisQueryResult = cmisQuery;
                         break;
@@ -173,14 +176,9 @@ public class CmisRepositoryConnectorUtils {
      * @param cmisQuery : cmis query
      */
     public static void addValuesOfProperties(Document document, RepositoryDocument rd, String cmisQuery) {
-    		String primaryPath = StringUtils.EMPTY;
     		if(document.getPaths() != null) {
-    			primaryPath = document.getPaths().get(0);
-    			try {
-						rd.addField(CONTENT_MIGRATION_PATH_PROPERTY, primaryPath);
-					} catch (ManifoldCFException e) {
-            Logging.connectors.error("Error when adding property[" + CONTENT_MIGRATION_PATH_PROPERTY + "] msg=[" + e.getMessage() + "]", e);
-					}
+    			List<String> sourcePath = document.getPaths();
+    			rd.setSourcePath(sourcePath);
     		}
     		
     		List<Property<?>> props = document.getProperties();

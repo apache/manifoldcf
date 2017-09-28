@@ -52,9 +52,6 @@ public class CmisConfig {
   /** CMIS Query */
   public static final String CMIS_QUERY_PARAM = "cmisQuery";
   
-  /** Content Migration Flag */
-  public static final String CONTENT_MIGRATION_PARAM = "contentMigration";
-  
   //default values
   public static final String USERNAME_DEFAULT_VALUE = "dummyuser";
   public static final String PASSWORD_DEFAULT_VALUE = "dummysecrect";
