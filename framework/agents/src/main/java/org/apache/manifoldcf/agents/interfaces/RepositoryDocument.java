@@ -129,9 +129,9 @@ public class RepositoryDocument
   *@param sourcePath is the path.
   */
   public void setSourcePath(final List<String> sourcePath) {
-    sourcePath.clear();
+    this.sourcePath.clear();
     for (final String pathElement : sourcePath) {
-      sourcePath.add(pathElement);
+      this.sourcePath.add(pathElement);
     }
   }
 
