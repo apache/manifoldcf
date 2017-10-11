@@ -38,7 +38,7 @@ import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
-import org.apache.chemistry.opencmis.commons.spi.ObjectService;
+import org.apache.chemistry.opencmis.commons.impl.jaxb.EnumBaseObjectTypeIds;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.core.interfaces.Configuration;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
@@ -87,7 +87,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
     Folder testFolder = null;
     ItemIterable<QueryResult> results = session.query(CMIS_TEST_QUERY, false);
     for (QueryResult result : results) {
-      String folderId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
+      String folderId = result.getPropertyById(PropertyIds.OBJECT_ID).getFirstValue().toString();
       testFolder = (Folder)session.getObject(folderId);
     }
     return testFolder;
@@ -97,7 +97,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
     // properties 
     // (minimal set: name and object type id)
     Map<String, Object> contentProperties = new HashMap<String, Object>();
-    contentProperties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
+    contentProperties.put(PropertyIds.OBJECT_TYPE_ID, EnumBaseObjectTypeIds.CMIS_DOCUMENT.value());
     contentProperties.put(PropertyIds.NAME, name);
   
     // content
@@ -122,7 +122,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
     ItemIterable<QueryResult> results = session.query(cmisQuery, false);
     String objectId = StringUtils.EMPTY;
     for (QueryResult result : results) {
-      objectId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
+      objectId = result.getPropertyById(PropertyIds.OBJECT_ID).getFirstValue().toString();
     }
 
     byte[] newContentByteArray = newContent.getBytes(StandardCharsets.UTF_8);
@@ -135,13 +135,11 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
   public void removeDocument(Session session, String name){
     String cmisQuery = StringUtils.replace(CMIS_TEST_QUERY_CHANGE_DOC, REPLACER, name);
     ItemIterable<QueryResult> results = session.query(cmisQuery, false);
-    String objectId = StringUtils.EMPTY;
+    String objectIdValue = StringUtils.EMPTY;
     for (QueryResult result : results) {
-      objectId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
+    	objectIdValue = result.getPropertyById(PropertyIds.OBJECT_ID).getFirstValue().toString();
     }
-    String repositoryId = session.getRepositoryInfo().getId();
-    ObjectService objectService = session.getBinding().getObjectService();
-    objectService.deleteObject(repositoryId, objectId, true, null);
+    session.getObject(objectIdValue).delete();
   }
   
   @Before
@@ -158,12 +156,12 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       ItemIterable<QueryResult> results = cmisClientSession.query(CMIS_TEST_QUERY, false);
       for (QueryResult result : results) {
          String repositoryId = cmisClientSession.getRepositoryInfo().getId();
-        String folderId = result.getPropertyById("cmis:objectId").getFirstValue().toString();
+        String folderId = result.getPropertyById(PropertyIds.OBJECT_ID).getFirstValue().toString();
         cmisClientSession.getBinding().getObjectService().deleteTree(repositoryId, folderId, true, null, false, null);
       }
 
       Map<String, Object> folderProperties = new HashMap<String, Object>();
-      folderProperties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:folder");
+      folderProperties.put(PropertyIds.OBJECT_TYPE_ID, EnumBaseObjectTypeIds.CMIS_FOLDER.value());
       folderProperties.put(PropertyIds.NAME, "testdata");
   
       Folder newFolder = root.createFolder(folderProperties);
@@ -381,7 +379,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString, 120000L);
+      waitJobInactive(jobIDString, 920000L);
 
       // Check to be sure we actually processed the right number of documents.
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
@@ -397,7 +395,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
 
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString, 120000L);
+      waitJobInactive(jobIDString, 920000L);
 
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
@@ -409,7 +407,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString, 120000L);
+      waitJobInactive(jobIDString, 920000L);
 
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
@@ -424,18 +422,18 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
-      waitJobInactive(jobIDString, 120000L);
+      waitJobInactive(jobIDString, 920000L);
 
       // Check to be sure we actually processed the right number of documents.
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 4)
-        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 5, saw "+new Long(count).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 4, saw "+new Long(count).toString());
 
       // Now, delete the job.
       deleteJob(jobIDString);
 
-      waitJobDeleted(jobIDString, 120000L);
+      waitJobDeleted(jobIDString, 920000L);
       
       // Cleanup is automatic by the base class, so we can feel free to leave jobs and connections lying around.
     }

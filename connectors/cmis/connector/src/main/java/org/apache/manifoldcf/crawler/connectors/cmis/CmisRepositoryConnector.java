@@ -146,7 +146,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public int getConnectorModel()
   {
-    return MODEL_CHAINED_ADD_CHANGE;
+    return MODEL_CHAINED_ADD_CHANGE_DELETE;
   }
 
   /**
@@ -1281,7 +1281,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   	}
   	return documentURI;
   }
-
+  
   protected static void handleIOException(IOException e, String context) throws ManifoldCFException, ServiceInterruption {
     if (e instanceof InterruptedIOException) {
       throw new ManifoldCFException(e.getMessage(), e,
