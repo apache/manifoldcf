@@ -55,7 +55,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
@@ -862,7 +862,7 @@ public class SharePointAuthority extends org.apache.manifoldcf.authorities.autho
         .setDefaultRequestConfig(requestBuilder.build())
         .setDefaultCredentialsProvider(credentialsProvider);
       builder.setRequestExecutor(new HttpRequestExecutor(socketTimeout))
-        .setRedirectStrategy(new DefaultRedirectStrategy());
+        .setRedirectStrategy(new LaxRedirectStrategy());
       httpClient = builder.build();
       
       proxy = new SPSProxyHelper( serverUrl, encodedServerLocation, serverLocation, serverUserName, password,

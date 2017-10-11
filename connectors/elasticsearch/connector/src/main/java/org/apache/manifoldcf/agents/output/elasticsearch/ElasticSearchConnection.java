@@ -31,7 +31,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;

@@ -86,7 +86,7 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.HttpHost;
@@ -367,7 +367,7 @@ public class MeridioWrapper
       .setDefaultRequestConfig(dmwsRequestBuilder.build())
       .setDefaultCredentialsProvider(dmwsCredentialsProvider)
       .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
-      .setRedirectStrategy(new DefaultRedirectStrategy())
+      .setRedirectStrategy(new LaxRedirectStrategy())
       .build();
     
     rmwsHttpClient = HttpClients.custom()
@@ -376,7 +376,7 @@ public class MeridioWrapper
       .setDefaultRequestConfig(rmwsRequestBuilder.build())
       .setDefaultCredentialsProvider(rmwsCredentialsProvider)
       .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
-      .setRedirectStrategy(new DefaultRedirectStrategy())
+      .setRedirectStrategy(new LaxRedirectStrategy())
       .build();
 
     if (meridioManifoldCFWSUrl != null)
@@ -419,7 +419,7 @@ public class MeridioWrapper
         .setDefaultRequestConfig(mcwsRequestBuilder.build())
         .setDefaultCredentialsProvider(mcwsCredentialsProvider)
         .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
-        .setRedirectStrategy(new DefaultRedirectStrategy())
+        .setRedirectStrategy(new LaxRedirectStrategy())
         .build();
     }
 

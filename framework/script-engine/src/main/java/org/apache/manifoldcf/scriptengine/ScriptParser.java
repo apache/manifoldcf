@@ -36,7 +36,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.ParseException;
 
@@ -1247,7 +1247,7 @@ public class ScriptParser
           .setDefaultCredentialsProvider(credentialsProvider)
           //.setSSLSocketFactory(myFactory)
           .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
-          .setRedirectStrategy(new DefaultRedirectStrategy())
+          .setRedirectStrategy(new LaxRedirectStrategy())
           .build();
 
       }

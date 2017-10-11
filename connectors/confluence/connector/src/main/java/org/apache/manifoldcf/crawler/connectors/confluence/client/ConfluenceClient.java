@@ -41,7 +41,7 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpRequestExecutor;
@@ -169,7 +169,7 @@ public class ConfluenceClient {
         .disableAutomaticRetries()
         .setDefaultRequestConfig(requestBuilder.build())
         .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
-        .setRedirectStrategy(new DefaultRedirectStrategy())
+        .setRedirectStrategy(new LaxRedirectStrategy())
         .build();
       
      }
