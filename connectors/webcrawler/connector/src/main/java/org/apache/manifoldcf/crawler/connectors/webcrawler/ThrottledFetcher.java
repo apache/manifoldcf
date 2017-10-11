@@ -59,7 +59,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpHost;
@@ -534,7 +534,7 @@ public class ThrottledFetcher
         .setDefaultRequestConfig(requestBuilder.build())
         .setDefaultCredentialsProvider(credentialsProvider)
         .setRequestExecutor(new HttpRequestExecutor(socketTimeoutMilliseconds))
-        .setRedirectStrategy(new DefaultRedirectStrategy())
+        .setRedirectStrategy(new LaxRedirectStrategy())
         .build();
 
         /*
@@ -560,7 +560,7 @@ public class ThrottledFetcher
             }
          
           });
-        localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
+        localHttpClient.setRedirectStrategy(new LaxRedirectStrategy());
         localHttpClient.getCookieSpecs().register(CookiePolicy.BROWSER_COMPATIBILITY, new CookieSpecFactory()
           {
 

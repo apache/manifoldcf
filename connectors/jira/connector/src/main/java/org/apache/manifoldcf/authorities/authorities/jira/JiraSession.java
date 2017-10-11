@@ -59,7 +59,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
@@ -186,7 +186,7 @@ public class JiraSession {
       .setDefaultRequestConfig(requestBuilder.build())
       .setDefaultCredentialsProvider(credentialsProvider)
       .setRequestExecutor(new HttpRequestExecutor(socketTimeout))
-      .setRedirectStrategy(new DefaultRedirectStrategy())
+      .setRedirectStrategy(new LaxRedirectStrategy())
       .build();
 
   }

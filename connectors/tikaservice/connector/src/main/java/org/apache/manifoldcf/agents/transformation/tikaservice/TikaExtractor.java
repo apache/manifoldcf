@@ -32,7 +32,7 @@ import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.SocketConfig;
@@ -220,7 +220,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         .disableAutomaticRetries()
         .setDefaultRequestConfig(requestBuilder.build());
       builder.setRequestExecutor(new HttpRequestExecutor(socketTimeout))
-        .setRedirectStrategy(new DefaultRedirectStrategy());
+        .setRedirectStrategy(new LaxRedirectStrategy());
       this.httpClient = builder.build();
 
       this.tikaHost = new HttpHost(tikaHostname, tikaPort);

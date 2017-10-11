@@ -256,7 +256,7 @@ public class HttpPoster
       .setConnectionManager(connectionManager)
       .disableAutomaticRetries()
       .setDefaultRequestConfig(requestBuilder.build())
-      .setRedirectStrategy(new DefaultRedirectStrategy())
+      .setRedirectStrategy(new LaxRedirectStrategy())
       .setRequestExecutor(new HttpRequestExecutor(socketTimeout));
 
 
