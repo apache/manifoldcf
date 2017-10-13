@@ -627,7 +627,7 @@ start[.bat|.sh]
             <tr><td><em>web</em></td><td>Web applications that should be deployed on tomcat or the equivalent, plus recommended application server -D switch names and values</td></tr>
             <tr><td><em>processes</em></td><td>classpath jars that should be included in the class path for all non-connector-specific processes, along with -D switches, using the same convention as described for tomcat, above</td></tr>
             <tr><td><em>properties.xml</em></td><td>an example ManifoldCF configuration file, in the right place for the multiprocess script to find it</td></tr>
-            <tr><td><em>logging.ini</em></td><td>an example ManifoldCF logging configuration file, in the right place for the properties.xml to find it</td></tr>
+            <tr><td><em>logging.xml</em></td><td>an example ManifoldCF logging configuration file, in the right place for the properties.xml to find it</td></tr>
             <tr><td><em>syncharea</em></td><td>an example ManifoldCF synchronization directory, which must be writable in order for multiprocess ManifoldCF to work</td></tr>
             <tr><td><em>logs</em></td><td>where the ManifoldCF logs get written to</td></tr>
             <tr><td><em>start-database[.sh|.bat]</em></td><td>script to start the HSQLDB database</td></tr>
@@ -678,7 +678,7 @@ start[.bat|.sh]
             <tr><td><em>processes</em></td><td>classpath jars that should be included in the class path for all non-connector-specific processes, along with -D switches, using the same convention as described for tomcat, above</td></tr>
             <tr><td><em>properties.xml</em></td><td>an example ManifoldCF configuration file, in the right place for the multiprocess script to find it</td></tr>
             <tr><td><em>properties-global.xml</em></td><td>an example ManifoldCF shared configuration file, in the right place for the setglobalproperties script to find it</td></tr>
-            <tr><td><em>logging.ini</em></td><td>an example ManifoldCF logging configuration file, in the right place for the properties.xml to find it</td></tr>
+            <tr><td><em>logging.xml</em></td><td>an example ManifoldCF logging configuration file, in the right place for the properties.xml to find it</td></tr>
             <tr><td><em>zookeeper</em></td><td>the example ZooKeeper storage directory, which must be writable in order for ZooKeeper to work</td></tr>
             <tr><td><em>logs</em></td><td>where the ManifoldCF logs get written to</td></tr>
             <tr><td><em>runzookeeper[.sh|.bat]</em></td><td>script to run a ZooKeeper server instance</td></tr>
@@ -1060,7 +1060,7 @@ start[.bat|.sh]
           <p></p>
           <p>&#60;property name="<em>property_name</em>" value="<em>property_value</em>"/&#62;</p>
           <p></p>
-          <p>One of the optional properties is the name of the logging configuration file.  This property's name is "org.apache.manifoldcf.logconfigfile".  If not present, the logging configuration file will be assumed to be <em>&#60;user_home&#62;/manifoldcf/logging.ini</em>.  The logging configuration file is a standard commons-logging property file, and should be formatted accordingly.</p>
+          <p>One of the optional properties is the name of the logging configuration file.  This property's name is "org.apache.manifoldcf.logconfigfile".  If not present, the logging configuration file will be assumed to be <em>&#60;user_home&#62;/manifoldcf/logging.xml</em>.  The logging configuration file is a standard commons-logging property file, and should be formatted accordingly.</p>
           <p></p>
           <p>Note that all properties described below can also be specified on the command line, via a -D switch.  If both methods of setting the property are used, the -D switch value will override the property file value.</p>
           <p></p>
@@ -1168,8 +1168,8 @@ start[.bat|.sh]
         <section>
           <title>Logging configuration file properties</title>
           <p></p>
-          <p>The <em>logging.ini</em> file contains Apache commons-logging properties in a standard Java &#60;name&#62;=&#60;value&#62; format.  The way the
-            ManifoldCF logging output is formatted is controlled through this file, as are any loggers that ManifoldCF doesn't explicitly define (e.g. loggers for Apache commons-httpclient).
+          <p>The <em>logging.xml</em> file contains Apache log4j2 properties in a log4j2 xml format.  The way the
+            ManifoldCF logging output is formatted is controlled through this file, as are any loggers that ManifoldCF doesn't explicitly define (e.g. loggers for Apache HttpComponent/HttpClient).
             Other resources are therefore best suited to describe the parameters that can be used and to what effect.</p>
         </section>
           
