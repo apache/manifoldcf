@@ -25,7 +25,7 @@
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('JiraAuthorityConnector.JiraProtocolColon'))</nobr>
     </td>
     <td class="value">
-      <select size="2" name="jiraprotocol"/>
+      <select size="2" name="jiraprotocol">
 #if($JIRAPROTOCOL == 'http')
         <option value="http" selected="true">http</option>
 #else
