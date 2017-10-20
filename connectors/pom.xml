@@ -72,6 +72,7 @@
     <module>opennlp</module>
     <module>nuxeo</module>
     <module>contentlimiter</module>
+    <module>rocketchat</module>
   </modules>
 
 </project>
