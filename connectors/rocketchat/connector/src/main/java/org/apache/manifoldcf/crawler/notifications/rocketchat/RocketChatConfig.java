@@ -78,9 +78,14 @@ public class RocketChatConfig {
   public static final String NODE_SCHEDULEPAUSED = "schedulepaused";
   public static final String NODE_RESTARTED = "restarted";
 
+  public static final String NODE_GLOBALS = "globals";
   public static final String NODE_CHANNEL = "channel";
   public static final String NODE_MESSAGE = "message";
-
+  public static final String NODE_DEFAULT_CHANNEL = "default_channel";
+  public static final String NODE_ALIAS = "alias";
+  public static final String NODE_EMOJI = "emoji";
+  public static final String NODE_AVATAR = "avatar";
+  
   public static final String ATTRIBUTE_NAME = "name";
   public static final String ATTRIBUTE_VALUE = "value";
 
