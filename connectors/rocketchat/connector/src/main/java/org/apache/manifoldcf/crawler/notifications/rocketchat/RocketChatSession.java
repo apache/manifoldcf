@@ -19,7 +19,6 @@
 package org.apache.manifoldcf.crawler.notifications.rocketchat;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 
 import javax.net.ssl.SSLSocketFactory;
 
@@ -145,34 +144,6 @@ public class RocketChatSession
 
   public void checkConnection() throws IOException
   {
-    // test connection
-    HttpGet infoGet = new HttpGet(serverUrl + "/api/v1/info");
-    int statusCode;
-    Boolean success = null;
-    String error = "";
-    try (CloseableHttpResponse response = httpClient.execute(infoGet)) {
-      statusCode = response.getStatusLine().getStatusCode();
-      JsonNode jsonResponse = objectMapper.readTree(response.getEntity().getContent());
-      JsonNode successNode = jsonResponse.get("success");
-      JsonNode errorNode = jsonResponse.get("error");
-      if (successNode != null) {
-        success = successNode.asBoolean();
-      } else if (errorNode != null) {
-        error = errorNode.asText();
-      }
-
-      // the API responds with { "success" : true }
-      boolean isExpectedStatus = statusCode == HttpStatus.SC_OK;
-      boolean isConnectionOk = isExpectedStatus && success != null && success;
-      if (!isConnectionOk) {
-        String messageTemplate = "connection failed: status {0}, message: {1}";
-        String statusInfo = isExpectedStatus ? "ok" : statusCode + " is unexpected";
-        String details = success != null ? "success " + success : error;
-        String message = MessageFormat.format(messageTemplate, statusInfo, details);
-        throw new ClientProtocolException(message);
-      }
-    }
-    
     // test login
     Header[] authHeader = null;
     try {
@@ -182,10 +153,9 @@ public class RocketChatSession
         logout(authHeader);
       }
     }
-
   }
 
-  public void send(String channel, String message) throws IOException
+  public void send(RocketChatMessage message) throws IOException
   {
     Header[] authHeader = null;
     try {
@@ -194,14 +164,7 @@ public class RocketChatSession
       HttpPost messagePost = new HttpPost(serverUrl + "/api/v1/chat.postMessage");
       messagePost.setHeaders(authHeader);
   
-      RocketChatMessage rocketChatMessage = new RocketChatMessage();
-      if (StringUtils.isNotBlank(channel)) {
-        rocketChatMessage.setChannel(channel);
-      }
-      rocketChatMessage.setText(message);
-      rocketChatMessage.setAlias("Apache ManifoldCF");
-  
-      String json = objectMapper.writeValueAsString(rocketChatMessage);
+      String json = objectMapper.writeValueAsString(message);
   
       HttpEntity entity = EntityBuilder.create()
           .setContentType(ContentType.APPLICATION_JSON)
@@ -215,7 +178,7 @@ public class RocketChatSession
           EntityUtils.consume(response.getEntity());
         } else {
           Logging.connectors.error("Sending Rocket.Chat message failed with statusline " + response.getStatusLine());
-          Logging.connectors.debug("  Response was: " + EntityUtils.toString(response.getEntity()));
+          Logging.connectors.error("  Response was: " + EntityUtils.toString(response.getEntity()));
         }
       }
     } finally {
@@ -244,7 +207,6 @@ public class RocketChatSession
         
         JsonNode jsonResponse = objectMapper.readTree(response.getEntity().getContent());
         JsonNode dataNode = jsonResponse.get("data");
-        JsonNode errorNode = jsonResponse.get("error");
         if (dataNode != null) {
           String authToken = dataNode.get("authToken").asText();
           String userId = dataNode.get("userId").asText();
@@ -254,19 +216,15 @@ public class RocketChatSession
               new BasicHeader("X-User-Id", userId)
           };  
         } else {
-          String message;
-          if (errorNode != null) {
-            message = errorNode.asText();
-          } else {
-            message = "login response did not contain authentication data";
-          }
-          throw new ClientProtocolException(message);
+          Logging.connectors.error("The login returned OK, but the response did not contain any authentication data.");
+          Logging.connectors.error("  Response was: " + objectMapper.writeValueAsString(jsonResponse));
+          throw new ClientProtocolException("login response did not contain any authentication data");
         }
         
         
       } else {
         Logging.connectors.error("Login to Rocket.Chat failed with statusline " + response.getStatusLine());
-        Logging.connectors.debug("  Response was: " + EntityUtils.toString(response.getEntity()));
+        Logging.connectors.error("  Response was: " + EntityUtils.toString(response.getEntity()));
         throw new HttpResponseException(statusCode, response.getStatusLine().getReasonPhrase());
       }
     }
@@ -279,7 +237,7 @@ public class RocketChatSession
       int statusCode = response.getStatusLine().getStatusCode();
       if (statusCode != HttpStatus.SC_OK) {
         Logging.connectors.error("Logout from Rocket.Chat failed with statusline " + response.getStatusLine());
-        Logging.connectors.debug("  Response was: " + EntityUtils.toString(response.getEntity()));
+        Logging.connectors.error("  Response was: " + EntityUtils.toString(response.getEntity()));
       }
     }
   }

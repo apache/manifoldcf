@@ -26,6 +26,10 @@ public class RocketChatMessage {
 
   private String alias;
   
+  private String emoji;
+  
+  private String avatar;
+  
   public String getChannel() {
     return channel;
   }
@@ -48,6 +52,22 @@ public class RocketChatMessage {
 
   public void setAlias(String alias) {
     this.alias = alias;
+  }
+
+  public String getEmoji() {
+    return emoji;
+  }
+
+  public void setEmoji(String emoji) {
+    this.emoji = emoji;
+  }
+
+  public String getAvatar() {
+    return avatar;
+  }
+
+  public void setAvatar(String avatar) {
+    this.avatar = avatar;
   }
 
 }

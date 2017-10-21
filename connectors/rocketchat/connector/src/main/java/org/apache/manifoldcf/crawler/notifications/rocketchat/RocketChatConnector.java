@@ -1,21 +1,21 @@
 /* $Id$ */
 
 /**
-* Licensed to the Apache Software Foundation (ASF) under one or more
-* contributor license agreements. See the NOTICE file distributed with
-* this work for additional information regarding copyright ownership.
-* The ASF licenses this file to You under the Apache License, Version 2.0
-* (the "License"); you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.manifoldcf.crawler.notifications.rocketchat;
 
 import java.io.IOException;
@@ -37,7 +37,7 @@ import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 /**
-*/
+ */
 public class RocketChatConnector extends org.apache.manifoldcf.crawler.notifications.BaseNotificationConnector {
 
   protected final static long SESSION_EXPIRATION_MILLISECONDS = 300000L;
@@ -60,11 +60,11 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   //////////////////////////////////Start of Basic Connector Methods/////////////////////////
 
   /**
-  * Connect.
-  *
-  * @param configParameters is the set of configuration parameters, which
-  * in this case describe the root directory.
-  */
+   * Connect.
+   *
+   * @param configParameters is the set of configuration parameters, which
+   * in this case describe the root directory.
+   */
   @Override
   public void connect(ConfigParams configParameters) {
     super.connect(configParameters);
@@ -85,12 +85,12 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   }
 
   /**
-  * Close the connection. Call this before discarding this instance of the
-  * repository connector.
-  */
+   * Close the connection. Call this before discarding this instance of the
+   * repository connector.
+   */
   @Override
   public void disconnect()
-    throws ManifoldCFException {
+      throws ManifoldCFException {
     this.serverUrl = null;
     this.user = null;
     this.password = null;
@@ -100,9 +100,9 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   }
 
   /**
-  * This method is periodically called for all connectors that are connected but not
-  * in active use.
-  */
+   * This method is periodically called for all connectors that are connected but not
+   * in active use.
+   */
   @Override
   public void poll() throws ManifoldCFException {
     if (session != null)
@@ -113,10 +113,10 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   }
 
   /**
-  * Test the connection. Returns a string describing the connection integrity.
-  *
-  * @return the connection's status as a displayable string.
-  */
+   * Test the connection. Returns a string describing the connection integrity.
+   *
+   * @return the connection's status as a displayable string.
+   */
   @Override
   public String check()
       throws ManifoldCFException {
@@ -146,7 +146,7 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   }
 
   protected void getSession()
-    throws ManifoldCFException, ServiceInterruption {
+      throws ManifoldCFException, ServiceInterruption {
     if (session == null) {
 
       // Check that all the required parameters are there.
@@ -191,77 +191,97 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   //////////////////////////////Start of Notification Connector Method///////////////////////////////////
 
   /** Notify of job stop due to error abort.
-  *@param spec is the notification specification.
-  */
+   *@param spec is the notification specification.
+   */
   @Override
   public void notifyOfJobStopErrorAbort(final Specification spec)
-    throws ManifoldCFException, ServiceInterruption {
+      throws ManifoldCFException, ServiceInterruption {
     sendRocketChatMessage(spec, RocketChatConfig.NODE_ERRORABORTED);
   }
 
   /** Notify of job stop due to manual abort.
-  *@param spec is the notification specification.
-  */
+   *@param spec is the notification specification.
+   */
   @Override
   public void notifyOfJobStopManualAbort(final Specification spec)
-    throws ManifoldCFException, ServiceInterruption {
+      throws ManifoldCFException, ServiceInterruption {
     sendRocketChatMessage(spec, RocketChatConfig.NODE_MANUALABORTED);
   }
 
   /** Notify of job stop due to manual pause.
-  *@param spec is the notification specification.
-  */
+   *@param spec is the notification specification.
+   */
   @Override
   public void notifyOfJobStopManualPause(final Specification spec)
-    throws ManifoldCFException, ServiceInterruption {
+      throws ManifoldCFException, ServiceInterruption {
     sendRocketChatMessage(spec, RocketChatConfig.NODE_MANUALPAUSED);
   }
 
   /** Notify of job stop due to schedule pause.
-  *@param spec is the notification specification.
-  */
+   *@param spec is the notification specification.
+   */
   @Override
   public void notifyOfJobStopSchedulePause(final Specification spec)
-    throws ManifoldCFException, ServiceInterruption {
+      throws ManifoldCFException, ServiceInterruption {
     sendRocketChatMessage(spec, RocketChatConfig.NODE_SCHEDULEPAUSED);
   }
 
   /** Notify of job stop due to restart.
-  *@param spec is the notification specification.
-  */
+   *@param spec is the notification specification.
+   */
   @Override
   public void notifyOfJobStopRestart(final Specification spec)
-    throws ManifoldCFException, ServiceInterruption {
+      throws ManifoldCFException, ServiceInterruption {
     sendRocketChatMessage(spec, RocketChatConfig.NODE_RESTARTED);
   }
 
   /** Notify of job end.
-  *@param spec is the notification specification.
-  */
+   *@param spec is the notification specification.
+   */
   @Override
   public void notifyOfJobEnd(final Specification spec)
-    throws ManifoldCFException, ServiceInterruption {
+      throws ManifoldCFException, ServiceInterruption {
     sendRocketChatMessage(spec, RocketChatConfig.NODE_FINISHED);
   }
 
   protected void sendRocketChatMessage(final Specification spec, final String nodeType)
-    throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
   {
+    
+    String defaultChannel = null;
+    String alias = null;
+    String emoji = null;
+    String avatar = null;
+    
     String channel = "";
     String message = "";
-    for (int i = 0; i < spec.getChildCount(); i++) {
-      SpecificationNode sn = spec.getChild(i);
-      if (sn.getType().equals(RocketChatConfig.NODE_CHANNEL))
-        channel = sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE);
-      else if (sn.getType().equals(RocketChatConfig.NODE_MESSAGE))
-        message = sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE);
-    }
     // Look for node of the specified type
     if (nodeType != null)
     {
       for (int i = 0; i < spec.getChildCount(); i++) {
         SpecificationNode childNode = spec.getChild(i);
-        if (childNode.getType().equals(nodeType))
+        
+        // Global settings
+        if (childNode.getType().equals(RocketChatConfig.NODE_GLOBALS)) {
+          for (int j = 0; j < childNode.getChildCount(); j++) {
+            SpecificationNode sn = childNode.getChild(j);
+            if (sn.getType().equals(RocketChatConfig.NODE_DEFAULT_CHANNEL)) {
+              defaultChannel = sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE);
+            }
+            else if (sn.getType().equals(RocketChatConfig.NODE_ALIAS)) {
+              alias = sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE);
+            }
+            else if (sn.getType().equals(RocketChatConfig.NODE_EMOJI)) {
+              emoji = sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE);
+            }
+            else if (sn.getType().equals(RocketChatConfig.NODE_AVATAR)) {
+              avatar = sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE);
+            }
+          }
+        }
+        
+        // notification type specific settings
+        else if (childNode.getType().equals(nodeType))
         {
           for (int j = 0; j < childNode.getChildCount(); j++) {
             SpecificationNode sn = childNode.getChild(j);
@@ -278,10 +298,25 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
       return;
     }
 
+    if (StringUtils.isBlank(channel)) {
+      if (StringUtils.isBlank(defaultChannel)) {
+        return;
+      } else {
+        channel = defaultChannel;
+      }
+    }
+
     // Construct and send a rocketchat message
     getSession();
 
-    SendThread st = new SendThread(session, channel, message);
+    RocketChatMessage chatMessage = new RocketChatMessage();
+    chatMessage.setChannel(channel);
+    chatMessage.setText(message);
+    chatMessage.setAlias(alias);
+    chatMessage.setEmoji(emoji);
+    chatMessage.setAvatar(avatar);
+
+    SendThread st = new SendThread(session, chatMessage);
     st.start();
     try {
       st.finishUp();
@@ -299,22 +334,22 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   ///////////////////////////////////////Start of Configuration UI/////////////////////////////////////
 
   /**
-  * Output the configuration header section.
-  * This method is called in the head section of the connector's configuration page. Its purpose is to
-  * add the required tabs to the list, and to output any javascript methods that might be needed by
-  * the configuration editing HTML.
-  * The connector does not need to be connected for this method to be called.
-  *
-  * @param threadContext is the local thread context.
-  * @param out is the output to which any HTML should be sent.
-  * @param locale is the desired locale.
-  * @param parameters are the configuration parameters, as they currently exist, for this connection being configured.
-  * @param tabsArray is an array of tab names. Add to this array any tab names that are specific to the connector.
-  */
+   * Output the configuration header section.
+   * This method is called in the head section of the connector's configuration page. Its purpose is to
+   * add the required tabs to the list, and to output any javascript methods that might be needed by
+   * the configuration editing HTML.
+   * The connector does not need to be connected for this method to be called.
+   *
+   * @param threadContext is the local thread context.
+   * @param out is the output to which any HTML should be sent.
+   * @param locale is the desired locale.
+   * @param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+   * @param tabsArray is an array of tab names. Add to this array any tab names that are specific to the connector.
+   */
   @Override
   public void outputConfigurationHeader(IThreadContext threadContext, IHTTPOutput out,
-    Locale locale, ConfigParams parameters, List<String> tabsArray)
-    throws ManifoldCFException, IOException {
+      Locale locale, ConfigParams parameters, List<String> tabsArray)
+          throws ManifoldCFException, IOException {
     tabsArray.add(Messages.getString(locale, "RocketChatConnector.RestAPI"));
     // Map the parameters
     Map<String, Object> paramMap = new HashMap<String, Object>();
@@ -328,8 +363,8 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
 
   @Override
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
-    Locale locale, ConfigParams parameters, String tabName)
-    throws ManifoldCFException, IOException {
+      Locale locale, ConfigParams parameters, String tabName)
+          throws ManifoldCFException, IOException {
     // Output the Server tab
     Map<String, Object> paramMap = new HashMap<String, Object>();
     // Set the tab name
@@ -348,7 +383,7 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
     } else {
       password = mapper.mapPasswordToKey(password);
     }
-    
+
     String proxyHost = getEmptyOnNull(parameters, RocketChatConfig.PROXY_HOST_PARAM);
     String proxyPort = getEmptyOnNull(parameters, RocketChatConfig.PROXY_PORT_PARAM);
     String proxyUsername = getEmptyOnNull(parameters, RocketChatConfig.PROXY_USERNAME_PARAM);
@@ -381,22 +416,22 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   }
 
   /**
-  * Process a configuration post.
-  * This method is called at the start of the connector's configuration page, whenever there is a possibility
-  * that form data for a connection has been posted. Its purpose is to gather form information and modify
-  * the configuration parameters accordingly.
-  * The name of the posted form is always "editconnection".
-  * The connector does not need to be connected for this method to be called.
-  *
-  * @param threadContext is the local thread context.
-  * @param variableContext is the set of variables available from the post, including binary file post information.
-  * @param parameters are the configuration parameters, as they currently exist, for this connection being configured.
-  * @return null if all is well, or a string error message if there is an error that should prevent saving of the
-  * connection (and cause a redirection to an error page).
-  */
+   * Process a configuration post.
+   * This method is called at the start of the connector's configuration page, whenever there is a possibility
+   * that form data for a connection has been posted. Its purpose is to gather form information and modify
+   * the configuration parameters accordingly.
+   * The name of the posted form is always "editconnection".
+   * The connector does not need to be connected for this method to be called.
+   *
+   * @param threadContext is the local thread context.
+   * @param variableContext is the set of variables available from the post, including binary file post information.
+   * @param parameters are the configuration parameters, as they currently exist, for this connection being configured.
+   * @return null if all is well, or a string error message if there is an error that should prevent saving of the
+   * connection (and cause a redirection to an error page).
+   */
   @Override
   public String processConfigurationPost(IThreadContext threadContext, IPostParameters variableContext,
-    ConfigParams parameters) throws ManifoldCFException {
+      ConfigParams parameters) throws ManifoldCFException {
 
     final String serverUrl = variableContext.getParameter("serverUrl");
     if (serverUrl != null) {
@@ -407,12 +442,12 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
     if (user != null) {
       parameters.setParameter(RocketChatConfig.USER_PARAM, user);
     }
-    
+
     final String password = variableContext.getParameter("password");
     if (password != null) {
       parameters.setObfuscatedParameter(RocketChatConfig.PASSWORD_PARAM, variableContext.mapKeyToPassword(password));
     }
-    
+
     final String proxyHost = variableContext.getParameter("proxyHost");
     if (proxyHost != null) {
       parameters.setParameter(RocketChatConfig.PROXY_HOST_PARAM, proxyHost);
@@ -450,20 +485,20 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   }
 
   /**
-  * View configuration. This method is called in the body section of the
-  * connector's view configuration page. Its purpose is to present the
-  * connection information to the user. The coder can presume that the HTML that
-  * is output from this configuration will be within appropriate <html> and
-  * <body> tags.
-  *
-  * @param threadContext is the local thread context.
-  * @param out is the output to which any HTML should be sent.
-  * @param parameters are the configuration parameters, as they currently exist, for
-  * this connection being configured.
-  */
+   * View configuration. This method is called in the body section of the
+   * connector's view configuration page. Its purpose is to present the
+   * connection information to the user. The coder can presume that the HTML that
+   * is output from this configuration will be within appropriate <html> and
+   * <body> tags.
+   *
+   * @param threadContext is the local thread context.
+   * @param out is the output to which any HTML should be sent.
+   * @param parameters are the configuration parameters, as they currently exist, for
+   * this connection being configured.
+   */
   @Override
   public void viewConfiguration(IThreadContext threadContext, IHTTPOutput out,
-    Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
+      Locale locale, ConfigParams parameters) throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
 
     // Fill in map from each tab
@@ -479,20 +514,20 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   /////////////////////////////////Start of Specification UI//////////////////////////////////////////////////
 
   /** Output the specification header section.
-  * This method is called in the head section of a job page which has selected a repository connection of the
-  * current type.  Its purpose is to add the required tabs to the list, and to output any javascript methods
-  * that might be needed by the job editing HTML.
-  * The connector will be connected before this method can be called.
-  *@param out is the output to which any HTML should be sent.
-  *@param locale is the locale the output is preferred to be in.
-  *@param ds is the current document specification for this job.
-  *@param connectionSequenceNumber is the unique number of this connection within the job.
-  *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
-  */
+   * This method is called in the head section of a job page which has selected a repository connection of the
+   * current type.  Its purpose is to add the required tabs to the list, and to output any javascript methods
+   * that might be needed by the job editing HTML.
+   * The connector will be connected before this method can be called.
+   *@param out is the output to which any HTML should be sent.
+   *@param locale is the locale the output is preferred to be in.
+   *@param ds is the current document specification for this job.
+   *@param connectionSequenceNumber is the unique number of this connection within the job.
+   *@param tabsArray is an array of tab names.  Add to this array any tab names that are specific to the connector.
+   */
   @Override
   public void outputSpecificationHeader(IHTTPOutput out, Locale locale, Specification ds,
-    int connectionSequenceNumber, List<String> tabsArray)
-    throws ManifoldCFException, IOException {
+      int connectionSequenceNumber, List<String> tabsArray)
+          throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
     // Add the tabs
@@ -501,32 +536,32 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   }
 
   /** Output the specification body section.
-  * This method is called in the body section of a job page which has selected a repository connection of the
-  * current type.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate
-  *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
-  * The connector will be connected before this method can be called.
-  *@param out is the output to which any HTML should be sent.
-  *@param locale is the locale the output is preferred to be in.
-  *@param ds is the current document specification for this job.
-  *@param connectionSequenceNumber is the unique number of this connection within the job.
-  *@param actualSequenceNumber is the connection within the job that has currently been selected.
-  *@param tabName is the current tab name.  (actualSequenceNumber, tabName) form a unique tuple within
-  *  the job.
-  */
+   * This method is called in the body section of a job page which has selected a repository connection of the
+   * current type.  Its purpose is to present the required form elements for editing.
+   * The coder can presume that the HTML that is output from this configuration will be within appropriate
+   *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
+   * The connector will be connected before this method can be called.
+   *@param out is the output to which any HTML should be sent.
+   *@param locale is the locale the output is preferred to be in.
+   *@param ds is the current document specification for this job.
+   *@param connectionSequenceNumber is the unique number of this connection within the job.
+   *@param actualSequenceNumber is the connection within the job that has currently been selected.
+   *@param tabName is the current tab name.  (actualSequenceNumber, tabName) form a unique tuple within
+   *  the job.
+   */
   @Override
   public void outputSpecificationBody(IHTTPOutput out, Locale locale, Specification ds,
-    int connectionSequenceNumber, int actualSequenceNumber, String tabName)
-    throws ManifoldCFException, IOException {
+      int connectionSequenceNumber, int actualSequenceNumber, String tabName)
+          throws ManifoldCFException, IOException {
     outputMessageTab(out, locale, ds, tabName, connectionSequenceNumber, actualSequenceNumber);
   }
 
   /**
-* Take care of "Message" tab.
-*/
+   * Take care of "Message" tab.
+   */
   protected void outputMessageTab(IHTTPOutput out, Locale locale,
-    Specification ds, String tabName, int connectionSequenceNumber, int actualSequenceNumber)
-    throws ManifoldCFException, IOException {
+      Specification ds, String tabName, int connectionSequenceNumber, int actualSequenceNumber)
+          throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("TabName", tabName);
     paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
@@ -536,66 +571,71 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   }
 
   /**
-  * Fill in Velocity context for Metadata tab.
-  */
+   * Fill in Velocity context for Metadata tab.
+   */
   protected static void fillInMessageTab(Map<String, Object> paramMap,
-    Specification ds) {
+      Specification ds) {
 
-    // Preload default values, for backwards compatibility
-    String channel = "";
-    String message = "";
+    // Initialize all records with blanks
+    addRecord(paramMap, RocketChatConfig.NODE_FINISHED, "", "");
+    addRecord(paramMap, RocketChatConfig.NODE_ERRORABORTED, "", "");
+    addRecord(paramMap, RocketChatConfig.NODE_MANUALABORTED, "", "");
+    addRecord(paramMap, RocketChatConfig.NODE_MANUALPAUSED, "", "");
+    addRecord(paramMap, RocketChatConfig.NODE_SCHEDULEPAUSED, "", "");
+    addRecord(paramMap, RocketChatConfig.NODE_RESTARTED, "" ,"");
+
+    String channel;
+    String message;
+    // Loop through nodes and pick them out that way
     for (int i = 0; i < ds.getChildCount(); i++) {
-      SpecificationNode sn = ds.getChild(i);
-      if (sn.getType().equals(RocketChatConfig.NODE_CHANNEL)) {
-        channel = sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE);
-      } else if (sn.getType().equals(RocketChatConfig.NODE_MESSAGE)) {
-        message = sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE);
-      }
-    }
-    // If ANY of the above are non-empty, we create a new dummy record
-    if (channel.length() > 0) {
-      // Add the dummy records
-      addRecord(paramMap, RocketChatConfig.NODE_FINISHED, channel, message);
-      addRecord(paramMap, RocketChatConfig.NODE_ERRORABORTED, channel, message);
-      addRecord(paramMap, RocketChatConfig.NODE_MANUALABORTED, channel, message);
-      addRecord(paramMap, RocketChatConfig.NODE_MANUALPAUSED, channel, message);
-      addRecord(paramMap, RocketChatConfig.NODE_SCHEDULEPAUSED, channel, message);
-      addRecord(paramMap, RocketChatConfig.NODE_RESTARTED, channel, message);
-
-    }
-    else
-    {
-      // Initialize all records with blanks
-      addRecord(paramMap, RocketChatConfig.NODE_FINISHED, "", "");
-      addRecord(paramMap, RocketChatConfig.NODE_ERRORABORTED, "", "");
-      addRecord(paramMap, RocketChatConfig.NODE_MANUALABORTED, "", "");
-      addRecord(paramMap, RocketChatConfig.NODE_MANUALPAUSED, "", "");
-      addRecord(paramMap, RocketChatConfig.NODE_SCHEDULEPAUSED, "", "");
-      addRecord(paramMap, RocketChatConfig.NODE_RESTARTED, "" ,"");
-
-      // Loop through nodes and pick them out that way
-      for (int i = 0; i < ds.getChildCount(); i++) {
-        SpecificationNode childNode = ds.getChild(i);
-        if (childNode.getType().equals(RocketChatConfig.NODE_FINISHED) ||
+      SpecificationNode childNode = ds.getChild(i);
+      if (childNode.getType().equals(RocketChatConfig.NODE_FINISHED) ||
           childNode.getType().equals(RocketChatConfig.NODE_ERRORABORTED) ||
           childNode.getType().equals(RocketChatConfig.NODE_MANUALABORTED) ||
           childNode.getType().equals(RocketChatConfig.NODE_MANUALPAUSED) ||
           childNode.getType().equals(RocketChatConfig.NODE_SCHEDULEPAUSED) ||
           childNode.getType().equals(RocketChatConfig.NODE_RESTARTED)) {
-          channel = "";
-          message = "";
-          for (int j = 0; j < childNode.getChildCount(); j++) {
-            SpecificationNode sn = childNode.getChild(j);
-            if (sn.getType().equals(RocketChatConfig.NODE_CHANNEL)) {
-              channel = sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE);
-            } else if (sn.getType().equals(RocketChatConfig.NODE_MESSAGE)) {
-              message = sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE);
-            }
+        channel = "";
+        message = "";
+        for (int j = 0; j < childNode.getChildCount(); j++) {
+          SpecificationNode sn = childNode.getChild(j);
+          if (sn.getType().equals(RocketChatConfig.NODE_CHANNEL)) {
+            channel = sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE);
+          } else if (sn.getType().equals(RocketChatConfig.NODE_MESSAGE)) {
+            message = sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE);
           }
-          addRecord(paramMap, childNode.getType(), channel, message);
         }
+        addRecord(paramMap, childNode.getType(), channel, message);
       }
     }
+
+    // Global Settings
+    
+    // Initialize globals with blanks
+    paramMap.put(RocketChatConfig.NODE_DEFAULT_CHANNEL, "");
+    paramMap.put(RocketChatConfig.NODE_ALIAS, "");
+    paramMap.put(RocketChatConfig.NODE_EMOJI, "");
+    paramMap.put(RocketChatConfig.NODE_AVATAR, "");
+    
+    for (int i = 0; i < ds.getChildCount(); i++) {
+      SpecificationNode childNode = ds.getChild(i);
+      if (childNode.getType().equals(RocketChatConfig.NODE_GLOBALS)) {
+        for (int j = 0; j < childNode.getChildCount(); j++) {
+          SpecificationNode sn = childNode.getChild(j);
+          if (sn.getType().equals(RocketChatConfig.NODE_DEFAULT_CHANNEL)) {
+            paramMap.put(RocketChatConfig.NODE_DEFAULT_CHANNEL, sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE));
+          } else if (sn.getType().equals(RocketChatConfig.NODE_ALIAS)) {
+            paramMap.put(RocketChatConfig.NODE_ALIAS, sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE));
+          } else if (sn.getType().equals(RocketChatConfig.NODE_EMOJI)) {
+            paramMap.put(RocketChatConfig.NODE_EMOJI, sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE));
+          } else if (sn.getType().equals(RocketChatConfig.NODE_AVATAR)) {
+            paramMap.put(RocketChatConfig.NODE_AVATAR, sn.getAttributeValue(RocketChatConfig.ATTRIBUTE_VALUE));
+          }
+        }
+      }
+      
+    }
+
   }
 
   protected static void addRecord(Map<String,Object> paramMap, String nodeType, String channel, String message) {
@@ -604,34 +644,30 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   }
 
   /** Process a specification post.
-  * This method is called at the start of job's edit or view page, whenever there is a possibility that form
-  * data for a connection has been posted.  Its purpose is to gather form information and modify the
-  * document specification accordingly.  The name of the posted form is always "editjob".
-  * The connector will be connected before this method can be called.
-  *@param variableContext contains the post data, including binary file-upload information.
-  *@param locale is the locale the output is preferred to be in.
-  *@param ds is the current document specification for this job.
-  *@param connectionSequenceNumber is the unique number of this connection within the job.
-  *@return null if all is well, or a string error message if there is an error that should prevent saving of
-  * the job (and cause a redirection to an error page).
-  */
+   * This method is called at the start of job's edit or view page, whenever there is a possibility that form
+   * data for a connection has been posted.  Its purpose is to gather form information and modify the
+   * document specification accordingly.  The name of the posted form is always "editjob".
+   * The connector will be connected before this method can be called.
+   *@param variableContext contains the post data, including binary file-upload information.
+   *@param locale is the locale the output is preferred to be in.
+   *@param ds is the current document specification for this job.
+   *@param connectionSequenceNumber is the unique number of this connection within the job.
+   *@return null if all is well, or a string error message if there is an error that should prevent saving of
+   * the job (and cause a redirection to an error page).
+   */
   @Override
   public String processSpecificationPost(IPostParameters variableContext, Locale locale, Specification ds,
-    int connectionSequenceNumber)
-    throws ManifoldCFException {
+      int connectionSequenceNumber)
+          throws ManifoldCFException {
 
     return processMessageTab(variableContext, ds, connectionSequenceNumber);
   }
 
   protected String processMessageTab(IPostParameters variableContext, Specification ds,
-    int connectionSequenceNumber)
-    throws ManifoldCFException {
+      int connectionSequenceNumber)
+          throws ManifoldCFException {
 
     String seqPrefix = "s"+connectionSequenceNumber+"_";
-
-    // Remove legacy nodes always
-    removeNodes(ds, RocketChatConfig.NODE_CHANNEL);
-    removeNodes(ds, RocketChatConfig.NODE_MESSAGE);
 
     // Gather all different kinds.
     gatherRecord(ds, seqPrefix, variableContext, RocketChatConfig.NODE_FINISHED);
@@ -641,6 +677,27 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
     gatherRecord(ds, seqPrefix, variableContext, RocketChatConfig.NODE_SCHEDULEPAUSED);
     gatherRecord(ds, seqPrefix, variableContext, RocketChatConfig.NODE_RESTARTED);
 
+    // Gather global settings
+    SpecificationNode sn = new SpecificationNode(RocketChatConfig.NODE_GLOBALS);
+    
+    String defaultChannel = variableContext.getParameter(RocketChatConfig.NODE_DEFAULT_CHANNEL);
+    if (defaultChannel != null) {
+      addNodeValue(sn, RocketChatConfig.NODE_DEFAULT_CHANNEL, defaultChannel);
+    }
+    String alias = variableContext.getParameter(RocketChatConfig.NODE_ALIAS);
+    if (alias != null) {
+      addNodeValue(sn, RocketChatConfig.NODE_ALIAS, alias);
+    }
+    String emoji = variableContext.getParameter(RocketChatConfig.NODE_EMOJI);
+    if (emoji != null) {
+      addNodeValue(sn, RocketChatConfig.NODE_EMOJI, emoji);
+    }
+    String avatar = variableContext.getParameter(RocketChatConfig.NODE_AVATAR);
+    if (avatar != null) {
+      addNodeValue(sn, RocketChatConfig.NODE_AVATAR, avatar);
+    }
+    ds.addChild(ds.getChildCount(), sn);
+    
     return null;
   }
 
@@ -661,19 +718,19 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   }
 
   /** View specification.
-  * This method is called in the body section of a job's view page.  Its purpose is to present the document
-  * specification information to the user.  The coder can presume that the HTML that is output from
-  * this configuration will be within appropriate <html> and <body> tags.
-  * The connector will be connected before this method can be called.
-  *@param out is the output to which any HTML should be sent.
-  *@param locale is the locale the output is preferred to be in.
-  *@param ds is the current document specification for this job.
-  *@param connectionSequenceNumber is the unique number of this connection within the job.
-  */
+   * This method is called in the body section of a job's view page.  Its purpose is to present the document
+   * specification information to the user.  The coder can presume that the HTML that is output from
+   * this configuration will be within appropriate <html> and <body> tags.
+   * The connector will be connected before this method can be called.
+   *@param out is the output to which any HTML should be sent.
+   *@param locale is the locale the output is preferred to be in.
+   *@param ds is the current document specification for this job.
+   *@param connectionSequenceNumber is the unique number of this connection within the job.
+   */
   @Override
   public void viewSpecification(IHTTPOutput out, Locale locale, Specification ds,
-    int connectionSequenceNumber)
-    throws ManifoldCFException, IOException {
+      int connectionSequenceNumber)
+          throws ManifoldCFException, IOException {
     Map<String, Object> paramMap = new HashMap<String, Object>();
     paramMap.put("SeqNum", Integer.toString(connectionSequenceNumber));
     fillInMessageTab(paramMap, ds);
@@ -703,14 +760,14 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
 
   /** Handle Messaging exceptions in a consistent global manner */
   protected static void handleIOException(IOException e, String context)
-    throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException, ServiceInterruption
   {
     Logging.connectors.error("RocketChat: Error "+context+": "+e.getMessage(),e);
     throw new ManifoldCFException("Error "+context+": "+e.getMessage(),e);
   }
 
   /** Class to set up connection.
-  */
+   */
   protected static class ConnectThread extends Thread
   {
     protected final String serverUrl;
@@ -744,7 +801,7 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
     }
 
     public RocketChatSession finishUp()
-      throws IOException, InterruptedException
+        throws IOException, InterruptedException
     {
       try
       {
@@ -769,7 +826,7 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   }
 
   /** Class to close the session.
-  */
+   */
   protected static class CloseSessionThread extends Thread
   {
     protected final RocketChatSession session;
@@ -795,7 +852,7 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
     }
 
     public void finishUp()
-      throws IOException, InterruptedException
+        throws IOException, InterruptedException
     {
       try
       {
@@ -819,7 +876,7 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   }
 
   /** Class to check the connection.
-  */
+   */
   protected static class CheckConnectionThread extends Thread
   {
     protected final RocketChatSession session;
@@ -845,7 +902,7 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
     }
 
     public void finishUp()
-      throws IOException, InterruptedException
+        throws IOException, InterruptedException
     {
       try
       {
@@ -869,19 +926,17 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
   }
 
   /** Class to send Rocket.Chat messages.
-  */
+   */
   protected static class SendThread extends Thread
   {
     protected final RocketChatSession session;
-    protected final String channel;
-    protected final String message;
+    protected final RocketChatMessage message;
 
     protected Throwable exception = null;
 
-    public SendThread(RocketChatSession session, String channel, String message)
+    public SendThread(RocketChatSession session, RocketChatMessage message)
     {
       this.session = session;
-      this.channel = channel;
       this.message = message;
       setDaemon(true);
     }
@@ -890,7 +945,7 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
     {
       try
       {
-        session.send(channel, message);
+        session.send(message);
       }
       catch (Throwable e)
       {
@@ -899,7 +954,7 @@ public class RocketChatConnector extends org.apache.manifoldcf.crawler.notificat
     }
 
     public void finishUp()
-      throws IOException, InterruptedException
+        throws IOException, InterruptedException
     {
       try
       {

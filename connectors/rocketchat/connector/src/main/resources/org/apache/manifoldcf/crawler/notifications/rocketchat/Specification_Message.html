@@ -19,6 +19,45 @@ limitations under the License.
 
 <table class="displaytable">
 
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.Globals'))</nobr></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.DefaultChannelColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="default_channel" size="32" value="$Encoder.attributeEscape($default_channel)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.AliasColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="alias" size="32" value="$Encoder.attributeEscape($alias)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.EmojiColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="emoji" size="32" value="$Encoder.attributeEscape($emoji)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.AvatarColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="avatar" size="32" value="$Encoder.attributeEscape($avatar)"/>
+    </td>
+  </tr>
+</table>
+
+<hr/>
+
+<table class="displaytable">
+
   <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.JobFinished'))</nobr></td></tr>
   <tr>
     <td class="description">
@@ -30,7 +69,7 @@ limitations under the License.
   </tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector_MessageColon'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.MessageColon'))</nobr>
     </td>
     <td class="value">
       <textarea name="s${SeqNum}_finished_message" rows="10" cols="50">$Encoder.bodyEscape($finished_MESSAGE)</textarea>
@@ -48,7 +87,7 @@ limitations under the License.
   </tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector_MessageColon'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.MessageColon'))</nobr>
     </td>
     <td class="value">
       <textarea name="s${SeqNum}_erroraborted_message" rows="10" cols="50">$Encoder.bodyEscape($erroraborted_MESSAGE)</textarea>
@@ -66,7 +105,7 @@ limitations under the License.
   </tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector_MessageColon'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.MessageColon'))</nobr>
     </td>
     <td class="value">
       <textarea name="s${SeqNum}_manualaborted_message" rows="10" cols="50">$Encoder.bodyEscape($manualaborted_MESSAGE)</textarea>
@@ -84,7 +123,7 @@ limitations under the License.
   </tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector_MessageColon'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.MessageColon'))</nobr>
     </td>
     <td class="value">
       <textarea name="s${SeqNum}_manualpaused_message" rows="10" cols="50">$Encoder.bodyEscape($manualpaused_MESSAGE)</textarea>
@@ -102,7 +141,7 @@ limitations under the License.
   </tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector_MessageColon'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.MessageColon'))</nobr>
     </td>
     <td class="value">
       <textarea name="s${SeqNum}_schedulepaused_message" rows="10" cols="50">$Encoder.bodyEscape($schedulepaused_MESSAGE)</textarea>
@@ -120,7 +159,7 @@ limitations under the License.
   </tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector_MessageColon'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.MessageColon'))</nobr>
     </td>
     <td class="value">
       <textarea name="s${SeqNum}_restarted_message" rows="10" cols="50">$Encoder.bodyEscape($restarted_MESSAGE)</textarea>
@@ -130,6 +169,11 @@ limitations under the License.
 </table>
 
 #else
+
+<input type="hidden" name="default_channel" value="$Encoder.attributeEscape($default_channel)"/>
+<input type="hidden" name="alias" value="$Encoder.attributeEscape($alias)"/>
+<input type="hidden" name="emoji" value="$Encoder.attributeEscape($emoji)"/>
+<input type="hidden" name="avatar" value="$Encoder.attributeEscape($avatar)"/>
 
 <input type="hidden" name="s${SeqNum}_finished_channel" value="$Encoder.attributeEscape($finished_CHANNEL)"/>
 <input type="hidden" name="s${SeqNum}_finished_message" value="$Encoder.attributeEscape($finished_MESSAGE)"/>
