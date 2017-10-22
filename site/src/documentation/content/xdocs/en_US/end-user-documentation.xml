@@ -3124,8 +3124,8 @@ curl -XGET http://localhost:9200/index/_mapping
 	            <br/><br/>
 	            <figure src="images/en_US/rocketchat-configure-restapi.PNG" alt="Rocket.Chat Notification Connection, Rocket.Chat REST API tab" width="80%"/>
 	            <br/><br/>
-	            <p>Enter the server URL and the user credentials here. The user field takes either the username or the email address. Fill the proxy fields if your
-	               Rocket.Chat instance is only reachable through a http proxy.</p>
+	            <p>Enter the server URL of your Rocket.Chat instance and the user credentials here. The user field takes either the username or the email address of your Rocket.Chat user. Fill out the proxy fields if you need
+	               to connect to your Rocket.Chat through an http proxy.</p>
 	            <p>When you configure a job to use a notification connection of the Rocket.Chat notification type, an additional tab "Rocket.Chat Notifications" is presented.</p>
 	            <p>The tab looks like this:</p>
 	            <br/><br/>
@@ -3134,7 +3134,7 @@ curl -XGET http://localhost:9200/index/_mapping
 	            <p>This tab allows you to set the notification messages for the different job statuses. The tab begins with a section for global settings, followed by multiple sections for each
 	               notification type. The default channel defines the channel, to which the messages are posted. You can customize the appearance of the posted message with the alias, emoji and avatar fields.</p>
 	            <p>The "Channel" field in the second section allows you to override the default channel for the corresponding notification type. If no channel is defined, the message is sent to the specified default channel.</p>
-	            <p>The "Message" field supports Markdown formatting. Refer to the <a href="https://docs.rocket.chat">Rocket.Chat</a> documentation for detailed information.</p>
+	            <p>The "Message" field holds the actual message that will be posted to Rocket.Chat. The field supports Markdown for formatting the message. Refer to the <a href="https://docs.rocket.chat">Rocket.Chat</a> documentation for detailed information.</p>
             </section>
 
         </section>
