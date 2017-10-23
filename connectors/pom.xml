@@ -73,6 +73,7 @@
     <module>nuxeo</module>
     <module>contentlimiter</module>
     <module>slack</module>
+    <module>rocketchat</module>
   </modules>
 
 </project>
