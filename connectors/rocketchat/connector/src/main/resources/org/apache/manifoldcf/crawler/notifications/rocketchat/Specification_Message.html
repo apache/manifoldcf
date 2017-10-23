@@ -1,0 +1,196 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+#if($TabName == $ResourceBundle.getString('RocketChatConnector.Message') && ${SeqNum} == ${SelectedNum})
+
+<table class="displaytable">
+
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.Globals'))</nobr></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.DefaultChannelColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="default_channel" size="32" value="$Encoder.attributeEscape($default_channel)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.AliasColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="alias" size="32" value="$Encoder.attributeEscape($alias)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.EmojiColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="emoji" size="32" value="$Encoder.attributeEscape($emoji)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.AvatarColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="avatar" size="32" value="$Encoder.attributeEscape($avatar)"/>
+    </td>
+  </tr>
+</table>
+
+<hr/>
+
+<table class="displaytable">
+
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.JobFinished'))</nobr></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.ChannelColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="s${SeqNum}_finished_channel" size="32" value="$Encoder.attributeEscape($finished_CHANNEL)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.MessageColon'))</nobr>
+    </td>
+    <td class="value">
+      <textarea name="s${SeqNum}_finished_message" rows="10" cols="50">$Encoder.bodyEscape($finished_MESSAGE)</textarea>
+    </td>
+  </tr>
+
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.JobStopErrorAbort'))</nobr></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.ChannelColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="s${SeqNum}_erroraborted_channel" size="32" value="$Encoder.attributeEscape($erroraborted_CHANNEL)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.MessageColon'))</nobr>
+    </td>
+    <td class="value">
+      <textarea name="s${SeqNum}_erroraborted_message" rows="10" cols="50">$Encoder.bodyEscape($erroraborted_MESSAGE)</textarea>
+    </td>
+  </tr>
+
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.JobStopManualAbort'))</nobr></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.ChannelColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="s${SeqNum}_manualaborted_channel" size="32" value="$Encoder.attributeEscape($manualaborted_CHANNEL)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.MessageColon'))</nobr>
+    </td>
+    <td class="value">
+      <textarea name="s${SeqNum}_manualaborted_message" rows="10" cols="50">$Encoder.bodyEscape($manualaborted_MESSAGE)</textarea>
+    </td>
+  </tr>
+
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.JobStopManualPause'))</nobr></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.ChannelColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="s${SeqNum}_manualpaused_channel" size="32" value="$Encoder.attributeEscape($manualpaused_CHANNEL)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.MessageColon'))</nobr>
+    </td>
+    <td class="value">
+      <textarea name="s${SeqNum}_manualpaused_message" rows="10" cols="50">$Encoder.bodyEscape($manualpaused_MESSAGE)</textarea>
+    </td>
+  </tr>
+
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.JobStopSchedulePause'))</nobr></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.ChannelColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="s${SeqNum}_schedulepaused_channel" size="32" value="$Encoder.attributeEscape($schedulepaused_CHANNEL)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.MessageColon'))</nobr>
+    </td>
+    <td class="value">
+      <textarea name="s${SeqNum}_schedulepaused_message" rows="10" cols="50">$Encoder.bodyEscape($schedulepaused_MESSAGE)</textarea>
+    </td>
+  </tr>
+
+  <tr><td class="message" colspan="2"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.JobStopRestart'))</nobr></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.ChannelColon'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="s${SeqNum}_restarted_channel" size="32" value="$Encoder.attributeEscape($restarted_CHANNEL)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('RocketChatConnector.MessageColon'))</nobr>
+    </td>
+    <td class="value">
+      <textarea name="s${SeqNum}_restarted_message" rows="10" cols="50">$Encoder.bodyEscape($restarted_MESSAGE)</textarea>
+    </td>
+  </tr>
+
+</table>
+
+#else
+
+<input type="hidden" name="default_channel" value="$Encoder.attributeEscape($default_channel)"/>
+<input type="hidden" name="alias" value="$Encoder.attributeEscape($alias)"/>
+<input type="hidden" name="emoji" value="$Encoder.attributeEscape($emoji)"/>
+<input type="hidden" name="avatar" value="$Encoder.attributeEscape($avatar)"/>
+
+<input type="hidden" name="s${SeqNum}_finished_channel" value="$Encoder.attributeEscape($finished_CHANNEL)"/>
+<input type="hidden" name="s${SeqNum}_finished_message" value="$Encoder.attributeEscape($finished_MESSAGE)"/>
+
+<input type="hidden" name="s${SeqNum}_erroraborted_channel" value="$Encoder.attributeEscape($erroraborted_CHANNEL)"/>
+<input type="hidden" name="s${SeqNum}_erroraborted_message" value="$Encoder.attributeEscape($erroraborted_MESSAGE)"/>
+
+<input type="hidden" name="s${SeqNum}_manualaborted_channel" value="$Encoder.attributeEscape($manualaborted_CHANNEL)"/>
+<input type="hidden" name="s${SeqNum}_manualaborted_message" value="$Encoder.attributeEscape($manualaborted_MESSAGE)"/>
+
+<input type="hidden" name="s${SeqNum}_manualpaused_channel" value="$Encoder.attributeEscape($manualpaused_CHANNEL)"/>
+<input type="hidden" name="s${SeqNum}_manualpaused_message" value="$Encoder.attributeEscape($manualpaused_MESSAGE)"/>
+
+<input type="hidden" name="s${SeqNum}_schedulepaused_channel" value="$Encoder.attributeEscape($schedulepaused_CHANNEL)"/>
+<input type="hidden" name="s${SeqNum}_schedulepaused_message" value="$Encoder.attributeEscape($schedulepaused_MESSAGE)"/>
+
+<input type="hidden" name="s${SeqNum}_restarted_channel" value="$Encoder.attributeEscape($restarted_CHANNEL)"/>
+<input type="hidden" name="s${SeqNum}_restarted_message" value="$Encoder.attributeEscape($restarted_MESSAGE)"/>
+
+#end

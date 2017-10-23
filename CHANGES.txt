@@ -7,6 +7,9 @@ CONNECTORS-1469: The slack notification connector is now properly
 integrated into the maven build.
 (Markus Schuch)
 
+CONNECTORS-1468: Adds Rocket.Chat Notification Connector
+(Markus Schuch)
+
 CONNECTORS-1459: Allow the Tika service to override the mime type
 in the metadata.
 (Julien Massiera)
