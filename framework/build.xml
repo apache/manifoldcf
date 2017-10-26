@@ -105,6 +105,7 @@
             <include name="jackson-databind*.jar"/>
             <include name="jackson-annotations*.jar"/>
             <include name="tika-parsers*.jar"/>
+            <include name="json-1*.jar"/>
             <include name="geoapi*.jar"/>
             <include name="jsr-275*.jar"/>
             <include name="sis-metadata*.jar"/>
@@ -131,6 +132,7 @@
             <include name="jdom2*.jar"/>
             <include name="quartz*.jar"/>
             <include name="c3p0*.jar"/>
+            <include name="sentiment-analysis-parser*.jar"/>
             <include name="tagsoup*.jar"/>
             <include name="vorbis-java*.jar"/>
             <include name="apache-mime4j-core*.jar"/>
@@ -1509,6 +1511,7 @@
                 <include name="jackson-databind*.jar"/>
                 <include name="jackson-annotations*.jar"/>
                 <include name="tika-parsers*.jar"/>
+                <include name="json-1*.jar"/>
                 <include name="poi*.jar"/>
                 <include name="dom4j*.jar"/>
                 <include name="xmlbeans*.jar"/>
@@ -1540,6 +1543,7 @@
                 <include name="jdom2*.jar"/>
                 <include name="quartz*.jar"/>
                 <include name="c3p0*.jar"/>
+                <include name="sentiment-analysis-parser*.jar"/>
                 <include name="tagsoup*.jar"/>
                 <include name="vorbis-java*.jar"/>
                 <include name="netcdf*.jar"/>

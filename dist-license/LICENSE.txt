@@ -200,8 +200,8 @@ including, but not limited to:
   - Apache Kafka
   - Apache CXF
 
-This product includes code from: http://www.json.org
-License: JSON license (http://www.json.org/license.html)
+This product includes a number of slf4j jars.
+License: MIT/X11 license
 
 This product includes a postgresql.jar: http://jdbc.postgresql.org
 License: BSD License (http://jdbc.postgresql.org/license.html)
@@ -305,6 +305,12 @@ This product includes a dropbox-client.jar.
 License: MIT license (http://opensource.org/licenses/MIT).
 
 This product includes a json-simple.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a json.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a sentiment-analysis-parser.jar.
 License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 This product includes a jackson-core.jar.
