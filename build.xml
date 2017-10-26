@@ -54,7 +54,7 @@
     <property name="commons-logging.version" value="1.2"/>
     <property name="commons-configuration.version" value="1.6"/>
     <property name="commons-cli.version" value="1.2"/>
-    <property name="slf4j.version" value="1.7.7"/>
+    <property name="slf4j.version" value="1.7.24"/>
     <property name="xalan.version" value="2.7.1"/>
     <property name="poi.version" value="3.17"/>
     <property name="activation.version" value="1.1.1"/>
@@ -95,6 +95,7 @@
     <property name="jstl.version" value="1.2"/>
     <property name="dropbox-client.version" value="1.5.3"/>
     <property name="json-simple.version" value="1.1.1"/>
+    <property name="json.version" value="1.8"/>
     <property name="google-api-client.version" value="v2-rev136-1.19.0"/>
     <property name="google-http-client.version" value="1.19.0"/>
     <property name="jackson-core.version" value="2.8.1"/>
@@ -106,7 +107,7 @@
     <property name="mockito.version" value="1.9.5"/>
     <property name="wiremock.version" value="2.5.1"/>
     <property name="objenesis.version" value="2.1"/>
-    <property name="tika.version" value="1.14"/>
+    <property name="tika.version" value="1.16"/>
     <property name="tagsoup.version" value="1.2.1"/>
     <property name="james.version" value="0.7.2"/>
     <property name="vorbis.version" value="0.8"/>
@@ -115,10 +116,10 @@
     <property name="jhighlight.version" value="1.0.2"/>
     <property name="xmlbeans.version" value="2.6.0"/>
     <property name="bc.version" value="1.54"/>
-    <property name="tukaani.version" value="1.5"/>
-    <property name="pdfbox.version" value="2.0.3"/>
-    <property name="jempbox.version" value="1.8.12"/>
-    <property name="commons-compress.version" value="1.12"/>
+    <property name="tukaani.version" value="1.6"/>
+    <property name="pdfbox.version" value="2.0.6"/>
+    <property name="jempbox.version" value="1.8.13"/>
+    <property name="commons-compress.version" value="1.14"/>
     <property name="commons-csv.version" value="1.0"/>
     <property name="commons-exec.version" value="1.3"/>
     <property name="juniversalchardet.version" value="1.0.3"/>
@@ -151,8 +152,8 @@
     <property name="aws-sdk.version" value="1.9.0"/>
     <property name="joda-time.version" value="2.9.7"/>
     <property name="junrar.version" value="0.7"/>
-    <property name="jackcess.version" value="2.1.4"/>
-    <property name="jackcess-encrypt.version" value="2.1.1"/>
+    <property name="jackcess.version" value="2.1.8"/>
+    <property name="jackcess-encrypt.version" value="2.1.2"/>
     <property name="opennlp.version" value="1.6.0"/>
     <property name="sis.version" value="0.6"/>
     <property name="opengis.version" value="3.0.0"/>
@@ -162,8 +163,9 @@
     <property name="plexus-utils.version" value="1.5.6"/>
     <property name="regexp.version" value="1.3"/>
     <property name="c3p0.version" value="0.9.1.1"/>
-    <property name="cxf.version" value="3.0.3"/>
-    <property name="xmlschema.version" value="2.1.0"/>
+    <property name="sentiment-analysis.version" value="0.1"/>
+    <property name="cxf.version" value="3.0.12"/>
+    <property name="xmlschema.version" value="2.2.1"/>
     <property name="annotation-api.version" value="1.2"/>
     <property name="javax.ws.rs-api.version" value="2.0.1"/>
     <property name="virtuald.version" value="1.04"/>
@@ -1346,6 +1348,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="jcl-over-slf4j"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jul-to-slf4j"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
     
     <target name="download-jetty">
@@ -2225,9 +2231,21 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/tdunning"/>
+            <param name="artifact-version" value="${json.version}"/>
+            <param name="artifact-name" value="json"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="c3p0"/>
             <param name="artifact-version" value="${c3p0.version}"/>
             <param name="artifact-name" value="c3p0"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="edu/usc/ir"/>
+            <param name="artifact-version" value="${sentiment-analysis.version}"/>
+            <param name="artifact-name" value="sentiment-analysis-parser"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
