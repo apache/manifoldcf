@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.9-dev =====================
 
+CONNECTORS-1471: File system output connector's delete method
+was completely broken.
+(David Hotchkiss)
+
 CONNECTORS-1469: The slack notification connector is now properly
 integrated into the maven build.
 (Markus Schuch)
