@@ -377,8 +377,14 @@ public class FileOutputConnector extends BaseOutputConnector {
 
     FileOutputConfig config = getConfigParameters(null);
 
+    FileOutputSpecs specs = new FileOutputSpecs(outputDescription);
+
     StringBuffer path = new StringBuffer();
     try {
+
+      if(specs.getRootPath() != null) {
+        path.append(specs.getRootPath());
+      }
 
       // We cannot remove documents, because it is unsafe to do so.
       // Paths that were created when the document existed will not
@@ -779,6 +785,22 @@ public class FileOutputConnector extends BaseOutputConnector {
     };
 
     private final String rootPath;
+
+    /** Build a set of parameters from a packed version string.
+     *
+     * @param versionString composed of "packed" output specification parameters.
+     * @throws ManifoldCFException
+     */
+    public FileOutputSpecs(String versionString) throws ManifoldCFException {
+      super(SPECIFICATIONLIST);
+      int index = 0;
+      for (ParameterEnum param : SPECIFICATIONLIST) {
+        StringBuilder sb = new StringBuilder();
+        index = unpack(sb, versionString, index, '+');
+        put(param, sb.toString());
+      }
+      this.rootPath = this.getRootPath();
+    }
 
     /** Build a set of ElasticSearch parameters by reading an instance of
      * SpecificationNode.
