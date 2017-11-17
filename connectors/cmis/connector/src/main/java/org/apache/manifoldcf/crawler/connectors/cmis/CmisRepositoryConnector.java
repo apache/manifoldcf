@@ -100,6 +100,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   /** Forward to the template to view the specification parameters for the job */
   private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
+  
+  /** The content path param used for managing content migration deletion **/
+	private static final String CONTENT_PATH_PARAM = "contentPath";
 
   /**
    * CMIS Session handle
@@ -146,7 +149,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public int getConnectorModel()
   {
-    return MODEL_CHAINED_ADD_CHANGE_DELETE;
+    return MODEL_ADD_CHANGE;
   }
 
   /**
@@ -1269,8 +1272,14 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       	String name = currentDocument.getName();
       	String fullContentPath = path + CmisRepositoryConnectorUtils.SLASH + name;
       	documentURI = fullContentPath;
-			} else {
-				documentURI = CmisRepositoryConnectorUtils.getDocumentURL(currentDocument, session);
+      	
+				//Append the new parameters in the query string
+      	String documentDownloadURL = CmisRepositoryConnectorUtils.getDocumentURL(currentDocument, session);
+      	if(StringUtils.contains(documentDownloadURL, '?')){
+      		documentURI = documentDownloadURL + "&"+CONTENT_PATH_PARAM+"=" + fullContentPath;
+      	} else {
+      		documentURI = documentDownloadURL + "?"+CONTENT_PATH_PARAM+"=" + fullContentPath;
+      	}
 			}
   	} else if(StringUtils.equals(currentBaseTypeId, BaseTypeId.CMIS_FOLDER.value())) {
   		Folder currentFolder = (Folder) cmisObject;

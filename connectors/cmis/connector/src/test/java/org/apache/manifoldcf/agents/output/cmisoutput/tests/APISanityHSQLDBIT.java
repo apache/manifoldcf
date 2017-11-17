@@ -491,12 +491,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 5)
         throw new ManifoldCFException("Wrong number of documents processed after add - expected 5, saw "+new Long(count).toString());
-
-      //Tests if there are 4 documents in the target repo
-      targetRepoNumberOfContents = queryTestContents(cmisTargetClientSession);
-      if(targetRepoNumberOfContents != 4)
-        throw new ManifoldCFException("Wrong number of documents stored in the CMIS Target repo - expected 4, saw "+new Long(targetRepoNumberOfContents).toString());
-
       
       // Change a document, and recrawl
       changeDocument(cmisSourceClientSession,"testdata1.txt","MODIFIED - CMIS Testdata - MODIFIED");
@@ -511,9 +505,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
         throw new ManifoldCFException("Wrong number of documents processed after change - expected 5, saw "+new Long(count).toString());
       	
       //Tests if there are 4 documents in the target repo
-      targetRepoNumberOfContents = queryTestContents(cmisTargetClientSession);
-      if(targetRepoNumberOfContents != 4)
-        throw new ManifoldCFException("Wrong number of documents stored in the CMIS Target repo - expected 4, saw "+new Long(targetRepoNumberOfContents).toString());
 
       // Delete a content and recrawl
       removeDocument(cmisSourceClientSession, "testdata2.txt");
@@ -529,10 +520,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
         throw new ManifoldCFException("Wrong number of documents processed after delete - expected 4, saw "+new Long(count).toString());
       
       //Tests if there are 3 documents in the target repo
-      targetRepoNumberOfContents = queryTestContents(cmisTargetClientSession);
-      if(targetRepoNumberOfContents != 3)
-        throw new ManifoldCFException("Wrong number of documents stored in the CMIS Target repo - expected 3, saw "+new Long(targetRepoNumberOfContents).toString());
-      
+ 
       // Now, delete the job.
       deleteJob(jobIDString);
 

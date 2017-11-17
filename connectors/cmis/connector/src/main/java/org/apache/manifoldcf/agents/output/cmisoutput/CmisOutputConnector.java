@@ -21,7 +21,11 @@ package org.apache.manifoldcf.agents.output.cmisoutput;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.Date;
@@ -57,6 +61,8 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedExce
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.impl.jaxb.EnumBaseObjectTypeIds;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
@@ -156,6 +162,8 @@ public class CmisOutputConnector extends BaseOutputConnector {
 
 	/** Document remove permanently rejected */
 	private final static String DOCUMENT_DELETION_STATUS_REJECTED = "Remove request rejected";
+	
+	private static final String CONTENT_PATH_PARAM = "contentPath";
 	
 	/**
 	 * Constructor
@@ -1055,6 +1063,19 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		return folder;
 	}
 	
+	private String getContentPath(String documentURI) throws URISyntaxException, UnsupportedEncodingException {
+		String contentPath = StringUtils.EMPTY;
+		String encodedDocumentURI = URLEncoder.encode(documentURI, StandardCharsets.UTF_8.name());
+		List<NameValuePair> params = new URIBuilder(encodedDocumentURI).getQueryParams();
+		Iterator<NameValuePair> paramsIterator = params.iterator();
+		while (paramsIterator.hasNext()) {
+			NameValuePair param = (NameValuePair) paramsIterator.next();
+			if(StringUtils.equals(CONTENT_PATH_PARAM, param.getName())){
+				contentPath = param.getValue();
+			}
+		}
+		return contentPath;
+	}
 	
 	
 	@Override
@@ -1068,7 +1089,9 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		try {
 			if(parentDropZoneFolder != null && StringUtils.isNotEmpty(documentURI)) {
 				String parentDropZonePath = parentDropZoneFolder.getPath();
-				String fullDocumentURIinTargetRepo = parentDropZonePath + documentURI;
+				
+				String contentPath = getContentPath(documentURI);
+				String fullDocumentURIinTargetRepo = parentDropZonePath + contentPath;
 				
 					if(session.existsPath(fullDocumentURIinTargetRepo)) {
 						session.deleteByPath(fullDocumentURIinTargetRepo);
