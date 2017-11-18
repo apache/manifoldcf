@@ -161,10 +161,8 @@
             <include name="jmatio*.jar"/>
             <include name="java-libpst*.jar"/>
             <include name="xz*.jar"/>
-            <include name="cxf-core*.jar"/>
-            <include name="cxf-rt-frontend-jaxrs*.jar"/>
-            <include name="cxf-rt-transports-http*.jar"/>
-            <include name="cxf-rt-rs-client*.jar"/>
+            <include name="cxf-*.jar"/>
+            <include name="neethi*.jar"/>
             <include name="xmlschema-core*.jar"/>
             <include name="javax.annotation-api*.jar"/>
             <include name="javax.ws.rs-api*.jar"/>
@@ -1577,10 +1575,8 @@
                 <include name="jmatio*.jar"/>
                 <include name="java-libpst*.jar"/>
                 <include name="xz*.jar"/>
-                <include name="cxf-core*.jar"/>
-                <include name="cxf-rt-frontend-jaxrs*.jar"/>
-                <include name="cxf-rt-transports-http*.jar"/>
-                <include name="cxf-rt-rs-client*.jar"/>
+                <include name="cxf-*.jar"/>
+                <include name="neethi*.jar"/>
                 <include name="xmlschema-core*.jar"/>
                 <include name="javax.annotation-api*.jar"/>
                 <include name="javax.ws.rs-api*.jar"/>

@@ -63,13 +63,13 @@
     <property name="fop.version" value="1.0"/>
     <property name="javamail-spec.version" value="1.7.1"/>
     <property name="tomcat.version" value="6.0.35"/>
-    <property name="jaxb-api.version" value="2.1"/>
-    <property name="jaxb-impl.version" value="2.1.11"/>
+    <property name="jaxb-api.version" value="2.2.11"/>
+    <property name="jaxb-impl.version" value="2.2.11"/>
     <property name="jaxws.version" value="2.2.6"/>
     <property name="solrj.version" value="7.0.0"/>
     <property name="noggit.version" value="0.8"/>
     <property name="commons-math3.version" value="3.4.1"/>
-    <property name="chemistry.version" value="0.11.0"/>
+    <property name="chemistry.version" value="1.1.0"/>
     <property name="glassfish.version" value="2.1.v20091210"/>
     <property name="junit.version" value="4.12"/>
     <property name="selenium.version" value="3.3.1"/>
@@ -165,6 +165,7 @@
     <property name="c3p0.version" value="0.9.1.1"/>
     <property name="sentiment-analysis.version" value="0.1"/>
     <property name="cxf.version" value="3.0.12"/>
+    <property name="neethi.version" value="3.0.3"/>
     <property name="xmlschema.version" value="2.2.1"/>
     <property name="annotation-api.version" value="1.2"/>
     <property name="javax.ws.rs-api.version" value="2.0.1"/>
@@ -2216,7 +2217,127 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
-    <target name="download-tika" depends="download-commons-exec,download-jna">
+    <target name="download-asm">
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/ow2/asm"/>
+            <param name="artifact-name" value="asm-debug-all"/>
+            <param name="artifact-version" value="${asm.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/ow2/asm"/>
+            <param name="artifact-name" value="asm-analysis"/>
+            <param name="artifact-version" value="${asm.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/ow2/asm"/>
+            <param name="artifact-name" value="asm-commons"/>
+            <param name="artifact-version" value="${asm.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/ow2/asm"/>
+            <param name="artifact-name" value="asm"/>
+            <param name="artifact-version" value="${asm.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/ow2/asm"/>
+            <param name="artifact-name" value="asm-tree"/>
+            <param name="artifact-version" value="${asm.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/ow2/asm"/>
+            <param name="artifact-name" value="asm-util"/>
+            <param name="artifact-version" value="${asm.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-cxf" depends="download-xml-resolver,download-asm,download-jaxb">
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-core"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-frontend-jaxrs"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-frontend-jaxws"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-rs-client"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-databinding-jaxb"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-bindings-soap"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-wsdl"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-bindings-xml"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-frontend-simple"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-ws-addr"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-transports-http"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-rt-ws-policy"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/neethi"/>
+            <param name="artifact-name" value="neethi"/>
+            <param name="artifact-version" value="${neethi.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
+    <target name="download-tika" depends="download-commons-exec,download-jna,download-cxf">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/tika"/>
@@ -2561,42 +2682,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-debug-all"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-analysis"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-commons"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-tree"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-util"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="com/adobe/xmp"/>
             <param name="artifact-name" value="xmpcore"/>
             <param name="artifact-version" value="${xmpcore.version}"/>
@@ -2642,30 +2727,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="com/googlecode/mp4parser"/>
             <param name="artifact-name" value="isoparser"/>
             <param name="artifact-version" value="${mp4parser.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/apache/cxf"/>
-            <param name="artifact-name" value="cxf-core"/>
-            <param name="artifact-version" value="${cxf.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/apache/cxf"/>
-            <param name="artifact-name" value="cxf-rt-frontend-jaxrs"/>
-            <param name="artifact-version" value="${cxf.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/apache/cxf"/>
-            <param name="artifact-name" value="cxf-rt-transports-http"/>
-            <param name="artifact-version" value="${cxf.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/apache/cxf"/>
-            <param name="artifact-name" value="cxf-rt-rs-client"/>
-            <param name="artifact-version" value="${cxf.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
