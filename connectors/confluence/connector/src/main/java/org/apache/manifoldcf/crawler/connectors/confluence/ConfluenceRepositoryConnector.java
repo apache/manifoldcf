@@ -948,7 +948,7 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
 
       finally {
         if (doLog){
-          if(pResult.errorCode != null && !pResult.errorCode.isEmpty()){
+          if(pResult != null && pResult.errorCode != null && !pResult.errorCode.isEmpty()){
             activities.recordActivity(new Long(startTime),
                 ACTIVITY_READ, pResult.fileSize, pageId, pResult.errorCode,
                   pResult.errorDescription, null);
