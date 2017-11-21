@@ -1068,28 +1068,28 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     }
     
     if (!activities.checkLengthIndexable(page.getLength())){
-      activities.noDocument(page.getId(), lastVersion);
+      activities.noDocument(manifoldDocumentIdentifier, lastVersion);
       String errorCode = IProcessActivity.EXCLUDED_LENGTH;
       String errorDesc = "Excluding document because of length ("+page.getLength()+")";
       return new ProcessResult(page.getLength(), errorCode, errorDesc);
     }
 
     if (!activities.checkMimeTypeIndexable(page.getMediaType())) {
-      activities.noDocument(page.getId(), lastVersion);
+      activities.noDocument(manifoldDocumentIdentifier, lastVersion);
       String errorCode = IProcessActivity.EXCLUDED_MIMETYPE;
       String errorDesc = "Excluding document because of mime type ("+page.getMediaType()+")";
       return new ProcessResult(page.getLength(), errorCode, errorDesc);
     }
 
     if (!activities.checkDateIndexable(lastModified)) {
-      activities.noDocument(page.getId(), lastVersion);
+      activities.noDocument(manifoldDocumentIdentifier, lastVersion);
       String errorCode = IProcessActivity.EXCLUDED_DATE;
       String errorDesc = "Excluding document because of date ("+lastModified+")";
       return new ProcessResult(page.getLength(), errorCode, errorDesc);
     }
 
     if (!activities.checkURLIndexable(page.getWebUrl())) {
-      activities.noDocument(page.getId(), lastVersion);
+      activities.noDocument(manifoldDocumentIdentifier, lastVersion);
       String errorCode = IProcessActivity.EXCLUDED_URL;
       String errorDesc = "Excluding document because of URL ('"+page.getWebUrl()+"')";
       return new ProcessResult(page.getLength(), errorCode, errorDesc);
