@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.9-dev =====================
 
+CONNECTORS-1473: Alfresco authority did not return user token, just
+groups.
+(Phillip Rhodes, Karl Wright)
+
 CONNECTORS-1471: File system output connector's delete method
 was completely broken.
 (David Hotchkiss)
