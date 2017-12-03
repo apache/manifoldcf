@@ -27,6 +27,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Locale;
 
 public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
@@ -119,12 +120,15 @@ public class AlfrescoAuthorityConnector extends BaseAuthorityConnector {
       AlfrescoUser permissions = alfrescoClient.fetchUserAuthorities(userName);
       if (permissions.getUsername() == null
           || permissions.getUsername().isEmpty()
-          || permissions.getAuthorities().isEmpty())
+          || permissions.getAuthorities().isEmpty()) {
         return RESPONSE_USERNOTFOUND;
-      else
+      } else {
+        final List<String> rval = new ArrayList<>(permissions.getAuthorities());
+        rval.add(permissions.getUsername());
         return new AuthorizationResponse(
-            permissions.getAuthorities().toArray(new String[permissions.getAuthorities().size()]),
+            rval.toArray(new String[rval.size()]),
             AuthorizationResponse.RESPONSE_OK);
+      }
     } catch (AlfrescoDownException e) {
       return RESPONSE_UNREACHABLE;
     }
