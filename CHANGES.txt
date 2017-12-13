@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.9-dev =====================
+======================= Release 2.9 =====================
 
 CONNECTORS-1473: Alfresco authority did not return user token, just
 groups.
