@@ -737,7 +737,7 @@ try
                     class="btn btn-danger" role="button" data-toggle="tooltip"><i class="fa fa-trash fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Delete")%></a>
             <a href='<%="javascript:StartOver(\""+jobID+"\")"%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.ResetSeedingThisJob")%>"
-                    class="link btn btn-warning" role="button" data-toggle="tooltip"><i class="fa fa-recycle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ResetSeeding")%></a>
+                    class="btn btn-warning" role="button" data-toggle="tooltip"><i class="fa fa-recycle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.ResetSeeding")%></a>
           </div>
         </div>
       </form>
