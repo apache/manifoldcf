@@ -21,7 +21,7 @@
       <fonts>
         
         <!-- DejaVuSans -->
-        <font metrics-file="{root}/tmp/font/DejaVuSans.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSans.ttf">
+        <font metrics-file="{root}/tmp/font/DejaVuSans.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSans.ttf">
           <font-triplet name="DejaVuSans" style="normal" weight="normal"/>
           <font-triplet name="DejaVuSans" style="normal" weight="100"/>
           <font-triplet name="DejaVuSans" style="normal" weight="200"/>
@@ -35,7 +35,7 @@
         </font>
 
         <!-- DejaVuSans-Oblique -->
-        <font metrics-file="{root}/tmp/font/DejaVuSans-Oblique.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSans-Oblique.ttf">
+        <font metrics-file="{root}/tmp/font/DejaVuSans-Oblique.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSans-Oblique.ttf">
           <font-triplet name="DejaVuSans" style="italic" weight="normal"/>
           <font-triplet name="DejaVuSans" style="italic" weight="100"/>
           <font-triplet name="DejaVuSans" style="italic" weight="200"/>
@@ -49,7 +49,7 @@
         </font>
 
         <!-- DejaVuSans-Bold -->
-        <font metrics-file="{root}/tmp/font/DejaVuSans-Bold.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSans-Bold.ttf">
+        <font metrics-file="{root}/tmp/font/DejaVuSans-Bold.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSans-Bold.ttf">
           <font-triplet name="DejaVuSans" style="bold" weight="normal"/>
           <font-triplet name="DejaVuSans" style="bold" weight="100"/>
           <font-triplet name="DejaVuSans" style="bold" weight="200"/>
@@ -63,7 +63,7 @@
         </font>
 
         <!-- DejaVuSerif -->
-        <font metrics-file="{root}/tmp/font/DejaVuSerif.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSerif.ttf">
+        <font metrics-file="{root}/tmp/font/DejaVuSerif.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSerif.ttf">
           <font-triplet name="DejaVuSerif" style="normal" weight="normal"/>
           <font-triplet name="DejaVuSerif" style="normal" weight="100"/>
           <font-triplet name="DejaVuSerif" style="normal" weight="200"/>
@@ -77,7 +77,7 @@
         </font>
 
         <!-- DejaVuSerif-Italic -->
-        <font metrics-file="{root}/tmp/font/DejaVuSerif-Italic.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSerif-Italic.ttf">
+        <font metrics-file="{root}/tmp/font/DejaVuSerif-Italic.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSerif-Italic.ttf">
           <font-triplet name="DejaVuSerif" style="italic" weight="normal"/>
           <font-triplet name="DejaVuSerif" style="italic" weight="100"/>
           <font-triplet name="DejaVuSerif" style="italic" weight="200"/>
@@ -91,7 +91,7 @@
         </font>
 
         <!-- DejaVuSerif-Bold -->
-        <font metrics-file="{root}/tmp/font/DejaVuSerif-Bold.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSerif-Bold.ttf">
+        <font metrics-file="{root}/tmp/font/DejaVuSerif-Bold.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSerif-Bold.ttf">
           <font-triplet name="DejaVuSerif" style="bold" weight="normal"/>
           <font-triplet name="DejaVuSerif" style="bold" weight="100"/>
           <font-triplet name="DejaVuSerif" style="bold" weight="200"/>
@@ -105,7 +105,7 @@
         </font>
 
         <!-- DejaVuSansMono -->
-        <font metrics-file="{root}/tmp/font/DejaVuSansMono.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSansMono.ttf">
+        <font metrics-file="{root}/tmp/font/DejaVuSansMono.xml" kerning="yes" embed-url="file:///{root}/tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSansMono.ttf">
           <font-triplet name="DejaVuSansMono" style="normal" weight="normal"/>
           <font-triplet name="DejaVuSansMono" style="normal" weight="100"/>
           <font-triplet name="DejaVuSansMono" style="normal" weight="200"/>
