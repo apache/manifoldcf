@@ -37,11 +37,11 @@
     </target>
     
     <target name="calculate-dejavu-condition">
-        <available file="fonts/dejavu-fonts-ttf-2.33.zip" property="dejavuAvailable"/>
+        <available file="fonts/dejavu-fonts-ttf-2.37.zip" property="dejavuAvailable"/>
     </target>
 
     <target name="dejavu-check" depends="download-dejavu-fonts,calculate-dejavu-condition" unless="dejavuAvailable">
-        <echo message="Dejavu fonts cannot be built without dejavu-fonts-ttf-2.33.zip"/>
+        <echo message="Dejavu fonts cannot be built without dejavu-fonts-ttf-2.37.zip"/>
     </target>
 
     <target name="calculate-ipa-condition">
@@ -101,7 +101,7 @@
 
     <target name="build-dejavu-fonts" depends="dejavu-check" if="dejavuAvailable">
         <mkdir dir="tmp/font/dejavu-fonts"/>
-        <unzip src="fonts/dejavu-fonts-ttf-2.33.zip" dest="tmp/font/dejavu-fonts"/>
+        <unzip src="fonts/dejavu-fonts-ttf-2.37.zip" dest="tmp/font/dejavu-fonts"/>
         <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
             <classpath>
                 <fileset dir="../lib">
@@ -112,7 +112,7 @@
                     <include name="commons-logging*.jar"/>
                 </fileset>
             </classpath>
-            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSans.ttf"/>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSans.ttf"/>
             <arg value="tmp/font/DejaVuSans.xml"/>
         </java>
         <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
@@ -125,7 +125,7 @@
                     <include name="commons-logging*.jar"/>
                 </fileset>
             </classpath>
-            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSans-Oblique.ttf"/>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSans-Oblique.ttf"/>
             <arg value="tmp/font/DejaVuSans-Oblique.xml"/>
         </java>
         <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
@@ -138,7 +138,7 @@
                     <include name="commons-logging*.jar"/>
                 </fileset>
             </classpath>
-            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSans-Bold.ttf"/>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSans-Bold.ttf"/>
             <arg value="tmp/font/DejaVuSans-Bold.xml"/>
         </java>
         <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
@@ -151,7 +151,7 @@
                     <include name="commons-logging*.jar"/>
                 </fileset>
             </classpath>
-            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSerif.ttf"/>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSerif.ttf"/>
             <arg value="tmp/font/DejaVuSerif.xml"/>
         </java>
         <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
@@ -164,7 +164,7 @@
                     <include name="commons-logging*.jar"/>
                 </fileset>
             </classpath>
-            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSerif-Italic.ttf"/>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSerif-Italic.ttf"/>
             <arg value="tmp/font/DejaVuSerif-Italic.xml"/>
         </java>
         <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
@@ -177,7 +177,7 @@
                     <include name="commons-logging*.jar"/>
                 </fileset>
             </classpath>
-            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSerif-Bold.ttf"/>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSerif-Bold.ttf"/>
             <arg value="tmp/font/DejaVuSerif-Bold.xml"/>
         </java>
         <java classname="org.apache.fop.fonts.apps.TTFReader" fork="true">
@@ -190,7 +190,7 @@
                     <include name="commons-logging*.jar"/>
                 </fileset>
             </classpath>
-            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.33/ttf/DejaVuSansMono.ttf"/>
+            <arg value="tmp/font/dejavu-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSansMono.ttf"/>
             <arg value="tmp/font/DejaVuSansMono.xml"/>
         </java>
 
@@ -258,12 +258,12 @@
     </target>
     
     <target name="calculate-dejavu-condition-before">
-        <available file="fonts/dejavu-fonts-ttf-2.33.zip" property="dejavuAvailableBefore"/>
+        <available file="fonts/dejavu-fonts-ttf-2.37.zip" property="dejavuAvailableBefore"/>
     </target>
 
     <target name="download-dejavu-fonts" depends="calculate-dejavu-condition-before" unless="dejavuAvailableBefore">
       <mkdir dir="fonts"/>
-      <get src="http://superb-dca2.dl.sourceforge.net/project/dejavu/dejavu/2.33/dejavu-fonts-ttf-2.33.zip" dest="fonts"/>
+      <get src="http://versaweb.dl.sourceforge.net/project/dejavu/dejavu/2.37/dejavu-fonts-ttf-2.37.zip" dest="fonts"/>
     </target>
     
     <target name="calculate-ipa-condition-before">
