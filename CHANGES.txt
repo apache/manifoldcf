@@ -3,6 +3,8 @@ $Id$
 
 ======================= 2.10-dev =====================
 
+CONNECTORS-1476: TLS/SSL support for MySQL/MariaDB database connections
+(Markus Schuch)
 
 ======================= Release 2.9 =====================
 
