@@ -1101,6 +1101,7 @@ start[.bat|.sh]
             <tr><td>org.apache.manifoldcf.postgresql.ssl</td><td>No</td><td>Set to "true" for ssl communication with PostgreSQL.</td></tr>
             <tr><td>org.apache.manifoldcf.mysql.server</td><td>No</td><td>The MySQL or MariaDB server name.  Defaults to 'localhost'.</td></tr>
             <tr><td>org.apache.manifoldcf.mysql.client</td><td>No</td><td>The MySQL or MariaDB client property.  Defaults to 'localhost'.  You may want to set this to '%' for a multi-machine setup.</td></tr>
+            <tr><td>org.apache.manifoldcf.mysql.ssl</td><td>No</td><td>Set to "true" for ssl communication with MySQL or MariaDB.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabasepath</td><td>No</td><td>Absolute or relative path to HSQLDB database; default is '.'.</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseprotocol</td><td>Yes, for remote HSQLDB connection</td><td>The HSQLDB JDBC protocol; choices are 'hsql', 'http', or 'https'. Default is blank (which means an embedded instance)</td></tr>
             <tr><td>org.apache.manifoldcf.hsqldbdatabaseserver</td><td>Yes, for remote HSQLDB connection</td><td>The HSQLDB remote server name.</td></tr>

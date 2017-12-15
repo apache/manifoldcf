@@ -31,7 +31,9 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
   public static final String mysqlServerProperty = "org.apache.manifoldcf.mysql.server";
   /** Source system name or IP */
   public static final String mysqlClientProperty = "org.apache.manifoldcf.mysql.client";
-  
+  /** MySQL ssl property */
+  public static final String mysqlSslProperty = "org.apache.manifoldcf.mysql.ssl";
+
   private static final String _driver = "com.mysql.jdbc.Driver";
 
   /** A lock manager handle. */
@@ -77,9 +79,18 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
     throws ManifoldCFException
   {
     String server =  LockManagerFactory.getProperty(tc,mysqlServerProperty);
+    final String ssl = LockManagerFactory.getProperty(tc,mysqlSslProperty);
+
     if (server == null || server.length() == 0)
       server = "localhost";
-    return "jdbc:mysql://"+server+"/"+theDatabaseName+"?useUnicode=true&characterEncoding=utf8";
+    
+    String jdbcUrl = "jdbc:mysql://"+server+"/"+theDatabaseName+"?useUnicode=true&characterEncoding=utf8"; 
+    
+    if (Boolean.parseBoolean(ssl)) {
+      jdbcUrl += "&useSSL=true&requireSSL=true";
+    }
+    
+    return jdbcUrl;
   }
 
   protected String getJdbcDriverClass()
