@@ -785,8 +785,12 @@
                 <include name="*.tld"/>
             </fileset>
         </copy>
-        <copy todir="build/webapp/crawler-ui-proprietary">            
-            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
+        <copy todir="build/webapp/crawler-ui-proprietary">
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.map,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
+        </copy>
+        <mkdir dir="build/webapp/crawler-ui-proprietary/css"/>
+        <copy todir="build/webapp/crawler-ui-proprietary/css">
+            <fileset dir="build/crawler-ui/css" includes="**/*.css,**/*.map"/>
         </copy>
         <jar destfile="build/webapp/crawler-ui-proprietary/WEB-INF/lib/mcf-crawler-ui.jar" basedir="build/crawler-ui/classes"/>
     </target>
