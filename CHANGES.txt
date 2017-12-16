@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 2.9 =====================
 
+CONNECTORS-1474: Proprietary example missing CSS style files.
+(Markus Schuch, Karl Wright)
+
 CONNECTORS-1473: Alfresco authority did not return user token, just
 groups.
 (Phillip Rhodes, Karl Wright)
