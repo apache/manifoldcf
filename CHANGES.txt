@@ -8,7 +8,11 @@ CONNECTORS-1476: TLS/SSL support for MySQL/MariaDB database connections
 
 ======================= Release 2.9 =====================
 
-CONNECTORS-1474: Proprietary example missing CSS style files.
+CONNECTORS-1479: Correct classpath for running alfresco-webscript
+tests.
+(Shinichiro Abe, Karl Wright)
+
+CONNECTORS-1478: Proprietary example missing CSS style files.
 (Markus Schuch, Karl Wright)
 
 CONNECTORS-1473: Alfresco authority did not return user token, just
