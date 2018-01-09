@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.10-dev =====================
 
+CONNECTORS-1482: Improve solr connector handling of include/exclude
+for mime types to be case insenstive and to actually reject documents
+if upstream connector ignores or doesn't call checkMimeTypeIndexable().
+
 CONNECTORS-1476: TLS/SSL support for MySQL/MariaDB database connections
 (Markus Schuch)
 

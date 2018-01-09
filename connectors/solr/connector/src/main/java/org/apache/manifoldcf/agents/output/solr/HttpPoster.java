@@ -113,6 +113,10 @@ public class HttpPoster
   // Document max length
   private final Long maxDocumentLength;
 
+  // Included and excluded mime types
+  private final Set<String> includedMimeTypes;
+  private final Set<String>excludedMimeTypes;
+  
   // Commit-within flag
   private final String commitWithin;
 
@@ -134,7 +138,9 @@ public class HttpPoster
     String originalSizeAttributeName, String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
     String fileNameAttributeName, String mimeTypeAttributeName, String contentAttributeName,
     Long maxDocumentLength,
-    String commitWithin, boolean useExtractUpdateHandler, boolean allowCompression)
+    String commitWithin, boolean useExtractUpdateHandler,
+    final Set<String> includedMimeTypes, final Set<String> excludedMimeTypes,
+    boolean allowCompression)
     throws ManifoldCFException
   {
     // These are the paths to the handlers in Solr that deal with the actions we need to do
@@ -155,6 +161,8 @@ public class HttpPoster
     this.mimeTypeAttributeName = mimeTypeAttributeName;
     this.contentAttributeName = contentAttributeName;
     this.useExtractUpdateHandler = useExtractUpdateHandler;
+    this.includedMimeTypes = includedMimeTypes;
+    this.excludedMimeTypes = excludedMimeTypes;
     
     this.maxDocumentLength = maxDocumentLength;
     
@@ -186,7 +194,9 @@ public class HttpPoster
     String originalSizeAttributeName, String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
     String fileNameAttributeName, String mimeTypeAttributeName, String contentAttributeName,
     IKeystoreManager keystoreManager, Long maxDocumentLength,
-    String commitWithin, boolean useExtractUpdateHandler, boolean allowCompression)
+    String commitWithin, boolean useExtractUpdateHandler,
+    final Set<String> includedMimeTypes, final Set<String> excludedMimeTypes,
+    boolean allowCompression)
     throws ManifoldCFException
   {
     // These are the paths to the handlers in Solr that deal with the actions we need to do
@@ -207,6 +217,8 @@ public class HttpPoster
     this.mimeTypeAttributeName = mimeTypeAttributeName;
     this.contentAttributeName = contentAttributeName;
     this.useExtractUpdateHandler = useExtractUpdateHandler;
+    this.includedMimeTypes = includedMimeTypes;
+    this.excludedMimeTypes = excludedMimeTypes;
     
     this.maxDocumentLength = maxDocumentLength;
 
@@ -564,6 +576,11 @@ public class HttpPoster
       return false;
     }
 
+    // If not the right mime type, reject it.
+    if ((includedMimeTypes !=null || excludedMimeTypes != null) && !checkMimeTypeIndexable(document.getMimeType(), useExtractUpdateHandler, includedMimeTypes, excludedMimeTypes)) {
+      activities.recordActivity(null,SolrConnector.INGEST_ACTIVITY,null,documentURI,activities.EXCLUDED_MIMETYPE,"Solr connector rejected document due to mime type restrictions: ("+document.getMimeType()+")");
+      return false;
+    }
     
     // Convert the incoming acls that we know about to qualified forms, and reject the document if
     // we don't know how to deal with its acls
@@ -774,6 +791,30 @@ public class HttpPoster
       return;
     }
 
+  }
+
+  private final static Set<String> acceptableMimeTypes = new HashSet<String>();
+  static
+  {
+    acceptableMimeTypes.add("text/plain;charset=utf-8");
+    acceptableMimeTypes.add("text/plain;charset=ascii");
+    acceptableMimeTypes.add("text/plain;charset=us-ascii");
+    acceptableMimeTypes.add("text/plain");
+  }
+
+  public static boolean checkMimeTypeIndexable(final String mimeType, final boolean useExtractUpdateHandler,
+    final Set<String> includedMimeTypes, final Set<String> excludedMimeTypes)
+  {
+    final String lowerMimeType = mimeType.toLowerCase(Locale.ROOT);
+    if (useExtractUpdateHandler)
+    {
+      if (includedMimeTypes != null && !includedMimeTypes.contains(lowerMimeType))
+        return false;
+      if (excludedMimeTypes != null && excludedMimeTypes.contains(lowerMimeType))
+        return false;
+      return true;
+    }
+    return acceptableMimeTypes.contains(lowerMimeType);
   }
 
   /** Convert an unqualified ACL to qualified form.
