@@ -77,11 +77,11 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   /** Included mime types string */
   protected String includedMimeTypesString = null;
   /** Included mime types */
-  protected Map<String,String> includedMimeTypes = null;
+  protected Set<String> includedMimeTypes = null;
   /** Excluded mime types string */
   protected String excludedMimeTypesString = null;
   /** Excluded mime types */
-  protected Map<String,String> excludedMimeTypes = null;
+  protected Set<String> excludedMimeTypes = null;
   
   // Attributes going into Solr
   protected String idAttributeName = null;
@@ -365,7 +365,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             allowAttributeName,denyAttributeName,idAttributeName,
             originalSizeAttributeName,modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
             fileNameAttributeName,mimeTypeAttributeName,contentAttributeName,
-            keystoreManager,maxDocumentLength,commitWithin,useExtractUpdateHandler,allowCompression);
+            keystoreManager,maxDocumentLength,commitWithin,useExtractUpdateHandler,
+            includedMimeTypes,excludedMimeTypes,
+            allowCompression);
           
         }
         catch (NumberFormatException e)
@@ -421,7 +423,9 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
             allowAttributeName,denyAttributeName,idAttributeName,
             originalSizeAttributeName,modifiedDateAttributeName,createdDateAttributeName,indexedDateAttributeName,
             fileNameAttributeName,mimeTypeAttributeName,contentAttributeName,
-            maxDocumentLength,commitWithin,useExtractUpdateHandler,allowCompression);
+            maxDocumentLength,commitWithin,useExtractUpdateHandler,
+            includedMimeTypes,excludedMimeTypes,
+            allowCompression);
           
         }
         catch (NumberFormatException e)
@@ -438,10 +442,10 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
   }
 
   /** Parse a mime type field into individual mime types in a hash */
-  protected static Map<String,String> parseMimeTypes(String mimeTypes)
+  protected static Set<String> parseMimeTypes(final String mimeTypes)
     throws ManifoldCFException
   {
-    Map<String,String> rval = new HashMap<String,String>();
+    Set<String> rval = new HashSet<>();
     try
     {
       java.io.Reader str = new java.io.StringReader(mimeTypes);
@@ -457,7 +461,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
               break;
             if (nextString.length() == 0)
               continue;
-            rval.put(nextString,nextString);
+            rval.add(nextString.toLowerCase(Locale.ROOT));
           }
           return rval;
         }
@@ -516,15 +520,6 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     return new VersionContext(sp.toPackedString(),params,spec);
   }
 
-  private final static Set<String> acceptableMimeTypes = new HashSet<String>();
-  static
-  {
-    acceptableMimeTypes.add("text/plain;charset=utf-8");
-    acceptableMimeTypes.add("text/plain;charset=ascii");
-    acceptableMimeTypes.add("text/plain;charset=us-ascii");
-    acceptableMimeTypes.add("text/plain");
-  }
-
   /** Detect if a mime type is indexable or not.  This method is used by participating repository connectors to pre-filter the number of
   * unusable documents that will be passed to this output connector.
   *@param outputDescription is the document's output version.
@@ -536,15 +531,7 @@ public class SolrConnector extends org.apache.manifoldcf.agents.output.BaseOutpu
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    if (useExtractUpdateHandler)
-    {
-      if (includedMimeTypes != null && includedMimeTypes.get(mimeType) == null)
-        return false;
-      if (excludedMimeTypes != null && excludedMimeTypes.get(mimeType) != null)
-        return false;
-      return true;
-    }
-    return acceptableMimeTypes.contains(mimeType.toLowerCase(Locale.ROOT));
+    return HttpPoster.checkMimeTypeIndexable(mimeType, useExtractUpdateHandler, includedMimeTypes, excludedMimeTypes);
   }
 
   /** Pre-determine whether a document's length is indexable by this connector.  This method is used by participating repository connectors
