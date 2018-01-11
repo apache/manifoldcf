@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 2.9.1 =====================
 
+CONNECTORS-1481: Go completely to Tika 1.17.
+(Karl Wright)
+
 CONNECTORS-1478: Fix bad javascript for IE.
 (Kishore Kumar)
 
