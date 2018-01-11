@@ -3,6 +3,8 @@ $Id$
 
 ======================= Release 2.9.1 =====================
 
+CONNECTORS-1478: Fix bad javascript for IE.
+(Kishore Kumar)
 
 ======================= Release 2.9 =====================
 
