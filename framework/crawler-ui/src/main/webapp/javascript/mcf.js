@@ -530,4 +530,15 @@ $(function(){
     var data = {urlPath: encodeURIComponent(urlPath)};
     window.history.pushState(data,title,'?p=' + encodeURIComponent(urlPath) + '&_' + new Date().getTime());
   });
+
+  //Prevent from submit on Enter
+  $(window).keydown(function(e){
+    var key = e.charCode || e.keyCode || 0;
+    if(key == 13) {
+      console.log("Enter on input fields is disabled.");
+      e.preventDefault();
+      return false;
+    }
+  });
+
 });

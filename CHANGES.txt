@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.10-dev =====================
 
+CONNECTORS-1485: Prevent Form submit on Enter key press
+(Maxence SAUNIER, Kishore Kumar)
+
 CONNECTORS-1482: Improve solr connector handling of include/exclude
 for mime types to be case insenstive and to actually reject documents
 if upstream connector ignores or doesn't call checkMimeTypeIndexable().
