@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.10-dev =====================
 
+CONNECTORS-1488: Use a mime type that ElasticSearch 6.x allows.
+(Richard Wardrobe)
+
 CONNECTORS-1485: Prevent Form submit on Enter key press
 (Maxence SAUNIER, Kishore Kumar)
 
