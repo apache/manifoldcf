@@ -242,7 +242,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
 
     @Override
     public Header getContentType() {
-      return new BasicHeader("Content-type","application/x-www-form-urlencoded");
+      return new BasicHeader("Content-type","application/json");
     }
 
     @Override
