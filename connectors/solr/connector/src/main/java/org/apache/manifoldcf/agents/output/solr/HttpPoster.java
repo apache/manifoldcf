@@ -799,6 +799,9 @@ public class HttpPoster
     acceptableMimeTypes.add("text/plain;charset=utf-8");
     acceptableMimeTypes.add("text/plain;charset=ascii");
     acceptableMimeTypes.add("text/plain;charset=us-ascii");
+    acceptableMimeTypes.add("text/plain; charset=utf-8");
+    acceptableMimeTypes.add("text/plain; charset=ascii");
+    acceptableMimeTypes.add("text/plain; charset=us-ascii");
     acceptableMimeTypes.add("text/plain");
   }
 
