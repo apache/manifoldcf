@@ -345,7 +345,7 @@ public class JiraSession {
     long setSize = 800L;
     while (true) {
       JiraUserQueryResults qr = new JiraUserQueryResults();
-      getRest("user/viewissue/search?username=&issueKey="+URLEncoder.encode(issueKey)+"&maxResults=" + setSize + "&startAt=" + startAt, qr);
+      getRest("user/viewissue/search?username=%27%27&issueKey="+URLEncoder.encode(issueKey)+"&maxResults=" + setSize + "&startAt=" + startAt, qr);
       qr.getNames(rval);
       startAt += setSize;
       if (rval.size() < startAt)

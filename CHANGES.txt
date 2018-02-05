@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.10-dev =====================
 
+CONNECTORS-1493: Jira connector could not fetch acls.
+(Damien Collis, Karl Wright)
+
 CONNECTORS-1488: Use a mime type that ElasticSearch 6.x allows.
 (Richard Wardrobe)
 
