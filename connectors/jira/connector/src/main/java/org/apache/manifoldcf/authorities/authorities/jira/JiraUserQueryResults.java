@@ -41,12 +41,20 @@ public class JiraUserQueryResults extends JiraJSONResponse {
   }
 
   public void getNames(List<String> nameBuffer) {
-    JSONArray users = (JSONArray)object;
-    for (Object user : users) {
-      if (user instanceof JSONObject) {
-        JSONObject jo = (JSONObject)user;
-        nameBuffer.add(jo.get(KEY_NAME).toString());
+    if (object instanceof JSONArray) {
+      JSONArray users = (JSONArray)object;
+      for (Object user : users) {
+        addName(user, nameBuffer);
       }
+    } else {
+      addName(object, nameBuffer);
+    }
+  }
+
+  private void addName(Object object, List<String> nameBuffer) {
+    if (object instanceof JSONObject) {
+      JSONObject jo = (JSONObject)object;
+      nameBuffer.add(jo.get(KEY_NAME).toString());
     }
   }
   

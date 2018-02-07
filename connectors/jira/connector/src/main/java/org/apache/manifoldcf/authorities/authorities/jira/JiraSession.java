@@ -296,7 +296,7 @@ public class JiraSession {
   public Map<String, String> getRepositoryInfo() throws IOException, ResponseException {
     HashMap<String, String> statistics = new HashMap<String, String>();
     JiraUserQueryResults qr = new JiraUserQueryResults();
-    getRest("user/search?username=&maxResults=1&startAt=0", qr);
+    getRest("user/search?username=%27%27&maxResults=1&startAt=0", qr);
     return statistics;
   }
 
@@ -304,7 +304,7 @@ public class JiraSession {
   */
   public boolean checkUserExists(String userName) throws IOException, ResponseException, ManifoldCFException {
     JiraUserQueryResults qr = new JiraUserQueryResults();
-    getRest("user/search?username="+URLEncoder.encode(userName)+"&maxResults=1&startAt=0", qr);
+    getRest("user?username="+URLEncoder.encode(userName)+"&maxResults=1&startAt=0", qr);
     List<String> values = new ArrayList<String>();
     qr.getNames(values);
     if (values.size() == 0)
