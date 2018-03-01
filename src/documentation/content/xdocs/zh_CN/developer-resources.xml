@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document>
+<header><title>ManifoldCF - 开发人员资源</title></header>
+<properties>
+</properties>
+<body>
+
+    <section id="Source">
+	<title>源代码</title>
+	<p>ManifoldCF的源代码在svn加以管理(参阅： <a href="http://subversion.tigris.org/">http://subversion.tigris.org/</a> 和 <a href="http://svnbook.red-bean.com/">http://svnbook.red-bean.com/</a>)
+	</p>
+	<p>
+	    <code>svn checkout http://svn.apache.org/repos/asf/manifoldcf/trunk mcf-trunk</code>
+	</p>
+    </section>
+
+    <section id="Debugging">
+	<title>调试连接</title>
+	<p>ManifoldCF的使用中有时会因某种原因而无法连接到存储库。此时请从<a href="https://cwiki.apache.org/confluence/display/CONNECTORS/Debugging+Connections">这里</a>开始调查。如发现新的调试方法，主意请告之！</p>
+    </section>
+    
+    <section id="Changes">
+	<title>修改历史记录</title>
+	<p>最新修改历史记录请参阅
+	    <a href="http://svn.apache.org/repos/asf/manifoldcf/trunk/CHANGES.txt">这里</a>。
+	</p>
+    </section>
+    
+    <section id="Bugs">
+          <title>报告Bug，新功能案</title>
+          <p>如发现问题或有新功能案请创建<a href="http://issues.apache.org/jira">JIRA问题</a>。创建问题需先注册帐号，注册时请选择[ManifoldCF]项目。
+          </p>
+          <p>但在创建新问题之前先查看是否已存在同样的问题。</p>
+    </section>
+    
+    <section id="Making a Contribution">
+	<title>贡献</title>
+	<p>ManifoldCF一直在寻求贡献者。关于贡献的详情请参阅<a href="http://cwiki.apache.org/confluence/display/CONNECTORS/HowToContribute">Wiki</a>。</p>
+	<p>我们还寻找徽标创意。请参阅<a href="http://cwiki.apache.org/confluence/display/CONNECTORS/Logo+Criteria">指南</a>。
+	</p>
+    </section>
+
+</body>
+</document>

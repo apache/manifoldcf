@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document>
+    <header>
+        <title>ManifoldCF - メーリングリスト</title>
+    </header>
+    <body>
+	<section id="ManifoldCF Mailing Lists"><title>ManifoldCFメーリングリスト</title>
+		<p>ManifoldCFプロジェクトには以下のメーリングリストがあります：</p>
+	</section>
+	<section id="user"><title>ユーザメーリングリスト</title>
+		<p>ManifoldCFの使い方</p>
+		<ul>
+			<li><a href="mailto:user-subscribe@manifoldcf.apache.org">参加</a></li>
+			<li><a href="mailto:user-unsubscribe@manifoldcf.apache.org">脱退</a></li>
+			<li><a href="http://mail-archives.apache.org/mod_mbox/manifoldcf-user/">過去のメッセージ</a></li>
+		</ul>
+	</section>
+	<section id="dev"><title>開発者メーリングリスト</title>
+		<p>ManifoldCFの開発について</p>
+		<ul>
+			<li><a href="mailto:dev-subscribe@manifoldcf.apache.org">参加</a></li>
+			<li><a href="mailto:dev-unsubscribe@manifoldcf.apache.org">脱退</a></li>
+			<li><a href="http://mail-archives.apache.org/mod_mbox/manifoldcf-dev/">過去のメッセージ</a></li>
+		</ul>
+	</section>
+	<section id="commits"><title>コミットメーリングリスト</title>
+		<p>コミットメッセージ</p>
+		<ul>
+			<li><a href="mailto:commits-subscribe@manifoldcf.apache.org">参加</a></li>
+			<li><a href="mailto:commits-unsubscribe@manifoldcf.apache.org">脱退</a></li>
+			<li><a href="http://mail-archives.apache.org/mod_mbox/manifoldcf-commits/">過去のメッセージ</a></li>
+		</ul>
+	</section>
+		
+	<section id="archives"><title>過去のメッセージ</title>
+		<p>過去のメッセージは以下のリンクから参照することができます：</p>
+		<ul>
+			<li><a href="http://www.mail-archive.com/dev@manifoldcf.apache.org/index.html">dev@manifoldcf.apache.org</a></li>
+			<li><a href="http://www.mail-archive.com/user@manifoldcf.apache.org/index.html">user@manifoldcf.apache.org</a></li>
+		</ul>
+	</section>
+
+    </body>
+</document>

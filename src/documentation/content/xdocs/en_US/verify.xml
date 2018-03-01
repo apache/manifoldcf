@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+
+<document> 
+
+  <header> 
+    <title>Verifying ManifoldCF releases</title> 
+  </header> 
+
+  <body> 
+
+    <section>
+      <title>Tools</title>
+      <p>
+        To verify ManifoldCF releases after version 1.6, you will need OpenPGP, which can be downloaded from
+        <a href="http://www.gnupg.org/download/">here</a>.  
+      </p>
+    </section>
+    
+    <section>
+      <title>Verifying a release</title>
+      
+      <section>
+        <title>Importing the public keys</title>
+        <p>Each release comes with a KEYS file.  Before you can verify the release artifacts, you must import the
+            KEYS file into OpenPGP.</p>
+        <p>Start by downloading the KEYS file for the release to your local machine.  Be sure that you download this
+            file from an Apache server -- not a mirror, or third-party server, but from www.apache.org itself.
+            If you want, you can also verify that the contents of the KEYS file consists only of public keys that have been
+            registered with various key authorities, such as <a href="http://pgp.mit.edu/">MIT's</a>.</p>
+        <p>Next, load the KEYS file into OpenPGP, using a command like this:</p>
+        <p><code>gpg --import KEYS</code></p>
+        <p>Perform the most basic level of verification by downloading the ASC signature file for the artifact, and then
+            running a command such as this (good for both Windows and Unix):</p>
+        <p><code>gpg --verify apache-manifoldcf-X.X.X-src.tar.gz.asc</code></p>
+      </section>
+      
+      <section>
+        <title>Verifying the MD5 signature</title>
+        <p>To verify the MD5 signature of a release, download the artifact and the MD5 signature file for the artifact, and then
+            run a Unix command such as this:</p>
+        <p><code>gpg --print-md MD5 apache-manifoldcf-X.X.X-src.tar.gz | diff - apache-manifoldcf-X.X.X-src.tar.gz.md5</code></p>
+        <p>On Windows:</p>
+        <p>
+          <code>gpg --print-md MD5 apache-manifoldcf-X.X.X-src.tar.gz > capture.md5</code><br/>
+          <code>fc capture.md5 apache-manifoldcf-X.X.X-src.tar.gz.md5</code>
+        </p>
+        <p>No differences will be printed if the signatures agree. If there are differences, then validity of the release cannot be verified.</p>
+      </section>
+
+      <section>
+        <title>Verifying an SHA signature</title>
+        <p>To verify the SHA signature of a release, download the artifact and the SHA signature file for the artifact, and then
+            run a Unix command such as this:</p>
+        <p><code>gpg --print-md SHA512 apache-manifoldcf-X.X.X-src.tar.gz | diff - apache-manifoldcf-X.X.X-src.tar.gz.sha</code></p>
+        <p>On Windows:</p>
+        <p>
+          <code>gpg --print-md SHA512 apache-manifoldcf-X.X.X-src.tar.gz > capture.sha</code><br/>
+          <code>fc capture.sha apache-manifoldcf-X.X.X-src.tar.gz.sha</code>
+        </p>
+        <p>No differences will be printed if the signatures agree. If there are differences, then validity of the release cannot be verified.</p>
+      </section>
+
+    </section>
+
+  </body>
+
+</document>

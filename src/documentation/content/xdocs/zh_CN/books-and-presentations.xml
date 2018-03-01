@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document>
+    <header>
+        <title>ManifoldCF - Books and Presentations</title>
+    </header>
+    <body>
+  <section id="books"><title>ManifoldCF Books</title>
+    <p>All the books about the ManifoldCF project.</p>
+    <ul>
+      <li><a href="https://github.com/DaddyWri/manifoldcfinaction/tree/master/pdfs" target="_blank">Updated ManifoldCF in Action chapters, revised PDFs</a></li>
+    </ul>
+  </section>
+  <section id="presentations"><title>ManifoldCF Presentations</title>
+    <p>Some presentations about the ManifoldCF project.</p>
+    <ul>
+      <li><a href="http://www.slideshare.net/lucenerevolution/wright-nokia-manifoldcfeurocon-2011" target="_blank">Securing Documents in Solr with ManifoldCF by Karl Wright</a></li>
+      <li><a href="http://www.slideshare.net/PiergiorgioLucidi/apache-manifoldcf-9508286" target="_blank">Apache ManifoldCF by Piergiorgio Lucidi</a></li>
+      <li><a href="http://www.slideshare.net/ShinichiroAbe/apache-manifoldcf-9231499" target="_blank">Apache ManifoldCF by Shinichiro Abe</a></li>
+      <li><a href="http://www.open4dev.com/journal/2013/11/9/my-two-talks-at-alfresco-summit-2013-in-barcelona.html" target="_blank">Barcelona presentations by Piergiorgio Lucidi</a></li>
+      <li><a href="http://summit.alfresco.com/barcelona/sessions/super-size-your-search" target="_blank">Alfresco Summit presentation by Piergiorgio Lucidi</a></li>
+      <li><a href="https://feathercast.apache.org/2017/10/30/oss-prague-apache-manifoldcf-and-incubation-piergiorgio-lucidi/" target="_blank">Open Source Summit presentation by Piergiorgio Lucidi</a></li>
+    </ul>
+  </section>
+  <section id="podcasts"><title>ManifoldCF Videos/Podcasts</title>
+    <p>All the videos/podcasts about the ManifoldCF project.</p>
+    <ul>
+      <li><a title="Teach Me To Code - Karl Wright - ManifoldCF" href="http://teachmetocode.com/podcast/077-tmtc-karl-wright-manifoldcf/" target="_blank">077 TMTC Karl Wright - ManifoldCF</a> (ApacheCON North America, 2011)</li>
+      <li><a title="Securing Documents in Solr with ManifoldCF by Karl Wright" href="http://vimeo.com/33082485" target="_blank">Lucene Revolutions Eurocon 2011 - Karl Wright - ManifoldCF</a> (Lucene Revolutions Eurocon, 2011)</li>
+      <li><a title="WAT" href="https://www.destroyallsoftware.com/talks/wat" target="_blank">WAT Lightning Talk</a> (Gary Bernhardt, CodeMash 2012)</li>
+    </ul>
+  </section>
+    </body>
+</document>

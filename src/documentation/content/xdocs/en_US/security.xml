@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document> 
+
+  <header> 
+    <title>ManifoldCF Document Security</title> 
+  </header> 
+
+  <body> 
+
+      <section>
+        <title>Document Security Issues</title>
+        <section>
+            <title>Overview</title>
+            <p>ManifoldCF provides a security model for documents which is typically enforced by the search engine the documents are indexed
+                  with.  Often, this search engine is Apache Lucene, but others may be used either now or in the future.  This page describes
+                  how document security is enforced, and what the limitations are of this technique.</p>
+            <section>
+                <title>How Search Engines Work</title>
+                <p>A standard search engine has one or more <em>indexes</em>, which associate <em>terms</em> with <em>documents</em>.  A
+                    <em>query</em> is issued to the search engine, which uses one or more of the indexes to generate a list of documents.  The
+                    list of documents is then <em>scored</em>, which means that they are given a numeric ranking value based on how closely they
+                    match the query.  The scoring operation typically also makes use of statistic measures, such as how frequently a term appears in
+                    documents in the index.</p>
+            </section>
+            
+            <section>
+                <title>Security Definitions</title>
+                <p>Complete definitions of security usually include elements of <em>confidentiality</em>, <em>integrity</em>, and <em>availability</em>.
+                      Confidentiality has a strict definition, which not only prevents a user from seeing information belonging to another user, but also
+                      prevents a user from even knowing about the existence of information belonging to another user.  Integrity means that a user
+                      can see everything they are allowed to see.  And availability means that information is as available as possible to the user who
+                      is supposed to have access to it.</p>
+
+            </section>
+            
+            <section>
+                <title>How ManifoldCF Applies Security</title>
+                <p>Typically, documents are excluded by what is known as <em>query modification</em>.  This means that the query presented to the
+                      search engine is modified in such a way as to exclude the documents that the user is not supposed to see.  This is typically done
+                      by a ManifoldCF Plugin, which the system integrator must use to apply user-level security.  The query modification is performed
+                      in such a way that it does not affect the relative scoring of documents.</p>
+            </section>
+          </section>
+          
+          <section>
+            <title>Potential Security Issues with ManifoldCF</title>
+            <section>
+                <title>Scoring-based Discovery of Document Keywords</title>
+                <p>One way that confidentiality can be breached in part with a search engine like Lucene relies on the fact that its scoring uses
+                      global document statistics.  It is theoretically possible to determine information about how many documents contain a term, or
+                      whether the number of documents that contain the term changes over time, by submitting queries to the system and examining
+                      the relative ordering of the results.</p>
+                <p>While this technically is a violation of the confidentiality principle, an attacker still cannot see the contents or extracts of
+                      documents that are restricted.  The ability of an unauthorized user to know about the existence of other documents with
+                      certain keywords may or may not be of concern to the system designers, depending on the situation.  But if it <strong>is</strong> a concern,
+                      the right solution is to modify how the search engine does scoring, so that it either does not score documents based on global term
+                      statistics, or perhaps it adjusts scores by a random factor, etc.  There exist papers on this subject, which we encourage
+                      especially security-conscious developers to consult.</p>
+            </section>
+        </section>
+      </section>
+
+  </body>
+
+</document>

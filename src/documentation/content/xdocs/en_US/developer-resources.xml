@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document>
+<header><title>ManifoldCF - Developer Resources</title></header>
+<properties>
+</properties>
+<body>
+
+    <section id="source">
+	<title>Source Code</title>
+	<p>The source files are stored using Subversion (see <a href="http://subversion.tigris.org/">http://subversion.tigris.org/</a> and 
+              <a href="http://svnbook.red-bean.com/">http://svnbook.red-bean.com/</a>)</p>
+	<p>
+	    <code>svn checkout http://svn.apache.org/repos/asf/manifoldcf/trunk mcf-trunk</code>
+	</p>
+	<p>A read-only Git hub is also available for those who use Git.   The URL for Git is:</p>
+	<p>
+	    <code>git://git.apache.org/manifoldcf.git</code>
+	</p>
+    </section>
+
+    <section id="debugging">
+	<title>Debugging Connections</title>
+	<p>Sooner or later, you will encounter a repository that should be supported, but doesn't seem to want to connect properly to ManifoldCF.  When that happens, you will need all the help you
+	    can get.  Start <a href="https://cwiki.apache.org/confluence/display/CONNECTORS/Debugging+Connections">here</a>, and if you find a new hint, technique,
+	    or trick, don't forget to add it to the page!</p>
+    </section>
+    
+    <section id="Changes">
+	<title>Changes List</title>
+	<p>Current changes list (as of the most recent nightly build) is available 
+	    <a href="http://svn.apache.org/repos/asf/manifoldcf/trunk/CHANGES.txt">here</a>.
+	</p>
+    </section>
+    
+    <section id="Bugs">
+          <title>Reporting a Bug, Problem, or Feature Request</title>
+          <p>If you think you've found a problem, or you just have a good idea for an improvement, you can create a JIRA ticket <a href="https://issues.apache.org/jira/browse/CONNECTORS/">here</a>.  You may need to create yourself an account.
+          </p>
+          <p>Please make every effort to search through the current issues list before creating a new ticket.  Your problem might already have been logged!</p>
+    </section>
+    
+    <section id="Making a Contribution">
+	<title>Making a Contribution</title>
+	<p>ManifoldCF is always looking for contributions.  See the <a href="http://cwiki.apache.org/confluence/display/CONNECTORS/HowToContribute">Wiki</a> for details on contributing. </p>
+	<p>We're also looking for logo ideas.  Here are the <a href="http://cwiki.apache.org/confluence/display/CONNECTORS/Logo+Criteria">guidelines</a>.
+	</p>
+    </section>
+
+</body>
+</document>

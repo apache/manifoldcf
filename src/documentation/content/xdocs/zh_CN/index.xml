@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!DOCTYPE document PUBLIC "-//APACHE//DTD Documentation V2.0//EN" 
+          "http://forrest.apache.org/dtd/document-v20.dtd">
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<document> 
+
+  <header> 
+    <title>欢迎来到Apache ManifoldCF™！</title> 
+  </header> 
+
+  <body> 
+    <section>
+	<title>什么是ManifoldCF？</title>
+	<p>ManifoldCF由Java程序实现，它可以搜集保存在互联网或企业网上各种服务器里的文档或Web网页，并将其发送到搜索引擎。在搜集文档的同时还在ActiveDirectory等认证系统的协同下搜集文档的权限信息，并利用这些权限信息对其搜索结果加以限制。比如，人事档案仅限由人事部搜索时才加以显示。</p>
+	<p>ManifoldCF现版本可利用下述通用连接器搜集FileNet P8 (IBM)，Documentum (EMC)，LiveLink (OpenText)，Meridio (Autonomy), Windows共享(Microsoft)，SharePoint (Microsoft)等商用系统保存着的各种文档，如:CMIS连接器，File System连接器，JDBC连接器，RSS Feed连接器，Wiki连接器，HTML连接器。而且，还可将搜集到的文档发送到Apache Solr，QBase(旧MetaCarta) GTS，OpenSearchServer，Elasticsearch。所支持的产品及规格一览请参照<a href="release-documentation.html">这里</a>。</p>
+	<p>Apache ManifoldCF由MetaCarta, Inc.开发，为供给多家企业经历5年反反复复的开发，调试之后，2009年12月其源代码赠送到Apache Software Foundation。</p>
+    </section>
+
+    <section>
+	<title>项目的状况</title>
+	<p>Apache ManifoldCF 2.9.1可从<a href="download.html">这里</a>下载。</p>
+    </section>
+
+    <section>
+	<title>关于第三方存储库</title>
+	<p>为生成ManifoldCF包含的面向商业软件的连接器，有时需第三方软件库，包或软件本身。虽然开发人员需得到这些第三方软件，但可以有条件地编译连接器自身的源代码并作为Apache发布之。我们虽期望并努力做到使一切遵照Apache版权，但现状不会立即发生变化。</p>
+	<p>关于包括第三方软件的生成步骤，请参照Wiki页面。</p>
+    </section>
+
+    <section>
+        <title>新闻</title>
+          <section>
+              <title>2018年01月15日 - ManifoldCF 2.9.1发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2017年12月22日 - ManifoldCF 2.9发布了！</title>
+                <p>开发人员社区批准发布2.9版</p>
+          </section>
+          <section>
+              <title>2017年09月07日 - ManifoldCF 2.8.1发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2017年08月18日 - ManifoldCF 2.8发布了！</title>
+                <p>开发人员社区批准发布2.8版</p>
+          </section>
+          <section>
+              <title>2017年05月10日 - ManifoldCF 2.7.1发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2017年04月20日 - ManifoldCF 2.7发布了！</title>
+                <p>开发人员社区批准发布2.7版</p>
+          </section>
+          <section>
+              <title>2016年12月30日 - ManifoldCF 2.6发布了！</title>
+                <p>开发人员社区批准发布2.6版</p>
+          </section>
+          <section>
+              <title>2016年08月18日 - ManifoldCF 2.5发布了！</title>
+                <p>开发人员社区批准发布2.5版</p>
+          </section>
+          <section>
+              <title>2016年04月23日 - ManifoldCF 2.4发布了！</title>
+                <p>开发人员社区批准发布2.4版</p>
+          </section>
+          <section>
+              <title>2015年12月17日 - ManifoldCF 2.3发布了！</title>
+                <p>开发人员社区批准发布2.3版</p>
+          </section>
+          <section>
+              <title>2015年09月07日 - ManifoldCF 1.10发布了！</title>
+                <p>开发人员社区批准发布1.10版</p>
+          </section>
+          <section>
+              <title>2015年08月31日 - ManifoldCF 2.2发布了！</title>
+                <p>开发人员社区批准发布2.2版</p>
+          </section>
+          <section>
+              <title>2015年05月04日 - ManifoldCF 2.1发布了！</title>
+                <p>开发人员社区批准发布2.1版</p>
+          </section>
+          <section>
+              <title>2015年05月03日 - ManifoldCF 1.9发布了！</title>
+                <p>开发人员社区批准发布1.9版</p>
+          </section>
+          <section>
+              <title>2015年03月03日 - ManifoldCF 2.0.2发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2015年03月02日 - ManifoldCF 1.8.2发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2015年02月03日 - ManifoldCF 2.0.1发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2015年02月03日 - ManifoldCF 1.8.1发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2014年12月26日 - ManifoldCF 2.0发布了！</title>
+                <p>开发人员社区批准发布2.0版</p>
+          </section>
+          <section>
+              <title>2014年12月26日 - ManifoldCF 1.8发布了！</title>
+                <p>开发人员社区批准发布1.8版</p>
+          </section>
+          <section>
+              <title>2014年11月09日 - ManifoldCF 1.7.2发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2014年09月22日 - ManifoldCF 1.7.1发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2014年08月24日 - ManifoldCF 1.7发布了！</title>
+                <p>开发人员社区批准发布1.7版</p>
+          </section>
+          <section>
+              <title>2014年06月01日 - ManifoldCF 1.6.1发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2014年04月30日 - ManifoldCF 1.6发布了！</title>
+                <p>开发人员社区批准发布1.6版</p>
+          </section>
+          <section>
+              <title>2014年02月20日 - ManifoldCF 1.5.1发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2014年02月07日 - ManifoldCF 1.5发布了！</title>
+                <p>开发人员社区批准发布1.5版</p>
+          </section>
+          <section>
+              <title>2013年11月16日 - ManifoldCF 1.4.1发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2013年10月28日 - ManifoldCF 1.4发布了！</title>
+                <p>开发人员社区批准发布1.4版</p>
+          </section>
+          <section>
+              <title>2013年07月29日 - ManifoldCF 1.3发布了！</title>
+                <p>开发人员社区批准发布1.3版</p>
+          </section>
+          <section>
+              <title>2013年05月11日 - ManifoldCF 1.2发布了！</title>
+                <p>开发人员社区批准发布1.2版</p>
+          </section>
+          <section>
+              <title>2013年02月13日 - ManifoldCF 1.1.1发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2013年02月03日 - ManifoldCF 1.1发布了！</title>
+                <p>开发人员社区批准了1.1版</p>
+          </section>
+          <section>
+              <title>2012年10月18日 - ManifoldCF 1.0.1发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2012年10月03日 - ManifoldCF 1.0发布了！</title>
+                <p>开发人员社区批准了1.0版</p>
+          </section>
+          <section>
+              <title>2012年7月13日 - ManifoldCF 0.6发布了！</title>
+                <p>开发人员社区批准了6版</p>
+          </section>
+          <section>
+              <title>2012年5月22日 - ManifoldCF 0.5.1发布了！</title>
+                <p>开发人员社区批准发布Bug修改版</p>
+          </section>
+          <section>
+              <title>2012年5月16日 - ManifoldCF从Apache孵化器毕业！</title>
+                  <p>Apache理事会批准ManifoldCF成为顶级项目</p>
+          </section>
+          <section>
+              <title>2012年04月15日 - ManifoldCF 0.5-incubating发布了！</title>
+                <p>开发人员社区及Apache孵化器批准了5版</p>
+                <p>主要添加功能:</p>
+                <ul>
+                  <li>支持连接器UI模板Apache Velocity</li>
+                  <li>ElasticSearch输出连接器</li>
+                  <li>CMIS连接器升级为CMIS 0.6.0</li>
+                  <li>支持MySQL</li>
+                  <li>支持预构建专有连接器</li>
+                  <li>支持多国语, 日语本地化</li>
+                </ul>
+          </section>
+          <section>
+            <title>2012年02月02日 - ManifoldCF 0.4-incubating发布了！</title>
+                <p>开发人员社区及Apache孵化器批准了4版</p>
+          </section>
+          <section>
+             <title>2011年11月08日 - 在温哥华发表关于ManifoldCF的演讲</title>
+                <p>Apache North America 2011, 在加拿大，不列颠哥伦比亚, 温哥华，发表了ManifoldCF的概要</p>
+          </section>
+          <section>
+             <title>2011年10月19日 - 在巴塞罗那发表关于ManifoldCF</title>
+                <p>Apache Eurocon 2011, 在西班牙，加泰罗尼亚，巴塞罗那，发表关于ManifoldCF的权限功能</p>
+          </section>
+          <section>
+             <title>2011年09月20日 - ManifoldCF 0.3-incubating发布了！</title>
+                <p>开发人员社区及Apache孵化器批准了3版</p>
+          </section>
+	  <section>
+	     <title>2011年05月17日 - ManifoldCF 0.2-incubating发布了！</title>
+                <p>开发人员社区及Apache孵化器批准了2版</p>
+	  </section>
+	  <section>
+	     <title>2011年01月31日 - ManifoldCF 0.1-incubating发布了！</title>
+                <p>开发人员社区及Apache孵化器批准发布初期版本</p>
+	  </section>
+	  <section>
+	     <title>2010年10月03日 - Apache连接器框架正式更名为Apache ManifoldCF</title>
+                <p>开发人员社区批准了第二次更名</p>
+	  </section>
+	  <section>
+	     <title>2010年08月19日 - Lucene连接器框架更名为Apache连接器框架</title>
+                <p>开发人员社区批准了更名</p>
+	  </section>
+            <section>
+                <title>2010年07月07日 - Lucene连接器框架的初期版本被提议</title>
+                <p>LCF初期版本条件被提议</p>
+            </section>
+            <section>
+                <title>2010年05月21日 - 在布拉格发表关于Lucene连接器框架</title>
+                <p>Lucene/Solr Eurocon, 在捷克共和国，布拉格，介绍了LCF</p>
+            </section>
+            <section>
+                <title>2010年01月12日 - Lucene连接器框架启动了！</title>
+                <p>LCF正式成为Apache Software Foundation孵化项目</p>
+            </section>
+
+    </section>
+
+  </body>
+
+</document>
