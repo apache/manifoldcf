@@ -176,6 +176,8 @@ public class Configuration implements IHierarchyParent
     // properly, and use an alternate representation if we should find it.
     Map<String,List<ConfigurationNode>> childMap = new HashMap<String,List<ConfigurationNode>>();
     List<String> childList = new ArrayList<String>();
+    // The new JSON parser uses hash order for object keys.  So it isn't good enough to just detect that there's an
+    // intermingling.  Instead we need to the existence of more that one key; that implies that we need to do order preservation.
     String lastChildType = null;
     boolean needAlternate = false;
     int i = 0;
@@ -186,17 +188,16 @@ public class Configuration implements IHierarchyParent
       List<ConfigurationNode> list = childMap.get(key);
       if (list == null)
       {
+        // We found no existing list, so create one
         list = new ArrayList<ConfigurationNode>();
         childMap.put(key,list);
         childList.add(key);
       }
-      else
+      // Key order comes into play when we have elements of different types within the same child. 
+      if (lastChildType != null && !lastChildType.equals(key))
       {
-        if (!lastChildType.equals(key))
-        {
-          needAlternate = true;
-          break;
-        }
+        needAlternate = true;
+        break;
       }
       list.add(child);
       lastChildType = key;

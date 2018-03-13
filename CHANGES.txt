@@ -3,6 +3,13 @@ $Id$
 
 ======================= 2.10-dev =====================
 
+CONNECTORS-1499: Reading in JSON in exported format did not
+preserve the order because the new JSON parser does things in
+hash order for keys in objects.  The fix is to use the more verbose
+alternate form if there's any possibility of order dependency being
+needed.
+(Karl Wright)
+
 CONNECTORS-1493: Jira connector could not fetch acls.
 (Damien Collis, Karl Wright)
 
