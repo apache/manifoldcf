@@ -21,12 +21,12 @@
  
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DatafariHtmlExtractorTransformationConnector.HtmlExtractorTabName')) $Encoder.bodyEscape($ResourceBundle.getString('DatafariHtmlExtractorTransformationConnector.IncludeFilters'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.HtmlExtractorTabName')) $Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.IncludeFilters'))</nobr>
     </td>
     <td class="boxcell">
       <table class="formtable">
         <tr class="formheaderrow">
-          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('DatafariHtmlExtractorTransformationConnector.RegularExpression'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.RegularExpression'))</nobr></td>
         </tr>
 
   #set($includecounter = 0)
@@ -44,19 +44,19 @@
   #end
   
   #if($includecounter == 0)
-        <tr class="formrow"><td class="formmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('DatafariHtmlExtractorTransformationConnector.NoIncludeFilterSpecified'))</td></tr>
+        <tr class="formrow"><td class="formmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.NoIncludeFilterSpecified'))</td></tr>
   #end
       </table>
     </td>
   </tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('DatafariHtmlExtractorTransformationConnector.HtmlExtractorTabName')) $Encoder.bodyEscape($ResourceBundle.getString('DatafariHtmlExtractorTransformationConnector.ExcludeFilters'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.HtmlExtractorTabName')) $Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.ExcludeFilters'))</nobr>
     </td>
     <td class="boxcell">
       <table class="formtable">
         <tr class="formheaderrow">
-          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('DatafariHtmlExtractorTransformationConnector.RegularExpression'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.RegularExpression'))</nobr></td>
         </tr>
 
   #set($excludecounter = 0)
@@ -74,7 +74,7 @@
   #end
   
   #if($excludecounter == 0)
-        <tr class="formrow"><td class="formmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('DatafariHtmlExtractorTransformationConnector.NoExcludeFilterSpecified'))</td></tr>
+        <tr class="formrow"><td class="formmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.NoExcludeFilterSpecified'))</td></tr>
   #end
       </table>
     </td>

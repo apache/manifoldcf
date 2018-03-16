@@ -1,4 +1,4 @@
-package com.francelabs.datafari.htmlextractor;
+package org.apache.manifoldcf.agents.transformation.htmlextractor;
 
 /* $Id$ */
 
@@ -26,7 +26,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 
-import com.francelabs.datafari.htmlextractor.exception.RegexException;
+import org.apache.manifoldcf.agents.transformation.htmlextractor.exception.RegexException;
 
 import org.apache.manifoldcf.agents.interfaces.*;
 

@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package com.francelabs.datafari.htmlextractor;
+package org.apache.manifoldcf.agents.transformation.htmlextractor;
 
 import java.util.Locale;
 import java.util.Map;
@@ -25,8 +25,8 @@ import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class Messages extends org.apache.manifoldcf.ui.i18n.Messages {
-  public static final String DEFAULT_BUNDLE_NAME = "com.francelabs.datafari.htmlextractor.common";
-  public static final String DEFAULT_PATH_NAME = "com.francelabs.datafari.htmlextractor";
+  public static final String DEFAULT_BUNDLE_NAME = "org.apache.manifoldcf.agents.transformation.htmlextractor.common";
+  public static final String DEFAULT_PATH_NAME = "org.apache.manifoldcf.agents.transformation.htmlextractor";
 
   /**
    * Constructor - do no instantiate

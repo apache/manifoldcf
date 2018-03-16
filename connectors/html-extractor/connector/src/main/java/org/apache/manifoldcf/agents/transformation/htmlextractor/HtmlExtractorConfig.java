@@ -17,7 +17,7 @@
 * limitations under the License.
 */
 
-package com.francelabs.datafari.htmlextractor;
+package org.apache.manifoldcf.agents.transformation.htmlextractor;
 
 /**
  * Parameters for Tika transformation connector.
