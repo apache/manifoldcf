@@ -1,4 +1,4 @@
-package com.francelabs.datafari.htmlextractor.exception;
+package org.apache.manifoldcf.agents.transformation.htmlextractor.exception;
 
 
 public class HtmlExtractorException extends Exception {

@@ -16,7 +16,7 @@
 * limitations under the License.
 */
 
-package com.francelabs.datafari.htmlextractor;
+package org.apache.manifoldcf.agents.transformation.htmlextractor;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
