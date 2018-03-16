@@ -531,7 +531,7 @@ public class HtmlExtractor extends org.apache.manifoldcf.agents.transformation.B
 		final Map<String, Object> paramMap = new HashMap<>();
 		paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
 
-		tabsArray.add(Messages.getString(locale, "DatafariHtmlExtractorTransformationConnector.HtmlExtractorTabName"));
+		tabsArray.add(Messages.getString(locale, "HtmlExtractor.HtmlExtractorTabName"));
 
 		// Fill in the specification header map, using data from all tabs.
 		fillInHtmlExtractorSpecification(paramMap, os);
