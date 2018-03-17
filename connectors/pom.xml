@@ -74,6 +74,7 @@
     <module>contentlimiter</module>
     <module>slack</module>
     <module>rocketchat</module>
+    <module>html-extractor</module>
   </modules>
 
 </project>
