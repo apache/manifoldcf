@@ -31,7 +31,6 @@
 
   #set($includecounter = 0)
   #foreach($includefilter in $INCLUDEFILTERS)
-  #if(($includecounter) < 2)
     #set($includecounterdisplay = $includecounter + 1)
     #if(($includecounter % 2) == 0)
         <tr class="evenformrow">
@@ -49,7 +48,6 @@
           </td>
         </tr>
     #set($includecounter = $includecounter + 1)
-  #end
   #end
   
   
