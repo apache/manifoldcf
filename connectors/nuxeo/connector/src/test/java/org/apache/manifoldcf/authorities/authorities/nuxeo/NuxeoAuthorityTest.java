@@ -16,17 +16,15 @@
 */
 package org.apache.manifoldcf.authorities.authorities.nuxeo;
 
-import org.apache.manifoldcf.authorities.authorities.nuxeo.NuxeoAuthorityConnector;
 import org.apache.manifoldcf.authorities.interfaces.AuthorizationResponse;
 import org.apache.manifoldcf.authorities.interfaces.IAuthorityConnector;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import static org.junit.Assert.assertEquals;
-import org.nuxeo.client.api.NuxeoClient;
-import org.nuxeo.client.api.objects.user.User;
-import org.nuxeo.client.api.objects.user.UserManager;
+import org.nuxeo.client.NuxeoClient;
+import org.nuxeo.client.objects.user.User;
+import org.nuxeo.client.objects.user.UserManager;
 import org.mockito.Mock;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -48,17 +46,16 @@ public class NuxeoAuthorityTest {
   private NuxeoAuthorityConnector authorityConnector;
 
   @Before
-  public void setup() throws Exception {
+  public void setup() {
     authorityConnector = new NuxeoAuthorityConnector();
     authorityConnector.setNuxeoClient(client);
   }
 
   @Test
-  @Ignore
   public void check() throws Exception {
 
-    when(client.getUserManager()).thenReturn(mock(UserManager.class));
-    when(client.getUserManager().fetchUser(anyString())).thenReturn(mock(User.class));
+    when(client.userManager()).thenReturn(mock(UserManager.class));
+    when(client.userManager().fetchUser(anyString())).thenReturn(mock(User.class));
     
     assertEquals(authorityConnector.check(), "Connection working");
   }
@@ -68,8 +65,8 @@ public class NuxeoAuthorityTest {
     UserManager userManager = mock(UserManager.class);
     User user = mock(User.class);
     
-    when(client.getUserManager()).thenReturn(userManager);
-    when(client.getUserManager().fetchUser("")).thenReturn(user);
+    when(client.userManager()).thenReturn(userManager);
+    when(client.userManager().fetchUser("")).thenReturn(user);
     
     AuthorizationResponse response = authorityConnector.getAuthorizationResponse("NOT_USER_EXIST");
     String[] tokens = response.getAccessTokens();
@@ -81,8 +78,8 @@ public class NuxeoAuthorityTest {
 
   @Test
   public void checkUserFound() throws Exception {
-    when(client.getUserManager()).thenReturn(mock(UserManager.class));
-    when(client.getUserManager().fetchUser(anyString())).thenReturn(mock(User.class));
+    when(client.userManager()).thenReturn(mock(UserManager.class));
+    when(client.userManager().fetchUser(anyString())).thenReturn(mock(User.class));
     
     AuthorizationResponse response = authorityConnector.getAuthorizationResponse("Administrator");
     

@@ -29,29 +29,27 @@ import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.List;
 
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
-import org.apache.manifoldcf.crawler.connectors.nuxeo.NuxeoRepositoryConnector;
 import org.apache.manifoldcf.crawler.connectors.nuxeo.model.DocumentManifold;
 import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.system.SeedingActivity;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.nuxeo.client.api.NuxeoClient;
-import org.nuxeo.client.api.objects.Document;
-import org.nuxeo.client.api.objects.Documents;
-import org.nuxeo.client.api.objects.Repository;
+import org.nuxeo.client.NuxeoClient;
+import org.nuxeo.client.objects.Document;
+import org.nuxeo.client.objects.Documents;
+import org.nuxeo.client.objects.Repository;
 
 /**
  * @author David Arroyo Escobar <arroyoescobardavid@gmail.com>
@@ -61,25 +59,24 @@ import org.nuxeo.client.api.objects.Repository;
 public class NuxeoConnectorTest {
 
   @Mock
-  public NuxeoClient client;
+  private NuxeoClient client;
 
-  public NuxeoRepositoryConnector repositoryConnector;
+  private NuxeoRepositoryConnector repositoryConnector;
 
   @Before
-  public void setup() throws Exception {
+  public void setup(){
 
     repositoryConnector = new NuxeoRepositoryConnector();
     repositoryConnector.setNuxeoClient(client);
-  };
+  }
 
   @Test
-  @Ignore
   public void checkMockInjection() throws Exception {
     Document doc = mock(Document.class);
     Repository repository = mock(Repository.class);
     
     when(client.repository()).thenReturn(repository);
-    when(client.repository().getDocumentRoot()).thenReturn(doc);
+    when(client.repository().fetchDocumentRoot()).thenReturn(doc);
     assertEquals(repositoryConnector.check(), "Connection working");
   }
 
@@ -99,7 +96,7 @@ public class NuxeoConnectorTest {
     when(client.repository()).thenReturn(repository);
     when(client.repository().query(anyString(), anyString(), anyString(), anyString(), anyString(),
         anyString(), anyString())).thenReturn(docs);
-    when(docs.getIsNextPageAvailable()).thenReturn(false);
+    when(docs.isNextPageAvailable()).thenReturn(false);
     when(docs.getDocuments()).thenReturn(documents);
     
     repositoryConnector.addSeedDocuments(activities, spec, "", seedTime,
@@ -122,7 +119,7 @@ public class NuxeoConnectorTest {
     when(client.repository()).thenReturn(repository);
     when(client.repository().query(anyString(), anyString(), anyString(), anyString(), anyString(),
         anyString(), anyString())).thenReturn(docs);
-    when(docs.getIsNextPageAvailable()).thenReturn(false);
+    when(docs.isNextPageAvailable()).thenReturn(false);
     when(docs.getDocuments()).thenReturn(documents);
     
     repositoryConnector.addSeedDocuments(activities, spec, "", seedTime,
@@ -152,7 +149,6 @@ public class NuxeoConnectorTest {
   }
 
   @Test
-  @Ignore
   public void mockSimpleIngestion() throws Exception {
 
     Document doc = mock(Document.class);
@@ -163,7 +159,7 @@ public class NuxeoConnectorTest {
     Long size = 0L;
     String id;
     String uri = "http://localhost:8080/nuxeo/site/api/v1/id/7995ff6d-1eda-41db-b9de-3ea4037fdb81";
-    Map<String, Object> metadata = new HashMap<String, Object>();
+    Map<String, Object> metadata = new HashMap<>();
     IProcessActivity activities = mock(IProcessActivity.class);
     IExistingVersions statuses = mock(IExistingVersions.class);
     Specification spec = new Specification();
@@ -173,7 +169,7 @@ public class NuxeoConnectorTest {
     metadata.put("key", "value");
     id = df.format(date);
 
-    when(doc.get("lenght")).thenReturn(size);
+    when(doc.getPropertyValue("lenght")).thenReturn(size);
     when(doc.getLastModified()).thenReturn(version);
     when(docMa.getMetadata()).thenReturn(metadata);
     when(doc.getUid()).thenReturn(uri);

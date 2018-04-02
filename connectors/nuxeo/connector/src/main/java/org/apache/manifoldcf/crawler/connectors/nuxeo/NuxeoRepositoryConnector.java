@@ -47,10 +47,10 @@ import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.IRepositoryConnector;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
-import org.nuxeo.client.api.NuxeoClient;
-import org.nuxeo.client.api.objects.Document;
-import org.nuxeo.client.api.objects.Documents;
-import org.nuxeo.client.internals.spi.NuxeoClientException;
+import org.nuxeo.client.NuxeoClient;
+import org.nuxeo.client.objects.Document;
+import org.nuxeo.client.objects.Documents;
+import org.nuxeo.client.spi.NuxeoClientException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +69,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
 
   private static final String URI_DOCUMENT = "SELECT * FROM Document";
 
-  protected final static String ACTIVITY_READ = "read document";
+  private final static String ACTIVITY_READ = "read document";
 
   // Configuration tabs
   private static final String NUXEO_SERVER_TAB_PROPERTY = "NuxeoRepositoryConnector.Server";
@@ -138,7 +138,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
   protected String username = null;
   protected String password = null;
 
-  protected NuxeoClient nuxeoClient = null;
+  private NuxeoClient nuxeoClient = null;
 
   // Constructor
   public NuxeoRepositoryConnector() {
@@ -299,10 +299,9 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
   // Check the connection
   @Override
   public String check() throws ManifoldCFException {
-    shutdownNuxeoClient();
-    initNuxeoClient();
+    //shutdownNuxeoClient();
     try {
-      nuxeoClient.repository().getDocumentRoot();
+      initNuxeoClient();
     } catch (NuxeoClientException ex) {
       return "Connection failed: "+ex.getMessage();
     }
@@ -328,12 +327,12 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
       }
 
       String url = getUrl();
-      nuxeoClient = new NuxeoClient(url, username, password);
+      nuxeoClient = new NuxeoClient.Builder()
+              .url(url).authentication(username, password).connect();
 
       lastSessionFetch = System.currentTimeMillis();
 
     }
-
   }
 
   /**
@@ -341,7 +340,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
    */
   private void shutdownNuxeoClient() {
     if (nuxeoClient != null) {
-      nuxeoClient.shutdown();
+      nuxeoClient.disconnect();
       nuxeoClient = null;
       lastSessionFetch = -1L;
     }
@@ -354,6 +353,9 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
    */
   String getUrl() throws ManifoldCFException {
     int portInt;
+    if (protocol == null || host == null || path == null){
+        throw new ManifoldCFException("Nuxeo Endpoint Bad Configured");
+    }
     if (port != null && port.length() > 0) {
       try {
         portInt = Integer.parseInt(port);
@@ -416,7 +418,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
         }
 
         lastStart++;
-        isLast = docs.getIsNextPageAvailable();
+        isLast = docs.isNextPageAvailable();
 
       } while (isLast);
 
@@ -438,16 +440,6 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
     }
   }
   
-  /**
-   * 
-   * @param nuxeoClient
-   * @param date
-   * @param domains
-   * @param documentsType
-   * @param limit
-   * @param start
-   * @return Documents
-   */
   Documents getDocsByDate(NuxeoClient nuxeoClient, String date, List<String> domains,
       List<String> documentsType, int limit, int start) {
 
@@ -531,15 +523,6 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
-  /**
-   * @param documentId
-   * @param version
-   * @param activities
-   * @param doLog
-   * @param newHashMap
-   * @return
-   */
-
   private ProcessResult processDocument(String documentId, Specification spec, String version,
       IProcessActivity activities, boolean doLog, HashMap<String, String> extraProperties)
       throws ManifoldCFException, ServiceInterruption, IOException {
@@ -548,16 +531,6 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
 
     return processDocumentInternal(doc, documentId, spec, version, activities, doLog, extraProperties);
   }
-
-  /**
-   * @param doc
-   * @param documentId
-   * @param version
-   * @param activities
-   * @param doLog
-   * @param extraProperties
-   * @return
-   */
 
   private ProcessResult processDocumentInternal(DocumentManifold doc, String manifoldDocumentIdentifier,
       Specification spec, String version, IProcessActivity activities, boolean doLog,
@@ -618,12 +591,12 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
     try {
       documentUri = getUrl() + "/nxpath/" + doc.getDocument().getRepositoryName() + doc.getDocument().getPath()
           + "@view_documents";
-    } catch (NuxeoClientException ex) {
+    } catch (NuxeoClientException|ManifoldCFException ex) {
       documentUri = doc.getDocument().getUid();
     }
 
     // Set repository ACLs
-    String[] permissions = doc.getPermissions(nuxeoClient);
+    String[] permissions = doc.getPermissions();
     rd.setSecurityACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT, permissions);
     rd.setSecurityDenyACL(RepositoryDocument.SECURITY_TYPE_DOCUMENT, new String[] { GLOBAL_DENY_TOKEN });
     rd.setBinary(doc.getContent(), lenght);
