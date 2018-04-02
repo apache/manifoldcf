@@ -36,6 +36,11 @@
       <name>David Arroyo Escobar</name>
       <email>arroyoescobardavid@gmail.com</email>
     </developer>
+
+    <developer>
+      <name>Rafa Haro</name>
+      <email>rharo@apache.org</email>
+    </developer>
   </developers>
 
   <properties>
@@ -371,9 +376,8 @@
     <dependency>
         <groupId>org.nuxeo.client</groupId>
         <artifactId>nuxeo-java-client</artifactId>
-        <version>2.5</version>
+        <version>3.0.1-SNAPSHOT</version>
       </dependency>
-      <!-- End nuxeo client -->
   </dependencies>
 
 </project>

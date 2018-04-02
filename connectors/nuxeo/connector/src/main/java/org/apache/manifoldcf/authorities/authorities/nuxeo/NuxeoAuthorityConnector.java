@@ -33,9 +33,9 @@ import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.crawler.connectors.nuxeo.NuxeoConfiguration;
-import org.nuxeo.client.api.NuxeoClient;
-import org.nuxeo.client.api.objects.user.User;
-import org.nuxeo.client.internals.spi.NuxeoClientException;
+import org.nuxeo.client.NuxeoClient;
+import org.nuxeo.client.objects.user.User;
+import org.nuxeo.client.spi.NuxeoClientException;
 
 /**
  *
@@ -76,10 +76,10 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
   protected String username = null;
   protected String password = null;
 
-  protected NuxeoClient nuxeoClient = null;
+  private NuxeoClient nuxeoClient = null;
 
-  protected long lastSessionFetch = -1L;
-  protected static final long timeToRelease = 300000L;
+  private long lastSessionFetch = -1L;
+  private static final long timeToRelease = 300000L;
 
   // Constructor
   public NuxeoAuthorityConnector() {
@@ -123,10 +123,9 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
    */
   @Override
   public String check() throws ManifoldCFException {
-    shutdownNuxeoClient();
-    initNuxeoClient();
+    //shutdownNuxeoClient();
     try {
-      nuxeoClient.repository().getDocumentRoot();
+      initNuxeoClient();
     } catch (NuxeoClientException ex) {
       return "Connection failed: "+ex.getMessage();
     }
@@ -152,7 +151,8 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
       }
 
       String url = getUrl();
-      nuxeoClient = new NuxeoClient(url, username, password);
+      nuxeoClient = new NuxeoClient.Builder()
+              .url(url).authentication(username, password).connect();
 
     }
 
@@ -163,7 +163,7 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
    */
   private void shutdownNuxeoClient() {
     if (nuxeoClient != null) {
-      nuxeoClient.shutdown();
+      nuxeoClient.disconnect();
       nuxeoClient = null;
       lastSessionFetch = -1L;
     }
@@ -193,7 +193,7 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
       try {
         portInt = Integer.parseInt(port);
       } catch (NumberFormatException formatException) {
-        throw new ManifoldCFException("Bad number: " + formatException.getMessage(), formatException);
+        throw new ManifoldCFException("Port Format Error: " + formatException.getMessage(), formatException);
       }
     } else {
       if (protocol.toLowerCase(Locale.ROOT).equals("http")) {
@@ -203,9 +203,7 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
       }
     }
 
-    String url = protocol + "://" + host + ":" + portInt + "/" + path;
-
-    return url;
+    return protocol + "://" + host + ":" + portInt + "/" + path;
   }
 
   /**
@@ -352,7 +350,7 @@ public class NuxeoAuthorityConnector extends BaseAuthorityConnector {
 
     List<String> authorities = null;
 
-    User user = nuxeoClient.getUserManager().fetchUser(username);
+    User user = nuxeoClient.userManager().fetchUser(username);
     if (user != null) {
       authorities = user.getGroups();
       authorities.add(user.getUserName());

@@ -28,35 +28,35 @@ package org.apache.manifoldcf.crawler.connectors.nuxeo;
  */
 public class NuxeoConfiguration {
 
-  public static interface Server {
+  public interface Server {
 
-    public static final String USERNAME = "username";
-    public static final String PASSWORD = "password";
-    public static final String PROTOCOL = "protocol";
-    public static final String HOST = "host";
-    public static final String PORT = "port";
-    public static final String PATH = "path";
+    String USERNAME = "username";
+    String PASSWORD = "password";
+    String PROTOCOL = "protocol";
+    String HOST = "host";
+    String PORT = "port";
+    String PATH = "path";
 
-    public static final String PROTOCOL_DEFAULT_VALUE = "http";
-    public static final String HOST_DEFAULT_VALUE = "";
-    public static final String PORT_DEFAULT_VALUE = "8080";
-    public static final String PATH_DEFAULT_VALUE = "/nuxeo";
-    public static final String USERNAME_DEFAULT_VALUE = "";
-    public static final String PASSWORD_DEFAULT_VALUE = "";
+    String PROTOCOL_DEFAULT_VALUE = "http";
+    String HOST_DEFAULT_VALUE = "";
+    String PORT_DEFAULT_VALUE = "8080";
+    String PATH_DEFAULT_VALUE = "/nuxeo";
+    String USERNAME_DEFAULT_VALUE = "";
+    String PASSWORD_DEFAULT_VALUE = "";
 
   }
 
-  public static interface Specification {
+  public interface Specification {
 
-    public static final String DOMAINS = "domains";
-    public static final String DOMAIN = "domain";
-    public static final String DOMAIN_KEY = "key";
-    public static final String DOCUMENTS = "documents";
-    public static final String PROCESS_TAGS = "process_tags";
-    public static final String PROCESS_ATTACHMENTS = "process_attachments";
-    public static final String DOCUMENTS_TYPE = "documentsType";
-    public static final String DOCUMENT_TYPE = "documentType";
-    public static final String DOCUMENT_TYPE_KEY = "key";
+    String DOMAINS = "domains";
+    String DOMAIN = "domain";
+    String DOMAIN_KEY = "key";
+    String DOCUMENTS = "documents";
+    String PROCESS_TAGS = "process_tags";
+    String PROCESS_ATTACHMENTS = "process_attachments";
+    String DOCUMENTS_TYPE = "documentsType";
+    String DOCUMENT_TYPE = "documentType";
+    String DOCUMENT_TYPE_KEY = "key";
 
   }
 }

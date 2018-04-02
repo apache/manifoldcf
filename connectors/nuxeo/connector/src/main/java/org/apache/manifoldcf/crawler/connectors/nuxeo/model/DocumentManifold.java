@@ -26,13 +26,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.nuxeo.client.api.NuxeoClient;
-import org.nuxeo.client.api.objects.Document;
-import org.nuxeo.client.api.objects.Documents;
-import org.nuxeo.client.api.objects.Operation;
-import org.nuxeo.client.api.objects.acl.ACE;
-import org.nuxeo.client.api.objects.acl.ACL;
-import org.nuxeo.client.api.objects.blob.Blob;
+import org.nuxeo.client.NuxeoClient;
+import org.nuxeo.client.objects.Document;
+import org.nuxeo.client.objects.Documents;
+import org.nuxeo.client.objects.Operation;
+import org.nuxeo.client.objects.acl.ACE;
+import org.nuxeo.client.objects.acl.ACL;
+import org.nuxeo.client.objects.blob.Blob;
 
 import com.google.common.collect.Maps;
 
@@ -43,16 +43,16 @@ public class DocumentManifold {
   private static final String DEFAULT_MIMETYPE = "text/html; charset=utf-8";
   private static final String[] avoid_properties = { "file:filename", "file:content", "files:files" };
 
-  public Document document;
-  public InputStream content;
-  protected String mimetype;
+  private Document document;
+  private InputStream content;
+  private String mimetype;
 
   public static final String DELETED = "deleted";
 
-  public static final String DOC_UID = "uid";
-  public static final String DOC_ENTITY_TYPE = "entity-type";
-  public static final String DOC_LAST_MODIFIED = "last-modified";
-  public static final String DOC_STATE = "state";
+  private static final String DOC_UID = "uid";
+  private static final String DOC_ENTITY_TYPE = "entity-type";
+  private static final String DOC_LAST_MODIFIED = "last-modified";
+  private static final String DOC_STATE = "state";
 
   // Constructor
   public DocumentManifold(Document document) {
@@ -82,26 +82,20 @@ public class DocumentManifold {
     return docMetadata;
   }
 
-  public void addIfNotEmpty(Map<String, Object> docMetadata, String key, Object obj) {
+  private void addIfNotEmpty(Map<String, Object> docMetadata, String key, Object obj) {
     if (obj != null && ((obj instanceof String && !((String) obj).isEmpty()) || !(obj instanceof String))) {
       docMetadata.put(key, obj);
     }
   }
 
   private void processDocument() {
-
-    // Content
-    InputStream is = null;
-    String mimetype = null;
     try {
-      is = document.fetchBlob().getStream();
-      this.mimetype = (String) ((LinkedHashMap<?, ?>) this.getDocument().get("file:content")).get("mime-type");
+      this.content = document.fetchBlob().getStream();
+      this.mimetype = (String) ((Map) this.document.getPropertyValue("file:content")).get("mime-type");
     } catch (Exception ex) {
-      is = new ByteArrayInputStream("".getBytes());
-      mimetype = DEFAULT_MIMETYPE;
+      this.content = new ByteArrayInputStream("".getBytes());
+      this.mimetype = DEFAULT_MIMETYPE;
     }
-    this.content = is;
-    this.mimetype = mimetype;
   }
 
   // GETTERS AND SETERS
@@ -127,9 +121,9 @@ public class DocumentManifold {
     return this.content;
   }
 
-  public String[] getPermissions(NuxeoClient nuxeoClient) {
+  public String[] getPermissions() {
 
-    List<String> permissions = new ArrayList<String>();
+    List<String> permissions = new ArrayList<>();
     try {
       for (ACL acl : this.getDocument().fetchPermissions().getAcls()) {
         for (ACE ace : acl.getAces()) {
@@ -146,8 +140,8 @@ public class DocumentManifold {
   }
 
   public List<Attachment> getAttachments(NuxeoClient nuxeoClient) {
-    List<Attachment> attachments = new ArrayList<Attachment>();
-    List<?> arrayList = (List<?>) this.document.get(Attachment.ATT_KEY_FILES);
+    List<Attachment> attachments = new ArrayList<>();
+    List<?> arrayList = this.document.getPropertyValue(Attachment.ATT_KEY_FILES);
 
     for (Object object : arrayList) {
       Attachment attach = new Attachment();
@@ -179,20 +173,18 @@ public class DocumentManifold {
     return attachments;
   }
 
-  public String getAttachPath(String absolutePath) {
+  private String getAttachPath(String absolutePath) {
     String[] splitPath = absolutePath.split("/");
     int size = splitPath.length;
-    String path = String.join("/", splitPath[size - 4], splitPath[size - 3], splitPath[size - 2]);
-
-    return path;
+    return String.join("/", splitPath[size - 4], splitPath[size - 3], splitPath[size - 2]);
   }
 
   public String[] getTags(NuxeoClient nuxeoClient) {
     try {
-      Operation op = nuxeoClient.automation("Repository.Query").param("query",
+      Operation op = nuxeoClient.operation("Repository.Query").param("query",
           URI_TAGGING + " where relation:source='" + this.document.getUid() + "'");
       Documents tags = op.execute();
-      List<String> ls = new ArrayList<String>();
+      List<String> ls = new ArrayList<>();
 
       for (Document tag : tags.getDocuments()) {
         ls.add(tag.getTitle());
