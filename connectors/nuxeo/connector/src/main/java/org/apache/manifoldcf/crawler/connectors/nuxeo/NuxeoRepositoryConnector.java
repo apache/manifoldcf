@@ -551,7 +551,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
       }
     }
 
-    int lenght = doc.getLenght();
+    int lenght = doc.getLength();
     if (doc.getDocument().getState() != null
         && doc.getDocument().getState().equalsIgnoreCase(DocumentManifold.DELETED)) {
       activities.deleteDocument(manifoldDocumentIdentifier);

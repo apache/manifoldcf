@@ -107,7 +107,7 @@ public class DocumentManifold {
     return this.mimetype;
   }
 
-  public int getLenght() {
+  public int getLength() {
     int size;
     try {
       size = this.getContent().available();
