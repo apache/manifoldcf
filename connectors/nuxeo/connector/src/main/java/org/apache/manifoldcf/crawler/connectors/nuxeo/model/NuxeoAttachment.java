@@ -23,17 +23,15 @@ import java.io.InputStream;
  * @author David Arroyo Escobar <arroyoescobardavid@gmail.com>
  *
  */
-public class Attachment{
+public class NuxeoAttachment {
 
   public static final String ATT_KEY_FILES = "files:files";
   public static final String ATT_KEY_FILE = "file";
   
   public static final String ATT_KEY_NAME = "name";
-  public static final String ATT_KEY_MIME_TYPE = "mime-type";
   public static final String ATT_KEY_ENCODING = "encoding";
   public static final String ATT_KEY_DIGEST = "digest";
   public static final String ATT_KEY_DIGEST_ALGORITHM = "digestAlgorithm";
-  public static final String ATT_KEY_URL = "data";
   public static final String ATT_KEY_LENGTH = "length";
   
   //Properties
