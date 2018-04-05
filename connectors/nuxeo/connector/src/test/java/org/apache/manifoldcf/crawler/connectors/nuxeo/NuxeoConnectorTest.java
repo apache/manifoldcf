@@ -246,7 +246,7 @@ public class NuxeoConnectorTest {
                 BaseRepositoryConnector.JOBMODE_CONTINUOUS, true);
         ArgumentCaptor<RepositoryDocument> ac = ArgumentCaptor.forClass(RepositoryDocument.class);
 
-        verify(activities, times(1)).checkDocumentNeedsReindexing(uid, version);
+        verify(activities, times(1)).checkDocumentNeedsReindexing(uid, lastModified);
         verify(activities, times(0)).ingestDocumentWithException(anyString(), anyString(), anyString(), ac.capture());
 
     }

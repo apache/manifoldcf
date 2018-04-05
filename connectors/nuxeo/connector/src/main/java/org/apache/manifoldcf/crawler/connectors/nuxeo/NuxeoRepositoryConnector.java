@@ -476,7 +476,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
         }
 
         query = String.format(URI_DOCUMENT + " where ecm:mixinType != 'HiddenInNavigation' AND ecm:isProxy = 0 " +
-                "AND ecm:isCheckedInVersion = 0 AND ecm:currentLifeCycleState != 'deleted' AND %s ", query);
+                "AND ecm:isCheckedInVersion = 0 AND %s ", query);
 
         Documents docs = nuxeoClient.repository().query(query, String.valueOf(limit), String.valueOf(start), null, null,
                 null, null);
@@ -511,14 +511,12 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
                     activities.noDocument(documentId, version);
                     continue;
                 }
-                if (indexed_version != null)
-                    if (!activities.checkDocumentNeedsReindexing(documentId, version))
-                        continue;
 
                 pResult = processDocument(document, documentId, spec, version, indexed_version,
                         activities, Maps.newHashMap());
             } catch (NuxeoClientException exception) {
-                throw new ManifoldCFException("Client exception: "+exception.getMessage(), exception);
+                logger.info(String.format("Error Fetching Nuxeo Document %s. Marking for deletion", documentId));
+                activities.deleteDocument(documentId);
             } catch (IOException exception) {
                 long interruptionRetryTime = 5L * 60L * 1000L;
                 String message = "Server appears down during seeding: " + exception.getMessage();
