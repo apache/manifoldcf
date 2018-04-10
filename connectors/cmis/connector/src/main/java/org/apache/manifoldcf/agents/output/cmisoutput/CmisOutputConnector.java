@@ -23,8 +23,10 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -36,7 +38,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.ItemIterable;
@@ -63,6 +64,7 @@ import org.apache.chemistry.opencmis.commons.impl.jaxb.EnumBaseObjectTypeIds;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
@@ -1063,10 +1065,19 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		return folder;
 	}
 	
+	
+	/**
+	 * Encoding process to retrieve the contentPath parameter from the documentURI.
+	 * The contentPath parameter can be passed from any repository connector that is currently supporting the content migration capability.
+	 * @param documentURI
+	 * @return contentPath
+	 * @throws URISyntaxException
+	 * @throws UnsupportedEncodingException
+	 */
 	private String getContentPath(String documentURI) throws URISyntaxException, UnsupportedEncodingException {
 		String contentPath = StringUtils.EMPTY;
-		String encodedDocumentURI = URLEncoder.encode(documentURI, StandardCharsets.UTF_8.name());
-		List<NameValuePair> params = new URIBuilder(encodedDocumentURI).getQueryParams();
+		String documentURIWithFixedEncoding = StringUtils.replace(documentURI, " ", "%20");
+		List<NameValuePair> params = URLEncodedUtils.parse(new URI(documentURIWithFixedEncoding), StandardCharsets.UTF_8);
 		Iterator<NameValuePair> paramsIterator = params.iterator();
 		while (paramsIterator.hasNext()) {
 			NameValuePair param = (NameValuePair) paramsIterator.next();
@@ -1077,17 +1088,19 @@ public class CmisOutputConnector extends BaseOutputConnector {
 		return contentPath;
 	}
 	
-	
 	@Override
 	public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
 	    throws ManifoldCFException, ServiceInterruption {
 		getSession();
 		long startTime = System.currentTimeMillis();
 		String result = StringUtils.EMPTY;
+		boolean isDropZoneFolder = isDropZoneFolder(cmisQuery);
 		
 		//append the prefix for the relative path in the target repo
 		try {
-			if(parentDropZoneFolder != null && StringUtils.isNotEmpty(documentURI)) {
+			if(isDropZoneFolder 
+					&& parentDropZoneFolder != null 
+					&& StringUtils.isNotEmpty(documentURI)) {
 				String parentDropZonePath = parentDropZoneFolder.getPath();
 				
 				String contentPath = getContentPath(documentURI);
