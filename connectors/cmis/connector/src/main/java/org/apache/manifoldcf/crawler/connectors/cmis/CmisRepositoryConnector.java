@@ -216,7 +216,6 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         // create session
         if (StringUtils.isEmpty(repositoryId)) {
 
-
           // get a session from the first CMIS repository exposed by
           // the endpoint
           List<Repository> repos = null;
@@ -241,6 +240,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             this.exception = e;
           }
 
+        }
+        
+        if(session != null) {
+        	session.getDefaultContext().setCacheEnabled(false);
         }
 
       } catch (Throwable e) {
@@ -1276,9 +1279,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 				//Append the new parameters in the query string
       	String documentDownloadURL = CmisRepositoryConnectorUtils.getDocumentURL(currentDocument, session);
       	if(StringUtils.contains(documentDownloadURL, '?')){
-      		documentURI = documentDownloadURL + "&"+CONTENT_PATH_PARAM+"=" + fullContentPath;
+      		documentURI = documentDownloadURL + "&" +CONTENT_PATH_PARAM+"=" + fullContentPath;
       	} else {
-      		documentURI = documentDownloadURL + "?"+CONTENT_PATH_PARAM+"=" + fullContentPath;
+      		documentURI = documentDownloadURL + "?" +CONTENT_PATH_PARAM+"=" + fullContentPath;
       	}
 			}
   	} else if(StringUtils.equals(currentBaseTypeId, BaseTypeId.CMIS_FOLDER.value())) {

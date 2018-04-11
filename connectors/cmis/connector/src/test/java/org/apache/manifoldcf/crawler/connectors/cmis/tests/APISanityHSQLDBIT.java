@@ -418,7 +418,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       // MHL
       //System.out.println("Starting delete...");
       // Delete a file, and recrawl
-      removeDocument(cmisClientSession, "testdata2.txt");
+      removeDocument(cmisClientSession, "testdata3.txt");
       
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);

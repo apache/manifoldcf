@@ -507,7 +507,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       //Tests if there are 4 documents in the target repo
 
       // Delete a content and recrawl
-      removeDocument(cmisSourceClientSession, "testdata2.txt");
+      removeDocument(cmisSourceClientSession, "testdata1.txt");
       
       // Now, start the job, and wait until it completes.
       startJob(jobIDString);
