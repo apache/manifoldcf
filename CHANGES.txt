@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.8-dev =====================
 
+CONNECTORS-1437: Documentation for the CMIS Output Connector
+(Piergiorgio Lucidi)
+
 CONNECTORS-1436: Porting of CMIS Output Connector from 2.6 to 2.8
 (Piergiorgio Lucidi)
 

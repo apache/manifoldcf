@@ -766,6 +766,49 @@
                       <a href="http://docs.aws.amazon.com/cloudsearch/latest/developerguide/configuring-index-fields.html">this document</a> for details of how to set up an Amazon Cloud Search
                       schema.</p>
             </section>
+            
+            <section id="cmisoutput">
+              <title>CMIS Output Connection</title>
+              <p>The CMIS Output Connection type allows you to migrate content to any CMIS-compliant repository.</p>
+              <p>By default each CMIS Connection manages a single CMIS repository, this means that if you have multiple CMIS repositories exposed by a single
+                  endpoint, you need to create a specific connection for each CMIS repository.</p>
+              <p>CMIS repository documents are typically secured by using the CMIS Authority Connection type.  This authority type, however, does not have access
+                    to user groups, since there is no such functionality in the CMIS specification at this time.  As a result, most people only use the CMIS connection type
+                    in an unsecured manner.</p>
+              <br/>
+              <p>A CMIS Output connection has the following configuration parameters on the output connection editing screen:</p>
+              <br/><br/>
+              <figure src="images/en_US/cmis-output-connection-configuration.png" alt="CMIS Output Connection, configuration parameters" width="80%"/>
+              <br/><br/>
+              <p>Select the correct CMIS binding protocol (AtomPub or Web Services) and enter the correct username, password and the endpoint to reference the CMIS document server services.</p>
+              <p>The endpoint consists of the HTTP protocol, hostname, port and the context path of the CMIS service exposed by the CMIS server:</p>
+              <br/>
+              <p><code>http://HOSTNAME:PORT/CMIS_CONTEXT_PATH</code></p>
+              <br/><br/>
+              <p>The CMIS Query must be provided to select your own drop zone in the target folder that should be an existent CMIS folder.</p>
+              <p>By default the crawler will replicate the same source path structure for each content in that target folder.</p>
+              <p>Considering to have your contents in your source repository inside the following path:</p>
+              <br/>
+              <p><code>/MySourceRepo/Invoices</code></p>
+              <br/>
+              <p>And supposing to have configured your CMIS Output Connection with the default value of the CMIS Query for your target folder:</p>
+              <br/>
+              <p><code>SELECT * FROM cmis:folder WHERE cmis:name='Apache ManifoldCF'</code></p>
+              <br /><br/>
+              <p>All the migrated contents will be dropped in the following target CMIS folder:</p>
+              <br/>
+              <p><code>/path/to/your/Apache ManifoldCF/MySourceRepo/Invoices</code></p>
+              <br/>
+              <p>Optionally you can provide the repository ID to select one of the exposed CMIS repository, if this parameter is null the CMIS Connector will consider the first CMIS repository exposed by the CMIS server.</p>
+              <br/>
+              <p>Note that, in a CMIS system, a specific binding protocol has its own context path, this means that the endpoints are different:</p>
+              <p>for example the endpoint of the AtomPub binding exposed by the actual version of the InMemory Server provided by the OpenCMIS framework is the following:</p>
+              <p><code>http://localhost:8080/chemistry-opencmis-server-inmemory-war-0.5.0-SNAPSHOT/atom</code></p>
+              <br/><br/>
+              <p>The Web Services binding is exposed using a different endpoint:</p>
+              <p><code>http://localhost:8080/chemistry-opencmis-server-inmemory-war-0.5.0-SNAPSHOT/services/RepositoryService</code></p>
+              <br /><br/>
+            </section>
 
             <section id="elasticsearchoutputconnector">
                 <title>ElasticSearch Output Connection</title>
