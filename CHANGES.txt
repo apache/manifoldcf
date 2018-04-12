@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.10-dev =====================
 
+CONNECTORS-1501: Add dynamic snippet for the next Apache event
+(Piergiorgio Lucidi)
+
 CONNECTORS-1437: Documentation for the CMIS Output Connector
 (Piergiorgio Lucidi)
 

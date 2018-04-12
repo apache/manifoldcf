@@ -52,6 +52,7 @@ footer, searchbar, css etc.  As input, it takes XML of the form:
   <xsl:include href="dotdots.xsl"/>
   <xsl:include href="pathutils.xsl"/>
   <xsl:include href="renderlogo.xsl"/>
+  <xsl:include href="render-event-logo.xsl"/>
 <!-- Path (..'s) to the root directory -->
   <xsl:variable name="root">
     <xsl:call-template name="dotdots">
@@ -118,6 +119,13 @@ footer, searchbar, css etc.  As input, it takes XML of the form:
           <xsl:with-param name="root" select="$root"/>
           <xsl:with-param name="description" select="//skinconfig/project-description"/>
         </xsl:call-template>
+        <xsl:call-template name="renderlogo">
+          <xsl:with-param name="name" select="//skinconfig/group-name"/>
+          <xsl:with-param name="url" select="//skinconfig/host-url"/>
+          <xsl:with-param name="logo" select="//skinconfig/host-logo"/>
+          <xsl:with-param name="description" select="//skinconfig/project-description"/>
+          <xsl:with-param name="root" select="$root"/>
+        </xsl:call-template>
         <xsl:comment>================= start Tabs ==================</xsl:comment>
         <xsl:apply-templates select="div[@class='tab']"/>
         <xsl:comment>================= end Tabs ==================</xsl:comment>
@@ -151,14 +159,6 @@ footer, searchbar, css etc.  As input, it takes XML of the form:
         <script language="JavaScript" type="text/javascript"><![CDATA[<!--
           document.write(" - "+"Last Published: " + document.lastModified);
           //  -->]]></script>
-        <xsl:if test="//skinconfig/host-logo and not(//skinconfig/host-logo = '')"><a href="{//skinconfig/host-url}">
-          <xsl:call-template name="renderlogo">
-            <xsl:with-param name="name" select="//skinconfig/host-name"/>
-            <xsl:with-param name="url" select="//skinconfig/host-url"/>
-            <xsl:with-param name="logo" select="//skinconfig/host-logo"/>
-            <xsl:with-param name="root" select="$root"/>
-          </xsl:call-template></a>
-        </xsl:if>
         <xsl:if test="$filename = 'index.html' and //skinconfig/credits">
           <xsl:for-each select="//skinconfig/credits/credit[not(@role='pdf')]">
             <xsl:call-template name="renderlogo">
