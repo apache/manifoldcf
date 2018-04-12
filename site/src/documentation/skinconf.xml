@@ -20,7 +20,7 @@ Skin configuration file. This file contains details of your project,
 which will be used to configure the chosen Forrest skin.
 -->
 
-<!DOCTYPE skinconfig PUBLIC "-//APACHE//DTD Skin Configuration V0.8-2//EN" "http://forrest.apache.org/dtd/skinconfig-v08-2.dtd">
+<!DOCTYPE skinconfig PUBLIC "-//APACHE//DTD Skin Configuration V0.8-2//EN" "skinconfig.dtd">
 <skinconfig>
   <!-- To enable lucene search add provider="lucene" (default is google).
     Add box-location="alt" to move the search box to an alternate location
@@ -69,6 +69,7 @@ which will be used to configure the chosen Forrest skin.
   <project-description>ManifoldCF</project-description>
   <project-url>http://manifoldcf.apache.org</project-url>
   <project-logo>images/ManifoldCF-logo.PNG</project-logo>
+  
   <!-- Alternative static image:
   <project-logo>images/project-logo.gif</project-logo> -->
 
@@ -76,21 +77,21 @@ which will be used to configure the chosen Forrest skin.
        default skin: renders it at the top-left corner -->
   <group-name>Apache</group-name>
   <group-description>Apache Software Foundation</group-description>
-  <group-url>http://www.apache.org</group-url>
-  <group-logo>images/asf_logo.png</group-logo>
+  <group-url>https://www.apache.org</group-url>
+  <group-logo>images/SupportApache-small-128.png</group-logo>
   <!-- Alternative static image:
   <group-logo>images/group-logo.gif</group-logo> -->
 
   <!-- optional host logo (e.g. sourceforge logo)
        default skin: renders it at the bottom-left corner -->
-  <host-url></host-url>
-  <host-logo></host-logo>
+  <host-url>https://www.apache.org/events/current-event.html</host-url>
+  <host-logo>https://www.apache.org/events/current-event-234x60.png</host-logo>
 
   <!-- relative url of a favicon file, normally favicon.ico -->
   <favicon-url>images/favicon.ico</favicon-url>
 
   <!-- The following are used to construct a copyright statement -->
-  <year>2009-2017</year>
+  <year>2009-2018</year>
   <vendor>The Apache Software Foundation.</vendor>
   <copyright-link>http://www.apache.org/licenses/</copyright-link>
   <!-- Optional text trademark statement below the copyright statement -->
