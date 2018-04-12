@@ -3,6 +3,15 @@ $Id$
 
 ======================= 2.10-dev =====================
 
+CONNECTORS-1437: Documentation for the CMIS Output Connector
+(Piergiorgio Lucidi)
+
+CONNECTORS-1356: Initial implementation of the CMIS Output Connector
+(Piergiorgio Lucidi)
+
+CONNECTORS-1462: Add support for rootPath attribute in File System Connector repository
+(Luis Cabaceira)
+
 CONNECTORS-1499: Reading in JSON in exported format did not
 preserve the order because the new JSON parser does things in
 hash order for keys in objects.  The fix is to use the more verbose
@@ -118,17 +127,8 @@ CONNECTORS-1438: Wrong content-type parse in Solr connector caused
 failure when content type contained a charset.
 (Kenta Kasahara, Karl Wright)
 
-CONNECTORS-1437: Documentation for the CMIS Output Connector
-(Piergiorgio Lucidi)
-
 CONNECTORS-1436: Porting of CMIS Output Connector from 2.6 to 2.8
 (Piergiorgio Lucidi)
-
-CONNECTORS-1356: Initial implementation of the CMIS Output Connector
-(Piergiorgio Lucidi)
-
-CONNECTORS-1462: Add support for rootPath attribute in File System Connector repository
-(Luis Cabaceira)
 
 CONNECTORS-1434: Escape filenames in Solr Http headers to match spec.
 This is a workaround for a fix that really should be in HttpClient.
