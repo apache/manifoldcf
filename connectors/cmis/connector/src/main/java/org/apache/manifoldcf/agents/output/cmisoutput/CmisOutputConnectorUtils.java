@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.manifoldcf.crawler.connectors.cmis;
+package org.apache.manifoldcf.agents.output.cmisoutput;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -50,22 +50,23 @@ import org.joda.time.format.ISODateTimeFormat;
  * @author Piergiorgio Lucidi
  *
  */
-public class CmisRepositoryConnectorUtils {
+public class CmisOutputConnectorUtils {
 
     private static final String LOAD_LINK_METHOD_NAME = "loadLink";
     private static final String FROM_TOKEN = "from";
-    private static final String SEP = " ";
+    public static final String SEP = " ";
     private static final String SELECT_STAR_CLAUSE = "select *";
     private static final String OBJECT_ID_TERM = PropertyIds.OBJECT_ID + ",";
     private static final String SELECT_CLAUSE_TERM_SEP = ",";
     private static final String SELECT_PREFIX = "select ";
     private final static String TOKENIZER_SEP = ",\n\t";
     public static final String SLASH = "/";
+    public static final String REPLACE = "?";
+    public static final String SELECT_FOR_REMOVAL = "SELECT * FROM cmis:document WHERE cmis:name='"+REPLACE+"'";
 
     public static final String getDocumentURL(final Document document, final Session session)
             throws ManifoldCFException {
-            	
-    		String link = null;
+        String link = null;
         try {
             Method loadLink = AbstractAtomPubService.class.getDeclaredMethod(LOAD_LINK_METHOD_NAME,
                     new Class[]{String.class, String.class, String.class, String.class});
@@ -175,15 +176,9 @@ public class CmisRepositoryConnectorUtils {
      * @param rd : object that contains the properties to pass to connector
      * @param cmisQuery : cmis query
      */
-    public static void addValuesOfProperties(Document document, RepositoryDocument rd, String cmisQuery) {
-    		if(document.getPaths() != null) {
-    			List<String> sourcePath = document.getPaths();
-    			rd.setSourcePath(sourcePath);
-    		}
-    		
-    		List<Property<?>> props = document.getProperties();
-        Map<String, String> cmisQueryColumns = CmisRepositoryConnectorUtils.getSelectMap(cmisQuery);
-        boolean isWildcardQuery = CmisRepositoryConnectorUtils.isWildcardQuery(cmisQuery);
+    public static void addValuesOfProperties(final List<Property<?>> props, RepositoryDocument rd, String cmisQuery) {
+        Map<String, String> cmisQueryColumns = CmisOutputConnectorUtils.getSelectMap(cmisQuery);
+        boolean isWildcardQuery = CmisOutputConnectorUtils.isWildcardQuery(cmisQuery);
         addValuesOfProperty(props, isWildcardQuery, cmisQueryColumns, rd);
     }
 

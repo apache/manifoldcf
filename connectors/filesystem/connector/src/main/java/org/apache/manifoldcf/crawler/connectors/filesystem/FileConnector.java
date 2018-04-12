@@ -18,6 +18,7 @@
 */
 package org.apache.manifoldcf.crawler.connectors.filesystem;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
@@ -246,6 +247,28 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
     IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
+
+     List<String> documentRootPath = new ArrayList<String>();
+    /* CONNECTORS-1462
+       Extract rootPaths from the specification
+       This will allow to inject rootPath into repositoryDocument #428 -> (data.setRootPath(documentRootPath)); */
+    List<String> rootPaths = new ArrayList<String>();
+    for (int i = 0; i < spec.getChildCount(); i++)
+    {
+      SpecificationNode sn = spec.getChild(i);
+      if (sn.getType().equals("startpoint"))
+      {
+        String path = sn.getAttributeValue("path").replaceAll("\\\\","/");
+        if (path.length() > 0)
+        {
+          if (!path.endsWith("/")) path += "/";
+          rootPaths.add(path);
+        }
+      }
+    }
+
+
+
     for (String documentIdentifier : documentIdentifiers)
     {
       File file = new File(documentIdentifier);
@@ -351,6 +374,17 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
           uri = convertToURI(documentIdentifier);
         }
 
+
+        // Finding the node's rootPath by working with its uri and the existing rootPaths from the specification
+        for (int i = 0; i < rootPaths.size(); i++) {
+          String rootPathInstance = rootPaths.get(i);
+          if (uri.contains(rootPathInstance)) {
+            String [] sectionazedPath = rootPathInstance.split("/");
+            documentRootPath = Arrays.asList(sectionazedPath);
+            break;
+          }
+        }
+
         if (!activities.checkLengthIndexable(fileLength))
         {
           errorCode = activities.EXCLUDED_LENGTH;
@@ -391,6 +425,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
         data.setFileName(fileName);
         data.setMimeType(mimeType);
         data.setModifiedDate(modifiedDate);
+        data.setRootPath(documentRootPath);
         if (convertPath != null) {
           // WGET-compatible input; convert back to external URI
           data.addField("uri",uri);

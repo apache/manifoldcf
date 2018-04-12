@@ -26,6 +26,7 @@
   <outputconnector name="Solr" class="org.apache.manifoldcf.agents.output.solr.SolrConnector"/>
   <outputconnector name="Null" class="org.apache.manifoldcf.agents.output.nullconnector.NullConnector"/>
   <outputconnector name="MetaCarta GTS" class="org.apache.manifoldcf.agents.output.gts.GTSConnector"/>
+  <outputconnector name="CMIS" class="org.apache.manifoldcf.agents.output.cmisoutput.CmisOutputConnector"/>
     <!-- Add your authority connectors here -->
   <authorityconnector name="Null" class="org.apache.manifoldcf.authorities.authorities.nullauthority.NullAuthority"/>
   <authorityconnector name="CMIS" class="org.apache.manifoldcf.authorities.authorities.cmis.CmisAuthorityConnector"/>

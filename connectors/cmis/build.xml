@@ -98,6 +98,11 @@
             <param name="connector-label" value="CMIS"/>
             <param name="connector-class" value="org.apache.manifoldcf.authorities.authorities.cmis.CmisAuthorityConnector"/>
         </antcall>
+    	  <antcall target="general-add-output-connector">
+            <param name="connector-label" value="CMIS"/>
+            <param name="connector-class" value="org.apache.manifoldcf.agents.output.cmisoutput.CmisOutputConnector"/>
+        </antcall>
+    	  
     </target>
 
     <target name="run-IT-HSQLDB" depends="compile-tests,pretest-check" if="canTest">

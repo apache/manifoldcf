@@ -64,6 +64,7 @@
       	<caption>Output Connector interoperability table</caption>
       	<tr><th>System</th><th>Connector Platform</th><th>Server Platform</th><th>Client Version</th><th>Server Version</th></tr>
       	<tr><td>Amazon CloudSearch</td><td> Pure Java </td><td> N/A </td><td> N/A</td><td> N/A </td></tr>
+      	<tr><td>CMIS</td><td> Pure Java </td><td>CMIS 1.1</td><td>CMIS 1.1</td><td>Tested with OpenCMIS In-Memory Server 1.1.0 and Alfresco 5.2</td></tr>
       	<tr><td>ElasticSearch</td><td> Pure Java </td><td> N/A </td><td> N/A</td><td> Tested with ElasticSearch 1.0, 1.1, 1.2, 1.3 </td></tr>
       	<tr><td>OpenSearchServer</td><td> Pure Java </td><td> N/A </td><td> N/A</td><td> Tested with OpenSearchServer 1.2.1, 1.2.2, 1.2.3, 1.3, 1.4, 1.5.x </td></tr>
       	<tr><td>SearchBlox</td><td>Pure Java</td><td>Various</td><td>Various</td><td>Various</td></tr>

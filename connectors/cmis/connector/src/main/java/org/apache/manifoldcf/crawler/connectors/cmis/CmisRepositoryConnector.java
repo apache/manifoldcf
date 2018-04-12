@@ -21,13 +21,9 @@ package org.apache.manifoldcf.crawler.connectors.cmis;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -37,7 +33,6 @@ import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.ItemIterable;
-import org.apache.chemistry.opencmis.client.api.Property;
 import org.apache.chemistry.opencmis.client.api.QueryResult;
 import org.apache.chemistry.opencmis.client.api.Repository;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -45,29 +40,27 @@ import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
-import org.apache.chemistry.opencmis.commons.impl.Constants;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-
+import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
-import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
+import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
-import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 /**
@@ -81,11 +74,6 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   protected final static String ACTIVITY_READ = "read document";
   protected static final String RELATIONSHIP_CHILD = "child";
-
-  private static final String CMIS_FOLDER_BASE_TYPE = "cmis:folder";
-  private static final String CMIS_DOCUMENT_BASE_TYPE = "cmis:document";
-  private static final SimpleDateFormat ISO8601_DATE_FORMATTER = new SimpleDateFormat(
-      "yyyy-MM-dd'T'HH:mm:ssZ", Locale.ROOT);
 
   // Tab name properties
 
@@ -112,7 +100,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   /** Forward to the template to view the specification parameters for the job */
   private static final String VIEW_SPEC_FORWARD = "viewSpecification.html";
-
+  
+  /** The content path param used for managing content migration deletion **/
+	private static final String CONTENT_PATH_PARAM = "contentPath";
 
   /**
    * CMIS Session handle
@@ -144,7 +134,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   protected static final long timeToRelease = 300000L;
   protected long lastSessionFetch = -1L;
-
+    
   /**
    * Constructor
    */
@@ -159,7 +149,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   @Override
   public int getConnectorModel()
   {
-    return MODEL_CHAINED_ADD_CHANGE;
+    return MODEL_ADD_CHANGE;
   }
 
   /**
@@ -226,7 +216,6 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         // create session
         if (StringUtils.isEmpty(repositoryId)) {
 
-
           // get a session from the first CMIS repository exposed by
           // the endpoint
           List<Repository> repos = null;
@@ -251,6 +240,10 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             this.exception = e;
           }
 
+        }
+        
+        if(session != null) {
+        	session.getDefaultContext().setCacheEnabled(false);
         }
 
       } catch (Throwable e) {
@@ -676,18 +669,18 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       ItemIterable<CmisObject> cmisObjects = session.getRootFolder()
           .getChildren();
       for (CmisObject cmisObject : cmisObjects) {
-        activities.addSeedDocument(cmisObject.getId());
-      }
+          activities.addSeedDocument(cmisObject.getId());
+      	}
     } else {
       cmisQuery = CmisRepositoryConnectorUtils.getCmisQueryWithObjectId(cmisQuery);
       ItemIterable<QueryResult> results = session.query(cmisQuery, false).getPage(1000000000);
       for (QueryResult result : results) {
-        String id = result.getPropertyValueById(PropertyIds.OBJECT_ID);
-        activities.addSeedDocument(id);
-      }
+      		String id = result.getPropertyValueById(PropertyIds.OBJECT_ID);
+          activities.addSeedDocument(id);
+      	}
     }
 
-    return "";
+    return StringUtils.EMPTY;
   }
 
 
@@ -919,7 +912,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   private static void fillInCMISQuerySpecificationMap(Map<String,String> newMap, Specification ds)
   {
     int i = 0;
-    String cmisQuery = "";
+    String cmisQuery = StringUtils.EMPTY;
     while (i < ds.getChildCount()) {
       SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(JOB_STARTPOINT_NODE_TYPE)) {
@@ -983,9 +976,11 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         }
         i++;
       }
+  
       SpecificationNode node = new SpecificationNode(JOB_STARTPOINT_NODE_TYPE);
       node.setAttribute(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
       variableContext.setParameter(CmisConfig.CMIS_QUERY_PARAM, cmisQuery);
+      
       ds.addChild(ds.getChildCount(), node);
     }
     return null;
@@ -1093,14 +1088,13 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       }
 
       if (cmisObject == null) {
-        //System.out.println(" doesn't exist");
         activities.deleteDocument(documentIdentifier);
         continue;
       }
 
       String versionString;
 
-      if (cmisObject.getBaseType().getId().equals(CMIS_DOCUMENT_BASE_TYPE)) {
+      if (cmisObject.getBaseType().getId().equals(BaseTypeId.CMIS_DOCUMENT.value())) {
         Document document = (Document) cmisObject;
 
         // Since documents that are not current have different node id's, we can return a constant version,
@@ -1119,8 +1113,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             long lmdSeconds = document.getLastModificationDate().getTimeInMillis();
             versionString = documentIdentifier + lmdSeconds + ":" + cmisQuery;
         } else {
-          //System.out.println(" is NOT latest vrersion");
-          activities.deleteDocument(documentIdentifier);
+          //System.out.println(" is NOT latest version");
+        	activities.deleteDocument(documentIdentifier);
           continue;
         }
       } else {
@@ -1138,17 +1132,15 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
         try {
           String baseTypeId = cmisObject.getBaseType().getId();
 
-          if (baseTypeId.equals(CMIS_FOLDER_BASE_TYPE)) {
-
+          if (baseTypeId.equals(BaseTypeId.CMIS_FOLDER.value())) {
             // adding all the children for a folder
-
             Folder folder = (Folder) cmisObject;
             ItemIterable<CmisObject> children = folder.getChildren();
             for (CmisObject child : children) {
               activities.addDocumentReference(child.getId(), documentIdentifier,
                   RELATIONSHIP_CHILD);
             }
-          } else if(baseTypeId.equals(CMIS_DOCUMENT_BASE_TYPE)) {
+          } else if(baseTypeId.equals(BaseTypeId.CMIS_DOCUMENT.value())) {
             // content ingestion
 
             Document document = (Document) cmisObject;
@@ -1158,14 +1150,15 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             long fileLength = document.getContentStreamLength();
             String fileName = document.getContentStreamFileName();
             String mimeType = document.getContentStreamMimeType();
+            
             //documentURI
-            String documentURI = CmisRepositoryConnectorUtils.getDocumentURL(document, session);
+            String documentURI = getDocumentURI(cmisObject);
 
             // Do any filtering (which will save us work)
             if (!activities.checkURLIndexable(documentURI))
             {
               activities.noDocument(documentIdentifier,versionString);
-              errorCode = activities.EXCLUDED_URL;
+              errorCode = IProcessActivity.EXCLUDED_URL;
               errorDesc = "Excluding due to URL ('"+documentURI+"')";
               continue;
             }
@@ -1173,7 +1166,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             if (!activities.checkMimeTypeIndexable(mimeType))
             {
               activities.noDocument(documentIdentifier,versionString);
-              errorCode = activities.EXCLUDED_MIMETYPE;
+              errorCode = IProcessActivity.EXCLUDED_MIMETYPE;
               errorDesc = "Excluding due to mime type ("+mimeType+")";
               continue;
             }
@@ -1181,7 +1174,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             if (!activities.checkLengthIndexable(fileLength))
             {
               activities.noDocument(documentIdentifier,versionString);
-              errorCode = activities.EXCLUDED_LENGTH;
+              errorCode = IProcessActivity.EXCLUDED_LENGTH;
               errorDesc = "Excluding due to length ("+fileLength+")";
               continue;
             }
@@ -1189,18 +1182,19 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
             if (!activities.checkDateIndexable(modifiedDate))
             {
               activities.noDocument(documentIdentifier,versionString);
-              errorCode = activities.EXCLUDED_DATE;
+              errorCode = IProcessActivity.EXCLUDED_DATE;
               errorDesc = "Excluding due to date ("+modifiedDate+")";
               continue;
             }
-
+            
+            
             RepositoryDocument rd = new RepositoryDocument();
             rd.setFileName(fileName);
             rd.setMimeType(mimeType);
             rd.setCreatedDate(createdDate);
             rd.setModifiedDate(modifiedDate);
 
-            InputStream is;
+            InputStream is = null;
             try {
               if (fileLength > 0)
                 is = document.getContentStream().getStream();
@@ -1208,8 +1202,9 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
                 is = null;
             } catch (CmisObjectNotFoundException e) {
               // Document gone
-              activities.deleteDocument(documentIdentifier);
+            	activities.deleteDocument(documentIdentifier);
               continue;
+
             }
 
             try {
@@ -1224,7 +1219,7 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
               String modifiedQuery = CmisRepositoryConnectorUtils.getCmisQueryWithObjectId(cmisQuery);
 
               //filter the fields selected in the query
-              CmisRepositoryConnectorUtils.addValuesOfProperties(cmisObject.getProperties(), rd, modifiedQuery);
+              CmisRepositoryConnectorUtils.addValuesOfProperties(document, rd, modifiedQuery);
               //ingestion
 
               try {
@@ -1268,7 +1263,37 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     }
 
   }
-
+  
+  private String getDocumentURI(CmisObject cmisObject) throws ManifoldCFException {
+  	String documentURI = StringUtils.EMPTY;
+  	String currentBaseTypeId = cmisObject.getBaseTypeId().value();
+  	if(StringUtils.equals(currentBaseTypeId, BaseTypeId.CMIS_DOCUMENT.value())) {
+  		Document currentDocument = (Document) cmisObject;
+			if(currentDocument.getParents() != null 
+					&& !currentDocument.getParents().isEmpty()) {
+				String path = currentDocument.getParents().get(0).getPath();
+      	String name = currentDocument.getName();
+      	String fullContentPath = path + CmisRepositoryConnectorUtils.SLASH + name;
+      	documentURI = fullContentPath;
+      	
+				//Append the new parameters in the query string
+      	String documentDownloadURL = CmisRepositoryConnectorUtils.getDocumentURL(currentDocument, session);
+      	if(StringUtils.contains(documentDownloadURL, '?')){
+      		documentURI = documentDownloadURL + "&" +CONTENT_PATH_PARAM+"=" + fullContentPath;
+      	} else {
+      		documentURI = documentDownloadURL + "?" +CONTENT_PATH_PARAM+"=" + fullContentPath;
+      	}
+			}
+  	} else if(StringUtils.equals(currentBaseTypeId, BaseTypeId.CMIS_FOLDER.value())) {
+  		Folder currentFolder = (Folder) cmisObject;
+  		String path = currentFolder.getPath();
+  		String name = currentFolder.getName();
+  		String fullContentPath = path + CmisRepositoryConnectorUtils.SLASH + name;
+  		documentURI = fullContentPath;
+  	}
+  	return documentURI;
+  }
+  
   protected static void handleIOException(IOException e, String context) throws ManifoldCFException, ServiceInterruption {
     if (e instanceof InterruptedIOException) {
       throw new ManifoldCFException(e.getMessage(), e,

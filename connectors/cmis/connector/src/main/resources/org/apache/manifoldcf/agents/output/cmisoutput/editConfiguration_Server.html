@@ -1,0 +1,171 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TABNAME == $ResourceBundle.getString('CmisOutputConnector.Server'))
+
+<table class="displaytable">
+  <tr>
+    <td class="separator" colspan="2">
+      <hr />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.BindingColon'))
+      </nobr>
+    </td>
+    <td class="value">
+      <select id="binding" name="binding">
+#if($BINDING == "atom")
+        <option value="atom" selected="selected">AtomPub</option>
+        <option value="ws">Web Services</option>
+#else
+        <option value="atom">AtomPub</option>
+        <option value="ws" selected="selected">Web Services</option>
+#end
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.UsernameColon'))
+      </nobr>
+    </td>
+    <td class="value">
+      <input type="text" id="username" name="username" value="$Encoder.attributeEscape($USERNAME)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.PasswordColon'))
+      </nobr>
+    </td>
+    <td class="value">
+      <input type="password" id="password" name="password" value="$Encoder.attributeEscape($PASSWORD)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.ProtocolColon'))
+      </nobr>
+    </td>
+    <td class="value">
+      <select id="protocol" name="protocol">
+#if($PROTOCOL == "https")
+        <option value="http">http</option>
+        <option value="https" selected="selected">https</option>
+#else
+        <option value="http" selected="selected">http</option>
+        <option value="https">https</option>
+#end
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.ServerColon'))
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="server" name="server" type="text" size="32" value="$Encoder.attributeEscape($SERVER)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.PortColon'))
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="port" name="port" type="text" size="5" value="$Encoder.attributeEscape($PORT)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.PathColon'))
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="path" name="path" type="text" size="32" value="$Encoder.attributeEscape($PATH)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.CMISQueryColon'))
+      </nobr>
+    </td>
+    <td class="value">
+        <input id="cmisQuery" name="cmisQuery" type="text" size="120" value="$Encoder.attributeEscape($CMISQUERY)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.CreateTimestampTreeColon'))
+      </nobr>
+    </td> 
+    <td class="value">
+        <!-- 
+        <input type="text" id="createTimestampTree" name="createTimestampTree" size="5" value="$Encoder.attributeEscape($CREATETIMESTAMPTREE)" />
+         -->
+         <select id="createTimestampTree" name="createTimestampTree">
+#if($CREATETIMESTAMPTREE == "true")
+        <option value="false">Disabled</option>
+        <option value="true" selected="selected">Enabled</option>
+#else
+        <option value="false" selected="selected">Disabled</option>
+        <option value="true">Enabled</option>
+#end
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.RepositoryIDColon'))
+      </nobr>
+    </td>
+    <td class="value">
+      <input type="text" id="repositoryId" name="repositoryId" value="$Encoder.attributeEscape($REPOSITORYID)" />
+      <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.Optional'))
+      </nobr>
+    </td>
+  </tr>
+</table>
+
+#else
+
+<input type="hidden" name="username" value="$Encoder.attributeEscape($USERNAME)" />
+<input type="hidden" name="password" value="$Encoder.attributeEscape($PASSWORD)" />
+<input type="hidden" name="protocol" value="$Encoder.attributeEscape($PROTOCOL)" />
+<input type="hidden" name="server" value="$Encoder.attributeEscape($SERVER)" />
+<input type="hidden" name="port" value="$Encoder.attributeEscape($PORT)" />
+<input type="hidden" name="path" value="$Encoder.attributeEscape($PATH)" />
+<input type="hidden" name="binding" value="$Encoder.attributeEscape($BINDING)" />
+<input type="hidden" name="cmisQuery" value="$Encoder.attributeEscape($CMISQUERY)" />
+<input type="hidden" name="createTimestampTree" value="$Encoder.attributeEscape($CREATETIMESTAMPTREE)"/>
+<input type="hidden" name="repositoryId" value="$Encoder.attributeEscape($REPOSITORYID)" />
+
+#end
