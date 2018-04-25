@@ -964,18 +964,24 @@ public class HttpPoster
             UpdateResponse response;
             if ( useExtractUpdateHandler )
             {
-              response = contentStreamUpdateRequest.process( solrServer );
+              response = contentStreamUpdateRequest.process(solrServer);
             }
             else
             {
-              if (commitWithin != null)
+              final ModifiableSolrParams params = new ModifiableSolrParams();
+              // Write the arguments
+              for (final String name : arguments.keySet())
               {
-                response = solrServer.add( currentSolrDoc, Integer.parseInt(commitWithin) );
+                final List<String> values = arguments.get(name);
+                writeField(params, name, values);
               }
-              else
-              {
-                response = solrServer.add( currentSolrDoc );
+              final UpdateRequest req = new UpdateRequest();
+              req.setParams(params);
+              req.add(currentSolrDoc);
+              if (commitWithin != null) {
+                req.setCommitWithin(Integer.parseInt(commitWithin));
               }
+              response =  req.process(solrServer);
             }
 
             // Successful completion
@@ -1123,13 +1129,6 @@ public class HttpPoster
       {
         String aclType = typeIterator.next();
         writeACLsInSolrDoc(outputDoc,aclType,aclsMap.get(aclType),denyAclsMap.get(aclType));
-      }
-
-      // Write the arguments
-      for ( String name : arguments.keySet() )
-      {
-        List<String> values = arguments.get( name );
-        outputDoc.addField( name, values );
       }
 
       // Write the metadata, each in a field by itself

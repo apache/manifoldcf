@@ -3,6 +3,8 @@ $Id$
 
 ======================= 2.11-dev =====================
 
+CONNECTORS-1503: Fix for Solr standard update handler
+parameter transmission to Solr.
 
 ======================= Release 2.10 =====================
 
