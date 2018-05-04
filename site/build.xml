@@ -263,7 +263,7 @@
 
     <target name="download-dejavu-fonts" depends="calculate-dejavu-condition-before" unless="dejavuAvailableBefore">
       <mkdir dir="fonts"/>
-      <get src="http://versaweb.dl.sourceforge.net/project/dejavu/dejavu/2.37/dejavu-fonts-ttf-2.37.zip" dest="fonts"/>
+      <get src="https://github.com/dejavu-fonts/dejavu-fonts/releases/download/version_2_37/dejavu-fonts-ttf-2.37.zip" dest="fonts"/>
     </target>
     
     <target name="calculate-ipa-condition-before">
