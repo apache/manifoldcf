@@ -8,6 +8,9 @@ parameter transmission to Solr.
 
 ======================= Release 2.10 =====================
 
+CONNECTORS-1500: HTML Extractor transformation connector contribution
+(Olivier Tavard)
+
 CONNECTORS-1501: Add dynamic snippet for the next Apache event
 (Piergiorgio Lucidi)
 
