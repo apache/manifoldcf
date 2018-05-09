@@ -38,10 +38,11 @@ public class JsoupProcessing {
 
 
 
-	public static Hashtable<String,String> extractTextAndMetadataHtmlDocument(InputStream streamDoc,String whitelist,List<String> blacklist) throws IOException{
+	public static Hashtable<String,String> extractTextAndMetadataHtmlDocument(InputStream streamDoc,String whitelist,List<String> blacklist, boolean stripHtml) throws IOException{
 		Document doc = Jsoup.parse(streamDoc, "UTF-8", "");
 		Hashtable<String,String> metadata = new Hashtable<String,String>();
 		for(Element meta : doc.select("meta")) {
+			Logging.root.warn("Name: " + meta.attr("name") + " - Content: " + meta.attr("content"));
 			metadata.put(meta.attr("name"), meta.attr("content"));
 		}
 
@@ -52,8 +53,10 @@ public class JsoupProcessing {
 		}
 
 		Element element_keywords = doc.select("meta[name='keywords']").first();
+		Logging.root.warn("keywordsjsoupnounet");
 		if (element_keywords != null) {
 			String keywords = (element_keywords.attr("content"));
+			Logging.root.warn("keyyyyyywords"+keywords);
 			metadata.put("keywords",keywords);
 		}
 
@@ -164,13 +167,15 @@ public class JsoupProcessing {
 			}
 		}
 
-		//finalDoc = docToKeep.text();
-		finalDoc = docToKeep.html();
+		if (stripHtml)
+			finalDoc = docToKeep.text();
+		else
+			finalDoc = docToKeep.html();
+		
+		
 		metadata.put("extractedDoc",finalDoc);
 
 		return metadata;
 	}
 
 }
-
-

@@ -38,9 +38,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-/** This connector works as a transformation connector, but does nothing other than logging.
- *
- */
 public class HtmlExtractor extends org.apache.manifoldcf.agents.transformation.BaseTransformationConnector
 {
 
@@ -60,6 +57,18 @@ public class HtmlExtractor extends org.apache.manifoldcf.agents.transformation.B
 	private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
 	private static final String EDIT_SPECIFICATION_HTML_EXTRACTOR_HTML = "editSpecification_HTML_Extractor.html";
 
+
+
+	protected static final int HTML_STRIP_NONE = 0;
+	protected static final int HTML_STRIP_ALL = 1;
+
+	protected static int html_strip_usage = HTML_STRIP_ALL;
+
+	public static final String NODE_KEEPMETADATA = "striphtml";
+	public static final String NODE_FILTEREMPTY = "filterEmpty";
+	public static final String ATTRIBUTE_SOURCE = "source";
+	public static final String ATTRIBUTE_TARGET = "target";
+	public static final String ATTRIBUTE_VALUE = "value";
 
 	/** We handle up to 64K in memory; after that we go to disk. */
 	protected static final long inMemoryMaximumFile = 65536;
@@ -119,9 +128,7 @@ public class HtmlExtractor extends org.apache.manifoldcf.agents.transformation.B
 				length =  new Long(binaryLength);
 
 				/*
-
 				DestinationStorage ds;
-
 				if (document.getBinaryLength() <= inMemoryMaximumFile)
 				{
 					ds = new MemoryDestinationStorage((int)document.getBinaryLength());
@@ -142,7 +149,8 @@ public class HtmlExtractor extends org.apache.manifoldcf.agents.transformation.B
 				 * 
 				 */
 				Hashtable<String,String> metadataExtracted = new Hashtable<String,String>();
-				metadataExtracted = JsoupProcessing.extractTextAndMetadataHtmlDocument(document.getBinaryStream(),sp.includeFilters.get(0), sp.excludeFilters);
+				
+				metadataExtracted = JsoupProcessing.extractTextAndMetadataHtmlDocument(document.getBinaryStream(),sp.includeFilters.get(0), sp.excludeFilters, sp.striphtml);
 				InputStream newStream = new ByteArrayInputStream(metadataExtracted.get("extractedDoc").getBytes(StandardCharsets.UTF_8));
 				int lenghtNewStream = newStream.available();
 				document.setBinary(newStream, lenghtNewStream);
@@ -482,6 +490,7 @@ public class HtmlExtractor extends org.apache.manifoldcf.agents.transformation.B
 		final List<String> excludeFilters = new ArrayList<String>();
 
 
+		String striphtmlValue = "true";
 
 
 		// Fill in context
@@ -499,255 +508,301 @@ public class HtmlExtractor extends org.apache.manifoldcf.agents.transformation.B
 				if (excludeFilter != null) {
 					excludeFilters.add(excludeFilter);
 				}
+
+
+			} else if (sn.getType().equals(NODE_KEEPMETADATA))
+			{
+				striphtmlValue = sn.getAttributeValue(ATTRIBUTE_VALUE);
 			}
 
-
-		}
-
-		paramMap.put("INCLUDEFILTERS", includeFilters);
-		paramMap.put("EXCLUDEFILTERS", excludeFilters);
+		
 	}
 
-	/**
-	 * Output the specification header section. This method is called in the head
-	 * section of a job page which has selected a pipeline connection of the
-	 * current type. Its purpose is to add the required tabs to the list, and to
-	 * output any javascript methods that might be needed by the job editing HTML.
-	 *
-	 * @param out
-	 *          is the output to which any HTML should be sent.
-	 * @param locale
-	 * @param os
-	 *          is the current pipeline specification for this connection.
-	 * @param connectionSequenceNumber
-	 *          is the unique number of this connection within the job.
-	 * @param tabsArray
-	 *          is an array of tab names. Add to this array any tab names that are
-	 *          specific to the connector.
-	 */
-	@Override
-	public void outputSpecificationHeader(final IHTTPOutput out, final Locale locale, final Specification os,
-			final int connectionSequenceNumber, final List<String> tabsArray) throws ManifoldCFException, IOException {
-		final Map<String, Object> paramMap = new HashMap<>();
-		paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
 
-		tabsArray.add(Messages.getString(locale, "HtmlExtractor.HtmlExtractorTabName"));
 
-		// Fill in the specification header map, using data from all tabs.
-		fillInHtmlExtractorSpecification(paramMap, os);
+	paramMap.put("INCLUDEFILTERS", includeFilters);
+	paramMap.put("EXCLUDEFILTERS", excludeFilters);
+	paramMap.put("HTMLTAGUSAGE", html_strip_usage);
+	paramMap.put("STRIPHTML",striphtmlValue);
 
-		Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_JS, paramMap);
-	}
+}
 
-	/**
-	 * Output the specification body section. This method is called in the body
-	 * section of a job page which has selected a pipeline connection of the
-	 * current type. Its purpose is to present the required form elements for
-	 * editing. The coder can presume that the HTML that is output from this
-	 * configuration will be within appropriate <html>, <body>, and <form> tags.
-	 * The name of the form is "editjob".
-	 *
-	 * @param out
-	 *          is the output to which any HTML should be sent.
-	 * @param locale
-	 *          is the preferred local of the output.
-	 * @param os
-	 *          is the current pipeline specification for this job.
-	 * @param connectionSequenceNumber
-	 *          is the unique number of this connection within the job.
-	 * @param actualSequenceNumber
-	 *          is the connection within the job that has currently been selected.
-	 * @param tabName
-	 *          is the current tab name.
-	 */
-	@Override
-	public void outputSpecificationBody(final IHTTPOutput out, final Locale locale, final Specification os,
-			final int connectionSequenceNumber, final int actualSequenceNumber, final String tabName)
-					throws ManifoldCFException, IOException {
-		final Map<String, Object> paramMap = new HashMap<>();
+/**
+ * Output the specification header section. This method is called in the head
+ * section of a job page which has selected a pipeline connection of the
+ * current type. Its purpose is to add the required tabs to the list, and to
+ * output any javascript methods that might be needed by the job editing HTML.
+ *
+ * @param out
+ *          is the output to which any HTML should be sent.
+ * @param locale
+ * @param os
+ *          is the current pipeline specification for this connection.
+ * @param connectionSequenceNumber
+ *          is the unique number of this connection within the job.
+ * @param tabsArray
+ *          is an array of tab names. Add to this array any tab names that are
+ *          specific to the connector.
+ */
+@Override
+public void outputSpecificationHeader(final IHTTPOutput out, final Locale locale, final Specification os,
+		final int connectionSequenceNumber, final List<String> tabsArray) throws ManifoldCFException, IOException {
+	final Map<String, Object> paramMap = new HashMap<>();
+	paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
 
-		// Set the tab name
-		paramMap.put("TABNAME", tabName);
-		paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
-		paramMap.put("SELECTEDNUM", Integer.toString(actualSequenceNumber));
+	tabsArray.add(Messages.getString(locale, "HtmlExtractorTransformationConnector.HtmlExtractorTabName"));
 
-		// Fill in the field mapping tab data
-		fillInHtmlExtractorSpecification(paramMap, os);
+	// Fill in the specification header map, using data from all tabs.
+	fillInHtmlExtractorSpecification(paramMap, os);
 
-		Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_HTML_EXTRACTOR_HTML, paramMap);
-	}
+	Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_JS, paramMap);
+}
 
-	/**
-	 * Process a specification post. This method is called at the start of job's
-	 * edit or view page, whenever there is a possibility that form data for a
-	 * connection has been posted. Its purpose is to gather form information and
-	 * modify the transformation specification accordingly. The name of the posted
-	 * form is "editjob".
-	 *
-	 * @param variableContext
-	 *          contains the post data, including binary file-upload information.
-	 * @param locale
-	 *          is the preferred local of the output.
-	 * @param os
-	 *          is the current pipeline specification for this job.
-	 * @param connectionSequenceNumber
-	 *          is the unique number of this connection within the job.
-	 * @return null if all is well, or a string error message if there is an error
-	 *         that should prevent saving of the job (and cause a redirection to
-	 *         an error page).
-	 */
-	@Override
-	public String processSpecificationPost(final IPostParameters variableContext, final Locale locale,
-			final Specification os, final int connectionSequenceNumber) throws ManifoldCFException {
+/**
+ * Output the specification body section. This method is called in the body
+ * section of a job page which has selected a pipeline connection of the
+ * current type. Its purpose is to present the required form elements for
+ * editing. The coder can presume that the HTML that is output from this
+ * configuration will be within appropriate <html>, <body>, and <form> tags.
+ * The name of the form is "editjob".
+ *
+ * @param out
+ *          is the output to which any HTML should be sent.
+ * @param locale
+ *          is the preferred local of the output.
+ * @param os
+ *          is the current pipeline specification for this job.
+ * @param connectionSequenceNumber
+ *          is the unique number of this connection within the job.
+ * @param actualSequenceNumber
+ *          is the connection within the job that has currently been selected.
+ * @param tabName
+ *          is the current tab name.
+ */
+@Override
+public void outputSpecificationBody(final IHTTPOutput out, final Locale locale, final Specification os,
+		final int connectionSequenceNumber, final int actualSequenceNumber, final String tabName)
+				throws ManifoldCFException, IOException {
+	final Map<String, Object> paramMap = new HashMap<>();
 
-		final String seqPrefix = "s" + connectionSequenceNumber + "_";
+	// Set the tab name
+	paramMap.put("TABNAME", tabName);
+	paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
+	paramMap.put("SELECTEDNUM", Integer.toString(actualSequenceNumber));
 
-		String x;
+	// Fill in the field mapping tab data
+	fillInHtmlExtractorSpecification(paramMap, os);
 
-		// Include filters
-		x = variableContext.getParameter(seqPrefix + "includefilter_count");
-		if (x != null && x.length() > 0) {
-			// About to gather the includefilter nodes, so get rid of the old ones.
-			int i = 0;
-			while (i < os.getChildCount()) {
-				final SpecificationNode node = os.getChild(i);
-				if (node.getType().equals(HtmlExtractorConfig.NODE_INCLUDEFILTER)) {
-					os.removeChild(i);
-				} else {
-					i++;
-				}
-			}
-			final int count = Integer.parseInt(x);
-			i = 0;
-			while (i < count) {
-				final String prefix = seqPrefix + "includefilter_";
-				final String suffix = "_" + Integer.toString(i);
-				final String op = variableContext.getParameter(prefix + "op" + suffix);
-				if (op == null || !op.equals("Delete")) {
-					// Gather the includefilters etc.
-					final String regex = variableContext.getParameter(prefix + HtmlExtractorConfig.ATTRIBUTE_REGEX + suffix);
-					final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_INCLUDEFILTER);
-					node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
-					os.addChild(os.getChildCount(), node);
-				}
+	Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_HTML_EXTRACTOR_HTML, paramMap);
+}
+
+/**
+ * Process a specification post. This method is called at the start of job's
+ * edit or view page, whenever there is a possibility that form data for a
+ * connection has been posted. Its purpose is to gather form information and
+ * modify the transformation specification accordingly. The name of the posted
+ * form is "editjob".
+ *
+ * @param variableContext
+ *          contains the post data, including binary file-upload information.
+ * @param locale
+ *          is the preferred local of the output.
+ * @param os
+ *          is the current pipeline specification for this job.
+ * @param connectionSequenceNumber
+ *          is the unique number of this connection within the job.
+ * @return null if all is well, or a string error message if there is an error
+ *         that should prevent saving of the job (and cause a redirection to
+ *         an error page).
+ */
+@Override
+public String processSpecificationPost(final IPostParameters variableContext, final Locale locale,
+		final Specification os, final int connectionSequenceNumber) throws ManifoldCFException {
+
+
+	final String seqPrefix = "s" + connectionSequenceNumber + "_";
+
+	String x;
+
+	// Include filters
+	x = variableContext.getParameter(seqPrefix + "includefilter_count");
+	if (x != null && x.length() > 0) {
+		// About to gather the includefilter nodes, so get rid of the old ones.
+		int i = 0;
+		while (i < os.getChildCount()) {
+			final SpecificationNode node = os.getChild(i);
+			if (node.getType().equals(HtmlExtractorConfig.NODE_INCLUDEFILTER)) {
+				os.removeChild(i);
+			} else {
 				i++;
 			}
-
-			final String addop = variableContext.getParameter(seqPrefix + "includefilter_op");
-			if (addop != null && addop.equals("Add")) {
-				final String regex = variableContext.getParameter(seqPrefix + "includefilter_regex");
+		}
+		final int count = Integer.parseInt(x);
+		i = 0;
+		while (i < count) {
+			final String prefix = seqPrefix + "includefilter_";
+			final String suffix = "_" + Integer.toString(i);
+			final String op = variableContext.getParameter(prefix + "op" + suffix);
+			if (op == null || !op.equals("Delete")) {
+				// Gather the includefilters etc.
+				final String regex = variableContext.getParameter(prefix + HtmlExtractorConfig.ATTRIBUTE_REGEX + suffix);
 				final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_INCLUDEFILTER);
 				node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
 				os.addChild(os.getChildCount(), node);
 			}
+			i++;
 		}
 
-		// Exclude filters
-		x = variableContext.getParameter(seqPrefix + "excludefilter_count");
-		if (x != null && x.length() > 0) {
-			// About to gather the excludefilter nodes, so get rid of the old ones.
-			int i = 0;
-			while (i < os.getChildCount()) {
-				final SpecificationNode node = os.getChild(i);
-				if (node.getType().equals(HtmlExtractorConfig.NODE_EXCLUDEFILTER)) {
-					os.removeChild(i);
-				} else {
-					i++;
-				}
-			}
-			final int count = Integer.parseInt(x);
-			i = 0;
-			while (i < count) {
-				final String prefix = seqPrefix + "excludefilter_";
-				final String suffix = "_" + Integer.toString(i);
-				final String op = variableContext.getParameter(prefix + "op" + suffix);
-				if (op == null || !op.equals("Delete")) {
-					// Gather the excludefilters etc.
-					final String regex = variableContext.getParameter(prefix + HtmlExtractorConfig.ATTRIBUTE_REGEX + suffix);
-					final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_EXCLUDEFILTER);
-					node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
-					os.addChild(os.getChildCount(), node);
-				}
+		final String addop = variableContext.getParameter(seqPrefix + "includefilter_op");
+		if (addop != null && addop.equals("Add")) {
+			final String regex = variableContext.getParameter(seqPrefix + "includefilter_regex");
+			final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_INCLUDEFILTER);
+			node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
+			os.addChild(os.getChildCount(), node);
+		}
+	}
+
+	// Exclude filters
+	x = variableContext.getParameter(seqPrefix + "excludefilter_count");
+	if (x != null && x.length() > 0) {
+		// About to gather the excludefilter nodes, so get rid of the old ones.
+		int i = 0;
+		while (i < os.getChildCount()) {
+			final SpecificationNode node = os.getChild(i);
+			if (node.getType().equals(HtmlExtractorConfig.NODE_EXCLUDEFILTER)) {
+				os.removeChild(i);
+			} else {
 				i++;
 			}
-
-			final String addop = variableContext.getParameter(seqPrefix + "excludefilter_op");
-			if (addop != null && addop.equals("Add")) {
-				final String regex = variableContext.getParameter(seqPrefix + "excludefilter_regex");
+		}
+		final int count = Integer.parseInt(x);
+		i = 0;
+		while (i < count) {
+			final String prefix = seqPrefix + "excludefilter_";
+			final String suffix = "_" + Integer.toString(i);
+			final String op = variableContext.getParameter(prefix + "op" + suffix);
+			if (op == null || !op.equals("Delete")) {
+				// Gather the excludefilters etc.
+				final String regex = variableContext.getParameter(prefix + HtmlExtractorConfig.ATTRIBUTE_REGEX + suffix);
 				final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_EXCLUDEFILTER);
 				node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
 				os.addChild(os.getChildCount(), node);
 			}
+			i++;
 		}
 
-		return null;
-	}
-
-	/**
-	 * View specification. This method is called in the body section of a job's
-	 * view page. Its purpose is to present the pipeline specification information
-	 * to the user. The coder can presume that the HTML that is output from this
-	 * configuration will be within appropriate <html> and <body> tags.
-	 *
-	 * @param out
-	 *          is the output to which any HTML should be sent.
-	 * @param locale
-	 *          is the preferred local of the output.
-	 * @param connectionSequenceNumber
-	 *          is the unique number of this connection within the job.
-	 * @param os
-	 *          is the current pipeline specification for this job.
-	 */
-	@Override
-	public void viewSpecification(final IHTTPOutput out, final Locale locale, final Specification os,
-			final int connectionSequenceNumber) throws ManifoldCFException, IOException {
-		final Map<String, Object> paramMap = new HashMap<>();
-		paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
-
-		// Fill in the map with data from all tabs
-		fillInHtmlExtractorSpecification(paramMap, os);
-
-		Messages.outputResourceWithVelocity(out, locale, VIEW_SPECIFICATION_HTML, paramMap);
-
-	}
-	protected static class SpecPacker {
-
-		private final List<String> includeFilters = new ArrayList<>();
-		private final List<String> excludeFilters = new ArrayList<>();
-
-
-		public SpecPacker(final Specification os) {
-			for (int i = 0; i < os.getChildCount(); i++) {
-				final SpecificationNode sn = os.getChild(i);
-
-				if (sn.getType().equals(HtmlExtractorConfig.NODE_INCLUDEFILTER)) {
-					final String regex = sn.getAttributeValue(HtmlExtractorConfig.ATTRIBUTE_REGEX);
-					includeFilters.add(regex);
-				}
-
-				if (sn.getType().equals(HtmlExtractorConfig.NODE_EXCLUDEFILTER)) {
-					final String regex = sn.getAttributeValue(HtmlExtractorConfig.ATTRIBUTE_REGEX);
-					excludeFilters.add(regex);
-				}
-
-
-			}
-
-			if (includeFilters.isEmpty()) {
-				includeFilters.add(HtmlExtractorConfig.WHITELIST_DEFAULT);
-			}
+		final String addop = variableContext.getParameter(seqPrefix + "excludefilter_op");
+		if (addop != null && addop.equals("Add")) {
+			final String regex = variableContext.getParameter(seqPrefix + "excludefilter_regex");
+			final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_EXCLUDEFILTER);
+			node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
+			os.addChild(os.getChildCount(), node);
 		}
-
-		public String toPackedString() {
-			final StringBuilder sb = new StringBuilder();
-
-			packList(sb, includeFilters, '+');
-			packList(sb, excludeFilters, '+');
-
-			return sb.toString();
-		}
-
 	}
+
+	x = variableContext.getParameter(seqPrefix+"striphtml_present");
+    if (x != null && x.length() > 0)
+    {
+      String keepAll = variableContext.getParameter(seqPrefix+"striphtml");
+      if (keepAll == null)
+        keepAll = "false";
+      // About to gather the fieldmapping nodes, so get rid of the old ones.
+      int i = 0;
+      while (i < os.getChildCount())
+      {
+        SpecificationNode node = os.getChild(i);
+        if (node.getType().equals(NODE_KEEPMETADATA))
+          os.removeChild(i);
+        else
+          i++;
+      }
+
+      // Gather the keep all metadata parameter to be the last one
+      SpecificationNode node = new SpecificationNode(NODE_KEEPMETADATA);
+      node.setAttribute(ATTRIBUTE_VALUE, keepAll);
+      // Add the new striphtml config parameter 
+      os.addChild(os.getChildCount(), node);
+    }
+
+
+	return null;
 }
 
+/**
+ * View specification. This method is called in the body section of a job's
+ * view page. Its purpose is to present the pipeline specification information
+ * to the user. The coder can presume that the HTML that is output from this
+ * configuration will be within appropriate <html> and <body> tags.
+ *
+ * @param out
+ *          is the output to which any HTML should be sent.
+ * @param locale
+ *          is the preferred local of the output.
+ * @param connectionSequenceNumber
+ *          is the unique number of this connection within the job.
+ * @param os
+ *          is the current pipeline specification for this job.
+ */
+@Override
+public void viewSpecification(final IHTTPOutput out, final Locale locale, final Specification os,
+		final int connectionSequenceNumber) throws ManifoldCFException, IOException {
+	final Map<String, Object> paramMap = new HashMap<>();
+	paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
+
+	// Fill in the map with data from all tabs
+	fillInHtmlExtractorSpecification(paramMap, os);
+
+	Messages.outputResourceWithVelocity(out, locale, VIEW_SPECIFICATION_HTML, paramMap);
+
+}
+protected static class SpecPacker {
+
+	private final List<String> includeFilters = new ArrayList<>();
+	private final List<String> excludeFilters = new ArrayList<>();
+	private final boolean striphtml;
+
+	public SpecPacker(final Specification os) {
+		boolean striphtml = true;
+		for (int i = 0; i < os.getChildCount(); i++) {
+			final SpecificationNode sn = os.getChild(i);
+
+			if (sn.getType().equals(HtmlExtractorConfig.NODE_INCLUDEFILTER)) {
+				final String regex = sn.getAttributeValue(HtmlExtractorConfig.ATTRIBUTE_REGEX);
+				includeFilters.add(regex);
+			}
+
+			if (sn.getType().equals(HtmlExtractorConfig.NODE_EXCLUDEFILTER)) {
+				final String regex = sn.getAttributeValue(HtmlExtractorConfig.ATTRIBUTE_REGEX);
+				excludeFilters.add(regex);
+			}
+			if(sn.getType().equals(NODE_KEEPMETADATA)) {
+				String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
+				striphtml = Boolean.parseBoolean(value);
+			}
+
+		}
+
+		if (includeFilters.isEmpty()) {
+			includeFilters.add(HtmlExtractorConfig.WHITELIST_DEFAULT);
+		}
+
+		this.striphtml = striphtml;
+	}
+
+	public String toPackedString() {
+		final StringBuilder sb = new StringBuilder();
+
+		packList(sb, includeFilters, '+');
+		packList(sb, excludeFilters, '+');
+		if (striphtml)
+			sb.append('+');
+		else
+			sb.append('-');
+
+		return sb.toString();
+	}
+
+}
+
+}
 

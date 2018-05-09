@@ -24,12 +24,10 @@ package org.apache.manifoldcf.agents.transformation.htmlextractor;
  */
 public class HtmlExtractorConfig {
 
-  // Configuration parameters
-	//TODO : remove the SOlr parameters
-  public static final String PARAM_SOLRUPDATEHANDLER = "solrUpdateHandler";
-  public static final String SOLRUPDATEHANDLER_DEFAULT = "/update/no-tika";
+ // Configuration parameters
   public static final String WHITELIST_DEFAULT = "body";
   public static final String BLACKLIST_DEFAULT = "";
+  public static final String PARAMETER_STRIP_HTML = "Strip HTML content";
   
   // Specification nodes and values
   public static final String NODE_INCLUDEFILTER = "includefilter";
@@ -37,5 +35,7 @@ public class HtmlExtractorConfig {
   public static final String INCLUDEFILTER_DEFAULT = "body";
   public static final String ATTRIBUTE_REGEX = "regex";
   public static final String ATTRIBUTE_VALUE = "value";
+  
+  
 
 }
