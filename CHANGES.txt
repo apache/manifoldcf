@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.11-dev =====================
 
+CONNECTORS-1507: Restarting the cluster could leave documents
+that were formerly active in PENDING or PENDINGPURGATORY without
+document priorities.
+
 CONNECTORS-1503: Fix for Solr standard update handler
 parameter transmission to Solr.
 
