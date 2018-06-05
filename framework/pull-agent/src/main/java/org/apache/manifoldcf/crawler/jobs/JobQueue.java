@@ -372,6 +372,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     map.put(statusField,statusToString(STATUS_PENDING));
     map.put(processIDField,null);
+    map.put(needPriorityField,needPriorityToString(NEEDPRIORITY_TRUE));
+    map.put(needPriorityProcessIDField,null);
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_ACTIVE),
@@ -382,6 +384,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Map ACTIVEPURGATORY to PENDINGPURGATORY
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
     map.put(processIDField,null);
+    map.put(needPriorityField,needPriorityToString(NEEDPRIORITY_TRUE));
+    map.put(needPriorityProcessIDField,null);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
