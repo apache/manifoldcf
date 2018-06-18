@@ -3,6 +3,8 @@ $Id$
 
 ======================= 2.11-dev =====================
 
+CONNECTORS-1510: Fix NPE in solr connector with null mime type.
+
 CONNECTORS-1507: Restarting the cluster could leave documents
 that were formerly active in PENDING or PENDINGPURGATORY without
 document priorities.

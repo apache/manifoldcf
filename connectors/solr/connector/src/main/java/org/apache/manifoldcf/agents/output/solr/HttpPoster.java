@@ -808,7 +808,7 @@ public class HttpPoster
   public static boolean checkMimeTypeIndexable(final String mimeType, final boolean useExtractUpdateHandler,
     final Set<String> includedMimeTypes, final Set<String> excludedMimeTypes)
   {
-    final String lowerMimeType = mimeType.toLowerCase(Locale.ROOT);
+    final String lowerMimeType = (mimeType==null)?null:mimeType.toLowerCase(Locale.ROOT);
     if (useExtractUpdateHandler)
     {
       if (includedMimeTypes != null && !includedMimeTypes.contains(lowerMimeType))
