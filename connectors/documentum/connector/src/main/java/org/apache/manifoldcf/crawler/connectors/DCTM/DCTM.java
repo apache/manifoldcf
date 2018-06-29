@@ -1396,12 +1396,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           "' and any r_version_label='CURRENT'");
         try
         {
-          long contentSizeValue = object.getContentSize();
+          long contentSizeValue = (object==null)?0L:object.getContentSize();
           contentSize = new Long(contentSizeValue);
           // Get the type name; this is what we use to figure out the desired attributes
-          String typeName = object.getTypeName();
+          String typeName = (object==null)?null:object.getTypeName();
           
-          if (object.exists() && !object.isDeleted() && !object.isHidden() && object.getPermit() > 1 &&
+          if (object != null && object.exists() && !object.isDeleted() && !object.isHidden() && object.getPermit() > 1 &&
             contentSizeValue > 0 && object.getPageCount() > 0)
           {
             // According to Ryck, the version label is not helping us much, so if it's null it's ok
@@ -1463,7 +1463,11 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           }
 
           // Do fetch phase
-            
+          if (object == null) {
+            activityStatus = "MISSING";
+            return;
+          }
+          
           String objName = object.getObjectName();
           String contentType = object.getContentType();
             

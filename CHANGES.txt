@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.11-dev =====================
 
+CONNECTORS-1512: Fix NPE in documentum connector when a document
+is removed from the Documentum repository (not deleted, completely
+removed).
+
 CONNECTORS-1510: Fix NPE in solr connector with null mime type.
 
 CONNECTORS-1507: Restarting the cluster could leave documents
