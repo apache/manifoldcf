@@ -140,6 +140,9 @@
             <include name="jsp-api*.jar"/>
             <include name="junit*.jar"/>
             <include name="selenium*.jar"/>
+            <include name="okhttp*.jar"/>
+            <include name="okio*.jar"/>
+            <include name="byte-buddy*.jar"/>
             <include name="cglib-nodep*.jar"/>
             <include name="hamcrest-core*.jar"/>
             <include name="log4j*.jar"/>
