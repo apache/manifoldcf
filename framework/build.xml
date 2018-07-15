@@ -850,7 +850,11 @@
             </fileset>
         </copy>
         <copy todir="build/webapp/combined-service">
-            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.map,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
+        </copy>
+        <mkdir dir="build/webapp/combined-service/css"/>
+        <copy todir="build/webapp/combined-service/css">
+            <fileset dir="build/crawler-ui/css" includes="**/*.css,**/*.map"/>
         </copy>
         <jar destfile="build/webapp/combined-service/WEB-INF/lib/mcf-combined-service.jar" basedir="build/combined-service/classes"/>
     </target>
@@ -915,7 +919,11 @@
             </fileset>
         </copy>
         <copy todir="build/webapp/combined-service-proprietary">
-            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
+            <fileset dir="crawler-ui/src/main/webapp" includes="**/*.jsp,**/*.css,**/*.map,**/*.png,**/*.html,**/*.js,**/*.eot,**/*.svg,**/*.ttf,**/*.woff,**/*.woff2"/>
+        </copy>
+        <mkdir dir="build/webapp/combined-service/css"/>
+        <copy todir="build/webapp/combined-service/css">
+            <fileset dir="build/crawler-ui/css" includes="**/*.css,**/*.map"/>
         </copy>
         <jar destfile="build/webapp/combined-service-proprietary/WEB-INF/lib/mcf-combined-service.jar" basedir="build/combined-service/classes"/>
     </target>

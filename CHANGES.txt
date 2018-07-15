@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.11-dev =====================
 
+CONNECTORS-1514: Fix MCF Combined Service UI
+(Kishore Kumar)
+
 CONNECTORS-1513: Fix SeleniumTester clickTab method
 (Karl Wright, Kishore Kumar)
 
