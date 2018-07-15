@@ -269,7 +269,7 @@ public class SeleniumTester
   public void clickTab(String tabName)
   {
     WebElement element =
-      waitElementClickable(By.cssSelector("a[data-toggle=\"tab\"][alt=\"" + tabName + " tab\"]"));
+      waitElementClickable(By.cssSelector(".nav-tabs li > a[alt=\"" + tabName + " tab\"], .tab-group .btn-group > a[alt=\"" + tabName + " tab\"]"));
     element.click();
     waitForAjaxAndDocumentReady();
   }
