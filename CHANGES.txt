@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.11-dev =====================
 
+CONNECTORS-1513: Fix SeleniumTester clickTab method
+(Karl Wright, Kishore Kumar)
+
 CONNECTORS-1512: Fix NPE in documentum connector when a document
 is removed from the Documentum repository (not deleted, completely
 removed).
