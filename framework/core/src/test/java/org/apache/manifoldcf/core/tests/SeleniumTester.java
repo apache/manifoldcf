@@ -183,7 +183,7 @@ public class SeleniumTester
       //Wait for a second for the animation to complete.
       try
       {
-        Thread.sleep(1000);
+        Thread.sleep(2500L);
       }
       catch (InterruptedException e)
       {
