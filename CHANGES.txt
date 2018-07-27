@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.11-dev =====================
 
+CONNECTORS-1518: Elastic search without mapper attachment
+did not stream document.
+(Steph van Schwalk)
+
 CONNECTORS-1514: Fix MCF Combined Service UI
 (Kishore Kumar)
 
