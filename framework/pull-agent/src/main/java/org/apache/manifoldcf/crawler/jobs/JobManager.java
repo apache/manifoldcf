@@ -669,7 +669,7 @@ public class JobManager implements IJobManager
     {
       if (currentCount == maxCount)
       {
-        noteConnectionDeregistration(list);
+        noteTransformationConnectionDeregistration(list);
         list.clear();
         currentCount = 0;
       }
@@ -728,7 +728,7 @@ public class JobManager implements IJobManager
     {
       if (currentCount == maxCount)
       {
-        noteConnectionDeregistration(list);
+        noteTransformationConnectionRegistration(list);
         list.clear();
         currentCount = 0;
       }

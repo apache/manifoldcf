@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.11-dev =====================
 
+CONNECTORS-1520: Transformation connector registration and de-registration was broken
+due to early cut/paste error.
+(Mike Hugo)
+
 CONNECTORS-1518: Elastic search without mapper attachment
 did not stream document.
 (Steph van Schwalk)
