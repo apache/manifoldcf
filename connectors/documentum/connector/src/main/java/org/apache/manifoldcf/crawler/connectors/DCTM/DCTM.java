@@ -1123,6 +1123,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
       else if (n.getType().equals(CONFIG_PARAM_FORMAT))
       {
+	seenAllMimeTypes = true;
         String docType = n.getAttributeValue("value");
         if (contentList == null)
           contentList = new ArrayList<String>();
@@ -2946,6 +2947,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_FORMAT))
       {
+	seenAll = true;
         String token = sn.getAttributeValue("value");
         if (token != null && token.length() > 0)
         {
