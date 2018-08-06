@@ -3060,7 +3060,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     else
     {
       out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"specmimetypeall\" value=\""+(doAll?"true":"false")+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"specmimetypeall\" value=\""+((seenAll == false || doAll)?"true":"false")+"\"/>\n"
       );
 
       if (ctMap != null)
