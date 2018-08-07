@@ -3159,7 +3159,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
           out.print(
 "          <nobr>\n"+
 "            <input type=\"button\" value=\"+\" alt=\"" + Messages.getAttributeString(locale,"SharedDriveConnector.AddPath") + "\" onClick='Javascript:"+seqPrefix+"SpecAddToPath(\""+seqPrefix+"path_"+Integer.toString(k)+"\")'/>&nbsp;\n"+
-"            <select multiple=\"false\" name=\""+seqPrefix+"pathaddon\" size=\"4\">\n"+
+"            <select name=\""+seqPrefix+"pathaddon\">\n"+
 "              <option value=\"\" selected=\"selected\">" + Messages.getBodyString(locale,"SharedDriveConnector.PickAFolder") + "</option>\n"
           );
           int j = 0;

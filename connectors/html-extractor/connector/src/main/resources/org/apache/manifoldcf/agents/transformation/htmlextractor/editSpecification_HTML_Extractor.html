@@ -5,9 +5,7 @@
  The ASF licenses this file to You under the Apache License, Version 2.0
  (the "License"); you may not use this file except in compliance with
  the License.  You may obtain a copy of the License at
-
      http://www.apache.org/licenses/LICENSE-2.0
-
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,18 +13,30 @@
  limitations under the License.
 -->
 
-#if($TABNAME == $ResourceBundle.getString('HtmlExtractor.HtmlExtractorTabName') && ${SEQNUM} == ${SELECTEDNUM})
+#if($TABNAME == $ResourceBundle.getString('HtmlExtractorTransformationConnector.HtmlExtractorTabName') && ${SEQNUM} == ${SELECTEDNUM})
 
 <table class="displaytable">
+
+<tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.StripHTML'))</nobr></td>
+    <td class="value" colspan="3">
+      <input type="hidden" name="s${SEQNUM}_striphtml_present" value="true"/>
+  #if($STRIPHTML == 'true')
+       <input type="checkbox" checked="true" name="s${SEQNUM}_striphtml" value="true"/>
+  #else
+       <input type="checkbox" name="s${SEQNUM}_striphtml" value="true"/>
+  #end
+    </td>
+  </tr>
 <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.IncludeFilters'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.IncludeFilters'))</nobr>
     </td>
     <td class="boxcell">
       <table class="formtable">
         <tr class="formheaderrow">
           <td class="formcolumnheader"></td>
-          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.RegularExpression'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.RegularExpression'))</nobr></td>
         </tr>
 
   #set($includecounter = 0)
@@ -39,8 +49,9 @@
     #end
           <td class="formcolumncell">
             <a name="s${SEQNUM}_includefilter_$includecounter">
-              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractor.Delete'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractor.DeleteIncludeFilter'))$includecounterdisplay" onclick='javascript:s${SEQNUM}_deleteIncludeFilter("$includecounter");'/>
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.Delete'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.DeleteIncludeFilter'))$includecounterdisplay" onclick='javascript:s${SEQNUM}_deleteIncludeFilter("$includecounter");'/>
               <input type="hidden" name="s${SEQNUM}_includefilter_op_$includecounter" value="Continue"/>
+              <input type="hidden" name="s${SEQNUM}_includefilter_regex_$includecounter" value="$Encoder.attributeEscape($includefilter)"/>
             </a>
           </td>
           <td class="formcolumncell">
@@ -49,17 +60,18 @@
         </tr>
     #set($includecounter = $includecounter + 1)
   #end
+
   
   
   #if($includecounter == 0)
-        <tr class="formrow"><td class="formmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.NoIncludeFilterSpecified'))</td></tr>
+        <tr class="formrow"><td class="formmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.NoIncludeFilterSpecified'))</td></tr>
   #end
       
         <tr class="formrow"><td class="formseparator" colspan="3"><hr/></td></tr>
         <tr class="formrow">
           <td class="formcolumncell">
             <a name="includefilter">
-              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractor.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractor.AddIncludeFilter'))" onclick="javascript:s${SEQNUM}_addIncludeFilter();"/>
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.AddIncludeFilter'))" onclick="javascript:s${SEQNUM}_addIncludeFilter();"/>
             </a>
             <input type="hidden" name="s${SEQNUM}_includefilter_count" value="$includecounter"/>
             <input type="hidden" name="s${SEQNUM}_includefilter_op" value="Continue"/>
@@ -73,13 +85,13 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.ExcludeFilters'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.ExcludeFilters'))</nobr>
     </td>
     <td class="boxcell">
       <table class="formtable">
         <tr class="formheaderrow">
           <td class="formcolumnheader"></td>
-          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.RegularExpression'))</nobr></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.RegularExpression'))</nobr></td>
         </tr>
 
   #set($excludecounter = 0)
@@ -92,7 +104,7 @@
     #end
           <td class="formcolumncell">
             <a name="s${SEQNUM}_excludefilter_$excludecounter">
-              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractor.Delete'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractor.DeleteExcludeFilter'))$excludecounterdisplay" onclick='javascript:s${SEQNUM}_deleteExcludeFilter("$excludecounter");'/>
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.Delete'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.DeleteExcludeFilter'))$excludecounterdisplay" onclick='javascript:s${SEQNUM}_deleteExcludeFilter("$excludecounter");'/>
               <input type="hidden" name="s${SEQNUM}_excludefilter_op_$excludecounter" value="Continue"/>
               <input type="hidden" name="s${SEQNUM}_excludefilter_regex_$excludecounter" value="$Encoder.attributeEscape($excludefilter)"/>
             </a>
@@ -105,14 +117,14 @@
   #end
   
   #if($excludecounter == 0)
-        <tr class="formrow"><td class="formmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractor.NoExcludeFilterSpecified'))</td></tr>
+        <tr class="formrow"><td class="formmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.NoExcludeFilterSpecified'))</td></tr>
   #end
       
         <tr class="formrow"><td class="formseparator" colspan="3"><hr/></td></tr>
         <tr class="formrow">
           <td class="formcolumncell">
             <a name="excludefilter">
-              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractor.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractor.AddExcludeFilter'))" onclick="javascript:s${SEQNUM}_addExcludeFilter();"/>
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('HtmlExtractorTransformationConnector.AddExcludeFilter'))" onclick="javascript:s${SEQNUM}_addExcludeFilter();"/>
             </a>
             <input type="hidden" name="s${SEQNUM}_excludefilter_count" value="$excludecounter"/>
             <input type="hidden" name="s${SEQNUM}_excludefilter_op" value="Continue"/>
@@ -122,7 +134,7 @@
           </td>
         </tr>
       </table>
-    </td>
+   </td>
   </tr>
 </table>
 
@@ -141,6 +153,9 @@
     #set($excludecounter = $excludecounter + 1)
   #end
 <input type="hidden" name="s${SEQNUM}_excludefilter_count" value="$excludecounter"/>
+
+<input type="hidden" name="s${SEQNUM}_striphtml_present" value="true"/>
+<input type="hidden" name="s${SEQNUM}_striphtml" value="$Encoder.attributeEscape($STRIPHTML)"/>
 
 
 #end

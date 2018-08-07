@@ -372,6 +372,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     map.put(statusField,statusToString(STATUS_PENDING));
     map.put(processIDField,null);
+    map.put(needPriorityField,needPriorityToString(NEEDPRIORITY_TRUE));
+    map.put(needPriorityProcessIDField,null);
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_ACTIVE),
@@ -382,6 +384,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Map ACTIVEPURGATORY to PENDINGPURGATORY
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
     map.put(processIDField,null);
+    map.put(needPriorityField,needPriorityToString(NEEDPRIORITY_TRUE));
+    map.put(needPriorityProcessIDField,null);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
@@ -449,6 +453,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     list.clear();
     map.put(statusField,statusToString(STATUS_PENDING));
     map.put(processIDField,null);
+    // This restart is the system one, so make sure that priorities are generated for records going back to PENDING
+    map.put(needPriorityField,needPriorityToString(NEEDPRIORITY_TRUE));
+    map.put(needPriorityProcessIDField,null);
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_ACTIVE),
@@ -458,6 +465,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Map ACTIVEPURGATORY to PENDINGPURGATORY
     map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
     map.put(processIDField,null);
+    // This restart is the system one, so make sure that priorities are generated for records going back to PENDING
+    map.put(needPriorityField,needPriorityToString(NEEDPRIORITY_TRUE));
+    map.put(needPriorityProcessIDField,null);
     list.clear();
     query = buildConjunctionClause(list,new ClauseDescription[]{
       new MultiClause(statusField,new Object[]{
@@ -1141,12 +1151,29 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       map.put(failCountField,null);
     else
       map.put(failCountField,new Long(failCount));
-    // This does not need to set docPriorityField, because we want to preserve whatever
-    // priority was in place from before.
+    // We don't know whether the document was processed or not, but we do know it was
+    // put into the Active state.  Therefore, the document priority might have been cleared out.
+    // To cover that case, we need to make sure that the document priority gets reset at some point.
+    // NOTE WELL: We could be giving the document a new priority right here, but doing that
+    // would complicate a number of threads that use this method enormously, and this is a relatively
+    // rare situation.  So we just hand such documents to the reprioritizer thread and let it fill in the document priority.
+    
+    // First update: for those who have an intact doc priority.
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(idField,id)});
+      new UnitaryClause(idField,id),
+      new UnitaryClause(docPriorityField,"<",nullDocPriority)});
     performUpdate(map,"WHERE "+query,list,null);
+    
+    // Second update: for rows whose doc priority has been nulled out
+    map.put(needPriorityField,needPriorityToString(NEEDPRIORITY_TRUE));
+    map.put(needPriorityProcessIDField,null);
+    list.clear();
+    query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(idField,id),
+      new UnitaryClause(docPriorityField,nullDocPriority)});
+    performUpdate(map,"WHERE "+query,list,null);
+
     noteModifications(0,1,0);
     TrackerClass.noteRecordChange(id, STATUS_PENDINGPURGATORY, "Set requeued status");
   }

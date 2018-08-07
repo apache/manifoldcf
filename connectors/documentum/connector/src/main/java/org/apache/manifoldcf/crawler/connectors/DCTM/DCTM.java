@@ -45,6 +45,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
   public static String CONFIG_PARAM_ATTRIBUTENAME = "attrname";
   public static String CONFIG_PARAM_MAXLENGTH = "maxdoclength";
   public static String CONFIG_PARAM_FORMAT = "mimetype";
+  public static String CONFIG_PARAM_FORMAT_ALL = "mimetypeall";
   public static String CONFIG_PARAM_PATHNAMEATTRIBUTE = "pathnameattribute";
   public static String CONFIG_PARAM_PATHMAP = "pathmap";
   public static String CONFIG_PARAM_FILTER = "filter";
@@ -1055,6 +1056,8 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     StringBuilder strLocationsClause = new StringBuilder();
     Map<String,Map<String,Map<String,Set<String>>>> tokenList = new HashMap<String,Map<String,Map<String,Set<String>>>>();
     List<String> contentList = null;
+    boolean seenAllMimeTypes = false;
+    boolean allMimeTypes = false;
     String maxSize = null;
 
     for (int i = 0; i < spec.getChildCount(); i++)
@@ -1109,8 +1112,18 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           }
         }
       }
+      else if (n.getType().equals(CONFIG_PARAM_FORMAT_ALL))
+      {
+	seenAllMimeTypes = true;
+	String all = n.getAttributeValue("value");
+	if (all.equals("true"))
+	{
+	  allMimeTypes = true;
+	}
+      }
       else if (n.getType().equals(CONFIG_PARAM_FORMAT))
       {
+	seenAllMimeTypes = true;
         String docType = n.getAttributeValue("value");
         if (contentList == null)
           contentList = new ArrayList<String>();
@@ -1153,27 +1166,28 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         strDQLend.append(" AND r_content_size<=").append(maxSize);
       }
 
-      String[] dctmTypes = convertToDCTMTypes(contentList);
-      if (dctmTypes != null)
+      // If we don't even see the allmimetypes record, we emit no restriction
+      if (seenAllMimeTypes == true && allMimeTypes == false)
       {
-        if (dctmTypes.length == 0)
-          strDQLend.append(" AND 1<0");
-        else
-        {
-          strDQLend.append(" AND a_content_type IN (");
-          boolean commaNeeded = false;
-          for (String cType : dctmTypes)
-          {
-            if (commaNeeded)
-              strDQLend.append(",");
-            else
-              commaNeeded = true;
-            strDQLend.append(quoteDQLString(cType));
-          }
-          strDQLend.append(")");
-        }
+	String[] dctmTypes = convertToDCTMTypes(contentList);
+	if (dctmTypes == null || dctmTypes.length == 0)
+	  strDQLend.append(" AND 1<0");
+	else
+	{
+	  strDQLend.append(" AND a_content_type IN (");
+	  boolean commaNeeded = false;
+	  for (String cType : dctmTypes)
+	  {
+	    if (commaNeeded)
+	      strDQLend.append(",");
+	    else
+	      commaNeeded = true;
+	    strDQLend.append(quoteDQLString(cType));
+	  }
+	  strDQLend.append(")");
+	}
       }
-
+      
       // End the clause for non-deleted documents
       strDQLend.append("))");
 
@@ -1396,12 +1410,12 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           "' and any r_version_label='CURRENT'");
         try
         {
-          long contentSizeValue = object.getContentSize();
+          long contentSizeValue = (object==null)?0L:object.getContentSize();
           contentSize = new Long(contentSizeValue);
           // Get the type name; this is what we use to figure out the desired attributes
-          String typeName = object.getTypeName();
+          String typeName = (object==null)?null:object.getTypeName();
           
-          if (object.exists() && !object.isDeleted() && !object.isHidden() && object.getPermit() > 1 &&
+          if (object != null && object.exists() && !object.isDeleted() && !object.isHidden() && object.getPermit() > 1 &&
             contentSizeValue > 0 && object.getPageCount() > 0)
           {
             // According to Ryck, the version label is not helping us much, so if it's null it's ok
@@ -1463,7 +1477,11 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           }
 
           // Do fetch phase
-            
+          if (object == null) {
+            activityStatus = "MISSING";
+            return;
+          }
+          
           String objName = object.getObjectName();
           String contentType = object.getContentType();
             
@@ -2922,11 +2940,14 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 
     // First, build a hash map containing all the currently selected document types
     Set<String> ctMap = null;
+    boolean seenAll = false;
+    boolean doAll = false;
     for (int i = 0; i < ds.getChildCount(); i++)
     {
       SpecificationNode sn = ds.getChild(i);
       if (sn.getType().equals(CONFIG_PARAM_FORMAT))
       {
+	seenAll = true;
         String token = sn.getAttributeValue("value");
         if (token != null && token.length() > 0)
         {
@@ -2935,14 +2956,51 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           ctMap.add(token);
         }
       }
+      else if (sn.getType().equals(CONFIG_PARAM_FORMAT_ALL))
+      {
+	seenAll = true;
+	String value = sn.getAttributeValue("value");
+	if (value.equals("true")) {
+	  doAll = true;
+	}
+      }
     }
 
+    // Hidden variable so we know that the form was posted
+    out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"specmimetype_posted\" value=\"true\"/>\n"
+    );
+    
     if (tabName.equals(Messages.getString(locale,"DCTM.ContentTypes")) && connectionSequenceNumber == actualSequenceNumber)
     {
       out.print(
 "<table class=\"displaytable\">\n"+
-"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\">\n"
       );
+      
+      // If _ALL record not even seen, do default thing
+      if (seenAll == false || doAll)
+      {
+      out.print(
+"      <input type=\"checkbox\" name=\""+seqPrefix+"specmimetypeall\" checked=\"\" value=\"true\"></input>\n"
+      );
+      }
+      else 
+      {
+      out.print(
+"      <input type=\"checkbox\" name=\""+seqPrefix+"specmimetypeall\" value=\"true\"></input>\n"
+      );
+      }
+      out.print(
+"    </td>\n"+
+"    <td class=\"value\">\n"+
+"      "+Messages.getBodyString(locale,"DCTM.AllContentTypes")+"\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
+      );     
       // Need to catch potential license exception here
       try
       {
@@ -2955,7 +3013,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
 "  <tr>\n"+
 "    <td class=\"description\">\n"
             );
-            if (ctMap == null || ctMap.contains(strMimeType))
+            if (ctMap != null && ctMap.contains(strMimeType))
             {
               out.print(
 "      <input type=\"checkbox\" name=\""+seqPrefix+"specmimetype\" checked=\"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(strMimeType)+"\"></input>\n"
@@ -3003,6 +3061,10 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     }
     else
     {
+      out.print(
+"<input type=\"hidden\" name=\""+seqPrefix+"specmimetypeall\" value=\""+((seenAll == false || doAll)?"true":"false")+"\"/>\n"
+      );
+
       if (ctMap != null)
       {
         for (String strMimeType : ctMap)
@@ -3393,28 +3455,36 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
     }
 
-    y = variableContext.getParameterValues(seqPrefix+"specmimetype");
-    if (y != null)
+    if (variableContext.getParameter(seqPrefix+"specmimetype_posted") != null)
     {
+      String all = variableContext.getParameter(seqPrefix+"specmimetypeall");
+      y = variableContext.getParameterValues(seqPrefix+"specmimetype");
       // Delete all file specs first
       int i = 0;
       while (i < ds.getChildCount())
       {
       	SpecificationNode sn = ds.getChild(i);
-      	if (sn.getType().equals(CONFIG_PARAM_FORMAT))
+      	if (sn.getType().equals(CONFIG_PARAM_FORMAT) || sn.getType().equals(CONFIG_PARAM_FORMAT_ALL))
           ds.removeChild(i);
       	else
           i++;
       }
+      
+      SpecificationNode n2 = new SpecificationNode(CONFIG_PARAM_FORMAT_ALL);
+      n2.setAttribute("value",(all!=null&&all.equals("true"))?"true":"false");
+      ds.addChild(ds.getChildCount(),n2);
 
       // Loop through specs
-      i = 0;
-      while (i < y.length)
+      if (y != null)
       {
-      	String fileType = y[i++];
-      	SpecificationNode node = new SpecificationNode(CONFIG_PARAM_FORMAT);
-      	node.setAttribute("value",fileType);
-      	ds.addChild(ds.getChildCount(),node);
+	i = 0;
+	while (i < y.length)
+	{
+	  String fileType = y[i++];
+	  SpecificationNode node = new SpecificationNode(CONFIG_PARAM_FORMAT);
+	  node.setAttribute("value",fileType);
+	  ds.addChild(ds.getChildCount(),node);
+	}
       }
     }
 
