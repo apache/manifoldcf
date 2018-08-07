@@ -75,6 +75,7 @@
     <module>slack</module>
     <module>rocketchat</module>
     <module>html-extractor</module>
+    <module>mongodb</module>
   </modules>
 
 </project>
