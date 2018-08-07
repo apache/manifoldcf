@@ -204,22 +204,50 @@ public class ElasticSearchIndex extends ElasticSearchConnection
           Base64 base64 = new Base64();
           base64.encodeStream(inputStream, pw);
           pw.print("\"}");
+          needComma = true;
         }
         
         if (!useMapperAttachments && inputStream != null) {
           if (contentAttributeName != null)
           {
             Reader r = new InputStreamReader(inputStream, Consts.UTF_8);
-            StringBuilder sb = new StringBuilder((int)document.getBinaryLength());
+            if (needComma) {
+              pw.print(",");
+            }
+            pw.append(jsonStringEscape(contentAttributeName)).append(" : \"");
             char[] buffer = new char[65536];
             while (true)
             {
               int amt = r.read(buffer,0,buffer.length);
               if (amt == -1)
                 break;
-              sb.append(buffer,0,amt);
+              for (int j = 0; j < amt; j++) {
+                final char x = buffer[j];
+                if (x == '\n')
+                  pw.append('\\').append('n');
+                else if (x == '\r')
+                  pw.append('\\').append('r');
+                else if (x == '\t')
+                  pw.append('\\').append('t');
+                else if (x == '\b')
+                  pw.append('\\').append('b');
+                else if (x == '\f')
+                  pw.append('\\').append('f');
+                else if (x < 32)
+                {
+                  pw.append("\\u").append(String.format(Locale.ROOT, "%04x", (int)x));
+                }
+                else
+                {
+                  if (x == '\"' || x == '\\' || x == '/')
+                    pw.append('\\');
+                  pw.append(x);
+                }
+              }
             }
-            needComma = writeField(pw, needComma, contentAttributeName, new String[]{sb.toString()});
+            
+            pw.append("\"");
+            needComma = true;
           }
         }
         

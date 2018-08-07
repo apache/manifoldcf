@@ -455,6 +455,30 @@ public class JobManager implements IJobManager
     if (jobIDs.length == 0)
       return;
 
+    int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
+    int currentCount = 0;
+    List<Long> newList = new ArrayList<>();
+    int i = 0;
+    while (i < jobIDs.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteNotificationJobDeregistration(newList);
+        newList.clear();
+        currentCount = 0;
+      }
+
+      newList.add(jobIDs[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteNotificationJobDeregistration(newList);
+  }
+  
+  protected void noteNotificationJobDeregistration(List<Long> jobIDs)
+    throws ManifoldCFException
+  {
+
     StringBuilder query = new StringBuilder();
     ArrayList newList = new ArrayList();
     
@@ -513,6 +537,30 @@ public class JobManager implements IJobManager
     Long[] jobIDs = jobs.findJobsMatchingNotifications(list);
     if (jobIDs.length == 0)
       return;
+
+    int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
+    int currentCount = 0;
+    List<Long> newList = new ArrayList<>();
+    int i = 0;
+    while (i < jobIDs.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteNotificationJobRegistration(newList);
+        newList.clear();
+        currentCount = 0;
+      }
+
+      newList.add(jobIDs[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteNotificationJobRegistration(newList);
+  }
+  
+  protected void noteNotificationJobRegistration(List<Long> jobIDs)
+    throws ManifoldCFException
+  {
 
     StringBuilder query = new StringBuilder();
     ArrayList newList = new ArrayList();
@@ -573,6 +621,30 @@ public class JobManager implements IJobManager
     if (jobIDs.length == 0)
       return;
 
+    int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
+    int currentCount = 0;
+    List<Long> newList = new ArrayList<>();
+    int i = 0;
+    while (i < jobIDs.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteOutputJobDeregistration(newList);
+        newList.clear();
+        currentCount = 0;
+      }
+
+      newList.add(jobIDs[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteOutputJobDeregistration(newList);
+  }
+  
+  protected void noteOutputJobDeregistration(List<Long> jobIDs)
+    throws ManifoldCFException
+  {
+
     StringBuilder query = new StringBuilder();
     ArrayList newList = new ArrayList();
     
@@ -632,6 +704,30 @@ public class JobManager implements IJobManager
     if (jobIDs.length == 0)
       return;
 
+    int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
+    int currentCount = 0;
+    List<Long> newList = new ArrayList<>();
+    int i = 0;
+    while (i < jobIDs.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteOutputJobRegistration(newList);
+        newList.clear();
+        currentCount = 0;
+      }
+
+      newList.add(jobIDs[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteOutputJobRegistration(newList);
+  }
+  
+  protected void noteOutputJobRegistration(List<Long> jobIDs)
+    throws ManifoldCFException
+  {
+
     StringBuilder query = new StringBuilder();
     ArrayList newList = new ArrayList();
     
@@ -669,7 +765,7 @@ public class JobManager implements IJobManager
     {
       if (currentCount == maxCount)
       {
-        noteConnectionDeregistration(list);
+        noteTransformationConnectionDeregistration(list);
         list.clear();
         currentCount = 0;
       }
@@ -691,6 +787,29 @@ public class JobManager implements IJobManager
     if (jobIDs.length == 0)
       return;
 
+    int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
+    int currentCount = 0;
+    List<Long> newList = new ArrayList<>();
+    int i = 0;
+    while (i < jobIDs.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteTransformationJobDeregistration(newList);
+        newList.clear();
+        currentCount = 0;
+      }
+
+      newList.add(jobIDs[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteTransformationJobDeregistration(newList);
+  }
+  
+  protected void noteTransformationJobDeregistration(List<Long> jobIDs)
+    throws ManifoldCFException
+  {
     StringBuilder query = new StringBuilder();
     ArrayList newList = new ArrayList();
     
@@ -728,7 +847,7 @@ public class JobManager implements IJobManager
     {
       if (currentCount == maxCount)
       {
-        noteConnectionDeregistration(list);
+        noteTransformationConnectionRegistration(list);
         list.clear();
         currentCount = 0;
       }
@@ -749,6 +868,30 @@ public class JobManager implements IJobManager
     Long[] jobIDs = jobs.findJobsMatchingTransformations(list);
     if (jobIDs.length == 0)
       return;
+
+    int maxCount = database.findConjunctionClauseMax(new ClauseDescription[]{});
+    int currentCount = 0;
+    List<Long> newList = new ArrayList<>();
+    int i = 0;
+    while (i < jobIDs.length)
+    {
+      if (currentCount == maxCount)
+      {
+        noteTransformationJobRegistration(newList);
+        newList.clear();
+        currentCount = 0;
+      }
+
+      newList.add(jobIDs[i++]);
+      currentCount++;
+    }
+    if (currentCount > 0)
+      noteTransformationJobRegistration(newList);
+  }
+  
+  protected void noteTransformationJobRegistration(List<Long> jobIDs)
+    throws ManifoldCFException
+  {
 
     StringBuilder query = new StringBuilder();
     ArrayList newList = new ArrayList();

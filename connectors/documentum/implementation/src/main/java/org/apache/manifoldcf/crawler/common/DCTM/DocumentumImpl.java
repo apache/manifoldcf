@@ -331,7 +331,11 @@ public class DocumentumImpl extends UnicastRemoteObject implements IDocumentum
     IDfSession objIDfSession = getSession();
     try
     {
-      return new DocumentumObjectImpl(objIDfSession,objIDfSession.getObjectByQualification(dql));
+      IDfPersistentObject o = objIDfSession.getObjectByQualification(dql);
+      if (o == null) {
+          return null;
+      }
+      return new DocumentumObjectImpl(objIDfSession,o);
     }
     catch (DfAuthenticationException ex)
     {

@@ -73,7 +73,7 @@
     <property name="chemistry.version" value="1.1.0"/>
     <property name="glassfish.version" value="2.1.v20091210"/>
     <property name="junit.version" value="4.12"/>
-    <property name="selenium.version" value="3.3.1"/>
+    <property name="selenium.version" value="3.13.0"/>
     <property name="hamcrest.version" value="1.3"/>
     <property name="log4j12.version" value="1.2.17"/>
     <property name="log4j.version" value="2.4.1"/>
@@ -104,7 +104,7 @@
     <property name="jetty-schemas.version" value="3.1.M0"/>
     <property name="alfresco-indexer.version" value="0.8.1"/>
     <property name="gson.version" value="2.8.0"/>
-    <property name="guava.version" value="21.0"/>
+    <property name="guava.version" value="25.1-jre"/>
     <property name="mockito.version" value="1.9.5"/>
     <property name="wiremock.version" value="2.5.1"/>
     <property name="objenesis.version" value="2.1"/>
@@ -120,7 +120,7 @@
     <property name="tukaani.version" value="1.6"/>
     <property name="pdfbox.version" value="2.0.6"/>
     <property name="jempbox.version" value="1.8.13"/>
-    <property name="commons-compress.version" value="1.14"/>
+    <property name="commons-compress.version" value="1.17"/>
     <property name="commons-csv.version" value="1.0"/>
     <property name="commons-exec.version" value="1.3"/>
     <property name="juniversalchardet.version" value="1.0.3"/>
@@ -880,7 +880,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <get src="${nuxeo-base-url}/${project-path}/${artifact-name}/${artifact-version}/${artifact-name}-${artifact-version}.${artifact-type}" dest="${target}/${artifact-name}-${artifact-version}.${artifact-type}"/>
     </target>
 
-    <target name="download-nuxeo-client">
+    <target name="download-nuxeo-client" depends="download-okhttp">
         <mkdir dir="lib"/>
         <antcall target="download-via-nuxeo">
             <param name="project-path" value="org/nuxeo/client"/>
@@ -894,20 +894,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-version" value="2.3.0"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="retrofit"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven">
-            <param name="project-path" value="com/squareup/okhttp3"/>
-            <param name="artifact-version" value="3.9.1"/>
-            <param name="target" value="lib"/>
-            <param name="artifact-name" value="okhttp"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven">
-            <param name="project-path" value="com/squareup/okio"/>
-            <param name="artifact-version" value="1.13.0"/>
-            <param name="target" value="lib"/>
-            <param name="artifact-name" value="okio"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -1621,7 +1607,24 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
-    <target name="download-selenium" depends="download-gson,download-guava,download-commons-exec">
+    <target name="download-okhttp">
+        <antcall target="download-via-maven">
+            <param name="project-path" value="com/squareup/okhttp3"/>
+            <param name="artifact-version" value="3.10.0"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="okhttp"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="com/squareup/okio"/>
+            <param name="artifact-version" value="1.14.1"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="okio"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-selenium" depends="download-gson,download-guava,download-commons-exec,download-okhttp">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/seleniumhq/selenium"/>
@@ -1687,6 +1690,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="cglib"/>
             <param name="artifact-version" value="${cglib.version}"/>
             <param name="artifact-name" value="cglib-nodep"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="net/bytebuddy"/>
+            <param name="artifact-version" value="1.8.3"/>
+            <param name="artifact-name" value="byte-buddy"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>

@@ -3,10 +3,40 @@ $Id$
 
 ======================= 2.11-dev =====================
 
+CONNECTORS-1517: Documentum mimetypes form didn't allow for no restrictions
+(James Thomas, Karl Wright)
+
+CONNECTORS-1520: Transformation connector registration and de-registration was broken
+due to early cut/paste error.
+(Mike Hugo)
+
+CONNECTORS-1518: Elastic search without mapper attachment
+did not stream document.
+(Steph van Schwalk)
+
+CONNECTORS-1514: Fix MCF Combined Service UI
+(Kishore Kumar)
+
+CONNECTORS-1513: Fix SeleniumTester clickTab method
+(Karl Wright, Kishore Kumar)
+
+CONNECTORS-1512: Fix NPE in documentum connector when a document
+is removed from the Documentum repository (not deleted, completely
+removed).
+
+CONNECTORS-1510: Fix NPE in solr connector with null mime type.
+
+CONNECTORS-1507: Restarting the cluster could leave documents
+that were formerly active in PENDING or PENDINGPURGATORY without
+document priorities.
+
 CONNECTORS-1503: Fix for Solr standard update handler
 parameter transmission to Solr.
 
 ======================= Release 2.10 =====================
+
+CONNECTORS-1500: HTML Extractor transformation connector contribution
+(Olivier Tavard)
 
 CONNECTORS-1501: Add dynamic snippet for the next Apache event
 (Piergiorgio Lucidi)

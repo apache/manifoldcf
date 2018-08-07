@@ -52,8 +52,9 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     testerInstance.selectValue("classname","org.apache.manifoldcf.agents.output.cmisoutput.CmisOutputConnector");
     testerInstance.clickButton("Continue");
 
-    // Go back to the Name tab
-    testerInstance.clickTab("Name");
+    testerInstance.clickTab("Server");
+    testerInstance.setValue("username", "foo");
+    testerInstance.setValue("password", "bar");
 
     // Now save the connection.
     testerInstance.clickButton("Save");
