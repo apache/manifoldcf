@@ -13,7 +13,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <mongo.java.driver.version>2.11.3</mongo.java.driver.version>
-        <docker.maven.plugin.version>0.26.0</docker.maven.plugin.version>
         <mongodb.port>27017</mongodb.port>
         <mongodb.username>dummyuser</mongodb.username>
         <mongodb.password>dummysecrect</mongodb.password>
@@ -81,12 +80,6 @@
 				  <scope>test</scope>
 				</dependency>
         <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>docker-maven-plugin</artifactId>
-            <version>${docker.maven.plugin.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>mcf-core</artifactId>
             <version>${project.version}</version>
@@ -107,7 +100,6 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>

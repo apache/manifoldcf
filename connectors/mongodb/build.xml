@@ -104,10 +104,6 @@
     <property name="embedded-mongodb.process.artifactId" value="de.flapdoodle.embed.process"/>
     <property name="embedded-mongodb.process-package" value="de/flapdoodle/embed"/>    
     <property name="embedded-mongodb.process.jar" value="${embedded-mongodb.process.artifactId}-${embedded-mongodb.process.version.label}.jar"/>
-
-	  <!--
-	  https://oss.sonatype.org/content/repositories/public/de/flapdoodle/embed/de.flapdoodle.embed.process/2.0.5/de.flapdoodle.embed.process-2.0.5.jar
-	  -->
 	
 	  <target name="calculate-testcode-condition">
 	    <available file="test-lib/${embedded-mongodb.snapshot-jar}" property="tests-present"/>
