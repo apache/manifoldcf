@@ -93,5 +93,24 @@
             </condition>
         </fail>
     </target>
+	
+	  <property name="embedded-mongodb.version.label" value="2.1.2"/>
+    <property name="embedded-mongodb.version.snapshot" value="20180621.063700-1" />
+    <property name="embedded-mongodb.artifactId" value="de.flapdoodle.embed.mongo"/>
+    <property name="embedded-mongodb-package" value="de/flapdoodle/embed"/>    
+	  <property name="embedded-mongodb.snapshot-jar" value="${embedded-mongodb.artifactId}-${embedded-mongodb.version.label}-${embedded-mongodb.version.snapshot}.jar"/>
+
+	  <target name="calculate-testcode-condition">
+	    <available file="test-lib/${embedded-mongodb.snapshot-jar}" property="tests-present"/>
+	  </target>
+
+    <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
+      <echo message="Need Embedded MongoDB download in order to run tests - run ant make-deps"/>
+    </target>
+	
+    <target name="download-dependencies">
+      <property name="sonatype-maven-repo" value="https://oss.sonatype.org/content/repositories/snapshots" />
+      <get src="${sonatype-maven-repo}}/${embedded-mongodb-package}/${embedded-mongodb.artifactId}/${embedded-mongodb.version}/${embedded-mongodb.snapshot-jar}" dest="test-materials/${embedded-mongodb.snapshot-jar}"/>
+	  </target>
 
 </project>
