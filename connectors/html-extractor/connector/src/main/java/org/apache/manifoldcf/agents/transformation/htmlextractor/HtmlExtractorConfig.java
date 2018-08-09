@@ -24,7 +24,7 @@ package org.apache.manifoldcf.agents.transformation.htmlextractor;
  */
 public class HtmlExtractorConfig {
 
- // Configuration parameters
+  // Configuration parameters
   public static final String WHITELIST_DEFAULT = "body";
   public static final String BLACKLIST_DEFAULT = "";
   public static final String PARAMETER_STRIP_HTML = "Strip HTML content";
