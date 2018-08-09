@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.11-dev =====================
 
+CONNECTORS-1490: GSOC MongoDB Output Connector
+(Irindu Nugawela, Piergiorgio Lucidi)
+
 CONNECTORS-1517: Documentum mimetypes form didn't allow for no restrictions
 (James Thomas, Karl Wright)
 

@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: BaseITHSQLDB.java 1800083 2017-06-27 19:55:21Z piergiorgio $ */
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -21,6 +21,17 @@ package org.apache.manifoldcf.agents.output.mongodboutput.tests;
 import org.junit.After;
 import org.junit.Before;
 
+import com.mongodb.Mongo;
+
+import de.flapdoodle.embed.mongo.MongodExecutable;
+import de.flapdoodle.embed.mongo.MongodProcess;
+import de.flapdoodle.embed.mongo.MongodStarter;
+import de.flapdoodle.embed.mongo.config.IMongodConfig;
+import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
+import de.flapdoodle.embed.mongo.config.Net;
+import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.process.runtime.Network;
+
 /**
  * Base integration tests class for MongoDB tested against a CMIS repository
  *
@@ -28,37 +39,49 @@ import org.junit.Before;
  */
 public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB {
 
-    protected String[] getConnectorNames() {
-        return new String[]{"CMIS"};
-    }
+	private MongodExecutable mongodExecutable;
+	private MongodProcess mongod;
+	private Mongo mongo;
 
-    protected String[] getConnectorClasses() {
-        return new String[]{"org.apache.manifoldcf.crawler.tests.TestingRepositoryConnector"};
-    }
+	protected String[] getConnectorNames() {
+		return new String[] { "CMIS" };
+	}
 
-    protected String[] getOutputNames() {
-        return new String[]{"MongoDB"};
-    }
+	protected String[] getConnectorClasses() {
+		return new String[] { "org.apache.manifoldcf.crawler.tests.TestingRepositoryConnector" };
+	}
 
-    protected String[] getOutputClasses() {
-        return new String[]{"org.apache.manifoldcf.agents.output.mongodboutput.MongodbOutputConnector"};
-    }
+	protected String[] getOutputNames() {
+		return new String[] { "MongoDB" };
+	}
 
-    // Setup/teardown
+	protected String[] getOutputClasses() {
+		return new String[] { "org.apache.manifoldcf.agents.output.mongodboutput.MongodbOutputConnector" };
+	}
 
-    @Before
-    public void setUpMongoDB()
-            throws Exception {
+	// Setup/teardown
 
-        //start mongod here
-        //we use maven docker plugin for this so no need to implement
-    }
+	@Before
+	public void setUpMongoDB() throws Exception {
 
-    @After
-    public void cleanUpMongoDB()
-            throws Exception {
-        //stop mongod here
-        //we use maven docker plugin for this so no need to implement
-    }
+		// start mongod here
+		MongodStarter starter = MongodStarter.getDefaultInstance();
+		String bindIp = "localhost";
+		int port = 27017;
+		IMongodConfig mongodConfig = new MongodConfigBuilder().version(Version.V2_6_8)
+		    .net(new Net(bindIp, port, Network.localhostIsIPv6())).build();
+
+		mongodExecutable = starter.prepare(mongodConfig);
+		mongod = mongodExecutable.start();
+		
+	}
+
+	@After
+	public void cleanUpMongoDB() throws Exception {
+		// stop mongod here
+		if (mongodExecutable != null) {
+			mongodExecutable.stop();
+		}
+	}
 
 }

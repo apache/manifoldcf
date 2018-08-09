@@ -25,9 +25,9 @@
         </developer>
         <developer>
             <name>Piergiorgio Lucidi</name>
-            <organization>Sourcesense</organization>
-            <organizationUrl>http://www.sourcesense.com</organizationUrl>
-            <url>http://www.open4dev.com</url>
+            <organization>TAI Solutions</organization>
+            <organizationUrl>https://www.taisolutions.com/</organizationUrl>
+            <url>https://www.open4dev.com</url>
         </developer>
     </developers>
 
@@ -74,6 +74,12 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+				  <groupId>de.flapdoodle.embed</groupId>
+				  <artifactId>de.flapdoodle.embed.mongo</artifactId>
+				  <version>2.1.2-SNAPSHOT</version>
+				  <scope>test</scope>
+				</dependency>
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>docker-maven-plugin</artifactId>
@@ -367,57 +373,17 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>0.26.0</version>
-                <configuration>
-                    <showLogs>true</showLogs>
-
-                    <images>
-                        <image>
-                            <!--<name>mongo:3.4.6</name>-->
-                            <name>mongo:2.6.9</name>
-                            <alias>mongo</alias>
-                            <run>
-                                <ports>
-                                    <port>${mongodb.port}:27017</port>
-                                </ports>
-                                <env>
-                                    <MONGO_INITDB_ROOT_USERNAME>${mongodb.username}</MONGO_INITDB_ROOT_USERNAME>
-                                    <MONGO_INITDB_ROOT_PASSWORD>${mongodb.password}</MONGO_INITDB_ROOT_PASSWORD>
-                                </env>
-                                <wait>
-                                    <log>waiting for connections on port</log>
-                                    <url>http://localhost:${mongodb.port}</url>
-                                    <time>60000</time>
-                                </wait>
-                            </run>
-                        </image>
-                    </images>
-                </configuration>
-
-                <executions>
-                    <execution>
-                        <id>prepare-containers</id>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>start</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>remove-containers</id>
-                        <phase>post-integration-test</phase>
-                        <goals>
-                            <goal>stop</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
+            
         </plugins>
 
     </build>
+
+    <repositories>
+      <repository>
+      <id>sonatype-repo</id>
+      <name>Sonatype Repo</name>
+      <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+    </repositories>
 
 </project>
