@@ -195,335 +195,335 @@ public class HtmlExtractor extends org.apache.manifoldcf.agents.transformation.B
 			finally
 			{
 				activities.recordActivity(new Long(startTime), ACTIVITY_PROCESS, length, documentURI,
-						resultCode, description);
-			}
+            resultCode, description);
+      }
 
 
-		}
+    }
 
-		return activities.sendDocument(documentURI,document);
-	}
-
-
-	protected static interface DestinationStorage
-	{
-		/** Get the output stream to write to.  Caller should explicitly close this stream when done writing.
-		 */
-		public OutputStream getOutputStream()
-				throws ManifoldCFException;
-
-		/** Get new binary length.
-		 */
-		public long getBinaryLength()
-				throws ManifoldCFException;
-
-		/** Get the input stream to read from.  Caller should explicitly close this stream when done reading.
-		 */
-		public InputStream getInputStream()
-				throws ManifoldCFException;
-
-		/** Close the object and clean up everything.
-		 * This should be called when the data is no longer needed.
-		 */
-		public void close()
-				throws ManifoldCFException;
-	}
-
-	protected static class FileDestinationStorage implements DestinationStorage
-	{
-		protected final File outputFile;
-		protected final OutputStream outputStream;
-
-		public FileDestinationStorage()
-				throws ManifoldCFException
-		{
-			File outputFile;
-			OutputStream outputStream;
-			try
-			{
-				outputFile = File.createTempFile("mcftika","tmp");
-				outputStream = new FileOutputStream(outputFile);
-			}
-			catch (IOException e)
-			{
-				handleIOException(e);
-				outputFile = null;
-				outputStream = null;
-			}
-			this.outputFile = outputFile;
-			this.outputStream = outputStream;
-		}
-
-		@Override
-		public OutputStream getOutputStream()
-				throws ManifoldCFException
-		{
-			return outputStream;
-		}
-
-		/** Get new binary length.
-		 */
-		@Override
-		public long getBinaryLength()
-				throws ManifoldCFException
-		{
-			return outputFile.length();
-		}
-
-		/** Get the input stream to read from.  Caller should explicitly close this stream when done reading.
-		 */
-		@Override
-		public InputStream getInputStream()
-				throws ManifoldCFException
-		{
-			try
-			{
-				return new FileInputStream(outputFile);
-			}
-			catch (IOException e)
-			{
-				handleIOException(e);
-				return null;
-			}
-		}
-
-		private void handleIOException(IOException e) {
-			// TODO Auto-generated method stub
-
-		}
-
-		/** Close the object and clean up everything.
-		 * This should be called when the data is no longer needed.
-		 */
-		@Override
-		public void close()
-				throws ManifoldCFException
-		{
-			outputFile.delete();
-		}
-
-	}
-
-	protected static class MemoryDestinationStorage implements DestinationStorage
-	{
-		protected final ByteArrayOutputStream outputStream;
-
-		public MemoryDestinationStorage(int sizeHint)
-		{
-			outputStream = new ByteArrayOutputStream(sizeHint);
-		}
-
-		@Override
-		public OutputStream getOutputStream()
-				throws ManifoldCFException
-		{
-			return outputStream;
-		}
-
-		/** Get new binary length.
-		 */
-		@Override
-		public long getBinaryLength()
-				throws ManifoldCFException
-		{
-			return outputStream.size();
-		}
-
-		/** Get the input stream to read from.  Caller should explicitly close this stream when done reading.
-		 */
-		@Override
-		public InputStream getInputStream()
-				throws ManifoldCFException
-		{
-			return new ByteArrayInputStream(outputStream.toByteArray());
-		}
-
-		/** Close the object and clean up everything.
-		 * This should be called when the data is no longer needed.
-		 */
-		public void close()
-				throws ManifoldCFException
-		{
-		}
-		protected static int handleIOException(IOException e)
-				throws ManifoldCFException
-		{
-			// IOException reading from our local storage...
-			if (e instanceof InterruptedIOException)
-				throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-			throw new ManifoldCFException(e.getMessage(),e);
-		}
-
-	}
-	/**
-	 * Test if there is at least one regular expression that match with the
-	 * provided sting
-	 *
-	 * @param regexList
-	 *          the list of regular expressions
-	 * @param str
-	 *          the string to test
-	 * @return the first matching regex found or null if no matching regex
-	 */
-	private String matchingRegex(final List<String> regexList, final String str) throws RegexException {
-		for (final String regex : regexList) {
-			try {
-				final Pattern pattern = Pattern.compile(regex);
-				final Matcher matcher = pattern.matcher(str);
-				if (matcher.find()) {
-					return regex;
-				}
-			} catch (final PatternSyntaxException e) {
-				throw new RegexException(regex, "Invalid regular expression");
-			}
-		}
-		return null;
-	}
+    return activities.sendDocument(documentURI,document);
+  }
 
 
+  protected static interface DestinationStorage
+  {
+    /** Get the output stream to write to.  Caller should explicitly close this stream when done writing.
+     */
+    public OutputStream getOutputStream()
+        throws ManifoldCFException;
 
+    /** Get new binary length.
+     */
+    public long getBinaryLength()
+        throws ManifoldCFException;
+
+    /** Get the input stream to read from.  Caller should explicitly close this stream when done reading.
+     */
+    public InputStream getInputStream()
+        throws ManifoldCFException;
+
+    /** Close the object and clean up everything.
+     * This should be called when the data is no longer needed.
+     */
+    public void close()
+        throws ManifoldCFException;
+  }
+
+  protected static class FileDestinationStorage implements DestinationStorage
+  {
+    protected final File outputFile;
+    protected final OutputStream outputStream;
+
+    public FileDestinationStorage()
+        throws ManifoldCFException
+    {
+      File outputFile;
+      OutputStream outputStream;
+      try
+      {
+        outputFile = File.createTempFile("mcftika","tmp");
+        outputStream = new FileOutputStream(outputFile);
+      }
+      catch (IOException e)
+      {
+        handleIOException(e);
+        outputFile = null;
+        outputStream = null;
+      }
+      this.outputFile = outputFile;
+      this.outputStream = outputStream;
+    }
+
+    @Override
+    public OutputStream getOutputStream()
+        throws ManifoldCFException
+    {
+      return outputStream;
+    }
+
+    /** Get new binary length.
+     */
+    @Override
+    public long getBinaryLength()
+        throws ManifoldCFException
+    {
+      return outputFile.length();
+    }
+
+    /** Get the input stream to read from.  Caller should explicitly close this stream when done reading.
+     */
+    @Override
+    public InputStream getInputStream()
+        throws ManifoldCFException
+    {
+      try
+      {
+        return new FileInputStream(outputFile);
+      }
+      catch (IOException e)
+      {
+        handleIOException(e);
+        return null;
+      }
+    }
+
+    private void handleIOException(IOException e) {
+      // TODO Auto-generated method stub
+
+    }
+
+    /** Close the object and clean up everything.
+     * This should be called when the data is no longer needed.
+     */
+    @Override
+    public void close()
+        throws ManifoldCFException
+    {
+      outputFile.delete();
+    }
+
+  }
+
+  protected static class MemoryDestinationStorage implements DestinationStorage
+  {
+    protected final ByteArrayOutputStream outputStream;
+
+    public MemoryDestinationStorage(int sizeHint)
+    {
+      outputStream = new ByteArrayOutputStream(sizeHint);
+    }
+
+    @Override
+    public OutputStream getOutputStream()
+        throws ManifoldCFException
+    {
+      return outputStream;
+    }
+
+    /** Get new binary length.
+     */
+    @Override
+    public long getBinaryLength()
+        throws ManifoldCFException
+    {
+      return outputStream.size();
+    }
+
+    /** Get the input stream to read from.  Caller should explicitly close this stream when done reading.
+     */
+    @Override
+    public InputStream getInputStream()
+        throws ManifoldCFException
+    {
+      return new ByteArrayInputStream(outputStream.toByteArray());
+    }
+
+    /** Close the object and clean up everything.
+     * This should be called when the data is no longer needed.
+     */
+    public void close()
+        throws ManifoldCFException
+    {
+    }
+    protected static int handleIOException(IOException e)
+        throws ManifoldCFException
+    {
+      // IOException reading from our local storage...
+      if (e instanceof InterruptedIOException)
+        throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      throw new ManifoldCFException(e.getMessage(),e);
+    }
+
+  }
+  /**
+   * Test if there is at least one regular expression that match with the
+   * provided sting
+   *
+   * @param regexList
+   *          the list of regular expressions
+   * @param str
+   *          the string to test
+   * @return the first matching regex found or null if no matching regex
+   */
+  private String matchingRegex(final List<String> regexList, final String str) throws RegexException {
+    for (final String regex : regexList) {
+      try {
+        final Pattern pattern = Pattern.compile(regex);
+        final Matcher matcher = pattern.matcher(str);
+        if (matcher.find()) {
+          return regex;
+        }
+      } catch (final PatternSyntaxException e) {
+        throw new RegexException(regex, "Invalid regular expression");
+      }
+    }
+    return null;
+  }
 
 
 
 
-	/**
-	 * Output the configuration header section. This method is called in the head
-	 * section of the connector's configuration page. Its purpose is to add the
-	 * required tabs to the list, and to output any javascript methods that might
-	 * be needed by the configuration editing HTML.
-	 *
-	 * @param threadContext
-	 *          is the local thread context.
-	 * @param out
-	 *          is the output to which any HTML should be sent.
-	 * @param parameters
-	 *          are the configuration parameters, as they currently exist, for
-	 *          this connection being configured.
-	 * @param tabsArray
-	 *          is an array of tab names. Add to this array any tab names that are
-	 *          specific to the connector.
-	 */
-	@Override
-	public void outputConfigurationHeader(final IThreadContext threadContext, final IHTTPOutput out, final Locale locale,
-			final ConfigParams parameters, final List<String> tabsArray) throws ManifoldCFException, IOException {
-
-		Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_JS, null);
-	}
-
-	/**
-	 * Output the configuration body section. This method is called in the body
-	 * section of the connector's configuration page. Its purpose is to present
-	 * the required form elements for editing. The coder can presume that the HTML
-	 * that is output from this configuration will be within appropriate <html>,
-	 * <body>, and <form> tags. The name of the form is "editconnection".
-	 *
-	 * @param threadContext
-	 *          is the local thread context.
-	 * @param out
-	 *          is the output to which any HTML should be sent.
-	 * @param parameters
-	 *          are the configuration parameters, as they currently exist, for
-	 *          this connection being configured.
-	 * @param tabName
-	 *          is the current tab name.
-	 */
-	@Override
-	public void outputConfigurationBody(final IThreadContext threadContext, final IHTTPOutput out, final Locale locale,
-			final ConfigParams parameters, final String tabName) throws ManifoldCFException, IOException {
-		final Map<String, Object> velocityContext = new HashMap<>();
-		velocityContext.put("TabName", tabName);
-
-	}
-
-	/**
-	 * Process a configuration post. This method is called at the start of the
-	 * connector's configuration page, whenever there is a possibility that form
-	 * data for a connection has been posted. Its purpose is to gather form
-	 * information and modify the configuration parameters accordingly. The name
-	 * of the posted form is "editconnection".
-	 *
-	 * @param threadContext
-	 *          is the local thread context.
-	 * @param variableContext
-	 *          is the set of variables available from the post, including binary
-	 *          file post information.
-	 * @param parameters
-	 *          are the configuration parameters, as they currently exist, for
-	 *          this connection being configured.
-	 * @return null if all is well, or a string error message if there is an error
-	 *         that should prevent saving of the connection (and cause a
-	 *         redirection to an error page).
-	 */
-	@Override
-	public String processConfigurationPost(final IThreadContext threadContext, final IPostParameters variableContext,
-			final Locale locale, final ConfigParams parameters) throws ManifoldCFException {
-
-
-		return null;
-	}
-
-	/**
-	 * View configuration. This method is called in the body section of the
-	 * connector's view configuration page. Its purpose is to present the
-	 * connection information to the user. The coder can presume that the HTML
-	 * that is output from this configuration will be within appropriate <html>
-	 * and <body> tags.
-	 *
-	 * @param threadContext
-	 *          is the local thread context.
-	 * @param out
-	 *          is the output to which any HTML should be sent.
-	 * @param parameters
-	 *          are the configuration parameters, as they currently exist, for
-	 *          this connection being configured.
-	 */
-	@Override
-	public void viewConfiguration(final IThreadContext threadContext, final IHTTPOutput out, final Locale locale,
-			final ConfigParams parameters) throws ManifoldCFException, IOException {
-		final Map<String, Object> velocityContext = new HashMap<>();
-		Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIGURATION_HTML, velocityContext);
-	}
-
-	protected static void fillInHtmlExtractorSpecification(final Map<String, Object> paramMap, final Specification os) {
-
-		final List<String> includeFilters = new ArrayList<String>();
-		final List<String> excludeFilters = new ArrayList<String>();
-
-
-		String striphtmlValue = "true";
-
-
-		// Fill in context
-
-
-		for (int i = 0; i < os.getChildCount(); i++) {
-			final SpecificationNode sn = os.getChild(i);
-			if (sn.getType().equals(HtmlExtractorConfig.NODE_INCLUDEFILTER)) {
-				final String includeFilter = sn.getAttributeValue(HtmlExtractorConfig.ATTRIBUTE_REGEX);
-				if (includeFilter != null) {
-					includeFilters.add(includeFilter);
-				}
-			} else if (sn.getType().equals(HtmlExtractorConfig.NODE_EXCLUDEFILTER)) {
-				final String excludeFilter = sn.getAttributeValue(HtmlExtractorConfig.ATTRIBUTE_REGEX);
-				if (excludeFilter != null) {
-					excludeFilters.add(excludeFilter);
-				}
-
-
-			} else if (sn.getType().equals(NODE_KEEPMETADATA))
-			{
-				striphtmlValue = sn.getAttributeValue(ATTRIBUTE_VALUE);
-			}
-
-		
-	}
 
 
 
-	paramMap.put("INCLUDEFILTERS", includeFilters);
-	paramMap.put("EXCLUDEFILTERS", excludeFilters);
-	paramMap.put("HTMLTAGUSAGE", html_strip_usage);
-	paramMap.put("STRIPHTML",striphtmlValue);
+  /**
+   * Output the configuration header section. This method is called in the head
+   * section of the connector's configuration page. Its purpose is to add the
+   * required tabs to the list, and to output any javascript methods that might
+   * be needed by the configuration editing HTML.
+   *
+   * @param threadContext
+   *          is the local thread context.
+   * @param out
+   *          is the output to which any HTML should be sent.
+   * @param parameters
+   *          are the configuration parameters, as they currently exist, for
+   *          this connection being configured.
+   * @param tabsArray
+   *          is an array of tab names. Add to this array any tab names that are
+   *          specific to the connector.
+   */
+  @Override
+  public void outputConfigurationHeader(final IThreadContext threadContext, final IHTTPOutput out, final Locale locale,
+      final ConfigParams parameters, final List<String> tabsArray) throws ManifoldCFException, IOException {
+
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_JS, null);
+  }
+
+  /**
+   * Output the configuration body section. This method is called in the body
+   * section of the connector's configuration page. Its purpose is to present
+   * the required form elements for editing. The coder can presume that the HTML
+   * that is output from this configuration will be within appropriate <html>,
+   * <body>, and <form> tags. The name of the form is "editconnection".
+   *
+   * @param threadContext
+   *          is the local thread context.
+   * @param out
+   *          is the output to which any HTML should be sent.
+   * @param parameters
+   *          are the configuration parameters, as they currently exist, for
+   *          this connection being configured.
+   * @param tabName
+   *          is the current tab name.
+   */
+  @Override
+  public void outputConfigurationBody(final IThreadContext threadContext, final IHTTPOutput out, final Locale locale,
+      final ConfigParams parameters, final String tabName) throws ManifoldCFException, IOException {
+    final Map<String, Object> velocityContext = new HashMap<>();
+    velocityContext.put("TabName", tabName);
+
+  }
+
+  /**
+   * Process a configuration post. This method is called at the start of the
+   * connector's configuration page, whenever there is a possibility that form
+   * data for a connection has been posted. Its purpose is to gather form
+   * information and modify the configuration parameters accordingly. The name
+   * of the posted form is "editconnection".
+   *
+   * @param threadContext
+   *          is the local thread context.
+   * @param variableContext
+   *          is the set of variables available from the post, including binary
+   *          file post information.
+   * @param parameters
+   *          are the configuration parameters, as they currently exist, for
+   *          this connection being configured.
+   * @return null if all is well, or a string error message if there is an error
+   *         that should prevent saving of the connection (and cause a
+   *         redirection to an error page).
+   */
+  @Override
+  public String processConfigurationPost(final IThreadContext threadContext, final IPostParameters variableContext,
+      final Locale locale, final ConfigParams parameters) throws ManifoldCFException {
+
+
+    return null;
+  }
+
+  /**
+   * View configuration. This method is called in the body section of the
+   * connector's view configuration page. Its purpose is to present the
+   * connection information to the user. The coder can presume that the HTML
+   * that is output from this configuration will be within appropriate <html>
+   * and <body> tags.
+   *
+   * @param threadContext
+   *          is the local thread context.
+   * @param out
+   *          is the output to which any HTML should be sent.
+   * @param parameters
+   *          are the configuration parameters, as they currently exist, for
+   *          this connection being configured.
+   */
+  @Override
+  public void viewConfiguration(final IThreadContext threadContext, final IHTTPOutput out, final Locale locale,
+      final ConfigParams parameters) throws ManifoldCFException, IOException {
+    final Map<String, Object> velocityContext = new HashMap<>();
+    Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIGURATION_HTML, velocityContext);
+  }
+
+  protected static void fillInHtmlExtractorSpecification(final Map<String, Object> paramMap, final Specification os) {
+
+    final List<String> includeFilters = new ArrayList<String>();
+    final List<String> excludeFilters = new ArrayList<String>();
+
+
+    String striphtmlValue = "true";
+
+
+    // Fill in context
+
+
+    for (int i = 0; i < os.getChildCount(); i++) {
+      final SpecificationNode sn = os.getChild(i);
+      if (sn.getType().equals(HtmlExtractorConfig.NODE_INCLUDEFILTER)) {
+        final String includeFilter = sn.getAttributeValue(HtmlExtractorConfig.ATTRIBUTE_REGEX);
+        if (includeFilter != null) {
+          includeFilters.add(includeFilter);
+        }
+      } else if (sn.getType().equals(HtmlExtractorConfig.NODE_EXCLUDEFILTER)) {
+        final String excludeFilter = sn.getAttributeValue(HtmlExtractorConfig.ATTRIBUTE_REGEX);
+        if (excludeFilter != null) {
+          excludeFilters.add(excludeFilter);
+        }
+
+
+      } else if (sn.getType().equals(NODE_KEEPMETADATA))
+      {
+        striphtmlValue = sn.getAttributeValue(ATTRIBUTE_VALUE);
+      }
+
+    
+  }
+
+
+
+  paramMap.put("INCLUDEFILTERS", includeFilters);
+  paramMap.put("EXCLUDEFILTERS", excludeFilters);
+  paramMap.put("HTMLTAGUSAGE", html_strip_usage);
+  paramMap.put("STRIPHTML",striphtmlValue);
 
 }
 
@@ -546,16 +546,16 @@ public class HtmlExtractor extends org.apache.manifoldcf.agents.transformation.B
  */
 @Override
 public void outputSpecificationHeader(final IHTTPOutput out, final Locale locale, final Specification os,
-		final int connectionSequenceNumber, final List<String> tabsArray) throws ManifoldCFException, IOException {
-	final Map<String, Object> paramMap = new HashMap<>();
-	paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
+    final int connectionSequenceNumber, final List<String> tabsArray) throws ManifoldCFException, IOException {
+  final Map<String, Object> paramMap = new HashMap<>();
+  paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
 
-	tabsArray.add(Messages.getString(locale, "HtmlExtractorTransformationConnector.HtmlExtractorTabName"));
+  tabsArray.add(Messages.getString(locale, "HtmlExtractorTransformationConnector.HtmlExtractorTabName"));
 
-	// Fill in the specification header map, using data from all tabs.
-	fillInHtmlExtractorSpecification(paramMap, os);
+  // Fill in the specification header map, using data from all tabs.
+  fillInHtmlExtractorSpecification(paramMap, os);
 
-	Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_JS, paramMap);
+  Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_JS, paramMap);
 }
 
 /**
@@ -581,19 +581,19 @@ public void outputSpecificationHeader(final IHTTPOutput out, final Locale locale
  */
 @Override
 public void outputSpecificationBody(final IHTTPOutput out, final Locale locale, final Specification os,
-		final int connectionSequenceNumber, final int actualSequenceNumber, final String tabName)
-				throws ManifoldCFException, IOException {
-	final Map<String, Object> paramMap = new HashMap<>();
+    final int connectionSequenceNumber, final int actualSequenceNumber, final String tabName)
+        throws ManifoldCFException, IOException {
+  final Map<String, Object> paramMap = new HashMap<>();
 
-	// Set the tab name
-	paramMap.put("TABNAME", tabName);
-	paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
-	paramMap.put("SELECTEDNUM", Integer.toString(actualSequenceNumber));
+  // Set the tab name
+  paramMap.put("TABNAME", tabName);
+  paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
+  paramMap.put("SELECTEDNUM", Integer.toString(actualSequenceNumber));
 
-	// Fill in the field mapping tab data
-	fillInHtmlExtractorSpecification(paramMap, os);
+  // Fill in the field mapping tab data
+  fillInHtmlExtractorSpecification(paramMap, os);
 
-	Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_HTML_EXTRACTOR_HTML, paramMap);
+  Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_HTML_EXTRACTOR_HTML, paramMap);
 }
 
 /**
@@ -617,90 +617,90 @@ public void outputSpecificationBody(final IHTTPOutput out, final Locale locale, 
  */
 @Override
 public String processSpecificationPost(final IPostParameters variableContext, final Locale locale,
-		final Specification os, final int connectionSequenceNumber) throws ManifoldCFException {
+    final Specification os, final int connectionSequenceNumber) throws ManifoldCFException {
 
 
-	final String seqPrefix = "s" + connectionSequenceNumber + "_";
+  final String seqPrefix = "s" + connectionSequenceNumber + "_";
 
-	String x;
+  String x;
 
-	// Include filters
-	x = variableContext.getParameter(seqPrefix + "includefilter_count");
-	if (x != null && x.length() > 0) {
-		// About to gather the includefilter nodes, so get rid of the old ones.
-		int i = 0;
-		while (i < os.getChildCount()) {
-			final SpecificationNode node = os.getChild(i);
-			if (node.getType().equals(HtmlExtractorConfig.NODE_INCLUDEFILTER)) {
-				os.removeChild(i);
-			} else {
-				i++;
-			}
-		}
-		final int count = Integer.parseInt(x);
-		i = 0;
-		while (i < count) {
-			final String prefix = seqPrefix + "includefilter_";
-			final String suffix = "_" + Integer.toString(i);
-			final String op = variableContext.getParameter(prefix + "op" + suffix);
-			if (op == null || !op.equals("Delete")) {
-				// Gather the includefilters etc.
-				final String regex = variableContext.getParameter(prefix + HtmlExtractorConfig.ATTRIBUTE_REGEX + suffix);
-				final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_INCLUDEFILTER);
-				node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
-				os.addChild(os.getChildCount(), node);
-			}
-			i++;
-		}
+  // Include filters
+  x = variableContext.getParameter(seqPrefix + "includefilter_count");
+  if (x != null && x.length() > 0) {
+    // About to gather the includefilter nodes, so get rid of the old ones.
+    int i = 0;
+    while (i < os.getChildCount()) {
+      final SpecificationNode node = os.getChild(i);
+      if (node.getType().equals(HtmlExtractorConfig.NODE_INCLUDEFILTER)) {
+        os.removeChild(i);
+      } else {
+        i++;
+      }
+    }
+    final int count = Integer.parseInt(x);
+    i = 0;
+    while (i < count) {
+      final String prefix = seqPrefix + "includefilter_";
+      final String suffix = "_" + Integer.toString(i);
+      final String op = variableContext.getParameter(prefix + "op" + suffix);
+      if (op == null || !op.equals("Delete")) {
+        // Gather the includefilters etc.
+        final String regex = variableContext.getParameter(prefix + HtmlExtractorConfig.ATTRIBUTE_REGEX + suffix);
+        final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_INCLUDEFILTER);
+        node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
+        os.addChild(os.getChildCount(), node);
+      }
+      i++;
+    }
 
-		final String addop = variableContext.getParameter(seqPrefix + "includefilter_op");
-		if (addop != null && addop.equals("Add")) {
-			final String regex = variableContext.getParameter(seqPrefix + "includefilter_regex");
-			final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_INCLUDEFILTER);
-			node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
-			os.addChild(os.getChildCount(), node);
-		}
-	}
+    final String addop = variableContext.getParameter(seqPrefix + "includefilter_op");
+    if (addop != null && addop.equals("Add")) {
+      final String regex = variableContext.getParameter(seqPrefix + "includefilter_regex");
+      final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_INCLUDEFILTER);
+      node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
+      os.addChild(os.getChildCount(), node);
+    }
+  }
 
-	// Exclude filters
-	x = variableContext.getParameter(seqPrefix + "excludefilter_count");
-	if (x != null && x.length() > 0) {
-		// About to gather the excludefilter nodes, so get rid of the old ones.
-		int i = 0;
-		while (i < os.getChildCount()) {
-			final SpecificationNode node = os.getChild(i);
-			if (node.getType().equals(HtmlExtractorConfig.NODE_EXCLUDEFILTER)) {
-				os.removeChild(i);
-			} else {
-				i++;
-			}
-		}
-		final int count = Integer.parseInt(x);
-		i = 0;
-		while (i < count) {
-			final String prefix = seqPrefix + "excludefilter_";
-			final String suffix = "_" + Integer.toString(i);
-			final String op = variableContext.getParameter(prefix + "op" + suffix);
-			if (op == null || !op.equals("Delete")) {
-				// Gather the excludefilters etc.
-				final String regex = variableContext.getParameter(prefix + HtmlExtractorConfig.ATTRIBUTE_REGEX + suffix);
-				final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_EXCLUDEFILTER);
-				node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
-				os.addChild(os.getChildCount(), node);
-			}
-			i++;
-		}
+  // Exclude filters
+  x = variableContext.getParameter(seqPrefix + "excludefilter_count");
+  if (x != null && x.length() > 0) {
+    // About to gather the excludefilter nodes, so get rid of the old ones.
+    int i = 0;
+    while (i < os.getChildCount()) {
+      final SpecificationNode node = os.getChild(i);
+      if (node.getType().equals(HtmlExtractorConfig.NODE_EXCLUDEFILTER)) {
+        os.removeChild(i);
+      } else {
+        i++;
+      }
+    }
+    final int count = Integer.parseInt(x);
+    i = 0;
+    while (i < count) {
+      final String prefix = seqPrefix + "excludefilter_";
+      final String suffix = "_" + Integer.toString(i);
+      final String op = variableContext.getParameter(prefix + "op" + suffix);
+      if (op == null || !op.equals("Delete")) {
+        // Gather the excludefilters etc.
+        final String regex = variableContext.getParameter(prefix + HtmlExtractorConfig.ATTRIBUTE_REGEX + suffix);
+        final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_EXCLUDEFILTER);
+        node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
+        os.addChild(os.getChildCount(), node);
+      }
+      i++;
+    }
 
-		final String addop = variableContext.getParameter(seqPrefix + "excludefilter_op");
-		if (addop != null && addop.equals("Add")) {
-			final String regex = variableContext.getParameter(seqPrefix + "excludefilter_regex");
-			final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_EXCLUDEFILTER);
-			node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
-			os.addChild(os.getChildCount(), node);
-		}
-	}
+    final String addop = variableContext.getParameter(seqPrefix + "excludefilter_op");
+    if (addop != null && addop.equals("Add")) {
+      final String regex = variableContext.getParameter(seqPrefix + "excludefilter_regex");
+      final SpecificationNode node = new SpecificationNode(HtmlExtractorConfig.NODE_EXCLUDEFILTER);
+      node.setAttribute(HtmlExtractorConfig.ATTRIBUTE_REGEX, regex);
+      os.addChild(os.getChildCount(), node);
+    }
+  }
 
-	x = variableContext.getParameter(seqPrefix+"striphtml_present");
+  x = variableContext.getParameter(seqPrefix+"striphtml_present");
     if (x != null && x.length() > 0)
     {
       String keepAll = variableContext.getParameter(seqPrefix+"striphtml");
@@ -725,7 +725,7 @@ public String processSpecificationPost(final IPostParameters variableContext, fi
     }
 
 
-	return null;
+  return null;
 }
 
 /**
@@ -745,62 +745,62 @@ public String processSpecificationPost(final IPostParameters variableContext, fi
  */
 @Override
 public void viewSpecification(final IHTTPOutput out, final Locale locale, final Specification os,
-		final int connectionSequenceNumber) throws ManifoldCFException, IOException {
-	final Map<String, Object> paramMap = new HashMap<>();
-	paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
+    final int connectionSequenceNumber) throws ManifoldCFException, IOException {
+  final Map<String, Object> paramMap = new HashMap<>();
+  paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
 
-	// Fill in the map with data from all tabs
-	fillInHtmlExtractorSpecification(paramMap, os);
+  // Fill in the map with data from all tabs
+  fillInHtmlExtractorSpecification(paramMap, os);
 
-	Messages.outputResourceWithVelocity(out, locale, VIEW_SPECIFICATION_HTML, paramMap);
+  Messages.outputResourceWithVelocity(out, locale, VIEW_SPECIFICATION_HTML, paramMap);
 
 }
 protected static class SpecPacker {
 
-	private final List<String> includeFilters = new ArrayList<>();
-	private final List<String> excludeFilters = new ArrayList<>();
-	private final boolean striphtml;
+  private final List<String> includeFilters = new ArrayList<>();
+  private final List<String> excludeFilters = new ArrayList<>();
+  private final boolean striphtml;
 
-	public SpecPacker(final Specification os) {
-		boolean striphtml = true;
-		for (int i = 0; i < os.getChildCount(); i++) {
-			final SpecificationNode sn = os.getChild(i);
+  public SpecPacker(final Specification os) {
+    boolean striphtml = true;
+    for (int i = 0; i < os.getChildCount(); i++) {
+      final SpecificationNode sn = os.getChild(i);
 
-			if (sn.getType().equals(HtmlExtractorConfig.NODE_INCLUDEFILTER)) {
-				final String regex = sn.getAttributeValue(HtmlExtractorConfig.ATTRIBUTE_REGEX);
-				includeFilters.add(regex);
-			}
+      if (sn.getType().equals(HtmlExtractorConfig.NODE_INCLUDEFILTER)) {
+        final String regex = sn.getAttributeValue(HtmlExtractorConfig.ATTRIBUTE_REGEX);
+        includeFilters.add(regex);
+      }
 
-			if (sn.getType().equals(HtmlExtractorConfig.NODE_EXCLUDEFILTER)) {
-				final String regex = sn.getAttributeValue(HtmlExtractorConfig.ATTRIBUTE_REGEX);
-				excludeFilters.add(regex);
-			}
-			if(sn.getType().equals(NODE_KEEPMETADATA)) {
-				String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
-				striphtml = Boolean.parseBoolean(value);
-			}
+      if (sn.getType().equals(HtmlExtractorConfig.NODE_EXCLUDEFILTER)) {
+        final String regex = sn.getAttributeValue(HtmlExtractorConfig.ATTRIBUTE_REGEX);
+        excludeFilters.add(regex);
+      }
+      if(sn.getType().equals(NODE_KEEPMETADATA)) {
+        String value = sn.getAttributeValue(ATTRIBUTE_VALUE);
+        striphtml = Boolean.parseBoolean(value);
+      }
 
-		}
+    }
 
-		if (includeFilters.isEmpty()) {
-			includeFilters.add(HtmlExtractorConfig.WHITELIST_DEFAULT);
-		}
+    if (includeFilters.isEmpty()) {
+      includeFilters.add(HtmlExtractorConfig.WHITELIST_DEFAULT);
+    }
 
-		this.striphtml = striphtml;
-	}
+    this.striphtml = striphtml;
+  }
 
-	public String toPackedString() {
-		final StringBuilder sb = new StringBuilder();
+  public String toPackedString() {
+    final StringBuilder sb = new StringBuilder();
 
-		packList(sb, includeFilters, '+');
-		packList(sb, excludeFilters, '+');
-		if (striphtml)
-			sb.append('+');
-		else
-			sb.append('-');
+    packList(sb, includeFilters, '+');
+    packList(sb, excludeFilters, '+');
+    if (striphtml)
+      sb.append('+');
+    else
+      sb.append('-');
 
-		return sb.toString();
-	}
+    return sb.toString();
+  }
 
 }
 
