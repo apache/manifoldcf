@@ -111,9 +111,9 @@ public class HtmlExtractor extends org.apache.manifoldcf.agents.transformation.B
     final SpecPacker sp = new SpecPacker(pipelineDescription.getSpecification());
 
 
-    Logging.root.info("Processing by HTML Extractor");
+    Logging.connectors.debug("Processing by HTML Extractor");
     if (!(document.getMimeType().startsWith("text/html")) || (document.getMimeType().startsWith("application/xhtml+xml"))){
-      Logging.root.warn("no processing, mime type not html");
+      Logging.connectors.debug("no processing, mime type not html");
       resultCode = "NO HTML";
 
     }
@@ -121,7 +121,7 @@ public class HtmlExtractor extends org.apache.manifoldcf.agents.transformation.B
     else {
       try
       {
-        Logging.root.info("Document recognized as HTML - processing");
+        Logging.connectors.debug("Document recognized as HTML - processing");
         long binaryLength = document.getBinaryLength();
 
 
