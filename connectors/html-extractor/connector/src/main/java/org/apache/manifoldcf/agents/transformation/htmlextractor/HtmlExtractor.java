@@ -41,160 +41,160 @@ import java.util.regex.PatternSyntaxException;
 public class HtmlExtractor extends org.apache.manifoldcf.agents.transformation.BaseTransformationConnector
 {
 
-	public static final String _rcsid = "@(#)$Id$";
+  public static final String _rcsid = "@(#)$Id$";
 
-	protected static final String ACTIVITY_PROCESS = "process";
+  protected static final String ACTIVITY_PROCESS = "process";
 
-	protected static final String[] activitiesList = new String[]{ACTIVITY_PROCESS};
+  protected static final String[] activitiesList = new String[]{ACTIVITY_PROCESS};
 
-	/**
-	 * Forward to the javascript to check the specification parameters for the job
-	 */
-	private static final String EDIT_CONFIGURATION_JS = "editConfiguration.js";
+  /**
+   * Forward to the javascript to check the specification parameters for the job
+   */
+  private static final String EDIT_CONFIGURATION_JS = "editConfiguration.js";
 
-	private static final String VIEW_CONFIGURATION_HTML = "viewConfiguration.html";
-	private static final String EDIT_SPECIFICATION_JS = "editSpecification.js";
-	private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
-	private static final String EDIT_SPECIFICATION_HTML_EXTRACTOR_HTML = "editSpecification_HTML_Extractor.html";
-
-
-
-	protected static final int HTML_STRIP_NONE = 0;
-	protected static final int HTML_STRIP_ALL = 1;
-
-	protected static int html_strip_usage = HTML_STRIP_ALL;
-
-	public static final String NODE_KEEPMETADATA = "striphtml";
-	public static final String NODE_FILTEREMPTY = "filterEmpty";
-	public static final String ATTRIBUTE_SOURCE = "source";
-	public static final String ATTRIBUTE_TARGET = "target";
-	public static final String ATTRIBUTE_VALUE = "value";
-
-	/** We handle up to 64K in memory; after that we go to disk. */
-	protected static final long inMemoryMaximumFile = 65536;
-
-	/** Return a list of activities that this connector generates.
-	 * The connector does NOT need to be connected before this method is called.
-	 *@return the set of activities.
-	 */
-	@Override
-	public String[] getActivitiesList()
-	{
-		return activitiesList;
-	}
-
-	/** Add (or replace) a document in the output data store using the connector.
-	 * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
-	 * necessary.
-	 * The OutputSpecification is *not* provided to this method, because the goal is consistency, and if output is done it must be consistent with the
-	 * output description, since that was what was partly used to determine if output should be taking place.  So it may be necessary for this method to decode
-	 * an output description string in order to determine what should be done.
-	 *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
-	 * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
-	 *@param outputDescription is the description string that was constructed for this document by the getOutputDescription() method.
-	 *@param document is the document data to be processed (handed to the output data store).
-	 *@param authorityNameString is the name of the authority responsible for authorizing any access tokens passed in with the repository document.  May be null.
-	 *@param activities is the handle to an object that the implementer of a pipeline connector may use to perform operations, such as logging processing activity,
-	 * or sending a modified document to the next stage in the pipeline.
-	 *@return the document status (accepted or permanently rejected).
-	 *@throws IOException only if there's a stream error reading the document data.
-	 */
-	@Override
-	public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
-			throws ManifoldCFException, ServiceInterruption, IOException
-	{
-		long startTime = System.currentTimeMillis();
-		String resultCode = "OK";
-		String description = null;
-		Long length = null;
-
-		final SpecPacker sp = new SpecPacker(pipelineDescription.getSpecification());
+  private static final String VIEW_CONFIGURATION_HTML = "viewConfiguration.html";
+  private static final String EDIT_SPECIFICATION_JS = "editSpecification.js";
+  private static final String VIEW_SPECIFICATION_HTML = "viewSpecification.html";
+  private static final String EDIT_SPECIFICATION_HTML_EXTRACTOR_HTML = "editSpecification_HTML_Extractor.html";
 
 
-		Logging.root.info("Processing by HTML Extractor");
-		if (!(document.getMimeType().startsWith("text/html")) || (document.getMimeType().startsWith("application/xhtml+xml"))){
-			Logging.root.warn("no processing, mime type not html");
-			resultCode = "NO HTML";
 
-		}
+  protected static final int HTML_STRIP_NONE = 0;
+  protected static final int HTML_STRIP_ALL = 1;
 
-		else {
-			try
-			{
-				Logging.root.info("Document recognized as HTML - processing");
-				long binaryLength = document.getBinaryLength();
+  protected static int html_strip_usage = HTML_STRIP_ALL;
+
+  public static final String NODE_KEEPMETADATA = "striphtml";
+  public static final String NODE_FILTEREMPTY = "filterEmpty";
+  public static final String ATTRIBUTE_SOURCE = "source";
+  public static final String ATTRIBUTE_TARGET = "target";
+  public static final String ATTRIBUTE_VALUE = "value";
+
+  /** We handle up to 64K in memory; after that we go to disk. */
+  protected static final long inMemoryMaximumFile = 65536;
+
+  /** Return a list of activities that this connector generates.
+   * The connector does NOT need to be connected before this method is called.
+   *@return the set of activities.
+   */
+  @Override
+  public String[] getActivitiesList()
+  {
+    return activitiesList;
+  }
+
+  /** Add (or replace) a document in the output data store using the connector.
+   * This method presumes that the connector object has been configured, and it is thus able to communicate with the output data store should that be
+   * necessary.
+   * The OutputSpecification is *not* provided to this method, because the goal is consistency, and if output is done it must be consistent with the
+   * output description, since that was what was partly used to determine if output should be taking place.  So it may be necessary for this method to decode
+   * an output description string in order to determine what should be done.
+   *@param documentURI is the URI of the document.  The URI is presumed to be the unique identifier which the output data store will use to process
+   * and serve the document.  This URI is constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
+   *@param outputDescription is the description string that was constructed for this document by the getOutputDescription() method.
+   *@param document is the document data to be processed (handed to the output data store).
+   *@param authorityNameString is the name of the authority responsible for authorizing any access tokens passed in with the repository document.  May be null.
+   *@param activities is the handle to an object that the implementer of a pipeline connector may use to perform operations, such as logging processing activity,
+   * or sending a modified document to the next stage in the pipeline.
+   *@return the document status (accepted or permanently rejected).
+   *@throws IOException only if there's a stream error reading the document data.
+   */
+  @Override
+  public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+      throws ManifoldCFException, ServiceInterruption, IOException
+  {
+    long startTime = System.currentTimeMillis();
+    String resultCode = "OK";
+    String description = null;
+    Long length = null;
+
+    final SpecPacker sp = new SpecPacker(pipelineDescription.getSpecification());
 
 
-				length =  new Long(binaryLength);
+    Logging.root.info("Processing by HTML Extractor");
+    if (!(document.getMimeType().startsWith("text/html")) || (document.getMimeType().startsWith("application/xhtml+xml"))){
+      Logging.root.warn("no processing, mime type not html");
+      resultCode = "NO HTML";
 
-				/*
-				DestinationStorage ds;
-				if (document.getBinaryLength() <= inMemoryMaximumFile)
-				{
-					ds = new MemoryDestinationStorage((int)document.getBinaryLength());
-				}
-				else
-				{
-					ds = new FileDestinationStorage();
-				}
-				try
-			      {
-			        OutputStream os = ds.getOutputStream();
-				 */
+    }
+
+    else {
+      try
+      {
+        Logging.root.info("Document recognized as HTML - processing");
+        long binaryLength = document.getBinaryLength();
 
 
-				//TODO
-				/* Add an option to keep HTML markup of the extracted text or not - 
-				 * in case for example of processing by Tika after this transformation connector
-				 * 
-				 */
-				Hashtable<String,String> metadataExtracted = new Hashtable<String,String>();
-				
-				metadataExtracted = JsoupProcessing.extractTextAndMetadataHtmlDocument(document.getBinaryStream(),sp.includeFilters.get(0), sp.excludeFilters, sp.striphtml);
-				InputStream newStream = new ByteArrayInputStream(metadataExtracted.get("extractedDoc").getBytes(StandardCharsets.UTF_8));
-				int lenghtNewStream = newStream.available();
-				document.setBinary(newStream, lenghtNewStream);
-				Iterator<Entry<String, String>> it;
-				Map.Entry<String,String> entry;
+        length =  new Long(binaryLength);
 
-				it = metadataExtracted.entrySet().iterator();
-				while (it.hasNext()) {
-					entry = it.next();
-					if (entry.getKey()!="extractedDoc")
-						document.addField("jsoup_"+entry.getKey(), entry.getValue());
+        /*
+        DestinationStorage ds;
+        if (document.getBinaryLength() <= inMemoryMaximumFile)
+        {
+          ds = new MemoryDestinationStorage((int)document.getBinaryLength());
+        }
+        else
+        {
+          ds = new FileDestinationStorage();
+        }
+        try
+            {
+              OutputStream os = ds.getOutputStream();
+         */
 
-				}
 
-				return activities.sendDocument(documentURI,document);
-			}
-			catch (ServiceInterruption e)
-			{
-				resultCode = "SERVICEINTERRUPTION";
-				description = e.getMessage();
-				throw e;
-			}
-			catch (ManifoldCFException e)
-			{
-				resultCode = "EXCEPTION";
-				description = e.getMessage();
-				throw e;
-			}
-			catch (IOException e)
-			{
-				resultCode = "IOEXCEPTION";
-				description = e.getMessage();
-				throw e;
-			}
+        //TODO
+        /* Add an option to keep HTML markup of the extracted text or not - 
+         * in case for example of processing by Tika after this transformation connector
+         * 
+         */
+        Hashtable<String,String> metadataExtracted = new Hashtable<String,String>();
+        
+        metadataExtracted = JsoupProcessing.extractTextAndMetadataHtmlDocument(document.getBinaryStream(),sp.includeFilters.get(0), sp.excludeFilters, sp.striphtml);
+        InputStream newStream = new ByteArrayInputStream(metadataExtracted.get("extractedDoc").getBytes(StandardCharsets.UTF_8));
+        int lenghtNewStream = newStream.available();
+        document.setBinary(newStream, lenghtNewStream);
+        Iterator<Entry<String, String>> it;
+        Map.Entry<String,String> entry;
 
-			catch (Exception e)
-			{
+        it = metadataExtracted.entrySet().iterator();
+        while (it.hasNext()) {
+          entry = it.next();
+          if (entry.getKey()!="extractedDoc")
+            document.addField("jsoup_"+entry.getKey(), entry.getValue());
 
-				resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-				description = e.getMessage();
-			}
-			finally
-			{
-				activities.recordActivity(new Long(startTime), ACTIVITY_PROCESS, length, documentURI,
+        }
+
+        return activities.sendDocument(documentURI,document);
+      }
+      catch (ServiceInterruption e)
+      {
+        resultCode = "SERVICEINTERRUPTION";
+        description = e.getMessage();
+        throw e;
+      }
+      catch (ManifoldCFException e)
+      {
+        resultCode = "EXCEPTION";
+        description = e.getMessage();
+        throw e;
+      }
+      catch (IOException e)
+      {
+        resultCode = "IOEXCEPTION";
+        description = e.getMessage();
+        throw e;
+      }
+
+      catch (Exception e)
+      {
+
+        resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+        description = e.getMessage();
+      }
+      finally
+      {
+        activities.recordActivity(new Long(startTime), ACTIVITY_PROCESS, length, documentURI,
             resultCode, description);
       }
 
