@@ -20,7 +20,7 @@ package org.apache.manifoldcf.agents.transformation.htmlextractor;
  */
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.Logging;
+import org.apache.manifoldcf.crawler.system.Logging;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
