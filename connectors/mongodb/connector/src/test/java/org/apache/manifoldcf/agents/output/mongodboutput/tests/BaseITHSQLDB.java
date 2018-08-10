@@ -21,8 +21,6 @@ package org.apache.manifoldcf.agents.output.mongodboutput.tests;
 import org.junit.After;
 import org.junit.Before;
 
-import com.mongodb.Mongo;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -41,7 +39,6 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
 
 	private MongodExecutable mongodExecutable;
 	private MongodProcess mongod;
-	private Mongo mongo;
 
 	protected String[] getConnectorNames() {
 		return new String[] { "CMIS" };
