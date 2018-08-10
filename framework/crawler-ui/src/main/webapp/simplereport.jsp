@@ -479,7 +479,7 @@ try
                   <select class="schedulepulldown" name='reportstartyear'>
                     <option value="" <%=(startYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%>--</option>
 <% 
-  for(int year=2005; year <= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); year++)
+  for(int year=2005; year <= java.util.Calendar.getInstance(clientTimezone, pageContext.getRequest().getLocale()).get(java.util.Calendar.YEAR); year++)
   {
     String selected = (startYear.equals(""+year))?"selected=\"selected\"":"";
 %>
@@ -578,7 +578,7 @@ try
                   <select class="schedulepulldown" name='reportendyear'>
                     <option value="" <%=(endYear.length()==0)?"selected=\"selected\"":""%>>-- <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"simplereport.NotSpecified")%>--</option>
 <%
-  for(int year=2005; year <= java.util.Calendar.getInstance().get(java.util.Calendar.YEAR); year++)
+  for(int year=2005; year <= java.util.Calendar.getInstance(clientTimezone, pageContext.getRequest().getLocale()).get(java.util.Calendar.YEAR); year++)
   {
     String selected = (endYear.equals(""+year))?"selected=\"selected\"":"";
 %>
