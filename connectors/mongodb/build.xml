@@ -27,12 +27,6 @@
             <isset property="env.MCFDISTPATH"/>
         </not>
     </condition>
-    <condition property="is-on-Windows">
-        <os family="windows" />
-    </condition>
-    <condition property="is-on-Unix">
-        <os family="unix" />
-    </condition>
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
@@ -65,34 +59,6 @@
                    value="org.apache.manifoldcf.agents.output.mongodboutput.MongodbOutputConnector"/>
         </antcall>
     </target>
-
-    <target name="run-IT-HSQLDB" depends="run-maven-IT-on-unix, run-maven-IT-on-windows"/>
-
-    <target name="run-maven-IT-on-windows" if="is-on-Windows">
-        <exec dir="." executable="cmd" resultproperty="result">
-            <arg line="/c mvn verify" />
-        </exec>
-        <fail>
-            <condition>
-                <not>
-                <equals arg1="${result}" arg2="0" />
-                </not>
-            </condition>
-        </fail>
-    </target>
-
-    <target name="run-maven-IT-on-unix" if="is-on-Unix">
-        <exec dir="." executable="sh" resultproperty="result">
-            <arg line="-c 'mvn verify'" />
-        </exec>
-        <fail>
-            <condition>
-                <not>
-                    <equals arg1="${result}" arg2="0" />
-                </not>
-            </condition>
-        </fail>
-    </target>
 	
 	  <property name="embedded-mongodb.version.label" value="2.1.2"/>
     <property name="embedded-mongodb.version.snapshot" value="20180621.063700-1" />
@@ -106,7 +72,14 @@
     <property name="embedded-mongodb.process.jar" value="${embedded-mongodb.process.artifactId}-${embedded-mongodb.process.version.label}.jar"/>
 	
 	  <target name="calculate-testcode-condition">
-	    <available file="test-lib/${embedded-mongodb.snapshot-jar}" property="tests-present"/>
+	    <available file="test-materials/${embedded-mongodb.snapshot-jar}" property="tests-present"/>
+      <available file="test-materials/${embedded-mongodb.process.jar}" property="tests-present"/>
+	  	
+	  	<copy todir="${mcf-dist}/test-lib">
+          <fileset dir="test-materials">
+              <include name="de.flapdoodle.embed*.jar"/>
+          </fileset>
+      </copy>
 	  </target>
 
     <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
