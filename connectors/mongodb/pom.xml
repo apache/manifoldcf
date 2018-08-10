@@ -13,9 +13,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <mongo.java.driver.version>2.11.3</mongo.java.driver.version>
-        <mongodb.port>27017</mongodb.port>
-        <mongodb.username>dummyuser</mongodb.username>
-        <mongodb.password>dummysecrect</mongodb.password>
     </properties>
 
     <developers>

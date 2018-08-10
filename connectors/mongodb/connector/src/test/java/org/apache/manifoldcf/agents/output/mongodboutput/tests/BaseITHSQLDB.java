@@ -22,7 +22,6 @@ import org.junit.After;
 import org.junit.Before;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
@@ -38,7 +37,6 @@ import de.flapdoodle.embed.process.runtime.Network;
 public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB {
 
 	private MongodExecutable mongodExecutable;
-	private MongodProcess mongod;
 
 	protected String[] getConnectorNames() {
 		return new String[] { "CMIS" };
@@ -69,7 +67,7 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
 		    .net(new Net(bindIp, port, Network.localhostIsIPv6())).build();
 
 		mongodExecutable = starter.prepare(mongodConfig);
-		mongod = mongodExecutable.start();
+		mongodExecutable.start();
 		
 	}
 
