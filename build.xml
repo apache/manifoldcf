@@ -2926,12 +2926,23 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <ant dir="site" target="download-cleanup"/>
     </target>
 
-    <!--taskdef name="forbiddenapis" classname="de.thetaphi.forbiddenapis.ant.AntTask" classpath="lib/forbiddenapis-2.2.jar"/>
-
-    <target name="forbidden-checks" depends="build">
+    <target name="forbidden-taskdef">
+        <taskdef name="forbiddenapis" classname="de.thetaphi.forbiddenapis.ant.AntTask" classpath="lib/forbiddenapis-2.2.jar"/>
+    </target>
+    
+    <target name="forbidden-checks" depends="forbidden-taskdef,build">
         <forbiddenapis failOnMissingClasses="false" targetVersion="1.7">
             <classpath>
+                <fileset dir="lib">
+                    <include name="less4j*.jar"/>
+                </fileset>
                 <fileset dir="dist/lib">
+                    <include name="**/*.jar"/>
+                </fileset>
+                <fileset dir="dist/connector-common-lib">
+                    <include name="**/*.jar"/>
+                </fileset>
+                <fileset dir="dist/test-lib">
                     <include name="**/*.jar"/>
                 </fileset>
             </classpath>
@@ -2941,8 +2952,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
                 <include name="**/*.class"/>
             </fileset>
         </forbiddenapis>
-    </target -->
+    </target>
 
-    <target name="precommit" description="Run basic checks before committing" depends="rat-sources"/>
+    <target name="precommit" description="Run basic checks before committing" depends="rat-sources,forbidden-checks"/>
 
 </project>
