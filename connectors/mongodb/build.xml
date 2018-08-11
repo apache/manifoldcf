@@ -1,0 +1,96 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<project name="mongodb" default="all">
+
+    <property environment="env"/>
+    <condition property="mcf-dist" value="${env.MCFDISTPATH}">
+        <isset property="env.MCFDISTPATH"/>
+    </condition>
+    <property name="abs-dist" location="../../dist"/>
+    <condition property="mcf-dist" value="${abs-dist}">
+        <not>
+            <isset property="env.MCFDISTPATH"/>
+        </not>
+    </condition>
+
+    <import file="${mcf-dist}/connector-build.xml"/>
+
+    <target name="download-cleanup">
+        <delete>
+            <fileset dir="test-materials" excludes="README*.txt"/>
+        </delete>
+    </target>
+
+    <path id="connector-classpath">
+        <path refid="mcf-connector-build.connector-classpath"/>
+        <fileset dir="../../lib">
+            <include name="mongo-java-driver*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
+        <mkdir dir="dist/lib"/>
+        <copy todir="dist/lib">
+            <fileset dir="../../lib">
+                <include name="mongo-java-driver*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
+        <antcall target="general-add-output-connector">
+            <param name="connector-label" value="MongoDB"/>
+            <param name="connector-class"
+                   value="org.apache.manifoldcf.agents.output.mongodboutput.MongodbOutputConnector"/>
+        </antcall>
+    </target>
+	
+	  <property name="embedded-mongodb.version.label" value="2.1.2"/>
+    <property name="embedded-mongodb.version.snapshot" value="20180621.063700-1" />
+    <property name="embedded-mongodb.artifactId" value="de.flapdoodle.embed.mongo"/>
+    <property name="embedded-mongodb-package" value="de/flapdoodle/embed"/>    
+	  <property name="embedded-mongodb.snapshot-jar" value="${embedded-mongodb.artifactId}-${embedded-mongodb.version.label}-${embedded-mongodb.version.snapshot}.jar"/>
+
+	  <property name="embedded-mongodb.process.version.label" value="2.0.5"/>
+    <property name="embedded-mongodb.process.artifactId" value="de.flapdoodle.embed.process"/>
+    <property name="embedded-mongodb.process-package" value="de/flapdoodle/embed"/>    
+    <property name="embedded-mongodb.process.jar" value="${embedded-mongodb.process.artifactId}-${embedded-mongodb.process.version.label}.jar"/>
+	
+	  <target name="calculate-testcode-condition">
+	    <available file="test-materials/${embedded-mongodb.snapshot-jar}" property="tests-present"/>
+      <available file="test-materials/${embedded-mongodb.process.jar}" property="tests-present"/>
+	  	
+	  	<copy todir="${mcf-dist}/test-lib">
+          <fileset dir="test-materials">
+              <include name="de.flapdoodle.embed*.jar"/>
+          </fileset>
+      </copy>
+	  </target>
+
+    <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
+      <echo message="Need Embedded MongoDB download in order to run tests - run ant make-deps"/>
+    </target>
+	
+    <target name="download-dependencies">
+      <property name="sonatype-maven-repo-snapshots" value="https://oss.sonatype.org/content/repositories/snapshots" />
+    	<property name="sonatype-maven-repo-releases" value="https://oss.sonatype.org/content/repositories/public" />
+      <get src="${sonatype-maven-repo-snapshots}/${embedded-mongodb-package}/${embedded-mongodb.artifactId}/${embedded-mongodb.version.label}-SNAPSHOT/${embedded-mongodb.snapshot-jar}" dest="test-materials/${embedded-mongodb.snapshot-jar}"/>
+      <get src="${sonatype-maven-repo-releases}/${embedded-mongodb.process-package}/${embedded-mongodb.process.artifactId}/${embedded-mongodb.process.version.label}/${embedded-mongodb.process.jar}" dest="test-materials/${embedded-mongodb.process.jar}"/>
+    </target>
+
+</project>
