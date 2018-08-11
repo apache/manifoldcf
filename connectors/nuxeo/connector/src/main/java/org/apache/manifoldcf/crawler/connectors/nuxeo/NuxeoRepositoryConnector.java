@@ -414,7 +414,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
             List<String> domains = ns.getDomains();
             List<String> documentsType = ns.getDocumentsType();
 
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ROOT);
             sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
             Date currentDate =  new Date();
 
@@ -446,7 +446,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
         String query = "";
 
         if (date == null || date.isEmpty()) {
-            SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+            SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT);
             date = DATE_FORMAT.format(new Date(0));
         }
         query = "dc:modified > '" + date + "'";
@@ -454,28 +454,28 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
         if (!domains.isEmpty()) {
             Iterator<String> itdom = domains.iterator();
 
-            query = String.format(" %s AND ( ecm:path STARTSWITH '/%s'", query, itdom.next());
+            query = String.format(Locale.ROOT, " %s AND ( ecm:path STARTSWITH '/%s'", query, itdom.next());
 
             while (itdom.hasNext()) {
-                query = String.format("%s OR ecm:path STARTSWITH '/%s'", query, itdom.next());
+                query = String.format(Locale.ROOT, "%s OR ecm:path STARTSWITH '/%s'", query, itdom.next());
             }
 
-            query = String.format("%s )", query);
+            query = String.format(Locale.ROOT, "%s )", query);
         }
 
         if (!documentsType.isEmpty()) {
             Iterator<String> itDocTy = documentsType.iterator();
 
-            query = String.format(" %s AND ( ecm:primaryType = '%s'", query, itDocTy.next());
+            query = String.format(Locale.ROOT, " %s AND ( ecm:primaryType = '%s'", query, itDocTy.next());
 
             while (itDocTy.hasNext()) {
-                query = String.format("%s OR ecm:primaryType = '%s'", query, itDocTy.next());
+                query = String.format(Locale.ROOT, "%s OR ecm:primaryType = '%s'", query, itDocTy.next());
             }
 
-            query = String.format("%s )", query);
+            query = String.format(Locale.ROOT, "%s )", query);
         }
 
-        query = String.format(URI_DOCUMENT + " where ecm:mixinType != 'HiddenInNavigation' AND ecm:isProxy = 0 " +
+        query = String.format(Locale.ROOT, URI_DOCUMENT + " where ecm:mixinType != 'HiddenInNavigation' AND ecm:isProxy = 0 " +
                 "AND ecm:isCheckedInVersion = 0 AND %s ", query);
 
         Documents docs = nuxeoClient.repository().query(query, String.valueOf(limit), String.valueOf(start), null, null,
@@ -515,7 +515,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
                 pResult = processDocument(document, documentId, spec, version, indexed_version,
                         activities, Maps.newHashMap());
             } catch (NuxeoClientException exception) {
-                logger.info(String.format("Error Fetching Nuxeo Document %s. Marking for deletion", documentId));
+                logger.info(String.format(Locale.ROOT, "Error Fetching Nuxeo Document %s. Marking for deletion", documentId));
                 activities.deleteDocument(documentId);
             } catch (IOException exception) {
                 long interruptionRetryTime = 5L * 60L * 1000L;
@@ -544,7 +544,7 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
         Date lastModifiedDate = null;
 
         if (lastModified != null) {
-            DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+            DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT);
             try {
                 lastModifiedDate = formatter.parse(lastModified);
             } catch (Exception ex) {
@@ -699,10 +699,10 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
 
         NuxeoSpecification ns = NuxeoSpecification.from(spec);
 
-        paramMap.put(NuxeoConfiguration.Specification.DOMAINS.toUpperCase(), ns.getDomains());
-        paramMap.put(NuxeoConfiguration.Specification.DOCUMENTS_TYPE.toUpperCase(), ns.documentsType);
-        paramMap.put(NuxeoConfiguration.Specification.PROCESS_TAGS.toUpperCase(), ns.isProcessTags().toString());
-        paramMap.put(NuxeoConfiguration.Specification.PROCESS_ATTACHMENTS.toUpperCase(),
+        paramMap.put(NuxeoConfiguration.Specification.DOMAINS.toUpperCase(Locale.ROOT), ns.getDomains());
+        paramMap.put(NuxeoConfiguration.Specification.DOCUMENTS_TYPE.toUpperCase(Locale.ROOT), ns.documentsType);
+        paramMap.put(NuxeoConfiguration.Specification.PROCESS_TAGS.toUpperCase(Locale.ROOT), ns.isProcessTags().toString());
+        paramMap.put(NuxeoConfiguration.Specification.PROCESS_ATTACHMENTS.toUpperCase(Locale.ROOT),
                 ns.isProcessAttachments().toString());
 
         Messages.outputResourceWithVelocity(out, locale, VIEW_SPEC_FORWARD, paramMap);
@@ -835,10 +835,10 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
 
         NuxeoSpecification ns = NuxeoSpecification.from(spec);
 
-        paramMap.put(NuxeoConfiguration.Specification.DOMAINS.toUpperCase(), ns.getDomains());
-        paramMap.put(NuxeoConfiguration.Specification.DOCUMENTS_TYPE.toUpperCase(), ns.getDocumentsType());
-        paramMap.put(NuxeoConfiguration.Specification.PROCESS_TAGS.toUpperCase(), ns.isProcessTags());
-        paramMap.put(NuxeoConfiguration.Specification.PROCESS_ATTACHMENTS.toUpperCase(), ns.isProcessAttachments());
+        paramMap.put(NuxeoConfiguration.Specification.DOMAINS.toUpperCase(Locale.ROOT), ns.getDomains());
+        paramMap.put(NuxeoConfiguration.Specification.DOCUMENTS_TYPE.toUpperCase(Locale.ROOT), ns.getDocumentsType());
+        paramMap.put(NuxeoConfiguration.Specification.PROCESS_TAGS.toUpperCase(Locale.ROOT), ns.isProcessTags());
+        paramMap.put(NuxeoConfiguration.Specification.PROCESS_ATTACHMENTS.toUpperCase(Locale.ROOT), ns.isProcessAttachments());
 
         Messages.outputResourceWithVelocity(out, locale, EDIT_SPEC_FORWARD_CONF_DOMAINS, paramMap);
         Messages.outputResourceWithVelocity(out, locale, EDIT_SPEC_FORWARD_CONF_DOCUMENTS_TYPE, paramMap);

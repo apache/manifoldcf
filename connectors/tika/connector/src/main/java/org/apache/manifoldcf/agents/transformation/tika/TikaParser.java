@@ -46,7 +46,7 @@ public class TikaParser {
     if (tikaConfig == null || tikaConfig.length() == 0) {
       parser = new AutoDetectParser();
     } else {
-      final InputStream is = new ByteArrayInputStream(tikaConfig.getBytes());
+      final InputStream is = new ByteArrayInputStream(tikaConfig.getBytes(java.nio.charset.StandardCharsets.UTF_8));
       try {
         final TikaConfig conf = new TikaConfig(is);
         parser = new AutoDetectParser(conf);

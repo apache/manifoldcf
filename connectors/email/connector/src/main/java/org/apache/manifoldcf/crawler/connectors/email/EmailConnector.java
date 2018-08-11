@@ -373,7 +373,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
       }
 
       if (comparisonTerm != null) {
-        SimpleDateFormat date = new SimpleDateFormat(EmailConfig.EMAIL_FILTERING_DATE_FORMAT);
+        SimpleDateFormat date = new SimpleDateFormat(EmailConfig.EMAIL_FILTERING_DATE_FORMAT, Locale.ROOT);
         try {
           searchClause = new ReceivedDateTerm(comparisonTerm, date.parse(findParameterValue));
         } catch (ParseException e) {

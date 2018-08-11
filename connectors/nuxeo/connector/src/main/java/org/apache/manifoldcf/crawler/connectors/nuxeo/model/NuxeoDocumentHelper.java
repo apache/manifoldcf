@@ -60,7 +60,8 @@ public class NuxeoDocumentHelper {
     private static final Set<String> NUXEO_FOLDER_TYPE = ImmutableSet.of("Folderish", "Collection");
     private static final String NUXEO_TAGS_PROPERTY = "nxtag:tags";
 
-
+    private final static byte[] EMPTY_BYTES = new byte[0];
+    
     // Constructor
     public NuxeoDocumentHelper(Document document) {
         this.document = document;
@@ -123,7 +124,7 @@ public class NuxeoDocumentHelper {
             this.size = blob.getLength();
             this.filename = blob.getFilename();
         } catch (Exception ex) {
-            this.content = new ByteArrayInputStream("".getBytes());
+            this.content = new ByteArrayInputStream(EMPTY_BYTES);
             this.mimetype = DEFAULT_MIMETYPE;
             this.size = 0;
             this.filename = document.getTitle();
@@ -216,7 +217,7 @@ public class NuxeoDocumentHelper {
                 attach.data = blob.getStream();
 
             } catch (Exception ex) {
-                attach.data = new ByteArrayInputStream("".getBytes());
+                attach.data = new ByteArrayInputStream(EMPTY_BYTES);
             }
 
             attachments.add(attach);
