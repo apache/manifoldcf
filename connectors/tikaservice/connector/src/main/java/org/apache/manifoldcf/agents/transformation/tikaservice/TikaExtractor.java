@@ -617,7 +617,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
               tikaServerIs = response.getEntity().getContent();
               try {
-                final BufferedReader br = new BufferedReader(new InputStreamReader(tikaServerIs));
+                final BufferedReader br = new BufferedReader(new InputStreamReader(tikaServerIs, java.nio.charset.StandardCharsets.UTF_8));
                 final JSONParser parser = new JSONParser();
                 JSONObject metaJson;
                 final StringBuilder sb = new StringBuilder();

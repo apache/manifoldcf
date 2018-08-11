@@ -152,10 +152,9 @@ public class SlackSession
     boolean isExpectedPayload = "invalid_payload".equals(responseBody);
     boolean isConnectionOk = isExpectedStatus && isExpectedPayload;
     if (!isConnectionOk) {
-      String messageTemplate = "connection failed: status {0}, payload {1}";
       String statusInfo = isExpectedStatus ? "ok" : statusCode + " is unexpected";
       String payloadInfo = isExpectedPayload ? "ok" : "is unexpected";
-      String message = MessageFormat.format(messageTemplate, statusInfo, payloadInfo);
+      String message = "connection failed: status "+statusInfo+", payload "+payloadInfo;
       throw new ClientProtocolException(message);
     }
   }

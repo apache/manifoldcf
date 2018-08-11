@@ -2942,13 +2942,22 @@ Use Apache Forrest version forrest-0.9-dev or higher.
                 <fileset dir="dist/connector-common-lib">
                     <include name="**/*.jar"/>
                 </fileset>
+                <fileset dir="dist/connector-lib">
+                    <include name="**/*.jar"/>
+                </fileset>
+                <fileset dir="dist/connector-lib-proprietary">
+                    <include name="**/*.jar"/>
+                </fileset>
                 <fileset dir="dist/test-lib">
                     <include name="**/*.jar"/>
                 </fileset>
             </classpath>
             <bundledsignatures name="jdk-unsafe"/>
             <bundledsignatures name="jdk-non-portable"/>
-            <fileset dir="framework/build">
+            <fileset dir="framework">
+                <include name="**/*.class"/>
+            </fileset>
+            <fileset dir="connectors">
                 <include name="**/*.class"/>
             </fileset>
         </forbiddenapis>
