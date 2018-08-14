@@ -28,11 +28,11 @@ public class Formatter
 
   /** Format a long as an understandable date.
   *@param time is the long.
-  *@return the date, as a human-readable string.  This date will be in local time.
+  *@return the date, as a human-readable string.
   */
-  public static String formatTime(long time)
+  public static String formatTime(TimeZone tz, Locale locale, long time)
   {
-    Calendar c = new GregorianCalendar(TimeZone.getDefault(),/*TimeZone.getTimeZone("UTC"),*/ Locale.ROOT);
+    Calendar c = new GregorianCalendar(tz, locale);
     c.setTimeInMillis(time);
     // We want to format this string in a compact way:
     // mm-dd-yyyy hh:mm:ss.mmm

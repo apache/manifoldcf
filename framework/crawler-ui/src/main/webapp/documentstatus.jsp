@@ -23,6 +23,17 @@
 %>
 
 <%
+final String clientTimezoneString = variableContext.getParameter("client_timezone");
+final TimeZone clientTimezone;
+if (clientTimezoneString == null || clientTimezoneString.length() == 0)
+{
+  clientTimezone = TimeZone.getDefault();
+}
+else
+{
+  clientTimezone = TimeZone.getTimeZone(clientTimezoneString);
+}
+
 try
 {
   // Check if authorized
@@ -470,7 +481,7 @@ try
         Long scheduleTime = (Long)row.getValue("scheduled");
         String scheduleTimeString = "";
         if (scheduleTime != null)
-          scheduleTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(scheduleTime.longValue());
+          scheduleTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(clientTimezone, pageContext.getRequest().getLocale(), scheduleTime.longValue());
         String scheduledActionString = (String)row.getValue("action");
         if (scheduledActionString == null)
           scheduledActionString = "";
@@ -481,7 +492,7 @@ try
         Long retryLimit = (Long)row.getValue("retrylimit");
         String retryLimitString = "";
         if (retryLimit != null)
-          retryLimitString = org.apache.manifoldcf.ui.util.Formatter.formatTime(retryLimit.longValue());
+          retryLimitString = org.apache.manifoldcf.ui.util.Formatter.formatTime(clientTimezone, pageContext.getRequest().getLocale(), retryLimit.longValue());
 
 %>
             <tr>
