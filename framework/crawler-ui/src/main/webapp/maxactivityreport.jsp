@@ -762,8 +762,8 @@ try
         else
           idBucketString = idBucketObject.toString();
 
-        String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(Converter.asLong(row.getValue("starttime")));
-        String endTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(Converter.asLong(row.getValue("endtime")));
+        String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(clientTimezone, pageContext.getRequest().getLocale(), Converter.asLong(row.getValue("starttime")));
+        String endTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(clientTimezone, pageContext.getRequest().getLocale(), Converter.asLong(row.getValue("endtime")));
         double activityCount = Converter.asDouble(row.getValue("activitycount"));
         double activityRate = activityCount * 60000.0 / intervalMilliseconds;
 

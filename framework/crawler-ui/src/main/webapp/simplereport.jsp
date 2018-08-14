@@ -693,7 +693,7 @@ try
   while (zz < iterCount)
   {
     IResultRow row = set.getRow(zz);
-    String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(Converter.asLong(row.getValue("starttime")));
+    String startTimeString = org.apache.manifoldcf.ui.util.Formatter.formatTime(clientTimezone, pageContext.getRequest().getLocale(), Converter.asLong(row.getValue("starttime")));
     String resultCode = "";
     Object resultCodeObject = row.getValue("resultcode");
     if (resultCodeObject != null)
