@@ -23,6 +23,17 @@
 %>
 
 <%
+final String clientTimezoneString = variableContext.getParameter("client_timezone");
+final TimeZone clientTimezone;
+if (clientTimezoneString == null || clientTimezoneString.length() == 0)
+{
+  clientTimezone = TimeZone.getDefault();
+}
+else
+{
+  clientTimezone = TimeZone.getTimeZone(clientTimezoneString);
+}
+
 try
 {
   // Check if authorized
@@ -187,7 +198,7 @@ try
     }
     String startTime = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Notstarted");
     if (js.getStartTime() != -1L)
-      startTime = new Date(js.getStartTime()).toString();
+      startTime = org.apache.manifoldcf.ui.util.Formatter.formatTime(clientTimezone, pageContext.getRequest().getLocale(), js.getStartTime());
     String endTime = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Aborted");
     if (js.getStartTime() == -1L)
       endTime = Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Neverrun");
@@ -201,7 +212,7 @@ try
           endTime = "";
       }
       else
-        endTime = new Date(js.getEndTime()).toString();
+        endTime = org.apache.manifoldcf.ui.util.Formatter.formatTime(clientTimezone, pageContext.getRequest().getLocale(), js.getEndTime());
     }
 %>
             <tr job-id="<%= js.getJobID() %>" job-status="<%= status %>" job-status-name="<%= statusName%>">
