@@ -367,7 +367,8 @@ public class DocumentumObjectImpl extends UnicastRemoteObject implements IDocume
         throw new DocumentumException(dfe.getMessage(),DocumentumException.TYPE_NOTALLOWED);
       }
       else if (errorMessage.indexOf("[DM_OBJECT_E_LOAD_INVALID_STRING_LEN]") != -1 ||
-        errorMessage.indexOf("[DM_PLATFORM_E_INTEGER_CONVERSION_ERROR]") != -1)
+        errorMessage.indexOf("[DM_PLATFORM_E_INTEGER_CONVERSION_ERROR]") != -1 ||
+        errorMessage.indexOf("[DM_STORAGE_E_BAD_TICKET]") != -1)
       {
         throw new DocumentumException(dfe.getMessage(),DocumentumException.TYPE_CORRUPTEDDOCUMENT);
       }
