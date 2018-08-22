@@ -13,4 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-To test this connector, ...
+To test this connector, copy the de.flapdoodle.embed.mongo-2.1.2-20180621.063700-1.jar and 
+de.flapdoodle.embed.process-2.0.5.jar, into this directory, and use the "ant test" target for the standard ant build.
+Also note that "ant make-deps" target will copy the jars into this directory automatically for you. You can read more
+about the process on the "how-to-build-and-deploy.html" documentation page.
