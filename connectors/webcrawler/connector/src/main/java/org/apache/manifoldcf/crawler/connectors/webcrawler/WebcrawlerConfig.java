@@ -170,6 +170,8 @@ public class WebcrawlerConfig
   public static final String ATTR_PHPSESSIONREMOVAL = "phpsessionremoval";
   /** bvsessionremoval attribute */
   public static final String ATTR_BVSESSIONREMOVAL = "bvsessionremoval";
+  /** map to lower case */
+  public static final String ATTR_LOWERCASE = "lowercase";
   /** name attribute */
   public static final String ATTR_NAME = "name";
   /** token attribute */

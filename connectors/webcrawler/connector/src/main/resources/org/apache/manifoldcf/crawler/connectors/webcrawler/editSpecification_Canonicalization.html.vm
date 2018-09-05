@@ -30,6 +30,7 @@
       <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression'))</th>
       <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Description'))</th>
       <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Reorder'))</th>
+      <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.MapToLowercase'))</th>
       <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.RemoveJSPSessions'))</th>
       <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.RemoveASPSessions'))</th>
       <th>$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.RemovePHPSessions'))</th>
@@ -41,21 +42,23 @@
         <button class="btn btn-danger btn-xs" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteUrlRegexp'))$Encoder.attributeEscape($canonicalizationMap["regexpString"])" onclick='javascript:${SEQPREFIX}URLRegexpDelete($foreach.index,"${SEQPREFIX}urlregexp_${foreach.index}");'><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
       </td>
       <td>
-        <input type="hidden" name="${SEQPREFIX}urlregexp_$foreach.index" value="$Encoder.attributeEscape($canonicalizationMap["regexpString"])"/>
-        <input type="hidden" name="${SEQPREFIX}urlregexpdesc_$foreach.index" value="$Encoder.attributeEscape($canonicalizationMap["description"])"/>
-        <input type="hidden" name="${SEQPREFIX}urlregexpreorder_$foreach.index" value="$canonicalizationMap["allowReorder"]"/>
-        <input type="hidden" name="${SEQPREFIX}urlregexpjava_$foreach.index" value="$canonicalizationMap["allowJavaSessionRemoval"]"/>
-        <input type="hidden" name="${SEQPREFIX}urlregexpasp_$foreach.index" value="$canonicalizationMap["allowASPSessionRemoval"]"/>
-        <input type="hidden" name="${SEQPREFIX}urlregexpphp_$foreach.index" value="$canonicalizationMap["allowPHPSessionRemoval"]"/>
-        <input type="hidden" name="${SEQPREFIX}urlregexpbv_$foreach.index" value="$canonicalizationMap["allowBVSessionRemoval"]"/>
+        <input type="hidden" name="${SEQPREFIX}urlregexp_$foreach.index" value="$Encoder.attributeEscape($canonicalizationMap['regexpString'])"/>
+        <input type="hidden" name="${SEQPREFIX}urlregexpdesc_$foreach.index" value="$Encoder.attributeEscape($canonicalizationMap['description'])"/>
+        <input type="hidden" name="${SEQPREFIX}urlregexpreorder_$foreach.index" value="$canonicalizationMap['allowReorder']"/>
+        <input type="hidden" name="${SEQPREFIX}urlregexplowercasing_$foreach.index" value="$canonicalizationMap['allowLowercasing']"/>
+        <input type="hidden" name="${SEQPREFIX}urlregexpjava_$foreach.index" value="$canonicalizationMap['allowJavaSessionRemoval']"/>
+        <input type="hidden" name="${SEQPREFIX}urlregexpasp_$foreach.index" value="$canonicalizationMap['allowASPSessionRemoval']"/>
+        <input type="hidden" name="${SEQPREFIX}urlregexpphp_$foreach.index" value="$canonicalizationMap['allowPHPSessionRemoval']"/>
+        <input type="hidden" name="${SEQPREFIX}urlregexpbv_$foreach.index" value="$canonicalizationMap['allowBVSessionRemoval']"/>
         $Encoder.bodyEscape($canonicalizationMap["regexpString"])
       </td>
-      <td>$Encoder.bodyEscape($canonicalizationMap["description"])</td>
-      <td>$canonicalizationMap["allowReorderOutput"]</td>
-      <td>$canonicalizationMap["allowJavaSessionRemovalOutput"]</td>
-      <td>$canonicalizationMap["allowASPSessionRemovalOutput"]</td>
-      <td>$canonicalizationMap["allowPHPSessionRemovalOutput"]</td>
-      <td>$canonicalizationMap["allowBVSessionRemovalOutput"]</td>
+      <td>$Encoder.bodyEscape($canonicalizationMap['description'])</td>
+      <td>$canonicalizationMap['allowReorderOutput']</td>
+      <td>$canonicalizationMap['allowLowercasingOutput']</td>
+      <td>$canonicalizationMap['allowJavaSessionRemovalOutput']</td>
+      <td>$canonicalizationMap['allowASPSessionRemovalOutput']</td>
+      <td>$canonicalizationMap['allowPHPSessionRemovalOutput']</td>
+      <td>$canonicalizationMap['allowBVSessionRemovalOutput']</td>
     </tr>
     #end
   </table>
@@ -65,6 +68,7 @@
 <hr/>
 <div class="row">
   <div class="col-md-4">
+    <input type="hidden" name="${SEQPREFIX}urlregexpop" value="CONTINUE"/>
     <input type="hidden" name="${SEQPREFIX}urlregexpcount" value="$COUNTER"/>
     <div class="form-group">
       <label for="${SEQPREFIX}urlregexp">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression'))</label>
@@ -78,6 +82,11 @@
       <div class="checkbox">
         <label>
           <input type="checkbox" name="${SEQPREFIX}urlregexpreorder" value="yes"/> $Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.Reorder'))
+        </label>
+      </div>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" name="${SEQPREFIX}urlregexplowercasing" value="yes"/> $Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.MapToLowercase'))
         </label>
       </div>
       <div class="checkbox">
@@ -108,13 +117,14 @@
 </div>
 #else
   #foreach($canonicalizationMap in $CANONICALIZATIONMAPLIST)
-<input type="hidden" name="${SEQPREFIX}urlregexp_$foreach.index" value="$Encoder.attributeEscape($canonicalizationMap["regexpString"])"/>
-<input type="hidden" name="${SEQPREFIX}urlregexpdesc_$foreach.index" value="$Encoder.attributeEscape($canonicalizationMap["description"])"/>
-<input type="hidden" name="${SEQPREFIX}urlregexpreorder_$foreach.index" value="$canonicalizationMap["allowReorder"]"/>
-<input type="hidden" name="${SEQPREFIX}urlregexpjava_$foreach.index" value="$canonicalizationMap["allowJavaSessionRemoval"]"/>
-<input type="hidden" name="${SEQPREFIX}urlregexpasp_$foreach.index" value="$canonicalizationMap["allowASPSessionRemoval"]"/>
-<input type="hidden" name="${SEQPREFIX}urlregexpphp_$foreach.index" value="$canonicalizationMap["allowPHPSessionRemoval"]"/>
-<input type="hidden" name="${SEQPREFIX}urlregexpbv_$foreach.index" value="$canonicalizationMap["allowBVSessionRemoval"]"/>
+<input type="hidden" name="${SEQPREFIX}urlregexp_$foreach.index" value="$Encoder.attributeEscape($canonicalizationMap['regexpString'])"/>
+<input type="hidden" name="${SEQPREFIX}urlregexpdesc_$foreach.index" value="$Encoder.attributeEscape($canonicalizationMap['description'])"/>
+<input type="hidden" name="${SEQPREFIX}urlregexpreorder_$foreach.index" value="$canonicalizationMap['allowReorder']"/>
+<input type="hidden" name="${SEQPREFIX}urlregexplowercasing_$foreach.index" value="$canonicalizationMap['allowLowercasing']"/>
+<input type="hidden" name="${SEQPREFIX}urlregexpjava_$foreach.index" value="$canonicalizationMap['allowJavaSessionRemoval']"/>
+<input type="hidden" name="${SEQPREFIX}urlregexpasp_$foreach.index" value="$canonicalizationMap['allowASPSessionRemoval']"/>
+<input type="hidden" name="${SEQPREFIX}urlregexpphp_$foreach.index" value="$canonicalizationMap['allowPHPSessionRemoval']"/>
+<input type="hidden" name="${SEQPREFIX}urlregexpbv_$foreach.index" value="$canonicalizationMap['allowBVSessionRemoval']"/>
   #end
   #set( $COUNTER = $CANONICALIZATIONMAPLIST.size())
 <input type="hidden" name="${SEQPREFIX}urlregexpcount" value="$COUNTER"/>

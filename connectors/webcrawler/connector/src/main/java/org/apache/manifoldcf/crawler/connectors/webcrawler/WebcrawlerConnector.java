@@ -2385,7 +2385,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           allowReorderOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
         }
         else
-          allowReorderOutput = allowReorder;
+          allowReorderOutput = allowReorder.equals(WebcrawlerConfig.ATTRVALUE_NO)?Messages.getBodyString(locale, "WebcrawlerConnector.no"):Messages.getBodyString(locale, "WebcrawlerConnector.yes");
         String allowJavaSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_JAVASESSIONREMOVAL);
         String allowJavaSessionRemovalOutput;
         if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
@@ -2394,7 +2394,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           allowJavaSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
         }
         else
-          allowJavaSessionRemovalOutput = allowJavaSessionRemoval;
+          allowJavaSessionRemovalOutput = allowJavaSessionRemoval.equals(WebcrawlerConfig.ATTRVALUE_NO)?Messages.getBodyString(locale, "WebcrawlerConnector.no"):Messages.getBodyString(locale, "WebcrawlerConnector.yes");;
         String allowASPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_ASPSESSIONREMOVAL);
         String allowASPSessionRemovalOutput;
         if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
@@ -2403,7 +2403,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           allowASPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
         }
         else
-          allowASPSessionRemovalOutput = allowASPSessionRemoval;
+          allowASPSessionRemovalOutput = allowASPSessionRemoval.equals(WebcrawlerConfig.ATTRVALUE_NO)?Messages.getBodyString(locale, "WebcrawlerConnector.no"):Messages.getBodyString(locale, "WebcrawlerConnector.yes");;
         String allowPHPSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL);
         String allowPHPSessionRemovalOutput;
         if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
@@ -2412,7 +2412,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           allowPHPSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
         }
         else
-          allowPHPSessionRemovalOutput = allowPHPSessionRemoval;
+          allowPHPSessionRemovalOutput = allowPHPSessionRemoval.equals(WebcrawlerConfig.ATTRVALUE_NO)?Messages.getBodyString(locale, "WebcrawlerConnector.no"):Messages.getBodyString(locale, "WebcrawlerConnector.yes");;
         String allowBVSessionRemoval = specNode.getAttributeValue(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL);
         String allowBVSessionRemovalOutput;
         if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
@@ -2421,7 +2421,16 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           allowBVSessionRemovalOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
         }
         else
-          allowBVSessionRemovalOutput = allowBVSessionRemoval;
+          allowBVSessionRemovalOutput = allowBVSessionRemoval.equals(WebcrawlerConfig.ATTRVALUE_NO)?Messages.getBodyString(locale, "WebcrawlerConnector.no"):Messages.getBodyString(locale, "WebcrawlerConnector.yes");;
+        String allowLowercasing = specNode.getAttributeValue(WebcrawlerConfig.ATTR_LOWERCASE);
+        String allowLowercasingOutput;
+        if (allowLowercasing == null || allowLowercasing.length() == 0)
+        {
+          allowLowercasing = WebcrawlerConfig.ATTRVALUE_NO;
+          allowLowercasingOutput = Messages.getBodyString(locale, "WebcrawlerConnector.no");
+        }
+        else
+          allowLowercasingOutput = allowLowercasing.equals(WebcrawlerConfig.ATTRVALUE_NO)?Messages.getBodyString(locale, "WebcrawlerConnector.no"):Messages.getBodyString(locale, "WebcrawlerConnector.yes");;
 
         canonicalizationMap.put("regexpString",regexpString);
         canonicalizationMap.put("description",description);
@@ -2435,7 +2444,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         canonicalizationMap.put("allowPHPSessionRemovalOutput",allowPHPSessionRemovalOutput);
         canonicalizationMap.put("allowBVSessionRemoval",allowBVSessionRemoval);
         canonicalizationMap.put("allowBVSessionRemovalOutput",allowBVSessionRemovalOutput);
-
+        canonicalizationMap.put("allowLowercasing",allowLowercasing);
+        canonicalizationMap.put("allowLowercasingOutput",allowLowercasingOutput);
+        
         canonicalizationMapList.add(canonicalizationMap);
       }
     }
@@ -2937,6 +2948,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           String aspSession = variableContext.getParameter(seqPrefix+"urlregexpasp_"+Integer.toString(j));
           String phpSession = variableContext.getParameter(seqPrefix+"urlregexpphp_"+Integer.toString(j));
           String bvSession = variableContext.getParameter(seqPrefix+"urlregexpbv_"+Integer.toString(j));
+          String lowercasing = variableContext.getParameter(seqPrefix+"urlregexplowercasing_"+Integer.toString(j));
           SpecificationNode newSn = new SpecificationNode(WebcrawlerConfig.NODE_URLSPEC);
           newSn.setAttribute(WebcrawlerConfig.ATTR_REGEXP,regexp);
           if (regexpDescription != null && regexpDescription.length() > 0)
@@ -2951,6 +2963,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             newSn.setAttribute(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL,phpSession);
           if (bvSession != null && bvSession.length() > 0)
             newSn.setAttribute(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL,bvSession);
+          if (lowercasing != null && lowercasing.length() > 0)
+            newSn.setAttribute(WebcrawlerConfig.ATTR_LOWERCASE,lowercasing);
           ds.addChild(ds.getChildCount(),newSn);
         }
         j++;
@@ -2964,6 +2978,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         String aspSession = variableContext.getParameter(seqPrefix+"urlregexpasp");
         String phpSession = variableContext.getParameter(seqPrefix+"urlregexpphp");
         String bvSession = variableContext.getParameter(seqPrefix+"urlregexpbv");
+        String lowercasing = variableContext.getParameter(seqPrefix+"urlregexplowercasing");
 
         // Add a new node at the end
         SpecificationNode newSn = new SpecificationNode(WebcrawlerConfig.NODE_URLSPEC);
@@ -2980,6 +2995,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           newSn.setAttribute(WebcrawlerConfig.ATTR_PHPSESSIONREMOVAL,phpSession);
         if (bvSession != null && bvSession.length() > 0)
           newSn.setAttribute(WebcrawlerConfig.ATTR_BVSESSIONREMOVAL,bvSession);
+        if (lowercasing != null && lowercasing.length() > 0)
+          newSn.setAttribute(WebcrawlerConfig.ATTR_LOWERCASE,lowercasing);
         ds.addChild(ds.getChildCount(),newSn);
       }
     }
@@ -3656,6 +3673,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     // Put it back into the URL without the ref, and with the modified query and path parts.
     url = new WebURL(url.getScheme(),url.getHost(),url.getPort(),pathString,queryString);
     String rval = url.toASCIIString();
+    // Here is where we decide to bash to lowercase, if so indicated
+    if (p != null && p.canLowercase())
+    {
+      rval = rval.toLowerCase(Locale.ROOT);
+    }
     return rval;
   }
 
@@ -5383,9 +5405,10 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     protected final boolean removeAspSession;
     protected final boolean removePhpSession;
     protected final boolean removeBVSession;
+    protected final boolean lowercasing;
 
     public CanonicalizationPolicy(Pattern matchPattern, boolean reorder, boolean removeJavaSession, boolean removeAspSession,
-      boolean removePhpSession, boolean removeBVSession)
+      boolean removePhpSession, boolean removeBVSession, boolean lowercasing)
     {
       this.matchPattern = matchPattern;
       this.reorder = reorder;
@@ -5393,6 +5416,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       this.removeAspSession = removeAspSession;
       this.removePhpSession = removePhpSession;
       this.removeBVSession = removeBVSession;
+      this.lowercasing = lowercasing;
     }
 
     public boolean checkMatch(String url)
@@ -5424,6 +5448,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     public boolean canRemoveBvSession()
     {
       return removeBVSession;
+    }
+
+    public boolean canLowercase()
+    {
+      return lowercasing;
     }
 
   }
@@ -5738,10 +5767,20 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
           {
             bvSessionValue = bvSession.equals(WebcrawlerConfig.ATTRVALUE_YES);
           }
+
+          String lowercasing = sn.getAttributeValue(WebcrawlerConfig.ATTR_LOWERCASE);
+          boolean lowercasingValue;
+          if (lowercasing == null)
+            lowercasingValue = false;
+          else
+          {
+            lowercasingValue = lowercasing.equals(WebcrawlerConfig.ATTRVALUE_YES);
+          }
+          
           try
           {
             canonicalizationPolicies.addRule(new CanonicalizationPolicy(Pattern.compile(urlRegexp),reorderValue,javaSessionValue,aspSessionValue,
-              phpSessionValue, bvSessionValue));
+              phpSessionValue, bvSessionValue, lowercasingValue));
           }
           catch (java.util.regex.PatternSyntaxException e)
           {

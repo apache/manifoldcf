@@ -28,6 +28,7 @@
           <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.URLRegexp"))</th>
           <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.Description"))</th>
           <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.Reorder"))</th>
+          <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.MapToLowercase"))</th>
           <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.RemoveJSPSessions"))</th>
           <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.RemoveASPSessions"))</th>
           <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.RemovePHPSessions"))</th>
@@ -38,6 +39,7 @@
           <td>$Encoder.bodyEscape($canonicalizationMap["regexpString"])</td>
           <td>$Encoder.bodyEscape($canonicalizationMap["description"])</td>
           <td>$canonicalizationMap["allowReorderOutput"]</td>
+          <td>$canonicalizationMap["allowLowercasingOutput"]</td>
           <td>$canonicalizationMap["allowJavaSessionRemovalOutput"]</td>
           <td>$canonicalizationMap["allowASPSessionRemovalOutput"]</td>
           <td>$canonicalizationMap["allowPHPSessionRemovalOutput"]</td>
