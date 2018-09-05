@@ -50,7 +50,7 @@
         <input type="hidden" name="${SEQPREFIX}urlregexpasp_$foreach.index" value="$canonicalizationMap['allowASPSessionRemoval']"/>
         <input type="hidden" name="${SEQPREFIX}urlregexpphp_$foreach.index" value="$canonicalizationMap['allowPHPSessionRemoval']"/>
         <input type="hidden" name="${SEQPREFIX}urlregexpbv_$foreach.index" value="$canonicalizationMap['allowBVSessionRemoval']"/>
-        $Encoder.bodyEscape($canonicalizationMap["regexpString"])
+        $Encoder.bodyEscape($canonicalizationMap['regexpString'])
       </td>
       <td>$Encoder.bodyEscape($canonicalizationMap['description'])</td>
       <td>$canonicalizationMap['allowReorderOutput']</td>
@@ -68,7 +68,6 @@
 <hr/>
 <div class="row">
   <div class="col-md-4">
-    <input type="hidden" name="${SEQPREFIX}urlregexpop" value="CONTINUE"/>
     <input type="hidden" name="${SEQPREFIX}urlregexpcount" value="$COUNTER"/>
     <div class="form-group">
       <label for="${SEQPREFIX}urlregexp">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.URLRegularExpression'))</label>
