@@ -3670,6 +3670,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
     }
 
+    // Remove duplicate path slashes.  This is gated by the "lowercase" selection, since it's also an IIS-specific problem.
+    if (p != null && p.canLowercase())
+    {
+      pathString = filterMultipleSlashes(pathString);
+    }
+    
     // Put it back into the URL without the ref, and with the modified query and path parts.
     url = new WebURL(url.getScheme(),url.getHost(),url.getPort(),pathString,queryString);
     String rval = url.toASCIIString();
@@ -3681,6 +3687,19 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     return rval;
   }
 
+  private static String filterMultipleSlashes(String pathString) {
+    // Not terribly efficient unless there are almost never duplicate slashes
+    while (true)
+    {
+      final int index = pathString.indexOf("//");
+      if (index == -1)
+      {
+        return pathString;
+      }
+      pathString = pathString.substring(0, index) + pathString.substring(index + 1);
+    }
+  }
+  
   /** Code to check if data is interesting, based on response code and content type.
   */
   protected boolean isContentInteresting(IFingerprintActivity activities, String documentIdentifier, int response, String contentType)
