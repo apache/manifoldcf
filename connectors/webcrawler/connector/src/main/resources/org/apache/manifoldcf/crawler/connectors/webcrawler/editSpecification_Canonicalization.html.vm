@@ -17,13 +17,13 @@
 
 #set( $SEQPREFIX = 's' + $SEQNUM + '_' )
 #if($TABNAME == $ResourceBundle.getString('WebcrawlerConnector.Canonicalization') && ${SEQNUM} == ${SELECTEDNUM})
+  <input type="hidden" name="${SEQPREFIX}urlregexpop" value="Continue"/>
+  <input type="hidden" name="${SEQPREFIX}urlregexpnumber" value=""/>
   #set( $COUNTER = $CANONICALIZATIONMAPLIST.size() )
   #if($COUNTER == 0)
 <div class="alert alert-warning">$Encoder.bodyEscape($ResourceBundle.getString('WebcrawlerConnector.NoCanonicalizationSpecified'))</div>
   #else
 <div class="row">
-  <input type="hidden" name="${SEQPREFIX}urlregexpop" value="Continue"/>
-  <input type="hidden" name="${SEQPREFIX}urlregexpnumber" value=""/>
   <table class="table">
     <tr>
       <th></th>
