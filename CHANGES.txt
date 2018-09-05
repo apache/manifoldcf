@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.11-dev =====================
 
+CONNECTORS-1528: Fix Canonicalization tab in Web Connector, and add
+IIS support (map to lowercase and collapse multiple slashes to one).
+(Kishore Kumar, Karl Wright)
+
 CONNECTORS-1490: GSOC MongoDB Output Connector
 (Irindu Nugawela, Piergiorgio Lucidi)
 
