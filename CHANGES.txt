@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.11-dev =====================
 
+CONNECTORS-1531: Support Solrj 7.4.0.
+(Julien Massiera, Karl Wright)
+
 CONNECTORS-1528: Fix Canonicalization tab in Web Connector, and add
 IIS support (map to lowercase and collapse multiple slashes to one).
 (Kishore Kumar, Karl Wright)
