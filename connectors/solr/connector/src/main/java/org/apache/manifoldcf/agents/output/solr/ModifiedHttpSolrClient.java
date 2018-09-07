@@ -228,32 +228,18 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
           contentStream[0] = content;
           break;
         }
-        if (contentStream[0] instanceof RequestWriter.LazyContentStream) {
-          postOrPut.setEntity(new InputStreamEntity(contentStream[0].getStream(), -1) {
-            @Override
-            public Header getContentType() {
-              return new BasicHeader("Content-Type", contentStream[0].getContentType());
-            }
+        postOrPut.setEntity(new InputStreamEntity(contentStream[0].getStream(), -1) {
+          @Override
+          public Header getContentType() {
+            return new BasicHeader("Content-Type", contentStream[0].getContentType());
+          }
 
-            @Override
-            public boolean isRepeatable() {
-              return false;
-            }
+          @Override
+          public boolean isRepeatable() {
+            return false;
+          }
 
-          });
-        } else {
-          postOrPut.setEntity(new InputStreamEntity(contentStream[0].getStream(), -1) {
-            @Override
-            public Header getContentType() {
-              return new BasicHeader("Content-Type", contentStream[0].getContentType());
-            }
-
-            @Override
-            public boolean isRepeatable() {
-              return false;
-            }
-          });
-        }
+        });
         return postOrPut;
       }
     }
