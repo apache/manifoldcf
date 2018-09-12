@@ -39,7 +39,7 @@
     #foreach($canonicalizationMap in $CANONICALIZATIONMAPLIST)
     <tr>
       <td>
-        <button class="btn btn-danger btn-xs" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteUrlRegexp'))$Encoder.attributeEscape($canonicalizationMap["regexpString"])" onclick='javascript:${SEQPREFIX}URLRegexpDelete($foreach.index,"${SEQPREFIX}urlregexp_${foreach.index}");'><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
+        <button class="btn btn-danger btn-xs" type="button" title="$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.DeleteUrlRegexp2'))$Encoder.attributeEscape($canonicalizationMap["regexpString"])" onclick='javascript:${SEQPREFIX}URLRegexpDelete($foreach.index,"${SEQPREFIX}urlregexp_${foreach.index}");'><i class="fa fa-minus-circle fa-fw" aria-hidden="true"></i>$Encoder.attributeEscape($ResourceBundle.getString('WebcrawlerConnector.Delete'))</button>
       </td>
       <td>
         <input type="hidden" name="${SEQPREFIX}urlregexp_$foreach.index" value="$Encoder.attributeEscape($canonicalizationMap['regexpString'])"/>
