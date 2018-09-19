@@ -31,9 +31,9 @@
     
     <property name="hsqldb.version" value="2.3.2"/>
     <property name="jetty.version" value="9.2.3.v20140905"/>
-    <property name="httpclient.version" value="4.5.3"/>
-    <property name="httpmime.version" value="4.5.3"/>
-    <property name="httpcore.version" value="4.4.6"/>
+    <property name="httpclient.version" value="4.5.6"/>
+    <property name="httpmime.version" value="4.5.6"/>
+    <property name="httpcore.version" value="4.4.10"/>
     <property name="xerces.version" value="2.10.0"/>
     <property name="zookeeper.version" value="3.4.10"/>
     <property name="mongodb.version" value="2.11.3"/>
@@ -55,17 +55,17 @@
     <property name="commons-logging.version" value="1.2"/>
     <property name="commons-configuration.version" value="1.6"/>
     <property name="commons-cli.version" value="1.2"/>
-    <property name="slf4j.version" value="1.7.24"/>
+    <property name="slf4j.version" value="1.7.25"/>
     <property name="xalan.version" value="2.7.1"/>
-    <property name="poi.version" value="3.17"/>
+    <property name="poi.version" value="4.0.0"/>
     <property name="activation.version" value="1.1.1"/>
     <property name="avalon.version" value="4.3.1"/>
     <property name="ecj.version" value="4.3.1"/>
     <property name="fop.version" value="1.0"/>
     <property name="javamail-spec.version" value="1.7.1"/>
     <property name="tomcat.version" value="6.0.35"/>
-    <property name="jaxb-api.version" value="2.2.11"/>
-    <property name="jaxb-impl.version" value="2.2.11"/>
+    <property name="jaxb-api.version" value="2.3.0"/>
+    <property name="jaxb-impl.version" value="2.3.0"/>
     <property name="jaxws.version" value="2.2.6"/>
     <property name="solrj.version" value="7.4.0"/>
     <property name="noggit.version" value="0.8"/>
@@ -89,8 +89,9 @@
     <property name="velocity.version" value="1.7"/>
     <property name="wss4j.version" value="1.5.12"/>
     <property name="xmlgraphics-commons.version" value="1.4"/>
-    <property name="woodstox-core-asl.version" value="4.4.1"/>
-    <property name="stax2-api.version" value="3.1.4"/>
+    <property name="woodstox-core-asl.version" value="4.4.0"/>
+    <property name="woodstox-core.version" value="5.1.0"/>
+    <property name="stax2-api.version" value="4.1"/>
     <property name="xmlsec.version" value="1.4.0"/>
     <property name="xml-apis.version" value="1.4.01"/>
     <property name="jstl.version" value="1.2"/>
@@ -99,7 +100,7 @@
     <property name="json.version" value="1.8"/>
     <property name="google-api-client.version" value="v2-rev136-1.19.0"/>
     <property name="google-http-client.version" value="1.19.0"/>
-    <property name="jackson-core.version" value="2.9.2"/>
+    <property name="jackson-core.version" value="2.9.6"/>
     <property name="jetty-jsp-jdt.version" value="2.3.3"/>
     <property name="jetty-schemas.version" value="3.1.M0"/>
     <property name="alfresco-indexer.version" value="0.8.1"/>
@@ -108,56 +109,61 @@
     <property name="mockito.version" value="1.9.5"/>
     <property name="wiremock.version" value="2.5.1"/>
     <property name="objenesis.version" value="2.1"/>
-    <property name="tika.version" value="1.17"/>
+    <property name="tika.version" value="1.19"/>
     <property name="tagsoup.version" value="1.2.1"/>
-    <property name="james.version" value="0.8.1"/>
+    <property name="james.version" value="0.8.2"/>
     <property name="vorbis.version" value="0.8"/>
-    <property name="metadata-extractor.version" value="2.10.1"/>
+    <property name="metadata-extractor.version" value="2.11.0"/>
     <property name="aspectjrt.version" value="1.8.6"/>
-    <property name="jhighlight.version" value="1.0.2"/>
-    <property name="xmlbeans.version" value="2.6.0"/>
-    <property name="bc.version" value="1.54"/>
-    <property name="tukaani.version" value="1.6"/>
-    <property name="pdfbox.version" value="2.0.6"/>
-    <property name="jempbox.version" value="1.8.13"/>
-    <property name="commons-compress.version" value="1.17"/>
-    <property name="commons-csv.version" value="1.0"/>
+    <property name="jhighlight.version" value="1.0.3"/>
+    <property name="xmlbeans.version" value="3.0.1"/>
+    <property name="bc.version" value="1.60"/>
+    <property name="tukaani.version" value="1.8"/>
+    <property name="parso.version" value="2.0.9"/>
+    <property name="dec.version" value="0.1.2"/>
+    <property name="pdfbox.version" value="2.0.11"/>
+    <property name="jempbox.version" value="1.8.15"/>
+    <property name="commons-compress.version" value="1.18"/>
+    <property name="commons-csv.version" value="1.5"/>
     <property name="commons-exec.version" value="1.3"/>
     <property name="juniversalchardet.version" value="1.0.3"/>
     <property name="ucar.version" value="4.5.5"/>
-    <property name="jna.version" value="4.1.0"/>
+    <property name="jna.version" value="4.3.0"/>
     <property name="cglib.version" value="3.2.4"/>
     <property name="jcommander.version" value="1.35"/>
     <property name="protobuf.version" value="2.5.0"/>
     <property name="jcip-annotations.version" value="1.0"/>
     <property name="ehcache.version" value="2.6.2"/>
     <property name="bzip2.version" value="0.9.1"/>
-    <property name="jdom2.version" value="2.0.4"/>
+    <property name="jdom2.version" value="2.0.6"/>
+    <property name="jbig2-imageio.version" value="3.0.1"/>
+    <property name="jai-imageio.version" value="1.4.0"/>
     <property name="quartz.version" value="2.2.0"/>
     <property name="boilerpipe.version" value="1.1.0"/>
     <property name="dom4j.version" value="1.6.1"/>
-    <property name="asm.version" value="5.0.4"/>
+    <property name="asm.version" value="6.2"/>
     <property name="xmpcore.version" value="5.1.3"/>
     <property name="rome.version" value="1.5.1"/>
-    <property name="jdom2.version" value="2.0.6"/>
-    <property name="mp4parser.version" value="1.1.18"/>
-    <property name="jmatio.version" value="1.2"/>
+    <property name="mp4parser.version" value="1.1.22"/>
+    <property name="jmatio.version" value="1.4"/>
     <property name="java-libpst.version" value="0.8.1"/>
     <property name="commons-httpclient.version" value="3.1"/>
-    <property name="jackson-databind.version" value="2.6.1"/>
-    <property name="jackson-annotations.version" value="2.6.1"/>
+    <property name="jackson-databind.version" value="2.9.6"/>
+    <property name="jackson-annotations.version" value="2.9.6"/>
     <property name="resteasy.client.version" value="3.0.16.Final"/>
-    <property name="jsoup.version" value="1.7.2"/>
+    <property name="jsoup.version" value="1.11.3"/>
     <property name="jj2000.version" value="5.2"/>
     <property name="hadoop.version" value="2.6.0"/>
     <property name="aws-sdk.version" value="1.9.0"/>
     <property name="joda-time.version" value="2.9.7"/>
-    <property name="junrar.version" value="0.7"/>
-    <property name="jackcess.version" value="2.1.8"/>
-    <property name="jackcess-encrypt.version" value="2.1.2"/>
-    <property name="opennlp.version" value="1.8.3"/>
-    <property name="sis.version" value="0.6"/>
-    <property name="opengis.version" value="3.0.0"/>
+    <property name="junrar.version" value="2.0.0"/>
+    <property name="jackcess.version" value="2.1.12"/>
+    <property name="jackcess-encrypt.version" value="2.1.4"/>
+    <property name="opennlp.version" value="1.9.0"/>
+    <property name="openjson.version" value="1.0.10"/>
+    <property name="sis.version" value="0.8"/>
+    <property name="measure.version" value="1.0"/>
+    <property name="opengis.version" value="3.0.1"/>
     <property name="jsr-275.version" value="0.9.3"/>
     <property name="commons-vfs2.version" value="2.0"/>
     <property name="maven-scm.version" value="1.4"/>
@@ -165,11 +171,13 @@
     <property name="regexp.version" value="1.3"/>
     <property name="c3p0.version" value="0.9.1.1"/>
     <property name="sentiment-analysis.version" value="0.1"/>
-    <property name="cxf.version" value="3.0.16"/>
+    <property name="uimafit.version" value="2.2.0"/>
+    <property name="uimaj.version" value="2.9.0"/>
+    <property name="cxf.version" value="3.2.6"/>
     <property name="neethi.version" value="3.0.3"/>
     <property name="xmlschema.version" value="2.2.2"/>
-    <property name="annotation-api.version" value="1.2"/>
-    <property name="javax.ws.rs-api.version" value="2.0.1"/>
+    <property name="annotation-api.version" value="1.3"/>
+    <property name="javax.ws.rs-api.version" value="2.1"/>
     <property name="virtuald.version" value="1.04"/>
     <property name="rat.bootstrap.version" value="0.12"/>
     <property name="rat_checksum_sha1" value="16398550402b27f81cd0d508cef54b3e47a4a6da"/>
@@ -1871,6 +1879,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-woodstox">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/fasterxml/woodstox"/>
+            <param name="artifact-version" value="${woodstox-core.version}"/>
+            <param name="artifact-name" value="woodstox-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/codehaus/woodstox"/>
             <param name="artifact-version" value="${woodstox-core-asl.version}"/>
             <param name="artifact-name" value="woodstox-core-asl"/>
@@ -2236,37 +2250,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-asm">
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-debug-all"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-analysis"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-commons"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
             <param name="artifact-name" value="asm"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-tree"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-util"/>
             <param name="artifact-version" value="${asm.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -2353,7 +2337,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
     
-    <target name="download-tika" depends="download-commons-exec,download-jna,download-cxf">
+    <target name="download-tika" depends="download-commons-exec,download-jna,download-cxf,download-asm">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/tika"/>
@@ -2383,6 +2367,18 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="edu/usc/ir"/>
             <param name="artifact-version" value="${sentiment-analysis.version}"/>
             <param name="artifact-name" value="sentiment-analysis-parser"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/uima"/>
+            <param name="artifact-version" value="${uimafit.version}"/>
+            <param name="artifact-name" value="uimafit-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/uima"/>
+            <param name="artifact-version" value="${uimaj.version}"/>
+            <param name="artifact-name" value="uimaj-core"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -2416,9 +2412,27 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/pdfbox"/>
+            <param name="artifact-name" value="jbig2-imageio"/>
+            <param name="artifact-version" value="${jbig2-imageio.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/github/jai-imageio"/>
+            <param name="artifact-name" value="jai-imageio-core"/>
+            <param name="artifact-version" value="${jai-imageio.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/quartz-scheduler"/>
             <param name="artifact-name" value="quartz"/>
             <param name="artifact-version" value="${quartz.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="javax/measure"/>
+            <param name="artifact-name" value="unit-api"/>
+            <param name="artifact-version" value="${measure.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -2467,6 +2481,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="org/apache/opennlp"/>
             <param name="artifact-version" value="${opennlp.version}"/>
             <param name="artifact-name" value="opennlp-tools"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/github/openjson"/>
+            <param name="artifact-version" value="${openjson.version}"/>
+            <param name="artifact-name" value="openjson"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
@@ -2644,6 +2664,18 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/epam"/>
+            <param name="artifact-name" value="parso"/>
+            <param name="artifact-version" value="${parso.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/brotli"/>
+            <param name="artifact-name" value="dec"/>
+            <param name="artifact-version" value="${dec.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/pdfbox"/>
             <param name="artifact-name" value="jempbox"/>
             <param name="artifact-version" value="${jempbox.version}"/>
@@ -2695,42 +2727,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="dom4j"/>
             <param name="artifact-name" value="dom4j"/>
             <param name="artifact-version" value="${dom4j.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-debug-all"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-analysis"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-commons"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-tree"/>
-            <param name="artifact-version" value="${asm.version}"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/ow2/asm"/>
-            <param name="artifact-name" value="asm-util"/>
-            <param name="artifact-version" value="${asm.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
