@@ -523,6 +523,30 @@ License: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0
 This product includes a less4j.jar.
 License: Triple license, distributed under Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
+This product includes a parso.jar.
+License: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a dec.jar.
+License: MIT license (http://opensource.org/licenses/MIT)
+
+This product includes an openjson.jar.
+License: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a unit-api.jar.
+License: BSD license (http://opensource.org/licenses/BSD-3-Clause)
+
+This product includes a uimafit-core.jar.
+License: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a uimaj-core.jar.
+License: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a jbig2-imageio.jar.
+License: Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a jai-imageio-core.jar.
+License: Modified BSD license (http://opensource.org/licenses/BSD-3-Clause)
+
 ==========================================================================
 The following license applies to postgresql.jar, which is available from
 http://jdbc.postgresql.org
