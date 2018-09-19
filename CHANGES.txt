@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.11-dev =====================
+======================= Release 2.11 =====================
 
 CONNECTORS-1531: Support Solrj 7.4.0.
 (Julien Massiera, Karl Wright)
