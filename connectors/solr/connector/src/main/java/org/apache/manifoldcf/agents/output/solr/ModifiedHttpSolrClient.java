@@ -106,7 +106,8 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
   protected HttpRequestBase createMethod(final SolrRequest request, String collection) throws IOException, SolrServerException {
     
     SolrParams params = request.getParams();
-    Collection<ContentStream> streams = requestWriter.getContentStreams(request);
+    RequestWriter.ContentWriter contentWriter = requestWriter.getContentWriter(request);
+    Collection<ContentStream> streams = contentWriter == null ? requestWriter.getContentStreams(request) : null;
     String path = requestWriter.getPath(request);
     if (path == null || !path.startsWith("/")) {
       path = DEFAULT_PATH;
