@@ -1158,7 +1158,7 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
         startTime = 0L;
       StringBuilder strDQLend = new StringBuilder(" where r_modify_date >= " + buildDateString(startTime) +
         " and r_modify_date<=" + buildDateString(seedTime) +
-        " AND (i_is_deleted=TRUE Or (i_is_deleted=FALSE AND a_full_text=TRUE AND r_content_size>0");
+        " AND (i_is_deleted=TRUE Or (i_is_deleted=FALSE AND a_full_text=TRUE AND r_content_size>=0");
 
       // append maxsize if set
       if (maxSize != null && maxSize.length() > 0)
