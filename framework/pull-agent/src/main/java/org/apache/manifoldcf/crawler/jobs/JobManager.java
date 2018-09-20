@@ -6718,7 +6718,11 @@ public class JobManager implements IJobManager
     if (connectorModel == IRepositoryConnector.MODEL_ADD_CHANGE_DELETE)
     {
       if (fromBeginningOfTime)
+      {
+        Logging.jobs.info("Preparing MODEL_ADD_CHANGE_DELETE job "+jobID+" for run: fromBeginningOfTime=true, so queueAllExisting invoked");
         queueAllExisting(jobID,legalLinkTypes);
+      }
+      Logging.jobs.info("Preparing MODEL_ADD_CHANGE_DELETE job "+jobID+" for run: fromBeginningOfTime=false, so nothing needed");
       return;
     }
     
@@ -6727,9 +6731,15 @@ public class JobManager implements IJobManager
     if (connectorModel == IRepositoryConnector.MODEL_CHAINED_ADD_CHANGE_DELETE)
     {
       if (fromBeginningOfTime)
+      {
+        Logging.jobs.info("Preparing MODEL_CHAINED_ADD_CHANGE_DELETE job "+jobID+" for run: fromBeginningOfTime=true, so queueAllExisting invoked");
         queueAllExisting(jobID,legalLinkTypes);
+      }
       else
+      {
+        Logging.jobs.info("Preparing MODEL_CHAINED_ADD_CHANGE_DELETE job "+jobID+" for run: fromBeginningOfTime=false, so preparePartialScan invoked");
         jobQueue.preparePartialScan(jobID);
+      }
       return;
     }
 
@@ -6743,7 +6753,11 @@ public class JobManager implements IJobManager
       // will flag the documents we want to look at.
       if (connectorModel == IRepositoryConnector.MODEL_CHAINED_ADD ||
         connectorModel == IRepositoryConnector.MODEL_CHAINED_ADD_CHANGE)
+      {
+        Logging.jobs.info("Preparing minimal MODEL_CHAINED_* job "+jobID+" for run: preparePartialScan invoked");
         jobQueue.preparePartialScan(jobID);
+      }
+      Logging.jobs.info("Preparing minimal non-MODEL_CHAINED_* job "+jobID+" for run: nothing needed");
       return;
     }
     
@@ -6754,6 +6768,7 @@ public class JobManager implements IJobManager
       // (a) not a continuous job, and
       // (b) not a partial model (which always disables full scans), and
       // (c) either MODEL_ALL or from the beginning of time (which are essentially equivalent)
+      Logging.jobs.info("Preparing non-continuous non-partial, either MODEL_ALL or fromBeginningOfTime, "+jobID+" for run: prepareFullScan");
       prepareFullScan(jobID,legalLinkTypes,hopcountMethod);
     }
     else
@@ -6764,6 +6779,7 @@ public class JobManager implements IJobManager
       // (c) not MODEL_ALL AND not from beginning of time
       // This causes all existing documents to be rechecked!  This is needed because the model is not
       // complete at this point; we have ADD but we don't have either CHANGE or DELETE.
+      Logging.jobs.info("Preparing incremental scan for "+jobID+": prepareIncrementalScan");
       jobQueue.prepareIncrementalScan(jobID);
     }
   }
