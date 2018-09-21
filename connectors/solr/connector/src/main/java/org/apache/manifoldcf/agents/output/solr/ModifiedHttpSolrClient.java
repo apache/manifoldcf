@@ -145,6 +145,14 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
     if (SolrRequest.METHOD.POST == request.getMethod() || SolrRequest.METHOD.PUT == request.getMethod()) {
 
       String url = basePath + path;
+      
+      // Hack to allow short queries to go one way, and long queries to go another.
+      final String wQueryString = toQueryString(wparams, false);
+      final boolean mustUseMultipart = url.length() + wQueryString.length() > 4000;
+      if (mustUseMultipart) {
+        streams = requestWriter.getContentStreams(request);
+      }
+      
       boolean hasNullStreamName = false;
       if (streams != null) {
         for (ContentStream cs : streams) {
@@ -158,8 +166,8 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
           || (streams != null && streams.size() > 1)) && !hasNullStreamName;
 
       LinkedList<NameValuePair> postOrPutParams = new LinkedList<>();
-      if(contentWriter != null) {
-        String fullQueryUrl = url + toQueryString(wparams, false);
+      if(contentWriter != null && !mustUseMultipart) {
+        String fullQueryUrl = url + wQueryString;
         HttpEntityEnclosingRequestBase postOrPut = SolrRequest.METHOD.POST == request.getMethod() ?
             new HttpPost(fullQueryUrl) : new HttpPut(fullQueryUrl);
         postOrPut.addHeader("Content-Type",
