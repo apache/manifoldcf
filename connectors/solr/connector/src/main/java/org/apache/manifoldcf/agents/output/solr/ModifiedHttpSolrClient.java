@@ -147,8 +147,7 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
       String url = basePath + path;
       
       // Hack to allow short queries to go one way, and long queries to go another.
-      final String wQueryString = toQueryString(wparams, false);
-      final boolean mustUseMultipart = url.length() + wQueryString.length() > 4000;
+      final boolean mustUseMultipart = request instanceof org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
       if (mustUseMultipart) {
         streams = requestWriter.getContentStreams(request);
       }
@@ -166,8 +165,8 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
           || (streams != null && streams.size() > 1)) && !hasNullStreamName;
 
       LinkedList<NameValuePair> postOrPutParams = new LinkedList<>();
-      if(contentWriter != null && !mustUseMultipart) {
-        String fullQueryUrl = url + wQueryString;
+      if(contentWriter != null && !isMultipart) {
+        String fullQueryUrl = url + toQueryString(wparams, false);
         HttpEntityEnclosingRequestBase postOrPut = SolrRequest.METHOD.POST == request.getMethod() ?
             new HttpPost(fullQueryUrl) : new HttpPut(fullQueryUrl);
         postOrPut.addHeader("Content-Type",
