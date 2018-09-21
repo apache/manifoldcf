@@ -18,6 +18,7 @@ package org.apache.manifoldcf.agents.output.solr;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
@@ -53,6 +54,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.BasicHttpEntity;
 import org.apache.manifoldcf.core.util.URLDecoder;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.ResponseParser;
@@ -156,7 +158,26 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
           || (streams != null && streams.size() > 1)) && !hasNullStreamName;
 
       LinkedList<NameValuePair> postOrPutParams = new LinkedList<>();
-      if (streams == null || isMultipart) {
+      if(contentWriter != null) {
+        String fullQueryUrl = url + toQueryString(wparams, false);
+        HttpEntityEnclosingRequestBase postOrPut = SolrRequest.METHOD.POST == request.getMethod() ?
+            new HttpPost(fullQueryUrl) : new HttpPut(fullQueryUrl);
+        postOrPut.addHeader("Content-Type",
+            contentWriter.getContentType());
+        postOrPut.setEntity(new BasicHttpEntity(){
+          @Override
+          public boolean isStreaming() {
+            return true;
+          }
+
+          @Override
+          public void writeTo(OutputStream outstream) throws IOException {
+            contentWriter.write(outstream);
+          }
+        });
+        return postOrPut;
+
+      } else if (streams == null || isMultipart) {
         // send server list and request list as query string params
         ModifiableSolrParams queryParams = calculateQueryParams(getQueryParams(), wparams);
         queryParams.add(calculateQueryParams(request.getQueryParams(), wparams));
