@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 2.11 =====================
 
+CONNECTORS-1533: Fix problems with Solrj 7.4.0 integration.
+(Julien Massiera, Karl Wright)
+
 CONNECTORS-1531: Support Solrj 7.4.0.
 (Julien Massiera, Karl Wright)
 
