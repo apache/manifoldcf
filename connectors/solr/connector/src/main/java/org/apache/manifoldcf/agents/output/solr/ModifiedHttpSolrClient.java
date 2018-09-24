@@ -168,10 +168,11 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
     if (SolrRequest.METHOD.POST == request.getMethod() || SolrRequest.METHOD.PUT == request.getMethod()) {
       
       // Hack to allow short queries to go one way, and long queries to go another.
-      final boolean mustUseMultipart = this.useMultiPartPost && request instanceof org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
+      final Collection<ContentStream> requestStreams = (requestWriter instanceof org.apache.solr.client.solrj.impl.BinaryRequestWriter)?null:requestWriter.getContentStreams(request);
+      final boolean mustUseMultipart = this.useMultiPartPost && requestStreams != null && requestStreams.size() > 0; //request instanceof org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
       if (mustUseMultipart) {
         //System.out.println("Overriding with streams");
-        streams = requestWriter.getContentStreams(request);
+        streams = requestStreams;
       }
 
       //System.out.println("Post or put");
