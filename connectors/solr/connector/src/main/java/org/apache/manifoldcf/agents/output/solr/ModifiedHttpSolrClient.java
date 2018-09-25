@@ -166,35 +166,61 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
     }
 
     if (SolrRequest.METHOD.POST == request.getMethod() || SolrRequest.METHOD.PUT == request.getMethod()) {
-      
-      // Hack to allow short queries to go one way, and long queries to go another.
-      final Collection<ContentStream> requestStreams = (requestWriter instanceof org.apache.solr.client.solrj.impl.BinaryRequestWriter)?null:requestWriter.getContentStreams(request);
-      final boolean mustUseMultipart = this.useMultiPartPost && requestStreams != null && requestStreams.size() > 0; //request instanceof org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
-      if (mustUseMultipart) {
-        //System.out.println("Overriding with streams");
-        streams = requestStreams;
-      }
 
       //System.out.println("Post or put");
       String url = basePath + path;
-      boolean hasNullStreamName = false;
-      if (streams != null) {
-        for (ContentStream cs : streams) {
-          if (cs.getName() == null) {
-            hasNullStreamName = true;
-            break;
-          }
-        }
-      }
-      boolean isMultipart = ((this.useMultiPartPost && SolrRequest.METHOD.POST == request.getMethod())
-          || (streams != null && streams.size() > 1)) && !hasNullStreamName;
+      
+      // UpdateRequest uses PUT now, and ContentStreamUpdateHandler uses POST.
+      // We must override PUT with POST if multipart is required.
+      // If useMultipart is on, we fall back to getting streams directly from the request, for now.
+      final String contentWriterUrl = url + toQueryString(wparams, false);
 
+      final boolean isMultipart;
+      if (this.useMultiPartPost) {
+        final Collection<ContentStream> requestStreams = request.getContentStreams();
+        // Do we have streams?
+        if (requestStreams != null && requestStreams.size() > 0) {
+          
+          // Need to know if we have a stream name
+          boolean hasNullStreamName = false;
+          if (requestStreams != null) {
+            for (ContentStream cs : requestStreams) {
+              if (cs.getName() == null) {
+                hasNullStreamName = true;
+                break;
+              }
+            }
+          }
+
+          // Also, is the contentWriter URL too big?
+          final boolean urlTooBig = contentWriterUrl.length() > 4000;
+          //System.out.println("RequestStreams present? "+(requestStreams != null && requestStreams.size() > 0)+"; hasNullStreamName? "+hasNullStreamName+"; url length = "+contentWriterUrl.length());
+          isMultipart = requestStreams != null && requestStreams.size() > 0 && ((request.getMethod() == SolrRequest.METHOD.POST && !hasNullStreamName)  || urlTooBig);
+          if (isMultipart) {
+            //System.out.println("Overriding with multipart post");
+            streams = requestStreams;
+          }
+        } else {
+          isMultipart = false;
+        }
+      } else {
+        isMultipart = false;
+      }
+
+      final SolrRequest.METHOD methodToUse = isMultipart?SolrRequest.METHOD.POST:request.getMethod();
+
+      /*
+      final boolean isMultipart = ((this.useMultiPartPost && SolrRequest.METHOD.POST == methodToUse)
+          || (streams != null && streams.size() > 1)) && !hasNullStreamName;
+      */
+      //System.out.println("isMultipart = "+isMultipart);
+      
       LinkedList<NameValuePair> postOrPutParams = new LinkedList<>();
 
-      if(contentWriter != null && !mustUseMultipart) {
+      if(contentWriter != null && !isMultipart) {
         //System.out.println(" using contentwriter");
-        String fullQueryUrl = url + toQueryString(wparams, false);
-        HttpEntityEnclosingRequestBase postOrPut = SolrRequest.METHOD.POST == request.getMethod() ?
+        String fullQueryUrl = contentWriterUrl;
+        HttpEntityEnclosingRequestBase postOrPut = SolrRequest.METHOD.POST == methodToUse ?
             new HttpPost(fullQueryUrl) : new HttpPut(fullQueryUrl);
         postOrPut.addHeader("Content-Type",
             contentWriter.getContentType());
@@ -216,13 +242,13 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
         ModifiableSolrParams queryParams = calculateQueryParams(getQueryParams(), wparams);
         queryParams.add(calculateQueryParams(request.getQueryParams(), wparams));
         String fullQueryUrl = url + toQueryString(queryParams, false);
-        HttpEntityEnclosingRequestBase postOrPut = fillContentStream(request, streams, wparams, isMultipart, postOrPutParams, fullQueryUrl);
+        HttpEntityEnclosingRequestBase postOrPut = fillContentStream(methodToUse, streams, wparams, isMultipart, postOrPutParams, fullQueryUrl);
         return postOrPut;
       }
       // It is has one stream, it is the post body, put the params in the URL
       else {
         String fullQueryUrl = url + toQueryString(wparams, false);
-        HttpEntityEnclosingRequestBase postOrPut = SolrRequest.METHOD.POST == request.getMethod() ?
+        HttpEntityEnclosingRequestBase postOrPut = SolrRequest.METHOD.POST == methodToUse ?
             new HttpPost(fullQueryUrl) : new HttpPut(fullQueryUrl);
         fillSingleContentStream(streams, postOrPut);
 
@@ -257,8 +283,8 @@ public class ModifiedHttpSolrClient extends HttpSolrClient
 
   }
 
-  private HttpEntityEnclosingRequestBase fillContentStream(SolrRequest request, Collection<ContentStream> streams, ModifiableSolrParams wparams, boolean isMultipart, LinkedList<NameValuePair> postOrPutParams, String fullQueryUrl) throws IOException {
-    HttpEntityEnclosingRequestBase postOrPut = SolrRequest.METHOD.POST == request.getMethod() ?
+  private HttpEntityEnclosingRequestBase fillContentStream(SolrRequest.METHOD methodToUse, Collection<ContentStream> streams, ModifiableSolrParams wparams, boolean isMultipart, LinkedList<NameValuePair> postOrPutParams, String fullQueryUrl) throws IOException {
+    HttpEntityEnclosingRequestBase postOrPut = SolrRequest.METHOD.POST == methodToUse ?
         new HttpPost(fullQueryUrl) : new HttpPut(fullQueryUrl);
 
     if (!isMultipart) {
