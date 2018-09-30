@@ -1484,7 +1484,20 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           
           String objName = object.getObjectName();
           String contentType = object.getContentType();
-            
+          // Check if content type is one of the allowed ones
+          if (!sDesc.contentTypeMatches(contentType))
+          {
+            activityStatus = "MIMETYPEOUTOFSET";
+            return;
+          }
+          String[] pathString = sDesc.getPathAttributeValue(object);
+          // Check if one of the paths is in the allowed set
+          if (!sDesc.pathMatches(pathString))
+          {
+            activityStatus = "PATHMOVED";
+            return;
+          }
+          
           // This particular way of getting content failed, because DFC loaded the
           // whole object into memory (very very bad DFC!)
           // InputStream is = objIDfSysObject.getContent();
@@ -1550,7 +1563,6 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
           String pathAttributeName = sDesc.getPathAttributeName();
           if (pathAttributeName != null && pathAttributeName.length() > 0)
           {
-            String[] pathString = sDesc.getPathAttributeValue(object);
             rval.addField(pathAttributeName,pathString);
           }
 
@@ -4367,23 +4379,54 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
     protected final boolean securityOn;
     /** Map of type to selected attributes */
     protected final Map<String,List<String>> typeMap = new HashMap<String,List<String>>();
-
+    /** Set of allowed paths */
+    protected final Set<String> pathSet = new HashSet<>();
+    /** Set of allowed mime types; null if all are allowed */
+    protected final Set<String> mimeTypeSet;
+    
     /** Constructor */
     public SpecInfo(Specification spec)
       throws ManifoldCFException, ServiceInterruption
     {
+      Set<String> mimeTypeSet = null;
+      boolean allMimeTypes = false;
       String pathAttributeName = null;
       boolean securityOn = true;
       for (int i = 0; i < spec.getChildCount(); i++)
       {
         SpecificationNode n = spec.getChild(i);
-        if (n.getType().equals(CONFIG_PARAM_PATHNAMEATTRIBUTE))
+        if (n.getType().equals(CONFIG_PARAM_FORMAT_ALL))
+        {
+          String all = n.getAttributeValue("value");
+          if (all.equals("true"))
+          {
+            allMimeTypes = true;
+          }
+        }
+        else if (n.getType().equals(CONFIG_PARAM_FORMAT))
+        {
+          String docType = n.getAttributeValue("value");
+          if (mimeTypeSet == null)
+            mimeTypeSet = new HashSet<String>();
+          mimeTypeSet.add(docType);
+        }
+        else if (n.getType().equals(CONFIG_PARAM_PATHNAMEATTRIBUTE))
+        {
           pathAttributeName = n.getAttributeValue("value");
+        }
         else if (n.getType().equals(CONFIG_PARAM_PATHMAP))
         {
           String pathMatch = n.getAttributeValue("match");
           String pathReplace = n.getAttributeValue("replace");
           matchMap.appendMatchPair(pathMatch,pathReplace);
+        }
+        else if (n.getType().equals(CONFIG_PARAM_LOCATION))
+        {
+          String strLocation = n.getAttributeValue("path");
+          if (strLocation != null && strLocation.length() > 0)
+          {
+            pathSet.add(strLocation);
+          }
         }
         else if (n.getType().equals("access"))
         {
@@ -4441,6 +4484,21 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       }
       this.pathAttributeName = pathAttributeName;
       this.securityOn = securityOn;
+      if (allMimeTypes)
+      {
+        this.mimeTypeSet = null;
+      }
+      else
+      {
+        if (mimeTypeSet == null)
+        {
+          this.mimeTypeSet = new HashSet<>(0);
+        }
+        else
+        {
+          this.mimeTypeSet = mimeTypeSet;
+        }
+      }
     }
 
     /** Get the path attribute name.
@@ -4465,6 +4523,37 @@ public class DCTM extends org.apache.manifoldcf.crawler.connectors.BaseRepositor
       return rval;
     }
 
+    /** Check if a set of paths contains one that matches the spec.
+    *@param documentPaths is the set of paths the document has.
+    *@return true if it does, false if not.
+    */
+    public boolean pathMatches(final String[] documentPaths)
+    {
+      if (pathSet.size() == 0) {
+        return true;
+      }
+      for (final String path : documentPaths) {
+        if (pathSet.contains(path)) {
+          return true;
+        }
+      }
+      return false;
+    }
+ 
+    /** Check if a document content type matches the spec.
+    *@param contentType is the mime type that the document has.
+    *@return true if it does, false if not.
+    */
+    public boolean contentTypeMatches(final String contentType)
+    {
+      // Implement if we need to.  It's not clear that the mime type of a document can change after-the-fact.
+      if (mimeTypeSet == null) {
+        return true;
+      }
+      final boolean rval = mimeTypeSet.contains(contentType);
+      return rval;
+    }
+    
     /** Grab forced acl out of document specification.
     *@param spec is the document specification.
     *@return the acls.
