@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.12-dev =====================
 
+CONNECTORS-1536: Update GoogleDrive connector to support Teams.
+(Douglas C. R. Paes, Karl Wright)
+
 CONNECTORS-1532: Documentum connector would not remove docs that
 were no longer eligible because of path changes or mime type changes.
 (James Thomas, Karl Wright)

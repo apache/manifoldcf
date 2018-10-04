@@ -30,6 +30,8 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.Drive.Files.Get;
+
 import java.util.Map;
 
 
@@ -86,7 +88,11 @@ public class GoogleDriveSession {
     info.put("Application Name", drive.getApplicationName());
     info.put("Base URL", drive.getBaseUrl());
     // We need something that will actually cause a back-and-forth to the server!
-    drive.files().get("").execute();
+    Get get = drive.files().get("");
+    get.setSupportsTeamDrives(true);
+
+    get.execute();
+    
     return info;
   }
 
@@ -97,6 +103,8 @@ public class GoogleDriveSession {
     Drive.Files.List request;
 
     request = drive.files().list().setQ(googleDriveQuery);
+    request.setIncludeTeamDriveItems(true);
+    request.setSupportsTeamDrives(true);
 
     do {
       FileList files = request.execute();
@@ -111,7 +119,10 @@ public class GoogleDriveSession {
   /** Get an individual document.
   */
   public File getObject(String id) throws IOException {
-    File file = drive.files().get(id).execute();
+    Get get = drive.files().get(id);
+    get.setSupportsTeamDrives(true);
+	  
+    File file = get.execute();
     return file;
   }
 
@@ -120,6 +131,8 @@ public class GoogleDriveSession {
   public void getChildren(XThreadStringBuffer idBuffer, String nodeId)
     throws IOException, InterruptedException {
     Drive.Files.List request = drive.files().list().setQ("'" + nodeId + "' in parents");
+    request.setIncludeTeamDriveItems(true);
+    request.setSupportsTeamDrives(true);
 
     do {
       FileList files = request.execute();

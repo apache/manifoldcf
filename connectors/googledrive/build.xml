@@ -34,7 +34,9 @@
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
             <include name="google-*.jar"/>
-	    <include name="jackson-core.jar"/>
+            <include name="jackson-core*.jar"/>
+            <include name="jsr305*.jar"/>
+            <include name="j2objc-annotations*.jar"/>
         </fileset>
     </path>
 
@@ -43,7 +45,9 @@
         <copy todir="dist/lib">
             <fileset dir="../../lib">
                 <include name="google-*.jar"/>
-		<include name="jackson-core.jar"/>
+                <include name="jackson-core*.jar"/>
+                <include name="jsr305*.jar"/>
+                <include name="j2objc-annotations*.jar"/>
             </fileset>
         </copy>
     </target>

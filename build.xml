@@ -98,8 +98,10 @@
     <property name="dropbox-client.version" value="1.5.3"/>
     <property name="json-simple.version" value="1.1.1"/>
     <property name="json.version" value="1.8"/>
-    <property name="google-api-client.version" value="v2-rev136-1.19.0"/>
-    <property name="google-http-client.version" value="1.19.0"/>
+    <property name="google-api-client.version" value="v2-rev326-1.25.0"/>
+    <property name="google-http-client.version" value="1.25.0"/>
+    <property name="findbugs.version" value="3.0.2"/>
+    <property name="j2objc.version" value="1.1"/>
     <property name="jackson-core.version" value="2.9.6"/>
     <property name="jetty-jsp-jdt.version" value="2.3.3"/>
     <property name="jetty-schemas.version" value="3.1.M0"/>
@@ -2014,6 +2016,20 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="com/google/apis"/>
             <param name="artifact-version" value="${google-api-client.version}"/>
             <param name="artifact-name" value="google-api-services-drive"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/code/findbugs"/>
+            <param name="artifact-version" value="${findbugs.version}"/>
+            <param name="artifact-name" value="jsr305"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="com/google/j2objc"/>
+            <param name="artifact-version" value="${j2objc.version}"/>
+            <param name="artifact-name" value="j2objc-annotations"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
