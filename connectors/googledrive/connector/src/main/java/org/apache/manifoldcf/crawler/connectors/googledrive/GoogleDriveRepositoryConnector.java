@@ -19,50 +19,46 @@
 
 package org.apache.manifoldcf.crawler.connectors.googledrive;
 
-import org.apache.manifoldcf.core.common.*;
-import org.apache.manifoldcf.connectorcommon.common.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Date;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Iterator;
 
-import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
-import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
-import org.apache.manifoldcf.core.interfaces.ConfigParams;
-import org.apache.manifoldcf.core.interfaces.Specification;
-import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.connectorcommon.common.XThreadInputStream;
+import org.apache.manifoldcf.connectorcommon.common.XThreadStringBuffer;
+import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
-import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
-import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
+import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
-import org.apache.log4j.Logger;
+import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
+import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
+import org.apache.manifoldcf.crawler.system.Logging;
 
-import com.google.api.services.drive.model.File;
 import com.google.api.client.repackaged.com.google.common.base.Objects;
 import com.google.api.client.util.DateTime;
+import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.ParentReference;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.util.Map.Entry;
-import java.security.GeneralSecurityException;
 /**
  *
  * @author andrew
@@ -123,6 +119,11 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
    */
   private static final String VIEW_SPEC_FORWARD = "viewSpecification_googledrive.html";
   
+  /** The content path param used for managing content migration deletion **/
+  private static final String CONTENT_PATH_PARAM = "contentPath";
+  
+  private String SLASH = "/";
+	
   /**
    * Endpoint server name
    */
@@ -980,6 +981,23 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
     for (String documentIdentifier : documentIdentifiers) {
       File googleFile = getObject(documentIdentifier);
+
+      // StringBuilder log = new StringBuilder();
+      // log.append("File Original Name: " + googleFile.getOriginalFilename());
+      // log.append(System.getProperty("line.separator"));
+      // log.append("File Title: " + googleFile.getTitle());
+      // log.append(System.getProperty("line.separator"));
+      // log.append("File Description: " + googleFile.getDescription());
+      // log.append(System.getProperty("line.separator"));
+      // log.append("File Extension: " + googleFile.getFileExtension());
+      // log.append(System.getProperty("line.separator"));
+      // log.append("File MimeType: " + googleFile.getMimeType());
+      // log.append(System.getProperty("line.separator"));
+      // log.append("File Version: " + googleFile.getVersion());
+      // log.append(System.getProperty("line.separator"));
+      //
+      // System.out.println(log);
+
       String versionString;
       
       if (googleFile == null || (googleFile.containsKey("explicitlyTrashed") && googleFile.getExplicitlyTrashed())) {
@@ -1106,14 +1124,43 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
               Date modifiedDate = (modifiedDateObject==null)?null:new Date(modifiedDateObject.getValue());
               // We always direct to the PDF except for Spreadsheets
               String documentURI = null;
-              if (!mimeType.equals("application/vnd.google-apps.spreadsheet")) {
-                documentURI = getUrl(googleFile, "application/pdf");
-              } else {
-                documentURI = getUrl(googleFile, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+              // if (!mimeType.equals("application/vnd.google-apps.spreadsheet")) {
+              // documentURI = getUrl(googleFile, "application/pdf");
+              // } else {
+              // documentURI = getUrl(googleFile,
+              // "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+              // }
+
+              switch (mimeType) {
+                case "application/vnd.google-apps.spreadsheet":
+                  documentURI = getUrl(googleFile, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                  break;
+
+                case "application/vnd.google-apps.document":
+                  documentURI = getUrl(googleFile, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+                  break;
+
+                case "application/vnd.google-apps.presentation":
+                  documentURI = getUrl(googleFile, "application/vnd.openxmlformats-officedocument.presentationml.presentation");
+                  break;
+
+                default:
+                  documentURI = getUrl(googleFile, "application/pdf");
+                  break;
               }
 
-              if (!activities.checkLengthIndexable(fileLength))
-              {
+              String fullContentPath = getDocumentContentPath(googleFile, documentURI);
+              
+              // Append the new parameters in the query string
+              if (StringUtils.contains(documentURI, '?')) {
+                documentURI = documentURI + "&" + CONTENT_PATH_PARAM + "=" + fullContentPath;
+              } else {
+                documentURI = documentURI + "?" + CONTENT_PATH_PARAM + "=" + fullContentPath;
+              }
+
+              System.out.println("documentURI: " + documentURI);
+
+              if (!activities.checkLengthIndexable(fileLength)) {
                 errorCode = activities.EXCLUDED_LENGTH;
                 errorDesc = "Excluding document because of file length ('"+fileLength+"')";
                 activities.noDocument(nodeId,version);
@@ -1155,7 +1202,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
               }
               
               if (mimeType != null)
-                rd.setMimeType(mimeType);
+                rd.setMimeType(getFixedMimeType(mimeType));
               if (createdDate != null)
                 rd.setCreatedDate(createdDate);
               if (modifiedDate != null)
@@ -1164,7 +1211,17 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
               {
                 if (title == null)
                   title = "";
-                rd.setFileName(title + "." + extension);
+
+                if (StringUtils.endsWithIgnoreCase(title, "." + extension)) {
+                  rd.setFileName(title);
+                } else {
+                  rd.setFileName(title + "." + extension);
+                }
+              } else {
+                if (title == null)
+                  title = "";
+              
+                rd.setFileName(title + "." + getExtensionByMimeType(mimeType));
               }
 
               // Get general document metadata
@@ -1181,6 +1238,13 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
                   InputStream is = t.getSafeInputStream();
                   try {
                     // Can only index while background thread is running!
+                	  
+                	//filter the fields selected in the query
+                	List<String> sourcePath = new ArrayList<>();
+                	sourcePath.add(fullContentPath);
+                	rd.setSourcePath(sourcePath);
+                    //ingestion
+                	  
                     rd.setBinary(is, fileLength);
                     activities.ingestDocumentWithException(nodeId, version, documentURI, rd);
                   } finally {
@@ -1232,13 +1296,130 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
         }
       }
     }
-    
+
   }
-  
+
+  private String getFixedMimeType(String mimeType) {
+    switch (mimeType) {
+      case "application/vnd.google-apps.spreadsheet":
+        return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+      case "application/vnd.google-apps.document":
+        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    		
+      case "application/vnd.google-apps.presentation":
+        return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+    		
+      default:
+        return mimeType;
+    }
+  }
+
+  private String getExtensionByMimeType(String mimeType) {
+    switch (mimeType) {
+      case "application/vnd.google-apps.spreadsheet":
+      return "xlsx";
+
+      case "application/vnd.google-apps.document":
+        return "docx";
+
+      case "application/vnd.google-apps.presentation":
+        return "pptx";
+
+      default:
+        return null;
+    }
+  }
+
+  private String getDocumentContentPath(File googleFile, String documentURI) {
+    String fullContentPath = null;
+	try {
+      if (!isDir(googleFile)) {
+        if (googleFile.getParents() != null && !googleFile.getParents().isEmpty()) {
+          ParentReference parentRef = googleFile.getParents().get(0);
+          File parent;
+
+          parent = getObject(parentRef.getId());
+
+          String path = getFilePath(parent);
+          String name;
+          String title = googleFile.getTitle();
+
+          String extension = googleFile.getFileExtension();
+
+          if (extension != null) {
+            if (title == null)
+              title = "";
+
+            if (StringUtils.endsWithIgnoreCase(title, "." + extension)) {
+              name = title;
+            } else {
+              name = title + "." + extension;
+            }
+          } else {
+            if (title == null)
+              title = "";
+            name = title + "." + getExtensionByMimeType(googleFile.getMimeType());
+          }
+
+          fullContentPath = path + SLASH + name;
+        }
+      } else {
+        String path = getFilePath(googleFile);
+        String name = googleFile.getTitle();
+        fullContentPath = path + SLASH + name;
+      }
+    } catch (ManifoldCFException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (ServiceInterruption e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+	}
+    return fullContentPath;
+  }
+
+  private String getFilePath(File file) throws IOException, ManifoldCFException, ServiceInterruption {
+    String folderPath = "";
+    String fullFilePath = null;
+
+    List<ParentReference> parentReferencesList = file.getParents();
+    List<String> folderList = new ArrayList<String>();
+
+    List<String> finalFolderList = getfoldersList(parentReferencesList, folderList);
+    Collections.reverse(finalFolderList);
+
+    for (String folder : finalFolderList) {
+      folderPath += "/" + folder;
+    }
+
+    fullFilePath = folderPath + "/" + file.getTitle();
+
+    return fullFilePath;
+  }
+
+  private List<String> getfoldersList(List<ParentReference> parentReferencesList, List<String> folderList)
+    throws IOException, ManifoldCFException, ServiceInterruption {
+    for (int i = 0; i < parentReferencesList.size(); i++) {
+      String id = parentReferencesList.get(i).getId();
+
+      File file = getObject(id);
+      folderList.add(file.getTitle());
+
+      if (!(file.getParents().isEmpty())) {
+        List<ParentReference> parentReferenceslist2 = file.getParents();
+        getfoldersList(parentReferenceslist2, folderList);
+      }
+    }
+    return folderList;
+  }
+
   protected class DocumentReadingThread extends Thread {
 
-    protected Throwable exception = null;
-    protected final String fileURL;
+    protected Throwable exception = null;    protected final String fileURL;
     protected final XThreadInputStream stream;
     
     public DocumentReadingThread(String fileURL) {

@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.12-dev =====================
 
+CONNECTORS-1537: Numerous changes to GoogleDrive connector to support paths etc.
+(Douglas C. R. Paes)
+
 CONNECTORS-1536: Update GoogleDrive connector to support Teams.
 (Douglas C. R. Paes, Karl Wright)
 
