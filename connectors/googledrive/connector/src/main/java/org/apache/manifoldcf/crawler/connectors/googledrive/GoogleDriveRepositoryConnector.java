@@ -1119,7 +1119,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
               DateTime createdDateObject = googleFile.getCreatedDate();
               DateTime modifiedDateObject = googleFile.getModifiedDate();
               String extension = googleFile.getFileExtension();
-              String title = googleFile.getTitle();
+              String title = cleanupFileFolderName(googleFile.getTitle());
               Date createdDate = (createdDateObject==null)?null:new Date(createdDateObject.getValue());
               Date modifiedDate = (modifiedDateObject==null)?null:new Date(modifiedDateObject.getValue());
               // We always direct to the PDF except for Spreadsheets
@@ -1343,7 +1343,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
           String path = getFilePath(parent);
           String name;
-          String title = googleFile.getTitle();
+          String title = cleanupFileFolderName(googleFile.getTitle());
 
           String extension = googleFile.getFileExtension();
 
@@ -1366,7 +1366,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
         }
       } else {
         String path = getFilePath(googleFile);
-        String name = googleFile.getTitle();
+        String name = cleanupFileFolderName(googleFile.getTitle());
         fullContentPath = path + SLASH + name;
       }
     } catch (ManifoldCFException e) {
@@ -1396,7 +1396,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       folderPath += "/" + folder;
     }
 
-    fullFilePath = folderPath + "/" + file.getTitle();
+    fullFilePath = folderPath + "/" + cleanupFileFolderName(file.getTitle());
 
     return fullFilePath;
   }
@@ -1407,7 +1407,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       String id = parentReferencesList.get(i).getId();
 
       File file = getObject(id);
-      folderList.add(file.getTitle());
+      folderList.add(cleanupFileFolderName(file.getTitle()));
 
       if (!(file.getParents().isEmpty())) {
         List<ParentReference> parentReferenceslist2 = file.getParents();
@@ -1564,5 +1564,11 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     throws ManifoldCFException, ServiceInterruption {
     // Permanent problem: can't initialize transport layer
     throw new ManifoldCFException("GoogleDrive exception: "+e.getMessage(), e);
+  }
+  
+  private String cleanupFileFolderName(String name) {
+	  name = name.trim();
+	  name = name.replaceAll("[\\\\/:*?\"<>|]", "_");
+	  return name;
   }
 }
