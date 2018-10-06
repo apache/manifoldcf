@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.12-dev =====================
 
+CONNECTORS-1543: Map illegal file name characters to '_'.
+(Douglas C. R. Paes)
+
 CONNECTORS-1537: Numerous changes to GoogleDrive connector to support paths etc.
 (Douglas C. R. Paes)
 
