@@ -25,8 +25,6 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -64,13 +62,13 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.impl.jaxb.EnumBaseObjectTypeIds;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
+import org.apache.manifoldcf.connectorcommon.fuzzyml.ReplayableInputStream;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
@@ -896,6 +894,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
     Folder leafParent = null;
     String fileName = StringUtils.EMPTY;
     InputStream inputStream = null;
+    ReplayableInputStream replayableInputStream = null;
     ContentStream contentStream = null;
      // properties
     // (minimal set: name and object type id)
@@ -920,8 +919,6 @@ public class CmisOutputConnector extends BaseOutputConnector {
           primaryPath = sourcePath.get(0);
         }
   
-       
-        
         //if the source is CMIS Repository Connector we override the objectId for synchronizing with removeDocument method
         if(isSourceRepoCmisCompliant(document)) {
           String[] cmisObjectIdArray = (String[]) document.getField(PropertyIds.OBJECT_ID);
@@ -957,12 +954,13 @@ public class CmisOutputConnector extends BaseOutputConnector {
         
         // Content Stream
         inputStream = document.getBinaryStream();
+        replayableInputStream = new ReplayableInputStream(inputStream);
         contentStream = new ContentStreamImpl(fileName, BigInteger.valueOf(binaryLength), mimeType,
-            inputStream);
+          replayableInputStream);
 
         // create a major version
         leafParent = getOrCreateLeafParent(parentDropZoneFolder, creationDate, Boolean.valueOf(createTimestampTree), primaryPath);
-        leafParent.createDocument(properties, contentStream, VersioningState.NONE);
+        leafParent.createDocument(properties, contentStream, VersioningState.MAJOR);
         resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
         return DOCUMENT_STATUS_ACCEPTED;
 
@@ -980,7 +978,8 @@ public class CmisOutputConnector extends BaseOutputConnector {
         
         Document currentContent = (Document) session.getObjectByPath(documentFullPath);
         currentContent.updateProperties(properties);
-        contentStream = new ContentStreamImpl(newFileName, BigInteger.valueOf(binaryLength), mimeType, inputStream);
+        replayableInputStream.restart(true);
+        contentStream = new ContentStreamImpl(newFileName, BigInteger.valueOf(binaryLength), mimeType, replayableInputStream);
         currentContent.setContentStream(contentStream, true);
         
         Logging.connectors.warn(
