@@ -825,7 +825,7 @@ function isRegularExpression(value)
       if(activeClass.length() == 0)
       {
 %>
-                    onclick='<%="javascript:SelectSequencedTab(\""+tab+"\",\""+((sequenceNumber==null)?"":sequenceNumber.toString())+"\");return false;"%>'
+                    onclick='<%="javascript:SelectSequencedTab(\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+"\",\""+((sequenceNumber==null)?"":sequenceNumber.toString())+"\");return false;"%>'
 <%
       }
 %>                    
@@ -858,7 +858,7 @@ function isRegularExpression(value)
       if(activeClass.length() == 0)
       {
 %>
-                    onclick='<%="javascript:SelectSequencedTab(\""+tab+"\",\""+((sequenceNumber==null)?"":sequenceNumber.toString())+"\");return false;"%>'
+                    onclick='<%="javascript:SelectSequencedTab(\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+"\",\""+((sequenceNumber==null)?"":sequenceNumber.toString())+"\");return false;"%>'
 <%
       }
 %>

@@ -308,7 +308,7 @@ try
             <li>
               <a href="#tab_<%=tabNum%>"
                       alt='<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+" "+Messages.getAttributeString(pageContext.getRequest().getLocale(),"editconnection.tab")%>'
-                      onclick='<%="javascript:SelectTab(\""+tab+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a>
+                      onclick='<%="javascript:SelectTab(\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(tab)+"\");return false;"%>'><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(tab)%></a>
             </li>
 <%
       }
