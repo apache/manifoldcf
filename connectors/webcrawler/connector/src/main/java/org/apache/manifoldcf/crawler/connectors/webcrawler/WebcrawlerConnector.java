@@ -901,7 +901,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                 {
                   fetchStatus.contextMessage = "it had the wrong content type ('"+contentType+"')";
                   fetchStatus.resultSignal = RESULT_NO_DOCUMENT;
-                  activityResultCode = null;
+                  activityResultCode = activities.EXCLUDED_MIMETYPE;
                 }
               }
               else
