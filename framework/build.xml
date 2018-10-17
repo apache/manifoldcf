@@ -179,6 +179,11 @@
             <include name="xmlschema-core*.jar"/>
             <include name="javax.annotation-api*.jar"/>
             <include name="javax.ws.rs-api*.jar"/>
+            <include name="jaxb*.jar"/>
+            <include name="txw2*.jar"/>
+            <include name="istack-commons-runtime*.jar"/>
+            <include name="FastInfoset*.jar"/>
+            <include name="stax-ex*.jar"/>
         </fileset>
         <fileset dir="../lib">
             <include name="castor*.jar"/>
@@ -1615,6 +1620,11 @@
                 <include name="xmlschema-core*.jar"/>
                 <include name="javax.annotation-api*.jar"/>
                 <include name="javax.ws.rs-api*.jar"/>
+                <include name="jaxb*.jar"/>
+                <include name="txw2*.jar"/>
+                <include name="istack-commons-runtime*.jar"/>
+                <include name="FastInfoset*.jar"/>
+                <include name="stax-ex*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="castor*.jar"/>
