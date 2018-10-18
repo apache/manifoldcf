@@ -65,6 +65,7 @@
     <property name="javamail-spec.version" value="1.7.1"/>
     <property name="tomcat.version" value="6.0.35"/>
     <property name="jaxb-api.version" value="2.3.0"/>
+    <property name="jaxb-impl.version" value="2.3.0"/>
     <property name="jaxb-glassfish.version" value="2.3.0.1"/>
     <property name="istack-commons-runtime.version" value="3.0.5"/>
     <property name="stax-ex.version" value="1.7.8"/>
@@ -1540,6 +1541,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="javax/xml/bind"/>
             <param name="artifact-version" value="${jaxb-api.version}"/>
             <param name="artifact-name" value="jaxb-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/sun/xml/bind"/>
+            <param name="artifact-version" value="${jaxb-impl.version}"/>
+            <param name="artifact-name" value="jaxb-impl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
