@@ -28,7 +28,8 @@ import org.junit.*;
 */
 public class ConfigurationTest {
   
-  private final static String testData = "{\"job\":{\"id\":\"1505233221607\",\"description\":\"unit test: job\",\"repository_connection\":\"unit test: Repository connection\",\"document_specification\":{\"security\":{\"_value_\":\"\",\"_attribute_value\":\"off\"},\"parentfoldersecurity\":{\"_value_\":\"\",\"_attribute_value\":\"off\"},\"startpoint\":[{\"_value_\":\"\",\"_attribute_path\":\"attribute path one\",\"include\":[{\"_value_\":\"\",\"_attribute_filespec\":\"*\",\"_attribute_type\":\"directory\"},{\"_value_\":\"\",\"_attribute_filespec\":\"*.msg\",\"_attribute_type\":\"file\"}]},{\"_value_\":\"\",\"_attribute_path\":\"attribute path two\",\"include\":[{\"_value_\":\"\",\"_attribute_filespec\":\"*\",\"_attribute_type\":\"directory\"},{\"_value_\":\"\",\"_attribute_filespec\":\"*.msg\",\"_attribute_type\":\"file\"}]}],\"sharesecurity\":{\"_value_\":\"\",\"_attribute_value\":\"off\"}},\"pipelinestage\":[{\"stage_id\":\"0\",\"stage_isoutput\":\"true\",\"stage_connectionname\":\"unit test: Output connection\",\"stage_specification\":{}},{\"stage_id\":\"1\",\"stage_prerequisite\":\"0\",\"stage_isoutput\":\"true\",\"stage_connectionname\":\"unit test: Output connection\",\"stage_specification\":{}}],\"start_mode\":\"manual\",\"run_mode\":\"scan once\",\"hopcount_mode\":\"accurate\",\"priority\":\"5\",\"recrawl_interval\":\"infinite\",\"expiration_interval\":\"infinite\",\"reseed_interval\":\"infinite\",\"schedule\":{\"requestminimum\":\"false\",\"dayofmonth\":{\"value\":[\"1\",\"15\"]}}}}";
+  private final static String testData = "{\"job\":{\"_children_\":[{\"_type_\":\"expiration_interval\",\"_value_\":\"infinite\"},{\"_type_\":\"hopcount_mode\",\"_value_\":\"accurate\"},{\"_type_\":\"document_specification\",\"_children_\":[{\"_type_\":\"security\",\"_value_\":\"\",\"_attribute_value\":\"off\"},{\"_type_\":\"parentfoldersecurity\",\"_value_\":\"\",\"_attribute_value\":\"off\"},{\"_type_\":\"startpoint\",\"include\":[{\"_attribute_filespec\":\"*\",\"_value_\":\"\",\"_attribute_type\":\"directory\"},{\"_attribute_filespec\":\"*.msg\",\"_value_\":\"\",\"_attribute_type\":\"file\"}],\"_attribute_path\":\"attribute path one\",\"_value_\":\"\"},{\"_type_\":\"startpoint\",\"include\":[{\"_attribute_filespec\":\"*\",\"_value_\":\"\",\"_attribute_type\":\"directory\"},{\"_attribute_filespec\":\"*.msg\",\"_value_\":\"\",\"_attribute_type\":\"file\"}],\"_attribute_path\":\"attribute path two\",\"_value_\":\"\"},{\"_type_\":\"sharesecurity\",\"_value_\":\"\",\"_attribute_value\":\"off\"}]},{\"_type_\":\"description\",\"_value_\":\"unit test: job\"},{\"_type_\":\"priority\",\"_value_\":\"5\"},{\"_type_\":\"schedule\",\"_children_\":[{\"_type_\":\"requestminimum\",\"_value_\":\"false\"},{\"_type_\":\"dayofmonth\",\"value\":[\"1\",\"15\"]}]},{\"_type_\":\"recrawl_interval\",\"_value_\":\"infinite\"},{\"_type_\":\"run_mode\",\"_value_\":\"scan once\"},{\"_type_\":\"reseed_interval\",\"_value_\":\"infinite\"},{\"_type_\":\"start_mode\",\"_value_\":\"manual\"},{\"_type_\":\"id\",\"_value_\":\"1505233221607\"},{\"_type_\":\"repository_connection\",\"_value_\":\"unit test: Repository connection\"},{\"_type_\":\"pipelinestage\",\"_children_\":[{\"_type_\":\"stage_isoutput\",\"_value_\":\"true\"},{\"_type_\":\"stage_id\",\"_value_\":\"0\"},{\"_type_\":\"stage_specification\"},{\"_type_\":\"stage_connectionname\",\"_value_\":\"unit test: Output connection\"}]},{\"_type_\":\"pipelinestage\",\"_children_\":[{\"_type_\":\"stage_isoutput\",\"_value_\":\"true\"},{\"_type_\":\"stage_id\",\"_value_\":\"1\"},{\"_type_\":\"stage_specification\"},{\"_type_\":\"stage_connectionname\",\"_value_\":\"unit test: Output connection\"},{\"_type_\":\"stage_prerequisite\",\"_value_\":\"0\"}]}]}}";
+  
 
   @Test
   public void testNakedValue()
@@ -40,7 +41,7 @@ public class ConfigurationTest {
 
     // Now, reserialize
     final String jsonResult = object2.toJSON();
-    
+
     // Can't compare in this way; ordering of the input is not consistent.
     //Assert.assertEquals(jsonResult, testData);
     Assert.assertEquals(jsonResult.length(), testData.length());
@@ -77,8 +78,8 @@ public class ConfigurationTest {
     requestObject.addChild(0,connectionObject);
     
     final String jsonResult = requestObject.toJSON();
-    
-    Assert.assertEquals("{\"repositoryconnection\":{\"name\":\"File Connection\",\"class_name\":\"org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector\",\"description\":\"File Connection\",\"max_connections\":\"100\"}}".length(), jsonResult.length());
+    final String validation = "{\"repositoryconnection\":{\"_children_\":[{\"_type_\":\"name\",\"_value_\":\"File Connection\"},{\"_type_\":\"class_name\",\"_value_\":\"org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector\"},{\"_type_\":\"description\",\"_value_\":\"File Connection\"},{\"_type_\":\"max_connections\",\"_value_\":\"100\"}]}}";
+    Assert.assertEquals(validation.length(), jsonResult.length());
     
     Configuration object2 = new Configuration();
     object2.fromJSON(jsonResult);

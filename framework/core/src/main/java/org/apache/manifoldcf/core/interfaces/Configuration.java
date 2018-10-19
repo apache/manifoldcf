@@ -315,6 +315,10 @@ public class Configuration implements IHierarchyParent
     String value = node.getValue();
     if (value != null && node.getAttributeCount() == 0 && node.getChildCount() == 0)
     {
+      if (writeSpecialKey)
+      {
+        writer.key(JSON_VALUE);
+      }
       writer.value(value);
     }
     else
@@ -345,6 +349,9 @@ public class Configuration implements IHierarchyParent
       List<String> childList = new ArrayList<String>();
       String lastChildType = null;
       boolean needAlternate = false;
+      
+      // Amalgamate into lists.  Only one list of each type is allowed; if we are mingling node types, we have to use a more general
+      // representation.
       int i = 0;
       while (i < node.getChildCount())
       {
@@ -357,14 +364,13 @@ public class Configuration implements IHierarchyParent
           childMap.put(key,list);
           childList.add(key);
         }
-        else
+        
+        if (lastChildType != null && !lastChildType.equals(key))
         {
-          if (!lastChildType.equals(key))
-          {
-            needAlternate = true;
-            break;
-          }
+          needAlternate = true;
+          break;
         }
+        
         list.add(child);
         lastChildType = key;
       }
