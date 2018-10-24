@@ -43,4 +43,17 @@
       <nobr>$Encoder.bodyEscape($PROCESS_ATTACHMENTS)</nobr>
     </td>
   </tr>
+
+  <tr>
+    <td class="message" colspan="2">
+        $Encoder.bodyEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.TypeSpec'))
+    </td>
+    <td class="description">
+#if($PAGETYPE == 'blogpost')
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.TypeBlog'))</nobr>
+#else
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.TypePage'))</nobr>
+#end
+    </td>
+  </tr>
 </table>

@@ -64,7 +64,7 @@ public class ConfluenceConnectorTest {
 	public void setup() throws Exception{
 		connector = new ConfluenceRepositoryConnector();
 		connector.setConfluenceClient(client);
-		when(client.getPages(anyInt(), anyInt(), Mockito.any(Optional.class))).
+		when(client.getPages(anyInt(), anyInt(), Mockito.any(Optional.class), Mockito.any(Optional.class))).
 			thenReturn(new ConfluenceResponse<Page>(Collections.<Page>emptyList(), 0, 0, true));
 	}
 	
@@ -78,7 +78,7 @@ public class ConfluenceConnectorTest {
 
 		connector.addSeedDocuments(activities, spec, "", seedTime, BaseRepositoryConnector.JOBMODE_ONCEONLY);
 		// Verify it starts always at 0. Pagination configurable so anyInt(). Only one call because isLast must be false
-		verify(client, times(1)).getPages(eq(0), anyInt(), Mockito.any(Optional.class));
+		verify(client, times(1)).getPages(eq(0), anyInt(), Mockito.any(Optional.class), Mockito.any(Optional.class));
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -92,13 +92,13 @@ public class ConfluenceConnectorTest {
 		List<Page> pages = new ArrayList<Page>();
 		Page page = mock(Page.class);
 		pages.add(page);
-		when(client.getPages(anyInt(), anyInt(), Mockito.any(Optional.class))).
+		when(client.getPages(anyInt(), anyInt(), Mockito.any(Optional.class), Mockito.any(Optional.class))).
 			thenReturn(new ConfluenceResponse<Page>(pages, 0, 0, false)).
 			thenReturn(new ConfluenceResponse<Page>(Collections.<Page>emptyList(), 0, 0, true));
 		connector.addSeedDocuments(activities, spec, "", seedTime, BaseRepositoryConnector.JOBMODE_ONCEONLY);
 		verify(activities, times(1)).addSeedDocument(Mockito.anyString());
-		verify(client, times(1)).getPages(eq(0), anyInt(), Mockito.any(Optional.class));
-		verify(client, times(1)).getPages(eq(1), anyInt(), Mockito.any(Optional.class));
+		verify(client, times(1)).getPages(eq(0), anyInt(), Mockito.any(Optional.class), Mockito.any(Optional.class));
+		verify(client, times(1)).getPages(eq(1), anyInt(), Mockito.any(Optional.class), Mockito.any(Optional.class));
 	}
 	
 	@Test

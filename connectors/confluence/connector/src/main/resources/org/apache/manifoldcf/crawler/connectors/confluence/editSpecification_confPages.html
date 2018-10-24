@@ -27,9 +27,25 @@
     </td>
     <td class="value">
       <input type="checkbox" name="s${SeqNum}_process_attachments" value="true"
-      #if($PROCESS_ATTACHMENTS) checked 
+      #if($PROCESS_ATTACHMENTS == 'true') checked
       #end 
       />
+    </td>
+  </tr>
+
+  <tr>
+    <td class="description" colspan="2">
+        $Encoder.bodyEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.TypeSpec'))
+    </td>
+    <td class="value">
+      <input type="radio" name="s${SeqNum}_pagetype" value="page"
+      #if($PAGETYPE == 'page') checked
+      #end
+      ><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.TypePage'))</nobr></input>
+      <input type="radio" name="s${SeqNum}_pagetype" value="blogpost"
+      #if($PAGETYPE == 'blogpost') checked
+      #end
+      ><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.TypeBlog'))</nobr></input>
     </td>
   </tr>
 </table>
@@ -37,5 +53,6 @@
 #else
 
 <input type="hidden" name="s${SeqNum}_process_attachments" value="$PROCESS_ATTACHMENTS"/>
+<input type="hidden" name="s${SeqNum}_pagetype" value="$PAGETYPE"/>
 
 #end
