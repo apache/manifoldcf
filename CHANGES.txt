@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.12-dev =====================
 
+CONNECTORS-1551: Various changes and improvements for the
+Confluence connector.
+(Shirai Takashi)
+
 CONNECTORS-1549: Problem with API output JSON: losing order in child records.
 (Julien Massiera, Karl Wright)
 

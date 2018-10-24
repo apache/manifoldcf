@@ -52,6 +52,7 @@ public class ConfluenceConfiguration {
     public static final String SPACE_KEY_ATTRIBUTE = "key";
     public static final String PAGES = "pages";
     public static final String PROCESS_ATTACHMENTS_ATTRIBUTE_KEY = "process_attachments";
+    public static final String PAGETYPE = "pagetype";
     
   }
   

@@ -537,7 +537,10 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
 
     newMap.put(
         ConfluenceConfiguration.Specification.PROCESS_ATTACHMENTS_ATTRIBUTE_KEY
-            .toUpperCase(Locale.ROOT), cs.isProcessAttachments());
+            .toUpperCase(Locale.ROOT), cs.isProcessAttachments().toString());
+    newMap.put(
+        ConfluenceConfiguration.Specification.PAGETYPE
+            .toUpperCase(Locale.ROOT), cs.getPageType());
     return;
 
   }
@@ -651,6 +654,14 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
           String.valueOf(procAttachments));
     }
 
+    String pageType = variableContext
+        .getParameter(seqPrefix
+            + ConfluenceConfiguration.Specification.PAGETYPE);
+    if (pageType != null && !pageType.isEmpty()) {
+      pages.setAttribute(
+          ConfluenceConfiguration.Specification.PAGETYPE, pageType);
+    }
+
     return null;
   }
 
@@ -746,16 +757,19 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       ConfluenceSpecification confluenceSpecification = ConfluenceSpecification
           .from(spec);
       List<String> spaceKeys = confluenceSpecification.getSpaces();
+      String pageType = confluenceSpecification.getPageType();
 
       if (spaceKeys.isEmpty()) {
         logger.info("No spaces configured. Processing all spaces");
         addSeedDocumentsForSpace(Optional.<String> absent(),
+            Optional.<String> of(pageType),
             activities, confluenceSpecification, lastSeedVersion,
             seedTime, jobMode);
       } else {
         for (String space : spaceKeys) {
           logger.info("Processing configured space {}", space);
           addSeedDocumentsForSpace(Optional.<String> of(space),
+              Optional.<String> of(pageType),
               activities, confluenceSpecification,
               lastSeedVersion, seedTime, jobMode);
         }
@@ -777,6 +791,7 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
    * @throws ManifoldCFException
    */
   private void addSeedDocumentsForSpace(Optional<String> space,
+      Optional<String> pageType,
       ISeedingActivity activities,
       ConfluenceSpecification confluenceSpec, String lastSeedVersion,
       long seedTime, int jobMode) throws ManifoldCFException,
@@ -796,7 +811,7 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       Boolean isLast = true;
       do {
         final ConfluenceResponse<Page> response = confluenceClient.getPages(
-            (int) lastStart, (int) defaultSize, space);
+            (int) lastStart, (int) defaultSize, space, pageType);
 
         int count = 0;
         for (Page page : response.getResults()) {
@@ -915,6 +930,7 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       String version = statuses.getIndexedVersionString(pageId);
 
       long startTime = System.currentTimeMillis();
+      long fileSize = 0L;
       String errorCode = "OK";
       String errorDesc = StringUtils.EMPTY;
       ProcessResult pResult = null;
@@ -953,8 +969,9 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
                 ACTIVITY_READ, pResult.fileSize, pageId, pResult.errorCode,
                   pResult.errorDescription, null);
           }else{
+            if(pResult != null) fileSize = pResult.fileSize;
             activities.recordActivity(new Long(startTime),
-                ACTIVITY_READ, pResult.fileSize, pageId, errorCode,
+                ACTIVITY_READ, fileSize, pageId, errorCode,
                   errorDesc, null);
           }
         }
@@ -1110,7 +1127,7 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
         List<?> list = (List<?>)entry.getValue();
         rd.addField(entry.getKey(), list.toArray(new String[list.size()]));
       }
-      else {
+      else if(entry.getValue() != null) {
         rd.addField(entry.getKey(), entry.getValue().toString());
       }
     }
@@ -1202,6 +1219,7 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
   private static class ConfluenceSpecification {
     private List<String> spaces;
     private Boolean processAttachments = false;
+    private String pageType = null;
 
     /**
      * <p>
@@ -1227,6 +1245,19 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       return this.spaces;
     }
 
+    /**
+     * <p>
+     * Returns configured page type
+     * </p>
+     * 
+     * @return a {@code String} of configured page type
+     */
+    public String getPageType() {
+      if (this.pageType == null || this.pageType.isEmpty()) return "page";
+
+      return this.pageType;
+    }
+
     public static ConfluenceSpecification from(Specification spec) {
       ConfluenceSpecification cs = new ConfluenceSpecification();
       cs.spaces = Lists.newArrayList();
@@ -1250,6 +1281,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
           String s = sn
               .getAttributeValue(ConfluenceConfiguration.Specification.PROCESS_ATTACHMENTS_ATTRIBUTE_KEY);
           cs.processAttachments = Boolean.valueOf(s);
+          cs.pageType = sn
+              .getAttributeValue(ConfluenceConfiguration.Specification.PAGETYPE);
         }
       }
 

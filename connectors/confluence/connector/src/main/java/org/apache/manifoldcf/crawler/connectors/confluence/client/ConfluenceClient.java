@@ -281,7 +281,7 @@ public class ConfluenceClient {
    * @throws Exception
    */
   public ConfluenceResponse<Page> getPages() throws Exception {
-    return getPages(0, 50, Optional.<String> absent());
+    return getPages(0, 50, Optional.<String> absent(), Optional.<String> absent());
   }
 
   /**
@@ -297,11 +297,14 @@ public class ConfluenceClient {
    */
   @SuppressWarnings("unchecked")
   public ConfluenceResponse<Page> getPages(int start, int limit,
-      Optional<String> space) throws Exception {
+      Optional<String> space, Optional<String> pageType) throws Exception {
     String url = String.format(Locale.ROOT, "%s://%s:%s%s%s?limit=%s&start=%s", protocol,
         host, port, path, CONTENT_PATH, limit, start);
     if (space.isPresent()) {
       url = String.format(Locale.ROOT, "%s&spaceKey=%s", url, space.get());
+    }
+    if (pageType.isPresent()) {
+      url = String.format(Locale.ROOT, "%s&type=%s", url, pageType.get());
     }
     return (ConfluenceResponse<Page>) getConfluenceResources(url, Page.builder());
   }

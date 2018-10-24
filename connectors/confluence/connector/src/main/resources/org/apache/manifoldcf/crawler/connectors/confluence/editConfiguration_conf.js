@@ -21,7 +21,7 @@ function checkConfig()
 {
   if (editconnection.confluence_port.value != "" && !isInteger(editconnection.confluence_port.value))
   {
-    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.ConfPortMustBeAnInteger'))");
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.PortMustBeAnInteger'))");
     editconnection.confluence_port.focus();
     return false;
   }
