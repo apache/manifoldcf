@@ -960,7 +960,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
 
         // create a major version
         leafParent = getOrCreateLeafParent(parentDropZoneFolder, creationDate, Boolean.valueOf(createTimestampTree), primaryPath);
-        leafParent.createDocument(properties, contentStream, VersioningState.MAJOR);
+        leafParent.createDocument(properties, contentStream, VersioningState.NONE);
         resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
         return DOCUMENT_STATUS_ACCEPTED;
 
