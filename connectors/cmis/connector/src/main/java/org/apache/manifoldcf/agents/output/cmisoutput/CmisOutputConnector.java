@@ -132,6 +132,9 @@ public class CmisOutputConnector extends BaseOutputConnector {
   /** Flag for creating the new tree structure using timestamp**/
   protected String createTimestampTree = Boolean.FALSE.toString();
   
+  /** Flag for creating the new tree structure using timestamp**/
+  protected VersioningState versioningState = VersioningState.NONE;
+  
   protected SessionFactory factory = SessionFactoryImpl.newInstance();
   protected Map<String, String> parameters = new HashMap<String, String>();
 
@@ -353,6 +356,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
     repositoryId = null;
     cmisQuery = null;
     createTimestampTree = Boolean.FALSE.toString();
+    versioningState = VersioningState.NONE;
 
   }
 
@@ -380,6 +384,10 @@ public class CmisOutputConnector extends BaseOutputConnector {
     binding = params.getParameter(CmisOutputConfig.BINDING_PARAM);
     cmisQuery = params.getParameter(CmisOutputConfig.CMIS_QUERY_PARAM);
     createTimestampTree = params.getParameter(CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM);
+    
+    if(StringUtils.isNotEmpty(params.getParameter(CmisOutputConfig.VERSIONING_STATE_PARAM))) {
+    	versioningState = VersioningState.fromValue(params.getParameter(CmisOutputConfig.VERSIONING_STATE_PARAM));
+    }
     
     if (StringUtils.isNotEmpty(params.getParameter(CmisOutputConfig.REPOSITORY_ID_PARAM))) {
       repositoryId = params.getParameter(CmisOutputConfig.REPOSITORY_ID_PARAM);
@@ -645,6 +653,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
     String binding = parameters.getParameter(CmisOutputConfig.BINDING_PARAM);
     String cmisQuery = parameters.getParameter(CmisOutputConfig.CMIS_QUERY_PARAM);
     String createTimestampTree = parameters.getParameter(CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM);
+    String versioningState = parameters.getParameter(CmisOutputConfig.VERSIONING_STATE_PARAM);
     
     if (username == null)
       username = StringUtils.EMPTY;
@@ -668,6 +677,8 @@ public class CmisOutputConnector extends BaseOutputConnector {
       cmisQuery = CmisOutputConfig.CMIS_QUERY_DEFAULT_VALUE;
     if(createTimestampTree == null)
       createTimestampTree = CmisOutputConfig.CREATE_TIMESTAMP_TREE_DEFAULT_VALUE;
+    if(versioningState == null)
+    	versioningState = CmisOutputConfig.VERSIONING_STATE_DEFAULT_VALUE;
     
     newMap.put(CmisOutputConfig.USERNAME_PARAM, username);
     newMap.put(CmisOutputConfig.PASSWORD_PARAM, password);
@@ -679,6 +690,7 @@ public class CmisOutputConnector extends BaseOutputConnector {
     newMap.put(CmisOutputConfig.BINDING_PARAM, binding);
     newMap.put(CmisOutputConfig.CMIS_QUERY_PARAM, cmisQuery);
     newMap.put(CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM, createTimestampTree);
+    newMap.put(CmisOutputConfig.VERSIONING_STATE_PARAM, versioningState);
   }
 
   /**
@@ -825,6 +837,11 @@ public class CmisOutputConnector extends BaseOutputConnector {
     if (createTimestampTree != null) {
       parameters.setParameter(CmisOutputConfig.CREATE_TIMESTAMP_TREE_PARAM, createTimestampTree);
     }
+    
+    String versioningState = variableContext.getParameter(CmisOutputConfig.VERSIONING_STATE_PARAM);
+    if (versioningState != null) {
+      parameters.setParameter(CmisOutputConfig.VERSIONING_STATE_PARAM, versioningState);
+    }
 
     String repositoryId = variableContext.getParameter(CmisOutputConfig.REPOSITORY_ID_PARAM);
     if (repositoryId != null) {
@@ -958,9 +975,9 @@ public class CmisOutputConnector extends BaseOutputConnector {
         contentStream = new ContentStreamImpl(fileName, BigInteger.valueOf(binaryLength), mimeType,
           replayableInputStream);
 
-        // create a major version
+        // create a new content
         leafParent = getOrCreateLeafParent(parentDropZoneFolder, creationDate, Boolean.valueOf(createTimestampTree), primaryPath);
-        leafParent.createDocument(properties, contentStream, VersioningState.NONE);
+        leafParent.createDocument(properties, contentStream, versioningState);
         resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
         return DOCUMENT_STATUS_ACCEPTED;
 
