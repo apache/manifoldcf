@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.12-dev =====================
 
+CONNECTORS-1542:  Add switch to let user select the Version Policy to be applied to ingested documents
+(Piergiorgio Lucidi)
+
 CONNECTORS-1548: CMIS output connector test fails with versioning state error
 (Piergiorgio Lucidi)
 

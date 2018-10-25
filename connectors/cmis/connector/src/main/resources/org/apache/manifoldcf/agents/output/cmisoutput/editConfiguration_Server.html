@@ -122,6 +122,30 @@
   <tr>
     <td class="description">
       <nobr>
+        $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.VersioningStateColon'))
+      </nobr>
+    </td>
+    <td class="value">
+      <select id="versioningState" name="versioningState">
+#if($VERSIONINGSTATE == "none")
+        <option value="major">Major</option>
+        <option value="minor">Minor</option>
+        <option value="none" selected="selected">None</option>
+#elseif($VERSIONINGSTATE == "major")
+        <option value="major" selected="selected">Major</option>
+        <option value="minor">Minor</option>
+        <option value="none">None</option>
+#else($VERSIONINGSTATE == "minor")
+        <option value="major">Major</option>
+        <option value="minor" selected="selected">Minor</option>
+        <option value="none">None</option>
+#end
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>
         $Encoder.bodyEscape($ResourceBundle.getString('CmisOutputConnector.CreateTimestampTreeColon'))
       </nobr>
     </td> 
@@ -167,5 +191,6 @@
 <input type="hidden" name="cmisQuery" value="$Encoder.attributeEscape($CMISQUERY)" />
 <input type="hidden" name="createTimestampTree" value="$Encoder.attributeEscape($CREATETIMESTAMPTREE)"/>
 <input type="hidden" name="repositoryId" value="$Encoder.attributeEscape($REPOSITORYID)" />
+<input type="hidden" name="versioningState" value="$Encoder.attributeEscape($VERSIONINGSTATE)" />
 
 #end

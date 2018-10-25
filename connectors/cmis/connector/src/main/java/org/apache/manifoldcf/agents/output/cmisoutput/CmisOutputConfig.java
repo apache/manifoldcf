@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 package org.apache.manifoldcf.agents.output.cmisoutput;
+import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.commons.lang.StringUtils;
 
 /** 
@@ -54,6 +55,9 @@ public class CmisOutputConfig {
   /** Create Timestamp Tree **/
   public static final String CREATE_TIMESTAMP_TREE_PARAM = "createTimestampTree";
   
+  /** Create Timestamp Tree **/
+  public static final String VERSIONING_STATE_PARAM = "versioningState";
+  
   //default values
   public static final String USERNAME_DEFAULT_VALUE = "dummyuser";
   public static final String PASSWORD_DEFAULT_VALUE = "dummysecrect";
@@ -67,5 +71,6 @@ public class CmisOutputConfig {
   public static final String BINDING_WS_VALUE = "ws";
   public static final String CMIS_QUERY_DEFAULT_VALUE = "SELECT * FROM cmis:folder WHERE cmis:name='Apache ManifoldCF'";
   public static final String CREATE_TIMESTAMP_TREE_DEFAULT_VALUE = Boolean.FALSE.toString();
+  public static final String VERSIONING_STATE_DEFAULT_VALUE = VersioningState.NONE.value();
   
 }

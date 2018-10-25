@@ -381,6 +381,12 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       createTimestampTreeNode.setValue(CmisOutputConfig.CREATE_TIMESTAMP_TREE_DEFAULT_VALUE);
       child.addChild(child.getChildCount(), createTimestampTreeNode);
       
+      //versioningState
+      ConfigurationNode versioningStateNode = new ConfigurationNode("_PARAMETER_");
+      versioningStateNode.setAttribute("name", CmisOutputConfig.VERSIONING_STATE_PARAM);
+      versioningStateNode.setValue(CmisOutputConfig.VERSIONING_STATE_DEFAULT_VALUE);
+      child.addChild(child.getChildCount(), versioningStateNode);
+      
       connectionObject.addChild(connectionObject.getChildCount(),child);
 
       requestObject = new Configuration();
