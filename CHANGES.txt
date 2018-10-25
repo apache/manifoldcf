@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.12-dev =====================
 
+CONNECTORS-1548: CMIS output connector test fails with versioning state error
+(Piergiorgio Lucidi)
+
 CONNECTORS-1551: Various changes and improvements for the
 Confluence connector.
 (Shirai Takashi)
