@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.12-dev =====================
 
+CONNECTORS-1556: Modify retry strategy for Tika Service connector.
+(Karl Wright)
+
 CONNECTORS-1542:  Add switch to let user select the Version Policy to be applied to ingested documents
 (Piergiorgio Lucidi)
 
