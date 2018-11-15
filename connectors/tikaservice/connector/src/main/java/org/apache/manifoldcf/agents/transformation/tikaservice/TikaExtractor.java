@@ -608,13 +608,13 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
               response = this.httpClient.execute(tikaHost, httpPut);
               //System.out.println("PUT successful");
             } catch (IOException e) {
-              // Retry 3 times, 10000 ms between retries, and abort if doesn't work
+              // Retry for 10 minutes, 10000 ms between retries, and abort if doesn't work
               final long currentTime = System.currentTimeMillis();
               throw new ServiceInterruption("Tika down, retrying: "+e.getMessage(),e,currentTime + 10000L,
-                -1L,3,true);
+                currentTime + 60000L * 10L,-1,true);
             }
             int responseCode = response.getStatusLine().getStatusCode();
-            if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
+            if (responseCode == 200 || responseCode == 204) {
               tikaServerIs = response.getEntity().getContent();
               try {
                 final BufferedReader br = new BufferedReader(new InputStreamReader(tikaServerIs, java.nio.charset.StandardCharsets.UTF_8));
@@ -640,6 +640,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
               } finally {
                 tikaServerIs.close();
               }
+            } else if (responseCode == 503) {
+              // Service interruption; Tika trying to come up.
+              // Retry for 10 minutes, 10000 ms between retries, and abort if doesn't work
+              final long currentTime = System.currentTimeMillis();
+              throw new ServiceInterruption("Tika restarting, retrying",null,currentTime + 10000L,
+                currentTime + 60000L * 10L,-1,true);
             } else {
               activities.noDocument();
               if (responseCode == 422) {
@@ -669,14 +675,14 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
               response = this.httpClient.execute(tikaHost, httpPut);
               //System.out.println("... content PUT succeeded");
             } catch (IOException e) {
-              // Retry 3 times, 10000 ms between retries, and abort if doesn't work
+              // Retry for 10 minutes, 10000 ms between retries, and abort if doesn't work
               final long currentTime = System.currentTimeMillis();
               throw new ServiceInterruption("Tika down, retrying: "+e.getMessage(),e,currentTime + 10000L,
-                -1L,3,true);
+                currentTime + 60000L * 10L,-1,true);
             }
 
             responseCode = response.getStatusLine().getStatusCode();
-            if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
+            if (responseCode == 200 || responseCode == 204) {
               tikaServerIs = response.getEntity().getContent();
               try {
                 responseDs = new FileDestinationStorage();
@@ -690,6 +696,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
               } finally {
                 tikaServerIs.close();
               }
+            } else if (responseCode == 503) {
+              // Service interruption; Tika trying to come up.
+              // Retry for 10 minutes, 10000 ms between retries, and abort if doesn't work
+              final long currentTime = System.currentTimeMillis();
+              throw new ServiceInterruption("Tika restarting, retrying",null,currentTime + 10000L,
+                currentTime + 60000L * 10L,-1,true);
             } else {
               activities.noDocument();
               if (responseCode == 422) {
