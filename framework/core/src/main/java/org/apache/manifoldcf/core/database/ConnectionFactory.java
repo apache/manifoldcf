@@ -179,6 +179,7 @@ public class ConnectionFactory
     }
 
     public ConnectionPoolManager createPoolManager()
+      throws ManifoldCFException
     {
       synchronized (poolExistenceLock)
       {

@@ -77,6 +77,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.cookie.CookieIdentityComparator;
+import org.apache.http.client.HttpRequestRetryHandler;
 
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -754,22 +755,19 @@ public class ThrottledFetcher
   protected static class ThrottleBin
   {
     /** This is the bin name which this throttle belongs to. */
-    protected String binName;
+    protected final String binName;
     /** This is the reference count for this bin (which records active references) */
-    protected int refCount = 0;
+    protected volatile int refCount = 0;
     /** The inverse rate estimate of the first fetch, in ms/byte */
     protected double rateEstimate = 0.0;
     /** Flag indicating whether a rate estimate is needed */
-    protected boolean estimateValid = false;
+    protected volatile boolean estimateValid = false;
     /** Flag indicating whether rate estimation is in progress yet */
-    protected boolean estimateInProgress = false;
+    protected volatile boolean estimateInProgress = false;
     /** The start time of this series */
     protected long seriesStartTime = -1L;
     /** Total actual bytes read in this series; this includes fetches in progress */
     protected long totalBytesRead = -1L;
-
-    /** This object is used to gate access while the first chunk is being read */
-    protected Integer firstChunkLock = new Integer(0);
 
     /** Constructor. */
     public ThrottleBin(String binName)
@@ -805,6 +803,16 @@ public class ThrottledFetcher
 
     }
 
+    /** Abort the fetch.
+    */
+    public void abortFetch()
+    {
+      synchronized (this)
+      {
+        refCount--;
+      }
+    }
+    
     /** Note the start of an individual byte read of a specified size.  Call this method just before the
     * read request takes place.  Performs the necessary delay prior to reading specified number of bytes from the server.
     */
@@ -813,51 +821,75 @@ public class ThrottledFetcher
     {
       long currentTime = System.currentTimeMillis();
 
-      synchronized (firstChunkLock)
+      synchronized (this)
       {
         while (estimateInProgress)
-          firstChunkLock.wait();
+          wait();
         if (estimateValid == false)
         {
           seriesStartTime = currentTime;
           estimateInProgress = true;
           // Add these bytes to the estimated total
-          synchronized (this)
-          {
-            totalBytesRead += (long)byteCount;
-          }
+          totalBytesRead += (long)byteCount;
           // Exit early; this thread isn't going to do any waiting
           return;
         }
       }
 
-      long waitTime = 0L;
-      synchronized (this)
+      // It is possible for the following code to get interrupted.  If that happens,
+      // we have to unstick the threads that are waiting on the estimate!
+      boolean finished = false;
+      try
       {
-        // Add these bytes to the estimated total
-        totalBytesRead += (long)byteCount;
+        long waitTime = 0L;
+        synchronized (this)
+        {
+          // Add these bytes to the estimated total
+          totalBytesRead += (long)byteCount;
 
-        // Estimate the time this read will take, and wait accordingly
-        long estimatedTime = (long)(rateEstimate * (double)byteCount);
+          // Estimate the time this read will take, and wait accordingly
+          long estimatedTime = (long)(rateEstimate * (double)byteCount);
 
-        // Figure out how long the total byte count should take, to meet the constraint
-        long desiredEndTime = seriesStartTime + (long)(((double)totalBytesRead) * minimumMillisecondsPerBytePerServer);
+          // Figure out how long the total byte count should take, to meet the constraint
+          long desiredEndTime = seriesStartTime + (long)(((double)totalBytesRead) * minimumMillisecondsPerBytePerServer);
 
-        // The wait time is the different between our desired end time, minus the estimated time to read the data, and the
-        // current time.  But it can't be negative.
-        waitTime = (desiredEndTime - estimatedTime) - currentTime;
+          // The wait time is the different between our desired end time, minus the estimated time to read the data, and the
+          // current time.  But it can't be negative.
+          waitTime = (desiredEndTime - estimatedTime) - currentTime;
+        }
+
+        if (waitTime > 0L)
+        {
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("WEB: Performing a read wait on bin '"+binName+"' of "+
+            new Long(waitTime).toString()+" ms.");
+          ManifoldCF.sleep(waitTime);
+        }
+        finished = true;
       }
-
-      if (waitTime > 0L)
+      finally
       {
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("WEB: Performing a read wait on bin '"+binName+"' of "+
-          new Long(waitTime).toString()+" ms.");
-        ManifoldCF.sleep(waitTime);
+        if (!finished)
+        {
+          abortRead();
+        }
       }
-
     }
 
+    /** Abort a read in progress.
+    */
+    public void abortRead()
+    {
+      synchronized (this)
+      {
+        if (estimateInProgress)
+        {
+          estimateInProgress = false;
+          notifyAll();
+        }
+      }
+    }
+    
     /** Note the end of an individual read from the server.  Call this just after an individual read completes.
     * Pass the actual number of bytes read to the method.
     */
@@ -868,11 +900,6 @@ public class ThrottledFetcher
       synchronized (this)
       {
         totalBytesRead = totalBytesRead + (long)actualCount - (long)originalCount;
-      }
-
-      // Only one thread should get here if it's the first chunk, but we synchronize to be sure
-      synchronized (firstChunkLock)
-      {
         if (estimateInProgress)
         {
           if (actualCount == 0)
@@ -882,7 +909,7 @@ public class ThrottledFetcher
             rateEstimate = ((double)(currentTime - seriesStartTime))/(double)actualCount;
           estimateValid = true;
           estimateInProgress = false;
-          firstChunkLock.notifyAll();
+          notifyAll();
         }
       }
     }
@@ -1161,11 +1188,24 @@ public class ThrottledFetcher
       throws InterruptedException
     {
       // Consult with throttle bins
-      int i = 0;
-      while (i < throttleBinArray.length)
+      int lastOneDone = 0;
+      try
       {
-        throttleBinArray[i].beginRead(len,minMillisecondsPerByte[i]);
-        i++;
+        for (int i = 0; i < throttleBinArray.length; i++)
+        {
+          throttleBinArray[i].beginRead(len,minMillisecondsPerByte[i]);
+          lastOneDone = i + 1;
+        }
+      }
+      finally
+      {
+        if (lastOneDone != throttleBinArray.length)
+        {
+          for (int i = 0; i < lastOneDone; i++)
+          {
+            throttleBinArray[i].abortRead();
+          }
+        }
       }
     }
 
@@ -1173,11 +1213,26 @@ public class ThrottledFetcher
     public void endRead(int origLen, int actualAmt)
     {
       // Consult with throttle bins
-      int i = 0;
-      while (i < throttleBinArray.length)
+      Throwable e = null;
+      for (int i = 0; i < throttleBinArray.length; i++)
       {
-        throttleBinArray[i].endRead(origLen,actualAmt);
-        i++;
+        try
+        {
+          throttleBinArray[i].endRead(origLen,actualAmt);
+        }
+        catch (Throwable e2)
+        {
+          e = e2;
+        }
+      }
+      if (e != null)
+      {
+        if (e instanceof RuntimeException)
+          throw (RuntimeException)e;
+        else if (e instanceof Error)
+          throw (Error)e;
+        else
+          throw new RuntimeException("Unknown exception: " + e.getMessage(),e);
       }
     }
 
@@ -1212,13 +1267,13 @@ public class ThrottledFetcher
     public void beginFetch(String fetchType)
       throws ManifoldCFException
     {
+      this.fetchType = fetchType;
+      this.fetchCounter = 0L;
+      int lastCreated = 0;
       try
       {
-        this.fetchType = fetchType;
-        this.fetchCounter = 0L;
         // Find or create the needed throttle bins
-        int i = 0;
-        while (i < throttleBinArray.length)
+        for (int i = 0; i < throttleBinArray.length; i++)
         {
           // Access the bins as we need them, and drop them when ref count goes to zero
           String binName = connectionBinArray[i].getBinName();
@@ -1234,12 +1289,22 @@ public class ThrottledFetcher
             tb.beginFetch();
           }
           throttleBinArray[i] = tb;
-          i++;
+          lastCreated = i + 1;
         }
       }
       catch (InterruptedException e)
       {
         throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
+      }
+      finally
+      {
+        if (lastCreated != throttleBinArray.length)
+        {
+          for (int i = 0; i < lastCreated; i++)
+          {
+            throttleBinArray[i].abortFetch();
+          }
+        }
       }
     }
 
@@ -1270,33 +1335,33 @@ public class ThrottledFetcher
         new AllowAllHostnameVerifier());
       Scheme myHttpsProtocol = new Scheme("https", 443, myFactory);
 
-      int resolvedPort;
+      int hostPort;
       String displayedPort;
       if (port != -1)
       {
         if (!(protocol.equals("http") && port == 80) &&
           !(protocol.equals("https") && port == 443))
+        {
           displayedPort = ":"+Integer.toString(port);
+          hostPort = port;
+        }
         else
+        {
           displayedPort = "";
-        resolvedPort = port;
+          hostPort = -1;
+        }
       }
       else
       {
-        if (protocol.equals("http"))
-          resolvedPort = 80;
-        else if (protocol.equals("https"))
-          resolvedPort = 443;
-        else
-          throw new IllegalArgumentException("Unexpected protocol: "+protocol);
         displayedPort = "";
+        hostPort = -1;
       }
 
       StringBuilder sb = new StringBuilder(protocol);
       sb.append("://").append(server).append(displayedPort).append(urlPath);
       String fetchUrl = sb.toString();
 
-      HttpHost fetchHost = new HttpHost(server,resolvedPort,protocol);
+      HttpHost fetchHost = new HttpHost(server,hostPort,protocol);
       HttpHost hostHost;
       
       if (host != null)
@@ -1304,7 +1369,7 @@ public class ThrottledFetcher
         sb.setLength(0);
         sb.append(protocol).append("://").append(host).append(displayedPort).append(urlPath);
         myUrl = sb.toString();
-        hostHost = new HttpHost(host,resolvedPort,protocol);
+        hostHost = new HttpHost(host,hostPort,protocol);
       }
       else
       {
@@ -1344,6 +1409,18 @@ public class ThrottledFetcher
         params.setBooleanParameter(CookieSpecPNames.SINGLE_COOKIE_HEADER,new Boolean(true));
 
         DefaultHttpClient localHttpClient = new DefaultHttpClient(connManager,params);
+        // No retries
+        localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+          {
+            public boolean retryRequest(
+              IOException exception,
+              int executionCount,
+              HttpContext context)
+            {
+              return false;
+            }
+         
+          });
         localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
         localHttpClient.getCookieSpecs().register(CookiePolicy.BROWSER_COMPATIBILITY, new CookieSpecFactory()
           {
@@ -1493,6 +1570,7 @@ public class ThrottledFetcher
       // Set all appropriate headers and parameters
       fetchMethod.setHeader(new BasicHeader("User-Agent",userAgent));
       fetchMethod.setHeader(new BasicHeader("From",from));
+      fetchMethod.setHeader(new BasicHeader("Accept","*/*"));
         
       // Use a custom cookie store
       CookieStore cookieStore = new OurBasicCookieStore();
@@ -1806,7 +1884,8 @@ public class ThrottledFetcher
       if (fetchType != null)
       {
         // Abort the connection, if not already complete
-        methodThread.abort();
+        if (methodThread != null && threadStarted)
+          methodThread.abort();
 
         long endTime = System.currentTimeMillis();
         int i = 0;
@@ -2400,6 +2479,7 @@ public class ThrottledFetcher
     protected LoginCookies cookies = null;
     protected Throwable cookieException = null;
     protected XThreadInputStream threadStream = null;
+    protected InputStream bodyStream = null;
     protected boolean streamCreated = false;
     protected Throwable streamException = null;
     protected boolean abortThread = false;
@@ -2485,7 +2565,7 @@ public class ThrottledFetcher
               {
                 try
                 {
-                  InputStream bodyStream = response.getEntity().getContent();
+                  bodyStream = response.getEntity().getContent();
                   if (bodyStream != null)
                   {
                     bodyStream = new ThrottledInputstream(theConnection,bodyStream);
@@ -2526,6 +2606,17 @@ public class ThrottledFetcher
         }
         finally
         {
+          if (bodyStream != null)
+          {
+            try
+            {
+              bodyStream.close();
+            }
+            catch (IOException e)
+            {
+            }
+            bodyStream = null;
+          }
           synchronized (this)
           {
             try

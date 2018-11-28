@@ -28,36 +28,74 @@ import java.io.*;
 public class VariableURL extends VariableBase
 {
   protected String encodedURL;
+  protected String encodedArgs;
   
   public VariableURL(String baseURLValue)
+  {
+    this(baseURLValue,null);
+  }
+  
+  public VariableURL(String baseURLValue, String encodedArgsValue)
   {
     this.encodedURL = baseURLValue;
     if (encodedURL.endsWith("/"))
       this.encodedURL = this.encodedURL.substring(0,this.encodedURL.length()-1);
+    this.encodedArgs = encodedArgsValue;
   }
   
+  @Override
   public int hashCode()
   {
-    return encodedURL.hashCode();
+    return encodedURL.hashCode() + encodedArgs.hashCode();
   }
   
+  @Override
   public boolean equals(Object o)
   {
     if (!(o instanceof VariableURL))
       return false;
-    return ((VariableURL)o).encodedURL.equals(encodedURL);
+    VariableURL other = (VariableURL)o;
+    if (!other.encodedURL.equals(encodedURL))
+      return false;
+    if (other.encodedArgs != null || encodedArgs != null)
+    {
+      if (other.encodedArgs == encodedArgs)
+        return true;
+      if (other.encodedArgs == null || encodedArgs == null)
+        return false;
+      return other.encodedArgs.equals(encodedArgs);
+    }
+    return true;
+  }
+
+  /** Check if the variable has a string value */
+  @Override
+  public boolean hasStringValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
+  /** Check if the variable has a script value */
+  @Override
+  public boolean hasScriptValue()
+    throws ScriptException
+  {
+    return true;
   }
 
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
     StringBuilder sb = new StringBuilder();
+    String value = getStringValue();
     sb.append("\"");
     int i = 0;
-    while (i < encodedURL.length())
+    while (i < value.length())
     {
-      char x = encodedURL.charAt(i++);
+      char x = value.charAt(i++);
       if (x == '\\' || x == '\"')
         sb.append('\\');
       sb.append(x);
@@ -67,41 +105,52 @@ public class VariableURL extends VariableBase
   }
   
   /** Get the variable's value as a string */
+  @Override
   public String getStringValue()
     throws ScriptException
   {
-    return encodedURL;
+    if (encodedArgs != null)
+      return encodedURL + "?" + encodedArgs;
+    else
+      return encodedURL;
   }
 
+  @Override
   public VariableReference plus(Variable v)
     throws ScriptException
   {
     if (v == null)
       throw new ScriptException(composeMessage("Binary '+' operand cannot be null"));
-    try
+    String urlSide = encodedURL;
+    if (v.hasURLPathValue())
+      urlSide += "/" + v.getURLPathValue();
+    String argSide = encodedArgs;
+    if (v.hasQueryArgumentValue())
     {
-      return new VariableURL(encodedURL + "/" + URLEncoder.encode(v.getStringValue(),"utf-8").replace("+","%20"));
+      if (argSide == null)
+        argSide = v.getQueryArgumentValue();
+      else
+        argSide += "&" + v.getQueryArgumentValue();
     }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new ScriptException(composeMessage(e.getMessage()),e);
-    }
+    return new VariableURL(urlSide,argSide);
   }
   
+  @Override
   public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
     if (v == null)
       throw new ScriptException(composeMessage("Binary '==' operand cannot be null"));
-    return new VariableBoolean(encodedURL.equals(v.getStringValue()));
+    return new VariableBoolean(getStringValue().equals(v.getStringValue()));
   }
 
+  @Override
   public VariableReference exclamationEquals(Variable v)
     throws ScriptException
   {
     if (v == null)
       throw new ScriptException(composeMessage("Binary '!=' operand cannot be null"));
-    return new VariableBoolean(!encodedURL.equals(v.getStringValue()));
+    return new VariableBoolean(!getStringValue().equals(v.getStringValue()));
   }
 
 }

@@ -39,5 +39,11 @@ public class LAPI_USERS
   {
     return 0;
   }
+  
+  public int GetUserByID(int user, LLValue retval)
+  {
+    return 0;
+  }
+  
 }
 

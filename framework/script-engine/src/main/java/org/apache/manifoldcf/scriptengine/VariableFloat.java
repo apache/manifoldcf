@@ -30,11 +30,13 @@ public class VariableFloat extends VariableBase
     this.value = value;
   }
   
+  @Override
   public int hashCode()
   {
     return new Double(value).hashCode();
   }
   
+  @Override
   public boolean equals(Object o)
   {
     if (!(o instanceof VariableFloat))
@@ -42,7 +44,40 @@ public class VariableFloat extends VariableBase
     return ((VariableFloat)o).value == value;
   }
 
+  /** Check if the variable has a string value */
+  @Override
+  public boolean hasStringValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
+  /** Check if the variable has a script value */
+  @Override
+  public boolean hasScriptValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
+  /** Check if the variable has an int value */
+  @Override
+  public boolean hasIntValue()
+    throws ScriptException
+  {
+    return true;
+  }
+  
+  /** Check if the variable has a double value */
+  @Override
+  public boolean hasDoubleValue()
+    throws ScriptException
+  {
+    return true;
+  }
+    
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
@@ -50,6 +85,7 @@ public class VariableFloat extends VariableBase
   }
   
   /** Get the variable's value as a string */
+  @Override
   public String getStringValue()
     throws ScriptException
   {
@@ -57,6 +93,7 @@ public class VariableFloat extends VariableBase
   }
 
   /** Get the variable's value as an integer */
+  @Override
   public int getIntValue()
     throws ScriptException
   {
@@ -64,12 +101,14 @@ public class VariableFloat extends VariableBase
   }
   
   /** Get the variable's value as a double */
+  @Override
   public double getDoubleValue()
     throws ScriptException
   {
     return value;
   }
 
+  @Override
   public VariableReference plus(Variable v)
     throws ScriptException
   {
@@ -78,6 +117,7 @@ public class VariableFloat extends VariableBase
     return new VariableFloat(value + v.getDoubleValue());
   }
     
+  @Override
   public VariableReference minus(Variable v)
     throws ScriptException
   {
@@ -86,6 +126,7 @@ public class VariableFloat extends VariableBase
     return new VariableFloat(value - v.getDoubleValue());
   }
     
+  @Override
   public VariableReference asterisk(Variable v)
     throws ScriptException
   {
@@ -94,6 +135,7 @@ public class VariableFloat extends VariableBase
     return new VariableFloat(value * v.getDoubleValue());
   }
     
+  @Override
   public VariableReference slash(Variable v)
     throws ScriptException
   {
@@ -102,12 +144,14 @@ public class VariableFloat extends VariableBase
     return new VariableFloat(value / v.getDoubleValue());
   }
     
+  @Override
   public VariableReference unaryMinus()
     throws ScriptException
   {
     return new VariableFloat(-value);
   }
   
+  @Override
   public VariableReference greaterAngle(Variable v)
     throws ScriptException
   {
@@ -116,6 +160,7 @@ public class VariableFloat extends VariableBase
     return new VariableBoolean(value > v.getDoubleValue());
   }
   
+  @Override
   public VariableReference lesserAngle(Variable v)
     throws ScriptException
   {
@@ -124,6 +169,7 @@ public class VariableFloat extends VariableBase
     return new VariableBoolean(value < v.getDoubleValue());
   }
     
+  @Override
   public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
@@ -132,6 +178,7 @@ public class VariableFloat extends VariableBase
     return new VariableBoolean(value == v.getDoubleValue());
   }
     
+  @Override
   public VariableReference greaterAngleEquals(Variable v)
     throws ScriptException
   {
@@ -140,6 +187,7 @@ public class VariableFloat extends VariableBase
     return new VariableBoolean(value >= v.getDoubleValue());
   }
     
+  @Override
   public VariableReference lesserAngleEquals(Variable v)
     throws ScriptException
   {
@@ -148,6 +196,7 @@ public class VariableFloat extends VariableBase
     return new VariableBoolean(value <= v.getDoubleValue());
   }
   
+  @Override
   public VariableReference exclamationEquals(Variable v)
     throws ScriptException
   {

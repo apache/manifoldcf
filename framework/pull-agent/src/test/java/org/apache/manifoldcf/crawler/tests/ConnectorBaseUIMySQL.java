@@ -30,10 +30,20 @@ import org.junit.*;
 import org.apache.manifoldcf.core.tests.HTMLTester;
 
 /** Tests that run the "agents daemon" should be derived from this */
-public class ConnectorBaseUIMySQL extends ConnectorBaseMySQL
+public class ConnectorBaseUIMySQL extends BaseITMySQL
 {
   protected HTMLTester testerInstance = null;
   
+  public ConnectorBaseUIMySQL()
+  {
+    super();
+  }
+  
+  public ConnectorBaseUIMySQL(boolean singleWar)
+  {
+    super(singleWar);
+  }
+
   @Before
   public void setupHTMLTester()
     throws Exception

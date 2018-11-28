@@ -80,7 +80,7 @@ public class StartDeleteThread extends Thread
 
           // See if there are any starting jobs.
           // Note: Since this following call changes the job state, we must be careful to reset it on any kind of failure.
-          JobStartRecord[] deleteJobs = jobManager.getJobsReadyForDelete();
+          JobDeleteRecord[] deleteJobs = jobManager.getJobsReadyForDelete();
           try
           {
 
@@ -100,7 +100,7 @@ public class StartDeleteThread extends Thread
             int i = 0;
             while (i < deleteJobs.length)
             {
-              JobStartRecord jsr = deleteJobs[i++];
+              JobDeleteRecord jsr = deleteJobs[i++];
               Long jobID = jsr.getJobID();
 	      try
 	      {
@@ -128,7 +128,7 @@ public class StartDeleteThread extends Thread
             int i = 0;
             while (i < deleteJobs.length)
             {
-              JobStartRecord jsr = deleteJobs[i++];
+              JobDeleteRecord jsr = deleteJobs[i++];
               if (!jsr.wasStarted())
               {
                 // Clean up from failed start.

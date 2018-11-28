@@ -91,7 +91,7 @@ public class SeedingThread extends Thread
           Logging.threads.debug("Seeding thread woke up");
 
           // Grab active, adaptive jobs (and set their state to xxxSEEDING as a side effect)
-          JobStartRecord[] seedJobs = jobManager.getJobsReadyForSeeding(currentTime);
+          JobSeedingRecord[] seedJobs = jobManager.getJobsReadyForSeeding(currentTime);
 
           // Process these jobs, and do the seeding.  The seeding is based on what came back
           // in the job start record for sync time.  If there's an interruption, we just go on
@@ -113,7 +113,7 @@ public class SeedingThread extends Thread
             int i = 0;
             while (i < seedJobs.length)
             {
-              JobStartRecord jsr = seedJobs[i++];
+              JobSeedingRecord jsr = seedJobs[i++];
               Long jobID = jsr.getJobID();
               try
               {
@@ -203,7 +203,7 @@ public class SeedingThread extends Thread
             int i = 0;
             while (i < seedJobs.length)
             {
-              JobStartRecord jsr = seedJobs[i++];
+              JobSeedingRecord jsr = seedJobs[i++];
               if (!jsr.wasStarted())
               {
                 if (Logging.threads.isDebugEnabled())

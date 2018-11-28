@@ -24,6 +24,9 @@ import java.util.*;
 */
 public class LLValue
 {
+  public static final int LL_TRUE = 1;
+  public static final int LL_FALSE = 0;
+  
   public LLValue()
   {
   }
@@ -63,8 +66,19 @@ public class LLValue
     return null;
   }
   
-  public void add(String attributeName, int intValue)
+  public int add(String attributeName, int intValue)
   {
+    return 0;
+  }
+
+  public int add(String attributeName, String strValue)
+  {
+    return 0;
+  }
+
+  public int add(String attributeName, LLValue llValue)
+  {
+    return 0;
   }
   
   public boolean isTable()

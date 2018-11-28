@@ -30,11 +30,13 @@ public class VariableInt extends VariableBase
     this.value = value;
   }
 
+  @Override
   public int hashCode()
   {
     return new Integer(value).hashCode();
   }
   
+  @Override
   public boolean equals(Object o)
   {
     if (!(o instanceof VariableInt))
@@ -42,7 +44,40 @@ public class VariableInt extends VariableBase
     return ((VariableInt)o).value == value;
   }
   
+  /** Check if the variable has a string value */
+  @Override
+  public boolean hasStringValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
+  /** Check if the variable has a script value */
+  @Override
+  public boolean hasScriptValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
+  /** Check if the variable has an int value */
+  @Override
+  public boolean hasIntValue()
+    throws ScriptException
+  {
+    return true;
+  }
+  
+  /** Check if the variable has a double value */
+  @Override
+  public boolean hasDoubleValue()
+    throws ScriptException
+  {
+    return true;
+  }
+    
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
@@ -50,6 +85,7 @@ public class VariableInt extends VariableBase
   }
 
   /** Get the variable's value as a string */
+  @Override
   public String getStringValue()
     throws ScriptException
   {
@@ -57,6 +93,7 @@ public class VariableInt extends VariableBase
   }
 
   /** Get the variable's value as an integer */
+  @Override
   public int getIntValue()
     throws ScriptException
   {
@@ -64,12 +101,14 @@ public class VariableInt extends VariableBase
   }
   
   /** Get the variable's value as a double */
+  @Override
   public double getDoubleValue()
     throws ScriptException
   {
     return (double)value;
   }
 
+  @Override
   public VariableReference plus(Variable v)
     throws ScriptException
   {
@@ -78,6 +117,7 @@ public class VariableInt extends VariableBase
     return new VariableInt(value + v.getIntValue());
   }
     
+  @Override
   public VariableReference minus(Variable v)
     throws ScriptException
   {
@@ -87,6 +127,7 @@ public class VariableInt extends VariableBase
   }
 
   
+  @Override
   public VariableReference asterisk(Variable v)
     throws ScriptException
   {
@@ -95,6 +136,7 @@ public class VariableInt extends VariableBase
     return new VariableInt(value * v.getIntValue());
   }
     
+  @Override
   public VariableReference slash(Variable v)
     throws ScriptException
   {
@@ -103,12 +145,14 @@ public class VariableInt extends VariableBase
     return new VariableInt(value / v.getIntValue());
   }
     
+  @Override
   public VariableReference unaryMinus()
     throws ScriptException
   {
     return new VariableInt(-value);
   }
   
+  @Override
   public VariableReference greaterAngle(Variable v)
     throws ScriptException
   {
@@ -117,6 +161,7 @@ public class VariableInt extends VariableBase
     return new VariableBoolean(value > v.getIntValue());
   }
   
+  @Override
   public VariableReference lesserAngle(Variable v)
     throws ScriptException
   {
@@ -125,6 +170,7 @@ public class VariableInt extends VariableBase
     return new VariableBoolean(value < v.getIntValue());
   }
     
+  @Override
   public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
@@ -133,6 +179,7 @@ public class VariableInt extends VariableBase
     return new VariableBoolean(value == v.getIntValue());
   }
     
+  @Override
   public VariableReference greaterAngleEquals(Variable v)
     throws ScriptException
   {
@@ -141,6 +188,7 @@ public class VariableInt extends VariableBase
     return new VariableBoolean(value >= v.getIntValue());
   }
     
+  @Override
   public VariableReference lesserAngleEquals(Variable v)
     throws ScriptException
   {
@@ -149,6 +197,7 @@ public class VariableInt extends VariableBase
     return new VariableBoolean(value <= v.getIntValue());
   }
   
+  @Override
   public VariableReference exclamationEquals(Variable v)
     throws ScriptException
   {
@@ -157,6 +206,7 @@ public class VariableInt extends VariableBase
     return new VariableBoolean(value != v.getIntValue());
   }
   
+  @Override
   public VariableReference ampersand(Variable v)
     throws ScriptException
   {
@@ -165,6 +215,7 @@ public class VariableInt extends VariableBase
     return new VariableInt(value & v.getIntValue());
   }
     
+  @Override
   public VariableReference pipe(Variable v)
     throws ScriptException
   {
@@ -173,6 +224,7 @@ public class VariableInt extends VariableBase
     return new VariableInt(value | v.getIntValue());
   }
 
+  @Override
   public VariableReference unaryExclamation()
     throws ScriptException
   {

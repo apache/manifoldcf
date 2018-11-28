@@ -31,15 +31,16 @@ public class ScheduleRecord
   public static final String _rcsid = "@(#)$Id: ScheduleRecord.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Absolute job-triggering times
-  protected EnumeratedValues dayOfWeek = null;
-  protected EnumeratedValues monthOfYear = null;
-  protected EnumeratedValues dayOfMonth = null;
-  protected EnumeratedValues year = null;
-  protected EnumeratedValues hourOfDay = null;
-  protected EnumeratedValues minutesOfHour = null;
-  protected String timezone = null;
-  protected Long duration = null;
-
+  protected final EnumeratedValues dayOfWeek;
+  protected final EnumeratedValues monthOfYear;
+  protected final EnumeratedValues dayOfMonth;
+  protected final EnumeratedValues year;
+  protected final EnumeratedValues hourOfDay;
+  protected final EnumeratedValues minutesOfHour;
+  protected final String timezone;
+  protected final Long duration;
+  protected final boolean requestMinimum;
+  
   /** Constructor.
   *@param dayOfWeek is the day-of-week enumeration.
   *@param monthOfYear is the month-of-year enumeration.
@@ -57,7 +58,8 @@ public class ScheduleRecord
     EnumeratedValues hourOfDay,
     EnumeratedValues minutesOfHour,
     String timezone,
-    Long duration)
+    Long duration,
+    boolean requestMinimum)
   {
     this.dayOfWeek = dayOfWeek;
     this.monthOfYear = monthOfYear;
@@ -67,6 +69,7 @@ public class ScheduleRecord
     this.minutesOfHour = minutesOfHour;
     this.timezone = timezone;
     this.duration = duration;
+    this.requestMinimum = requestMinimum;
   }
 
   /** Get the day of week.
@@ -133,6 +136,12 @@ public class ScheduleRecord
     return duration;
   }
 
-
+  /** Get whether the schedule record corresponds to a minimal request or not.
+  *@return true if minimal request.
+  */
+  public boolean getRequestMinimum()
+  {
+    return requestMinimum;
+  }
 
 }

@@ -1242,6 +1242,7 @@ public class ScriptParser
     sp.addNewOperation("connectionname",new NewConnectionName());
     sp.addNewOperation("array",new NewArray());
     sp.addNewOperation("dictionary",new NewDictionary());
+    sp.addNewOperation("queryarg",new NewQueryArgument());
     
     try
     {

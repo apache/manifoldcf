@@ -25,22 +25,25 @@ import java.util.*;
 * - version string
 * - output version string
 * - authority name
+* - parameter version string
 */
 public class DocumentIngestStatus
 {
   public static final String _rcsid = "@(#)$Id: DocumentIngestStatus.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  protected String documentVersionString;
-  protected String outputVersionString;
-  protected String documentAuthorityNameString;
+  protected final String documentVersionString;
+  protected final String outputVersionString;
+  protected final String documentAuthorityNameString;
+  protected final String parameterVersionString;
 
   /** Constructor */
   public DocumentIngestStatus(String documentVersionString, String outputVersionString,
-    String documentAuthorityNameString)
+    String documentAuthorityNameString, String parameterVersionString)
   {
     this.documentVersionString = documentVersionString;
     this.outputVersionString = outputVersionString;
     this.documentAuthorityNameString = documentAuthorityNameString;
+    this.parameterVersionString = parameterVersionString;
   }
 
   /** Get the document version */
@@ -60,4 +63,11 @@ public class DocumentIngestStatus
   {
     return documentAuthorityNameString;
   }
+  
+  /** Get the parameter version string */
+  public String getParameterVersion()
+  {
+    return parameterVersionString;
+  }
+  
 }

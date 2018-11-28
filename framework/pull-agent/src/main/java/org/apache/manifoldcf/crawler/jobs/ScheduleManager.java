@@ -41,6 +41,7 @@ import java.util.*;
 * <tr><td>minutesofhour</td><td>VARCHAR(255)</td><td></td></tr>
 * <tr><td>timezone</td><td>VARCHAR(32)</td><td></td></tr>
 * <tr><td>windowlength</td><td>BIGINT</td><td></td></tr>
+* <tr><td>requestminimum</td><td>CHAR(1)</td><td></td></tr>
 * </table>
 * <br><br>
 * 
@@ -60,7 +61,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
   public final static String minutesOfHourField = "minutesofhour";
   public final static String timezoneField = "timezone";
   public final static String windowDurationField = "windowlength";
-
+  public final static String requestMinimumField = "requestminimum";
 
   /** Constructor.
   *@param threadContext is the thread context.
@@ -96,6 +97,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
         map.put(minutesOfHourField,new ColumnDescription("VARCHAR(255)",false,true,null,null,false));
         map.put(timezoneField,new ColumnDescription("VARCHAR(32)",false,true,null,null,false));
         map.put(windowDurationField,new ColumnDescription("BIGINT",false,true,null,null,false));
+        map.put(requestMinimumField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
         performCreate(map,null);
       }
       else
@@ -113,6 +115,14 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
           performAlter(null,null,list,null);
 
         }
+        
+        if (existing.get(requestMinimumField) == null)
+        {
+          HashMap map = new HashMap();
+          map.put(requestMinimumField,new ColumnDescription("CHAR(1)",false,true,null,null,false));
+          performAlter(map,null,null,null);
+        }
+        
       }
 
       // Index management
@@ -171,7 +181,8 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
         stringToEnumeratedValue((String)row.getValue(hourOfDayField)),
         stringToEnumeratedValue((String)row.getValue(minutesOfHourField)),
         (String)row.getValue(timezoneField),
-        (Long)row.getValue(windowDurationField));
+        (Long)row.getValue(windowDurationField),
+        stringToRequestMinimumValue((String)row.getValue(requestMinimumField)));
       ((JobDescription)returnValues.get(ownerID)).addScheduleRecord(sr);
       i++;
     }
@@ -209,7 +220,8 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
         stringToEnumeratedValue((String)row.getValue(hourOfDayField)),
         stringToEnumeratedValue((String)row.getValue(minutesOfHourField)),
         (String)row.getValue(timezoneField),
-        (Long)row.getValue(windowDurationField));
+        (Long)row.getValue(windowDurationField),
+        stringToRequestMinimumValue((String)row.getValue(requestMinimumField)));
       ArrayList theList = (ArrayList)returnValues.get(ownerID);
       if (theList == null)
       {
@@ -245,6 +257,7 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
         map.put(minutesOfHourField,enumeratedValueToString(record.getMinutesOfHour()));
         map.put(timezoneField,record.getTimezone());
         map.put(windowDurationField,record.getDuration());
+        map.put(requestMinimumField,requestMinimumValueToString(record.getRequestMinimum()));
         map.put(ownerIDField,ownerID);
         map.put(ordinalField,new Long((long)i));
         performInsert(map,null);
@@ -340,5 +353,22 @@ public class ScheduleManager extends org.apache.manifoldcf.core.database.BaseTab
     return rval.toString();
   }
 
-
+  public static String requestMinimumValueToString(boolean requestMinimum)
+  {
+    return requestMinimum?"T":"F";
+  }
+  
+  public static boolean stringToRequestMinimumValue(String requestMinimum)
+    throws ManifoldCFException
+  {
+    if (requestMinimum == null)
+      return false;
+    else if (requestMinimum.equals("T"))
+      return true;
+    else if (requestMinimum.equals("F"))
+      return false;
+    else
+      throw new ManifoldCFException("Bad requestminimum value: '"+requestMinimum+"'");
+  }
+    
 }

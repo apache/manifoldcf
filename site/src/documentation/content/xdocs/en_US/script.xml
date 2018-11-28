@@ -155,6 +155,11 @@ expression:
 newexpression:
 --&gt; 'url' expression
 --&gt; 'connectionname' expression
+--&gt; 'configuration'
+--&gt; 'configurationnode' expression
+--&gt; 'array'
+--&gt; 'dictionary'
+--&gt; 'queryarg' expression ['=' expression] 
 
       </source>  
     </section>
@@ -355,10 +360,27 @@ print "3".__int__+7;
           <tr><th>Operation</th><th>Meaning</th><th>Example</th></tr>
           <tr><td>binary ==</td><td>Equals comparison, yielding a boolean</td><td>url1 == url2</td></tr>
           <tr><td>binary !=</td><td>Non-equals comparison, yielding a boolean</td><td>url1 != url2</td></tr>
-          <tr><td>binary +</td><td>Append and encode another path element, yielding a URL</td><td>url1 + "repositoryconnections"</td></tr>
+          <tr><td>binary +</td><td>Append and encode another path or query argument element, yielding a URL</td><td>url1 + "repositoryconnections"</td></tr>
         </table>
         <p>In addition, the standard attributes <em>__script__</em> and <em>__string__</em>  are supported 
           by URL variable types.</p>
+      </section>
+      <section>
+        <title>Query Arguments</title>
+        <p>Query Argument variable types exist to take care of the details of URL encoding while assembling the query arguments of a REST URL for ManifoldCF's REST API.  A Query Argument variable
+          type can be created using a 'new' operation of the form <strong>new</strong> <strong>queryarg</strong> <em>expression</em> [<strong>=</strong> <em>expression</em>], where the first expression is the
+          query argument name, and the second optional expression is the query argument value.  For example, the script code 'new queryarg "report" = "simple"'
+          would create a Query Argument variable type representing the query argument "report=simple".  To add query arguments to a URL, simply add them using the '+' operator,
+          for example "urlvar = urlvar + new queryarg 'report' = 'simple';" .</p>
+        <p>The operations supported for this variable type, and their meanings are listed in the table below:</p>
+        <table>
+          <caption>Query Argument operations</caption>
+          <tr><th>Operation</th><th>Meaning</th><th>Example</th></tr>
+          <tr><td>binary ==</td><td>Equals comparison, yielding a boolean</td><td>arg1 == arg2</td></tr>
+          <tr><td>binary !=</td><td>Non-equals comparison, yielding a boolean</td><td>arg1 != arg2</td></tr>
+        </table>
+        <p>In addition, the standard attributes <em>__script__</em> and <em>__string__</em>  are supported 
+          by Query Argument variable types.</p>
       </section>
       <section>
         <title>Connection names</title>

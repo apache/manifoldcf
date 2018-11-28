@@ -19,22 +19,27 @@
 
 package org.apache.manifoldcf.scriptengine;
 
+import java.net.*;
+import java.io.*;
+
 /** Variable class representing an integer.
 */
 public class VariableString extends VariableBase
 {
   protected String value;
-  
+
   public VariableString(String value)
   {
     this.value = value;
   }
 
+  @Override
   public int hashCode()
   {
     return value.hashCode();
   }
   
+  @Override
   public boolean equals(Object o)
   {
     if (!(o instanceof VariableString))
@@ -42,7 +47,63 @@ public class VariableString extends VariableBase
     return ((VariableString)o).value.equals(value);
   }
 
+  /** Check if the variable has a string value */
+  @Override
+  public boolean hasStringValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
+  /** Check if the variable has a script value */
+  @Override
+  public boolean hasScriptValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
+  /** Check if the variable has an int value */
+  @Override
+  public boolean hasIntValue()
+    throws ScriptException
+  {
+    return true;
+  }
+  
+  /** Check if the variable has a double value */
+  @Override
+  public boolean hasDoubleValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
+  /** Check if the variable has a URL path value */
+  @Override
+  public boolean hasURLPathValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
+  /** Get the variable's value as a URL path component */
+  @Override
+  public String getURLPathValue()
+    throws ScriptException
+  {
+    try
+    {
+      return URLEncoder.encode(value,"utf-8").replace("+","%20");
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      throw new ScriptException(composeMessage(e.getMessage()),e);
+    }
+  }
+
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
@@ -61,6 +122,7 @@ public class VariableString extends VariableBase
   }
 
   /** Get the variable's value as a string */
+  @Override
   public String getStringValue()
     throws ScriptException
   {
@@ -68,6 +130,7 @@ public class VariableString extends VariableBase
   }
 
   /** Get the variable's value as an integer */
+  @Override
   public int getIntValue()
     throws ScriptException
   {
@@ -82,12 +145,14 @@ public class VariableString extends VariableBase
   }
   
   /** Get the variable's value as a double */
+  @Override
   public double getDoubleValue()
     throws ScriptException
   {
     return new Double(value).doubleValue();
   }
 
+  @Override
   public VariableReference plus(Variable v)
     throws ScriptException
   {
@@ -96,6 +161,7 @@ public class VariableString extends VariableBase
     return new VariableString(value + v.getStringValue());
   }
   
+  @Override
   public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
@@ -104,6 +170,7 @@ public class VariableString extends VariableBase
     return new VariableBoolean(value.equals(v.getStringValue()));
   }
 
+  @Override
   public VariableReference exclamationEquals(Variable v)
     throws ScriptException
   {

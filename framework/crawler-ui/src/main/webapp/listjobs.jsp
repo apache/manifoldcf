@@ -29,7 +29,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<link rel="StyleSheet" href="style.css" type="text/css" media="screen"/>
 	<title>
-		<%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.ApacheManifoldCFListJobDescriptions")%>
+		<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.ApacheManifoldCFListJobDescriptions")%>
 	</title>
 
 	<script type="text/javascript">
@@ -57,7 +57,7 @@
       <tr><td colspan="2" class="banner"><jsp:include page="banner.jsp" flush="true"/></td></tr>
       <tr><td class="navigation"><jsp:include page="navigation.jsp" flush="true"/></td>
        <td class="window">
-	<p class="windowtitle"><%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.JobList")%></p>
+	<p class="windowtitle"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.JobList")%></p>
 	<form class="standardform" name="listjobs" action="execute.jsp" method="POST">
 		<input type="hidden" name="op" value="Continue"/>
 		<input type="hidden" name="type" value="job"/>
@@ -76,10 +76,10 @@
 			</tr>
 			<tr class="headerrow">
 				<td class="columnheader"></td>
-				<td class="columnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.Name")%></nobr></td>
-				<td class="columnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.OutputConnection")%></nobr></td>
-				<td class="columnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.RepositoryConnection")%></nobr></td>
-				<td class="columnheader"><nobr><%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.ScheduleType")%></nobr></td>
+				<td class="columnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.Name")%></nobr></td>
+				<td class="columnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.OutputConnection")%></nobr></td>
+				<td class="columnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.RepositoryConnection")%></nobr></td>
+				<td class="columnheader"><nobr><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.ScheduleType")%></nobr></td>
 			</tr>
 <%
 	int i = 0;
@@ -102,8 +102,8 @@
 %>
 		<tr <%="class=\""+((i%2==0)?"evendatarow":"odddatarow")+"\""%>>
 		    <td class="columncell">
-			<a href='<%="viewjob.jsp?jobid="+jd.getID()%>' alt='<%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.Viewjob")+" "+jd.getID()%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.View")%></a>&nbsp;
-			<a href='<%="editjob.jsp?jobid="+jd.getID()%>' alt='<%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.Editjob")+" "+jd.getID()%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.Edit")%></a>&nbsp;<a href='<%="javascript:Delete(\""+jd.getID()+"\")"%>' alt='<%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.DeleteJob")+" "+jd.getID()%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.Delete")%></a>&nbsp;<a href='<%="editjob.jsp?origjobid="+jd.getID()%>' alt='<%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.CopyJob")+" "+jd.getID()%>'><%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.Copy")%></a>
+			<a href='<%="viewjob.jsp?jobid="+jd.getID()%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.Viewjob")+" "+jd.getID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.View")%></a>&nbsp;
+			<a href='<%="editjob.jsp?jobid="+jd.getID()%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.Editjob")+" "+jd.getID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.Edit")%></a>&nbsp;<a href='<%="javascript:Delete(\""+jd.getID()+"\")"%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.DeleteJob")+" "+jd.getID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.Delete")%></a>&nbsp;<a href='<%="editjob.jsp?origjobid="+jd.getID()%>' alt='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.CopyJob")+" "+jd.getID()%>'><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.Copy")%></a>
 		    </td>
 		    <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(jd.getDescription())%></td>
 		    <td class="columncell"><%=org.apache.manifoldcf.ui.util.Encoder.bodyEscape(jd.getOutputConnectionName())%></td>
@@ -116,7 +116,7 @@
 			<tr>
 				<td class="separator" colspan="5"><hr/></td>
 			</tr>
-		<tr><td class="message" colspan="5"><a href="editjob.jsp" alt="Add a job"><%=Messages.getString(pageContext.getRequest().getLocale(),"listjobs.AddaNewJob")%></a></td></tr>
+		<tr><td class="message" colspan="5"><a href="editjob.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.Addajob")%>"><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.AddaNewJob")%></a></td></tr>
 		</table>
 
 <%

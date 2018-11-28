@@ -16,46 +16,20 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.webcrawler_tests;
+package org.apache.manifoldcf.crawler.interfaces;
 
-import java.io.*;
-import java.util.*;
-import org.junit.*;
 
-/** This is a very basic sanity check */
-public class BigCrawlPostgresqlLT extends BasePostgresql
+/** This class is a paper object which contains a job ID.
+*/
+public class JobDeleteRecord extends JobRecord
 {
+  public static final String _rcsid = "@(#)$Id$";
 
-  protected BigCrawlTester tester;
-  protected MockWebService webService = null;
-  
-  public BigCrawlPostgresqlLT()
+  /** Constructor.
+  */
+  public JobDeleteRecord(Long jobID)
   {
-    tester = new BigCrawlTester(mcfInstance);
-  }
-  
-  // Setup and teardown the mock wiki service
-  
-  @Before
-  public void createWebService()
-    throws Exception
-  {
-    webService = new MockWebService(10);
-    webService.start();
-  }
-  
-  @After
-  public void shutdownWebService()
-    throws Exception
-  {
-    if (webService != null)
-      webService.stop();
+    super(jobID);
   }
 
-  @Test
-  public void bigCrawl()
-    throws Exception
-  {
-    tester.executeTest();
-  }
 }

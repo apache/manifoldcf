@@ -22,8 +22,8 @@ package org.apache.manifoldcf.crawler.connectors.alfresco;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.text.ParseException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -812,11 +812,11 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
         long fileLength = 0;
         try {
           //properties ingestion
-          RepositoryDocument rd = new RepositoryDocument();
-          PropertiesUtils.ingestProperties(rd, properties);
+          RepositoryDocument rd = new RepositoryDocument();      
+          List<NamedValue> contentProperties = PropertiesUtils.getContentProperties(properties);
+          PropertiesUtils.ingestProperties(rd, properties, contentProperties);
 
           // binaries ingestion - in Alfresco we could have more than one binary for each node (custom content models)
-          List<NamedValue> contentProperties = PropertiesUtils.getContentProperties(properties);
           for (NamedValue contentProperty : contentProperties) {
             //we are ingesting all the binaries defined as d:content property in the Alfresco content model
             Content binary = ContentReader.read(username, password, session, predicate, contentProperty.getName());
@@ -843,6 +843,12 @@ public class AlfrescoRepositoryConnector extends BaseRepositoryConnector {
             activities.ingestDocument(id, version, documentURI, rd);
           }
           
+        } catch (ParseException e) {
+          errorCode = "IO ERROR";
+          errorDesc = e.getMessage();
+          Logging.connectors.warn(
+              "Alfresco: Error during the reading process of dates: "
+                  + e.getMessage(), e);
         } finally {
           try {
             if(is!=null){

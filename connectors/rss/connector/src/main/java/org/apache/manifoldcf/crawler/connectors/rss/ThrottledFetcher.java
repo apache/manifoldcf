@@ -53,6 +53,8 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.protocol.HttpContext;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.CircularRedirectException;
@@ -287,6 +289,19 @@ public class ThrottledFetcher
       params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT,connectionTimeoutMilliseconds);
       params.setBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS,true);
       DefaultHttpClient localHttpClient = new DefaultHttpClient(connectionManager,params);
+      // No retries
+      localHttpClient.setHttpRequestRetryHandler(new HttpRequestRetryHandler()
+        {
+          public boolean retryRequest(
+            IOException exception,
+            int executionCount,
+            HttpContext context)
+          {
+            return false;
+          }
+         
+        });
+
       localHttpClient.setRedirectStrategy(new DefaultRedirectStrategy());
       
       // If there's a proxy, set that too.
@@ -384,6 +399,8 @@ public class ThrottledFetcher
       // Set all appropriate headers
       executeMethod.setHeader(new BasicHeader("User-Agent",userAgent));
       executeMethod.setHeader(new BasicHeader("From",from));
+      executeMethod.setHeader(new BasicHeader("Accept","*/*"));
+
       if (lastETag != null)
         executeMethod.setHeader(new BasicHeader("ETag",lastETag));
       if (lastModified != null)
@@ -681,7 +698,8 @@ public class ThrottledFetcher
       
       if (fetchType != null)
       {
-        methodThread.abort();
+        if (methodThread != null && threadStarted)
+          methodThread.abort();
         long endTime = System.currentTimeMillis();
         server.endFetch();
 
@@ -942,29 +960,26 @@ public class ThrottledFetcher
   protected class Server
   {
     /** The fqdn of the server */
-    protected String serverName;
+    protected final String serverName;
     /** This is the time of the next allowed fetch (in ms since epoch) */
     protected long nextFetchTime = 0L;
 
     // Bandwidth throttling variables
     /** Reference count for bandwidth variables */
-    protected int refCount = 0;
+    protected volatile int refCount = 0;
     /** The inverse rate estimate of the first fetch, in ms/byte */
     protected double rateEstimate = 0.0;
     /** Flag indicating whether a rate estimate is needed */
-    protected boolean estimateValid = false;
+    protected volatile boolean estimateValid = false;
     /** Flag indicating whether rate estimation is in progress yet */
-    protected boolean estimateInProgress = false;
+    protected volatile boolean estimateInProgress = false;
     /** The start time of this series */
     protected long seriesStartTime = -1L;
     /** Total actual bytes read in this series; this includes fetches in progress */
     protected long totalBytesRead = -1L;
 
-    /** This object is used to gate access while the first chunk is being read */
-    protected Integer firstChunkLock = new Integer(0);
-
     /** Outstanding connection counter */
-    protected int outstandingConnections = 0;
+    protected volatile int outstandingConnections = 0;
 
     /** Constructor */
     public Server(String serverName)
@@ -1084,19 +1099,16 @@ public class ThrottledFetcher
 
       long currentTime = System.currentTimeMillis();
 
-      synchronized (firstChunkLock)
+      synchronized (this)
       {
         while (estimateInProgress)
-          firstChunkLock.wait();
+          wait();
         if (estimateValid == false)
         {
           seriesStartTime = currentTime;
           estimateInProgress = true;
           // Add these bytes to the estimated total
-          synchronized (this)
-          {
-            totalBytesRead += (long)byteCount;
-          }
+          totalBytesRead += (long)byteCount;
           // Exit early; this thread isn't going to do any waiting
           //if (Logging.connectors.isTraceEnabled())
           //      Logging.connectors.trace("RSS: Read begin noted; gathering stats for '"+serverName+"'");
@@ -1105,34 +1117,61 @@ public class ThrottledFetcher
         }
       }
 
-      long waitTime = 0L;
+      // It is possible for the following code to get interrupted.  If that happens,
+      // we have to unstick the threads that are waiting on the estimate!
+      boolean finished = false;
+      try
+      {
+        long waitTime = 0L;
+        synchronized (this)
+        {
+          // Add these bytes to the estimated total
+          totalBytesRead += (long)byteCount;
+
+          // Estimate the time this read will take, and wait accordingly
+          long estimatedTime = (long)(rateEstimate * (double)byteCount);
+
+          // Figure out how long the total byte count should take, to meet the constraint
+          long desiredEndTime = seriesStartTime + (long)(((double)totalBytesRead) * minimumMillisecondsPerBytePerServer);
+
+          // The wait time is the different between our desired end time, minus the estimated time to read the data, and the
+          // current time.  But it can't be negative.
+          waitTime = (desiredEndTime - estimatedTime) - currentTime;
+        }
+
+        if (waitTime > 0L)
+        {
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("RSS: Performing a read wait on server '"+serverName+"' of "+
+            new Long(waitTime).toString()+" ms.");
+          ManifoldCF.sleep(waitTime);
+        }
+
+        //if (Logging.connectors.isTraceEnabled())
+        //      Logging.connectors.trace("RSS: Begin read noted for '"+serverName+"'");
+        finished = true;
+      }
+      finally
+      {
+        if (!finished)
+        {
+          abortRead();
+        }
+      }
+    }
+
+    /** Abort a read in progress.
+    */
+    public void abortRead()
+    {
       synchronized (this)
       {
-        // Add these bytes to the estimated total
-        totalBytesRead += (long)byteCount;
-
-        // Estimate the time this read will take, and wait accordingly
-        long estimatedTime = (long)(rateEstimate * (double)byteCount);
-
-        // Figure out how long the total byte count should take, to meet the constraint
-        long desiredEndTime = seriesStartTime + (long)(((double)totalBytesRead) * minimumMillisecondsPerBytePerServer);
-
-        // The wait time is the different between our desired end time, minus the estimated time to read the data, and the
-        // current time.  But it can't be negative.
-        waitTime = (desiredEndTime - estimatedTime) - currentTime;
+        if (estimateInProgress)
+        {
+          estimateInProgress = false;
+          notifyAll();
+        }
       }
-
-      if (waitTime > 0L)
-      {
-        if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("RSS: Performing a read wait on server '"+serverName+"' of "+
-          new Long(waitTime).toString()+" ms.");
-        ManifoldCF.sleep(waitTime);
-      }
-
-      //if (Logging.connectors.isTraceEnabled())
-      //      Logging.connectors.trace("RSS: Begin read noted for '"+serverName+"'");
-
     }
 
     /** Note the end of an individual read from the server.  Call this just after an individual read completes.
@@ -1148,11 +1187,6 @@ public class ThrottledFetcher
       synchronized (this)
       {
         totalBytesRead = totalBytesRead + (long)actualCount - (long)originalCount;
-      }
-
-      // Only one thread should get here if it's the first chunk, but we synchronize to be sure
-      synchronized (firstChunkLock)
-      {
         if (estimateInProgress)
         {
           if (actualCount == 0)
@@ -1162,7 +1196,7 @@ public class ThrottledFetcher
             rateEstimate = ((double)(currentTime - seriesStartTime))/(double)actualCount;
           estimateValid = true;
           estimateInProgress = false;
-          firstChunkLock.notifyAll();
+          notifyAll();
         }
       }
 
@@ -1211,6 +1245,7 @@ public class ThrottledFetcher
     protected HttpResponse response = null;
     protected Throwable responseException = null;
     protected XThreadInputStream threadStream = null;
+    protected InputStream bodyStream = null;
     protected boolean streamCreated = false;
     protected Throwable streamException = null;
 
@@ -1277,7 +1312,7 @@ public class ThrottledFetcher
               {
                 try
                 {
-                  InputStream bodyStream = response.getEntity().getContent();
+                  bodyStream = response.getEntity().getContent();
                   if (bodyStream != null)
                   {
                     bodyStream = new ThrottledInputstream(theConnection,server,bodyStream,minimumMillisecondsPerBytePerServer);
@@ -1318,6 +1353,17 @@ public class ThrottledFetcher
         }
         finally
         {
+          if (bodyStream != null)
+          {
+            try
+            {
+              bodyStream.close();
+            }
+            catch (IOException e)
+            {
+            }
+            bodyStream = null;
+          }
           synchronized (this)
           {
             try

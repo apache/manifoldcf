@@ -30,8 +30,19 @@ import org.junit.*;
 /** Tests that run the "agents daemon" should be derived from this */
 public class BaseITDerby extends ConnectorBaseDerby
 {
-  protected ManifoldCFInstance mcfInstance = new ManifoldCFInstance();
+  protected final ManifoldCFInstance mcfInstance;
   
+  public BaseITDerby()
+  {
+    super();
+    mcfInstance = new ManifoldCFInstance();
+  }
+  
+  public BaseITDerby(boolean singleWar)
+  {
+    super();
+    mcfInstance = new ManifoldCFInstance(singleWar);
+  }
   // Basic job support
   
   protected void waitJobInactiveNative(IJobManager jobManager, Long jobID, long maxTime)

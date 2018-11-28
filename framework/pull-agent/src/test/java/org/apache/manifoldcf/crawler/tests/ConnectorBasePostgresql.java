@@ -61,7 +61,34 @@ public class ConnectorBasePostgresql extends org.apache.manifoldcf.crawler.tests
   {
     return new String[0];
   }
-  
+
+  @Override
+  protected void writeConnectors(StringBuilder output)
+    throws Exception
+  {
+    String[] connectorClasses = getConnectorClasses();
+    String[] connectorNames = getConnectorNames();
+    for (int i = 0; i < connectorNames.length; i++)
+    {
+      output.append("    <repositoryconnector name=\""+connectorNames[i]+"\" class=\""+connectorClasses[i]+"\"/>\n");
+    }
+    
+    String[] outputClasses = getOutputClasses();
+    String[] outputNames = getOutputNames();
+    for (int i = 0; i < outputNames.length; i++)
+    {
+      output.append("    <outputconnector name=\""+outputNames[i]+"\" class=\""+outputClasses[i]+"\"/>\n");
+    }
+
+    String[] authorityClasses = getAuthorityClasses();
+    String[] authorityNames = getAuthorityNames();
+    for (int i = 0; i < authorityNames.length; i++)
+    {
+      output.append("    <authorityconnector name=\""+authorityNames[i]+"\" class=\""+authorityClasses[i]+"\"/>\n");
+    }
+
+  }
+
   @Before
   public void setUp()
     throws Exception

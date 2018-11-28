@@ -23,7 +23,7 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
-import org.apache.manifoldcf.crawler.connectors.rss.RSSConnector;
+import org.apache.manifoldcf.crawler.connectors.rss.RSSConfig;
 
 import java.io.*;
 import java.util.*;
@@ -53,11 +53,11 @@ public class RSSSimpleCrawlTester
     conn.setClassName("org.apache.manifoldcf.crawler.connectors.rss.RSSConnector");
     conn.setMaxConnections(100);
     ConfigParams cp = conn.getConfigParams();
-    cp.setParameter(RSSConnector.emailParameter,"somebody@somewhere.com");
-    cp.setParameter(RSSConnector.maxOpenParameter,"100");
-    cp.setParameter(RSSConnector.maxFetchesParameter,"1000000");
-    cp.setParameter(RSSConnector.bandwidthParameter,"1000000");
-    cp.setParameter(RSSConnector.robotsUsageParameter,"none");
+    cp.setParameter(RSSConfig.PARAMETER_EMAIL,"somebody@somewhere.com");
+    cp.setParameter(RSSConfig.PARAMETER_MAXOPEN,"100");
+    cp.setParameter(RSSConfig.PARAMETER_MAXFETCHES,"1000000");
+    cp.setParameter(RSSConfig.PARAMETER_BANDWIDTH,"1000000");
+    cp.setParameter(RSSConfig.PARAMETER_ROBOTSUSAGE,"none");
     // Now, save
     mgr.save(conn);
       

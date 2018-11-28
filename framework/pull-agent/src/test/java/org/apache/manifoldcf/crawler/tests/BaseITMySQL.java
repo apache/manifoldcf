@@ -30,8 +30,20 @@ import org.junit.*;
 /** Tests that run the "agents daemon" should be derived from this */
 public class BaseITMySQL extends ConnectorBaseMySQL
 {
-  protected ManifoldCFInstance mcfInstance = new ManifoldCFInstance();
+  protected final ManifoldCFInstance mcfInstance;
   
+  public BaseITMySQL()
+  {
+    super();
+    mcfInstance = new ManifoldCFInstance();
+  }
+  
+  public BaseITMySQL(boolean singleWar)
+  {
+    super();
+    mcfInstance = new ManifoldCFInstance(singleWar);
+  }
+
   // Basic job support
   
   protected void waitJobInactiveNative(IJobManager jobManager, Long jobID, long maxTime)

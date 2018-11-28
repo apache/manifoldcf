@@ -199,101 +199,78 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   public String[] recordReferences(Long jobID, String sourceDocumentIDHash, String[] targetDocumentIDHashes, String linkType)
     throws ManifoldCFException
   {
-    // Need to go into a transaction because we need to distinguish between update and insert.
-    beginTransaction();
-    try
+    HashMap duplicateRemoval = new HashMap();
+    int maxClause = maxClausePerformExistsCheck(jobID,linkType,sourceDocumentIDHash);
+    ArrayList list = new ArrayList();
+    int i = 0;
+    int k = 0;
+    // Keep track of the document identifiers that have been seen vs. those that were unseen.
+    HashMap presentMap = new HashMap();
+    while (k < targetDocumentIDHashes.length)
     {
-      // It is no longer necessary to perform a lock here, because the parent document can only be accessed by one thread at a time, so only
-      // one thread can make it into here at any given time for any given parent.
-      //performLock();
-      HashMap duplicateRemoval = new HashMap();
-      int maxClause = maxClausePerformExistsCheck(jobID,linkType,sourceDocumentIDHash);
-      ArrayList list = new ArrayList();
-      int i = 0;
-      int k = 0;
-      // Keep track of the document identifiers that have been seen vs. those that were unseen.
-      HashMap presentMap = new HashMap();
-      while (k < targetDocumentIDHashes.length)
+      String targetDocumentIDHash = targetDocumentIDHashes[k++];
+      if (duplicateRemoval.get(targetDocumentIDHash) != null)
+        continue;
+      duplicateRemoval.put(targetDocumentIDHash,targetDocumentIDHash);
+      if (i == maxClause)
       {
-        String targetDocumentIDHash = targetDocumentIDHashes[k++];
-        if (duplicateRemoval.get(targetDocumentIDHash) != null)
-          continue;
-        duplicateRemoval.put(targetDocumentIDHash,targetDocumentIDHash);
-        if (i == maxClause)
-        {
-          // Do the query and record the results
-          performExistsCheck(presentMap,jobID,linkType,sourceDocumentIDHash,list);
-          i = 0;
-          list.clear();
-        }
-        list.add(targetDocumentIDHash);
-        i++;
-      }
-      if (i > 0)
+        // Do the query and record the results
         performExistsCheck(presentMap,jobID,linkType,sourceDocumentIDHash,list);
-
-      // Go through the list again, and based on the results above, decide to do either an insert or
-      // an update.
-      // We have to count these by hand, in case there are duplicates in the array.
-      int count = 0;
-      Iterator iter = duplicateRemoval.keySet().iterator();
-      while (iter.hasNext())
-      {
-        String targetDocumentIDHash = (String)iter.next();
-        if (presentMap.get(targetDocumentIDHash) == null)
-          count++;
+        i = 0;
+        list.clear();
       }
-      String[] newReferences = new String[count];
-      int j = 0;
-      // Note: May be able to make this more efficient if we update things in batches...
-      iter = duplicateRemoval.keySet().iterator();
-      while (iter.hasNext())
+      list.add(targetDocumentIDHash);
+      i++;
+    }
+    if (i > 0)
+      performExistsCheck(presentMap,jobID,linkType,sourceDocumentIDHash,list);
+
+    // Go through the list again, and based on the results above, decide to do either an insert or
+    // an update.
+    // We have to count these by hand, in case there are duplicates in the array.
+    int count = 0;
+    Iterator iter = duplicateRemoval.keySet().iterator();
+    while (iter.hasNext())
+    {
+      String targetDocumentIDHash = (String)iter.next();
+      if (presentMap.get(targetDocumentIDHash) == null)
+        count++;
+    }
+    String[] newReferences = new String[count];
+    int j = 0;
+    // Note: May be able to make this more efficient if we update things in batches...
+    iter = duplicateRemoval.keySet().iterator();
+    while (iter.hasNext())
+    {
+      String targetDocumentIDHash = (String)iter.next();
+
+      if (presentMap.get(targetDocumentIDHash) == null)
       {
-        String targetDocumentIDHash = (String)iter.next();
-
-        if (presentMap.get(targetDocumentIDHash) == null)
-        {
-          newReferences[j++] = targetDocumentIDHash;
-          HashMap map = new HashMap();
-          map.put(jobIDField,jobID);
-          map.put(parentIDHashField,targetDocumentIDHash);
-          map.put(childIDHashField,sourceDocumentIDHash);
-          map.put(linkTypeField,linkType);
-          map.put(newField,statusToString(LINKSTATUS_NEW));
-          performInsert(map,null);
-          noteModifications(1,0,0);
-        }
-        else
-        {
-          HashMap map = new HashMap();
-          map.put(newField,statusToString(LINKSTATUS_EXISTING));
-          ArrayList updateList = new ArrayList();
-          String query = buildConjunctionClause(updateList,new ClauseDescription[]{
-            new UnitaryClause(jobIDField,jobID),
-            new UnitaryClause(parentIDHashField,targetDocumentIDHash),
-            new UnitaryClause(linkTypeField,linkType),
-            new UnitaryClause(childIDHashField,sourceDocumentIDHash)});
-          performUpdate(map,"WHERE "+query,updateList,null);
-          noteModifications(0,1,0);
-        }
+        newReferences[j++] = targetDocumentIDHash;
+        HashMap map = new HashMap();
+        map.put(jobIDField,jobID);
+        map.put(parentIDHashField,targetDocumentIDHash);
+        map.put(childIDHashField,sourceDocumentIDHash);
+        map.put(linkTypeField,linkType);
+        map.put(newField,statusToString(LINKSTATUS_NEW));
+        performInsert(map,null);
+        noteModifications(1,0,0);
       }
-      return newReferences;
+      else
+      {
+        HashMap map = new HashMap();
+        map.put(newField,statusToString(LINKSTATUS_EXISTING));
+        ArrayList updateList = new ArrayList();
+        String query = buildConjunctionClause(updateList,new ClauseDescription[]{
+          new UnitaryClause(jobIDField,jobID),
+          new UnitaryClause(parentIDHashField,targetDocumentIDHash),
+          new UnitaryClause(linkTypeField,linkType),
+          new UnitaryClause(childIDHashField,sourceDocumentIDHash)});
+        performUpdate(map,"WHERE "+query,updateList,null);
+        noteModifications(0,1,0);
+      }
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
-
+    return newReferences;
   }
 
   /** Calculate the max clauses for the exists check
@@ -335,44 +312,25 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     String joinTableCriteria, ArrayList joinTableParams)
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
-    {
-      // Delete matches for childIDHashField
-      StringBuilder sb = new StringBuilder("WHERE ");
-      ArrayList list = new ArrayList();
+    // Delete matches for childIDHashField
+    StringBuilder sb = new StringBuilder("WHERE ");
+    ArrayList list = new ArrayList();
           
-      sb.append("EXISTS(SELECT 'x' FROM ").append(joinTableName).append(" WHERE ")
-        .append(buildConjunctionClause(list,new ClauseDescription[]{
-          new UnitaryClause(joinTableJobColumn,jobID),
-          new JoinClause(joinTableIDColumn,getTableName()+"."+childIDHashField)})).append(" AND ");
+    sb.append("EXISTS(SELECT 'x' FROM ").append(joinTableName).append(" WHERE ")
+      .append(buildConjunctionClause(list,new ClauseDescription[]{
+        new UnitaryClause(joinTableJobColumn,jobID),
+        new JoinClause(joinTableIDColumn,getTableName()+"."+childIDHashField)})).append(" AND ");
 
-      sb.append(joinTableCriteria);
-      list.addAll(joinTableParams);
+    sb.append(joinTableCriteria);
+    list.addAll(joinTableParams);
               
-      sb.append(")");
+    sb.append(")");
               
-      performDelete(sb.toString(),list,null);
-      noteModifications(0,0,1);
+    performDelete(sb.toString(),list,null);
+    noteModifications(0,0,1);
       
-      // DON'T delete ParentID matches; we need to leave those around for bookkeeping to
-      // be correct.  See CONNECTORS-501.
-    }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
-
+    // DON'T delete ParentID matches; we need to leave those around for bookkeeping to
+    // be correct.  See CONNECTORS-501.
   }
 
   /** Remove all links that mention a specific set of documents.
@@ -381,43 +339,25 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     String[] documentIDHashes)
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
+    int maxClause = maxClausePerformRemoveDocumentLinks(jobID);
+    ArrayList list = new ArrayList();
+    int i = 0;
+    int k = 0;
+    while (i < documentIDHashes.length)
     {
-      int maxClause = maxClausePerformRemoveDocumentLinks(jobID);
-      ArrayList list = new ArrayList();
-      int i = 0;
-      int k = 0;
-      while (i < documentIDHashes.length)
+      if (k == maxClause)
       {
-        if (k == maxClause)
-        {
-          performRemoveDocumentLinks(list,jobID);
-          list.clear();
-          k = 0;
-        }
-        list.add(documentIDHashes[i++]);
-        k++;
-      }
-
-      if (k > 0)
         performRemoveDocumentLinks(list,jobID);
-      noteModifications(0,0,documentIDHashes.length);
+        list.clear();
+        k = 0;
+      }
+      list.add(documentIDHashes[i++]);
+      k++;
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
+
+    if (k > 0)
+      performRemoveDocumentLinks(list,jobID);
+    noteModifications(0,0,documentIDHashes.length);
   }
 
   protected int maxClausePerformRemoveDocumentLinks(Long jobID)
@@ -448,44 +388,25 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
     String[] sourceDocumentIDHashes)
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
+    int maxClause = maxClausePerformRemoveLinks(jobID);
+    ArrayList list = new ArrayList();
+    int i = 0;
+    int k = 0;
+    while (i < sourceDocumentIDHashes.length)
     {
-      int maxClause = maxClausePerformRemoveLinks(jobID);
-      ArrayList list = new ArrayList();
-      int i = 0;
-      int k = 0;
-      while (i < sourceDocumentIDHashes.length)
+      if (k == maxClause)
       {
-        if (k == maxClause)
-        {
-          performRemoveLinks(list,jobID,commonNewExpression,commonNewParams);
-          list.clear();
-          k = 0;
-        }
-        list.add(sourceDocumentIDHashes[i++]);
-        k++;
-      }
-
-      if (k > 0)
         performRemoveLinks(list,jobID,commonNewExpression,commonNewParams);
-      noteModifications(0,0,sourceDocumentIDHashes.length);
-    }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
+        list.clear();
+        k = 0;
+      }
+      list.add(sourceDocumentIDHashes[i++]);
+      k++;
     }
 
+    if (k > 0)
+      performRemoveLinks(list,jobID,commonNewExpression,commonNewParams);
+    noteModifications(0,0,sourceDocumentIDHashes.length);
   }
   
   protected int maxClausePerformRemoveLinks(Long jobID)
@@ -517,42 +438,24 @@ public class IntrinsicLink extends org.apache.manifoldcf.core.database.BaseTable
   public void restoreLinks(Long jobID, String[] sourceDocumentIDHashes)
     throws ManifoldCFException
   {
-    beginTransaction();
-    try
+    int maxClause = maxClausesPerformRestoreLinks(jobID);
+    ArrayList list = new ArrayList();
+    int i = 0;
+    int k = 0;
+    while (i < sourceDocumentIDHashes.length)
     {
-      int maxClause = maxClausesPerformRestoreLinks(jobID);
-      ArrayList list = new ArrayList();
-      int i = 0;
-      int k = 0;
-      while (i < sourceDocumentIDHashes.length)
+      if (k == maxClause)
       {
-        if (k == maxClause)
-        {
-          performRestoreLinks(jobID,list);
-          list.clear();
-          k = 0;
-        }
-        list.add(sourceDocumentIDHashes[i++]);
-        k++;
-      }
-
-      if (k > 0)
         performRestoreLinks(jobID,list);
+        list.clear();
+        k = 0;
+      }
+      list.add(sourceDocumentIDHashes[i++]);
+      k++;
     }
-    catch (ManifoldCFException e)
-    {
-      signalRollback();
-      throw e;
-    }
-    catch (Error e)
-    {
-      signalRollback();
-      throw e;
-    }
-    finally
-    {
-      endTransaction();
-    }
+
+    if (k > 0)
+      performRestoreLinks(jobID,list);
     noteModifications(0,sourceDocumentIDHashes.length,0);
   }
 

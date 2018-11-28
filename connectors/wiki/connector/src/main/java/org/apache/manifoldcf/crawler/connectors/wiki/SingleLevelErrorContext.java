@@ -55,6 +55,7 @@ public abstract class SingleLevelErrorContext extends BaseProcessingContext
     return errorType != null && errorType.equals(ERROR_TYPE_LOGIN_NEEDED);
   }
   
+  @Override
   protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -70,6 +71,7 @@ public abstract class SingleLevelErrorContext extends BaseProcessingContext
   
   protected abstract BaseProcessingContext createChild(String namespaceURI, String localName, String qName, Attributes atts);
   
+  @Override
   protected void endTag()
     throws ManifoldCFException, ServiceInterruption
   {

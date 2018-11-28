@@ -23,6 +23,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.HttpClient;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.crawler.system.Logging;
 
 public class ElasticSearchAction extends ElasticSearchConnection
 {
@@ -32,15 +34,21 @@ public class ElasticSearchAction extends ElasticSearchConnection
     _optimize, _refresh, _status;
   }
 
-  public ElasticSearchAction(HttpClient client, CommandEnum cmd, ElasticSearchConfig config, boolean checkConnection)
+  public ElasticSearchAction(HttpClient client, ElasticSearchConfig config)
       throws ManifoldCFException
   {
     super(config, client);
+  }
+  
+  public void execute(CommandEnum cmd, boolean checkConnection)
+      throws ManifoldCFException, ServiceInterruption
+  {
     StringBuffer url = getApiUrl(cmd.toString(), checkConnection);
     HttpGet method = new HttpGet(url.toString());
     call(method);
     if ("true".equals(checkJson(jsonStatus)))
       return;
     setResult(Result.ERROR, checkJson(jsonException));
+    Logging.connectors.warn("ES: Commit failed: "+getResponse());
   }
 }

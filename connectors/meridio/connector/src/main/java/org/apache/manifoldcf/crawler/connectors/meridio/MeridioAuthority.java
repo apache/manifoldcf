@@ -471,6 +471,9 @@ public class MeridioAuthority extends org.apache.manifoldcf.authorities.authorit
   public AuthorizationResponse getAuthorizationResponse(String userName)
     throws ManifoldCFException
   {
+    // We need this here to be able to create an AuthorizationResponseDescription correctly
+    attemptToConnect();
+    
     // Construct a cache description object
     ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,
       DmwsURL.toString(),RmwsURL.toString(),MetaCartawsURL.toString(),

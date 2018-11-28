@@ -131,13 +131,9 @@ public class JDBCAuthority extends BaseAuthorityConnector {
   public void disconnect()
     throws ManifoldCFException {
     if (connection != null) {
-      try {
-        JDBCConnectionFactory.releaseConnection(connection);
-      } catch (ServiceInterruption ex) {
-        //ignore errors as we want to close the connection anyway...
-      }
+      JDBCConnectionFactory.releaseConnection(connection);
+      connection = null;
     }
-    connection = null;
     host = null;
     jdbcProvider = null;
     databaseName = null;

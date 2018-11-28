@@ -41,7 +41,7 @@ public class GetJobSchedule
       System.err.println("Usage: GetJobSchedule <job_id>");
       System.err.println("");
       System.err.println("The result will be UTF-8 encoded and will consist of the following columns:");
-      System.err.println("    daysofweek,years,months,days,hours,minutes,timezone,duration");
+      System.err.println("    daysofweek,years,months,days,hours,minutes,timezone,duration,requestminimum");
       System.exit(1);
     }
 
@@ -70,7 +70,8 @@ public class GetJobSchedule
           enumerate(sr.getHourOfDay())+","+
           enumerate(sr.getMinutesOfHour())+","+
           ((sr.getTimezone()==null)?"":sr.getTimezone())+","+
-          presentInterval(sr.getDuration()));
+          presentInterval(sr.getDuration())+","+
+          (sr.getRequestMinimum()?"true":"false"));
       }
       System.err.println("Schedule list done");
     }

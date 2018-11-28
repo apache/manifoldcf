@@ -17,15 +17,16 @@
 
 package org.apache.manifoldcf.agents.output.opensearchserver;
 
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class OpenSearchServerSchema extends OpenSearchServerConnection {
 
-  public OpenSearchServerSchema(OpenSearchServerConfig config)
+  public OpenSearchServerSchema(HttpClient client, OpenSearchServerConfig config)
       throws ManifoldCFException {
-    super(config);
+    super(client, config);
     String indexName = config.getIndexName();
     StringBuffer url = getApiUrl("schema");
     url.append("&cmd=indexList");

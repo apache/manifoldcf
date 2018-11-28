@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.HttpEntity;
 import org.apache.http.message.BasicHeader;
@@ -73,7 +74,7 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
     @Override
     public InputStream getContent()
       throws IOException, IllegalStateException {
-      return null;
+      return inputStream;
     }
     
     @Override
@@ -118,9 +119,9 @@ public class OpenSearchServerIndex extends OpenSearchServerConnection {
 
   }
 
-  public OpenSearchServerIndex(String documentURI, InputStream inputStream,
+  public OpenSearchServerIndex(HttpClient client, String documentURI, InputStream inputStream,
       OpenSearchServerConfig config) throws ManifoldCFException {
-    super(config);
+    super(client, config);
     StringBuffer url = getApiUrl("update");
     HttpPut put = new HttpPut(url.toString());
     put.setEntity(new IndexRequestEntity(documentURI, inputStream));

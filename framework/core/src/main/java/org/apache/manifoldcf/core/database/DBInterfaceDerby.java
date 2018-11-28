@@ -84,6 +84,8 @@ public class DBInterfaceDerby extends Database implements IDBInterface
   static
   {
     System.setProperty("derby.locks.waitTimeout","-1");
+    // Detect deadlocks immediately
+    System.setProperty("derby.locks.deadlockTimeout","0");
   }
   
   protected static String getFullDatabasePath(String databaseName)
@@ -1243,7 +1245,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        reindexThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.derby.reindex."+tableName,250000);
+        reindexThreshold = ManifoldCF.getIntProperty("org.apache.manifoldcf.db.derby.reindex."+tableName,250000);
         reindexThresholds.put(tableName,new Integer(reindexThreshold));
       }
       else
@@ -1300,7 +1302,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
       if (threshold == null)
       {
         // Look for this parameter; if we don't find it, use a default value.
-        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifold.db.derby.analyze."+tableName,5000);
+        analyzeThreshold = ManifoldCF.getIntProperty("org.apache.manifoldcf.db.derby.analyze."+tableName,5000);
         analyzeThresholds.put(tableName,new Integer(analyzeThreshold));
       }
       else
@@ -1561,7 +1563,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     try
     {
       Pattern p = Pattern.compile(regularExpression,Pattern.CASE_INSENSITIVE);
-      Matcher m = p.matcher(value);
+      Matcher m = p.matcher((value==null)?"":value);
       if (m.find())
         return "true";
       else
@@ -1581,7 +1583,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     try
     {
       Pattern p = Pattern.compile(regularExpression,0);
-      Matcher m = p.matcher(value);
+      Matcher m = p.matcher((value==null)?"":value);
       if (m.find())
         return "true";
       else
@@ -1601,7 +1603,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     try
     {
       Pattern p = Pattern.compile(regularExpression,Pattern.CASE_INSENSITIVE);
-      Matcher m = p.matcher(value);
+      Matcher m = p.matcher((value==null)?"":value);
       if (m.find())
         return m.group(1);
       return "";
@@ -1624,7 +1626,7 @@ public class DBInterfaceDerby extends Database implements IDBInterface
     try
     {
       Pattern p = Pattern.compile(regularExpression,0);
-      Matcher m = p.matcher(value);
+      Matcher m = p.matcher((value==null)?"":value);
       if (m.find())
         return m.group(1);
       return "";

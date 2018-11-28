@@ -863,17 +863,30 @@ public class JDBCConnection
       throws ManifoldCFException, ServiceInterruption
     {
       ManifoldCFException rval = null;
+      Error error = null;
+      RuntimeException rtException = null;
       if (rs != null)
       {
         try
         {
           closeResultset(rs);
-          rs = null;
         }
         catch (ManifoldCFException e)
         {
           if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             rval = e;
+        }
+        catch (Error e)
+        {
+          error = e;
+        }
+        catch (RuntimeException e)
+        {
+          rtException = e;
+        }
+        finally
+        {
+          rs = null;
         }
       }
       if (stmt != null)
@@ -881,12 +894,23 @@ public class JDBCConnection
         try
         {
           closeStmt(stmt);
-          stmt = null;
         }
         catch (ManifoldCFException e)
         {
           if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             rval = e;
+        }
+        catch (Error e)
+        {
+          error = e;
+        }
+        catch (RuntimeException e)
+        {
+          rtException = e;
+        }
+        finally
+        {
+          stmt = null;
         }
       }
       if (connection != null)
@@ -894,14 +918,24 @@ public class JDBCConnection
         try
         {
           JDBCConnectionFactory.releaseConnection(connection);
+        }
+        catch (Error e)
+        {
+          error = e;
+        }
+        catch (RuntimeException e)
+        {
+          rtException = e;
+        }
+        finally
+        {
           connection = null;
         }
-        catch (ManifoldCFException e)
-        {
-          if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-            rval = e;
-        }
       }
+      if (error != null)
+        throw error;
+      if (rtException != null)
+        throw rtException;
       if (rval != null)
         throw rval;
     }
@@ -947,14 +981,16 @@ public class JDBCConnection
           {
             closeResultset(rs);
           }
-          catch (ServiceInterruption e2)
-          {
-          }
           catch (ManifoldCFException e2)
           {
             if (e2.getErrorCode() == ManifoldCFException.INTERRUPTED)
               this.exception = e2;
             // Ignore
+          }
+          catch (Throwable e2)
+          {
+            // We already have an exception to report.
+            // Eat any other exceptions from closing
           }
           finally
           {
@@ -967,14 +1003,16 @@ public class JDBCConnection
           {
             closeStmt(stmt);
           }
-          catch (ServiceInterruption e2)
-          {
-          }
           catch (ManifoldCFException e2)
           {
             if (e2.getErrorCode() == ManifoldCFException.INTERRUPTED)
               this.exception = e2;
             // Ignore
+          }
+          catch (Throwable e2)
+          {
+            // We already have an exception to report.
+            // Eat any other exceptions from closing statements
           }
           finally
           {
@@ -983,23 +1021,8 @@ public class JDBCConnection
         }
         if (connection != null)
         {
-          try
-          {
-            JDBCConnectionFactory.releaseConnection(connection);
-          }
-          catch (ServiceInterruption e2)
-          {
-          }
-          catch (ManifoldCFException e2)
-          {
-            if (e2.getErrorCode() == ManifoldCFException.INTERRUPTED)
-              this.exception = e2;
-            // Otherwise, ignore
-          }
-          finally
-          {
-            connection = null;
-          }
+          JDBCConnectionFactory.releaseConnection(connection);
+          connection = null;
         }
       }
     }
@@ -1108,6 +1131,8 @@ public class JDBCConnection
       throws ManifoldCFException, ServiceInterruption
     {
       ManifoldCFException rval = null;
+      Error error = null;
+      RuntimeException rtException = null;
       if (rs != null)
       {
         try
@@ -1121,6 +1146,14 @@ public class JDBCConnection
         {
           if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             rval = e;
+        }
+        catch (Error e)
+        {
+          error = e;
+        }
+        catch (RuntimeException e)
+        {
+          rtException = e;
         }
         finally
         {
@@ -1141,6 +1174,14 @@ public class JDBCConnection
           if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             rval = e;
         }
+        catch (Error e)
+        {
+          error = e;
+        }
+        catch (RuntimeException e)
+        {
+          rtException = e;
+        }
         finally
         {
           ps = null;
@@ -1152,13 +1193,13 @@ public class JDBCConnection
         {
           JDBCConnectionFactory.releaseConnection(connection);
         }
-        catch (ServiceInterruption e)
+        catch (Error e)
         {
+          error = e;
         }
-        catch (ManifoldCFException e)
+        catch (RuntimeException e)
         {
-          if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
-            rval = e;
+          rtException = e;
         }
         finally
         {
@@ -1170,14 +1211,29 @@ public class JDBCConnection
         try
         {
           cleanupParameters(params);
-          params = null;
         }
         catch (ManifoldCFException e)
         {
           if (rval == null || e.getErrorCode() == ManifoldCFException.INTERRUPTED)
             rval = e;
         }
+        catch (Error e)
+        {
+          error = e;
+        }
+        catch (RuntimeException e)
+        {
+          rtException = e;
+        }
+        finally
+        {
+          params = null;
+        }
       }
+      if (error != null)
+        throw error;
+      if (rtException != null)
+        throw rtException;
       if (rval != null)
         throw rval;
 
@@ -1225,13 +1281,13 @@ public class JDBCConnection
           {
             closeResultset(rs);
           }
-          catch (ServiceInterruption e2)
-          {
-          }
           catch (ManifoldCFException e2)
           {
             if (e2.getErrorCode() == ManifoldCFException.INTERRUPTED)
               this.exception = e2;
+          }
+          catch (Throwable e2)
+          {
           }
           finally
           {
@@ -1244,13 +1300,13 @@ public class JDBCConnection
           {
             closePS(ps);
           }
-          catch (ServiceInterruption e2)
-          {
-          }
           catch (ManifoldCFException e2)
           {
             if (e2.getErrorCode() == ManifoldCFException.INTERRUPTED)
               this.exception = e2;
+          }
+          catch (Throwable e2)
+          {
           }
           finally
           {
@@ -1259,22 +1315,8 @@ public class JDBCConnection
         }
         if (connection != null)
         {
-          try
-          {
-            JDBCConnectionFactory.releaseConnection(connection);
-          }
-          catch (ServiceInterruption e2)
-          {
-          }
-          catch (ManifoldCFException e2)
-          {
-            if (e2.getErrorCode() == ManifoldCFException.INTERRUPTED)
-              this.exception = e2;
-          }
-          finally
-          {
-            connection = null;
-          }
+          JDBCConnectionFactory.releaseConnection(connection);
+          connection = null;
         }
       }
     }

@@ -1,7 +1,341 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 1.1-dev =====================
+======================= 1.3-dev =====================
+
+======================= Release 1.2 =====================
+
+CONNECTORS-678: Add missing noteModification() method calls, so
+that jobqueue is reanalyzed more frequently.
+(Karl Wright)
+
+CONNECTORS-681: ElasticSearch and OpenSearchServer connectors
+both misused the File object passed to them in checkFileIndexable()
+in order to see if the extension was a supported one.  Instead they
+should have been checking the URL.  Added that code as well as changed
+the JCIFS connector to check indexability using the URL means.
+(konrad, Karl Wright)
+
+CONNECTORS-679: Web connector hangs during throttling.  Reason
+appears to be that it is possible to interrupt the beginRead() method
+after it goes into "obtain estimate" mode.  Added code to make it clean
+up in that case.  Also applied to RSS connector.
+(Erlend Garåsen, Karl Wright)
+
+CONNECTORS-677: Close body streams where required.
+(Karl Wright)
+
+CONNECTORS-599: Upgrade to a new version of Derby which doesn't
+stall.
+(Karl Wright)
+
+CONNECTORS-675: Fix for json UTF-8 encoding, elastic search
+connector.
+(Karl Wright)
+
+CONNECTORS-649: Adopt httpclient 4.2.4.
+(Karl Wright)
+
+CONNECTORS-671: Trim end-user documentation images.
+(Karl Wright)
+
+CONNECTORS-673: Update end-user documentation for the Active
+Directory authority.
+(Karl Wright)
+
+CONNECTORS-672: Update end-user documentation to include
+Forced Metadata tab.
+(Karl Wright)
+
+CONNECTORS-669: UI did not allow empty connection name to be
+changed, for either authority or repository connections.
+(Karl Wright)
+
+CONNECTORS-670: Update end-user documentation for RSS connector.
+(Karl Wright)
+
+CONNECTORS-642: Add Elastic Search plugin.
+(Simon Willnauer, Piergiorgio Lucidi, Karl Wright)
+
+CONNECTORS-668: Update end-user documentation for LiveLink
+connector and authority.
+(Karl Wright)
+
+CONNECTORS-665: Update Solr connector type end-user documentation.
+(Karl Wright)
+
+CONNECTORS-667: Fix livelink authority caching to work properly with
+new SSL connection support.
+(David Morana, Karl Wright)
+
+CONNECTORS-666: Ant build broken
+(Piergiorgio Lucidi)
+
+CONNECTORS-644: Add support for Livelink SSL connections via LAPI.
+(David Morana, Karl Wright)
+
+CONNECTORS-663: Add support for minimal crawling.
+(Maciej Li¿ewski, Karl Wright)
+
+CONNECTORS-662: RSS connector now supports ISO8601 dates.
+(David Morana, Karl Wright)
+
+CONNECTORS-661: Turn on expect-continue for solr output.  Otherwise
+basic auth won't work.
+(Erlend Garåsen, Karl Wright)
+
+CONNECTORS-657: Add a standard way of handling created and modified dates
+throughout ManifoldCF, so that these can be dealt with consistently in
+an output connector.
+(Maciej Li¿ewski, Karl Wright)
+
+CONNECTORS-660: CMIS connector created date and modified date support
+(Piergiorgio Lucidi)
+
+CONNECTORS-659: Alfresco connector created date and modified date support
+(Piergiorgio Lucidi)
+
+CONNECTORS-656: Add mimetype and/or filename support to CMIS connector
+(Piergiorgio Lucidi)
+
+CONNECTORS-655: Add mimetype and/or filename support to Alfresco connector
+(Piergiorgio Lucidi)
+
+CONNECTORS-658: Add common metadata support (mimetype etc)
+to Livelink connector.
+(David Morana, Karl Wright)
+
+CONNECTORS-654: Move extension to mimetype mapping to a 
+central location.
+(Mark Lugert, Karl Wright)
+
+CONNECTORS-653: Include filename in SharePoint connector.
+(Mark Lugert, Karl Wright)
+
+CONNECTORS-652: Add documentation for new script client and API
+features.
+(Karl Wright)
+
+CONNECTORS-651: Add query argument support to script client.
+(Karl Wright)
+
+CONNECTORS-63: Add API support for history and queue reports.
+(Karl Wright)
+
+CONNECTORS-650: Set a reasonable socket timeout for SharePoint
+and Meridio connectors.
+(Mark Lugert, Karl Wright)
+
+CONNECTORS-648: Revamp how tld's are used, for compatibility with
+Tomcat.
+(Jan Høydahl)
+
+CONNECTORS-647: Add the resource.name hint to the Solr output
+connector.
+(Maciej Li¿ewski, Karl Wright)
+
+CONNECTORS-623: A better fix, overriding the posting method for
+SolrJ and forcing multipart post.  Although still a hack, this should cause
+the behavior to work like MCF 1.0.1 now.
+(Karl Wright)
+
+CONNECTORS-645: Handle null data properly in worker thread.
+(Maciej Li¿ewski, Karl Wright)
+
+CONNECTORS-644: Restart button did not work.
+(Erlend Garåsen, Karl Wright)
+
+CONNECTORS-643: Fix spurious error report for Elastic Search deletions
+in Simple History.
+(Karl Wright)
+
+CONNECTORS-641: Add filename, mimetype, acls, and proper escaping
+to ElasticSearch connector.
+(Karl Wright)
+
+CONNECTORS-633: Remove dependency on custom version of xerces;
+extend the simple tag parser to be able to handle XML, and move it into
+core/fuzzyml for general use.
+(Karl Wright)
+
+CONNECTORS-639: Maven execute of jetty-runner fails.
+(Maciej Li¿ewski)
+
+CONNECTORS-638: Idle-time leak of database connection handles,
+so that allocation is lost forever from the pool.
+(Erlend Garåsen, Maciej Li¿ewski, Karl Wright)
+
+CONNECTORS-615: Add ability to exclude content based on regexp
+to RSS connector.
+(David Morana, Karl Wright)
+
+CONNECTORS-637: Interpret null mime types and extensions reasonably
+in ElasticSearch connector.
+(Andrew Clegg, Karl Wright)
+
+CONNECTORS-631: Support Znode path by Solr Output Connection.
+(Minoru Osuka)
+
+CONNECTORS-632: Get mvn-bootstrap scripts working again as
+intended.
+(Maciej Li¿ewski, Karl Wright)
+
+CONNECTORS-629: Revamp error handling in ElasticSearch connector.
+(Andrew Clegg, Karl Wright)
+
+CONNECTORS-625: Finish internationalization work for parts of the
+core crawler UI.
+(Karl Wright)
+
+CONNECTORS-552: Add support for forced metadata in all jobs.
+(Maciej Li¿ewski, Karl Wright)
+
+CONNECTORS-624: Add indexing via subsidiary thread to OpenSearchServer
+connector.
+(Karl Wright)
+
+CONNECTORS-606: Add indexing via subsidiary thread to ElasticSearch
+connector.
+(Karl Wright)
+
+CONNECTORS-394: Fully internationalize crawler UI.
+(Karl Wright)
+
+======================= Release 1.1 =====================
+
+CONNECTORS-630: Work around SolrJ paramname encoding bug.
+(David Morana, Karl Wright)
+
+CONNECTORS-627: Upgrade SolrJ to 4.1.0 from 4.0.0
+(Minoru Osuka)
+
+CONNECTORS-623: The stream_size and stream_name can be sent to Solr now.
+(Shinichiro Abe)
+
+CONNECTORS-622: CMIS Connector returns NPE trying to get an empty boolean or date value
+(Piergiorgio Lucidi)
+
+CONNECTORS-617: Simple report NPE under Derby.
+(Karl Wright)
+
+CONNECTORS-621: Solr connector commit logic needs to use specified
+update path.
+(Karl Wright)
+
+CONNECTORS-620: It was possible for the JDBC Connector to leak
+JDBC connections under some error conditions.
+(Anthony Leonard, Karl Wright)
+
+CONNECTORS-619: Include slf4j jars in multiprocess agents classpath.
+This was causing Solrj to not work on multiprocess deployments.
+(Erlend Garåsen, Karl Wright) 
+
+CONNECTORS-618: MySQL orders indexes so that NULL values are first.
+This is a problem for the stuffer query, which then must go through
+millions of rows before it finds the one it is looking for.
+(Shigeki Kobayashi, Karl Wright)
+
+CONNECTORS-616: Work around Solr 4.0 or Jetty bug where connections
+are dropped randomly under multithreaded load.  Broken pipe exceptions
+are now retried after a minute, for up to three times, before the Solr
+connector concludes that the document cannot be indexed and skips it.
+(Shinichiro Abe, Karl Wright)
+
+CONNECTORS-613: Add a way of getting a document's mime type
+to Solr, since Tika needs mime type in order to extract content
+since Solr 4.0.0.
+(Shinichiro Abe, Karl Wright)
+
+CONNECTORS-614: Solr connection release not working right.
+(Karl Wright)
+
+CONNECTORS-582: Upgrade to official httpcomponents 4.2.3
+release.
+(Karl Wright)
+
+CONNECTORS-612: Disable HttpClient retries everywhere.
+(Karl Wright)
+
+CONNECTORS-611: Handle inability to get permissions for funky docs
+by skipping those docs, rather than throwing an NPE.
+(Ahmet Arslan, Karl Wright)
+
+CONNECTORS-610: Can't use retries with httpclient instance used
+with solrj, so disable retries explicitly.
+(Ahmet Arslan, Karl Wright)
+
+CONNECTORS-609: Solrj doesn't always set the code property of
+its http exceptions right, so we need to parse it out ourselves.
+(Ahmet Arslan, Karl Wright)
+
+CONNECTORS-608: Solr connector times out chronically on some
+documents.
+(David Morana, Karl Wright)
+
+CONNECTORS-607: Handle multi-valued parameters properly in the
+Solr connector.
+(Minoru Osuka, Shinichiro Abe, Karl Wright)
+
+CONNECTORS-603: Upgrade the CMIS Connector to OpenCMIS 0.8.0
+(Piergiorgio Lucidi)
+
+CONNECTORS-604: Make headers exactly the same as for MCF 1.0.1.
+(Shinichiro Abe, Karl Wright)
+
+CONNECTORS-605: Maven build is broken: commons-httpclient version is missing
+(Piergiorgio Lucidi)
+
+CONNECTORS-601: Revise algorithm for screening out documents that
+are not text in the web connector.  Since CJK characters mess up the
+old definition of "strange" character, use the more-limited definition of
+all non-whitespace characters less than 32.
+(Shinichiro Abe, Karl Wright)
+
+CONNECTORS-600: Add a field to the RSS connector that contains
+document origination date in ISO 8601 format.
+(David Morana, Karl Wright)
+
+CONNECTORS-598: Add an RSS connector mode that allows just
+metadata to be consumed, in conjunction with content from description
+or content fields.
+(David Morana, Karl Wright)
+
+CONNECTORS-596: RSS and Web connectors need to peel off any
+namespace qualifies from tag names when processing XML feeds.
+(David Morana, Karl Wright)
+
+CONNECTORS-594: Port Solr connector to use SolrJ, and add
+capability to work with SolrCloud installations.
+(Minoru Osuka, Ryan McKinley, Karl Wright)
+
+CONNECTORS-593: Skip hidden files in JCIFS connector.
+(Shigeki Kobayashi, Karl Wright)
+
+CONNECTORS-592: Add "last modified" metadata to JCIFs connector.
+(Shigeki Kobayashi, Karl Wright)
+
+CONNECTORS-591: Elasticsearch download URL has changed.
+(Minoru Osuka)
+
+CONNECTORS-589: Parse multiple link tags inside an entry tag, for
+Atom feeds.
+(David Morana, Karl Wright)
+
+CONNECTORS-543: Add testing infrastructure for combined war.
+(Karl Wright)
+
+CONNECTORS-587: Manual startup did not properly set lastchecktime.
+(Maciej Li¿ewski, Karl Wright)
+
+CONNECTORS-578: Refactor Livelink connector, and add support for
+general metadata.
+(David Morana, Karl Wright)
+
+CONNECTORS-584: Fix MySQL use of indexes on ORDER-BY stuffing query.
+Turns out that MySQL will not order by an index unless only the first column
+in the index is specified in the ordering criteria.  Still need to check if this
+breaks other databases like PostgreSQL, Derby, or HSQLDB.
+(Shigeki Kobayashi, Karl Wright)
 
 CONNECTORS-583: Catch MySQL lock timeout, and retry that transaction.
 (Shigeki Kobayashi, Karl Wright)

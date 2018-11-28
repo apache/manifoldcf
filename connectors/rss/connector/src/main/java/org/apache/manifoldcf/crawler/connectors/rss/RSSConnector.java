@@ -24,13 +24,8 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
-import org.xml.sax.Attributes;
-
-import org.apache.manifoldcf.core.common.XMLDoc;
-import org.apache.manifoldcf.agents.common.XMLStream;
-import org.apache.manifoldcf.agents.common.XMLContext;
-import org.apache.manifoldcf.agents.common.XMLStringContext;
-import org.apache.manifoldcf.agents.common.XMLFileContext;
+import org.apache.manifoldcf.core.fuzzyml.*;
+import org.apache.manifoldcf.core.common.DateParser;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.RedirectException;
@@ -41,6 +36,7 @@ import org.apache.http.HttpException;
 import java.io.*;
 import java.util.*;
 import java.net.*;
+import java.text.*;
 import java.util.regex.*;
 
 /** This is the RSS implementation of the IRepositoryConnector interface.
@@ -57,28 +53,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   public static final String _rcsid = "@(#)$Id: RSSConnector.java 994959 2010-09-08 10:04:42Z kwright $";
 
 
-  /** Robots usage parameter */
-  public static final String robotsUsageParameter = "Robots usage";
-  /** Email parameter */
-  public static final String emailParameter = "Email address";
-  /** Max kilobytes per second per server */
-  public static final String bandwidthParameter = "KB per second";
-  /** Max simultaneous open connections per server */
-  public static final String maxOpenParameter = "Max server connections";
-  /** Max fetches per minute per server */
-  public static final String maxFetchesParameter = "Max fetches per minute";
-  /** The throttle group name */
-  public static final String throttleGroupParameter = "Throttle group";
-  /** Proxy host name */
-  public static final String proxyHostParameter = "Proxy host";
-  /** Proxy port */
-  public static final String proxyPortParameter = "Proxy port";
-  /** Proxy auth domain */
-  public static final String proxyAuthDomainParameter = "Proxy authentication domain";
-  /** Proxy auth username */
-  public static final String proxyAuthUsernameParameter = "Proxy authentication user name";
-  /** Proxy auth password */
-  public static final String proxyAuthPasswordParameter = "Proxy authentication password";
 
   // Usage flag values
   protected static final int ROBOTS_NONE = 0;
@@ -92,11 +66,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   /** Dechromed content mode - content field */
   public static final int DECHROMED_CONTENT = 2;
 
-  /** Chromed suppression mode - use chromed content */
+  /** Chromed suppression mode - use chromed content if dechromed content not available */
   public static final int CHROMED_USE = 0;
-  /** Chromed suppression mode - skip all chromed content */
+  /** Chromed suppression mode - skip documents if dechromed content not available */
   public static final int CHROMED_SKIP = 1;
-
+  /** Chromed suppression mode - index metadata only if dechromed content not available */
+  public static final int CHROMED_METADATA_ONLY = 2;
+  
   /** Robots usage flag */
   protected int robotsUsage = ROBOTS_ALL;
 
@@ -171,26 +147,26 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       String x;
 
-      String emailAddress = params.getParameter(emailParameter);
+      String emailAddress = params.getParameter(RSSConfig.PARAMETER_EMAIL);
       if (emailAddress == null)
         throw new ManifoldCFException("Missing email address");
       userAgent = "Mozilla/5.0 (ApacheManifoldCFRSSFeedReader; "+((emailAddress==null)?"":emailAddress)+")";
       from = emailAddress;
 
-      String robotsUsageString = params.getParameter(robotsUsageParameter);
+      String robotsUsageString = params.getParameter(RSSConfig.PARAMETER_ROBOTSUSAGE);
       robotsUsage = ROBOTS_ALL;
-      if (robotsUsageString == null || robotsUsageString.length() == 0 || robotsUsageString.equals("all"))
+      if (robotsUsageString == null || robotsUsageString.length() == 0 || robotsUsageString.equals(RSSConfig.VALUE_ALL))
         robotsUsage = ROBOTS_ALL;
-      else if (robotsUsageString.equals("none"))
+      else if (robotsUsageString.equals(RSSConfig.VALUE_NONE))
         robotsUsage = ROBOTS_NONE;
-      else if (robotsUsageString.equals("data"))
+      else if (robotsUsageString.equals(RSSConfig.VALUE_DATA))
         robotsUsage = ROBOTS_DATA;
 
-      proxyHost = params.getParameter(proxyHostParameter);
-      String proxyPortString = params.getParameter(proxyPortParameter);
-      proxyAuthDomain = params.getParameter(proxyAuthDomainParameter);
-      proxyAuthUsername = params.getParameter(proxyAuthUsernameParameter);
-      proxyAuthPassword = params.getObfuscatedParameter(proxyAuthPasswordParameter);
+      proxyHost = params.getParameter(RSSConfig.PARAMETER_PROXYHOST);
+      String proxyPortString = params.getParameter(RSSConfig.PARAMETER_PROXYPORT);
+      proxyAuthDomain = params.getParameter(RSSConfig.PARAMETER_PROXYAUTHDOMAIN);
+      proxyAuthUsername = params.getParameter(RSSConfig.PARAMETER_PROXYAUTHUSERNAME);
+      proxyAuthPassword = params.getObfuscatedParameter(RSSConfig.PARAMETER_PROXYAUTHPASSWORD);
 
       proxyPort = -1;
       if (proxyPortString != null && proxyPortString.length() > 0)
@@ -210,7 +186,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       maxOpenConnectionsPerServer = 10;
       minimumMillisecondsPerFetchPerServer = 0L;
 
-      x = params.getParameter(bandwidthParameter);
+      x = params.getParameter(RSSConfig.PARAMETER_BANDWIDTH);
       if (x != null && x.length() > 0)
       {
         try
@@ -225,7 +201,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         }
       }
 
-      x = params.getParameter(maxOpenParameter);
+      x = params.getParameter(RSSConfig.PARAMETER_MAXOPEN);
       if (x != null && x.length() > 0)
       {
         try
@@ -238,7 +214,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         }
       }
 
-      x = params.getParameter(maxFetchesParameter);
+      x = params.getParameter(RSSConfig.PARAMETER_MAXFETCHES);
       if (x != null && x.length() > 0)
       {
         try
@@ -292,7 +268,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     super.connect(configParams);
 
     // Do the necessary bookkeeping around connection counting
-    throttleGroupName = params.getParameter(throttleGroupParameter);
+    throttleGroupName = params.getParameter(RSSConfig.PARAMETER_THROTTLEGROUP);
     if (throttleGroupName == null)
       throttleGroupName = "";
 
@@ -1352,6 +1328,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             long dataSize = cache.getDataLength(urlValue);
             RepositoryDocument rd = new RepositoryDocument();
 
+            // Set content type
+            rd.setMimeType(cache.getContentType(urlValue));
+
             // Turn into acls and add into description
             String[] aclArray = new String[acls.size()];
             int j = 0;
@@ -1447,24 +1426,33 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             // The pubdates are a ms since epoch value; we want the minimum one for the origination time.
             Long minimumOrigTime = null;
             String[] pubDateValues = new String[pubDates.size()];
+            String[] pubDateValuesISO = new String[pubDates.size()];
+            TimeZone tz = TimeZone.getTimeZone("UTC");
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+            df.setTimeZone(tz);
             k = 0;
             while (k < pubDates.size())
             {
               String pubDate = (String)pubDates.get(k);
-              pubDateValues[k++] = pubDate;
+              pubDateValues[k] = pubDate;
               try
               {
                 Long pubDateLong = new Long(pubDate);
                 if (minimumOrigTime == null || pubDateLong.longValue() < minimumOrigTime.longValue())
                   minimumOrigTime = pubDateLong;
+                pubDateValuesISO[k] = df.format(new Date(pubDateLong.longValue()));
               }
               catch (NumberFormatException e)
               {
                 // Do nothing; the version string seems to not mean anything
               }
+              k++;
             }
             if (k > 0)
+            {
               rd.addField("pubdate",pubDateValues);
+              rd.addField("pubdateiso",pubDateValuesISO);
+            }
 
             if (minimumOrigTime != null)
               activities.setDocumentOriginationTime(urlValue,minimumOrigTime);
@@ -1630,37 +1618,37 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
   {
-    String email = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.emailParameter);
+    String email = parameters.getParameter(RSSConfig.PARAMETER_EMAIL);
     if (email == null)
       email = "";
-    String robotsUsage = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.robotsUsageParameter);
+    String robotsUsage = parameters.getParameter(RSSConfig.PARAMETER_ROBOTSUSAGE);
     if (robotsUsage == null)
-      robotsUsage = "all";
-    String bandwidth = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.bandwidthParameter);
+      robotsUsage = RSSConfig.VALUE_ALL;
+    String bandwidth = parameters.getParameter(RSSConfig.PARAMETER_BANDWIDTH);
     if (bandwidth == null)
       bandwidth = "64";
-    String connections = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.maxOpenParameter);
+    String connections = parameters.getParameter(RSSConfig.PARAMETER_MAXOPEN);
     if (connections == null)
       connections = "2";
-    String fetches = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.maxFetchesParameter);
+    String fetches = parameters.getParameter(RSSConfig.PARAMETER_MAXFETCHES);
     if (fetches == null)
       fetches = "12";
-    String throttleGroup = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.throttleGroupParameter);
+    String throttleGroup = parameters.getParameter(RSSConfig.PARAMETER_THROTTLEGROUP);
     if (throttleGroup == null)
       throttleGroup = "";
-    String proxyHost = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyHostParameter);
+    String proxyHost = parameters.getParameter(RSSConfig.PARAMETER_PROXYHOST);
     if (proxyHost == null)
       proxyHost = "";
-    String proxyPort = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyPortParameter);
+    String proxyPort = parameters.getParameter(RSSConfig.PARAMETER_PROXYPORT);
     if (proxyPort == null)
       proxyPort = "";
-    String proxyAuthDomain = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyAuthDomainParameter);
+    String proxyAuthDomain = parameters.getParameter(RSSConfig.PARAMETER_PROXYAUTHDOMAIN);
     if (proxyAuthDomain == null)
       proxyAuthDomain = "";
-    String proxyAuthUsername = parameters.getParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyAuthUsernameParameter);
+    String proxyAuthUsername = parameters.getParameter(RSSConfig.PARAMETER_PROXYAUTHUSERNAME);
     if (proxyAuthUsername == null)
       proxyAuthUsername = "";
-    String proxyAuthPassword = parameters.getObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyAuthPasswordParameter);
+    String proxyAuthPassword = parameters.getObfuscatedParameter(RSSConfig.PARAMETER_PROXYAUTHPASSWORD);
     if (proxyAuthPassword == null)
       proxyAuthPassword = "";
       
@@ -1693,9 +1681,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.RobotsTxtUsageColon") + "</nobr></td>\n"+
 "    <td class=\"value\">\n"+
 "      <select name=\"robotsusage\" size=\"3\">\n"+
-"        <option value=\"none\" "+(robotsUsage.equals("none")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.DontLookAtRobotsTxt") + "</option>\n"+
-"        <option value=\"data\" "+(robotsUsage.equals("data")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.ObeyRobotsTxtForDataFetchesOnly") + "</option>\n"+
-"        <option value=\"all\" "+(robotsUsage.equals("all")?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.ObeyRobotsTxtForAllFetches") + "</option>\n"+
+"        <option value=\"none\" "+(robotsUsage.equals(RSSConfig.VALUE_NONE)?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.DontLookAtRobotsTxt") + "</option>\n"+
+"        <option value=\"data\" "+(robotsUsage.equals(RSSConfig.VALUE_DATA)?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.ObeyRobotsTxtForDataFetchesOnly") + "</option>\n"+
+"        <option value=\"all\" "+(robotsUsage.equals(RSSConfig.VALUE_ALL)?"selected=\"selected\"":"")+">" + Messages.getBodyString(locale,"RSSConnector.ObeyRobotsTxtForAllFetches") + "</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+
@@ -1801,37 +1789,37 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   {
     String email = variableContext.getParameter("email");
     if (email != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.emailParameter,email);
+      parameters.setParameter(RSSConfig.PARAMETER_EMAIL,email);
     String robotsUsage = variableContext.getParameter("robotsusage");
     if (robotsUsage != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.robotsUsageParameter,robotsUsage);
+      parameters.setParameter(RSSConfig.PARAMETER_ROBOTSUSAGE,robotsUsage);
     String bandwidth = variableContext.getParameter("bandwidth");
     if (bandwidth != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.bandwidthParameter,bandwidth);
+      parameters.setParameter(RSSConfig.PARAMETER_BANDWIDTH,bandwidth);
     String connections = variableContext.getParameter("connections");
     if (connections != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.maxOpenParameter,connections);
+      parameters.setParameter(RSSConfig.PARAMETER_MAXOPEN,connections);
     String fetches = variableContext.getParameter("fetches");
     if (fetches != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.maxFetchesParameter,fetches);
+      parameters.setParameter(RSSConfig.PARAMETER_MAXFETCHES,fetches);
     String throttleGroup = variableContext.getParameter("throttlegroup");
     if (throttleGroup != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.throttleGroupParameter,throttleGroup);
+      parameters.setParameter(RSSConfig.PARAMETER_THROTTLEGROUP,throttleGroup);
     String proxyHost = variableContext.getParameter("proxyhost");
     if (proxyHost != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyHostParameter,proxyHost);
+      parameters.setParameter(RSSConfig.PARAMETER_PROXYHOST,proxyHost);
     String proxyPort = variableContext.getParameter("proxyport");
     if (proxyPort != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyPortParameter,proxyPort);
+      parameters.setParameter(RSSConfig.PARAMETER_PROXYPORT,proxyPort);
     String proxyAuthDomain = variableContext.getParameter("proxyauthdomain");
     if (proxyAuthDomain != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyAuthDomainParameter,proxyAuthDomain);
+      parameters.setParameter(RSSConfig.PARAMETER_PROXYAUTHDOMAIN,proxyAuthDomain);
     String proxyAuthUsername = variableContext.getParameter("proxyauthusername");
     if (proxyAuthUsername != null)
-      parameters.setParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyAuthUsernameParameter,proxyAuthUsername);
+      parameters.setParameter(RSSConfig.PARAMETER_PROXYAUTHUSERNAME,proxyAuthUsername);
     String proxyAuthPassword = variableContext.getParameter("proxyauthpassword");
     if (proxyAuthPassword != null)
-      parameters.setObfuscatedParameter(org.apache.manifoldcf.crawler.connectors.rss.RSSConnector.proxyAuthPasswordParameter,proxyAuthPassword);
+      parameters.setObfuscatedParameter(RSSConfig.PARAMETER_PROXYAUTHPASSWORD,proxyAuthPassword);
 
     return null;
   }
@@ -1900,6 +1888,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     tabsArray.add(Messages.getString(locale,"RSSConnector.URLs"));
     tabsArray.add(Messages.getString(locale,"RSSConnector.Canonicalization"));
     tabsArray.add(Messages.getString(locale,"RSSConnector.URLMappings"));
+    tabsArray.add(Messages.getString(locale,"RSSConnector.Exclusions"));
     tabsArray.add(Messages.getString(locale,"RSSConnector.TimeValues"));
     tabsArray.add(Messages.getString(locale,"RSSConnector.Security"));
     tabsArray.add(Messages.getString(locale,"RSSConnector.Metadata"));
@@ -2029,24 +2018,31 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     int feedRefetchValue = 60;
     int minFeedRefetchValue = 15;
     Integer badFeedRefetchValue = null;
-    
+    String exclusions = "";
+
     // Now, loop through paths
     i = 0;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("feed"))
+      if (sn.getType().equals(RSSConfig.NODE_FEED))
       {
-        String rssURL = sn.getAttributeValue("url");
+        String rssURL = sn.getAttributeValue(RSSConfig.ATTR_URL);
         if (rssURL != null)
         {
           sb.append(rssURL).append("\n");
         }
       }
-      else if (sn.getType().equals("map"))
+      else if (sn.getType().equals(RSSConfig.NODE_EXCLUDES))
       {
-        String match = sn.getAttributeValue("match");
-        String map = sn.getAttributeValue("map");
+        exclusions = sn.getValue();
+        if (exclusions == null)
+          exclusions = "";
+      }
+      else if (sn.getType().equals(RSSConfig.NODE_MAP))
+      {
+        String match = sn.getAttributeValue(RSSConfig.ATTR_MATCH);
+        String map = sn.getAttributeValue(RSSConfig.ATTR_MAP);
         if (match != null)
         {
           regexp.add(match);
@@ -2055,24 +2051,24 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           matchStrings.add(map);
         }
       }
-      else if (sn.getType().equals("feedtimeout"))
+      else if (sn.getType().equals(RSSConfig.NODE_FEEDTIMEOUT))
       {
-        String value = sn.getAttributeValue("value");
+        String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
         feedTimeoutValue = Integer.parseInt(value);
       }
-      else if (sn.getType().equals("feedrescan"))
+      else if (sn.getType().equals(RSSConfig.NODE_FEEDRESCAN))
       {
-        String value = sn.getAttributeValue("value");
+        String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
         feedRefetchValue = Integer.parseInt(value);
       }
-      else if (sn.getType().equals("minfeedrescan"))
+      else if (sn.getType().equals(RSSConfig.NODE_MINFEEDRESCAN))
       {
-        String value = sn.getAttributeValue("value");
+        String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
         minFeedRefetchValue = Integer.parseInt(value);
       }
-      else if (sn.getType().equals("badfeedrescan"))
+      else if (sn.getType().equals(RSSConfig.NODE_BADFEEDRESCAN))
       {
-        String value = sn.getAttributeValue("value");
+        String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
         badFeedRefetchValue = new Integer(value);
       }
     }
@@ -2096,6 +2092,28 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       out.print(
 "<input type=\"hidden\" name=\"rssurls\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(sb.toString())+"\"/>\n"
+      );
+    }
+
+    // Exclusions tab
+    if (tabName.equals(Messages.getString(locale,"RSSConnector.Exclusions")))
+    {
+      out.print(
+"<table class=\"displaytable\">\n"+
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\" colspan=\"1\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.Exclude") + "</nobr></td>\n"+
+"    <td class=\"value\" colspan=\"1\">\n"+
+"      <textarea rows=\"25\" cols=\"60\" name=\"exclusions\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(exclusions)+"</textarea>\n"+
+"    </td>\n"+
+"  </tr>\n"+
+"</table>\n"
+      );
+    }
+    else
+    {
+      out.print(
+"<input type=\"hidden\" name=\"exclusions\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(exclusions)+"\"/>\n"
       );
     }
 
@@ -2126,28 +2144,28 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (q < ds.getChildCount())
       {
         SpecificationNode specNode = ds.getChild(q++);
-        if (specNode.getType().equals("urlspec"))
+        if (specNode.getType().equals(RSSConfig.NODE_URLSPEC))
         {
           // Ok, this node matters to us
-          String regexpString = specNode.getAttributeValue("regexp");
-          String description = specNode.getAttributeValue("description");
+          String regexpString = specNode.getAttributeValue(RSSConfig.ATTR_REGEXP);
+          String description = specNode.getAttributeValue(RSSConfig.ATTR_DESCRIPTION);
           if (description == null)
             description = "";
-          String allowReorder = specNode.getAttributeValue("reorder");
+          String allowReorder = specNode.getAttributeValue(RSSConfig.ATTR_REORDER);
           if (allowReorder == null || allowReorder.length() == 0)
-            allowReorder = "no";
-          String allowJavaSessionRemoval = specNode.getAttributeValue("javasessionremoval");
+            allowReorder = RSSConfig.VALUE_NO;
+          String allowJavaSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_JAVASESSIONREMOVAL);
           if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-            allowJavaSessionRemoval = "no";
-          String allowASPSessionRemoval = specNode.getAttributeValue("aspsessionremoval");
+            allowJavaSessionRemoval = RSSConfig.VALUE_NO;
+          String allowASPSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_ASPSESSIONREMOVAL);
           if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-            allowASPSessionRemoval = "no";
-          String allowPHPSessionRemoval = specNode.getAttributeValue("phpsessionremoval");
+            allowASPSessionRemoval = RSSConfig.VALUE_NO;
+          String allowPHPSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_PHPSESSIONREMOVAL);
           if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-            allowPHPSessionRemoval = "no";
-          String allowBVSessionRemoval = specNode.getAttributeValue("bvsessionremoval");
+            allowPHPSessionRemoval = RSSConfig.VALUE_NO;
+          String allowBVSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_BVSESSIONREMOVAL);
           if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-            allowBVSessionRemoval = "no";
+            allowBVSessionRemoval = RSSConfig.VALUE_NO;
           out.print(
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\">\n"+
@@ -2214,28 +2232,28 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (q < ds.getChildCount())
       {
         SpecificationNode specNode = ds.getChild(q++);
-        if (specNode.getType().equals("urlspec"))
+        if (specNode.getType().equals(RSSConfig.NODE_URLSPEC))
         {
           // Ok, this node matters to us
-          String regexpString = specNode.getAttributeValue("regexp");
-          String description = specNode.getAttributeValue("description");
+          String regexpString = specNode.getAttributeValue(RSSConfig.ATTR_REGEXP);
+          String description = specNode.getAttributeValue(RSSConfig.ATTR_DESCRIPTION);
           if (description == null)
             description = "";
-          String allowReorder = specNode.getAttributeValue("reorder");
+          String allowReorder = specNode.getAttributeValue(RSSConfig.ATTR_REORDER);
           if (allowReorder == null || allowReorder.length() == 0)
-            allowReorder = "no";
-          String allowJavaSessionRemoval = specNode.getAttributeValue("javasessionremoval");
+            allowReorder = RSSConfig.VALUE_NO;
+          String allowJavaSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_JAVASESSIONREMOVAL);
           if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-            allowJavaSessionRemoval = "no";
-          String allowASPSessionRemoval = specNode.getAttributeValue("aspsessionremoval");
+            allowJavaSessionRemoval = RSSConfig.VALUE_NO;
+          String allowASPSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_ASPSESSIONREMOVAL);
           if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-            allowASPSessionRemoval = "no";
-          String allowPHPSessionRemoval = specNode.getAttributeValue("phpsessionremoval");
+            allowASPSessionRemoval = RSSConfig.VALUE_NO;
+          String allowPHPSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_PHPSESSIONREMOVAL);
           if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-            allowPHPSessionRemoval = "no";
-          String allowBVSessionRemoval = specNode.getAttributeValue("bvsessionremoval");
+            allowPHPSessionRemoval = RSSConfig.VALUE_NO;
+          String allowBVSessionRemoval = specNode.getAttributeValue(RSSConfig.ATTR_BVSESSIONREMOVAL);
           if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-            allowBVSessionRemoval = "no";
+            allowBVSessionRemoval = RSSConfig.VALUE_NO;
           out.print(
 "<input type=\"hidden\" name=\""+"urlregexp_"+Integer.toString(l)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(regexpString)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"urlregexpdesc_"+Integer.toString(l)+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(description)+"\"/>\n"+
@@ -2372,16 +2390,16 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
 
     // Dechromed content tab
-    String dechromedMode = "none";
-    String chromedMode = "use";
+    String dechromedMode = RSSConfig.VALUE_NONE;
+    String chromedMode = RSSConfig.VALUE_USE;
     i = 0;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("dechromedmode"))
-        dechromedMode = sn.getAttributeValue("mode");
-      else if (sn.getType().equals("chromedmode"))
-        chromedMode = sn.getAttributeValue("mode");
+      if (sn.getType().equals(RSSConfig.NODE_DECHROMEDMODE))
+        dechromedMode = sn.getAttributeValue(RSSConfig.ATTR_MODE);
+      else if (sn.getType().equals(RSSConfig.NODE_CHROMEDMODE))
+        chromedMode = sn.getAttributeValue(RSSConfig.ATTR_MODE);
     }
     if (tabName.equals(Messages.getString(locale,"RSSConnector.DechromedContent")))
     {
@@ -2389,22 +2407,25 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "<table class=\"displaytable\">\n"+
 "  <tr><td class=\"separator\" colspan=\"1\"><hr/></td></tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"none\" "+(dechromedMode.equals("none")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NoDechromedContent")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"none\" "+(dechromedMode.equals(RSSConfig.VALUE_NONE)?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NoDechromedContent")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"description\" "+(dechromedMode.equals("description")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentIfPresentInDescriptionField")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"description\" "+(dechromedMode.equals(RSSConfig.VALUE_DESCRIPTION)?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentIfPresentInDescriptionField")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"content\" "+(dechromedMode.equals("content")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentIfPresentInContentField")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"dechromedmode\" value=\"content\" "+(dechromedMode.equals(RSSConfig.VALUE_CONTENT)?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.DechromedContentIfPresentInContentField")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
 "    <td class=\"separator\"><hr/></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"use\" "+(chromedMode.equals("use")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.UseChromedContentIfNoDechromedContentFound")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"use\" "+(chromedMode.equals(RSSConfig.VALUE_USE)?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.UseChromedContentIfNoDechromedContentFound")+"</nobr></td>\n"+
 "  </tr>\n"+
 "  <tr>\n"+
-"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"skip\" "+(chromedMode.equals("skip")?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NeverUseChromedContent")+"</nobr></td>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"skip\" "+(chromedMode.equals(RSSConfig.VALUE_SKIP)?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NeverUseChromedContent")+"</nobr></td>\n"+
+"  </tr>\n"+
+"  <tr>\n"+
+"    <td class=\"value\"><nobr><input type=\"radio\" name=\"chromedmode\" value=\"metadata\" "+(chromedMode.equals(RSSConfig.VALUE_METADATA)?"checked=\"true\"":"")+"/>"+Messages.getBodyString(locale,"RSSConnector.NoContentMetadataOnly")+"</nobr></td>\n"+
 "  </tr>\n"+
 "</table>\n"
       );
@@ -2433,11 +2454,11 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("access"))
+        if (sn.getType().equals(RSSConfig.NODE_ACCESS))
         {
           String accessDescription = "_"+Integer.toString(k);
           String accessOpName = "accessop"+accessDescription;
-          String token = sn.getAttributeValue("token");
+          String token = sn.getAttributeValue(RSSConfig.ATTR_TOKEN);
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
@@ -2488,10 +2509,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("access"))
+        if (sn.getType().equals(RSSConfig.NODE_ACCESS))
         {
           String accessDescription = "_"+Integer.toString(k);
-          String token = sn.getAttributeValue("token");
+          String token = sn.getAttributeValue(RSSConfig.ATTR_TOKEN);
           out.print(
 "<input type=\"hidden\" name=\""+"spectoken"+accessDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(token)+"\"/>\n"
           );
@@ -2516,12 +2537,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("metadata"))
+        if (sn.getType().equals(RSSConfig.NODE_METADATA))
         {
           String metadataDescription = "_"+Integer.toString(k);
           String metadataOpName = "metadataop"+metadataDescription;
-          String name = sn.getAttributeValue("name");
-          String value = sn.getAttributeValue("value");
+          String name = sn.getAttributeValue(RSSConfig.ATTR_NAME);
+          String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
           out.print(
 "  <tr>\n"+
 "    <td class=\"description\">\n"+
@@ -2583,11 +2604,11 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i++);
-        if (sn.getType().equals("metadata"))
+        if (sn.getType().equals(RSSConfig.NODE_METADATA))
         {
           String metadataDescription = "_"+Integer.toString(k);
-          String name = sn.getAttributeValue("name");
-          String value = sn.getAttributeValue("value");
+          String name = sn.getAttributeValue(RSSConfig.ATTR_NAME);
+          String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
           out.print(
 "<input type=\"hidden\" name=\""+"specmetaname"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)+"\"/>\n"+
 "<input type=\"hidden\" name=\""+"specmetavalue"+metadataDescription+"\" value=\""+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(value)+"\"/>\n"
@@ -2625,7 +2646,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("map"))
+        if (sn.getType().equals(RSSConfig.NODE_MAP))
           ds.removeChild(j);
         else
           j++;
@@ -2641,9 +2662,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         if (map == null)
           map = "";
         // Add to the documentum specification
-        SpecificationNode node = new SpecificationNode("map");
-        node.setAttribute("match",match);
-        node.setAttribute("map",map);
+        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_MAP);
+        node.setAttribute(RSSConfig.ATTR_MATCH,match);
+        node.setAttribute(RSSConfig.ATTR_MAP,map);
         ds.addChild(ds.getChildCount(),node);
 
         j++;
@@ -2659,7 +2680,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals("feed"))
+        if (sn.getType().equals(RSSConfig.NODE_FEED))
           ds.removeChild(i);
         else
           i++;
@@ -2680,8 +2701,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 break;
               if (nextString.length() == 0)
                 continue;
-              SpecificationNode node = new SpecificationNode("feed");
-              node.setAttribute("url",nextString);
+              SpecificationNode node = new SpecificationNode(RSSConfig.NODE_FEED);
+              node.setAttribute(RSSConfig.ATTR_URL,nextString);
               ds.addChild(ds.getChildCount(),node);
             }
           }
@@ -2710,7 +2731,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("urlspec"))
+        if (sn.getType().equals(RSSConfig.NODE_URLSPEC))
           ds.removeChild(j);
         else
           j++;
@@ -2739,20 +2760,20 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           String aspSession = variableContext.getParameter("urlregexpasp_"+Integer.toString(j));
           String phpSession = variableContext.getParameter("urlregexpphp_"+Integer.toString(j));
           String bvSession = variableContext.getParameter("urlregexpbv_"+Integer.toString(j));
-          SpecificationNode newSn = new SpecificationNode("urlspec");
-          newSn.setAttribute("regexp",regexp);
+          SpecificationNode newSn = new SpecificationNode(RSSConfig.NODE_URLSPEC);
+          newSn.setAttribute(RSSConfig.ATTR_REGEXP,regexp);
           if (regexpDescription != null && regexpDescription.length() > 0)
-            newSn.setAttribute("description",regexpDescription);
+            newSn.setAttribute(RSSConfig.VALUE_DESCRIPTION,regexpDescription);
           if (reorder != null && reorder.length() > 0)
-            newSn.setAttribute("reorder",reorder);
+            newSn.setAttribute(RSSConfig.ATTR_REORDER,reorder);
           if (javaSession != null && javaSession.length() > 0)
-            newSn.setAttribute("javasessionremoval",javaSession);
+            newSn.setAttribute(RSSConfig.ATTR_JAVASESSIONREMOVAL,javaSession);
           if (aspSession != null && aspSession.length() > 0)
-            newSn.setAttribute("aspsessionremoval",aspSession);
+            newSn.setAttribute(RSSConfig.ATTR_ASPSESSIONREMOVAL,aspSession);
           if (phpSession != null && phpSession.length() > 0)
-            newSn.setAttribute("phpsessionremoval",phpSession);
+            newSn.setAttribute(RSSConfig.ATTR_PHPSESSIONREMOVAL,phpSession);
           if (bvSession != null && bvSession.length() > 0)
-            newSn.setAttribute("bvsessionremoval",bvSession);
+            newSn.setAttribute(RSSConfig.ATTR_BVSESSIONREMOVAL,bvSession);
           ds.addChild(ds.getChildCount(),newSn);
         }
         j++;
@@ -2768,24 +2789,44 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         String bvSession = variableContext.getParameter("urlregexpbv");
 
         // Add a new node at the end
-        SpecificationNode newSn = new SpecificationNode("urlspec");
-        newSn.setAttribute("regexp",regexp);
+        SpecificationNode newSn = new SpecificationNode(RSSConfig.NODE_URLSPEC);
+        newSn.setAttribute(RSSConfig.ATTR_REGEXP,regexp);
         if (regexpDescription != null && regexpDescription.length() > 0)
-          newSn.setAttribute("description",regexpDescription);
+          newSn.setAttribute(RSSConfig.VALUE_DESCRIPTION,regexpDescription);
         if (reorder != null && reorder.length() > 0)
-          newSn.setAttribute("reorder",reorder);
+          newSn.setAttribute(RSSConfig.ATTR_REORDER,reorder);
         if (javaSession != null && javaSession.length() > 0)
-          newSn.setAttribute("javasessionremoval",javaSession);
+          newSn.setAttribute(RSSConfig.ATTR_JAVASESSIONREMOVAL,javaSession);
         if (aspSession != null && aspSession.length() > 0)
-          newSn.setAttribute("aspsessionremoval",aspSession);
+          newSn.setAttribute(RSSConfig.ATTR_ASPSESSIONREMOVAL,aspSession);
         if (phpSession != null && phpSession.length() > 0)
-          newSn.setAttribute("phpsessionremoval",phpSession);
+          newSn.setAttribute(RSSConfig.ATTR_PHPSESSIONREMOVAL,phpSession);
         if (bvSession != null && bvSession.length() > 0)
-          newSn.setAttribute("bvsessionremoval",bvSession);
+          newSn.setAttribute(RSSConfig.ATTR_BVSESSIONREMOVAL,bvSession);
         ds.addChild(ds.getChildCount(),newSn);
       }
     }
-    
+
+    // Get the exclusions
+    String exclusions = variableContext.getParameter("exclusions");
+    if (exclusions != null)
+    {
+      // Delete existing exclusions record first
+      int i = 0;
+      while (i < ds.getChildCount())
+      {
+        SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(RSSConfig.NODE_EXCLUDES))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      SpecificationNode cn = new SpecificationNode(RSSConfig.NODE_EXCLUDES);
+      cn.setValue(exclusions);
+      ds.addChild(ds.getChildCount(),cn);
+    }
+
     // Read the feed timeout, if present
     String feedTimeoutValue = variableContext.getParameter("feedtimeout");
     if (feedTimeoutValue != null && feedTimeoutValue.length() > 0)
@@ -2794,13 +2835,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("feedtimeout"))
+        if (sn.getType().equals(RSSConfig.NODE_FEEDTIMEOUT))
           ds.removeChild(j);
         else
           j++;
       }
-      SpecificationNode node = new SpecificationNode("feedtimeout");
-      node.setAttribute("value",feedTimeoutValue);
+      SpecificationNode node = new SpecificationNode(RSSConfig.NODE_FEEDTIMEOUT);
+      node.setAttribute(RSSConfig.ATTR_VALUE,feedTimeoutValue);
       ds.addChild(ds.getChildCount(),node);
     }
 
@@ -2812,13 +2853,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("feedrescan"))
+        if (sn.getType().equals(RSSConfig.NODE_FEEDRESCAN))
           ds.removeChild(j);
         else
           j++;
       }
-      SpecificationNode node = new SpecificationNode("feedrescan");
-      node.setAttribute("value",feedRefetchValue);
+      SpecificationNode node = new SpecificationNode(RSSConfig.NODE_FEEDRESCAN);
+      node.setAttribute(RSSConfig.ATTR_VALUE,feedRefetchValue);
       ds.addChild(ds.getChildCount(),node);
     }
 
@@ -2830,13 +2871,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("minfeedrescan"))
+        if (sn.getType().equals(RSSConfig.NODE_MINFEEDRESCAN))
           ds.removeChild(j);
         else
           j++;
       }
-      SpecificationNode node = new SpecificationNode("minfeedrescan");
-      node.setAttribute("value",minFeedRefetchValue);
+      SpecificationNode node = new SpecificationNode(RSSConfig.NODE_MINFEEDRESCAN);
+      node.setAttribute(RSSConfig.ATTR_VALUE,minFeedRefetchValue);
       ds.addChild(ds.getChildCount(),node);
     }
     
@@ -2849,15 +2890,15 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (k < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(k);
-        if (sn.getType().equals("badfeedrescan"))
+        if (sn.getType().equals(RSSConfig.NODE_BADFEEDRESCAN))
           ds.removeChild(k);
         else
           k++;
       }
       if (badFeedRefetchValue != null && badFeedRefetchValue.length() > 0)
       {
-        SpecificationNode node = new SpecificationNode("badfeedrescan");
-        node.setAttribute("value",badFeedRefetchValue);
+        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_BADFEEDRESCAN);
+        node.setAttribute(RSSConfig.ATTR_VALUE,badFeedRefetchValue);
         ds.addChild(ds.getChildCount(),node);
       }
     }
@@ -2870,13 +2911,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("dechromedmode"))
+        if (sn.getType().equals(RSSConfig.NODE_DECHROMEDMODE))
           ds.removeChild(j);
         else
           j++;
       }
-      SpecificationNode node = new SpecificationNode("dechromedmode");
-      node.setAttribute("mode",dechromedMode);
+      SpecificationNode node = new SpecificationNode(RSSConfig.NODE_DECHROMEDMODE);
+      node.setAttribute(RSSConfig.ATTR_MODE,dechromedMode);
       ds.addChild(ds.getChildCount(),node);
     }
     
@@ -2888,13 +2929,13 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("chromedmode"))
+        if (sn.getType().equals(RSSConfig.NODE_CHROMEDMODE))
           ds.removeChild(j);
         else
           j++;
       }
-      SpecificationNode node = new SpecificationNode("chromedmode");
-      node.setAttribute("mode",chromedMode);
+      SpecificationNode node = new SpecificationNode(RSSConfig.NODE_CHROMEDMODE);
+      node.setAttribute(RSSConfig.ATTR_MODE,chromedMode);
       ds.addChild(ds.getChildCount(),node);
     }
     
@@ -2905,9 +2946,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       // Add a match to the end
       String match = variableContext.getParameter("rssmatch");
       String map = variableContext.getParameter("rssmap");
-      SpecificationNode node = new SpecificationNode("map");
-      node.setAttribute("match",match);
-      node.setAttribute("map",map);
+      SpecificationNode node = new SpecificationNode(RSSConfig.NODE_MAP);
+      node.setAttribute(RSSConfig.ATTR_MATCH,match);
+      node.setAttribute(RSSConfig.ATTR_MAP,map);
       ds.addChild(ds.getChildCount(),node);
     }
     else if (rssop != null && rssop.equals("Delete"))
@@ -2917,7 +2958,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (j < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(j);
-        if (sn.getType().equals("map"))
+        if (sn.getType().equals(RSSConfig.NODE_MAP))
         {
           if (index == 0)
           {
@@ -2938,7 +2979,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals("access"))
+        if (sn.getType().equals(RSSConfig.NODE_ACCESS))
           ds.removeChild(i);
         else
           i++;
@@ -2959,8 +3000,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         }
         // Get the stuff we need
         String accessSpec = variableContext.getParameter("spectoken"+accessDescription);
-        SpecificationNode node = new SpecificationNode("access");
-        node.setAttribute("token",accessSpec);
+        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_ACCESS);
+        node.setAttribute(RSSConfig.ATTR_TOKEN,accessSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
@@ -2969,8 +3010,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       if (op != null && op.equals("Add"))
       {
         String accessspec = variableContext.getParameter("spectoken");
-        SpecificationNode node = new SpecificationNode("access");
-        node.setAttribute("token",accessspec);
+        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_ACCESS);
+        node.setAttribute(RSSConfig.ATTR_TOKEN,accessspec);
         ds.addChild(ds.getChildCount(),node);
       }
     }
@@ -2983,7 +3024,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < ds.getChildCount())
       {
         SpecificationNode sn = ds.getChild(i);
-        if (sn.getType().equals("metadata"))
+        if (sn.getType().equals(RSSConfig.NODE_METADATA))
           ds.removeChild(i);
         else
           i++;
@@ -3005,9 +3046,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         // Get the stuff we need
         String metaNameSpec = variableContext.getParameter("specmetaname"+metadataDescription);
         String metaValueSpec = variableContext.getParameter("specmetavalue"+metadataDescription);
-        SpecificationNode node = new SpecificationNode("metadata");
-        node.setAttribute("name",metaNameSpec);
-        node.setAttribute("value",metaValueSpec);
+        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_METADATA);
+        node.setAttribute(RSSConfig.ATTR_NAME,metaNameSpec);
+        node.setAttribute(RSSConfig.ATTR_VALUE,metaValueSpec);
         ds.addChild(ds.getChildCount(),node);
         i++;
       }
@@ -3018,9 +3059,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         String metaNameSpec = variableContext.getParameter("specmetaname");
         String metaValueSpec = variableContext.getParameter("specmetavalue");
         
-        SpecificationNode node = new SpecificationNode("metadata");
-        node.setAttribute("name",metaNameSpec);
-        node.setAttribute("value",metaValueSpec);
+        SpecificationNode node = new SpecificationNode(RSSConfig.NODE_METADATA);
+        node.setAttribute(RSSConfig.ATTR_NAME,metaNameSpec);
+        node.setAttribute(RSSConfig.ATTR_VALUE,metaValueSpec);
         
         ds.addChild(ds.getChildCount(),node);
       }
@@ -3038,6 +3079,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   public void viewSpecification(IHTTPOutput out, Locale locale, DocumentSpecification ds)
     throws ManifoldCFException, IOException
   {
+    String exclusions = "";
+
     out.print(
 "<table class=\"displaytable\">\n"
     );
@@ -3046,7 +3089,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("feed"))
+      if (sn.getType().equals(RSSConfig.NODE_FEED))
       {
         if (seenAny == false)
         {
@@ -3058,8 +3101,14 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           seenAny = true;
         }
         out.print(
-"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue("url"))+"</nobr><br/>\n"
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(sn.getAttributeValue(RSSConfig.ATTR_URL))+"</nobr><br/>\n"
         );
+      }
+      else if (sn.getType().equals(RSSConfig.NODE_EXCLUDES))
+      {
+        exclusions = sn.getValue();
+        if (exclusions == null)
+          exclusions = "";
       }
     }
 
@@ -3085,7 +3134,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("urlspec"))
+      if (sn.getType().equals(RSSConfig.NODE_URLSPEC))
       {
         if (l == 0)
         {
@@ -3105,25 +3154,25 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "        </tr>\n"
           );
         }
-        String regexpString = sn.getAttributeValue("regexp");
-        String description = sn.getAttributeValue("description");
+        String regexpString = sn.getAttributeValue(RSSConfig.ATTR_REGEXP);
+        String description = sn.getAttributeValue(RSSConfig.ATTR_DESCRIPTION);
         if (description == null)
           description = "";
-        String allowReorder = sn.getAttributeValue("reorder");
+        String allowReorder = sn.getAttributeValue(RSSConfig.ATTR_REORDER);
         if (allowReorder == null || allowReorder.length() == 0)
-          allowReorder = "no";
-        String allowJavaSessionRemoval = sn.getAttributeValue("javasessionremoval");
+          allowReorder = RSSConfig.VALUE_NO;
+        String allowJavaSessionRemoval = sn.getAttributeValue(RSSConfig.ATTR_JAVASESSIONREMOVAL);
         if (allowJavaSessionRemoval == null || allowJavaSessionRemoval.length() == 0)
-          allowJavaSessionRemoval = "no";
-        String allowASPSessionRemoval = sn.getAttributeValue("aspsessionremoval");
+          allowJavaSessionRemoval = RSSConfig.VALUE_NO;
+        String allowASPSessionRemoval = sn.getAttributeValue(RSSConfig.ATTR_ASPSESSIONREMOVAL);
         if (allowASPSessionRemoval == null || allowASPSessionRemoval.length() == 0)
-          allowASPSessionRemoval = "no";
-        String allowPHPSessionRemoval = sn.getAttributeValue("phpsessionremoval");
+          allowASPSessionRemoval = RSSConfig.VALUE_NO;
+        String allowPHPSessionRemoval = sn.getAttributeValue(RSSConfig.ATTR_PHPSESSIONREMOVAL);
         if (allowPHPSessionRemoval == null || allowPHPSessionRemoval.length() == 0)
-          allowPHPSessionRemoval = "no";
-        String allowBVSessionRemoval = sn.getAttributeValue("bvsessionremoval");
+          allowPHPSessionRemoval = RSSConfig.VALUE_NO;
+        String allowBVSessionRemoval = sn.getAttributeValue(RSSConfig.ATTR_BVSESSIONREMOVAL);
         if (allowBVSessionRemoval == null || allowBVSessionRemoval.length() == 0)
-          allowBVSessionRemoval = "no";
+          allowBVSessionRemoval = RSSConfig.VALUE_NO;
         out.print(
 "        <tr class=\""+(((l % 2)==0)?"evenformrow":"oddformrow")+"\">\n"+
 "          <td class=\"formcolumncell\"><nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(regexpString)+"</nobr></td>\n"+
@@ -3161,7 +3210,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("map"))
+      if (sn.getType().equals(RSSConfig.NODE_MAP))
       {
         if (seenAny == false)
         {
@@ -3172,8 +3221,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           );
           seenAny = true;
         }
-        String match = sn.getAttributeValue("match");
-        String map = sn.getAttributeValue("map");
+        String match = sn.getAttributeValue(RSSConfig.ATTR_MATCH);
+        String map = sn.getAttributeValue(RSSConfig.ATTR_MAP);
         out.print(
 "      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(match)+"</nobr>\n"
         );
@@ -3203,41 +3252,85 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       );
     }
     out.print(
+"  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"+
+"  <tr>\n"+
+"    <td class=\"description\"><nobr>" + Messages.getBodyString(locale,"RSSConnector.Exclude") + "</nobr></td>\n"+
+"    <td class=\"value\">\n"
+    );
+    try
+    {
+      java.io.Reader str = new java.io.StringReader(exclusions);
+      try
+      {
+        java.io.BufferedReader is = new java.io.BufferedReader(str);
+        try
+        {
+          while (true)
+          {
+            String nextString = is.readLine();
+            if (nextString == null)
+              break;
+            if (nextString.length() == 0)
+              continue;
+            out.print(
+"      <nobr>"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(nextString)+"</nobr><br/>\n"
+            );
+          }
+        }
+        finally
+        {
+          is.close();
+        }
+      }
+      finally
+      {
+        str.close();
+      }
+    }
+    catch (java.io.IOException e)
+    {
+      throw new ManifoldCFException("IO error: "+e.getMessage(),e);
+    }
+    out.print(
+"    </td>\n"+
+"  </tr>\n"
+    );
+    out.print(
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
     String feedTimeoutValue = "60";
     String feedRefetchValue = "60";
     String minFeedRefetchValue = "15";
     String badFeedRefetchValue = null;
-    String dechromedMode = "none";
-    String chromedMode = "use";
+    String dechromedMode = RSSConfig.VALUE_NONE;
+    String chromedMode = RSSConfig.VALUE_USE;
     i = 0;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("feedtimeout"))
+      if (sn.getType().equals(RSSConfig.NODE_FEEDTIMEOUT))
       {
-        feedTimeoutValue = sn.getAttributeValue("value");
+        feedTimeoutValue = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
       }
-      else if (sn.getType().equals("feedrescan"))
+      else if (sn.getType().equals(RSSConfig.NODE_FEEDRESCAN))
       {
-        feedRefetchValue = sn.getAttributeValue("value");
+        feedRefetchValue = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
       }
-      else if (sn.getType().equals("minfeedrescan"))
+      else if (sn.getType().equals(RSSConfig.NODE_MINFEEDRESCAN))
       {
-        minFeedRefetchValue = sn.getAttributeValue("value");
+        minFeedRefetchValue = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
       }
-      else if (sn.getType().equals("badfeedrescan"))
+      else if (sn.getType().equals(RSSConfig.NODE_BADFEEDRESCAN))
       {
-        badFeedRefetchValue = sn.getAttributeValue("value");
+        badFeedRefetchValue = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
       }
-      else if (sn.getType().equals("dechromedmode"))
+      else if (sn.getType().equals(RSSConfig.NODE_DECHROMEDMODE))
       {
-        dechromedMode = sn.getAttributeValue("mode");
+        dechromedMode = sn.getAttributeValue(RSSConfig.ATTR_MODE);
       }
-      else if (sn.getType().equals("chromedmode"))
+      else if (sn.getType().equals(RSSConfig.NODE_CHROMEDMODE))
       {
-        chromedMode = sn.getAttributeValue("mode");
+        chromedMode = sn.getAttributeValue(RSSConfig.ATTR_MODE);
       }
     }
     out.print(
@@ -3269,16 +3362,19 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 "    <td class=\"description\"><nobr>"+Messages.getBodyString(locale,"RSSConnector.ChromedContent")+"</nobr></td>\n"+
 "    <td class=\"value\">"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(chromedMode)+"</td>\n"+
 "  </tr>\n"+
-"\n"+
+"\n"
+    );
+    out.print(
 "  <tr><td class=\"separator\" colspan=\"2\"><hr/></td></tr>\n"
     );
+
     // Go through looking for access tokens
     seenAny = false;
     i = 0;
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("access"))
+      if (sn.getType().equals(RSSConfig.NODE_ACCESS))
       {
         if (seenAny == false)
         {
@@ -3288,7 +3384,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           );
           seenAny = true;
         }
-        String token = sn.getAttributeValue("token");
+        String token = sn.getAttributeValue(RSSConfig.ATTR_TOKEN);
         out.print(
 "      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(token)+"<br/>\n"
         );
@@ -3317,7 +3413,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     while (i < ds.getChildCount())
     {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals("metadata"))
+      if (sn.getType().equals(RSSConfig.NODE_METADATA))
       {
         if (seenAny == false)
         {
@@ -3327,8 +3423,8 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           );
           seenAny = true;
         }
-        String name = sn.getAttributeValue("name");
-        String value = sn.getAttributeValue("value");
+        String name = sn.getAttributeValue(RSSConfig.ATTR_NAME);
+        String value = sn.getAttributeValue(RSSConfig.ATTR_VALUE);
         out.print(
 "      "+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(name)+"&nbsp;=&nbsp;"+org.apache.manifoldcf.ui.util.Encoder.bodyEscape(value)+"<br/>\n"
         );
@@ -3372,31 +3468,15 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       }
       try
       {
-        // Parse the document.  This will cause various things to occur, within the instantiated XMLContext class.
-        XMLStream x = new XMLStream();
+        Parser p = new Parser();
+        // Parse the document.  This will cause various things to occur, within the instantiated XMLParsingContext class.
+        XMLFuzzyHierarchicalParseState x = new XMLFuzzyHierarchicalParseState();
         OuterContextClass c = new OuterContextClass(x,documentIdentifier,activities,filter);
         x.setContext(c);
         try
         {
-          try
-          {
-            x.parse(is);
-          }
-          catch (ManifoldCFException e)
-          {
-            // Ignore XML parsing errors.
-            if (e.getMessage().indexOf("pars") >= 0)
-            {
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("RSS: XML document '"+documentIdentifier+"' was unparseable ("+e.getMessage()+"), skipping");
-
-              c.setDefaultRescanTimeIfNeeded();
-
-              return;
-            }
-            throw e;
-
-          }
+          // Believe it or not, there are no parsing errors we can get back now.
+          p.parseWithCharsetDetection(null,is,x);
           c.checkIfValidFeed();
           c.setDefaultRescanTimeIfNeeded();
         }
@@ -3430,7 +3510,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
   }
 
   /** This class handles the outermost XML context for the feed document. */
-  protected class OuterContextClass extends XMLContext
+  protected class OuterContextClass extends XMLParsingContext
   {
     /** Keep track of the number of valid feed signals we saw */
     protected int outerTagCount = 0;
@@ -3443,7 +3523,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     /** Flag indicating the the rescan time was set for this feed */
     protected boolean rescanTimeSet = false;
 
-    public OuterContextClass(XMLStream theStream, String documentIdentifier, IProcessActivity activities, Filter filter)
+    public OuterContextClass(XMLFuzzyHierarchicalParseState theStream, String documentIdentifier, IProcessActivity activities, Filter filter)
     {
       super(theStream);
       this.documentIdentifier = documentIdentifier;
@@ -3484,51 +3564,53 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
 
     /** Handle the tag beginning to set the correct second-level parsing context */
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
-      if (qName.equals("rss"))
+      if (localName.equals("rss"))
       {
         // RSS feed detected
         outerTagCount++;
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("RSS: Parsed bottom-level XML for RSS document '"+documentIdentifier+"'");
-        return new RSSContextClass(theStream,namespaceURI,localName,qName,atts,documentIdentifier,activities,filter);
+        return new RSSContextClass(theStream,namespace,localName,qName,atts,documentIdentifier,activities,filter);
       }
-      else if (qName.equals("rdf:RDF"))
+      else if (localName.equals("RDF"))
       {
         // RDF/Atom feed detected
         outerTagCount++;
-        return new RDFContextClass(theStream,namespaceURI,localName,qName,atts,documentIdentifier,activities,filter);
+        return new RDFContextClass(theStream,namespace,localName,qName,atts,documentIdentifier,activities,filter);
       }
-      else if (qName.equals("feed"))
+      else if (localName.equals("feed"))
       {
         // Basic feed detected
         outerTagCount++;
-        return new FeedContextClass(theStream,namespaceURI,localName,qName,atts,documentIdentifier,activities,filter);
+        return new FeedContextClass(theStream,namespace,localName,qName,atts,documentIdentifier,activities,filter);
       }
-      else if (qName.equals("urlset") || qName.equals("sitemapindex"))
+      else if (localName.equals("urlset") || localName.equals("sitemapindex"))
       {
         // Sitemap detected
         outerTagCount++;
-        return new UrlsetContextClass(theStream,namespaceURI,localName,qName,atts,documentIdentifier,activities,filter);
+        return new UrlsetContextClass(theStream,namespace,localName,qName,atts,documentIdentifier,activities,filter);
       }
       
       // The default action is to establish a new default context.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
     /** Handle the tag ending */
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext context = theStream.getContext();
-      String tagName = context.getQname();
+      XMLParsingContext context = theStream.getContext();
+      String tagName = context.getLocalname();
       if (tagName.equals("rss"))
       {
         rescanTimeSet = ((RSSContextClass)context).process();
       }
-      else if (tagName.equals("rdf:RDF"))
+      else if (tagName.equals("RDF"))
       {
         rescanTimeSet = ((RDFContextClass)context).process();
       }
@@ -3546,7 +3628,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
   }
 
-  protected class RSSContextClass extends XMLContext
+  protected class RSSContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentIdentifier;
@@ -3557,34 +3639,36 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     /** Rescan time set flag */
     protected boolean rescanTimeSet = false;
 
-    public RSSContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentIdentifier, IProcessActivity activities, Filter filter)
+    public RSSContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentIdentifier, IProcessActivity activities, Filter filter)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentIdentifier = documentIdentifier;
       this.activities = activities;
       this.filter = filter;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // Handle each channel
-      if (qName.equals("channel"))
+      if (localName.equals("channel"))
       {
         // Channel detected
-        return new RSSChannelContextClass(theStream,namespaceURI,localName,qName,atts,documentIdentifier,activities,filter);
+        return new RSSChannelContextClass(theStream,namespace,localName,qName,atts,documentIdentifier,activities,filter);
       }
 
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
       // If it's our channel tag, process global channel information
-      XMLContext context = theStream.getContext();
-      String tagName = context.getQname();
+      XMLParsingContext context = theStream.getContext();
+      String tagName = context.getLocalname();
       if (tagName.equals("channel"))
       {
         rescanTimeSet = ((RSSChannelContextClass)context).process();
@@ -3602,7 +3686,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
   }
 
-  protected class RSSChannelContextClass extends XMLContext
+  protected class RSSChannelContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentIdentifier;
@@ -3614,40 +3698,42 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     /** TTL value is set on a per-channel basis */
     protected String ttlValue = null;
 
-    public RSSChannelContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentIdentifier, IProcessActivity activities, Filter filter)
+    public RSSChannelContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentIdentifier, IProcessActivity activities, Filter filter)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentIdentifier = documentIdentifier;
       this.activities = activities;
       this.filter = filter;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("ttl"))
+      if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("item"))
+      else if (localName.equals("item"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
-        return new RSSItemContextClass(theStream,namespaceURI,localName,qName,atts,filter.getDechromedContentMode());
+        return new RSSItemContextClass(theStream,namespace,localName,qName,atts,filter.getDechromedContentMode());
       }
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
-        ttlValue = ((XMLStringContext)theContext).getValue();
+        ttlValue = ((XMLStringParsingContext)theContext).getValue();
       else if (theTag.equals("item"))
       {
         // It's an item.
@@ -3712,7 +3798,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
   }
 
-  protected class RSSItemContextClass extends XMLContext
+  protected class RSSItemContextClass extends XMLParsingContext
   {
     protected int dechromedContentMode;
     protected String guidField = null;
@@ -3723,40 +3809,41 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     protected ArrayList categoryField = new ArrayList();
     protected File contentsFile = null;
 
-    public RSSItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, int dechromedContentMode)
+    public RSSItemContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, int dechromedContentMode)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.dechromedContentMode = dechromedContentMode;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("link"))
+      if (localName.equals("link"))
       {
         // "link" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("guid"))
+      else if (localName.equals("guid"))
       {
         // "guid" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("pubDate"))
+      else if (localName.equals("pubdate"))
       {
         // "pubDate" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("title"))
+      else if (localName.equals("title"))
       {
         // "title" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("category"))
+      else if (localName.equals("category"))
       {
         // "category" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else
       {
@@ -3766,18 +3853,18 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         switch (dechromedContentMode)
         {
         case DECHROMED_NONE:
-          if (qName.equals("description"))
+          if (localName.equals("description"))
           {
-            return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+            return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
           }
           break;
         case DECHROMED_DESCRIPTION:
-          if (qName.equals("description"))
+          if (localName.equals("description"))
           {
             try
             {
               File tempFile = File.createTempFile("_rssdata_","tmp");
-              return new XMLFileContext(theStream,namespaceURI,localName,qName,atts,tempFile);
+              return new XMLFileParsingContext(theStream,namespace,localName,qName,atts,tempFile);
             }
             catch (java.net.SocketTimeoutException e)
             {
@@ -3794,12 +3881,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           }
           break;
         case DECHROMED_CONTENT:
-          if (qName.equals("content"))
+          if (localName.equals("content"))
           {
             try
             {
               File tempFile = File.createTempFile("_rssdata_","tmp");
-              return new XMLFileContext(theStream,namespaceURI,localName,qName,atts,tempFile);
+              return new XMLFileParsingContext(theStream,namespace,localName,qName,atts,tempFile);
             }
             catch (java.net.SocketTimeoutException e)
             {
@@ -3814,44 +3901,45 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               throw new ManifoldCFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
-          else if (qName.equals("description"))
+          else if (localName.equals("description"))
           {
-            return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+            return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
           }
           break;
         default:
           break;
         }
         // Skip everything else.
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
     }
 
     /** Convert the individual sub-fields of the item context into their final forms */
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("link"))
       {
-        linkField = ((XMLStringContext)theContext).getValue();
+        linkField = ((XMLStringParsingContext)theContext).getValue();
       }
       else if (theTag.equals("guid"))
       {
-        guidField = ((XMLStringContext)theContext).getValue();
+        guidField = ((XMLStringParsingContext)theContext).getValue();
       }
-      else if (theTag.equals("pubDate"))
+      else if (theTag.equals("pubdate"))
       {
-        pubDateField = ((XMLStringContext)theContext).getValue();
+        pubDateField = ((XMLStringParsingContext)theContext).getValue();
       }
       else if (theTag.equals("title"))
       {
-        titleField = ((XMLStringContext)theContext).getValue();
+        titleField = ((XMLStringParsingContext)theContext).getValue();
       }
       else if (theTag.equals("category"))
       {
-        categoryField.add(((XMLStringContext)theContext).getValue());
+        categoryField.add(((XMLStringParsingContext)theContext).getValue());
       }
       else
       {
@@ -3863,7 +3951,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         case DECHROMED_NONE:
           if (theTag.equals("description"))
           {
-            descriptionField = ((XMLStringContext)theContext).getValue();
+            descriptionField = ((XMLStringParsingContext)theContext).getValue();
           }
           break;
         case DECHROMED_DESCRIPTION:
@@ -3871,7 +3959,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           {
             // Content file has been written; retrieve it (being sure not to leak any files already hanging around!)
             tagCleanup();
-            contentsFile = ((XMLFileContext)theContext).getCompletedFile();
+            contentsFile = ((XMLFileParsingContext)theContext).getCompletedFile();
             return;
           }
           break;
@@ -3880,12 +3968,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           {
             tagCleanup();
             // Retrieve content file
-            contentsFile = ((XMLFileContext)theContext).getCompletedFile();
+            contentsFile = ((XMLFileParsingContext)theContext).getCompletedFile();
             return;
           }
           else if (theTag.equals("description"))
           {
-            descriptionField = ((XMLStringContext)theContext).getValue();
+            descriptionField = ((XMLStringParsingContext)theContext).getValue();
           }
           break;
         default:
@@ -3916,15 +4004,23 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
       if (linkField != null && linkField.length() > 0)
       {
-        Long origDate = null;
+        Date origDateDate = null;
         if (pubDateField != null && pubDateField.length() > 0)
         {
-          origDate = parseRSSDate(pubDateField);
+          origDateDate = DateParser.parseRFC822Date(pubDateField);
           // Special for China Daily News
-          if (origDate == null)
-            origDate = parseChinaDate(pubDateField);
+          if (origDateDate == null)
+            origDateDate = DateParser.parseChinaDate(pubDateField);
+          // Special for LL
+          if (origDateDate == null)
+            origDateDate = DateParser.parseISO8601Date(pubDateField);
         }
-
+        Long origDate;
+        if (origDateDate != null)
+          origDate = new Long(origDateDate.getTime());
+        else
+          origDate = null;
+        
         String[] links = linkField.split(", ");
         int l = 0;
         while (l < links.length)
@@ -3939,7 +4035,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               ((origDate==null)?"null":origDate.toString()));
             if (filter.isLegalURL(newIdentifier))
             {
-              if (contentsFile == null)
+              if (contentsFile == null && filter.getChromedContentMode() != CHROMED_METADATA_ONLY)
               {
                 // It's a reference!  Add it.
                 String[] dataNames = new String[]{"pubdate","title","source","category","description"};
@@ -3988,19 +4084,37 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
 
                 if (descriptionField != null)
                   dataValues[5] = new String[]{descriptionField};
-
-                CharacterInput ci = new TempFileCharacterInput(contentsFile);
-                try
+                  
+                if (contentsFile == null)
                 {
-                  contentsFile = null;
-                  dataValues[4] = new Object[]{ci};
+                  CharacterInput ci = new NullCharacterInput();
+                  try
+                  {
+                    dataValues[4] = new Object[]{ci};
 
-                  // Add document reference, including the data to pass down, and the dechromed content too
-                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                    // Add document reference, including the data to pass down, and the dechromed content too
+                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  }
+                  finally
+                  {
+                    ci.discard();
+                  }
                 }
-                finally
+                else
                 {
-                  ci.discard();
+                  CharacterInput ci = new TempFileCharacterInput(contentsFile);
+                  try
+                  {
+                    contentsFile = null;
+                    dataValues[4] = new Object[]{ci};
+
+                    // Add document reference, including the data to pass down, and the dechromed content too
+                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  }
+                  finally
+                  {
+                    ci.discard();
+                  }
                 }
               }
             }
@@ -4020,7 +4134,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
   }
 
-  protected class RDFContextClass extends XMLContext
+  protected class RDFContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentIdentifier;
@@ -4032,40 +4146,42 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     /** ttl value */
     protected String ttlValue = null;
 
-    public RDFContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentIdentifier, IProcessActivity activities, Filter filter)
+    public RDFContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentIdentifier, IProcessActivity activities, Filter filter)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentIdentifier = documentIdentifier;
       this.activities = activities;
       this.filter = filter;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("ttl"))
+      if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("item"))
+      else if (localName.equals("item"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
-        return new RDFItemContextClass(theStream,namespaceURI,localName,qName,atts,filter.getDechromedContentMode());
+        return new RDFItemContextClass(theStream,namespace,localName,qName,atts,filter.getDechromedContentMode());
       }
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
-        ttlValue = ((XMLStringContext)theContext).getValue();
+        ttlValue = ((XMLStringParsingContext)theContext).getValue();
       else if (theTag.equals("item"))
       {
         // It's an item.
@@ -4130,7 +4246,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
   }
 
-  protected class RDFItemContextClass extends XMLContext
+  protected class RDFItemContextClass extends XMLParsingContext
   {
     protected int dechromedContentMode;
     protected String linkField = null;
@@ -4139,48 +4255,49 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     protected String descriptionField = null;
     protected File contentsFile = null;
 
-    public RDFItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, int dechromedContentMode)
+    public RDFItemContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, int dechromedContentMode)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.dechromedContentMode = dechromedContentMode;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("link"))
+      if (localName.equals("link"))
       {
         // "link" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("dc:date"))
+      else if (localName.equals("date"))
       {
         // "dc:date" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("title"))
+      else if (localName.equals("title"))
       {
         // "title" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else
       {
         switch (dechromedContentMode)
         {
         case DECHROMED_NONE:
-          if (qName.equals("description"))
+          if (localName.equals("description"))
           {
-            return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+            return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
           }
           break;
         case DECHROMED_DESCRIPTION:
-          if (qName.equals("description"))
+          if (localName.equals("description"))
           {
             try
             {
               File tempFile = File.createTempFile("_rssdata_","tmp");
-              return new XMLFileContext(theStream,namespaceURI,localName,qName,atts,tempFile);
+              return new XMLFileParsingContext(theStream,namespace,localName,qName,atts,tempFile);
             }
             catch (java.net.SocketTimeoutException e)
             {
@@ -4197,12 +4314,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           }
           break;
         case DECHROMED_CONTENT:
-          if (qName.equals("dc:content"))
+          if (localName.equals("content"))
           {
             try
             {
               File tempFile = File.createTempFile("_rssdata_","tmp");
-              return new XMLFileContext(theStream,namespaceURI,localName,qName,atts,tempFile);
+              return new XMLFileParsingContext(theStream,namespace,localName,qName,atts,tempFile);
             }
             catch (java.net.SocketTimeoutException e)
             {
@@ -4217,36 +4334,37 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               throw new ManifoldCFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
-          else if (qName.equals("description"))
+          else if (localName.equals("description"))
           {
-            return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+            return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
           }
           break;
         default:
           break;
         }
         // Skip everything else.
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
     }
 
     /** Convert the individual sub-fields of the item context into their final forms */
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("link"))
       {
-        linkField = ((XMLStringContext)theContext).getValue();
+        linkField = ((XMLStringParsingContext)theContext).getValue();
       }
-      else if (theTag.equals("dc:date"))
+      else if (theTag.equals("date"))
       {
-        pubDateField = ((XMLStringContext)theContext).getValue();
+        pubDateField = ((XMLStringParsingContext)theContext).getValue();
       }
       else if (theTag.equals("title"))
       {
-        titleField = ((XMLStringContext)theContext).getValue();
+        titleField = ((XMLStringParsingContext)theContext).getValue();
       }
       else
       {
@@ -4255,7 +4373,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         case DECHROMED_NONE:
           if (theTag.equals("description"))
           {
-            descriptionField = ((XMLStringContext)theContext).getValue();
+            descriptionField = ((XMLStringParsingContext)theContext).getValue();
           }
           break;
         case DECHROMED_DESCRIPTION:
@@ -4263,7 +4381,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           {
             // Content file has been written; retrieve it (being sure not to leak any files already hanging around!)
             tagCleanup();
-            contentsFile = ((XMLFileContext)theContext).getCompletedFile();
+            contentsFile = ((XMLFileParsingContext)theContext).getCompletedFile();
             return;
           }
           break;
@@ -4272,12 +4390,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           {
             // Retrieve content file
             tagCleanup();
-            contentsFile = ((XMLFileContext)theContext).getCompletedFile();
+            contentsFile = ((XMLFileParsingContext)theContext).getCompletedFile();
             return;
           }
           else if (theTag.equals("description"))
           {
-            descriptionField = ((XMLStringContext)theContext).getValue();
+            descriptionField = ((XMLStringParsingContext)theContext).getValue();
           }
           break;
         default:
@@ -4305,10 +4423,16 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       if (linkField != null && linkField.length() > 0)
       {
-        Long origDate = null;
+        Date origDateDate = null;
         if (pubDateField != null && pubDateField.length() > 0)
-          origDate = parseZuluDate(pubDateField);
+          origDateDate = DateParser.parseISO8601Date(pubDateField);
 
+        Long origDate;
+        if (origDateDate != null)
+          origDate = new Long(origDateDate.getTime());
+        else
+          origDate = null;
+        
         String[] links = linkField.split(", ");
         int l = 0;
         while (l < links.length)
@@ -4323,7 +4447,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               ((origDate==null)?"null":origDate.toString()));
             if (filter.isLegalURL(newIdentifier))
             {
-              if (contentsFile == null)
+              if (contentsFile == null && filter.getChromedContentMode() != CHROMED_METADATA_ONLY)
               {
                 // It's a reference!  Add it.
                 String[] dataNames = new String[]{"pubdate","title","source","description"};
@@ -4356,18 +4480,37 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
                 dataValues[2] = new String[]{documentIdentifier};
                 if (descriptionField != null)
                   dataValues[4] = new String[]{descriptionField};
-                CharacterInput ci = new TempFileCharacterInput(contentsFile);
-                try
+                  
+                if (contentsFile == null)
                 {
-                  contentsFile = null;
-                  dataValues[3] = new Object[]{ci};
+                  CharacterInput ci = new NullCharacterInput();
+                  try
+                  {
+                    dataValues[3] = new Object[]{ci};
 
-                  // Add document reference, including the data to pass down, and the dechromed content too
-                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                    // Add document reference, including the data to pass down, and the dechromed content too
+                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  }
+                  finally
+                  {
+                    ci.discard();
+                  }
                 }
-                finally
+                else
                 {
-                  ci.discard();
+                  CharacterInput ci = new TempFileCharacterInput(contentsFile);
+                  try
+                  {
+                    contentsFile = null;
+                    dataValues[3] = new Object[]{ci};
+
+                    // Add document reference, including the data to pass down, and the dechromed content too
+                    activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  }
+                  finally
+                  {
+                    ci.discard();
+                  }
                 }
               }
             }
@@ -4387,7 +4530,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
   }
 
-  protected class FeedContextClass extends XMLContext
+  protected class FeedContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentIdentifier;
@@ -4399,40 +4542,42 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     /** ttl value */
     protected String ttlValue = null;
 
-    public FeedContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentIdentifier, IProcessActivity activities, Filter filter)
+    public FeedContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentIdentifier, IProcessActivity activities, Filter filter)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentIdentifier = documentIdentifier;
       this.activities = activities;
       this.filter = filter;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("ttl"))
+      if (localName.equals("ttl"))
       {
         // TTL value seen.  Prepare to record it, as a string.
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("entry"))
+      else if (localName.equals("entry"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
-        return new FeedItemContextClass(theStream,namespaceURI,localName,qName,atts,filter.getDechromedContentMode());
+        return new FeedItemContextClass(theStream,namespace,localName,qName,atts,filter.getDechromedContentMode());
       }
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("ttl"))
         // If the current context must be the TTL one, record its data value.
-        ttlValue = ((XMLStringContext)theContext).getValue();
+        ttlValue = ((XMLStringParsingContext)theContext).getValue();
       else if (theTag.equals("entry"))
       {
         // It's an item.
@@ -4497,66 +4642,69 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
   }
 
-  protected class FeedItemContextClass extends XMLContext
+  protected class FeedItemContextClass extends XMLParsingContext
   {
     protected int dechromedContentMode;
-    protected String linkField = null;
+    protected List<String> linkField = new ArrayList<String>();
     protected String pubDateField = null;
     protected String titleField = null;
     protected ArrayList categoryField = new ArrayList();
     protected File contentsFile = null;
     protected String descriptionField = null;
 
-    public FeedItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, int dechromedContentMode)
+    public FeedItemContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, int dechromedContentMode)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.dechromedContentMode = dechromedContentMode;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "ttl" and "item", nothing else.
-      if (qName.equals("link"))
+      if (localName.equals("link"))
       {
         // "link" tag
-        linkField = atts.getValue("href");
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        String ref = atts.get("href");
+        if (ref != null && ref.length() > 0)
+          linkField.add(ref);
+        return super.beginTag(namespace,localName,qName,atts);
       }
-      else if (qName.equals("published") || qName.equals("updated"))
+      else if (localName.equals("published") || localName.equals("updated"))
       {
         // "published" pr "updated" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("title"))
+      else if (localName.equals("title"))
       {
         // "title" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("category"))
+      else if (localName.equals("category"))
       {
-        String category = atts.getValue("term");
+        String category = atts.get("term");
         if (category != null && category.length() > 0)
           categoryField.add(category);
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
       else
       {
         switch (dechromedContentMode)
         {
         case DECHROMED_NONE:
-          if (qName.equals("subtitle"))
+          if (localName.equals("subtitle"))
           {
-            return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+            return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
           }
           break;
         case DECHROMED_DESCRIPTION:
-          if (qName.equals("subtitle"))
+          if (localName.equals("subtitle"))
           {
             try
             {
               File tempFile = File.createTempFile("_rssdata_","tmp");
-              return new XMLFileContext(theStream,namespaceURI,localName,qName,atts,tempFile);
+              return new XMLFileParsingContext(theStream,namespace,localName,qName,atts,tempFile);
             }
             catch (java.net.SocketTimeoutException e)
             {
@@ -4573,12 +4721,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           }
           break;
         case DECHROMED_CONTENT:
-          if (qName.equals("content"))
+          if (localName.equals("content"))
           {
             try
             {
               File tempFile = File.createTempFile("_rssdata_","tmp");
-              return new XMLFileContext(theStream,namespaceURI,localName,qName,atts,tempFile);
+              return new XMLFileParsingContext(theStream,namespace,localName,qName,atts,tempFile);
             }
             catch (java.net.SocketTimeoutException e)
             {
@@ -4593,32 +4741,33 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
               throw new ManifoldCFException("IO exception creating temp file: "+e.getMessage(),e);
             }
           }
-          else if (qName.equals("subtitle"))
+          else if (localName.equals("subtitle"))
           {
-            return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+            return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
           }
           break;
         default:
           break;
         }
         // Skip everything else.
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
     }
 
     /** Convert the individual sub-fields of the item context into their final forms */
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("published") || theTag.equals("updated"))
       {
-        pubDateField = ((XMLStringContext)theContext).getValue();
+        pubDateField = ((XMLStringParsingContext)theContext).getValue();
       }
       else if (theTag.equals("title"))
       {
-        titleField = ((XMLStringContext)theContext).getValue();
+        titleField = ((XMLStringParsingContext)theContext).getValue();
       }
       else
       {
@@ -4627,7 +4776,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         case DECHROMED_NONE:
           if (theTag.equals("subtitle"))
           {
-            titleField = ((XMLStringContext)theContext).getValue();
+            titleField = ((XMLStringParsingContext)theContext).getValue();
           }
           break;
         case DECHROMED_DESCRIPTION:
@@ -4635,7 +4784,7 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           {
             // Content file has been written; retrieve it (being sure not to leak any files already hanging around!)
             tagCleanup();
-            contentsFile = ((XMLFileContext)theContext).getCompletedFile();
+            contentsFile = ((XMLFileParsingContext)theContext).getCompletedFile();
             return;
           }
           break;
@@ -4644,12 +4793,12 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
           {
             // Retrieve content file
             tagCleanup();
-            contentsFile = ((XMLFileContext)theContext).getCompletedFile();
+            contentsFile = ((XMLFileParsingContext)theContext).getCompletedFile();
             return;
           }
           else if (theTag.equals("subtitle"))
           {
-            titleField = ((XMLStringContext)theContext).getValue();
+            titleField = ((XMLStringParsingContext)theContext).getValue();
           }
           break;
         default:
@@ -4675,107 +4824,134 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     public void process(String documentIdentifier, IProcessActivity activities, Filter filter)
       throws ManifoldCFException
     {
-      if (linkField != null && linkField.length() > 0)
+      if (linkField.size() > 0)
       {
-        Long origDate = null;
+        Date origDateDate = null;
         if (pubDateField != null && pubDateField.length() > 0)
-          origDate = parseZuluDate(pubDateField);
+          origDateDate = DateParser.parseISO8601Date(pubDateField);
 
-        String[] links = linkField.split(", ");
-        int l = 0;
-        while (l < links.length)
+        Long origDate;
+        if (origDateDate != null)
+          origDate = new Long(origDateDate.getTime());
+        else
+          origDate = null;
+
+        for (String linkValue : linkField)
         {
-          String rawURL = links[l++].trim();
-          // Process the link
-          String newIdentifier = makeDocumentIdentifier(filter.getCanonicalizationPolicies(),documentIdentifier,rawURL);
-          if (newIdentifier != null)
+          String[] links = linkValue.split(", ");
+          int l = 0;
+          while (l < links.length)
           {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("RSS: In Atom document '"+documentIdentifier+"', found a link to '"+newIdentifier+"', which has origination date "+
-              ((origDate==null)?"null":origDate.toString()));
-            if (filter.isLegalURL(newIdentifier))
+            String rawURL = links[l++].trim();
+            // Process the link
+            String newIdentifier = makeDocumentIdentifier(filter.getCanonicalizationPolicies(),documentIdentifier,rawURL);
+            if (newIdentifier != null)
             {
-              if (contentsFile == null)
+              if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("RSS: In Atom document '"+documentIdentifier+"', found a link to '"+newIdentifier+"', which has origination date "+
+                ((origDate==null)?"null":origDate.toString()));
+              if (filter.isLegalURL(newIdentifier))
               {
-                // It's a reference!  Add it.
-                String[] dataNames = new String[]{"pubdate","title","source","category","description"};
-                String[][] dataValues = new String[dataNames.length][];
-                if (origDate != null)
-                  dataValues[0] = new String[]{origDate.toString()};
-                if (titleField != null)
-                  dataValues[1] = new String[]{titleField};
-                dataValues[2] = new String[]{documentIdentifier};
-                dataValues[3] = new String[categoryField.size()];
-                int q = 0;
-                while (q < categoryField.size())
+                if (contentsFile == null && filter.getChromedContentMode() != CHROMED_METADATA_ONLY)
                 {
-                  (dataValues[3])[q] = (String)categoryField.get(q);
-                  q++;
+                  // It's a reference!  Add it.
+                  String[] dataNames = new String[]{"pubdate","title","source","category","description"};
+                  String[][] dataValues = new String[dataNames.length][];
+                  if (origDate != null)
+                    dataValues[0] = new String[]{origDate.toString()};
+                  if (titleField != null)
+                    dataValues[1] = new String[]{titleField};
+                  dataValues[2] = new String[]{documentIdentifier};
+                  dataValues[3] = new String[categoryField.size()];
+                  int q = 0;
+                  while (q < categoryField.size())
+                  {
+                    (dataValues[3])[q] = (String)categoryField.get(q);
+                    q++;
+                  }
+                  if (descriptionField != null)
+                    dataValues[4] = new String[]{descriptionField};
+                    
+                  // Add document reference, including the data to pass down
+                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
                 }
-                if (descriptionField != null)
-                  dataValues[4] = new String[]{descriptionField};
+                else
+                {
+                  // The issue here is that if a document is ingested without a jobqueue entry, the document will not
+                  // be cleaned up if the job is deleted; nor is there any expiration possibility.  So, we really do need to make
+                  // sure a jobqueue entry gets created somehow.  Therefore I can't just ingest the document
+                  // right here.
+
+                  // Now, set up the carrydown info
+                  String[] dataNames = new String[]{"pubdate","title","source","category","data","description"};
+                  Object[][] dataValues = new Object[dataNames.length][];
+                  if (origDate != null)
+                    dataValues[0] = new String[]{origDate.toString()};
+                  if (titleField != null)
+                    dataValues[1] = new String[]{titleField};
+                  dataValues[2] = new String[]{documentIdentifier};
+                  dataValues[3] = new String[categoryField.size()];
+                  int q = 0;
+                  while (q < categoryField.size())
+                  {
+                    (dataValues[3])[q] = (String)categoryField.get(q);
+                    q++;
+                  }
+                  if (descriptionField != null)
+                    dataValues[5] = new String[]{descriptionField};
                   
-                // Add document reference, including the data to pass down
-                activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                  if (contentsFile == null)
+                  {
+                    CharacterInput ci = new NullCharacterInput();
+                    try
+                    {
+                      dataValues[4] = new Object[]{ci};
+
+                      // Add document reference, including the data to pass down, and the dechromed content too
+                      activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                    }
+                    finally
+                    {
+                      ci.discard();
+                    }
+                  }
+                  else
+                  {
+                    CharacterInput ci = new TempFileCharacterInput(contentsFile);
+                    try
+                    {
+                      contentsFile = null;
+
+                      dataValues[4] = new Object[]{ci};
+
+                      // Add document reference, including the data to pass down, and the dechromed content too
+                      activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
+                    }
+                    finally
+                    {
+                      ci.discard();
+                    }
+                  }
+                }
               }
               else
               {
-                // The issue here is that if a document is ingested without a jobqueue entry, the document will not
-                // be cleaned up if the job is deleted; nor is there any expiration possibility.  So, we really do need to make
-                // sure a jobqueue entry gets created somehow.  Therefore I can't just ingest the document
-                // right here.
-
-                // Now, set up the carrydown info
-                String[] dataNames = new String[]{"pubdate","title","source","category","data","description"};
-                Object[][] dataValues = new Object[dataNames.length][];
-                if (origDate != null)
-                  dataValues[0] = new String[]{origDate.toString()};
-                if (titleField != null)
-                  dataValues[1] = new String[]{titleField};
-                dataValues[2] = new String[]{documentIdentifier};
-                dataValues[3] = new String[categoryField.size()];
-                int q = 0;
-                while (q < categoryField.size())
-                {
-                  (dataValues[3])[q] = (String)categoryField.get(q);
-                  q++;
-                }
-                if (descriptionField != null)
-                  dataValues[5] = new String[]{descriptionField};
-                  
-                CharacterInput ci = new TempFileCharacterInput(contentsFile);
-                try
-                {
-                  contentsFile = null;
-
-                  dataValues[4] = new Object[]{ci};
-
-                  // Add document reference, including the data to pass down, and the dechromed content too
-                  activities.addDocumentReference(newIdentifier,documentIdentifier,null,dataNames,dataValues,origDate);
-                }
-                finally
-                {
-                  ci.discard();
-                }
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("RSS: Identifier '"+newIdentifier+"' is excluded");
               }
             }
             else
             {
               if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("RSS: Identifier '"+newIdentifier+"' is excluded");
+                Logging.connectors.debug("RSS: In Atom document '"+documentIdentifier+"', found an unincluded URL '"+rawURL+"'");
             }
-          }
-          else
-          {
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("RSS: In Atom document '"+documentIdentifier+"', found an unincluded URL '"+rawURL+"'");
           }
         }
       }
     }
   }
   
-  protected class UrlsetContextClass extends XMLContext
+  protected class UrlsetContextClass extends XMLParsingContext
   {
     /** The document identifier */
     protected String documentIdentifier;
@@ -4787,32 +4963,34 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     /** ttl value */
     protected String ttlValue = null;
 
-    public UrlsetContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts, String documentIdentifier, IProcessActivity activities, Filter filter)
+    public UrlsetContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts, String documentIdentifier, IProcessActivity activities, Filter filter)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
       this.documentIdentifier = documentIdentifier;
       this.activities = activities;
       this.filter = filter;
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "url", nothing else.
-      if (qName.equals("url") || qName.equals("sitemap"))
+      if (localName.equals("url") || localName.equals("sitemap"))
       {
         // Item seen.  We don't need any of the attributes etc., but we need to start a new context.
-        return new UrlsetItemContextClass(theStream,namespaceURI,localName,qName,atts);
+        return new UrlsetItemContextClass(theStream,namespace,localName,qName,atts);
       }
       // Skip everything else.
-      return super.beginTag(namespaceURI,localName,qName,atts);
+      return super.beginTag(namespace,localName,qName,atts);
     }
 
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("url") || theTag.equals("sitemap"))
       {
         // It's an item.
@@ -4877,50 +5055,52 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
   }
 
-  protected class UrlsetItemContextClass extends XMLContext
+  protected class UrlsetItemContextClass extends XMLParsingContext
   {
     protected String linkField = null;
     protected String pubDateField = null;
 
-    public UrlsetItemContextClass(XMLStream theStream, String namespaceURI, String localName, String qName, Attributes atts)
+    public UrlsetItemContextClass(XMLFuzzyHierarchicalParseState theStream, String namespace, String localName, String qName, Map<String,String> atts)
     {
-      super(theStream,namespaceURI,localName,qName,atts);
+      super(theStream,namespace,localName,qName,atts);
     }
 
-    protected XMLContext beginTag(String namespaceURI, String localName, String qName, Attributes atts)
-      throws ManifoldCFException, ServiceInterruption
+    @Override
+    protected XMLParsingContext beginTag(String namespace, String localName, String qName, Map<String,String> atts)
+      throws ManifoldCFException
     {
       // The tags we care about are "loc" and "lastmod", nothing else.
-      if (qName.equals("loc"))
+      if (localName.equals("loc"))
       {
         // "loc" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
-      else if (qName.equals("lastmod"))
+      else if (localName.equals("lastmod"))
       {
         // "lastmod" tag
-        return new XMLStringContext(theStream,namespaceURI,localName,qName,atts);
+        return new XMLStringParsingContext(theStream,namespace,localName,qName,atts);
       }
       else
       {
         // Skip everything else.
-        return super.beginTag(namespaceURI,localName,qName,atts);
+        return super.beginTag(namespace,localName,qName,atts);
       }
     }
 
     /** Convert the individual sub-fields of the item context into their final forms */
+    @Override
     protected void endTag()
-      throws ManifoldCFException, ServiceInterruption
+      throws ManifoldCFException
     {
-      XMLContext theContext = theStream.getContext();
-      String theTag = theContext.getQname();
+      XMLParsingContext theContext = theStream.getContext();
+      String theTag = theContext.getLocalname();
       if (theTag.equals("loc"))
       {
-        linkField = ((XMLStringContext)theContext).getValue();
+        linkField = ((XMLStringParsingContext)theContext).getValue();
       }
       else if (theTag.equals("lastmod"))
       {
-        pubDateField = ((XMLStringContext)theContext).getValue();
+        pubDateField = ((XMLStringParsingContext)theContext).getValue();
       }
       else
       {
@@ -4939,9 +5119,15 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       if (linkField != null && linkField.length() > 0)
       {
-        Long origDate = null;
+        Date origDateDate = null;
         if (pubDateField != null && pubDateField.length() > 0)
-          origDate = parseZuluDate(pubDateField);
+          origDateDate = DateParser.parseISO8601Date(pubDateField);
+
+        Long origDate;
+        if (origDateDate != null)
+          origDate = new Long(origDateDate.getTime());
+        else
+          origDate = null;
 
         String[] links = linkField.split(", ");
         int l = 0;
@@ -4983,365 +5169,6 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     }
   }
 
-  // Month map
-  protected static HashMap monthMap = new HashMap();
-  static
-  {
-    monthMap.put("jan",new Integer(1));
-    monthMap.put("feb",new Integer(2));
-    monthMap.put("mar",new Integer(3));
-    monthMap.put("apr",new Integer(4));
-    monthMap.put("may",new Integer(5));
-    monthMap.put("jun",new Integer(6));
-    monthMap.put("jul",new Integer(7));
-    monthMap.put("aug",new Integer(8));
-    monthMap.put("sep",new Integer(9));
-    monthMap.put("oct",new Integer(10));
-    monthMap.put("nov",new Integer(11));
-    monthMap.put("dec",new Integer(12));
-  }
-
-  /** Parse an RDF date */
-  protected static Long parseZuluDate(String dateValue)
-  {
-    dateValue = dateValue.trim();
-    // Format: YYYY-MM-DDTHH:MM:SSZ
-    // 2007-11-11T05:00:00Z
-    int index = dateValue.indexOf("-");
-    if (index == -1)
-      return null;
-    String year = dateValue.substring(0,index);
-    dateValue = dateValue.substring(index+1);
-    index = dateValue.indexOf("-");
-    if (index == -1)
-      return null;
-    String month = dateValue.substring(0,index);
-    dateValue = dateValue.substring(index+1);
-    index = dateValue.indexOf("T");
-    String day;
-    String hour = "0";
-    String minute = "0";
-    String second = "0";
-    String timezone = "GMT";
-    if (index != -1)
-    {
-      day = dateValue.substring(0,index);
-      dateValue = dateValue.substring(index+1);
-      index = dateValue.indexOf(":");
-      if (index == -1)
-        return null;
-      hour = dateValue.substring(0,index);
-      dateValue = dateValue.substring(index+1);
-      index = dateValue.indexOf(":");
-      if (index != -1)
-      {
-        minute = dateValue.substring(0,index);
-        dateValue = dateValue.substring(index+1);
-        if (dateValue.endsWith("Z"))
-        {
-          index = dateValue.indexOf("Z");
-          if (index == -1)
-            return null;
-        }
-        else
-        {
-          index = dateValue.indexOf("+");
-          if (index == -1)
-            index = dateValue.indexOf("-");
-          if (index == -1)
-            return null;
-          timezone = "GMT"+dateValue.substring(index);
-        }
-        second = dateValue.substring(0,index);
-      }
-      else
-      {
-        minute = dateValue;
-      }
-    }
-    else
-    {
-      day = dateValue;
-    }
-
-    // Now construct a calendar object from this
-    TimeZone tz = TimeZone.getTimeZone(timezone);
-
-    Calendar c = new GregorianCalendar(tz);
-    try
-    {
-      int value = Integer.parseInt(year);
-      c.set(Calendar.YEAR,value);
-
-      value = Integer.parseInt(month);
-      c.set(Calendar.MONTH,value-1);
-
-      value = Integer.parseInt(day);
-      c.set(Calendar.DAY_OF_MONTH,value);
-
-      value = Integer.parseInt(hour);
-      c.set(Calendar.HOUR_OF_DAY,value);
-
-      value = Integer.parseInt(minute);
-      c.set(Calendar.MINUTE,value);
-
-      int index2 = second.indexOf(".");
-      if (index2 != -1)
-        second = second.substring(0,index2);
-
-      value = Integer.parseInt(second);
-      c.set(Calendar.SECOND,value);
-
-      c.set(Calendar.MILLISECOND,0);
-      return new Long(c.getTimeInMillis());
-    }
-    catch (NumberFormatException e)
-    {
-      return null;
-    }
-
-
-  }
-
-  /** Parse a China Daily News date */
-  protected static Long parseChinaDate(String dateValue)
-  {
-    dateValue = dateValue.trim();
-    // Format: 2007/12/30 11:01
-    int index;
-    index = dateValue.indexOf("/");
-    if (index == -1)
-      return null;
-    String year = dateValue.substring(0,index);
-    dateValue = dateValue.substring(index+1);
-    index = dateValue.indexOf("/");
-    if (index == -1)
-      return null;
-    String month = dateValue.substring(0,index);
-    dateValue = dateValue.substring(index+1);
-    index = dateValue.indexOf(" ");
-    String day;
-    String hour = null;
-    String minute = null;
-    String second = null;
-    if (index == -1)
-      day = dateValue;
-    else
-    {
-      day = dateValue.substring(0,index);
-      dateValue = dateValue.substring(index+1);
-      index = dateValue.indexOf(":");
-      if (index == -1)
-        return null;
-      hour = dateValue.substring(0,index);
-      dateValue = dateValue.substring(index+1);
-      index = dateValue.indexOf(":");
-      if (index != -1)
-      {
-        minute = dateValue.substring(0,index);
-        dateValue = dateValue.substring(index+1);
-        second = dateValue;
-      }
-      else
-        minute = dateValue;
-    }
-    TimeZone tz = TimeZone.getTimeZone("GMT");
-    Calendar c = new GregorianCalendar(tz);
-    try
-    {
-      int value = Integer.parseInt(year);
-      if (value < 1900)
-        value += 1900;
-      c.set(Calendar.YEAR,value);
-
-      value = Integer.parseInt(month);
-      c.set(Calendar.MONTH,value-1);
-
-      value = Integer.parseInt(day);
-      c.set(Calendar.DAY_OF_MONTH,value);
-
-      if (hour != null)
-        value = Integer.parseInt(hour);
-      else
-        value = 0;
-      c.set(Calendar.HOUR_OF_DAY,value);
-
-      if (minute != null)
-        value = Integer.parseInt(minute);
-      else
-        value = 0;
-      c.set(Calendar.MINUTE,value);
-
-      if (second != null)
-        value = Integer.parseInt(second);
-      else
-        value = 0;
-      c.set(Calendar.SECOND,value);
-
-      c.set(Calendar.MILLISECOND,0);
-      return new Long(c.getTimeInMillis());
-    }
-    catch (NumberFormatException e)
-    {
-      return null;
-    }
-
-  }
-
-  /** Timezone mapping from RFC822 timezones to ones understood by Java */
-  protected static final HashMap milTzMap;
-  static
-  {
-    milTzMap = new HashMap();
-    milTzMap.put("Z","GMT");
-    milTzMap.put("UT","GMT");
-    milTzMap.put("A","GMT-01:00");
-    milTzMap.put("M","GMT-12:00");
-    milTzMap.put("N","GMT+01:00");
-    milTzMap.put("Y","GMT+12:00");
-  }
-
-  /** Parse an RSS date */
-  protected static Long parseRSSDate(String dateValue)
-  {
-    dateValue = dateValue.trim();
-    // See http://www.faqs.org/rfcs/rfc822.html for legal formats
-    // Format: [day of week,] day mo year hh24:mm:ss tz
-    int commaIndex = dateValue.indexOf(",");
-    String usable;
-    if (commaIndex == -1)
-      usable = dateValue;
-    else
-      usable = dateValue.substring(commaIndex+1).trim();
-    int index;
-
-    index = usable.indexOf(" ");
-    if (index == -1)
-      return null;
-    String day = usable.substring(0,index);
-    usable = usable.substring(index+1).trim();
-
-    index = usable.indexOf(" ");
-    if (index == -1)
-      return null;
-    String month = usable.substring(0,index).toLowerCase();
-    usable = usable.substring(index+1).trim();
-
-    String year;
-    String hour = null;
-    String minute = null;
-    String second = null;
-    String timezone = null;
-
-    index = usable.indexOf(" ");
-    if (index != -1)
-    {
-      year = usable.substring(0,index);
-      usable = usable.substring(index+1).trim();
-
-      index = usable.indexOf(":");
-      if (index == -1)
-        return null;
-      hour = usable.substring(0,index);
-      usable = usable.substring(index+1).trim();
-
-      index = usable.indexOf(":");
-      if (index != -1)
-      {
-        minute = usable.substring(0,index);
-        usable = usable.substring(index+1).trim();
-
-        index = usable.indexOf(" ");
-        if (index == -1)
-          second = usable;
-        else
-        {
-          second = usable.substring(0,index);
-          timezone = usable.substring(index+1).trim();
-        }
-      }
-      else
-      {
-        index = usable.indexOf(" ");
-        if (index == -1)
-          minute = usable;
-        else
-        {
-          minute = usable.substring(0,index);
-          timezone = usable.substring(index+1).trim();
-        }
-      }
-    }
-    else
-      year = usable;
-
-    // Now construct a calendar object from this
-    TimeZone tz;
-    if (timezone != null && timezone.length() > 0)
-    {
-      if (timezone.startsWith("+") || timezone.startsWith("-"))
-      {
-        if (timezone.indexOf(":") == -1 && timezone.length() > 3)
-          timezone = timezone.substring(0,timezone.length()-2) + ":" + timezone.substring(timezone.length()-2);
-        timezone = "GMT"+timezone;
-      }
-      else
-      {
-        // Map special timezones to java timezones
-        if (milTzMap.get(timezone) != null)
-          timezone = (String)milTzMap.get(timezone);
-      }
-
-    }
-    else
-      timezone = "GMT";
-
-
-    tz = TimeZone.getTimeZone(timezone);
-
-    Calendar c = new GregorianCalendar(tz);
-    try
-    {
-      int value = Integer.parseInt(year);
-      if (value < 1900)
-        value += 1900;
-      c.set(Calendar.YEAR,value);
-
-      Integer x = (Integer)monthMap.get(month);
-      if (x == null)
-        return null;
-      c.set(Calendar.MONTH,x.intValue()-1);
-
-      value = Integer.parseInt(day);
-      c.set(Calendar.DAY_OF_MONTH,value);
-
-      if (hour != null)
-        value = Integer.parseInt(hour);
-      else
-        value = 0;
-      c.set(Calendar.HOUR_OF_DAY,value);
-
-      if (minute != null)
-        value = Integer.parseInt(minute);
-      else
-        value = 0;
-      c.set(Calendar.MINUTE,value);
-
-      if (second != null)
-        value = Integer.parseInt(second);
-      else
-        value = 0;
-      c.set(Calendar.SECOND,value);
-
-      c.set(Calendar.MILLISECOND,0);
-      return new Long(c.getTimeInMillis());
-    }
-    catch (NumberFormatException e)
-    {
-      return null;
-    }
-
-  }
 
   /** Get the maximum number of documents to amalgamate together into one batch, for this connector.
   *@return the maximum number. 0 indicates "unlimited".
@@ -5424,6 +5251,70 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         fetcherMap.put(throttleGroupName,tf);
       }
       return tf;
+    }
+  }
+
+  /** Read a string as a sequence of individual expressions, urls, etc.
+  */
+  protected static ArrayList stringToArray(String input)
+  {
+    ArrayList list = new ArrayList();
+    try
+    {
+      java.io.Reader str = new java.io.StringReader(input);
+      try
+      {
+        java.io.BufferedReader is = new java.io.BufferedReader(str);
+        try
+        {
+          while (true)
+          {
+            String nextString = is.readLine();
+            if (nextString == null)
+              break;
+            if (nextString.length() == 0)
+              continue;
+            nextString.trim();
+            if (nextString.startsWith("#"))
+              continue;
+            list.add(nextString);
+          }
+        }
+        finally
+        {
+          is.close();
+        }
+      }
+      finally
+      {
+        str.close();
+      }
+    }
+    catch (java.io.IOException e)
+    {
+      // Eat the exception and exit.
+    }
+    return list;
+  }
+
+  /** Compile all regexp entries in the passed in list, and add them to the output
+  * list.
+  */
+  protected static void compileList(ArrayList output, ArrayList input)
+    throws ManifoldCFException
+  {
+    int i = 0;
+    while (i < input.size())
+    {
+      String inputString = (String)input.get(i++);
+      try
+      {
+        output.add(Pattern.compile(inputString));
+      }
+      catch (PatternSyntaxException e)
+      {
+        throw new ManifoldCFException("Mapping regular expression '"+inputString+"' is illegal: "+e.getMessage(),e);
+      }
     }
   }
 
@@ -5890,11 +5781,17 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     protected ArrayList metadata = new ArrayList();
     protected HashMap acls = new HashMap();
     protected CanonicalizationPolicies canonicalizationPolicies = new CanonicalizationPolicies();
+    /** The arraylist of include patterns */
+    protected ArrayList includePatterns = new ArrayList();
+    /** The arraylist of exclude patterns */
+    protected ArrayList excludePatterns = new ArrayList();
 
     /** Constructor. */
     public Filter(DocumentSpecification spec, boolean warnOnBadSeed)
       throws ManifoldCFException
     {
+      String excludes = "";
+
       // To save allocation, preallocate the seeds map assuming that it will require 1.5x the number of nodes in the spec
       int initialSize = spec.getChildCount();
       if (initialSize == 0)
@@ -5907,10 +5804,10 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
       while (i < spec.getChildCount())
       {
         SpecificationNode n = spec.getChild(i++);
-        if (n.getType().equals("map"))
+        if (n.getType().equals(RSSConfig.NODE_MAP))
         {
-          String match = n.getAttributeValue("match");
-          String map = n.getAttributeValue("map");
+          String match = n.getAttributeValue(RSSConfig.ATTR_MATCH);
+          String map = n.getAttributeValue(RSSConfig.ATTR_MAP);
           if (match != null && match.length() > 0)
           {
             Pattern p;
@@ -5927,66 +5824,72 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             mappings.add(new MappingRule(p,map));
           }
         }
-        else if (n.getType().equals("urlspec"))
+        else if (n.getType().equals(RSSConfig.NODE_EXCLUDES))
         {
-          String urlRegexp = n.getAttributeValue("regexp");
+          excludes = n.getValue();
+          if (excludes == null)
+            excludes = "";
+        }
+        else if (n.getType().equals(RSSConfig.NODE_URLSPEC))
+        {
+          String urlRegexp = n.getAttributeValue(RSSConfig.ATTR_REGEXP);
           if (urlRegexp == null)
             urlRegexp = "";
-          String reorder = n.getAttributeValue("reorder");
+          String reorder = n.getAttributeValue(RSSConfig.ATTR_REORDER);
           boolean reorderValue;
           if (reorder == null)
             reorderValue = false;
           else
           {
-            if (reorder.equals("yes"))
+            if (reorder.equals(RSSConfig.VALUE_YES))
               reorderValue = true;
             else
               reorderValue = false;
           }
 
-          String javaSession = n.getAttributeValue("javasessionremoval");
+          String javaSession = n.getAttributeValue(RSSConfig.ATTR_JAVASESSIONREMOVAL);
           boolean javaSessionValue;
           if (javaSession == null)
             javaSessionValue = false;
           else
           {
-            if (javaSession.equals("yes"))
+            if (javaSession.equals(RSSConfig.VALUE_YES))
               javaSessionValue = true;
             else
               javaSessionValue = false;
           }
 
-          String aspSession = n.getAttributeValue("aspsessionremoval");
+          String aspSession = n.getAttributeValue(RSSConfig.ATTR_ASPSESSIONREMOVAL);
           boolean aspSessionValue;
           if (aspSession == null)
             aspSessionValue = false;
           else
           {
-            if (aspSession.equals("yes"))
+            if (aspSession.equals(RSSConfig.VALUE_YES))
               aspSessionValue = true;
             else
               aspSessionValue = false;
           }
 
-          String phpSession = n.getAttributeValue("phpsessionremoval");
+          String phpSession = n.getAttributeValue(RSSConfig.ATTR_PHPSESSIONREMOVAL);
           boolean phpSessionValue;
           if (phpSession == null)
             phpSessionValue = false;
           else
           {
-            if (phpSession.equals("yes"))
+            if (phpSession.equals(RSSConfig.VALUE_YES))
               phpSessionValue = true;
             else
               phpSessionValue = false;
           }
 
-          String bvSession = n.getAttributeValue("bvsessionremoval");
+          String bvSession = n.getAttributeValue(RSSConfig.ATTR_BVSESSIONREMOVAL);
           boolean bvSessionValue;
           if (bvSession == null)
             bvSessionValue = false;
           else
           {
-            if (bvSession.equals("yes"))
+            if (bvSession.equals(RSSConfig.VALUE_YES))
               bvSessionValue = true;
             else
               bvSessionValue = false;
@@ -6003,14 +5906,16 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
         }
       }
 
+      compileList(excludePatterns,stringToArray(excludes));
+
       // Second pass.  Do the rest of the work,
       i = 0;
       while (i < spec.getChildCount())
       {
         SpecificationNode n = spec.getChild(i++);
-        if (n.getType().equals("feed"))
+        if (n.getType().equals(RSSConfig.NODE_FEED))
         {
-          String rssURL = n.getAttributeValue("url");
+          String rssURL = n.getAttributeValue(RSSConfig.ATTR_URL);
           if (rssURL != null && rssURL.length() > 0)
           {
             String canonicalURL = makeDocumentIdentifier(canonicalizationPolicies,null,rssURL);
@@ -6025,21 +5930,21 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             }
           }
         }
-        else if (n.getType().equals("metadata"))
+        else if (n.getType().equals(RSSConfig.NODE_METADATA))
         {
-          String name = n.getAttributeValue("name");
-          String value = n.getAttributeValue("value");
+          String name = n.getAttributeValue(RSSConfig.ATTR_NAME);
+          String value = n.getAttributeValue(RSSConfig.ATTR_VALUE);
           if (name != null && name.length() > 0 && value != null && value.length() > 0)
             metadata.add(new NameValue(name,value));
         }
-        else if (n.getType().equals("access"))
+        else if (n.getType().equals(RSSConfig.NODE_ACCESS))
         {
-          String token = n.getAttributeValue("token");
+          String token = n.getAttributeValue(RSSConfig.ATTR_TOKEN);
           acls.put(token,token);
         }
-        else if (n.getType().equals("feedrescan"))
+        else if (n.getType().equals(RSSConfig.NODE_FEEDRESCAN))
         {
-          String interval = n.getAttributeValue("value");
+          String interval = n.getAttributeValue(RSSConfig.ATTR_VALUE);
           if (interval != null && interval.length() > 0)
           {
             try
@@ -6052,9 +5957,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             }
           }
         }
-        else if (n.getType().equals("minfeedrescan"))
+        else if (n.getType().equals(RSSConfig.NODE_MINFEEDRESCAN))
         {
-          String interval = n.getAttributeValue("value");
+          String interval = n.getAttributeValue(RSSConfig.ATTR_VALUE);
           if (interval != null && interval.length() > 0)
           {
             try
@@ -6067,9 +5972,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             }
           }
         }
-        else if (n.getType().equals("badfeedrescan"))
+        else if (n.getType().equals(RSSConfig.NODE_BADFEEDRESCAN))
         {
-          String interval = n.getAttributeValue("value");
+          String interval = n.getAttributeValue(RSSConfig.ATTR_VALUE);
           if (interval != null && interval.length() > 0)
           {
             try
@@ -6082,9 +5987,9 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             }
           }
         }
-        else if (n.getType().equals("feedtimeout"))
+        else if (n.getType().equals(RSSConfig.NODE_FEEDTIMEOUT))
         {
-          String value = n.getAttributeValue("value");
+          String value = n.getAttributeValue(RSSConfig.ATTR_VALUE);
           if (value != null && value.length() > 0)
           {
             try
@@ -6097,28 +6002,30 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
             }
           }
         }
-        else if (n.getType().equals("dechromedmode"))
+        else if (n.getType().equals(RSSConfig.NODE_DECHROMEDMODE))
         {
-          String mode = n.getAttributeValue("mode");
+          String mode = n.getAttributeValue(RSSConfig.ATTR_MODE);
           if (mode != null && mode.length() > 0)
           {
-            if (mode.equals("none"))
+            if (mode.equals(RSSConfig.VALUE_NONE))
               dechromedContentMode = DECHROMED_NONE;
-            else if (mode.equals("description"))
+            else if (mode.equals(RSSConfig.VALUE_DESCRIPTION))
               dechromedContentMode = DECHROMED_DESCRIPTION;
-            else if (mode.equals("content"))
+            else if (mode.equals(RSSConfig.VALUE_CONTENT))
               dechromedContentMode = DECHROMED_CONTENT;
           }
         }
-        else if (n.getType().equals("chromedmode"))
+        else if (n.getType().equals(RSSConfig.NODE_CHROMEDMODE))
         {
-          String mode = n.getAttributeValue("mode");
+          String mode = n.getAttributeValue(RSSConfig.ATTR_MODE);
           if (mode != null && mode.length() > 0)
           {
-            if (mode.equals("use"))
+            if (mode.equals(RSSConfig.VALUE_USE))
               chromedContentMode = CHROMED_USE;
-            else if (mode.equals("skip"))
+            else if (mode.equals(RSSConfig.VALUE_SKIP))
               chromedContentMode = CHROMED_SKIP;
+            else if (mode.equals(RSSConfig.VALUE_METADATA))
+              chromedContentMode = CHROMED_METADATA_ONLY;
           }
         }
       }
@@ -6205,7 +6112,28 @@ public class RSSConnector extends org.apache.manifoldcf.crawler.connectors.BaseR
     {
       if (seeds.get(url) != null)
         return true;
-      return mappings.isMatch(url);
+      if (mappings.isMatch(url) == false)
+      {
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("RSS: Url '"+url+"' is illegal because it did not match a mapping rule");
+        return false;
+      }
+      // Now make sure it's not in the exclude list.
+      int i = 0;
+      while (i < excludePatterns.size())
+      {
+        Pattern p = (Pattern)excludePatterns.get(i);
+        Matcher m = p.matcher(url);
+        if (m.find())
+        {
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("RSS: Url '"+url+"' is illegal because exclude pattern '"+p.toString()+"' matched it");
+          return false;
+        }
+        i++;
+      }
+
+      return true;
     }
 
     /** Scan patterns and return the one that matches first.

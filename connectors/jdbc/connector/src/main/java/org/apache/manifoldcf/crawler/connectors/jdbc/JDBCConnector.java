@@ -241,6 +241,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     String queryText = sb.toString();
     long startQueryTime = System.currentTimeMillis();
+    // Contract for IDynamicResultset indicates that if successfully obtained, it MUST
+    // be closed.
     try
     {
       idSet = connection.executeUncachedQuery(queryText,paramList,-1);
@@ -357,6 +359,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     IDynamicResultSet result;
     String queryText = sb.toString();
     long startTime = System.currentTimeMillis();
+    // Get a dynamic resultset.  Contract for dynamic resultset is that if
+    // one is returned, it MUST be closed, or a connection will leak.
     try
     {
       result = connection.executeUncachedQuery(queryText,paramList,-1);
@@ -368,11 +372,11 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
       throw e;
     }
-    // If success, record that too.
-    activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
-      createQueryString(queryText,paramList), "OK", null, null);
     try
     {
+      // If success, record that too.
+      activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+        createQueryString(queryText,paramList), "OK", null, null);
       // Now, go through resultset
       while (true)
       {
@@ -442,6 +446,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     addConstant(vm,JDBCConstants.idReturnVariable,JDBCConstants.idReturnColumnName);
     addConstant(vm,JDBCConstants.urlReturnVariable,JDBCConstants.urlReturnColumnName);
     addConstant(vm,JDBCConstants.dataReturnVariable,JDBCConstants.dataReturnColumnName);
+    addConstant(vm,JDBCConstants.contentTypeReturnVariable,JDBCConstants.contentTypeReturnColumnName);
     if (!addIDList(vm,JDBCConstants.idListVariable,documentIdentifiers,scanOnly))
       return;
 
@@ -470,6 +475,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     IDynamicResultSet result;
     String queryText = sb.toString();
     long startTime = System.currentTimeMillis();
+    // Get a dynamic resultset.  Contract for dynamic resultset is that if
+    // one is returned, it MUST be closed, or a connection will leak.
     try
     {
       result = connection.executeUncachedQuery(queryText,paramList,-1);
@@ -481,12 +488,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
         createQueryString(queryText,paramList), "ERROR", e.getMessage(), null);
       throw e;
     }
-    // If success, record that too.
-    activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
-      createQueryString(queryText,paramList), "OK", null, null);
-
     try
     {
+      // If success, record that too.
+      activities.recordActivity(new Long(startTime), ACTIVITY_EXTERNAL_QUERY, null,
+        createQueryString(queryText,paramList), "OK", null, null);
+
       while (true)
       {
         IResultRow row = result.getNextRow();
@@ -529,11 +536,24 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 // We will ingest something, so remove this id from the map in order that we know what we still
                 // need to delete when all done.
                 map.remove(id);
+                String contentType;
+                o = row.getValue(JDBCConstants.contentTypeReturnColumnName);
+                if (o != null)
+                  contentType = readAsString(o);
+                else
+                  contentType = null;
+                
                 if (contents instanceof BinaryInput)
                 {
                   // An ingestion will take place for this document.
                   RepositoryDocument rd = new RepositoryDocument();
 
+                  // Default content type is application/octet-stream for binary data
+                  if (contentType == null)
+                    rd.setMimeType("application/octet-stream");
+                  else
+                    rd.setMimeType(contentType);
+                  
                   applyAccessTokens(rd,version,spec);
                   applyMetadata(rd,row);
 
@@ -578,6 +598,12 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
                     byte[] bytes = value.getBytes("utf-8");
                     RepositoryDocument rd = new RepositoryDocument();
 
+                    // Default content type is text/plain for character data
+                    if (contentType == null)
+                      rd.setMimeType("text/plain");
+                    else
+                      rd.setMimeType(contentType);
+                    
                     applyAccessTokens(rd,version,spec);
                     applyMetadata(rd,row);
 
@@ -1382,6 +1408,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     documentKnownColumns.put(JDBCConstants.idReturnColumnName,"");
     documentKnownColumns.put(JDBCConstants.urlReturnColumnName,"");
     documentKnownColumns.put(JDBCConstants.dataReturnColumnName,"");
+    documentKnownColumns.put(JDBCConstants.contentTypeReturnColumnName,"");
   }
   
   /** Apply metadata to a repository document.

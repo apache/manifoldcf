@@ -134,6 +134,7 @@ public class TempFileCharacterInput extends CharacterInput
   }
 
   /** Open a Utf8 stream directly from the backing file */
+  @Override
   public InputStream getUtf8Stream()
     throws ManifoldCFException
   {
@@ -151,6 +152,7 @@ public class TempFileCharacterInput extends CharacterInput
     return null;
   }
 
+  @Override
   protected void openStream()
     throws ManifoldCFException
   {
@@ -171,6 +173,7 @@ public class TempFileCharacterInput extends CharacterInput
   }
 
   /** Transfer to a new object; this causes the current object to become "already discarded" */
+  @Override
   public CharacterInput transfer()
   {
     // Create a new TempFileCharacterInput object, and fill it with our current stuff
@@ -186,6 +189,7 @@ public class TempFileCharacterInput extends CharacterInput
     return rval;
   }
 
+  @Override
   public void discard()
     throws ManifoldCFException
   {
@@ -199,6 +203,7 @@ public class TempFileCharacterInput extends CharacterInput
   }
 
   /** Calculate the datum's length in characters */
+  @Override
   protected void calculateLength()
     throws ManifoldCFException
   {
@@ -206,6 +211,7 @@ public class TempFileCharacterInput extends CharacterInput
   }
 
   /** Calculate the datum's hash value */
+  @Override
   protected void calculateHashValue()
     throws ManifoldCFException
   {

@@ -28,6 +28,7 @@ public class NewDictionary implements NewOperation
   *@param currentStream is the current token stream.
   *@return the variable reference that got created.  Should never be null.
   */
+  @Override
   public VariableReference parseAndCreate(ScriptParser sp, TokenStream currentStream)
     throws ScriptException
   {
@@ -38,6 +39,7 @@ public class NewDictionary implements NewOperation
   *@param sp is the script parser to use to help in the parsing.
   *@param currentStream is the current token stream.
   */
+  @Override
   public void parseAndSkip(ScriptParser sp, TokenStream currentStream)
     throws ScriptException
   {

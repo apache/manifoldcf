@@ -22,6 +22,7 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
+import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;
 import java.util.*;
 import java.io.*;
 
@@ -51,6 +52,16 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   public FileConnector()
   {
+  }
+
+  /** Tell the world what model this connector uses for getDocumentIdentifiers().
+  * This must return a model value as specified above.
+  *@return the model type value.
+  */
+  @Override
+  public int getConnectorModel()
+  {
+    return MODEL_CHAINED_ADD_CHANGE;
   }
 
   /** Return the list of relationship types that this connector recognizes.
@@ -278,7 +289,10 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
                     long fileBytes = file.length();
                     RepositoryDocument data = new RepositoryDocument();
                     data.setBinary(is,fileBytes);
-                    data.setFileName(file.getName());
+                    String fileName = file.getName();
+                    data.setFileName(fileName);
+                    data.setMimeType(mapExtensionToMimeType(fileName));
+                    data.setModifiedDate(new Date(file.lastModified()));
                     data.addField("uri",file.toString());
                     // MHL for other metadata
                     activities.ingestDocument(documentIdentifier,version,convertToURI(documentIdentifier),data);
@@ -306,6 +320,18 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       i++;
     }
+  }
+
+  /** Map an extension to a mime type */
+  protected static String mapExtensionToMimeType(String fileName)
+  {
+    int slashIndex = fileName.lastIndexOf("/");
+    if (slashIndex != -1)
+      fileName = fileName.substring(slashIndex+1);
+    int dotIndex = fileName.lastIndexOf(".");
+    if (dotIndex == -1)
+      return null;
+    return ExtensionMimeMap.mapToMimeType(fileName.substring(dotIndex+1).toLowerCase(java.util.Locale.ROOT));
   }
 
   // UI support methods.

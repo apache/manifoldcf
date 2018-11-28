@@ -135,38 +135,15 @@ public class StartupThread extends Thread
                   // Get the number of link types.
                   String[] legalLinkTypes = connector.getRelationshipTypes();
 
-                  // The old logic here looked at the model, and if it was incomplete, either
-                  // performed a complete crawl initialization, or an incremental crawl initialization.
-                  // The fact is that we can now determine automatically what kind of crawl should be
-                  // done, based on the model the connector states and on the starting time that we
-                  // would be feeding it.  (The starting time is reset to 0 when the document specification
-                  // is changed - that's a crucial consideration.)
-                  //
-                  // The new logic does this:
-                  //
-                  // (1) If the connector has MODEL_ADD_CHANGE_DELETE, then
-                  // we let the connector run the show; there's no purge phase, and therefore the
-                  // documents are left in a COMPLETED state if they don't show up in the list
-                  // of seeds that require the attention of the connector.
-                  //
-                  // (2) If the connector has MODEL_ALL, then it's a full crawl no matter what, so
-                  // we do a full scan initialization.
-                  //
-                  // (3) If the connector has some other model, we look at the start time.  A start
-                  // time of 0 implies a full scan, while any other start time implies an incremental
-                  // scan.
-
-                  if (model != connector.MODEL_ADD_CHANGE_DELETE)
-                  {
-                    if (Logging.threads.isDebugEnabled())
-                      Logging.threads.debug("Preparing job "+jobID.toString()+" for execution...");
-                    if (jobType != IJobDescription.TYPE_CONTINUOUS && model != connector.MODEL_PARTIAL && (model == connector.MODEL_ALL || lastJobTime == 0L))
-                      jobManager.prepareFullScan(jobID,legalLinkTypes,hopcountMethod);
-                    else
-                      jobManager.prepareIncrementalScan(jobID,legalLinkTypes,hopcountMethod);
-                    if (Logging.threads.isDebugEnabled())
-                      Logging.threads.debug("Prepared job "+jobID.toString()+" for execution.");
-                  }
+                  boolean requestMinimum = jsr.getRequestMinimum();
+                  
+                  if (Logging.threads.isDebugEnabled())
+                    Logging.threads.debug("Preparing job "+jobID.toString()+" for execution...");
+                  jobManager.prepareJobScan(jobID,legalLinkTypes,hopcountMethod,
+                    model,jobType == IJobDescription.TYPE_CONTINUOUS,lastJobTime == 0L,
+                    requestMinimum);
+                  if (Logging.threads.isDebugEnabled())
+                    Logging.threads.debug("Prepared job "+jobID.toString()+" for execution.");
 
                   try
                   {

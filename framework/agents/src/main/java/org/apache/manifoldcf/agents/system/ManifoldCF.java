@@ -265,7 +265,17 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
       return null;
     return node.getValue();
   }
-  
+
+  /** Create an error node with a general error message. */
+  public static void createErrorNode(Configuration output, String errorMessage)
+    throws ManifoldCFException
+  {
+    ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
+    error.setValue(errorMessage);
+    output.addChild(output.getChildCount(),error);
+  }
+
+
   /** Handle an exception, by converting it to an error node. */
   public static void createErrorNode(Configuration output, ManifoldCFException e)
     throws ManifoldCFException
@@ -273,9 +283,7 @@ public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
     if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
       throw e;
     Logging.api.error(e.getMessage(),e);
-    ConfigurationNode error = new ConfigurationNode(API_ERRORNODE);
-    error.setValue(e.getMessage());
-    output.addChild(output.getChildCount(),error);
+    createErrorNode(output,e.getMessage());
   }
 
   /** Handle a service interruption, by converting it to a serviceinterruption node. */

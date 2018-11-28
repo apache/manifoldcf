@@ -30,7 +30,19 @@ import org.junit.*;
 /** Tests that run the "agents daemon" should be derived from this */
 public class BaseITPostgresql extends ConnectorBasePostgresql
 {
-  protected ManifoldCFInstance mcfInstance = new ManifoldCFInstance();
+  protected final ManifoldCFInstance mcfInstance;
+  
+  public BaseITPostgresql()
+  {
+    super();
+    mcfInstance = new ManifoldCFInstance();
+  }
+  
+  public BaseITPostgresql(boolean singleWar)
+  {
+    super();
+    mcfInstance = new ManifoldCFInstance(singleWar);
+  }
   
   // Basic job support
   

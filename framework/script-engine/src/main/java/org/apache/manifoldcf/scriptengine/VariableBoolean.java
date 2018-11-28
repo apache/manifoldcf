@@ -30,11 +30,13 @@ public class VariableBoolean extends VariableBase
     this.value = value;
   }
 
+  @Override
   public int hashCode()
   {
     return new Boolean(value).hashCode();
   }
   
+  @Override
   public boolean equals(Object o)
   {
     if (!(o instanceof VariableBoolean))
@@ -42,7 +44,16 @@ public class VariableBoolean extends VariableBase
     return ((VariableBoolean)o).value == value;
   }
 
+  /** Check if the variable has a script value */
+  @Override
+  public boolean hasScriptValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
   /** Get the variable's script value */
+  @Override
   public String getScriptValue()
     throws ScriptException
   {
@@ -51,13 +62,23 @@ public class VariableBoolean extends VariableBase
     return "false";
   }
 
+  /** Check if the variable has a boolean value */
+  @Override
+  public boolean hasBooleanValue()
+    throws ScriptException
+  {
+    return true;
+  }
+
   /** Get the variable's value as a boolean */
+  @Override
   public boolean getBooleanValue()
     throws ScriptException
   {
     return value;
   }
 
+  @Override
   public VariableReference doubleEquals(Variable v)
     throws ScriptException
   {
@@ -74,6 +95,7 @@ public class VariableBoolean extends VariableBase
     return new VariableBoolean(value != v.getBooleanValue());
   }
 
+  @Override
   public VariableReference doubleAmpersand(Variable v)
     throws ScriptException
   {
@@ -82,6 +104,7 @@ public class VariableBoolean extends VariableBase
     return new VariableBoolean(value && v.getBooleanValue());
   }
     
+  @Override
   public VariableReference doublePipe(Variable v)
     throws ScriptException
   {
@@ -90,6 +113,7 @@ public class VariableBoolean extends VariableBase
     return new VariableBoolean(value || v.getBooleanValue());
   }
 
+  @Override
   public VariableReference ampersand(Variable v)
     throws ScriptException
   {
@@ -98,6 +122,7 @@ public class VariableBoolean extends VariableBase
     return new VariableBoolean(value && v.getBooleanValue());
   }
     
+  @Override
   public VariableReference pipe(Variable v)
     throws ScriptException
   {
@@ -106,6 +131,7 @@ public class VariableBoolean extends VariableBase
     return new VariableBoolean(value || v.getBooleanValue());
   }
 
+  @Override
   public VariableReference unaryExclamation()
     throws ScriptException
   {

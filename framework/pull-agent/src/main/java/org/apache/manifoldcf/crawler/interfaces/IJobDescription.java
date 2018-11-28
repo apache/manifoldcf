@@ -225,4 +225,19 @@ public interface IJobDescription
   /** Set the hopcount mode. */
   public void setHopcountMode(int mode);
 
+  // Forced metadata
+  
+  /** Get the forced metadata.
+  *@return the set as a map, keyed by metadata name, with value a set of strings.
+  */
+  public Map<String,Set<String>> getForcedMetadata();
+  
+  /** Clear forced metadata.
+  */
+  public void clearForcedMetadata();
+  
+  /** Add a forced metadata name/value pair.
+  */
+  public void addForcedMetadataValue(String name, String value);
+  
 }

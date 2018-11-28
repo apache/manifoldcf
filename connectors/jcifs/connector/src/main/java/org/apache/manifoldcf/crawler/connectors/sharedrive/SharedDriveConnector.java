@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Date;
 
 import jcifs.smb.ACE;
 import jcifs.smb.NtlmPasswordAuthentication;
@@ -60,6 +61,7 @@ import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.crawler.interfaces.IVersionActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
+import org.apache.manifoldcf.core.extmimemap.ExtensionMimeMap;
 
 /** This is the "repository connector" for a smb/cifs shared drive file system.  It's a relative of the share crawler, and should have
 * comparable basic functionality.
@@ -722,134 +724,135 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
               long startFetchTime = System.currentTimeMillis();
               String fileName = getFileCanonicalPath(file);
-              if (fileName != null)
+              if (fileName != null && !file.isHidden())
               {
-                // manipulate path to include the DFS alias, not the literal path
-                // String newPath = matchPrefix + fileName.substring(matchReplace.length());
-                String newPath = fileName;
-                if (checkNeedFileData(newPath, spec))
-                {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("JCIFS: Local file data needed for '"+documentIdentifier+"'");
+                // Initialize repository document with common stuff, and find the URI
+                RepositoryDocument rd = new RepositoryDocument();
+                String uri = prepareForIndexing(rd,file,version);
 
-                  // Create a temporary file, and use that for the check and then the ingest
-                  File tempFile = File.createTempFile("_sdc_",null);
-                  try
+                if (activities.checkURLIndexable(uri))
+                {
+
+                  // manipulate path to include the DFS alias, not the literal path
+                  // String newPath = matchPrefix + fileName.substring(matchReplace.length());
+                  String newPath = fileName;
+                  if (checkNeedFileData(newPath, spec))
                   {
-                    FileOutputStream os = new FileOutputStream(tempFile);
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("JCIFS: Local file data needed for '"+documentIdentifier+"'");
+
+                    // Create a temporary file, and use that for the check and then the ingest
+                    File tempFile = File.createTempFile("_sdc_",null);
                     try
                     {
-
-                      // Now, make a local copy so we can fingerprint
-                      InputStream inputStream = getFileInputStream(file);
+                      FileOutputStream os = new FileOutputStream(tempFile);
                       try
                       {
-                        // Copy!
-                        if (transferBuffer == null)
-                          transferBuffer = new byte[65536];
-                        while (true)
+
+                        // Now, make a local copy so we can fingerprint
+                        InputStream inputStream = getFileInputStream(file);
+                        try
                         {
-                          int amt = inputStream.read(transferBuffer,0,transferBuffer.length);
-                          if (amt == -1)
-                            break;
-                          os.write(transferBuffer,0,amt);
+                          // Copy!
+                          if (transferBuffer == null)
+                            transferBuffer = new byte[65536];
+                          while (true)
+                          {
+                            int amt = inputStream.read(transferBuffer,0,transferBuffer.length);
+                            if (amt == -1)
+                              break;
+                            os.write(transferBuffer,0,amt);
+                          }
+                        }
+                        finally
+                        {
+                          inputStream.close();
                         }
                       }
                       finally
                       {
-                        inputStream.close();
+                        os.close();
+                      }
+
+                      if (checkIngest(tempFile, newPath, spec, activities))
+                      {
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("JCIFS: Decided to ingest '"+documentIdentifier+"'");
+                        // OK, do ingestion itself!
+                        InputStream inputStream = new FileInputStream(tempFile);
+                        try
+                        {
+                          rd.setBinary(inputStream, tempFile.length());
+                          
+                          activities.ingestDocument(documentIdentifier, version, uri, rd);
+                        }
+                        finally
+                        {
+                          inputStream.close();
+                        }
+
+                        // I put this record here deliberately for two reasons:
+                        // (1) the other path includes ingestion time, and
+                        // (2) if anything fails up to and during ingestion, I want THAT failure record to be written, not this one.
+                        // So, really, ACTIVITY_ACCESS is a bit more than just fetch for JCIFS...
+                        activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
+                          new Long(tempFile.length()),documentIdentifier,"Success",null,null);
+
+                      }
+                      else
+                      {
+                        // We must actively remove the document here, because the getDocumentVersions()
+                        // method has no way of signalling this, since it does not do the fingerprinting.
+                        if (Logging.connectors.isDebugEnabled())
+                          Logging.connectors.debug("JCIFS: Decided to remove '"+documentIdentifier+"'");
+                        activities.deleteDocument(documentIdentifier, version);
+                        // We should record the access here as well, since this is a non-exception way through the code path.
+                        // (I noticed that this was not being recorded in the history while fixing 25477.)
+                        activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
+                          new Long(tempFile.length()),documentIdentifier,"Success",null,null);
                       }
                     }
                     finally
                     {
-                      os.close();
-                    }
-
-
-                    if (checkIngest(tempFile, newPath, spec, activities))
-                    {
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("JCIFS: Decided to ingest '"+documentIdentifier+"'");
-                      // OK, do ingestion itself!
-                      InputStream inputStream = new FileInputStream(tempFile);
-                      try
-                      {
-                        RepositoryDocument rd = new RepositoryDocument();
-                        rd.setBinary(inputStream, tempFile.length());
-                        rd.setFileName(file.getName());
-                        int index = 0;
-                        index = setDocumentSecurity(rd,version,index);
-                        index = setPathMetadata(rd,version,index);
-                        StringBuilder ingestURI = new StringBuilder();
-                        index = unpack(ingestURI,version,index,'+');
-                        activities.ingestDocument(documentIdentifier, version, ingestURI.toString(), rd);
-                      }
-                      finally
-                      {
-                        inputStream.close();
-                      }
-
-                      // I put this record here deliberately for two reasons:
-                      // (1) the other path includes ingestion time, and
-                      // (2) if anything fails up to and during ingestion, I want THAT failure record to be written, not this one.
-                      // So, really, ACTIVITY_ACCESS is a bit more than just fetch for JCIFS...
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
-                        new Long(tempFile.length()),documentIdentifier,"Success",null,null);
-
-                    }
-                    else
-                    {
-                      // We must actively remove the document here, because the getDocumentVersions()
-                      // method has no way of signalling this, since it does not do the fingerprinting.
-                      if (Logging.connectors.isDebugEnabled())
-                        Logging.connectors.debug("JCIFS: Decided to remove '"+documentIdentifier+"'");
-                      activities.deleteDocument(documentIdentifier, version);
-                      // We should record the access here as well, since this is a non-exception way through the code path.
-                      // (I noticed that this was not being recorded in the history while fixing 25477.)
-                      activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
-                        new Long(tempFile.length()),documentIdentifier,"Success",null,null);
+                      tempFile.delete();
                     }
                   }
-                  finally
+                  else
                   {
-                    tempFile.delete();
+                    if (Logging.connectors.isDebugEnabled())
+                      Logging.connectors.debug("JCIFS: Local file data not needed for '"+documentIdentifier+"'");
+
+                    // Presume that since the file was queued that it fulfilled the needed criteria.
+                    // Go off and ingest the fast way.
+
+                    // Ingest the document.
+                    InputStream inputStream = getFileInputStream(file);
+                    try
+                    {
+                      rd.setBinary(inputStream, fileLength(file));
+                      
+                      activities.ingestDocument(documentIdentifier, version, uri, rd);
+                    }
+                    finally
+                    {
+                      inputStream.close();
+                    }
+                    activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
+                      new Long(fileLength(file)),documentIdentifier,"Success",null,null);
                   }
                 }
                 else
                 {
-                  if (Logging.connectors.isDebugEnabled())
-                    Logging.connectors.debug("JCIFS: Local file data not needed for '"+documentIdentifier+"'");
-
-                  // Presume that since the file was queued that it fulfilled the needed criteria.
-                  // Go off and ingest the fast way.
-
-                  // Ingest the document.
-                  InputStream inputStream = getFileInputStream(file);
-                  try
-                  {
-                    RepositoryDocument rd = new RepositoryDocument();
-                    rd.setBinary(inputStream, fileLength(file));
-                    rd.setFileName(file.getName());
-                    int index = 0;
-                    index = setDocumentSecurity(rd,version,index);
-                    index = setPathMetadata(rd,version,index);
-                    StringBuilder ingestURI = new StringBuilder();
-                    index = unpack(ingestURI,version,index,'+');
-                    activities.ingestDocument(documentIdentifier, versions[i], ingestURI.toString(), rd);
-                  }
-                  finally
-                  {
-                    inputStream.close();
-                  }
-                  activities.recordActivity(new Long(startFetchTime),ACTIVITY_ACCESS,
-                    new Long(fileLength(file)),documentIdentifier,"Success",null,null);
+                  Logging.connectors.debug("JCIFS: Skipping file because output connector cannot accept it");
+                  activities.recordActivity(null,ACTIVITY_ACCESS,
+                    null,documentIdentifier,"Skip","Output connector refused",null);
                 }
               }
               else
               {
-                Logging.connectors.debug("JCIFS: Skipping file because canonical path is null");
+                Logging.connectors.debug("JCIFS: Skipping file because canonical path is null, or because file is hidden");
                 activities.recordActivity(null,ACTIVITY_ACCESS,
-                  null,documentIdentifier,"Skip","Null canonical path",null);
+                  null,documentIdentifier,"Skip","Null canonical path or hidden file",null);
               }
             }
           }
@@ -973,8 +976,39 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
 
   }
 
+  protected static String prepareForIndexing(RepositoryDocument rd, SmbFile file, String version)
+    throws ManifoldCFException, SmbException
+  {
+    String fileNameString = file.getName();
+    Date lastModifiedDate = new Date(file.lastModified());
+    String contentType = mapExtensionToMimeType(fileNameString);
 
+    rd.setFileName(fileNameString);
+    if (contentType != null)
+      rd.setMimeType(contentType);
+    rd.addField("lastModified", lastModifiedDate.toString());
+    rd.setModifiedDate(lastModifiedDate);
 
+    int index = 0;
+    index = setDocumentSecurity(rd,version,index);
+    index = setPathMetadata(rd,version,index);
+    StringBuilder ingestURI = new StringBuilder();
+    index = unpack(ingestURI,version,index,'+');
+    return ingestURI.toString();
+  }
+  
+  /** Map an extension to a mime type */
+  protected static String mapExtensionToMimeType(String fileName)
+  {
+    int slashIndex = fileName.lastIndexOf("/");
+    if (slashIndex != -1)
+      fileName = fileName.substring(slashIndex+1);
+    int dotIndex = fileName.lastIndexOf(".");
+    if (dotIndex == -1)
+      return null;
+    return ExtensionMimeMap.mapToMimeType(fileName.substring(dotIndex+1).toLowerCase(java.util.Locale.ROOT));
+  }
+  
   /** This method calculates an ACL string based on whether there are forced acls and also based on
   * the acls in place for a file.
   */
@@ -1410,7 +1444,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       if (!isDirectory)
       {
         long fileLength = fileLength(file);
-        if (!activities.checkLengthIndexable(fileLength))
+        if (!activities.checkLengthIndexable(fileLength) ||
+          !activities.checkMimeTypeIndexable(mapExtensionToMimeType(fileName)))
           return false;
         long maxFileLength = Long.MAX_VALUE;
         i = 0;
@@ -1668,6 +1703,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                     isIndexable = false;
                   else
                   {
+                    // Evaluate the parts of being indexable that are based on the filename, mime type, and url
                     isIndexable = pretendIndexable;
                   }
 

@@ -60,15 +60,17 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public final static int STATUS_PENDING = 0;
   public final static int STATUS_ACTIVE = 1;
   public final static int STATUS_COMPLETE = 2;
-  public final static int STATUS_PENDINGPURGATORY = 3;
-  public final static int STATUS_ACTIVEPURGATORY = 4;
-  public final static int STATUS_PURGATORY = 5;
-  public final static int STATUS_BEINGDELETED = 6;
-  public final static int STATUS_ACTIVENEEDRESCAN = 7;
-  public final static int STATUS_ACTIVENEEDRESCANPURGATORY = 8;
-  public final static int STATUS_BEINGCLEANED = 9;
-  public final static int STATUS_ELIGIBLEFORDELETE = 10;
-  public final static int STATUS_HOPCOUNTREMOVED = 11;
+  public final static int STATUS_UNCHANGED = 3;
+  public final static int STATUS_PENDINGPURGATORY = 4;
+  public final static int STATUS_ACTIVEPURGATORY = 5;
+  public final static int STATUS_PURGATORY = 6;
+  public final static int STATUS_BEINGDELETED = 7;
+  public final static int STATUS_ACTIVENEEDRESCAN = 8;
+  public final static int STATUS_ACTIVENEEDRESCANPURGATORY = 9;
+  public final static int STATUS_BEINGCLEANED = 10;
+  public final static int STATUS_ELIGIBLEFORDELETE = 11;
+  public final static int STATUS_HOPCOUNTREMOVED = 12;
+  
   // Action values
   public final static int ACTION_RESCAN = 0;
   public final static int ACTION_REMOVE = 1;
@@ -110,6 +112,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   public static final String prioritySetField = "priorityset";
   public static final String checkActionField = "checkaction";
 
+  public static final double noDocPriorityValue = 1e9;
+  public static final Double nullDocPriority = new Double(noDocPriorityValue + 1.0);
+  
   protected static Map statusMap;
 
   static
@@ -118,6 +123,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     statusMap.put("P",new Integer(STATUS_PENDING));
     statusMap.put("A",new Integer(STATUS_ACTIVE));
     statusMap.put("C",new Integer(STATUS_COMPLETE));
+    statusMap.put("U",new Integer(STATUS_UNCHANGED));
     statusMap.put("G",new Integer(STATUS_PENDINGPURGATORY));
     statusMap.put("F",new Integer(STATUS_ACTIVEPURGATORY));
     statusMap.put("Z",new Integer(STATUS_PURGATORY));
@@ -154,8 +160,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   /** Thread context */
   protected IThreadContext threadContext;
   
-  /** Cached getNextDocuments order-by index name */
-  protected String getNextDocumentsIndex = null;
+  /** Cached getNextDocuments order-by index hint */
+  protected String getNextDocumentsIndexHint = null;
   
   /** Constructor.
   *@param database is the database handle.
@@ -198,7 +204,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       }
       else
       {
-        // Upgrade code goes here, if needed
+        // Upgrade; null docpriority fields bashed to 'infinity', so they don't slow down MySQL
+        Map map = new HashMap();
+        map.put(docPriorityField,nullDocPriority);
+        performUpdate(map,"WHERE "+docPriorityField+" IS NULL",null,null);
       }
 
       // Secondary table installation
@@ -269,31 +278,18 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     }
   }
 
-  /** Get the 'getNextDocuments' index name.
+  /** Get the 'getNextDocuments' index hint.
   */
-  public String getGetNextDocumentsIndex()
+  public String getGetNextDocumentsIndexHint()
     throws ManifoldCFException
   {
-    if (getNextDocumentsIndex == null)
+    if (getNextDocumentsIndexHint == null)
     {
       // Figure out what index it is
-      IndexDescription docpriorityIndex = new IndexDescription(false,new String[]{docPriorityField,statusField,checkActionField,checkTimeField});
-      Map indexes = getTableIndexes(null,null);
-      Iterator iter = indexes.keySet().iterator();
-      while (iter.hasNext())
-      {
-        String indexName = (String)iter.next();
-        IndexDescription id = (IndexDescription)indexes.get(indexName);
-        if (id.equals(docpriorityIndex))
-        {
-          getNextDocumentsIndex = indexName;
-          break;
-        }
-      }
-      if (getNextDocumentsIndex == null)
-        throw new ManifoldCFException("Can't find getnextdocuments index");
+      getNextDocumentsIndexHint = getDBInterface().constructIndexHintClause(getTableName(),
+        new IndexDescription(false,new String[]{docPriorityField,statusField,checkActionField,checkTimeField}));
     }
-    return getNextDocumentsIndex;
+    return getNextDocumentsIndexHint;
   }
   
   /** Analyze job tables due to major event */
@@ -394,6 +390,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Reindex the jobqueue table, since we've probably made lots of bad tuples doing the above operations.
     reindexTable();
     unconditionallyAnalyzeTables();
+
+    TrackerClass.noteGlobalChange("Restart");
   }
 
   /** Flip all records for a job that have status HOPCOUNTREMOVED back to PENDING.
@@ -411,19 +409,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID),
       new UnitaryClause(statusField,statusToString(STATUS_HOPCOUNTREMOVED))});
     performUpdate(map,"WHERE "+query,list,null);
+    unconditionallyAnalyzeTables();
+    
+    TrackerClass.noteJobChange(jobID,"Map HOPCOUNTREMOVED to PENDING");
   }
 
-  /** Delete all records for a job that have status HOPCOUNTREMOVED.
-  */
-  public void deleteHopcountRemovedRecords(Long jobID)
-    throws ManifoldCFException
-  {
-    ArrayList list = new ArrayList();
-    String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(jobIDField,jobID),
-      new UnitaryClause(statusField,statusToString(STATUS_HOPCOUNTREMOVED))});
-    performDelete("WHERE "+query,list,null);
-  }
 
   /** Clear the failtimes for all documents associated with a job.
   * This method is called when the system detects that a significant delaying event has occurred,
@@ -468,6 +458,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         statusToString(STATUS_ACTIVEPURGATORY),
         statusToString(STATUS_ACTIVENEEDRESCANPURGATORY)})});
     performUpdate(map,"WHERE "+query,list,null);
+    unconditionallyAnalyzeTables();
+        
+    TrackerClass.noteGlobalChange("Reset document worker status");
   }
 
   /** Reset doc delete worker status.
@@ -483,6 +476,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_BEINGDELETED))});
     performUpdate(map,"WHERE "+query,list,null);
+    unconditionallyAnalyzeTables();
+
+    TrackerClass.noteGlobalChange("Reset document delete worker status");
   }
 
   /** Reset doc cleaning worker status.
@@ -498,6 +494,9 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(statusField,statusToString(STATUS_BEINGCLEANED))});
     performUpdate(map,"WHERE "+query,list,null);
+    unconditionallyAnalyzeTables();
+
+    TrackerClass.noteGlobalChange("Reset document cleanup worker status");
   }
 
   /** Prepare for a job delete pass.  This will not be called
@@ -540,6 +539,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new MultiClause(statusField,new Object[]{
         statusToString(STATUS_PENDINGPURGATORY),
         statusToString(STATUS_COMPLETE),
+        statusToString(STATUS_UNCHANGED),
         statusToString(STATUS_PURGATORY)})});
     performUpdate(map,"WHERE "+query,list,null);
 
@@ -548,6 +548,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     // Do an analyze, otherwise our plans are going to be crap right off the bat
     unconditionallyAnalyzeTables();
 
+    TrackerClass.noteJobChange(jobID,"Prepare delete scan");
   }
   
   /** Prepare for a "full scan" job.  This will not be called
@@ -590,6 +591,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(jobIDField,jobID),
       new MultiClause(statusField,new Object[]{  
         statusToString(STATUS_PENDINGPURGATORY),
+        statusToString(STATUS_UNCHANGED),
         statusToString(STATUS_COMPLETE)})});
     performUpdate(map,"WHERE "+query,list,null);
 
@@ -597,22 +599,23 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     noteModifications(0,2,0);
     // Do an analyze, otherwise our plans are going to be crap right off the bat
     unconditionallyAnalyzeTables();
+        
+    TrackerClass.noteJobChange(jobID,"Prepare full scan");
   }
 
-  /** Prepare for an "incremental" job.  This is called ONLY when the job is inactive;
-  * that is, there should be no ACTIVE or ACTIVEPURGATORY entries at all.
+  /** Prepare for a "partial" job.  This is called ONLY when the job is inactive.
   *
-  * The preparation for starting an incremental job is to requeue all documents that are
-  * currently in the system that are marked "COMPLETE".  These get marked as "PENDINGPURGATORY",
-  * since the idea is to queue them in such a way that we know they were ingested before.
+  * This method maps all COMPLETE entries to UNCHANGED.  The purpose is to
+  * allow discovery to find the documents that need to be processed.  If they were
+  * marked as COMPLETE that would stop them from being queued.
   *@param jobID is the job identifier.
   */
-  public void prepareIncrementalScan(Long jobID)
+  public void preparePartialScan(Long jobID)
     throws ManifoldCFException
   {
-    // Delete PENDING and ACTIVE entries
+    // Map COMPLETE to UNCHANGED.
     HashMap map = new HashMap();
-    map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+    map.put(statusField,statusToString(STATUS_UNCHANGED));
     // Do not reset priorities here!  They should all be blank at this point.
     map.put(checkTimeField,new Long(0L));
     map.put(checkActionField,actionToString(ACTION_RESCAN));
@@ -626,6 +629,39 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     noteModifications(0,1,0);
     // Do an analyze, otherwise our plans are going to be crap right off the bat
     unconditionallyAnalyzeTables();
+  }
+  
+  /** Prepare for an "incremental" job.  This is called ONLY when the job is inactive;
+  * that is, there should be no ACTIVE or ACTIVEPURGATORY entries at all.
+  *
+  * The preparation for starting an incremental job is to requeue all documents that are
+  * currently in the system that are marked "COMPLETE".  These get marked as "PENDINGPURGATORY",
+  * since the idea is to queue them in such a way that we know they were ingested before.
+  *@param jobID is the job identifier.
+  */
+  public void prepareIncrementalScan(Long jobID)
+    throws ManifoldCFException
+  {
+    // Map COMPLETE to PENDINGPURGATORY.
+    HashMap map = new HashMap();
+    map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+    // Do not reset priorities here!  They should all be blank at this point.
+    map.put(checkTimeField,new Long(0L));
+    map.put(checkActionField,actionToString(ACTION_RESCAN));
+    map.put(failTimeField,null);
+    map.put(failCountField,null);
+    ArrayList list = new ArrayList();
+    String query = buildConjunctionClause(list,new ClauseDescription[]{
+      new UnitaryClause(jobIDField,jobID),
+      new MultiClause(statusField,new Object[]{
+        statusToString(STATUS_COMPLETE),
+        statusToString(STATUS_UNCHANGED)})});
+    performUpdate(map,"WHERE "+query,list,null);
+    noteModifications(0,1,0);
+    // Do an analyze, otherwise our plans are going to be crap right off the bat
+    unconditionallyAnalyzeTables();
+      
+    TrackerClass.noteJobChange(jobID,"Prepare incremental scan");
   }
 
   /** Delete ingested document identifiers (as part of deleting the owning job).
@@ -701,7 +737,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
   {
     HashMap map = new HashMap();
     map.put(prioritySetField,null);
-    map.put(docPriorityField,null);
+    map.put(docPriorityField,nullDocPriority);
     ArrayList list = new ArrayList();
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(jobIDField,jobID)});
@@ -728,7 +764,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       actionFieldValue = null;
       checkTimeValue = null;
       // Remove document priority; we don't want to pollute the queue.  See CONNECTORS-290.
-      map.put(docPriorityField,null);
+      map.put(docPriorityField,nullDocPriority);
       map.put(prioritySetField,null);
       break;
     case STATUS_ACTIVENEEDRESCAN:
@@ -739,6 +775,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       // Leave doc priority unchanged.
       break;
     default:
+      TrackerClass.printForensics(recID, currentStatus);
       throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status, saw "+Integer.toString(currentStatus));
     }
 
@@ -751,48 +788,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,recID)});
     performUpdate(map,"WHERE "+query,list,null);
-  }
-
-  /** Either delete a record, or set status to "rescan", depending on the
-  * record's state.
-  */
-  public boolean updateOrDeleteRecord(Long recID, int currentStatus)
-    throws ManifoldCFException
-  {
-    HashMap map = new HashMap();
-    
-    int newStatus;
-    String actionFieldValue;
-    Long checkTimeValue;
-    
-    switch (currentStatus)
-    {
-    case STATUS_ACTIVE:
-    case STATUS_ACTIVEPURGATORY:
-      // Delete it
-      deleteRecord(recID);
-      return true;
-    case STATUS_ACTIVENEEDRESCAN:
-    case STATUS_ACTIVENEEDRESCANPURGATORY:
-      newStatus = STATUS_PENDINGPURGATORY;
-      actionFieldValue = actionToString(ACTION_RESCAN);
-      checkTimeValue = new Long(0L);
-      // Leave doc priority unchanged.
-      break;
-    default:
-      throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status, saw "+Integer.toString(currentStatus));
-    }
-
-    map.put(statusField,statusToString(newStatus));
-    map.put(checkTimeField,checkTimeValue);
-    map.put(checkActionField,actionFieldValue);
-    map.put(failTimeField,null);
-    map.put(failCountField,null);
-    ArrayList list = new ArrayList();
-    String query = buildConjunctionClause(list,new ClauseDescription[]{
-      new UnitaryClause(idField,recID)});
-    performUpdate(map,"WHERE "+query,list,null);
-    return false;
+    noteModifications(0,1,0);
+    TrackerClass.noteRecordChange(recID, newStatus, "Note completion");
   }
 
   /** Either mark a record as hopcountremoved, or set status to "rescan", depending on the
@@ -828,6 +825,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       // Leave doc priority unchanged.
       break;
     default:
+      TrackerClass.printForensics(recID, currentStatus);
       throw new ManifoldCFException("Unexpected jobqueue status - record id "+recID.toString()+", expecting active status, saw "+Integer.toString(currentStatus));
     }
 
@@ -840,6 +838,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(idField,recID)});
     performUpdate(map,"WHERE "+query,list,null);
+    noteModifications(0,1,0);
+    TrackerClass.noteRecordChange(recID, newStatus, "Update or hopcount remove");
     return rval;
   }
 
@@ -860,6 +860,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       newStatus = STATUS_ACTIVEPURGATORY;
       break;
     default:
+      TrackerClass.printForensics(id, currentStatus);
       throw new ManifoldCFException("Unexpected status value for jobqueue record "+id.toString()+"; got "+Integer.toString(currentStatus));
     }
 
@@ -870,6 +871,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,id)});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
+    TrackerClass.noteRecordChange(id, newStatus, "Make active");
   }
 
   /** Set the status on a record, including check time and priority.
@@ -901,6 +903,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,id)});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
+    TrackerClass.noteRecordChange(id, status, "Set status");
   }
 
   /** Set the status of a document to "being deleted".
@@ -915,6 +918,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,id)});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
+    TrackerClass.noteRecordChange(id, STATUS_BEINGDELETED, "Set deleting status");
   }
 
   /** Set the status of a document to be "no longer deleting" */
@@ -932,6 +936,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,id)});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
+    TrackerClass.noteRecordChange(id, STATUS_ELIGIBLEFORDELETE, "Set undeleting status");
   }
 
   /** Set the status of a document to "being cleaned".
@@ -946,6 +951,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,id)});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
+    TrackerClass.noteRecordChange(id, STATUS_BEINGCLEANED, "Set cleaning status");
   }
 
   /** Set the status of a document to be "no longer cleaning" */
@@ -963,6 +969,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       new UnitaryClause(idField,id)});
     performUpdate(map,"WHERE "+query,list,null);
     noteModifications(0,1,0);
+    TrackerClass.noteRecordChange(id, STATUS_PURGATORY, "Set uncleaning status");
   }
 
   /** Remove multiple records entirely.
@@ -1050,9 +1057,11 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       break;
 
     case STATUS_COMPLETE:
+    case STATUS_UNCHANGED:
     case STATUS_PURGATORY:
       // Set the status and time both
       map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+      TrackerClass.noteRecordChange(recordID, STATUS_PENDINGPURGATORY, "Update existing record initial");
       if (desiredExecuteTime == -1L)
         map.put(checkTimeField,new Long(0L));
       else
@@ -1143,6 +1152,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     performInsert(map,null);
     prereqEventManager.addRows(recordID,prereqEvents);
     noteModifications(1,0,0);
+    TrackerClass.noteRecordChange(recordID, STATUS_PENDING, "Create initial");
   }
 
   /** Note the remaining documents that do NOT need to be queued.  These are noted so that the
@@ -1327,8 +1337,10 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     switch (currentStatus)
     {
     case STATUS_PURGATORY:
+    case STATUS_UNCHANGED:
       // Set the status and time both
       map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+      TrackerClass.noteRecordChange(recordID, STATUS_PENDINGPURGATORY, "Update existing");
       map.put(checkTimeField,new Long(desiredExecuteTime));
       map.put(checkActionField,actionToString(ACTION_RESCAN));
       map.put(failTimeField,null);
@@ -1346,6 +1358,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         // The document has been processed before, so it has to go into PENDINGPURGATORY.
         // Set the status and time both
         map.put(statusField,statusToString(STATUS_PENDINGPURGATORY));
+        TrackerClass.noteRecordChange(recordID, STATUS_PENDINGPURGATORY, "Update existing");
         map.put(checkTimeField,new Long(desiredExecuteTime));
         map.put(checkActionField,actionToString(ACTION_RESCAN));
         map.put(failTimeField,null);
@@ -1375,6 +1388,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         // Flip the state to the new one, and set the document priority at this time too - it will be preserved when the
         // processing is completed.
         map.put(statusField,statusToString(STATUS_ACTIVENEEDRESCAN));
+        TrackerClass.noteRecordChange(recordID, STATUS_ACTIVENEEDRESCAN, "Update existing");
         map.put(checkTimeField,new Long(desiredExecuteTime));
         map.put(checkActionField,actionToString(ACTION_RESCAN));
         map.put(failTimeField,null);
@@ -1399,6 +1413,7 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
         // Flip the state to the new one, and set the document priority at this time too - it will be preserved when the
         // processing is completed.
         map.put(statusField,statusToString(STATUS_ACTIVENEEDRESCANPURGATORY));
+        TrackerClass.noteRecordChange(recordID, STATUS_ACTIVENEEDRESCANPURGATORY, "Update existing");
         map.put(checkTimeField,new Long(desiredExecuteTime));
         map.put(checkActionField,actionToString(ACTION_RESCAN));
         map.put(failTimeField,null);
@@ -1466,6 +1481,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
     performInsert(map,null);
     prereqEventManager.addRows(recordID,prereqEvents);
     noteModifications(1,0,0);
+    TrackerClass.noteRecordChange(recordID, STATUS_PENDING, "Create new");
+
   }
 
   // Methods to convert status strings to integers and back
@@ -1555,6 +1572,8 @@ public class JobQueue extends org.apache.manifoldcf.core.database.BaseTable
       return "A";
     case STATUS_COMPLETE:
       return "C";
+    case STATUS_UNCHANGED:
+      return "U";
     case STATUS_PENDINGPURGATORY:
       return "G";
     case STATUS_ACTIVEPURGATORY:

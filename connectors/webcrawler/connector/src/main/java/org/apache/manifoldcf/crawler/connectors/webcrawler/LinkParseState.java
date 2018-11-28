@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.crawler.connectors.webcrawler;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.fuzzyml.*;
 import java.util.*;
 
 /** This class recognizes and interprets all links */
@@ -34,10 +35,11 @@ public class LinkParseState extends MetaParseState
   }
 
   @Override
-  protected void noteNonscriptTag(String tagName, Map attributes)
+  protected boolean noteNonscriptTag(String tagName, Map<String,String> attributes)
     throws ManifoldCFException
   {
-    super.noteNonscriptTag(tagName,attributes);
+    if (super.noteNonscriptTag(tagName,attributes))
+      return true;
     if (tagName.equals("a"))
     {
       String hrefValue = (String)attributes.get("href");
@@ -62,6 +64,7 @@ public class LinkParseState extends MetaParseState
       if (srcValue != null && srcValue.length() > 0)
         handler.noteFRAMESRC(srcValue);
     }
+    return false;
   }
 
 }

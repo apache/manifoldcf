@@ -35,18 +35,31 @@ public class ServiceInterruption extends java.lang.Exception
   protected int failRetryCount;
   /** Should we abort the process if failure condition has been reached? */
   protected boolean abortOnFail;
-
+  /** True if job inactive abort. */
+  protected boolean jobInactiveAbort;
+  
   /** Constructor.
   *@param message is the exact error condition.
   *@param retryTime is the time to retry.
   */
   public ServiceInterruption(String message, long retryTime)
   {
+    this(message, retryTime, false);
+  }
+  
+  /** Constructor.
+  *@param message is the exact error condition.
+  *@param retryTime is the time to retry.
+  *@param jobInactiveAbort is true if this exception being thrown because the job is aborting
+  */
+  public ServiceInterruption(String message, long retryTime, boolean jobInactiveAbort)
+  {
     super(message);
     this.retryTime = retryTime;
     this.failTime = -1L;
     this.failRetryCount = -1;
     this.abortOnFail = true;
+    this.jobInactiveAbort = jobInactiveAbort;
   }
 
   /** Constructor.
@@ -100,4 +113,12 @@ public class ServiceInterruption extends java.lang.Exception
     return abortOnFail;
   }
 
+  /** Check if this service interruption is due to a job aborting.
+  *@return true if yes
+  */
+  public boolean jobInactiveAbort()
+  {
+    return jobInactiveAbort;
+  }
+  
 }

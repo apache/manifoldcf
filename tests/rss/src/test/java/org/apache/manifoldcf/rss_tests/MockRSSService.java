@@ -93,15 +93,37 @@ public class MockRSSService
       {
         // Generate feed response
         res.setStatus(HttpServletResponse.SC_OK);
-        res.setContentType("text/xml; charset=utf-8");
+        // Randomly choose a different encoding, to make life interesting for the parser
+        if ((theFeed % 3) == 0)
+        {
+          res.setContentType("text/xml; charset=utf-8");
+          res.getWriter().printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        }
+        else if ((theFeed % 3) ==1)
+        {
+          res.setContentType("text/xml");
+          res.setCharacterEncoding("UTF-16BE");
+          // Write BOM + preamble
+          res.getWriter().printf("\uFEFF<?xml version=\"1.0\" encoding=\"UTF-16BE\"?>\n");
+        }
+        else
+        {
+          res.setContentType("text/xml");
+          res.setCharacterEncoding("UTF-16LE");
+          // Write BOM + preamble
+          res.getWriter().printf("\uFEFF<?xml version=\"1.0\" encoding=\"UTF-16LE\"?>\n");
+        }
         // Write out an rss 2.0 response, with docsperfeed docs
-        res.getWriter().printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         res.getWriter().printf("<rss>\n");
         res.getWriter().printf("  <channel>\n");
         for (int i = 0 ; i < docsPerFeed ; i++)
         {
           res.getWriter().printf("    <item>\n");
-          res.getWriter().printf("      <link>http://localhost:8189/rss/gen.php?type=doc&#38;feed="+theFeed+"&#38;doc="+i+"</link>\n");
+          // Test CDATA feeds
+          if ((i % 2) == 0)
+            res.getWriter().printf("      <link>http://localhost:8189/rss/gen.php?type=doc&#38;feed="+theFeed+"&#38;doc="+i+"</link>\n");
+          else
+            res.getWriter().printf("      <link><![CDATA[http://localhost:8189/rss/gen.php?type=doc&feed="+theFeed+"&doc="+i+"]]></link>\n");
           res.getWriter().printf("      <title>Feed "+theFeed+" Document "+i+"</title>\n");
           res.getWriter().printf("    </item>\n");
         }
