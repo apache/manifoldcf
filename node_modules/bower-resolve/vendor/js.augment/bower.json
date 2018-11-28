@@ -1,0 +1,25 @@
+{
+  "name": "js.augment",
+  "version": "0.0.1",
+  "description": "A very light implementation of augment pattern",
+  "authors": [
+    "SAS 9 Février", "9 Février <contact@9fevrier.com>"
+  ],
+  "main": "lib/augment.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+	"test/**"
+  ],
+  "keywords": [
+    "augment"
+  ],
+  "repository": {
+     "type": "git", 
+	 "url": "https://github.com/9fevrier/js.augment.git"
+  },
+  "license": "MIT",
+  "dependencies": { },
+  "devDependencies": { }
+}

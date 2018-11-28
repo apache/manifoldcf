@@ -1,0 +1,24 @@
+{
+    "name": "@types/chai-jquery",
+    "version": "1.1.35",
+    "description": "TypeScript definitions for chai-jquery",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Kazi Manzur Rashid",
+            "url": "https://github.com/kazimanzurrashid"
+        }
+    ],
+    "main": "",
+    "repository": {
+        "type": "git",
+        "url": "https://www.github.com/DefinitelyTyped/DefinitelyTyped.git"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/chai": "*",
+        "@types/jquery": "*"
+    },
+    "typesPublisherContentHash": "9affcdd8a7ea0e24ca2d053342a2b2292c486807f97113f9dfdb4284d6e82af8",
+    "typeScriptVersion": "2.3"
+}

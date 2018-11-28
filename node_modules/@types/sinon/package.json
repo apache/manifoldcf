@@ -1,0 +1,42 @@
+{
+    "name": "@types/sinon",
+    "version": "4.0.0",
+    "description": "TypeScript definitions for Sinon",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "William Sears",
+            "url": "https://github.com/mrbigdog2u",
+            "githubUsername": "mrbigdog2u"
+        },
+        {
+            "name": "Jonathan Little",
+            "url": "https://github.com/rationull",
+            "githubUsername": "rationull"
+        },
+        {
+            "name": "Lukas Spieß",
+            "url": "https://github.com/lumaxis",
+            "githubUsername": "lumaxis"
+        },
+        {
+            "name": "Nico Jansen",
+            "url": "https://github.com/nicojs",
+            "githubUsername": "nicojs"
+        },
+        {
+            "name": "James Garbutt",
+            "url": "https://github.com/43081j",
+            "githubUsername": "43081j"
+        }
+    ],
+    "main": "",
+    "repository": {
+        "type": "git",
+        "url": "https://www.github.com/DefinitelyTyped/DefinitelyTyped.git"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "typesPublisherContentHash": "2287c7d6c482399af04e129fb8aa06091d8eec379a1664582f0a51d7a8eb8fe8",
+    "typeScriptVersion": "2.3"
+}

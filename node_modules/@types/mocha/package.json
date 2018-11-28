@@ -1,0 +1,37 @@
+{
+    "name": "@types/mocha",
+    "version": "2.2.44",
+    "description": "TypeScript definitions for mocha",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Kazi Manzur Rashid",
+            "url": "https://github.com/kazimanzurrashid",
+            "githubUsername": "kazimanzurrashid"
+        },
+        {
+            "name": "otiai10",
+            "url": "https://github.com/otiai10",
+            "githubUsername": "otiai10"
+        },
+        {
+            "name": "jt000",
+            "url": "https://github.com/jt000",
+            "githubUsername": "jt000"
+        },
+        {
+            "name": "Vadim Macagon",
+            "url": "https://github.com/enlight",
+            "githubUsername": "enlight"
+        }
+    ],
+    "main": "",
+    "repository": {
+        "type": "git",
+        "url": "https://www.github.com/DefinitelyTyped/DefinitelyTyped.git"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "typesPublisherContentHash": "cbcad14ea5a435f9b507c0dbeacda562706726a3c6653846bc3ed88089aa3769",
+    "typeScriptVersion": "2.0"
+}

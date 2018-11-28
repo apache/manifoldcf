@@ -1,0 +1,22 @@
+{
+    "name": "@types/bluebird",
+    "version": "3.5.18",
+    "description": "TypeScript definitions for bluebird",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Leonard Hecker",
+            "url": "https://github.com/lhecker",
+            "githubUsername": "lhecker"
+        }
+    ],
+    "main": "",
+    "repository": {
+        "type": "git",
+        "url": "https://www.github.com/DefinitelyTyped/DefinitelyTyped.git"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "typesPublisherContentHash": "c9b100367d31f8bd36031e55737d6ffde1a9b85dac3df3693f8f684f914c94cb",
+    "typeScriptVersion": "2.3"
+}

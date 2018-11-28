@@ -1,0 +1,37 @@
+{
+  "name": "js.augment",
+  "version": "0.0.2",
+  "description": "A very light implementation of augment pattern",
+  "authors": [
+    "SAS 9 Février",
+    "9 Février <contact@9fevrier.com>"
+  ],
+  "main": "lib/augment.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test/**"
+  ],
+  "keywords": [
+    "augment"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/9fevrier/js.augment.git"
+  },
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {},
+  "homepage": "https://github.com/9fevrier/js.augment",
+  "_release": "0.0.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.0.2",
+    "commit": "cf56ed5e7fea5a4b1a5a96b47f9e19c782503f99"
+  },
+  "_source": "git://github.com/9fevrier/js.augment.git",
+  "_target": "~0.0.2",
+  "_originalSource": "js.augment",
+  "_direct": true
+}
