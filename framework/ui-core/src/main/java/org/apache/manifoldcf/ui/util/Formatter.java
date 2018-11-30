@@ -19,6 +19,7 @@
 package org.apache.manifoldcf.ui.util;
 
 import java.util.*;
+import java.text.DateFormat;
 
 /** Various useful formatting methods for working with html
 */
@@ -36,6 +37,10 @@ public class Formatter
     c.setTimeInMillis(time);
     // We want to format this string in a compact way:
     // mm-dd-yyyy hh:mm:ss.mmm
+    final DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM, locale);
+    df.setCalendar(c);
+    return df.format(new Date(time));
+    /*
     StringBuilder returnString = new StringBuilder();
     writechars(returnString,c.get(Calendar.MONTH)+1,2);
     returnString.append("-");
@@ -51,6 +56,7 @@ public class Formatter
     returnString.append(".");
     writechars(returnString,c.get(Calendar.MILLISECOND),3);
     return returnString.toString();
+    */
   }
 
   /** Format a string as a number of continuation fields, so that the total string is not too long.
