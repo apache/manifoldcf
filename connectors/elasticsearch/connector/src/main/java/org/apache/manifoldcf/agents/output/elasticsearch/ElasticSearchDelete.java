@@ -19,14 +19,17 @@
 
 package org.apache.manifoldcf.agents.output.elasticsearch;
 
+import org.apache.http.Header;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
-
-import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
+import org.apache.manifoldcf.core.common.Base64;
+//import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.util.URLEncoder;
 import org.apache.manifoldcf.crawler.system.Logging;
+
+//import java.util.Locale;
 
 public class ElasticSearchDelete extends ElasticSearchConnection
 {
@@ -43,6 +46,16 @@ public class ElasticSearchDelete extends ElasticSearchConnection
       HttpDelete method = new HttpDelete(config.getServerLocation() +
           "/" + config.getIndexName() + "/" + config.getIndexType()
           + "/" + idField);
+
+      if (config.getUserName().length() > 0 && config.getPassword().length() >0) {
+        byte[] basicAuth = (config.getUserName() + ":" + config.getPassword()).getBytes();
+        Base64 encoder = new Base64();
+        String encoding = encoder.encodeByteArray(basicAuth);
+        method.setHeader("Authorization", "Basic " + encoding);
+        Header header = method.getLastHeader("Authorization");
+        Logging.connectors.debug("Header: " + new String(header.getValue().getBytes()));
+      }
+
       call(method);
       String error = checkJson(jsonException);
       if (getResult() == Result.OK && error == null)

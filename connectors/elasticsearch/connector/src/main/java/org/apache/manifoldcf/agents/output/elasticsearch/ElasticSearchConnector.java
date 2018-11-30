@@ -19,7 +19,7 @@
 
 package org.apache.manifoldcf.agents.output.elasticsearch;
 
-import java.io.File;
+//import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -27,26 +27,26 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
+//import java.util.concurrent.TimeUnit;
 
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.impl.client.HttpClientBuilder;
+//import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.config.SocketConfig;
-import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.protocol.HttpContext;
+//import org.apache.http.client.HttpRequestRetryHandler;
+//import org.apache.http.protocol.HttpContext;
 
-import org.apache.commons.io.FilenameUtils;
+//import org.apache.commons.io.FilenameUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
-import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
+//import org.apache.manifoldcf.agents.interfaces.IOutputNotifyActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
-import org.apache.manifoldcf.agents.interfaces.IOutputCheckActivity;
+//import org.apache.manifoldcf.agents.interfaces.IOutputCheckActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
@@ -54,12 +54,12 @@ import org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchAction.Com
 import org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnection.Result;
 import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
-import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
+//import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+//import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
 
 /**
@@ -72,11 +72,9 @@ public class ElasticSearchConnector extends BaseOutputConnector
 
   private final static String ELASTICSEARCH_INDEXATION_ACTIVITY = "Indexation";
   private final static String ELASTICSEARCH_DELETION_ACTIVITY = "Deletion";
-  private final static String ELASTICSEARCH_OPTIMIZE_ACTIVITY = "Optimize";
 
   private final static String[] ELASTICSEARCH_ACTIVITIES =
-  { ELASTICSEARCH_INDEXATION_ACTIVITY, ELASTICSEARCH_DELETION_ACTIVITY,
-      ELASTICSEARCH_OPTIMIZE_ACTIVITY };
+  { ELASTICSEARCH_INDEXATION_ACTIVITY, ELASTICSEARCH_DELETION_ACTIVITY };
 
   private final static String ELASTICSEARCH_TAB_PARAMETERS = "ElasticSearchConnector.Parameters";
 
@@ -210,7 +208,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
   {
     Map<String,String> paramMap = null;
     if (params != null) {
-      paramMap = params.buildMap();
+      paramMap = params.buildMap(out);
       if (tabName != null) {
         paramMap.put("TabName", tabName);
       }
@@ -420,30 +418,6 @@ public class ElasticSearchConnector extends BaseOutputConnector
     catch (ServiceInterruption e)
     {
       return "Transient exception: "+e.getMessage();
-    }
-  }
-
-  @Override
-  public void noteJobComplete(IOutputNotifyActivity activities)
-      throws ManifoldCFException, ServiceInterruption
-  {
-    ElasticSearchConfig config = getConfigParameters(null);
-    HttpClient client = getSession();
-    long startTime = System.currentTimeMillis();
-    ElasticSearchAction oo = new ElasticSearchAction(client, config);
-    try
-    {
-      if (config.isServerAfter5()) {
-        oo.executePOST(CommandEnum._forcemerge, false);
-      } else {
-        oo.executeGET(CommandEnum._optimize, false);
-      }
-    }
-    finally
-    {
-      activities.recordActivity(startTime, ELASTICSEARCH_OPTIMIZE_ACTIVITY, null,
-          oo.getCallUrlSnippet(), oo.getResultCode(),
-          oo.getResultDescription());
     }
   }
 

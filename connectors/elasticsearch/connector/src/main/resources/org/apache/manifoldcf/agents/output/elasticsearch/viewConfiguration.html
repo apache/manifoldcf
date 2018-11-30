@@ -17,15 +17,19 @@
 
 <table class="displaytable">
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.ServerVersion'))</nobr>
-    <td class="value">$Encoder.bodyEscape($SERVERVERSION)</td>
-  </tr>
-  <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.ServerLocation'))</nobr>
     $Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.URLColon'))</td>
     <td class="value">$Encoder.bodyEscape($SERVERLOCATION)</td>
   </tr>
-    <tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.UserNameColon'))</nobr></td>
+    <td class="value">$Encoder.bodyEscape($USERNAME)</td>
+  </tr>
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.PasswordColon'))</nobr></td>
+    <td class="value">*******</td>
+  </tr>
+  <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.IndexNameColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($INDEXNAME)</td>
   </tr>
@@ -61,5 +65,4 @@
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.MimeTypeAttributeNameColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($MIMETYPEATTRIBUTENAME)</td>
   </tr>
-
 </table>

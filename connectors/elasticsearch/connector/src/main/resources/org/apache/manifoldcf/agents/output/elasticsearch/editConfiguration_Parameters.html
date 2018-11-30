@@ -20,14 +20,6 @@
 <table class="displaytable">
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.ServerVersion'))</nobr>
-    </td>
-    <td class="value"><input name="serverversion" type="text"
-      value="$Encoder.attributeEscape($SERVERVERSION)" size="10" />
-    </td>
-  </tr>
-  <tr>
-    <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.ServerLocation'))</nobr>
         $Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.URLColon'))
     </td>
@@ -36,16 +28,25 @@
     </td>
   </tr>
   <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.UserNameColon'))</nobr></td>
+    <td class="value"><input name="username" type="text" value="$Encoder.attributeEscape($USERNAME)" size="24" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.PasswordColon'))</nobr></td>
+    <td class="value"><input name="password" type="password" value="$Encoder.attributeEscape($PASSWORD)" size="24" />
+    </td>
+  </tr>
+  <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.IndexNameColon'))</nobr></td>
-    <td class="value"><input name="indexname" type="text" value="$Encoder.attributeEscape($INDEXNAME)"
-      size="24" /></td>
+    <td class="value"><input name="indexname" type="text" value="$Encoder.attributeEscape($INDEXNAME)" size="24" /></td>
   </tr>
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.IndexTypeColon'))</nobr></td>
-    <td class="value"><input name="indextype" type="text" value="$Encoder.attributeEscape($INDEXTYPE)"
-      size="24" /></td>
+    <td class="value"><input name="indextype" type="text" value="$Encoder.attributeEscape($INDEXTYPE)" size="24" /></td>
   </tr>
-
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.UseMapperAttachmentsColon'))</nobr></td>
     <td class="value">
@@ -63,7 +64,6 @@
     <td class="value"><input name="pipelinename" type="text" value="$Encoder.attributeEscape($PIPELINENAME)"
       size="24" /></td>
   </tr>
-
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.ContentAttributeNameColon'))</nobr></td>
     <td class="value"><input name="contentattributename" type="text" value="$Encoder.attributeEscape($CONTENTATTRIBUTENAME)"
@@ -93,8 +93,6 @@
 </table>
 
 #else
-
-<input type="hidden" name="serverversion" value="$Encoder.attributeEscape($SERVERVERSION)" />
 <input type="hidden" name="serverlocation" value="$Encoder.attributeEscape($SERVERLOCATION)" />
 <input type="hidden" name="indexname" value="$Encoder.attributeEscape($INDEXNAME)" />
 <input type="hidden" name="indextype" value="$Encoder.attributeEscape($INDEXTYPE)" />
@@ -103,6 +101,7 @@
 <input type="hidden" name="usemapperattachments" value="$Encoder.bodyEscape($USEMAPPERATTACHMENTS)" />
 <input type="hidden" name="pipelinename" value="$Encoder.attributeEscape($PIPELINENAME)" />
 <input type="hidden" name="contentattributename" value="$Encoder.attributeEscape($CONTENTATTRIBUTENAME)" />
+<input type="hidden" name="uriattributename" value="$Encoder.attributeEscape($URIATTRIBUTENAME)" />
 <input type="hidden" name="createddateattributename" value="$Encoder.attributeEscape($CREATEDDATEATTRIBUTENAME)" />
 <input type="hidden" name="modifieddateattributename" value="$Encoder.attributeEscape($MODIFIEDDATEATTRIBUTENAME)" />
 <input type="hidden" name="indexingdateattributename" value="$Encoder.attributeEscape($INDEXINGDATEATTRIBUTENAME)" />

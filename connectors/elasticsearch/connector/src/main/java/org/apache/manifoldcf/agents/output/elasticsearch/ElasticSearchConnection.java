@@ -40,21 +40,30 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.Header;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.entity.ContentType;
-
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.client.RedirectException;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.CircularRedirectException;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
 import org.apache.http.ParseException;
 
 import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.util.URLEncoder;
+import org.apache.manifoldcf.crawler.system.Logging;
 
 public class ElasticSearchConnection
 {
@@ -65,6 +74,10 @@ public class ElasticSearchConnection
   private String serverLocation;
 
   private String indexName;
+
+  private String userName;
+
+  private String userPassword;
 
   private String resultDescription;
 
@@ -93,18 +106,38 @@ public class ElasticSearchConnection
     callUrlSnippet = null;
     serverLocation = config.getServerLocation();
     indexName = config.getIndexName();
+    userName = config.getUserName();
+    userPassword = config.getPassword();
   }
-
 
   protected StringBuffer getApiUrl(String command, boolean checkConnection) throws ManifoldCFException
   {
-    StringBuffer url = new StringBuffer(serverLocation);
+    String basicAuth = "";
+    if (userName.length() > 0 && userPassword.length() >0) {
+      basicAuth = userName + ":" + userPassword + "@";
+    }
+    Logging.connectors.debug("Auth: " + basicAuth);
+
+    String[] serverLocationSplit = serverLocation.split("://",2);
+    StringBuffer url;
+    if (basicAuth.length() > 0) {
+      url = new StringBuffer(serverLocationSplit[0] + "://" + basicAuth + serverLocationSplit[1]);
+    }
+    else {
+      url = new StringBuffer(serverLocationSplit[0] + "://" + basicAuth + serverLocationSplit[1]);
+    }
     if (!serverLocation.endsWith("/"))
       url.append('/');
+
+      Logging.connectors.debug("Url: " + url);
+
     if(!checkConnection)
       url.append(URLEncoder.encode(indexName)).append("/");
     url.append(command);
     callUrlSnippet = url.toString();
+
+    Logging.connectors.debug("UrlEnc: " + url);
+
     return url;
   }
 
