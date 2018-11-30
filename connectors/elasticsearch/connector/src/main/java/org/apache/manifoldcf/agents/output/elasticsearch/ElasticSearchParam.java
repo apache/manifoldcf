@@ -22,6 +22,8 @@ package org.apache.manifoldcf.agents.output.elasticsearch;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
+
 import org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchParam.ParameterEnum;
 
 /** 
@@ -33,27 +35,31 @@ public class ElasticSearchParam extends HashMap<ParameterEnum, String>
   /** Parameters constants */
   public enum ParameterEnum
   {
-    SERVERVERSION(""),
-    
     SERVERLOCATION("http://localhost:9200/"),
 
     INDEXNAME("index"),
 
-    INDEXTYPE("generictype"),
+    USERNAME(""),
 
-    USEMAPPERATTACHMENTS("true"),
+    PASSWORD(""),
+
+    INDEXTYPE("generic"),
+
+    USEMAPPERATTACHMENTS("false"),
     
     PIPELINENAME(""),
 
-    CONTENTATTRIBUTENAME(""),
+    CONTENTATTRIBUTENAME("content"),
 
-    CREATEDDATEATTRIBUTENAME(""),
+    URIATTRIBUTENAME("url"),
+
+    CREATEDDATEATTRIBUTENAME("created"),
     
-    MODIFIEDDATEATTRIBUTENAME(""),
+    MODIFIEDDATEATTRIBUTENAME("last-modified"),
     
-    INDEXINGDATEATTRIBUTENAME(""),
+    INDEXINGDATEATTRIBUTENAME("indexed"),
     
-    MIMETYPEATTRIBUTENAME(""),
+    MIMETYPEATTRIBUTENAME("mime-type"),
     
     FIELDLIST("");
 
@@ -72,11 +78,23 @@ public class ElasticSearchParam extends HashMap<ParameterEnum, String>
     super(params.length);
   }
 
-  final public Map<String, String> buildMap()
+  final public Map<String, String> buildMap(IHTTPOutput out)
   {
     Map<String, String> rval = new HashMap<String, String>();
     for (Map.Entry<ParameterEnum, String> entry : this.entrySet())
-      rval.put(entry.getKey().name(), entry.getValue());
+    {
+      final String key = entry.getKey().name();
+      final boolean isPassword = key.endsWith("PASSWORD");
+      if (isPassword) 
+      {
+        // Do not put passwords in plain text in forms
+        rval.put(key, out.mapPasswordToKey(entry.getValue()));
+      }
+      else
+      {
+        rval.put(key, entry.getValue());
+      }
+    }
     return rval;
   }
 

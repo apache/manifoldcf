@@ -35,13 +35,16 @@ public class ElasticSearchConfig extends ElasticSearchParam
   /** Parameters used for the configuration */
   final private static ParameterEnum[] CONFIGURATIONLIST =
   {
-    ParameterEnum.SERVERVERSION,
+//    ParameterEnum.SERVERVERSION,
     ParameterEnum.SERVERLOCATION,
+    ParameterEnum.USERNAME,
+    ParameterEnum.PASSWORD,
     ParameterEnum.INDEXNAME,
     ParameterEnum.INDEXTYPE,
     ParameterEnum.USEMAPPERATTACHMENTS,
     ParameterEnum.PIPELINENAME,
     ParameterEnum.CONTENTATTRIBUTENAME,
+    ParameterEnum.URIATTRIBUTENAME,
     ParameterEnum.CREATEDDATEATTRIBUTENAME,
     ParameterEnum.MODIFIEDDATEATTRIBUTENAME,
     ParameterEnum.INDEXINGDATEATTRIBUTENAME,
@@ -59,9 +62,19 @@ public class ElasticSearchConfig extends ElasticSearchParam
     super(CONFIGURATIONLIST);
     for (ParameterEnum param : CONFIGURATIONLIST)
     {
-      String value = params.getParameter(param.name());
+      final boolean isPassword = param.name().endsWith("PASSWORD");
+      String value;
+      if (isPassword) {
+        value = params.getObfuscatedParameter(param.name());
+      }
+      else
+      {
+        value = params.getParameter(param.name());
+      }
       if (value == null)
+      {
         value = param.defaultValue;
+      }
       put(param, value);
     }
   }
@@ -82,9 +95,20 @@ public class ElasticSearchConfig extends ElasticSearchParam
   {
     for (ParameterEnum param : CONFIGURATIONLIST)
     {
-      String p = variableContext.getParameter(param.name().toLowerCase(Locale.ROOT));
+      final String paramName = param.name().toLowerCase(Locale.ROOT);
+      final boolean isPassword = param.name().endsWith("PASSWORD");
+      String p = variableContext.getParameter(paramName);
       if (p != null)
-        parameters.setParameter(param.name(), p);
+      {
+        if (isPassword)
+        {
+          parameters.setObfuscatedParameter(param.name(), p);
+        }
+        else
+        {
+          parameters.setParameter(param.name(), p);
+        }
+      }
     }
 
     String useMapperAttachmentsPresent = variableContext.getParameter("usemapperattachments_present");
@@ -97,40 +121,19 @@ public class ElasticSearchConfig extends ElasticSearchParam
     }
   }
 
-  final public boolean isServerAfter5()
-  {
-    return getMajorVersion() >= 5;
-  }
-      
-  final public int getMajorVersion() {
-    final String version = getServerVersion();
-    if (version == null || version.length() == 0) {
-      return 0;
-    }
-    final int index = version.indexOf(".");
-    final String upperVersion;
-    if (index == -1) {
-      upperVersion = version;
-    } else {
-      upperVersion = version.substring(0, index);
-    }
-    int majorVersion;
-    try {
-      majorVersion = Integer.parseInt(upperVersion);
-    } catch (Exception e) {
-      majorVersion = 0;
-    }
-    return majorVersion;
-  }
-  
-  final public String getServerVersion()
-  {
-    return get(ParameterEnum.SERVERVERSION);
-  }
-  
   final public String getServerLocation()
   {
     return get(ParameterEnum.SERVERLOCATION);
+  }  
+  
+  final public String getUserName()
+  {
+    return get(ParameterEnum.USERNAME);
+  }
+  
+  final public String getPassword()
+  {
+    return get(ParameterEnum.PASSWORD);
   }
 
   final public String getIndexName()
@@ -156,6 +159,11 @@ public class ElasticSearchConfig extends ElasticSearchParam
   final public String getContentAttributeName()
   {
     return get(ParameterEnum.CONTENTATTRIBUTENAME);
+  }
+
+  final public String getUriAttributeName()
+  {
+    return get(ParameterEnum.URIATTRIBUTENAME);
   }
 
   final public String getCreatedDateAttributeName()

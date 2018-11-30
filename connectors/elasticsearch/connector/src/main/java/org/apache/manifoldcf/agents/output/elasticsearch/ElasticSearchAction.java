@@ -26,7 +26,7 @@ import org.apache.http.client.HttpClient;
 import java.io.IOException;
 import java.util.Locale;
 
-import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
+//import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.crawler.system.Logging;

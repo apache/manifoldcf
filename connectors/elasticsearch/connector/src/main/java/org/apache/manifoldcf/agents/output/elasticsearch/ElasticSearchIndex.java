@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.TimeZone;
+
 import java.util.Date;
 
 import org.apache.http.client.HttpClient;
@@ -42,10 +43,10 @@ import org.apache.http.util.EntityUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.Header;
 import org.apache.commons.io.IOUtils;
-import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
+//import org.apache.manifoldcf.agents.interfaces.IOutputHistoryActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
-import org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnection.Result;
+//import org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnection.Result;
 import org.apache.manifoldcf.core.common.Base64;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.util.URLEncoder;
@@ -159,7 +160,6 @@ public class ElasticSearchIndex extends ElasticSearchConnection
             needComma = writeField(pw, needComma, fieldName, fieldValues);
           }
         }
-
         // Standard document fields
         final Date createdDate = document.getCreatedDate();
         if (createdDate != null && createdDateAttributeName != null && createdDateAttributeName.length() > 0)
@@ -181,7 +181,6 @@ public class ElasticSearchIndex extends ElasticSearchConnection
         {
           needComma = writeField(pw, needComma, mimeTypeAttributeName, new String[]{mimeType});
         }
-        
         needComma = writeACLs(pw, needComma, "document", acls, denyAcls);
         needComma = writeACLs(pw, needComma, "share", shareAcls, shareDenyAcls);
         needComma = writeACLs(pw, needComma, "parent", parentAcls, parentDenyAcls);
@@ -245,7 +244,6 @@ public class ElasticSearchIndex extends ElasticSearchConnection
                 }
               }
             }
-            
             pw.append("\"");
             needComma = true;
           }
@@ -420,16 +418,13 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls, String[] parentAcls, String[] parentDenyAcls)
     throws ManifoldCFException, ServiceInterruption
   {
-
-
     final String idField = URLEncoder.encode(documentURI);
     final String encodedPipelineName = (config.getPipelineName() == null || config.getPipelineName().length() == 0)?null:URLEncoder.encode(config.getPipelineName());
-    
-    final String command = config.getIndexType() + "/" + idField;
+    final String command = config.getIndexType() + "/"  + idField;
     final String fullCommand = (encodedPipelineName == null)?command:(command + "?pipeline=" + encodedPipelineName);
-    
     StringBuffer url = getApiUrl(fullCommand, false);
     HttpPut put = new HttpPut(url.toString());
+    Logging.connectors.debug("HttPutUri: " + url.toString());
     put.setEntity(new IndexRequestEntity(document, inputStream,
       acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls,
       config.getUseMapperAttachments(),
@@ -438,13 +433,23 @@ public class ElasticSearchIndex extends ElasticSearchConnection
       config.getModifiedDateAttributeName(),
       config.getIndexingDateAttributeName(),
       config.getMimeTypeAttributeName()));
+    
+      if (config.getUserName().length() > 0 && config.getPassword().length() >0) {
+        byte[] basicAuth = (config.getUserName() + ":" + config.getPassword()).getBytes();
+        Base64 encoder = new Base64();
+        String encoding = encoder.encodeByteArray(basicAuth);
+        put.setHeader("Authorization", "Basic " + encoding);
+        Header header = put.getLastHeader("Authorization");
+        Logging.connectors.debug("Header: " + new String(header.getValue().getBytes()));
+      }
+
     if (call(put) == false)
       return false;
     String error = checkJson(jsonException);
     if (getResult() == Result.OK && error == null)
       return true;
     setResult("JSONERROR",Result.ERROR, error);
-    Logging.connectors.warn("ES: Index failed: "+getResponse());
+    Logging.connectors.warn("ES: Index failed: " + getResponse());
     return true;
   }
 
