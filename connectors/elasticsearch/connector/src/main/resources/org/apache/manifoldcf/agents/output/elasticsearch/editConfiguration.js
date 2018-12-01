@@ -53,7 +53,7 @@ function checkConfigForSave() {
   if (editconnection.serverlocation) {
     if (editconnection.serverlocation.value == "") {
       alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.PleaseSupplyValidElasticSearchLocation'))");
-      SelectTab("$Encoder.javascriptBodyEscape($ResourceBundle.getString('ElasticSearchConnector.Parameters'))");
+      SelectTab("$Encoder.javascriptBodyEscape($ResourceBundle.getString('ElasticSearchConnector.Server'))");
       editconnection.serverlocation.focus();
       return false;
     }

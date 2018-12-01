@@ -19,27 +19,6 @@
 
 <table class="displaytable">
   <tr>
-    <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.ServerLocation'))</nobr>
-        $Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.URLColon'))
-    </td>
-    <td class="value"><input name="serverlocation" type="text"
-      value="$Encoder.attributeEscape($SERVERLOCATION)" size="48" />
-    </td>
-  </tr>
-  <tr>
-    <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.UserNameColon'))</nobr></td>
-    <td class="value"><input name="username" type="text" value="$Encoder.attributeEscape($USERNAME)" size="24" />
-    </td>
-  </tr>
-  <tr>
-    <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.PasswordColon'))</nobr></td>
-    <td class="value"><input name="password" type="password" value="$Encoder.attributeEscape($PASSWORD)" size="24" />
-    </td>
-  </tr>
-  <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.IndexNameColon'))</nobr></td>
     <td class="value"><input name="indexname" type="text" value="$Encoder.attributeEscape($INDEXNAME)" size="24" /></td>
   </tr>
@@ -93,7 +72,6 @@
 </table>
 
 #else
-<input type="hidden" name="serverlocation" value="$Encoder.attributeEscape($SERVERLOCATION)" />
 <input type="hidden" name="indexname" value="$Encoder.attributeEscape($INDEXNAME)" />
 <input type="hidden" name="indextype" value="$Encoder.attributeEscape($INDEXTYPE)" />
 <input type="hidden" name="usemapperattachments_checkbox" value="false"/>
