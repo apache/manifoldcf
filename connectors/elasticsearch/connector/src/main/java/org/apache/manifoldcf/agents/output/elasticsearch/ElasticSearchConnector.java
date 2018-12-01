@@ -76,12 +76,14 @@ public class ElasticSearchConnector extends BaseOutputConnector
   private final static String[] ELASTICSEARCH_ACTIVITIES =
   { ELASTICSEARCH_INDEXATION_ACTIVITY, ELASTICSEARCH_DELETION_ACTIVITY };
 
+  private final static String ELASTICSEARCH_TAB_SERVER = "ElasticSearchConnector.Server";
   private final static String ELASTICSEARCH_TAB_PARAMETERS = "ElasticSearchConnector.Parameters";
 
   /** Forward to the javascript to check the configuration parameters */
   private static final String EDIT_CONFIG_HEADER_FORWARD = "editConfiguration.js";
 
   /** Forward to the HTML template to edit the configuration parameters */
+  private static final String EDIT_CONFIG_FORWARD_SERVER = "editConfiguration_Server.html";
   private static final String EDIT_CONFIG_FORWARD_PARAMETERS = "editConfiguration_Parameters.html";
 
   /** Forward to the HTML template to view the configuration parameters */
@@ -232,6 +234,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
   {
     super.outputConfigurationHeader(threadContext, out, locale, parameters,
         tabsArray);
+    tabsArray.add(Messages.getString(locale, ELASTICSEARCH_TAB_SERVER));
     tabsArray.add(Messages.getString(locale, ELASTICSEARCH_TAB_PARAMETERS));
     outputResource(EDIT_CONFIG_HEADER_FORWARD, out, locale, null, null, null, null);
   }
@@ -244,6 +247,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
     super.outputConfigurationBody(threadContext, out, locale, parameters,
         tabName);
     ElasticSearchConfig config = this.getConfigParameters(parameters);
+    outputResource(EDIT_CONFIG_FORWARD_SERVER, out, locale, config, tabName, null, null);
     outputResource(EDIT_CONFIG_FORWARD_PARAMETERS, out, locale, config, tabName, null, null);
   }
 
