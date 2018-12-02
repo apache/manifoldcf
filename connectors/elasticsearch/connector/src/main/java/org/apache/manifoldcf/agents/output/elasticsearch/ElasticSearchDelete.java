@@ -47,15 +47,6 @@ public class ElasticSearchDelete extends ElasticSearchConnection
           "/" + config.getIndexName() + "/" + config.getIndexType()
           + "/" + idField);
 
-      if (config.getUserName().length() > 0 && config.getPassword().length() >0) {
-        byte[] basicAuth = (config.getUserName() + ":" + config.getPassword()).getBytes();
-        Base64 encoder = new Base64();
-        String encoding = encoder.encodeByteArray(basicAuth);
-        method.setHeader("Authorization", "Basic " + encoding);
-        Header header = method.getLastHeader("Authorization");
-        Logging.connectors.debug("Header: " + new String(header.getValue().getBytes()));
-      }
-
       call(method);
       String error = checkJson(jsonException);
       if (getResult() == Result.OK && error == null)
