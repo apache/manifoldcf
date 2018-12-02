@@ -83,5 +83,27 @@ function checkConfigForSave() {
   }
   return true;
 }
+
+function ServerKeystoreDeleteCertificate(aliasName)
+{
+  editconnection.serverkeystore_alias.value = aliasName;
+  editconnection.serverkeystore_op.value = "Delete";
+  postForm();
+}
+
+function ServerKeystoreAddCertificate()
+{
+  if (editconnection.serverkeystore_certificate.value == "")
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.ChooseACertificateFile'))");
+    editconnection.serverkeystore_certificate.focus();
+  }
+  else
+  {
+    editconnection.serverkeystore_op.value = "Add";
+    postForm();
+  }
+}
+
 //-->
 </script>
