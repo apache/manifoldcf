@@ -215,6 +215,17 @@ public class ElasticSearchConfig extends ElasticSearchParam
     return get(ParameterEnum.PASSWORD);
   }
 
+  final public IKeystoreManager getSSLKeystore()
+    throws ManifoldCFException
+  {
+    final String packedKeystore = get(ParameterEnum.SERVERKEYSTORE);
+    if (packedKeystore == null || packedKeystore.length() == 0)
+    {
+      return null;
+    }
+    return KeystoreManagerFactory.make("", packedKeystore);
+  }
+  
   final public String getIndexName()
   {
     return get(ParameterEnum.INDEXNAME);

@@ -39,6 +39,14 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.auth.AuthScope;
 //import org.apache.http.client.HttpRequestRetryHandler;
 //import org.apache.http.protocol.HttpContext;
 
@@ -61,6 +69,9 @@ import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 //import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
+import org.apache.manifoldcf.connectorcommon.interfaces.IKeystoreManager;
+import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
+
 
 /**
  * This is the "output connector" for elasticsearch.
@@ -114,8 +125,35 @@ public class ElasticSearchConnector extends BaseOutputConnector
       int socketTimeout = 900000;
       int connectionTimeout = 60000;
       
+      // Load configuration from parameters
+      final ElasticSearchConfig config = new ElasticSearchConfig(params);
+      final IKeystoreManager keystoreManager = config.getSSLKeystore();
+      final String userName = config.getUserName();
+      final String password = config.getPassword();
+
+      final Credentials credentials;
+      if (userName != null && userName.length() > 0)
+        credentials = new UsernamePasswordCredentials(userName, password);
+      else
+        credentials = null;
+      
+      // Set up ingest ssl if indicated
+      SSLConnectionSocketFactory myFactory = null;
+      if (keystoreManager != null)
+      {
+        myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(keystoreManager.getSecureSocketFactory(), connectionTimeout),
+          NoopHostnameVerifier.INSTANCE);
+      }
+      else
+      {
+        myFactory = SSLConnectionSocketFactory.getSocketFactory();
+      }
+
       // Set up connection manager
-      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager();
+      PoolingHttpClientConnectionManager poolingConnectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+        .register("http", PlainConnectionSocketFactory.getSocketFactory())
+        .register("https", myFactory)
+        .build());
       poolingConnectionManager.setDefaultMaxPerRoute(1);
       poolingConnectionManager.setValidateAfterInactivity(2000);
       poolingConnectionManager.setDefaultSocketConfig(SocketConfig.custom()
@@ -125,7 +163,11 @@ public class ElasticSearchConnector extends BaseOutputConnector
       connectionManager = poolingConnectionManager;
 
       CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-
+      if (credentials != null)
+      {
+        credentialsProvider.setCredentials(AuthScope.ANY, credentials);
+      }
+      
       RequestConfig.Builder requestBuilder = RequestConfig.custom()
           .setCircularRedirectsAllowed(true)
           .setSocketTimeout(socketTimeout)
