@@ -67,43 +67,32 @@ import org.apache.manifoldcf.crawler.system.Logging;
 
 public class ElasticSearchConnection
 {
-  protected ElasticSearchConfig config;
   
-  private HttpClient client;
-  
-  private String serverLocation;
-
-  private String indexName;
-
-  private String userName;
-
-  private String userPassword;
-
-  private String resultDescription;
-
-  private String callUrlSnippet;
-
-  private String response;
-
-  private String resultCode;
-
-  protected final static String jsonException = "\"error\"";
-
   public enum Result
   {
     OK, ERROR, UNKNOWN;
   }
 
-  private Result result;
+  protected final ElasticSearchConfig config;
   
+  private final HttpClient client;
+  private final String serverLocation;
+  private final String indexName;
+  private final String userName;
+  private final String userPassword;
+  
+  private String resultDescription = "";
+  private String callUrlSnippet = null;
+  private String response = null;
+  private String resultCode = null;
+  private Result result = Result.UNKNOWN;
+  
+  protected final static String jsonException = "\"error\"";
+
   protected ElasticSearchConnection(ElasticSearchConfig config, HttpClient client)
   {
     this.config = config;
     this.client = client;
-    result = Result.UNKNOWN;
-    response = null;
-    resultDescription = "";
-    callUrlSnippet = null;
     serverLocation = config.getServerLocation();
     indexName = config.getIndexName();
     userName = config.getUserName();
@@ -129,7 +118,7 @@ public class ElasticSearchConnection
     if (!serverLocation.endsWith("/"))
       url.append('/');
 
-      Logging.connectors.debug("Url: " + url);
+    Logging.connectors.debug("Url: " + url);
 
     if(!checkConnection)
       url.append(URLEncoder.encode(indexName)).append("/");
