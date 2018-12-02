@@ -31,6 +31,27 @@
   </tr>
   
   <tr><td class="separator" colspan="2"><hr/></td></tr>
+  
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.SSLCertificateListColon'))</nobr></td>
+    <td class="value">
+      <table class="displaytable">
+  #if($SERVERKEYSTORE_LIST.size() == 0)
+        <tr><td class="message" colspan="1">$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.NoCertificatesPresent'))</td></tr>
+  #else
+    #foreach($certificate in $SERVERKEYSTORE_LIST)
+        <tr>
+          <td class="value">
+            $Encoder.bodyEscape($certificate.get('DESCRIPTION'))
+          </td>
+        </tr>
+    #end
+  #end
+      </table>
+    </td>
+  </tr>
+
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
 
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.IndexNameColon'))</nobr></td>
@@ -68,4 +89,5 @@
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.MimeTypeAttributeNameColon'))</nobr></td>
     <td class="value">$Encoder.bodyEscape($MIMETYPEATTRIBUTENAME)</td>
   </tr>
+  
 </table>

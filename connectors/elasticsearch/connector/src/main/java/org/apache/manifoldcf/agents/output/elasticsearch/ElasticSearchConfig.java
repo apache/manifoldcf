@@ -19,10 +19,16 @@
 
 package org.apache.manifoldcf.agents.output.elasticsearch;
 
+import org.apache.manifoldcf.core.interfaces.IDFactory;
+import org.apache.manifoldcf.connectorcommon.interfaces.IKeystoreManager;
+import org.apache.manifoldcf.connectorcommon.interfaces.KeystoreManagerFactory;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 import java.util.Locale;
+import java.io.IOException;
 
 public class ElasticSearchConfig extends ElasticSearchParam
 {
@@ -39,6 +45,7 @@ public class ElasticSearchConfig extends ElasticSearchParam
     ParameterEnum.SERVERLOCATION,
     ParameterEnum.USERNAME,
     ParameterEnum.PASSWORD,
+    ParameterEnum.SERVERKEYSTORE,
     ParameterEnum.INDEXNAME,
     ParameterEnum.INDEXTYPE,
     ParameterEnum.USEMAPPERATTACHMENTS,
@@ -63,22 +70,30 @@ public class ElasticSearchConfig extends ElasticSearchParam
     for (ParameterEnum param : CONFIGURATIONLIST)
     {
       final boolean isPassword = param.name().endsWith("PASSWORD");
+      // Nothing special is needed for keystores here; the keystore in string format is the value
+      // of the field
+      //final boolean isKeystore = param.name().endsWith("KEYSTORE");
       String value;
-      if (isPassword) {
-        value = params.getObfuscatedParameter(param.name());
+      if (isPassword)
+      {
+        put(param, params.getObfuscatedParameter(param.name()), param.defaultValue);
       }
       else
       {
-        value = params.getParameter(param.name());
+        put(param, params.getParameter(param.name()), param.defaultValue);
       }
-      if (value == null)
-      {
-        value = param.defaultValue;
-      }
-      put(param, value);
     }
   }
 
+  private void put(ParameterEnum param, String value, String defaultValue)
+  {
+    if (value == null) {
+      put(param, defaultValue);
+    } else {
+      put(param, value);
+    }
+  }
+  
   /** @return a unique identifier for one index on one ElasticSearch instance. */
   public String getUniqueIndexIdentifier()
   {
@@ -90,23 +105,85 @@ public class ElasticSearchConfig extends ElasticSearchParam
     return sb.toString();
   }
 
-  public final static void contextToConfig(IPostParameters variableContext,
-      ConfigParams parameters)
+  public final static String contextToConfig(IThreadContext threadContext,
+      IPostParameters variableContext,
+      ConfigParams parameters) throws ManifoldCFException
   {
+    String rval = null;
     for (ParameterEnum param : CONFIGURATIONLIST)
     {
       final String paramName = param.name().toLowerCase(Locale.ROOT);
       final boolean isPassword = param.name().endsWith("PASSWORD");
-      String p = variableContext.getParameter(paramName);
-      if (p != null)
+      final boolean isKeystore = param.name().endsWith("KEYSTORE");
+      if (isKeystore)
       {
-        if (isPassword)
-        {
-          parameters.setObfuscatedParameter(param.name(), p);
-        }
+        String keystoreValue = variableContext.getParameter(paramName); //parameters.getParameter(SharePointConfig.PARAM_SERVERKEYSTORE);
+        IKeystoreManager mgr;
+        if (keystoreValue != null && keystoreValue.length() > 0)
+          mgr = KeystoreManagerFactory.make("",keystoreValue);
         else
+          mgr = KeystoreManagerFactory.make("");
+
+        // All the functionality needed to gather keystore-related variables must go here.
+        // Specifically, we need to also handle add/delete signals from the UI as well as
+        // preserving the original keystore and making sure it gets gathered if no other signal
+        // is present.
+        String configOp = variableContext.getParameter(paramName + "_op");
+        if (configOp != null)
         {
-          parameters.setParameter(param.name(), p);
+          if (configOp.equals("Delete"))
+          {
+            String alias = variableContext.getParameter(paramName + "_alias");
+            mgr.remove(alias);
+          }
+          else if (configOp.equals("Add"))
+          {
+            String alias = IDFactory.make(threadContext);
+            byte[] certificateValue = variableContext.getBinaryBytes(paramName + "_certificate");
+            java.io.InputStream is = new java.io.ByteArrayInputStream(certificateValue);
+            String certError = null;
+            try
+            {
+              mgr.importCertificate(alias,is);
+            }
+            catch (Throwable e)
+            {
+              certError = e.getMessage();
+            }
+            finally
+            {
+              try
+              {
+                is.close();
+              }
+              catch (IOException e)
+              {
+                // Don't report anything
+              }
+            }
+
+            if (certError != null)
+            {
+              // Redirect to error page
+              rval = "Illegal certificate: "+certError;
+            }
+          }
+        }
+        parameters.setParameter(param.name(), mgr.getString());
+      }
+      else
+      {
+        String p = variableContext.getParameter(paramName);
+        if (p != null)
+        {
+          if (isPassword)
+          {
+            parameters.setObfuscatedParameter(param.name(), p);
+          }
+          else
+          {
+            parameters.setParameter(param.name(), p);
+          }
         }
       }
     }
@@ -119,6 +196,8 @@ public class ElasticSearchConfig extends ElasticSearchParam
         useMapperAttachments = "false";
       parameters.setParameter(ParameterEnum.USEMAPPERATTACHMENTS.name(), useMapperAttachments);
     }
+    
+    return rval;
   }
 
   final public String getServerLocation()

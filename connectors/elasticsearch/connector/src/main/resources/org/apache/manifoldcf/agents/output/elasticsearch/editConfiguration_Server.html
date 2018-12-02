@@ -15,7 +15,9 @@
  limitations under the License.
 -->
 
-#if($TABNAME == $ResourceBundle.getString('ElasticSearchConnector.Server'))
+<input type="hidden" name="serverkeystore" value="$Encoder.attributeEscape($SERVERKEYSTORE)"/>
+
+#if($TabName == $ResourceBundle.getString('ElasticSearchConnector.Server'))
 
 <table class="displaytable">
   <tr>
@@ -39,6 +41,36 @@
     <td class="value"><input name="password" type="password" value="$Encoder.attributeEscape($PASSWORD)" size="24" />
     </td>
   </tr>
+
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.SSLCertificateListColon'))</nobr></td>
+    <td class="value">
+      <input type="hidden" name="serverkeystore_op" value="Continue"/>
+      <input type="hidden" name="serverkeystore_alias" value=""/>
+      <table class="displaytable">
+  #if($SERVERKEYSTORE_LIST.size() == 0)
+        <tr><td class="message" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.NoCertificatesPresent'))</td></tr>
+  #else
+    #foreach($certificate in $SERVERKEYSTORE_LIST)
+        <tr>
+          <td class="description">
+            <input type="button" onclick='Javascript:ServerKeystoreDeleteCertificate("$Encoder.attributeJavascriptEscape($certificate.get('ALIAS'))")' alt="$Encoder.attributeEscape($ResourceBundle.getString('ElasticSearchConnector.DeleteCert'))$Encoder.attributeEscape($certificate.get('ALIAS'))" value="$Encoder.attributeEscape($ResourceBundle.getString('ElasticSearchConnector.Delete'))"/>
+          </td>
+          <td class="value">
+            $Encoder.bodyEscape($certificate.get('DESCRIPTION'))
+          </td>
+        </tr>
+    #end
+  #end
+      </table>
+      <input type="button" onclick='Javascript:ServerKeystoreAddCertificate()' alt="$Encoder.attributeEscape($ResourceBundle.getString('ElasticSearchConnector.AddCert'))" value="$Encoder.attributeEscape($ResourceBundle.getString('ElasticSearchConnector.Add'))"/>&nbsp;
+      $Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.Certificate'))&nbsp;
+      <input name="serverkeystore_certificate" size="50" type="file"/>
+    </td>
+  </tr>
+
 </table>
 
 #else

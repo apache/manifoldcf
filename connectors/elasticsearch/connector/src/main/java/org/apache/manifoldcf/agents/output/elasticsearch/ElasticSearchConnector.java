@@ -208,7 +208,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
       Locale locale, ElasticSearchParam params,
       String tabName, Integer sequenceNumber, Integer currentSequenceNumber) throws ManifoldCFException
   {
-    Map<String,String> paramMap = null;
+    Map<String,Object> paramMap = null;
     if (params != null) {
       paramMap = params.buildMap(out);
       if (tabName != null) {
@@ -219,12 +219,12 @@ public class ElasticSearchConnector extends BaseOutputConnector
     }
     else
     {
-      paramMap = new HashMap<String,String>();
+      paramMap = new HashMap<String,Object>();
     }
     if (sequenceNumber != null)
       paramMap.put("SeqNum",sequenceNumber.toString());
 
-    Messages.outputResourceWithVelocity(out, locale, resName, paramMap, true);
+    Messages.outputResourceWithVelocity(out, locale, resName, paramMap);
   }
 
   @Override
@@ -244,11 +244,15 @@ public class ElasticSearchConnector extends BaseOutputConnector
       IHTTPOutput out, Locale locale, ConfigParams parameters, String tabName)
       throws ManifoldCFException, IOException
   {
+    try {
     super.outputConfigurationBody(threadContext, out, locale, parameters,
         tabName);
     ElasticSearchConfig config = this.getConfigParameters(parameters);
     outputResource(EDIT_CONFIG_FORWARD_SERVER, out, locale, config, tabName, null, null);
     outputResource(EDIT_CONFIG_FORWARD_PARAMETERS, out, locale, config, tabName, null, null);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   /** Build a Set of ElasticSearch parameters. If configParams is null,
@@ -284,8 +288,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
       IPostParameters variableContext, ConfigParams parameters)
       throws ManifoldCFException
   {
-    ElasticSearchConfig.contextToConfig(variableContext, parameters);
-    return null;
+    return ElasticSearchConfig.contextToConfig(threadContext, variableContext, parameters);
   }
 
   /** Convert an unqualified ACL to qualified form.
