@@ -434,15 +434,6 @@ public class ElasticSearchIndex extends ElasticSearchConnection
       config.getIndexingDateAttributeName(),
       config.getMimeTypeAttributeName()));
     
-      if (config.getUserName().length() > 0 && config.getPassword().length() >0) {
-        byte[] basicAuth = (config.getUserName() + ":" + config.getPassword()).getBytes();
-        Base64 encoder = new Base64();
-        String encoding = encoder.encodeByteArray(basicAuth);
-        put.setHeader("Authorization", "Basic " + encoding);
-        Header header = put.getLastHeader("Authorization");
-        Logging.connectors.debug("Header: " + new String(header.getValue().getBytes()));
-      }
-
     if (call(put) == false)
       return false;
     String error = checkJson(jsonException);

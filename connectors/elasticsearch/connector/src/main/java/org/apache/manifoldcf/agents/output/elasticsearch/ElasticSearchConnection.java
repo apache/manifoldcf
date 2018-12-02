@@ -78,8 +78,6 @@ public class ElasticSearchConnection
   private final HttpClient client;
   private final String serverLocation;
   private final String indexName;
-  private final String userName;
-  private final String userPassword;
   
   private String resultDescription = "";
   private String callUrlSnippet = null;
@@ -95,37 +93,18 @@ public class ElasticSearchConnection
     this.client = client;
     serverLocation = config.getServerLocation();
     indexName = config.getIndexName();
-    userName = config.getUserName();
-    userPassword = config.getPassword();
   }
 
   protected StringBuffer getApiUrl(String command, boolean checkConnection) throws ManifoldCFException
   {
-    String basicAuth = "";
-    if (userName.length() > 0 && userPassword.length() >0) {
-      basicAuth = userName + ":" + userPassword + "@";
-    }
-    Logging.connectors.debug("Auth: " + basicAuth);
-
-    String[] serverLocationSplit = serverLocation.split("://",2);
-    StringBuffer url;
-    if (basicAuth.length() > 0) {
-      url = new StringBuffer(serverLocationSplit[0] + "://" + basicAuth + serverLocationSplit[1]);
-    }
-    else {
-      url = new StringBuffer(serverLocationSplit[0] + "://" + basicAuth + serverLocationSplit[1]);
-    }
+    StringBuffer url = new StringBuffer(serverLocation);
     if (!serverLocation.endsWith("/"))
       url.append('/');
-
-    Logging.connectors.debug("Url: " + url);
 
     if(!checkConnection)
       url.append(URLEncoder.encode(indexName)).append("/");
     url.append(command);
     callUrlSnippet = url.toString();
-
-    Logging.connectors.debug("UrlEnc: " + url);
 
     return url;
   }
