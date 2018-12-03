@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.12-dev =====================
 
+CONNECTORS-1522: Add SSL and basic auth support to ElasticSearch connector.
+(Karl Wright, Steph van Schwalkwyk)
+
 CONNECTORS-1556: Modify retry strategy for Tika Service connector.
 (Karl Wright)
 
