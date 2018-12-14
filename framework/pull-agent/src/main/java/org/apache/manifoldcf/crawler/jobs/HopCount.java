@@ -949,7 +949,13 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   }
 
 
-  /** Method that does the work of "finishing" a set of child references. */
+  /** Method that does the work of "finishing" a set of child references. 
+   * The API for hopcount involves doing the following for every document that is recrawled or reassessed, INCLUDING the seeds (in which case the
+   * document hash is the empty string):
+   * (1) Record all target references of the source documents, which either adds intrinsic links, or moves them to the "existing" state
+   * (2) When done adding, call this method, which should (depending on hopcount mode) mark hopcount records in need of reassessment, and
+   *       delete the intrinsic links that have the right source document and were not marked as "new" or "existing", but rather just "base".
+   **/
   protected void doFinish(Long jobID, String[] legalLinkTypes, String[] sourceDocumentHashes, int hopcountMethod)
     throws ManifoldCFException
   {
@@ -966,7 +972,9 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // ... and then, get rid of all hopcount records and their dependencies that are marked for delete.
 
 
-      // Invalidate all links with the given source documents that match the common expression
+      // Invalidate all links with the given source documents.
+      // This basically should make sure reassessment of all referenced documents takes place.
+      // It also deletes the intrinsic links that no longer exist.
       doDeleteInvalidation(jobID,sourceDocumentHashes);
     }
     // Make all new and existing links become just "base" again.
@@ -1188,30 +1196,41 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     // See CONNECTORS-501.
   }
 
-  /** Invalidate links meeting a simple criteria which have a given set of source documents.  This also runs a queue
-  * which is initialized with all the documents that have sources that exist in the hopcount table.  The purpose
+  /** Invalidate targets of links which have a given set of source documents.  This also removes intrinsic links
+  * that were not re-added that point to children of the source documents.
+  *
+  * The purpose
   * of that queue is to re-establish non-infinite values for all nodes that are described in IntrinsicLinks, that are
   * still connected to the root. */
   protected void doDeleteInvalidation(Long jobID,
     String[] sourceDocumentHashes)
     throws ManifoldCFException
   {
-    ArrayList commonNewList = new ArrayList();
-    commonNewList.add(intrinsicLinkManager.statusToString(intrinsicLinkManager.LINKSTATUS_BASE));
-    String commonNewExpression = intrinsicLinkManager.newField+"=?";
-
-    // Clear up hopcount table
+    // Only do anything if we have something to process!!
     if (sourceDocumentHashes.length > 0)
     {
+      
+      // Conditionally log what we're doing
       if (Logging.hopcount.isDebugEnabled())
       {
-        Logging.hopcount.debug("Marking for delete for job "+jobID+" all target document references matching '"+commonNewExpression+"'"+
-          " from:");
+        final StringBuilder sb = new StringBuilder();
         for (int k = 0; k < sourceDocumentHashes.length; k++)
         {
-          Logging.hopcount.debug("  "+sourceDocumentHashes[k]);
+          sb.append(" '").append(sourceDocumentHashes[k]).append("' ");
         }
+        Logging.hopcount.debug("Marking for delete for job "+jobID+" all target document references matching '"+
+          intrinsicLinkManager.newField+"="+intrinsicLinkManager.statusToString(intrinsicLinkManager.LINKSTATUS_BASE)+
+          "' that are targets of ("+sb.toString()+")");
       }
+
+      // Look for the links that are marked as "base".  These are the ones whose target's hopcounts will need to
+      // be reassessed, and also which will need to be removed from the intrinsiclink table after we do that.
+      String commonNewExpression = intrinsicLinkManager.newField+"=?";
+      ArrayList commonNewList = new ArrayList();
+      commonNewList.add(intrinsicLinkManager.statusToString(intrinsicLinkManager.LINKSTATUS_BASE));
+
+      // Clear up hopcount table FIRST, before we remove the links.
+      // This sets the "mark for death" field so that we know which records are, in fact, the targets we need to be concerned about.
 
       // The query form I found that seems to work ok with postgresql looks like this:
       //
@@ -1254,7 +1273,10 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       noteModifications(0,sourceDocumentHashes.length,0);
 
       if (Logging.hopcount.isDebugEnabled())
-        Logging.hopcount.debug("Done setting hopcount rows for job "+jobID+" to initial distances");
+        Logging.hopcount.debug("Done marking for delete for job "+jobID);
+
+      // Clean up the intrinsiclink and hopcountdeletedeps tables.  We can use the mark-for-death
+      // field as a way of figuring out which rows to remove.
 
       // Remove the intrinsic links that we said we would - BEFORE we evaluate the queue.
       intrinsicLinkManager.removeLinks(jobID,
@@ -1268,7 +1290,8 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         new UnitaryClause(markForDeathField,markToString(MARK_DELETING))});
       deleteDepsManager.removeMarkedRows(getTableName(),idField,query,queryList);
 
-      // Set the hopcount rows back to just "queued".
+      // Map the hopcount rows we set to "mark for death" back to just "queued".  That means they'll
+      // be re-evaluated when the associated hopcount is requested.
       HashMap newMap = new HashMap();
       newMap.put(markForDeathField,markToString(MARK_QUEUED));
       performUpdate(newMap,"WHERE "+query,queryList,null);
@@ -1279,7 +1302,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // will have new hopcount values.
 
       if (Logging.hopcount.isDebugEnabled())
-        Logging.hopcount.debug("Done queueing for deletion for "+jobID);
+        Logging.hopcount.debug("Done queueing for re-evaluation for "+jobID);
 
     }
 
