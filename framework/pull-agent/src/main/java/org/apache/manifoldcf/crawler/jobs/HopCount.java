@@ -326,7 +326,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     intrinsicLinkManager.restartCluster();
   }
   
-  /** Record a references from a set of documents to the root.  These will be marked as "new" or "existing", and
+  /** Record references from a set of documents to the root.  These will be marked as "new" or "existing", and
   * will have a null linktype.
   */
   public void recordSeedReferences(Long jobID, String[] legalLinkTypes, String[] targetDocumentIDHashes, int hopcountMethod, String processID)
@@ -433,6 +433,11 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
       if (sourceDocumentIDHash == null || sourceDocumentIDHash.length() == 0)
       {
+        // This is a seeding entry!!
+        // The distance we want to record, for all link types, is zero.  But we need to make sure a delete dependency is there for each answer that will match the seeding
+        // doFinish() query; otherwise the number we write is not going to be something we can invalidate if the seed goes away.
+        // This must be added in addToProcessingQueue.  It will be added as a dependency on a specific link type, though, e.g. "link" or "redirect", and not the generic
+        // empty string link type.  Invalidation must therefore be careful for seeds to invalidate all specific link types, and not just a generic empty string.
         for (int i = 0; i < estimates.length; i++)
         {
           estimates[i] = new Answer(0);
@@ -722,6 +727,17 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     //IResultSet set = performQuery("SELECT "+parentIDField+","+linkTypeField+" FROM "+getTableName()+" WHERE "+
     //      parentIDField+" IN("+query+") AND "+jobIDField+"=?",list,null,null);
     IResultSet set = performQuery("SELECT "+parentIDHashField+","+linkTypeField+","+distanceField+" FROM "+getTableName()+" WHERE "+query,newList,null,null);
+    if (Logging.hopcount.isDebugEnabled()) {
+      final StringBuilder sb = new StringBuilder();
+      for (int q = 0; q < list.size(); q++) {
+        sb.append(" '").append((String)list.get(q)).append("' ");
+      }
+      final StringBuilder sb2 = new StringBuilder();
+      for (String lt : affectedLinkTypes) {
+        sb2.append(" '").append(lt).append("' ");
+      }
+      Logging.hopcount.debug("Looked for existing records matching link types: ["+sb2+"] parent hashes: ["+sb+"]; found "+set.getRowCount()+" matches");
+    }
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -748,7 +764,8 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   *@param jobID is the job the documents belong to.
   *@param affectedLinkTypes are the set of affected link types.
   *@param documentIDHashes are the documents to add.
-  *@param startingAnswers are the hopcounts for the documents as they are currently known.
+  *@param startingAnswers are the hopcounts and delete dependencies for the source document as they are currently known.
+  *               The size of this array is the same as the size of the affectedLinkTypes array.
   *@param sourceDocumentIDHash is the source document identifier for the links from source to target documents.
   *@param linkType is the link type for this queue addition.
   *@param hopcountMethod is the desired method of managing hopcounts.
@@ -845,13 +862,13 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         Question q = new Question(documentIDHash,affectedLinkType);
 
         // Calculate what our new answer would be.
-        Answer startingAnswer = (Answer)answerMap.get(affectedLinkType);
+        Answer startingAnswer = answerMap.get(affectedLinkType);
         int newAnswerValue = startingAnswer.getAnswer();
         if (newAnswerValue >= 0 && affectedLinkType.equals(linkType))
           newAnswerValue++;
 
         // Now, see if there's a distance already present.
-        Long currentDistance = (Long)matchMap.get(q);
+        Long currentDistance = matchMap.get(q);
         if (currentDistance == null)
         {
           // Prepare to do an insert.
@@ -876,10 +893,10 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
           if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
           {
             deleteDepsManager.writeDependency(hopCountID,jobID,dd);
-            Iterator iter2 = startingAnswer.getDeleteDependencies();
+            Iterator<DeleteDependency> iter2 = startingAnswer.getDeleteDependencies();
             while (iter2.hasNext())
             {
-              dd = (DeleteDependency)iter2.next();
+              dd = iter2.next();
               deleteDepsManager.writeDependency(hopCountID,jobID,dd);
             }
           }
