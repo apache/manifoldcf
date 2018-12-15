@@ -1399,7 +1399,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     // Set the node up as being "infinity" first; we'll change it around later
     Answer a = new Answer(ANSWER_INFINITY);
 
-    Map indexMap = new HashMap();
+    Map<Question,Integer> indexMap = new HashMap<>();
     int i = 0;
     while (i < unansweredQuestions.length)
     {
@@ -1426,7 +1426,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     }
 
     // Accumulate the ids of rows where I need deps too.  This is keyed by id and has the right answer object as a value.
-    Map depsMap = new HashMap();
+    Map<Long,DocumentNode> depsMap = new HashMap<>();
 
     int maxClause = maxClausePerformGetCachedDistances(jobID);
     ArrayList list = new ArrayList();
@@ -1455,10 +1455,10 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     maxClause = maxClausePerformGetCachedDistanceDeps();
     list.clear();
     k = 0;
-    Iterator iter = depsMap.keySet().iterator();
+    Iterator<Long> iter = depsMap.keySet().iterator();
     while (iter.hasNext())
     {
-      Long id = (Long)iter.next();
+      Long id = iter.next();
       if (k == maxClause)
       {
         performGetCachedDistanceDeps(depsMap,list);
@@ -1480,7 +1480,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   }
   
   /** Do a limited fetch of cached distance dependencies */
-  protected void performGetCachedDistanceDeps(Map depsMap, ArrayList list)
+  protected void performGetCachedDistanceDeps(Map<Long,DocumentNode> depsMap, ArrayList list)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
@@ -1497,7 +1497,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     // hash will be keyed by owner id and contain an arraylist of deletedependency
     // objects.
 
-    HashMap ownerHash = new HashMap();
+    Map<Long,List<DeleteDependency>> ownerHash = new HashMap<>();
     int i = 0;
     while (i < set.getRowCount())
     {
@@ -1511,30 +1511,27 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       if (childIDHash == null)
         childIDHash = "";
       DeleteDependency dd = new DeleteDependency(linkType,parentIDHash,childIDHash);
-      ArrayList ddlist = (ArrayList)ownerHash.get(ownerID);
+      List<DeleteDependency> ddlist = ownerHash.get(ownerID);
       if (ddlist == null)
       {
-        ddlist = new ArrayList();
+        ddlist = new ArrayList<>();
         ownerHash.put(ownerID,ddlist);
       }
       ddlist.add(dd);
     }
 
     // Now, for each owner, populate the dependencies in the answer
-    Iterator iter = ownerHash.keySet().iterator();
+    Iterator<Long> iter = ownerHash.keySet().iterator();
     while (iter.hasNext())
     {
-      Long owner = (Long)iter.next();
-      ArrayList ddlist = (ArrayList)ownerHash.get(owner);
+      Long owner = iter.next();
+      List<DeleteDependency> ddlist = ownerHash.get(owner);
       if (ddlist != null)
       {
-        DocumentNode dn = (DocumentNode)depsMap.get(owner);
+        DocumentNode dn = depsMap.get(owner);
         DeleteDependency[] array = new DeleteDependency[ddlist.size()];
-        int j = 0;
-        while (j < array.length)
-        {
-          array[j] = (DeleteDependency)ddlist.get(j);
-          j++;
+        for (int j = 0; j < array.length; j++) {
+          array[j] = ddlist.get(j);
         }
         // In the DocumentNode's created earlier, the starting answer and trial answer refer
         // to the same answer object, so fooling
@@ -1556,7 +1553,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   }
   
   /** Do a limited fetch of cached distances */
-  protected void performGetCachedDistances(DocumentNode[] rval, Map indexMap, Map depsMap, Long jobID, ArrayList ltList, ArrayList list)
+  protected void performGetCachedDistances(DocumentNode[] rval, Map<Question,Integer> indexMap, Map<Long,DocumentNode> depsMap, Long jobID, ArrayList ltList, ArrayList list)
     throws ManifoldCFException
   {
     ArrayList newList = new ArrayList();
