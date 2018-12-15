@@ -553,6 +553,13 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   public int[] findHopCounts(Long jobID, String[] parentIdentifierHashes, String linkType)
     throws ManifoldCFException
   {
+    if (Logging.hopcount.isDebugEnabled()) {
+      StringBuilder sb = new StringBuilder();
+      for (final String id : parentIdentifierHashes) {
+        sb.append(" '").append(id).append("' ");
+      }
+      Logging.hopcount.debug("Finding hopcounts for job "+jobID+" parent IDs: ["+sb+"], linkType='"+linkType+"'...");
+    }
     // No transaction, since we can happily interpret whatever comes back.
     ArrayList list = new ArrayList();
 
@@ -584,6 +591,13 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     if (k > 0)
       processFind(rval,rvalMap,jobID,linkType,list);
 
+    if (Logging.hopcount.isDebugEnabled()) {
+      StringBuilder sb = new StringBuilder();
+      for (int j = 0; j < rval.length; j++) {
+        sb.append(" '").append(parentIdentifierHashes[j]).append("'=").append(Integer.toString(rval[j])).append(" ");
+      }
+      Logging.hopcount.debug("Found upper-bound hopcounts for job "+jobID+" parent IDs: ["+sb+"], linkType='"+linkType+"'...");
+    }
     return rval;
   }
 
@@ -625,6 +639,14 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   public boolean processQueue(Long jobID, String[] legalLinkTypes, int hopcountMethod)
     throws ManifoldCFException
   {
+    if (Logging.hopcount.isDebugEnabled()) {
+      final StringBuilder sb = new StringBuilder();
+      for (String linkType : legalLinkTypes) {
+        sb.append(" '").append(linkType).append("' ");
+      }
+      Logging.hopcount.debug("Processing queue for job "+jobID+" linktypes ["+sb+"]...");
+    }
+    
     // We can't instantiate the DocumentHash object here, because it will wind up having
     // cached in it the answers from the previous round of calculation.  That round had
     // a different set of marked nodes than the current round.
@@ -643,8 +665,10 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       getTableName()+" WHERE "+query+" "+constructOffsetLimitClause(0,200)+" FOR UPDATE",list,null,null,200);
 
     // No more entries == we are done
-    if (set.getRowCount() == 0)
+    if (set.getRowCount() == 0) {
+      Logging.hopcount.debug("... queue was empty");
       return true;
+    }
 
     DocumentHash dh = new DocumentHash(jobID,legalLinkTypes,hopcountMethod);
 
@@ -671,6 +695,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
     // We don't care what the response is; we just want the documents to leave the queue.
     dh.askQuestions(questions);
+    Logging.hopcount.debug("... queue was not empty; processed");
     return false;
   }
 
