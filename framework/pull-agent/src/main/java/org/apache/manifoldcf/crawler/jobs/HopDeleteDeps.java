@@ -227,6 +227,9 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
   public void writeDependency(Long ownerID, Long jobID, DeleteDependency dd)
     throws ManifoldCFException
   {
+    if (Logging.hopcount.isDebugEnabled()) {
+      Logging.hopcount.debug("Writing hopcount dependency for job "+jobID+" owner "+ownerID+" linktype='"+dd.getLinkType()+"' parenthash='"+dd.getParentIDHash()+" childhash='"+dd.getChildIDHash()+"'");
+    }
     HashMap map = new HashMap();
     map.put(jobIDField,jobID);
     map.put(ownerIDField,ownerID);
