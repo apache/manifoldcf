@@ -1659,7 +1659,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
 
     HashMap map = new HashMap();
-    Iterator iter;
+    Iterator<DeleteDependency> depiter;
 
     // Find the existing record
     int existingDistance = dn.getDatabaseValue();
@@ -1715,7 +1715,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
         // have numerous delete dependencies.  I therefore reorganized this code to be incremental where it makes
         // sense to be.  This could cut back on the number of required operations significantly.
 
-        HashMap existingDepsMap = new HashMap();
+        Set<DeleteDependency> existingDepsMap = new HashSet<>();
         if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
         {
           // If we knew in advance which nodes we'd be writing, we could have read the old
@@ -1742,11 +1742,8 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
             */
 
           // Drop these into a hash map.
-          int k = 0;
-          while (k < existingDeps.length)
-          {
-            DeleteDependency dep = existingDeps[k++];
-            existingDepsMap.put(dep,dep);
+          for (final DeleteDependency dep : existingDeps) {
+            existingDepsMap.add(dep);
           }
         }
 
@@ -1763,18 +1760,18 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
           // Write either dependencies, or dependency deltas
           int incrementalOpCount = 0;
 
-          iter = existingDepsMap.keySet().iterator();
-          while (iter.hasNext())
+          depiter = existingDepsMap.iterator();
+          while (depiter.hasNext())
           {
-            DeleteDependency dep = (DeleteDependency)iter.next();
+            DeleteDependency dep = depiter.next();
             if (answer.hasDependency(dep) == false)
               incrementalOpCount++;
           }
-          iter = answer.getDeleteDependencies();
-          while (iter.hasNext())
+          depiter = answer.getDeleteDependencies();
+          while (depiter.hasNext())
           {
-            DeleteDependency dep = (DeleteDependency)iter.next();
-            if (existingDepsMap.get(dep) == null)
+            DeleteDependency dep = depiter.next();
+            if (!existingDepsMap.contains(dep))
               incrementalOpCount++;
           }
 
@@ -1785,20 +1782,20 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
           }
 
           // Write the individual deletes...
-          iter = existingDepsMap.keySet().iterator();
-          while (iter.hasNext())
+          depiter = existingDepsMap.iterator();
+          while (depiter.hasNext())
           {
-            DeleteDependency dep = (DeleteDependency)iter.next();
+            DeleteDependency dep = depiter.next();
             if (answer.hasDependency(dep) == false)
               deleteDepsManager.deleteDependency(existingID,dep);
           }
 
           // Then, inserts...
-          iter = answer.getDeleteDependencies();
-          while (iter.hasNext())
+          depiter = answer.getDeleteDependencies();
+          while (depiter.hasNext())
           {
-            DeleteDependency dep = (DeleteDependency)iter.next();
-            if (existingDepsMap.get(dep) == null)
+            DeleteDependency dep = depiter.next();
+            if (!existingDepsMap.contains(dep))
               deleteDepsManager.writeDependency(existingID,jobID,dep);
           }
         }
@@ -1860,10 +1857,10 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
 
     if (hopcountMethod != IJobDescription.HOPCOUNT_NEVERDELETE)
     {
-      iter = answer.getDeleteDependencies();
-      while (iter.hasNext())
+      depiter = answer.getDeleteDependencies();
+      while (depiter.hasNext())
       {
-        DeleteDependency dep = (DeleteDependency)iter.next();
+        DeleteDependency dep = depiter.next();
         deleteDepsManager.writeDependency(id,jobID,dep);
       }
     }
