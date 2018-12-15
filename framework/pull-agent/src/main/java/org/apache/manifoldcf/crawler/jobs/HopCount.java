@@ -1929,7 +1929,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     /** The answer value */
     protected int answer = ANSWER_UNKNOWN;
     /** This is the set of delete dependencies.  It is keyed by a DeleteDependency object. */
-    protected HashMap deleteDependencies = new HashMap();
+    protected HashSet<DeleteDependency> deleteDependencies = new HashSet<>();
 
     /** Constructor. */
     public Answer()
@@ -1940,7 +1940,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     {
       answer = other.answer;
       // Shallow copy is fine, because the stuff in these dependencies is immutable.
-      deleteDependencies = (HashMap)other.deleteDependencies.clone();
+      deleteDependencies = (HashSet<DeleteDependency>)other.deleteDependencies.clone();
     }
 
     public Answer(int value)
@@ -1955,8 +1955,8 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       int i = 0;
       while (i < deleteDeps.length)
       {
-        DeleteDependency dep = (DeleteDependency)deleteDeps[i++];
-        deleteDependencies.put(dep,dep);
+        DeleteDependency dep = deleteDeps[i++];
+        deleteDependencies.add(dep);
       }
     }
 
@@ -1974,15 +1974,15 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     }
 
     /** Iterate over the delete dependencies. */
-    public Iterator getDeleteDependencies()
+    public Iterator<DeleteDependency> getDeleteDependencies()
     {
-      return deleteDependencies.keySet().iterator();
+      return deleteDependencies.iterator();
     }
 
     /** Check if a delete dependency is present */
     public boolean hasDependency(DeleteDependency dep)
     {
-      return deleteDependencies.get(dep) != null;
+      return deleteDependencies.contains(dep);
     }
 
     /** Initialize this answer object.  This sets the answer value to ANSWER_INFINITY
@@ -1999,7 +1999,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     {
       answer = other.answer;
       // Shallow copy is fine, because the stuff in these dependencies is immutable.
-      deleteDependencies = (HashMap)other.deleteDependencies.clone();
+      deleteDependencies = (HashSet<DeleteDependency>)other.deleteDependencies.clone();
     }
 
     /** Update the current answer, using a child link's information and answer.
@@ -2075,12 +2075,12 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     }
 
     /** Set answer from child */
-    protected void setAnswerFromChild(int newAnswer, HashMap childDeleteDependencies, String linkType, String parentIDHash, String childIDHash)
+    protected void setAnswerFromChild(int newAnswer, HashSet<DeleteDependency> childDeleteDependencies, String linkType, String parentIDHash, String childIDHash)
     {
       answer = newAnswer;
-      deleteDependencies = (HashMap)childDeleteDependencies.clone();
+      deleteDependencies = (HashSet<DeleteDependency>)childDeleteDependencies.clone();
       DeleteDependency x = new DeleteDependency(linkType,parentIDHash,childIDHash);
-      deleteDependencies.put(x,x);
+      deleteDependencies.add(x);
     }
 
     /** Set an answer from initial data. */
@@ -2091,8 +2091,8 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       int i = 0;
       while (i < deleteDeps.length)
       {
-        DeleteDependency dep = (DeleteDependency)deleteDeps[i++];
-        deleteDependencies.put(dep,dep);
+        DeleteDependency dep = deleteDeps[i++];
+        deleteDependencies.add(dep);
       }
     }
   }
