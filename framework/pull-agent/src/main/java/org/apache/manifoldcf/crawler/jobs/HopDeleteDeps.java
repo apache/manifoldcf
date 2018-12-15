@@ -211,12 +211,8 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
     String query = buildConjunctionClause(list,new ClauseDescription[]{
       new UnitaryClause(ownerIDField,ownerID),
       new UnitaryClause(parentIDHashField,dd.getParentIDHash()),
-      (dd.getLinkType().length() > 0)?
-        new UnitaryClause(linkTypeField,dd.getLinkType()):
-        new NullCheckClause(linkTypeField,true),
-      (dd.getChildIDHash().length() > 0)?
-        new UnitaryClause(childIDHashField,dd.getChildIDHash()):
-        new NullCheckClause(childIDHashField,true)});
+      new UnitaryClause(linkTypeField,dd.getLinkType()),
+      new UnitaryClause(childIDHashField,dd.getChildIDHash())});
         
     performDelete("WHERE "+query,list,null);
     noteModifications(0,0,1);
@@ -233,13 +229,9 @@ public class HopDeleteDeps extends org.apache.manifoldcf.core.database.BaseTable
     HashMap map = new HashMap();
     map.put(jobIDField,jobID);
     map.put(ownerIDField,ownerID);
-    if (dd.getLinkType().length() > 0)
-      map.put(linkTypeField,dd.getLinkType());
+    map.put(linkTypeField,dd.getLinkType());
     map.put(parentIDHashField,dd.getParentIDHash());
-    if (dd.getChildIDHash().length() > 0)
-    {
-      map.put(childIDHashField,dd.getChildIDHash());
-    }
+    map.put(childIDHashField,dd.getChildIDHash());
     performInsert(map,null);
     noteModifications(1,0,0);
   }

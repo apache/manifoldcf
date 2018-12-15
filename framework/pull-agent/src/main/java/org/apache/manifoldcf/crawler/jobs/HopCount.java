@@ -1017,7 +1017,19 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
       // Invalidate all links with the given source documents.
       // This basically should make sure reassessment of all referenced documents takes place.
       // It also deletes the intrinsic links that no longer exist.
+      if (Logging.hopcount.isDebugEnabled()) {
+        final StringBuilder sb = new StringBuilder();
+        for (String sourceID : sourceDocumentHashes) {
+          sb.append(" '").append(sourceID).append("' ");
+        }
+        final StringBuilder sb2 = new StringBuilder();
+        for (String lt : legalLinkTypes) {
+          sb2.append(" '").append(lt).append("' ");
+        }
+        Logging.hopcount.debug("Invalidating hopcount records for job "+jobID+" legalLinkTypes: ["+sb2+"] sourceDocumentHashes: ["+sb+"]...");
+      }
       doDeleteInvalidation(jobID,sourceDocumentHashes);
+      Logging.hopcount.debug("... invalidated");
     }
     // Make all new and existing links become just "base" again.
     intrinsicLinkManager.restoreLinks(jobID,sourceDocumentHashes);

@@ -3,6 +3,12 @@ $Id$
 
 ======================= 2.12-dev =====================
 
+CONNECTORS-1562: HopDeleteDeps table was using NULL values instead of empty
+strings, but nothing else knew about this and therefore all queries involving invalidation
+that used empty strings would not work as expected.  This was a long-standing problem,
+in effect since at least 2012.
+(Karl Wright, Tim Steenbeke)
+
 CONNECTORS-1522: Add SSL and basic auth support to ElasticSearch connector.
 (Karl Wright, Steph van Schwalkwyk)
 
