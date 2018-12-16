@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.12-dev =====================
+======================= Release 2.12 =====================
 
 CONNECTORS-1562: HopDeleteDeps table was using NULL values instead of empty
 strings, but nothing else knew about this and therefore all queries involving invalidation
