@@ -97,10 +97,10 @@ try
             <tr>
               <td>
                 <div class="btn-group">
-                  <a href='<%="viewoutput.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
+                  <a data-href='<%="viewoutput.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listoutputs.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>' 
                           class="link btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-eye fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listoutputs.View")%></a>
-                  <a href='<%="editoutput.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
+                  <a data-href='<%="editoutput.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listoutputs.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>' 
                           class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-pencil-square-o fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listoutputs.Edit")%></a>
                   <a href="javascript:void(0);"
@@ -121,7 +121,7 @@ try
         </div>
         <div class="box-footer clearfix">
           <div class="btn-group">
-            <a href="editoutput.jsp" title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listoutputs.AddAnOutputConnection")%>"
+            <a data-href="editoutput.jsp" title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listoutputs.AddAnOutputConnection")%>"
                     class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listoutputs.AddaNewOutputConnection")%></a>
           </div>
 

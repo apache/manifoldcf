@@ -110,16 +110,16 @@ try
             <tr job-id="<%= jd.getID() %>">
               <td>
                 <div class="btn-group">
-                  <a href='<%="viewjob.jsp?jobid="+jd.getID()%>'
+                  <a data-href='<%="viewjob.jsp?jobid="+jd.getID()%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.Viewjob")+" "+jd.getID()%>'
                           class="link btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-eye fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.View")%></a>
-                  <a href='<%="editjob.jsp?jobid="+jd.getID()%>'
+                  <a data-href='<%="editjob.jsp?jobid="+jd.getID()%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.Editjob")+" "+jd.getID()%>'
                           class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-pencil-square-o fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.Edit")%></a>
                   <a href='<%="javascript:Delete(\""+jd.getID()+"\")"%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.DeleteJob")+" "+jd.getID()%>'
                           class="btn btn-danger btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-trash fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.Delete")%></a>
-                  <a href='<%="editjob.jsp?origjobid="+jd.getID()%>'
+                  <a data-href='<%="editjob.jsp?origjobid="+jd.getID()%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.CopyJob")+" "+jd.getID()%>'
                           class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-clipboard fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.Copy")%></a>
                 </div>
@@ -136,7 +136,7 @@ try
         </div>
         <div class="box-footer clearfix">
           <div class="btn-group">
-            <a href="editjob.jsp" title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.Addajob")%>"
+            <a data-href="editjob.jsp" title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listjobs.Addajob")%>"
                     class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listjobs.AddaNewJob")%></a>
           </div>
 

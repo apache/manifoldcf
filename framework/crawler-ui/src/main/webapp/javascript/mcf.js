@@ -522,7 +522,8 @@ $(function(){
   $(document.body).on("click",'.link',function (e)
   {
     e.preventDefault();
-    var urlPath=$(this).attr('href');
+
+    var urlPath = $(this).attr('data-href') || $(this).attr('href');
     var title=$(this).text();
 
     $.ManifoldCF.loadContent(urlPath);

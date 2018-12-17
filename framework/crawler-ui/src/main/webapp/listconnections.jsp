@@ -100,10 +100,10 @@ try
             <tr>
               <td>
                 <div class="btn-group">
-                  <a href='<%="viewconnection.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
+                  <a data-href='<%="viewconnection.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>' 
                           class="link btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-eye fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.View")%></a>
-                  <a href='<%="editconnection.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
+                  <a data-href='<%="editconnection.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>' 
                           class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-pencil-square-o fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.Edit")%></a>
                   <a href="javascript:void(0);"
@@ -125,7 +125,7 @@ try
         </div>
         <div class="box-footer clearfix">
           <div class="btn-group">
-            <a href="editconnection.jsp" class="link btn btn-primary" role="button" 
+            <a data-href="editconnection.jsp" class="link btn btn-primary" role="button"
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listconnections.AddAConnection")%>"
                     data-toggle="tooltip"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listconnections.AddNewConnection")%></a>
           </div>
