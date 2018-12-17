@@ -297,7 +297,7 @@ try
           </table>
         </div>
         <div class="box-footer clearfix">
-            <a href="showjobstatus.jsp"
+            <a data-href="showjobstatus.jsp"
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"showjobstatus.RefreshStatus")%>"
                     class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-refresh fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"showjobstatus.Refresh")%></a>
         </div>

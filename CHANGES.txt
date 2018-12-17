@@ -3,6 +3,8 @@ $Id$
 
 ======================= 2.13-dev =====================
 
+CONNECTORS-1506: Add fixes for CSS preservation when opening in new tab in UI.
+(Kishore Kumar)
 
 ======================= Release 2.12 =====================
 

@@ -165,10 +165,10 @@ try
         </div>
         <div class="box-footer clearfix">
           <div class="btn-group">
-            <a href='<%="viewoutput.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
+            <a data-href='<%="viewoutput.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.Refresh")%>"
                     class="link btn btn-success" role="button" data-toggle="tooltip"><i class="fa fa-refresh fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.Refresh")%></a>
-            <a href='<%="editoutput.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
+            <a data-href='<%="editoutput.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.EditThisOutputConnection")%>"
                     class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-pencil fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewoutput.Edit")%></a>
             <a href="javascript:void(0);"

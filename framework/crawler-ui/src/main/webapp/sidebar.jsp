@@ -33,13 +33,13 @@
       </a>
       <ul class="treeview-menu">
         <li>
-          <a class="link" href="listtransformations.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listtransformationconnections")%>">
+          <a class="link" href="?p=listtransformations.jsp" data-href="listtransformations.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listtransformationconnections")%>">
             <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListTransformationConnections")%>
           </a>
         </li>
         <li>
-          <a class="link" href="listoutputs.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listoutputconnections")%>">
+          <a class="link" href="?p=listoutputs.jsp" data-href="listoutputs.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listoutputconnections")%>">
             <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListOutputConnections")%>
           </a>
@@ -54,19 +54,19 @@
       </a>
       <ul class="treeview-menu">
         <li>
-          <a class="link" href="listgroups.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listauthoritygroups")%>">
+          <a class="link" href="?p=listgroups.jsp" data-href="listgroups.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listauthoritygroups")%>">
             <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListAuthorityGroups")%>
           </a>
         </li>
         <li>
-          <a class="link" href="listmappers.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listusermappings")%>">
+          <a class="link" href="?p=listmappers.jsp" data-href="listmappers.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listusermappings")%>">
             <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListUserMappings")%>
           </a>
         </li>
         <li>
-          <a class="link" href="listauthorities.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listauthorities")%>">
+          <a class="link" href="?p=listauthorities.jsp" data-href="listauthorities.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listauthorities")%>">
             <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListAuthorityConnections")%>
           </a>
@@ -81,13 +81,13 @@
       </a>
       <ul class="treeview-menu">
         <li>
-          <a class="link" href="listconnections.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listrepositoryconnections")%>">
+          <a class="link" href="?p=listconnections.jsp" data-href="listconnections.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listrepositoryconnections")%>">
             <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListRepositoryConnections")%>
           </a>
         </li>
         <li>
-          <a class="link" href="listnotifications.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listnotificationconnections")%>">
+          <a class="link" href="?p=listnotifications.jsp" data-href="listnotifications.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listnotificationconnections")%>">
             <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListNotificationConnections")%>
           </a>
@@ -102,12 +102,12 @@
       </a>
       <ul class="treeview-menu">
         <li>
-          <a class="link" href="listjobs.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listjobs")%>">
+          <a class="link" href="?p=listjobs.jsp" data-href="listjobs.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Listjobs")%>">
             <i class="fa fa-list" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ListAllJobs")%>
           </a>
         </li>
         <li>
-          <a class="link" href="showjobstatus.jsp"
+          <a class="link" href="?p=showjobstatus.jsp" data-href="showjobstatus.jsp"
                   alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Managejobs")%>">
             <i class="fa fa-list" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.StatusAndJobManagement")%>
           </a>
@@ -122,13 +122,13 @@
       </a>
       <ul class="treeview-menu">
         <li>
-          <a class="link" href="documentstatus.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Documentstatus")%>">
+          <a class="link" href="?p=documentstatus.jsp" data-href="documentstatus.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Documentstatus")%>">
             <i class="fa fa-file-text"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.DocumentStatus")%>
           </a>
         </li>
         <li>
-          <a class="link" href="queuestatus.jsp"
+          <a class="link" href="?p=queuestatus.jsp" data-href="queuestatus.jsp"
                   alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Queuestatus")%>">
             <i class="fa fa-list" aria-hidden="true"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.QueueStatus")%>
@@ -144,25 +144,25 @@
       </a>
       <ul class="treeview-menu">
         <li>
-          <a class="link" href="simplereport.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Simplehistory")%>">
+          <a class="link" href="?p=simplereport.jsp" data-href="simplereport.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Simplehistory")%>">
             <i class="fa fa-history"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.SimpleHistory")%>
           </a>
         </li>
         <li>
-          <a class="link" href="maxactivityreport.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Maximumactivity")%>">
+          <a class="link" href="?p=maxactivityreport.jsp" data-href="maxactivityreport.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Maximumactivity")%>">
             <i class="fa fa-circle-o"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.MaximumActivity")%>
           </a>
         </li>
         <li>
-          <a class="link" href="maxbandwidthreport.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Maximumbandwidth")%>">
+          <a class="link" href="?p=maxbandwidthreport.jsp" data-href="maxbandwidthreport.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Maximumbandwidth")%>">
             <i class="fa fa-bar-chart"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.MaximumBandwidth")%>
           </a>
         </li>
         <li>
-          <a class="link" href="resultreport.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Resulthistogram")%>">
+          <a class="link" href="?p=resultreport.jsp" data-href="resultreport.jsp" alt="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"navigation.Resulthistogram")%>">
             <i class="fa fa-area-chart"></i>
             <%=Messages.getBodyString(pageContext.getRequest().getLocale(),"navigation.ResultHistogram")%>
           </a>

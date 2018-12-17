@@ -143,10 +143,10 @@ try
         </div>
         <div class="box-footer clearfix">
           <div class="btn-group">
-            <a href='<%="viewnotification.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
+            <a data-href='<%="viewnotification.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewnotification.Refresh")%>"
                     class="link btn btn-success" role="button" data-toggle="tooltip"><i class="fa fa-refresh fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewnotification.Refresh")%></a>
-            <a href='<%="editnotification.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
+            <a data-href='<%="editnotification.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewnotification.EditThisNotificationConnection")%>"
                     class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-pencil fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewnotification.Edit")%></a>
             <a href="javascript:void(0);"

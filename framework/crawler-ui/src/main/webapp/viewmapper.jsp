@@ -160,10 +160,10 @@ try
         </div>
         <div class="box-footer clearfix">
           <div class="btn-group">
-            <a href='<%="viewmapper.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
+            <a data-href='<%="viewmapper.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.Refresh")%>"
                     class="link btn btn-success" role="button" data-toggle="tooltip"><i class="fa fa-refresh fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.Refresh")%></a>
-            <a href='<%="editmapper.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
+            <a data-href='<%="editmapper.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(connectionName)%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewmapper.EditThisMappingConnection")%>"
                     class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-pencil fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.Edit")%></a>
             <a href="javascript:void(0);"

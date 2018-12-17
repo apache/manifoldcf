@@ -96,10 +96,10 @@ try
             <tr>
               <td>
                 <div class="btn-group">
-                  <a href='<%="viewmapper.jsp?connname="+URLEncoder.encode(name)%>'
+                  <a data-href='<%="viewmapper.jsp?connname="+URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listmappers.View") + " " + org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
                           class="link btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-eye fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listmappers.View")%></a>
-                  <a href='<%="editmapper.jsp?connname="+URLEncoder.encode(name)%>'
+                  <a data-href='<%="editmapper.jsp?connname="+URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listmappers.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
                           class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-pencil-square-o fa-fw" aria-hidden="true"></i><%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listmappers.Edit")%></a>
                   <a href="javascript:void(0);"
@@ -120,7 +120,7 @@ try
         </div>
         <div class="box-footer clearfix">
           <div class="btn-group">
-            <a href="editmapper.jsp"
+            <a data-href="editmapper.jsp"
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listmappers.AddNewConnection")%>"
                     class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listmappers.AddaNewConnection")%></a>
           </div>

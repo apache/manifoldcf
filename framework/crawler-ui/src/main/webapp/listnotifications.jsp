@@ -96,10 +96,10 @@ try
             <tr>
               <td>
                 <div class="btn-group">
-                  <a href='<%="viewnotification.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
+                  <a data-href='<%="viewnotification.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listnotifications.View")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
                           class="link btn btn-success btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-eye fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listnotifications.View")%></a>
-                  <a href='<%="editnotification.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
+                  <a data-href='<%="editnotification.jsp?connname="+org.apache.manifoldcf.core.util.URLEncoder.encode(name)%>'
                           title='<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listnotifications.Edit")+" "+org.apache.manifoldcf.ui.util.Encoder.attributeEscape(name)%>'
                           class="link btn btn-primary btn-xs" role="button" data-toggle="tooltip"><i class="fa fa-pencil-square-o fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listnotifications.Edit")%></a>
                   <a href="javascript:void(0);"
@@ -120,7 +120,7 @@ try
         </div>
         <div class="box-footer clearfix">
           <div class="btn-group">
-            <a href="editnotification.jsp" title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listnotifications.AddANotificationConnection")%>"
+            <a data-href="editnotification.jsp" title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"listnotifications.AddANotificationConnection")%>"
                     class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-plus-circle fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"listnotifications.AddaNewNotificationConnection")%></a>
           </div>
 

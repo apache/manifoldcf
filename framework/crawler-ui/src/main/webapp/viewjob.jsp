@@ -726,10 +726,10 @@ try
         </div>
         <div class="box-footer clearfix">
           <div class="btn-group">
-            <a href='<%="editjob.jsp?origjobid="+jobID%>'
+            <a data-href='<%="editjob.jsp?origjobid="+jobID%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.CopyThisJob")%>"
                     class="link btn btn-success" role="button" data-toggle="tooltip"><i class="fa fa-clipboard fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Copy")%></a>
-            <a href='<%="editjob.jsp?jobid="+jobID%>'
+            <a data-href='<%="editjob.jsp?jobid="+jobID%>'
                     title="<%=Messages.getAttributeString(pageContext.getRequest().getLocale(),"viewjob.EditThisJob")%>"
                     class="link btn btn-primary" role="button" data-toggle="tooltip"><i class="fa fa-pencil fa-fw" aria-hidden="true"></i><%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewjob.Edit")%></a>
             <a href='<%="javascript:Delete(\""+jobID+"\")"%>'
