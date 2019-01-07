@@ -1,0 +1,80 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+#if($TabName == $ResourceBundle.getString('LivelinkConnector.DocumentView'))
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewProtocol'))</td>
+    <td class="value">
+      <select name="viewprotocol">
+        <option value=""      #if($VIEWPROTOCOL == '')      selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.SameAsFetchProtocol'))</option>
+        <option value="http"  #if($VIEWPROTOCOL == 'http')  selected="selected" #{else} "" #end >http</option>
+        <option value="https" #if($VIEWPROTOCOL == 'https') selected="selected" #{else} "" #end >https</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewServerName'))</nobr>
+      <br/>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.BlankSameAsFetchServer'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="64" name="viewservername" value="$Encoder.attributeEscape($VIEWSERVERNAME)"/>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewPort'))</nobr>
+      <br/>
+      <nobr>(blank = same as fetch port)</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="5" name="viewport" value="$!VIEWPORT"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewCGIPath'))</nobr>
+      <br/>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.BlankSameAsFetchServer'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="viewcgipath" value="$Encoder.attributeEscape($VIEWCGIPATH)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewAction'))</nobr>
+    </td>
+    <td class="value">
+      <select name="viewaction">
+        <option value="download"  #if($VIEWACTION == 'download')  selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewActionDownload'))</option>
+        <option value="open"      #if($VIEWACTION == 'open')      selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewActionOpen'))</option>
+        <option value="overview"  #if($VIEWACTION == 'overview')  selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewActionOverview'))</option>
+      </select>
+    </td>
+  </tr>
+</table>
+#else
+<input type="hidden" name="viewprotocol"    value="$!VIEWPROTOCOL"/>
+<input type="hidden" name="viewservername"  value="$!VIEWSERVERNAME"/>
+<input type="hidden" name="viewport"        value="$!VIEWPORT"/>
+<input type="hidden" name="viewcgipath"     value="$Encoder.attributeEscape($VIEWCGIPATH)"/>
+<input type="hidden" name="viewaction"        value="$!VIEWACTION"/>
+#end
