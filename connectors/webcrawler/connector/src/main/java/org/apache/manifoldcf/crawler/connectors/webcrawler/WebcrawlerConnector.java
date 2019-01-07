@@ -1698,7 +1698,12 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         if(trustEverything == "false")
         {
           String trustStore = cn.getAttributeValue(WebcrawlerConfig.ATTR_TRUSTSTORE);
-          IKeystoreManager localTruststore = KeystoreManagerFactory.make("",trustStore);
+          IKeystoreManager localTruststore;
+          if (trustStore == null) {
+              localTruststore = KeystoreManagerFactory.make("");
+          } else {
+              localTruststore = KeystoreManagerFactory.make("",trustStore);
+          }
           String[] truststoreContents = localTruststore.getContents();
 
           // Each trust store will have only at most one cert in it at this level.  These individual certs are assembled into the proper trust store
