@@ -1,0 +1,194 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<table class="displaytable">
+  <tr>
+    <td class="description"/>
+    <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.CrawlUserWorkspaces'))</nobr>
+    </td>
+    <td class="value"/>
+    #if($USERWORKSPACES)$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Yes'))#{else}$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.No'))#end
+    </td>
+  </tr>
+  <tr>
+    <td class="separator" colspan="2">
+      <hr/>
+    </td>
+  </tr>
+  <tr>
+    #if($PATHS && $PATHS.size() > 0)
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Roots'))</td>
+    <td class="value">
+      #foreach($path in $PATHS)
+      $path
+      <br/>
+      #end
+    </td>
+    #else
+    <td class="message" colspan="2">
+      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoStartPointsSpecified'))
+    </td>
+    #end
+  </tr>
+  <tr>
+    <td class="separator" colspan="2">
+      <hr/>
+    </td>
+  </tr>
+  <tr>
+    #if($FILESPECS && $FILESPECS.size() > 0)
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.FileSpecs'))</td>
+    <td class="value">
+      #foreach($fileSpec in $FILESPECS)
+      $fileSpec.Left:&nbsp;$fileSpec.Right
+      <br/>
+      #end
+    </td>
+    #else
+    <td class="message" colspan="2">
+      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoFileSpecsSpecified'))
+    </td>
+    #end
+  </tr>
+  <tr>
+    <td class="separator" colspan="2">
+      <hr/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.SecurityColon'))</td>
+    <td class="value">
+      #if($SECURITY == "on")
+        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Enabled2'))
+      #else
+        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Disabled'))
+      #end
+    </td>
+  </tr>
+  <tr>
+    <td class="separator" colspan="2">
+      <hr/>
+    </td>
+  </tr>
+  <tr>
+    #if($ACCESSTOKENS && $ACCESSTOKENS.size() > 0)
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.AccessTokens'))</td>
+    <td class="value">
+      #foreach($accessToken in $ACCESSTOKENS)
+      $accessToken
+      <br/>
+      #end
+    </td>
+    #else
+    <td class="message" colspan="2">
+      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoAccessTokensSpecified'))
+    </td>
+    #end
+  </tr>
+  <tr>
+    <td class="separator" colspan="2">
+      <hr/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.MetadataSpecification'))</nobr>
+    </td>
+    <td class="value">
+      <nobr>
+        #if($INGESTALLMETADATA)
+        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.AllDocumentMetadataWillBeIngested'))
+        #else
+        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.OnlySpecifiedMetadataWillBeIngested'))
+        #end
+      </nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="separator" colspan="2">
+      <hr/>
+    </td>
+  </tr>
+  <tr>
+    #if($METADATA && $METADATA.size() > 0)
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.SpecificMetadata'))</td>
+    <td class="value">
+      #foreach($meta in $METADATA)
+      $Encoder.bodyEscape($meta.Left):
+      #if($meta.Right.Left == "true")
+      (All metadata attributes)
+      #else
+      $Encoder.bodyEscape($meta.Right.Right)
+      #end
+      <br/>
+      #end
+    </td>
+    #else
+    <td class="message" colspan="2">
+      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoMetadataSpecified'))
+    </td>
+    #end
+  </tr>
+  <tr>
+    <td class="separator" colspan="2">
+      <hr/>
+    </td>
+  </tr>
+  #if($PATHNAMEATTRIBUTE && $PATHNAMEATTRIBUTE.length() > 0)
+  <tr>
+    <td class="description">
+      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PathNameMetadataAttribute'))
+    </td>
+    <td class="value">$Encoder.bodyEscape($PATHNAMEATTRIBUTE)</td>
+  </tr>
+  <tr>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PathSeparatorString'))</td>
+    <td class="value">$Encoder.bodyEscape($PATHNAMESEPARATOR)</td>
+  </tr>
+  #else
+  <tr>
+    <td class="message" colspan="2">
+      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoPathNameMetadataAttributeSpecified'))
+    </td>
+  </tr>
+  #end
+  <tr>
+    <td class="separator" colspan="2">
+      <hr/>
+    </td>
+  </tr>
+  <tr>
+    #if($MATCHMAP && $MATCHMAP.size() > 0)
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PathValueMapping'))</td>
+    <td class="value">
+      <table class="displaytable">
+        #foreach($entry in $MATCHMAP.entrySet())
+        <tr>
+          <td colspan="2">$Encoder.bodyEscape($entry.Key)</td>
+          <td colspan="1">--</td>
+          <td colspan="2">$Encoder.bodyEscape($entry.Value)</td>
+        </tr>
+        #end
+      </table>
+    </td>
+    #else
+    <td class="message" colspan="2">
+      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoMappingsSpecified'))
+    </td>
+    #end
+  </tr>
+</table>

@@ -1,0 +1,238 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TabName == $ResourceBundle.getString('LivelinkConnector.Metadata') && ${SeqNum} == ${SelectedNum})
+<input type="hidden" name="s${SeqNum}_specmappingcount" value="$MATCHMAP.size()"/>
+<input type="hidden" name="s${SeqNum}_specmappingop" value=""/>
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description" colspan="1">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.IngestALLMetadata'))</nobr>
+    </td>
+    <td class="value" colspan="3">
+      <nobr>
+        <input type="radio" name="s${SeqNum}_specallmetadata" value="true"  #if($INGESTALLMETADATA) checked="true" #{else} "" #end />
+        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Yes'))
+      </nobr>&nbsp;
+      <nobr>
+        <input type="radio" name="s${SeqNum}_specallmetadata" value="false" #if(!$INGESTALLMETADATA) checked="true" #{else} "" #end/>
+        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.No'))
+      </nobr>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+
+  #set($counter = 0)
+  #foreach($meta in $METADATA)
+  <tr>
+    <td class="description" colspan="1">
+      <input type="hidden" name="s${SeqNum}_metadataop_${counter}" value=""/>
+      <input type="hidden" name="s${SeqNum}_speccategory_${counter}" value="$Encoder.attributeEscape($meta.Left)"/>
+      <input type="hidden" name="s${SeqNum}_specattributeall_${counter}" value="$meta.Right.Left"/>
+      <input type="hidden" name="s${SeqNum}_specattribute_${counter}" value="$Encoder.attributeEscape($meta.Right.Right)"/>
+      <a name="s${SeqNum}_metadata_${counter}">
+        <input type="button" value="Delete"
+               onClick="Javascript:s${SeqNum}_SpecOp('s${SeqNum}_metadataop_${counter}','Delete','s${SeqNum}_metadata_${counter}')"
+               alt="$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DeleteMetadata'))${counter}"/>
+      </a>
+    </td>
+    <td class="value" colspan="3">
+      $Encoder.bodyEscape($meta.Left):
+    #if($meta.Right.Left == "true")
+      (All metadata attributes)
+    #else
+      $Encoder.bodyEscape($meta.Right.Right)
+    #end
+    </td>
+  </tr>
+    #set($counter = $counter + 1)
+  #end
+
+  #if($counter == 0)
+  <tr>
+    <td class="message" colspan="4">
+      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoMetadataSpecified'))
+    </td>
+  </tr>
+  #end
+
+  <tr><td class="lightseparator" colspan="2"><hr/></td></tr>
+
+  <tr>
+  #if($MESSAGE)
+    <td class="message" colspan="4">$Encoder.bodyEscape($MESSAGE)</td>
+  #else
+    <td class="description" colspan="1">
+      <input type="hidden" name="s${SeqNum}_metadatacount" value="${counter}"/>
+      <input type="hidden" name="s${SeqNum}_speccategory" value="$Encoder.attributeEscape($CATEGORYSOFAR)"/>
+      <input type="hidden" name="s${SeqNum}_metadataop" value=""/>
+    #set($anchorSuffix = $counter+1)
+    #if($ATTRIBUTELIST && $ATTRIBUTELIST.size() > 0)
+      <a name="s${SeqNum}_metadata_${counter}">
+        <input type="button" value="Add"
+               onClick="Javascript:s${SeqNum}_SpecAddMetadata('s${SeqNum}_metadata_${anchorSuffix}')"
+              alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.AddMetadataItem'))"/>
+      </a>
+    </td>
+    <td class="value" colspan="3">
+      $Encoder.bodyEscape($CATEGORYSOFAR):
+      <table class="displaytable">
+        <tr>
+          <td class="value">
+            <input type="checkbox" name="s${SeqNum}_attributeall" value="true"/>
+            $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.AllAttributesInThisCategory'))
+            <br/>
+            <select name="s${SeqNum}_attributeselect">
+              <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PickAttributes'))</option>
+              #foreach($attrName in $ATTRIBUTELIST)
+              <option value="$Encoder.attributeEscape($attrName)">$Encoder.bodyEscape($attrName)</option>
+              #end
+            </select>
+          </td>
+        </tr>
+      </table>
+    #elseif($WORKSPACELIST && $WORKSPACELIST.size() > 0)
+    </td>
+    <td class="value" colspan="3">
+      <a name="s${SeqNum}_metadata_${counter}">
+        <input type="button" value="+"
+               onClick="Javascript:s${SeqNum}_SpecSetWorkspace('s${SeqNum}_metadata_${anchorSuffix}')"
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.AddToMetadataPath'))"/>
+      </a>
+      <select name="s${SeqNum}_metadataaddon">
+        <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PickWorkspace'))</option>
+        #foreach($workSpace in $WORKSPACELIST)
+          <option value="$Encoder.attributeEscape($workSpace)">$Encoder.bodyEscape($workSpace)</option>
+        #end
+      </select>
+    #else
+    </td>
+    <td class="value" colspan="3">
+      #if($CATEGORYSOFAR.length() == 0)
+        (root)
+      #else
+        <input type="button" value="-"
+               onClick='Javascript:s${SeqNum}_SpecOp("s${SeqNum}_metadataop","Up","s${SeqNum}_metadata_${counter}")'
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.BackUpMetadataPath'))"/>&nbsp;
+        $Encoder.bodyEscape($CATEGORYSOFAR)
+      #end
+      #if($CHILDLIST && $CHILDLIST.size() > 0)
+        <input type="button" value="+"
+               onClick='Javascript:s${SeqNum}_SpecAddToMetadata("s${SeqNum}_metadata_${counter}")'
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.AddToMetadataPath'))"/>&nbsp;
+        <select name="s${SeqNum}_metadataaddon">
+          <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PickAFolder'))</option>
+        #foreach($child in $CHILDLIST)
+          <option value="$Encoder.attributeEscape($child)">$Encoder.bodyEscape($child)</option>
+        #end
+        </select>
+      #end
+      #if($CATEGORYLIST && $CATEGORYLIST.size() > 0)
+        <input type="button" value="+"
+               onClick='Javascript:s${SeqNum}_SpecAddCategory("s${SeqNum}_metadata_${counter}")'
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.AddCategory'))"/>&nbsp;
+        <select name="s${SeqNum}_categoryaddon">
+          <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PickACategory'))</option>
+          #foreach($category in $CATEGORYLIST)
+            <option value="$Encoder.attributeEscape($category)">$Encoder.bodyEscape($category)</option>
+          #end
+        </select>
+      #end
+    #end
+  #end
+  </tr>
+  <tr><td class="separator" colspan="4"><hr/></td></tr>
+  <tr>
+    <td class="description" colspan="1">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PathAttributeName'))</nobr>
+    </td>
+    <td class="value" colspan="1">
+      <input type="text" name="s${SeqNum}_specpathnameattribute" size="20"
+             value="$Encoder.attributeEscape($PATHNAMEATTRIBUTE)"/>
+    </td>
+    <td class="description" colspan="1">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PathSeparatorString'))</nobr>
+    </td>
+    <td class="value" colspan="1">
+      <input type="text" name="s${SeqNum}_specpathnameseparator" size="20"
+             value="$Encoder.attributeEscape($PATHNAMESEPARATOR)"/>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="4"><hr/></td></tr>
+  #set($matchMapCount = $MATCHMAP.size())
+  #foreach($entry in $MATCHMAP.entrySet())
+  <tr>
+    <td class="description">
+      <input type="hidden" name="s${SeqNum}_specmappingop_${foreach.index}" value=""/>
+      <a name="s${SeqNum}_mapping_${foreach.index}">
+        <input type="button" onClick='Javascript:s${SeqNum}_SpecOp("s${SeqNum}_specmappingop_${foreach.index}","Delete","s${SeqNum}_mapping_${foreach.index}")'
+                 alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.DeleteMapping'))${foreach.index}" value="Delete"/>
+      </a>
+    </td>
+    <td class="value">
+      <input type="hidden" name="s${SeqNum}_specmatch_${foreach.index}" value="$Encoder.attributeEscape($entry.Key)"/>
+      $Encoder.bodyEscape($entry.Key)
+    </td>
+    <td class="value">==></td>
+    <td class="value">
+      <input type="hidden" name="s${SeqNum}_specreplace_${foreach.index}" value="$Encoder.attributeEscape($entry.Value)"/>
+      $Encoder.bodyEscape($entry.Value)
+    </td>
+  </tr>
+  #end
+  #if($matchMapCount == 0)
+    <tr>
+      <td colspan="4" class="message">
+        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoMappingsSpecified'))
+      </td>
+    </tr>
+  #end
+  <tr><td class="separator" colspan="4"><hr/></td></tr>
+  <tr>
+    <td class="description">
+      #set($anchorSuffix = $matchMapCount +1)
+      <a name="s${SeqNum}_mapping_${matchMapCount}">
+        <input type="button" onClick='Javascript:s${SeqNum}_SpecAddMapping("s${SeqNum}_mapping_${anchorSuffix}")'
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.AddToMappings'))" value="Add"/>
+      </a>
+    </td>
+    <td class="value">Match regexp:&nbsp;<input type="text" name="s${SeqNum}_specmatch" size="32" value=""/></td>
+    <td class="value">==></td>
+    <td class="value">Replace string:&nbsp;<input type="text" name="s${SeqNum}_specreplace" size="32" value=""/></td>
+  </tr>
+</table>
+#else
+  <input type="hidden" name="s${SeqNum}_specallmetadata" value="$INGESTALLMETADATA"/>
+  #set($counter = 0)
+  #foreach($meta in $METADATA)
+  <input type="hidden" name="s${SeqNum}_speccategory_${counter}" value="$Encoder.attributeEscape($meta.Left)"/>
+  <input type="hidden" name="s${SeqNum}_specattributeall_${counter}" value="$meta.Right.Left"/>
+  <input type="hidden" name="s${SeqNum}_specattribute_${counter}" value="$Encoder.attributeEscape($meta.Right.Right)"/>
+    #set($counter = $counter + 1)
+  #end
+  <input type="hidden" name="s${SeqNum}_metadatacount" value="${counter}"/>
+  <input type="hidden" name="s${SeqNum}_specpathnameattribute" value="$Encoder.attributeEscape($PATHNAMEATTRIBUTE)"/>
+  <input type="hidden" name="s${SeqNum}_specpathnameseparator" value="$Encoder.attributeEscape($PATHNAMESEPARATOR)"/>
+
+  <input type="hidden" name="s${SeqNum}_specmappingcount" value="$MATCHMAP.size()"/>
+
+  #foreach($entry in $MATCHMAP.entrySet())
+  <input type="hidden" name="s${SeqNum}_specmatch_${foreach.index}"   value="$Encoder.attributeEscape($entry.Key)"/>
+  <input type="hidden" name="s${SeqNum}_specreplace_${foreach.index}" value="$Encoder.attributeEscape($entry.Value)"/>
+  #end
+#end

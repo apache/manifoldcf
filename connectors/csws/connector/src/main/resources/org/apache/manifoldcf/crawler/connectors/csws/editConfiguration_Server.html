@@ -1,0 +1,145 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<input name="serverconfigop" type="hidden" value="Continue"/>
+#if($SERVERHTTPSKEYSTORE)
+<input type="hidden" name="serverhttpskeystoredata" value="$Encoder.attributeEscape($SERVERHTTPSKEYSTORE)"/>
+#end
+#if($TabName == $ResourceBundle.getString('LivelinkConnector.Server'))
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.ServerProtocol'))</td>
+    <td class="value">
+      <select name="serverprotocol" size="2">
+        <option value="internal" #if($SERVERPROTOCOL == 'internal') selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.internal'))</option>
+        <option value="http"     #if($SERVERPROTOCOL == 'http')     selected="selected" #{else} "" #end >http</option>
+        <option value="https"    #if($SERVERPROTOCOL == 'https')    selected="selected" #{else} "" #end >https</option>
+       </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.ServerName'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="64" name="servername" value="$Encoder.attributeEscape($SERVERNAME)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.ServerPort'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="5" name="serverport" value="$SERVERPORT"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.ServerUserName'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="serverusername" value="$Encoder.attributeEscape($SERVERUSERNAME)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.ServerPassword'))</nobr>
+    </td>
+    <td class="value">
+      <input type="password" size="32" name="serverpassword" value="$Encoder.attributeEscape($SERVERPASSWORD)"/>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.ServerHTTPCGIPath'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="serverhttpcgipath" value="$Encoder.attributeEscape($SERVERHTTPCGIPATH)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.ServerHTTPNTLMDomain'))</nobr>
+      <br/>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.SetIfNTLMAuthDesired'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="serverhttpntlmdomain" value="$Encoder.attributeEscape($SERVERHTTPNTLMDOMAIN)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.ServerHTTPNTLMUserName'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="serverhttpntlmusername" value="$Encoder.attributeEscape($SERVERHTTPNTLMUSERNAME)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.ServerHTTPNTLMPassword'))</nobr>
+    </td>
+    <td class="value">
+      <input type="password" size="32" name="serverhttpntlmpassword" value="$Encoder.attributeEscape($SERVERHTTPNTLMPASSWORD)"/>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.ServerSSLCertificateList'))</nobr>
+    </td>
+    <td class="value">
+      <input type="hidden" name="serverkeystorealias" value=""/>
+      <table class="displaytable">
+        #if($SERVERCERTIFICATESMAP)
+          #foreach($cert in $SERVERCERTIFICATESMAP.entrySet())
+        <tr>
+          <td class="value">
+            <input type="button" onclick='Javascript:ServerDeleteCertificate($Encoder.attributeJavascriptEscape($cert.Key))'
+                   alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.DeleteCert'))$Encoder.attributeEscape($cert.Key)"
+                   value="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.Delete'))"/>
+            $Encoder.bodyEscape($cert.Value)
+          </td>
+        </tr>
+          #end
+        #else
+        <tr>
+          <td class="message" colspan="2">
+            <nobr>$ResourceBundle.getString('LivelinkConnector.NoCertificatesPresent')</nobr>
+          </td>
+        </tr>
+        #end
+      </table>
+      <input type="button" onclick='Javascript:ServerAddCertificate()' alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.AddCert'))"
+             value="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.Add'))"/>&nbsp;
+      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Certificate'))
+      <input name="servercertificate" size="50" type="file"/>
+    </td>
+  </tr>
+</table>
+#else
+<input type="hidden" name="serverprotocol"          value="$!SERVERPROTOCOL"/>
+<input type="hidden" name="servername"              value="$Encoder.attributeEscape($SERVERNAME)"/>
+<input type="hidden" name="serverport"              value="$!SERVERPORT"/>
+<input type="hidden" name="serverusername"          value="$Encoder.attributeEscape($SERVERUSERNAME)"/>
+<input type="hidden" name="serverpassword"          value="$Encoder.attributeEscape($SERVERPASSWORD)"/>
+<input type="hidden" name="serverhttpcgipath"       value="$Encoder.attributeEscape($SERVERHTTPCGIPATH)"/>
+<input type="hidden" name="serverhttpntlmdomain"    value="$Encoder.attributeEscape($SERVERHTTPNTLMDOMAIN)"/>
+<input type="hidden" name="serverhttpntlmusername"  value="$Encoder.attributeEscape($SERVERHTTPNTLMUSERNAME)"/>
+<input type="hidden" name="serverhttpntlmpassword"  value="$Encoder.attributeEscape($SERVERHTTPNTLMPASSWORD)"/>
+#end

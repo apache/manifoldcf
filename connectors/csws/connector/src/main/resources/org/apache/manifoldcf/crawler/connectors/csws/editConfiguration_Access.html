@@ -1,0 +1,127 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<input name="ingestconfigop" type="hidden" value="Continue"/>
+#if($INGESTKEYSTORE)
+<input type="hidden" name="ingestkeystoredata" value="$Encoder.attributeEscape($INGESTKEYSTORE)"/>
+#end
+#if($TabName == $ResourceBundle.getString('LivelinkConnector.DocumentAccess'))
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  #if($MESSAGE)
+  <tr><td class="message">
+    $Encoder.bodyEscape($MESSAGE)
+  </td></tr>
+  #end
+  <tr>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentFetchProtocol'))</td>
+    <td class="value">
+      <select name="ingestprotocol" size="3">
+        <option value=""      #if($INGESTPROTOCOL == '')      selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.UseLAPI'))</option>
+        <option value="http"  #if($INGESTPROTOCOL == 'http')  selected="selected" #{else} "" #end >http</option>
+        <option value="https" #if($INGESTPROTOCOL == 'https') selected="selected" #{else} "" #end >https</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentFetchPort'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="5" name="ingestport" value="$!INGESTPORT"/>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentFetchCGIPath'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="ingestcgipath" value="$Encoder.attributeEscape($INGESTCGIPATH)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentFetchNTLMDomain'))</nobr>
+      <br/>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.SetIfNTLMAuthDesired'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="ingestntlmdomain" value="$Encoder.attributeEscape($INGESTNTLMDOMAIN)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentFetchNTLMUserName'))</nobr>
+      <br/>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.SetIfDifferentFromServerUserName'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="ingestntlmusername" value="$Encoder.attributeEscape($INGESTNTLMUSERNAME)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentFetchNTLMPassword'))</nobr>
+      <br/>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.SetIfDifferentFromServerPassword'))</nobr>
+    </td>
+    <td class="value">
+      <input type="password" size="32" name="ingestntlmpassword" value="$Encoder.attributeEscape($INGESTNTLMPASSWORD)"/>
+    </td>
+  </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentFetchSSLCertificateList'))</nobr>
+    </td>
+    <td class="value">
+      <input type="hidden" name="ingestkeystorealias" value=""/>
+      <table class="displaytable">
+        #if($INGESTCERTIFICATESMAP)
+          #foreach($cert in $INGESTCERTIFICATESMAP.entrySet())
+        <tr>
+          <td class="value">
+            <input type="button" onclick='Javascript:IngestDeleteCertificate($Encoder.attributeJavascriptEscape($cert.Key))'
+                   alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.DeleteCert'))$Encoder.attributeEscape($cert.Key)"
+                   value="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.Delete'))"/>
+            $Encoder.bodyEscape($cert.Value)
+          </td>
+        </tr>
+          #end
+        #else
+        <tr>
+          <td class="message" colspan="2">
+            <nobr>$ResourceBundle.getString('LivelinkConnector.NoCertificatesPresent')</nobr>
+          </td>
+        </tr>
+        #end
+      </table>
+      <input type="button" onclick='Javascript:IngestAddCertificate()' alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.AddCert'))"
+             value="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.Add'))"/>&nbsp;
+      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Certificate'))
+      <input name="ingestcertificate" size="50" type="file"/>
+    </td>
+  </tr>
+</table>
+#else
+<input type="hidden" name="ingestprotocol"      value="$!INGESTPROTOCOL"/>
+<input type="hidden" name="ingestport"          value="$!INGESTPORT"/>
+<input type="hidden" name="ingestcgipath"       value="$Encoder.attributeEscape($INGESTCGIPATH)"/>
+<input type="hidden" name="ingestntlmusername"  value="$Encoder.attributeEscape($INGESTNTLMUSERNAME)"/>
+<input type="hidden" name="ingestntlmpassword"  value="$Encoder.attributeEscape($INGESTNTLMPASSWORD)"/>
+<input type="hidden" name="ingestntlmdomain"    value="$Encoder.attributeEscape($INGESTNTLMDOMAIN)"/>
+#end
