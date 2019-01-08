@@ -15,12 +15,12 @@
  limitations under the License.
 -->
 
-#if($TabName == $ResourceBundle.getString('LivelinkConnector.Security') && ${SeqNum} == ${SelectedNum})
+#if($TabName == $ResourceBundle.getString('CswsConnector.Security') && ${SeqNum} == ${SelectedNum})
 
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.SecurityColon'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.SecurityColon'))</nobr></td>
     <td class="value" colspan="1">
       <nobr>
         #if($SECURITY == 'on')
@@ -28,13 +28,13 @@
         #else
         <input type="radio" name="s${SeqNum}_specsecurity" value="on"/>
         #end
-        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Enabled'))&nbsp;
+        $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.Enabled'))&nbsp;
         #if($SECURITY == 'off')
         <input type="radio" name="s${SeqNum}_specsecurity" value="off" checked="true"/>
         #else
         <input type="radio" name="s${SeqNum}_specsecurity" value="off"/>
         #end
-        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Disabled'))
+        $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.Disabled'))
       </nobr>
     </td>
   </tr>
@@ -49,9 +49,9 @@
       <input type="hidden" name="s${SeqNum}_accessop_$atcounter" value=""/>
       <input type="hidden" name="s${SeqNum}_spectoken_$atcounter" value="$Encoder.attributeEscape($accesstoken)"/>
       <a name="s${SeqNum}_token_$atcounter">
-        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.Delete'))"
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('CswsConnector.Delete'))"
                onClick='Javascript:s${SeqNum}_SpecOp("s${SeqNum}_accessop_$atcounter","Delete","s${SeqNum}_token_$atcounter")'
-               alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.DeleteToken'))$atcounter"/>
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('CswsConnector.DeleteToken'))$atcounter"/>
       </a>
     </td>
     <td class="value">
@@ -64,7 +64,7 @@
   #if($atcounter == 0)
 
   <tr>
-    <td class="message" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoAccessTokensPresent'))</td>
+    <td class="message" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.NoAccessTokensPresent'))</td>
   </tr>
 
   #end
@@ -75,9 +75,9 @@
       <input type="hidden" name="s${SeqNum}_tokencount" value="$atcounter"/>
       <input type="hidden" name="s${SeqNum}_accessop" value=""/>
       <a name="s${SeqNum}_token_$atcounter">
-        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.Add'))"
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('CswsConnector.Add'))"
                onClick='Javascript:s${SeqNum}_SpecAddToken("s${SeqNum}_token_$atcounter")'
-               alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.AddAccessToken'))"/>
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('CswsConnector.AddAccessToken'))"/>
       </a>
     </td>
     <td class="value">

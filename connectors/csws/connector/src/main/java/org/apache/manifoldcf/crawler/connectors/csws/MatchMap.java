@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.livelink;
+package org.apache.manifoldcf.crawler.connectors.csws;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import java.util.*;

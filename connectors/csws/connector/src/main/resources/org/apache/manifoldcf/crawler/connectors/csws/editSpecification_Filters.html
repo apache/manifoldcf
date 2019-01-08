@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-#if($TabName == $ResourceBundle.getString('LivelinkConnector.Filters') && ${SeqNum} == ${SelectedNum})
+#if($TabName == $ResourceBundle.getString('CswsConnector.Filters') && ${SeqNum} == ${SelectedNum})
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
 
@@ -28,7 +28,7 @@
       <a name="s${SeqNum}_filespec_${filtercounter}">
         <input type="button" value="Delete"
                onClick="Javascript:s${SeqNum}_SpecOp('s${SeqNum}_fileop_${filtercounter}','Delete','s${SeqNum}_filespec_${filtercounter}')"
-               alt="$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DeleteFilespec'))${filtercounter}"/>
+               alt="$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.DeleteFilespec'))${filtercounter}"/>
       </a>
     </td>
     <td class="value">
@@ -47,7 +47,7 @@
   #if($filtercounter == 0)
   <tr>
     <td class="message" colspan="2">
-      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoIncludeExcludeFilesDefined'))
+      $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.NoIncludeExcludeFilesDefined'))
     </td>
   </tr>
   #end
@@ -62,13 +62,13 @@
         #set($anchorSuffix = $filtercounter+1)
         <input type="button" value="Add"
                onClick="Javascript:s${SeqNum}_SpecAddFilespec('s${SeqNum}_filespec_${anchorSuffix}')"
-              alt="$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.AddFileSpecification'))"/>
+              alt="$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.AddFileSpecification'))"/>
       </a>
     </td>
     <td class="value">
       <select name="s${SeqNum}_specfiletype">
-      <option value="include" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Include'))</option>
-      <option value="exclude">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Exclude'))</option>
+      <option value="include" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.Include'))</option>
+      <option value="exclude">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.Exclude'))</option>
       </select>
       <input type="text" size="30" name="s${SeqNum}_specfile" value=""/>
     </td>

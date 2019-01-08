@@ -14,14 +14,14 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-#if($TabName == $ResourceBundle.getString('LivelinkConnector.DocumentView'))
+#if($TabName == $ResourceBundle.getString('CswsConnector.DocumentView'))
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
-    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewProtocol'))</td>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.DocumentViewProtocol'))</td>
     <td class="value">
       <select name="viewprotocol">
-        <option value=""      #if($VIEWPROTOCOL == '')      selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.SameAsFetchProtocol'))</option>
+        <option value=""      #if($VIEWPROTOCOL == '')      selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.SameAsFetchProtocol'))</option>
         <option value="http"  #if($VIEWPROTOCOL == 'http')  selected="selected" #{else} "" #end >http</option>
         <option value="https" #if($VIEWPROTOCOL == 'https') selected="selected" #{else} "" #end >https</option>
       </select>
@@ -29,9 +29,9 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewServerName'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.DocumentViewServerName'))</nobr>
       <br/>
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.BlankSameAsFetchServer'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.BlankSameAsFetchServer'))</nobr>
     </td>
     <td class="value">
       <input type="text" size="64" name="viewservername" value="$Encoder.attributeEscape($VIEWSERVERNAME)"/>
@@ -40,7 +40,7 @@
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewPort'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.DocumentViewPort'))</nobr>
       <br/>
       <nobr>(blank = same as fetch port)</nobr>
     </td>
@@ -50,9 +50,9 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewCGIPath'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.DocumentViewCGIPath'))</nobr>
       <br/>
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.BlankSameAsFetchServer'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.BlankSameAsFetchServer'))</nobr>
     </td>
     <td class="value">
       <input type="text" size="32" name="viewcgipath" value="$Encoder.attributeEscape($VIEWCGIPATH)"/>
@@ -60,13 +60,13 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewAction'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.DocumentViewAction'))</nobr>
     </td>
     <td class="value">
       <select name="viewaction">
-        <option value="download"  #if($VIEWACTION == 'download')  selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewActionDownload'))</option>
-        <option value="open"      #if($VIEWACTION == 'open')      selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewActionOpen'))</option>
-        <option value="overview"  #if($VIEWACTION == 'overview')  selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DocumentViewActionOverview'))</option>
+        <option value="download"  #if($VIEWACTION == 'download')  selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.DocumentViewActionDownload'))</option>
+        <option value="open"      #if($VIEWACTION == 'open')      selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.DocumentViewActionOpen'))</option>
+        <option value="overview"  #if($VIEWACTION == 'overview')  selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.DocumentViewActionOverview'))</option>
       </select>
     </td>
   </tr>

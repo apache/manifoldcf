@@ -1,4 +1,4 @@
-/* $Id: LivelinkConnector.java 996524 2010-09-13 13:38:01Z kwright $ */
+/* $Id: CswsConnector.java 996524 2010-09-13 13:38:01Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.livelink;
+package org.apache.manifoldcf.crawler.connectors.csws;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -29,14 +29,12 @@ import org.apache.manifoldcf.connectorcommon.common.XThreadOutputStream;
 import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
 import org.apache.manifoldcf.core.common.DateParser;
 
-import org.apache.manifoldcf.livelink.*;
+import org.apache.manifoldcf.csws.*;
 
 import java.io.*;
 import java.util.*;
 import java.net.*;
 import java.util.concurrent.TimeUnit;
-
-import com.opentext.api.*;
 
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.client.HttpClient;
@@ -82,7 +80,7 @@ import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
 
 
-/** This is the Livelink implementation of the IRepositoryConnectr interface.
+/** This is the Csws implementation of the IRepositoryConnectr interface.
 * The original Volant code forced there to be one livelink session per JVM, with
 * lots of buggy synchronization present to try to enforce this.  This implementation
 * is multi-session.  However, since it is possible that the Volant restriction was
@@ -92,9 +90,9 @@ import org.apache.http.HttpException;
 * For livelink, the document identifiers are the object identifiers.
 *
 */
-public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector
+public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector
 {
-  public static final String _rcsid = "@(#)$Id: LivelinkConnector.java 996524 2010-09-13 13:38:01Z kwright $";
+  public static final String _rcsid = "@(#)$Id: CswsConnector.java 996524 2010-09-13 13:38:01Z kwright $";
 
   //Forward to the javascript to check the configuration parameters.
   private static final String EDIT_SPECIFICATION_JS = "editSpecification.js";
@@ -229,7 +227,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   /** Constructor.
   */
-  public LivelinkConnector()
+  public CswsConnector()
   {
   }
 
@@ -240,7 +238,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   @Override
   public int getConnectorModel()
   {
-    // Livelink is a chained hierarchy model
+    // Csws is a chained hierarchy model
     return MODEL_CHAINED_ADD_CHANGE;
   }
 
@@ -253,7 +251,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     super.connect(configParams);
 
     // This is required by getBins()
-    serverName = params.getParameter(LiveLinkParameters.serverName);
+    serverName = params.getParameter(CswsParameters.serverName);
   }
 
   protected class GetSessionThread extends Thread
@@ -283,7 +281,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (Logging.connectors.isDebugEnabled())
         {
           String passwordExists = (serverPassword!=null&&serverPassword.length()>0)?"password exists":"";
-          Logging.connectors.debug("Livelink: Livelink Session: Server='"+serverName+"'; port='"+serverPort+"'; user name='"+serverUsername+"'; "+passwordExists);
+          Logging.connectors.debug("Csws: Csws Session: Server='"+serverName+"'; port='"+serverPort+"'; user name='"+serverUsername+"'; "+passwordExists);
         }
         LLValue entinfo = new LLValue().setAssoc();
 
@@ -362,28 +360,28 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       // Do the initial setup part (what used to be part of connect() itself)
 
       // Get the parameters
-      ingestProtocol = params.getParameter(LiveLinkParameters.ingestProtocol);
-      ingestPort = params.getParameter(LiveLinkParameters.ingestPort);
-      ingestCgiPath = params.getParameter(LiveLinkParameters.ingestCgiPath);
+      ingestProtocol = params.getParameter(CswsParameters.ingestProtocol);
+      ingestPort = params.getParameter(CswsParameters.ingestPort);
+      ingestCgiPath = params.getParameter(CswsParameters.ingestCgiPath);
 
-      viewProtocol = params.getParameter(LiveLinkParameters.viewProtocol);
-      viewServerName = params.getParameter(LiveLinkParameters.viewServerName);
-      viewPort = params.getParameter(LiveLinkParameters.viewPort);
-      viewCgiPath = params.getParameter(LiveLinkParameters.viewCgiPath);
-      viewAction = params.getParameter(LiveLinkParameters.viewAction);
+      viewProtocol = params.getParameter(CswsParameters.viewProtocol);
+      viewServerName = params.getParameter(CswsParameters.viewServerName);
+      viewPort = params.getParameter(CswsParameters.viewPort);
+      viewCgiPath = params.getParameter(CswsParameters.viewCgiPath);
+      viewAction = params.getParameter(CswsParameters.viewAction);
 
-      ingestNtlmDomain = params.getParameter(LiveLinkParameters.ingestNtlmDomain);
-      ingestNtlmUsername = params.getParameter(LiveLinkParameters.ingestNtlmUsername);
-      ingestNtlmPassword = params.getObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword);
+      ingestNtlmDomain = params.getParameter(CswsParameters.ingestNtlmDomain);
+      ingestNtlmUsername = params.getParameter(CswsParameters.ingestNtlmUsername);
+      ingestNtlmPassword = params.getObfuscatedParameter(CswsParameters.ingestNtlmPassword);
 
-      serverProtocol = params.getParameter(LiveLinkParameters.serverProtocol);
-      String serverPortString = params.getParameter(LiveLinkParameters.serverPort);
-      serverUsername = params.getParameter(LiveLinkParameters.serverUsername);
-      serverPassword = params.getObfuscatedParameter(LiveLinkParameters.serverPassword);
-      serverHTTPCgi = params.getParameter(LiveLinkParameters.serverHTTPCgiPath);
-      serverHTTPNTLMDomain = params.getParameter(LiveLinkParameters.serverHTTPNTLMDomain);
-      serverHTTPNTLMUsername = params.getParameter(LiveLinkParameters.serverHTTPNTLMUsername);
-      serverHTTPNTLMPassword = params.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
+      serverProtocol = params.getParameter(CswsParameters.serverProtocol);
+      String serverPortString = params.getParameter(CswsParameters.serverPort);
+      serverUsername = params.getParameter(CswsParameters.serverUsername);
+      serverPassword = params.getObfuscatedParameter(CswsParameters.serverPassword);
+      serverHTTPCgi = params.getParameter(CswsParameters.serverHTTPCgiPath);
+      serverHTTPNTLMDomain = params.getParameter(CswsParameters.serverHTTPNTLMDomain);
+      serverHTTPNTLMUsername = params.getParameter(CswsParameters.serverHTTPNTLMUsername);
+      serverHTTPNTLMPassword = params.getObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword);
 
       if (ingestProtocol == null || ingestProtocol.length() == 0)
         ingestProtocol = null;
@@ -480,7 +478,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
 
       // Set up ingest ssl if indicated
-      String ingestKeystoreData = params.getParameter(LiveLinkParameters.ingestKeystore);
+      String ingestKeystoreData = params.getParameter(CswsParameters.ingestKeystore);
       if (ingestKeystoreData != null)
         ingestKeystoreManager = KeystoreManagerFactory.make("",ingestKeystoreData);
 
@@ -504,7 +502,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       
       // Set up server ssl if indicated
-      String serverHTTPSKeystoreData = params.getParameter(LiveLinkParameters.serverHTTPSKeystore);
+      String serverHTTPSKeystoreData = params.getParameter(CswsParameters.serverHTTPSKeystore);
       if (serverHTTPSKeystoreData != null)
         serverHTTPSKeystore = KeystoreManagerFactory.make("",serverHTTPSKeystoreData);
 
@@ -598,7 +596,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
         catch (RuntimeException e2)
         {
-          sanityRetryCount = handleLivelinkRuntimeException(e2,sanityRetryCount,true);
+          sanityRetryCount = handleCswsRuntimeException(e2,sanityRetryCount,true);
         }
       }
     }
@@ -675,19 +673,19 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         }
         catch (java.net.SocketTimeoutException e)
         {
-          return "Fetch test timed out reading from the Livelink HTTP Server: "+e.getMessage();
+          return "Fetch test timed out reading from the Csws HTTP Server: "+e.getMessage();
         }
         catch (java.net.SocketException e)
         {
-          return "Fetch test received a socket error reading from Livelink HTTP Server: "+e.getMessage();
+          return "Fetch test received a socket error reading from Csws HTTP Server: "+e.getMessage();
         }
         catch (javax.net.ssl.SSLHandshakeException e)
         {
-          return "Fetch test was unable to set up a SSL connection to Livelink HTTP Server: "+e.getMessage();
+          return "Fetch test was unable to set up a SSL connection to Csws HTTP Server: "+e.getMessage();
         }
         catch (ConnectTimeoutException e)
         {
-          return "Fetch test connection timed out reading from Livelink HTTP Server: "+e.getMessage();
+          return "Fetch test connection timed out reading from Csws HTTP Server: "+e.getMessage();
         }
         catch (InterruptedIOException e)
         {
@@ -1023,14 +1021,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    LivelinkContext llc = new LivelinkContext();
+    CswsContext llc = new CswsContext();
     
     // First, grab the root LLValue
     ObjectInformation rootValue = llc.getObjectInformation(LLENTWK_VOL,LLENTWK_ID);
     if (!rootValue.exists())
     {
       // If we get here, it HAS to be a bad network/transient problem.
-      Logging.connectors.warn("Livelink: Could not look up root workspace object during seeding!  Retrying -");
+      Logging.connectors.warn("Csws: Could not look up root workspace object during seeding!  Retrying -");
       throw new ServiceInterruption("Service interruption during seeding",new ManifoldCFException("Could not looking root workspace object during seeding"),System.currentTimeMillis()+60000L,
         System.currentTimeMillis()+600000L,-1,true);
     }
@@ -1055,7 +1053,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           String newID = "F" + new Integer(vaf.getVolumeID()).toString()+":"+ new Integer(vaf.getPathId()).toString();
           activities.addSeedDocument(newID);
           if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("Livelink: Seed = '"+newID+"'");
+            Logging.connectors.debug("Csws: Seed = '"+newID+"'");
         }
         else
         {
@@ -1110,7 +1108,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
                 continue;
               
               if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Livelink: Found a user: ID="+Integer.toString(childID));
+                Logging.connectors.debug("Csws: Found a user: ID="+Integer.toString(childID));
 
               activities.addSeedDocument("F0:"+Integer.toString(childID));
             }
@@ -1123,7 +1121,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           }
           catch (RuntimeException e)
           {
-            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
             continue;
           }
         }
@@ -1153,7 +1151,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   {
     
     // Initialize a "livelink context", to minimize the number of objects we have to fetch
-    LivelinkContext llc = new LivelinkContext();
+    CswsContext llc = new CswsContext();
     // Initialize the table of catid's.
     // Keeping this around will allow us to benefit from batching of documents.
     MetadataDescription desc = new MetadataDescription(llc);
@@ -1230,7 +1228,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (!value.exists())
       {
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Object "+Integer.toString(vol)+":"+Integer.toString(objID)+" has no information - deleting");
+          Logging.connectors.debug("Csws: Object "+Integer.toString(vol)+":"+Integer.toString(objID)+" has no information - deleting");
         activities.deleteDocument(documentIdentifier);
         continue;
       }
@@ -1240,7 +1238,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if ((permissions & LAPI_DOCUMENTS.PERM_SEECONTENTS) == 0)
       {
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Crawl user cannot see contents of object "+Integer.toString(vol)+":"+Integer.toString(objID)+" - deleting");
+          Logging.connectors.debug("Csws: Crawl user cannot see contents of object "+Integer.toString(vol)+":"+Integer.toString(objID)+" - deleting");
         activities.deleteDocument(documentIdentifier);
         continue;
       }
@@ -1252,7 +1250,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (rights == null)
       {
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Could not get rights for object "+Integer.toString(vol)+":"+Integer.toString(objID)+" - deleting");
+          Logging.connectors.debug("Csws: Could not get rights for object "+Integer.toString(vol)+":"+Integer.toString(objID)+" - deleting");
         activities.deleteDocument(documentIdentifier);
         continue;
       }
@@ -1262,11 +1260,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       // Changed folder versioning for MCF 2.0
       if (isFolder)
       {
-        // === Livelink folder ===
-        // I'm still not sure if Livelink folder modified dates are one-level or hierarchical.
+        // === Csws folder ===
+        // I'm still not sure if Csws folder modified dates are one-level or hierarchical.
         // The code below assumes one-level only, so we always scan folders and there's no versioning
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
+          Logging.connectors.debug("Csws: Processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
 
         int sanityRetryCount = FAILURE_RETRY_COUNT;
         while (true)
@@ -1300,7 +1298,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               int childID = childrenDocs.toInteger(j, "ID");
 
               if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Livelink: Found a child of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : ID="+Integer.toString(childID));
+                Logging.connectors.debug("Csws: Found a child of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : ID="+Integer.toString(childID));
 
               int subtype = childrenDocs.toInteger(j, "SubType");
               boolean childIsFolder = (subtype == LAPI_DOCUMENTS.FOLDERSUBTYPE || subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE ||
@@ -1310,14 +1308,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               if (!childIsFolder && checkInclude(childrenDocs.toString(j,"Name") + "." + childrenDocs.toString(j,"FileType"), spec) == false)
               {
                 if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" was excluded by inclusion criteria");
+                  Logging.connectors.debug("Csws: Child identifier "+Integer.toString(childID)+" was excluded by inclusion criteria");
                 continue;
               }
 
               if (childIsFolder)
               {
                 if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a folder, project, or compound document; adding a reference");
+                  Logging.connectors.debug("Csws: Child identifier "+Integer.toString(childID)+" is a folder, project, or compound document; adding a reference");
                 if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
                 {
                   // If we pick up a project object, we need to describe the volume object (which
@@ -1330,7 +1328,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               else
               {
                 if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Livelink: Child identifier "+Integer.toString(childID)+" is a simple document; adding a reference");
+                  Logging.connectors.debug("Csws: Child identifier "+Integer.toString(childID)+" is a simple document; adding a reference");
 
                 activities.addDocumentReference("D"+new Integer(vol).toString()+":"+new Integer(childID).toString());
               }
@@ -1345,16 +1343,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           }
           catch (RuntimeException e)
           {
-            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
             continue;
           }
         }
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Done processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
+          Logging.connectors.debug("Csws: Done processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
       }
       else
       {
-        // === Livelink document ===
+        // === Csws document ===
               
         // The version string includes the following:
         // 1) The modify date for the document
@@ -1454,30 +1452,30 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
         String versionString = sb.toString();
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Successfully calculated version string for document "+Integer.toString(vol)+":"+Integer.toString(objID)+" : '"+versionString+"'");
+          Logging.connectors.debug("Csws: Successfully calculated version string for document "+Integer.toString(vol)+":"+Integer.toString(objID)+" : '"+versionString+"'");
               
         if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
           continue;
         
         // Index the document
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
+          Logging.connectors.debug("Csws: Processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
         if (!checkIngest(llc,objID,spec))
         {
           if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("Livelink: Decided not to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID)+" - Did not match ingestion criteria");
+            Logging.connectors.debug("Csws: Decided not to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID)+" - Did not match ingestion criteria");
           activities.noDocument(documentIdentifier,versionString);
           continue;
         }
 
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Decided to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID));
+          Logging.connectors.debug("Csws: Decided to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID));
 
         // Grab the access tokens for this file from the version string, inside ingest method.
-        ingestFromLiveLink(llc,documentIdentifier,versionString,actualAcls,denyAcls,categoryPaths,activities,desc,sDesc);
+        ingestFromCsws(llc,documentIdentifier,versionString,actualAcls,denyAcls,categoryPaths,activities,desc,sDesc);
           
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Done processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
+          Logging.connectors.debug("Csws: Done processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
       }
     }
   }
@@ -1543,8 +1541,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   @Override
   public int getMaxDocumentRequest()
   {
-    // Intrinsically, Livelink doesn't batch well.  Multiple chunks have no advantage over one-at-a-time requests,
-    // since apparently the Livelink API does not support multiples.  HOWEVER - when metadata is considered,
+    // Intrinsically, Csws doesn't batch well.  Multiple chunks have no advantage over one-at-a-time requests,
+    // since apparently the Csws API does not support multiples.  HOWEVER - when metadata is considered,
     // it becomes worthwhile, because we will be able to do what is needed to look up the correct CATID node
     // only once per n requests!  So it's a tradeoff between the advantage gained by threading, and the
     // savings gained by CATID lookup.
@@ -1573,9 +1571,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add(Messages.getString(locale,"LivelinkConnector.Server"));
-    tabsArray.add(Messages.getString(locale,"LivelinkConnector.DocumentAccess"));
-    tabsArray.add(Messages.getString(locale,"LivelinkConnector.DocumentView"));
+    tabsArray.add(Messages.getString(locale,"CswsConnector.Server"));
+    tabsArray.add(Messages.getString(locale,"CswsConnector.DocumentAccess"));
+    tabsArray.add(Messages.getString(locale,"CswsConnector.DocumentView"));
     
     Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_JS, null, true);
   }
@@ -1610,38 +1608,38 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected static void fillInServerTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
   {
     // LAPI parameters
-    String serverProtocol = parameters.getParameter(LiveLinkParameters.serverProtocol);
+    String serverProtocol = parameters.getParameter(CswsParameters.serverProtocol);
     if (serverProtocol == null)
       serverProtocol = "internal";
-    String serverName = parameters.getParameter(LiveLinkParameters.serverName);
+    String serverName = parameters.getParameter(CswsParameters.serverName);
     if (serverName == null)
       serverName = "localhost";
-    String serverPort = parameters.getParameter(LiveLinkParameters.serverPort);
+    String serverPort = parameters.getParameter(CswsParameters.serverPort);
     if (serverPort == null)
       serverPort = "2099";
-    String serverUserName = parameters.getParameter(LiveLinkParameters.serverUsername);
+    String serverUserName = parameters.getParameter(CswsParameters.serverUsername);
     if(serverUserName == null)
       serverUserName = "";
-    String serverPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverPassword);
+    String serverPassword = parameters.getObfuscatedParameter(CswsParameters.serverPassword);
     if (serverPassword == null)
       serverPassword = "";
     else
       serverPassword = out.mapPasswordToKey(serverPassword);
-    String serverHTTPCgiPath = parameters.getParameter(LiveLinkParameters.serverHTTPCgiPath);
+    String serverHTTPCgiPath = parameters.getParameter(CswsParameters.serverHTTPCgiPath);
     if (serverHTTPCgiPath == null)
       serverHTTPCgiPath = "/livelink/livelink.exe";
-    String serverHTTPNTLMDomain = parameters.getParameter(LiveLinkParameters.serverHTTPNTLMDomain);
+    String serverHTTPNTLMDomain = parameters.getParameter(CswsParameters.serverHTTPNTLMDomain);
     if(serverHTTPNTLMDomain == null)
       serverHTTPNTLMDomain = "";
-    String serverHTTPNTLMUserName = parameters.getParameter(LiveLinkParameters.serverHTTPNTLMUsername);
+    String serverHTTPNTLMUserName = parameters.getParameter(CswsParameters.serverHTTPNTLMUsername);
     if(serverHTTPNTLMUserName == null)
       serverHTTPNTLMUserName = "";
-    String serverHTTPNTLMPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
+    String serverHTTPNTLMPassword = parameters.getObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword);
     if (serverHTTPNTLMPassword == null)
       serverHTTPNTLMPassword = "";
     else
       serverHTTPNTLMPassword = out.mapPasswordToKey(serverHTTPNTLMPassword);
-    String serverHTTPSKeystore = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
+    String serverHTTPSKeystore = parameters.getParameter(CswsParameters.serverHTTPSKeystore);
 
     IKeystoreManager localServerHTTPSKeystore;
     Map<String,String> serverCertificatesMap = null;
@@ -1695,27 +1693,27 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected static void fillInDocumentAccessTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
   {
     // Document access parameters
-    String ingestProtocol = parameters.getParameter(LiveLinkParameters.ingestProtocol);
+    String ingestProtocol = parameters.getParameter(CswsParameters.ingestProtocol);
     if(ingestProtocol == null)
       ingestProtocol = "";
-    String ingestPort = parameters.getParameter(LiveLinkParameters.ingestPort);
+    String ingestPort = parameters.getParameter(CswsParameters.ingestPort);
     if(ingestPort == null)
       ingestPort = "";
-    String ingestCgiPath = parameters.getParameter(LiveLinkParameters.ingestCgiPath);
+    String ingestCgiPath = parameters.getParameter(CswsParameters.ingestCgiPath);
     if(ingestCgiPath == null)
       ingestCgiPath = "";
-    String ingestNtlmUsername = parameters.getParameter(LiveLinkParameters.ingestNtlmUsername);
+    String ingestNtlmUsername = parameters.getParameter(CswsParameters.ingestNtlmUsername);
     if(ingestNtlmUsername == null)
       ingestNtlmUsername = "";
-    String ingestNtlmPassword = parameters.getObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword);
+    String ingestNtlmPassword = parameters.getObfuscatedParameter(CswsParameters.ingestNtlmPassword);
     if (ingestNtlmPassword == null)
       ingestNtlmPassword = "";
     else
       ingestNtlmPassword = out.mapPasswordToKey(ingestNtlmPassword);
-    String ingestNtlmDomain = parameters.getParameter(LiveLinkParameters.ingestNtlmDomain);
+    String ingestNtlmDomain = parameters.getParameter(CswsParameters.ingestNtlmDomain);
     if(ingestNtlmDomain == null)
       ingestNtlmDomain = "";
-    String ingestKeystore = parameters.getParameter(LiveLinkParameters.ingestKeystore);
+    String ingestKeystore = parameters.getParameter(CswsParameters.ingestKeystore);
 
     IKeystoreManager localIngestKeystore;
     Map<String,String> ingestCertificatesMap = null;
@@ -1765,20 +1763,20 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected static void fillInDocumentViewTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
   {
     // Document view parameters
-    String viewProtocol = parameters.getParameter(LiveLinkParameters.viewProtocol);
+    String viewProtocol = parameters.getParameter(CswsParameters.viewProtocol);
     if (viewProtocol == null)
       viewProtocol = "http";
 
-    String viewServerName = parameters.getParameter(LiveLinkParameters.viewServerName);
+    String viewServerName = parameters.getParameter(CswsParameters.viewServerName);
     if(viewServerName == null)
       viewServerName = "";
-    String viewPort = parameters.getParameter(LiveLinkParameters.viewPort);
+    String viewPort = parameters.getParameter(CswsParameters.viewPort);
     if(viewPort == null)
       viewPort = "";
-    String viewCgiPath = parameters.getParameter(LiveLinkParameters.viewCgiPath);
+    String viewCgiPath = parameters.getParameter(CswsParameters.viewCgiPath);
     if (viewCgiPath == null)
       viewCgiPath = "/livelink/livelink.exe";
-    String viewAction = parameters.getParameter(LiveLinkParameters.viewAction);
+    String viewAction = parameters.getParameter(CswsParameters.viewAction);
     if (viewAction == null)
       viewAction = "download";
 
@@ -1806,48 +1804,48 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     // View parameters
     String viewProtocol = variableContext.getParameter("viewprotocol");
     if (viewProtocol != null)
-      parameters.setParameter(LiveLinkParameters.viewProtocol,viewProtocol);
+      parameters.setParameter(CswsParameters.viewProtocol,viewProtocol);
     String viewServerName = variableContext.getParameter("viewservername");
     if (viewServerName != null)
-      parameters.setParameter(LiveLinkParameters.viewServerName,viewServerName);
+      parameters.setParameter(CswsParameters.viewServerName,viewServerName);
     String viewPort = variableContext.getParameter("viewport");
     if (viewPort != null)
-      parameters.setParameter(LiveLinkParameters.viewPort,viewPort);
+      parameters.setParameter(CswsParameters.viewPort,viewPort);
     String viewCgiPath = variableContext.getParameter("viewcgipath");
     if (viewCgiPath != null)
-      parameters.setParameter(LiveLinkParameters.viewCgiPath,viewCgiPath);
+      parameters.setParameter(CswsParameters.viewCgiPath,viewCgiPath);
     String viewAction = variableContext.getParameter("viewaction");
     if (viewAction != null)
-      parameters.setParameter(LiveLinkParameters.viewAction,viewAction);
+      parameters.setParameter(CswsParameters.viewAction,viewAction);
     
     // Server parameters
     String serverProtocol = variableContext.getParameter("serverprotocol");
     if (serverProtocol != null)
-      parameters.setParameter(LiveLinkParameters.serverProtocol,serverProtocol);
+      parameters.setParameter(CswsParameters.serverProtocol,serverProtocol);
     String serverName = variableContext.getParameter("servername");
     if (serverName != null)
-      parameters.setParameter(LiveLinkParameters.serverName,serverName);
+      parameters.setParameter(CswsParameters.serverName,serverName);
     String serverPort = variableContext.getParameter("serverport");
     if (serverPort != null)
-      parameters.setParameter(LiveLinkParameters.serverPort,serverPort);
+      parameters.setParameter(CswsParameters.serverPort,serverPort);
     String serverUserName = variableContext.getParameter("serverusername");
     if (serverUserName != null)
-      parameters.setParameter(LiveLinkParameters.serverUsername,serverUserName);
+      parameters.setParameter(CswsParameters.serverUsername,serverUserName);
     String serverPassword = variableContext.getParameter("serverpassword");
     if (serverPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.serverPassword,variableContext.mapKeyToPassword(serverPassword));
+      parameters.setObfuscatedParameter(CswsParameters.serverPassword,variableContext.mapKeyToPassword(serverPassword));
     String serverHTTPCgiPath = variableContext.getParameter("serverhttpcgipath");
     if (serverHTTPCgiPath != null)
-      parameters.setParameter(LiveLinkParameters.serverHTTPCgiPath,serverHTTPCgiPath);
+      parameters.setParameter(CswsParameters.serverHTTPCgiPath,serverHTTPCgiPath);
     String serverHTTPNTLMDomain = variableContext.getParameter("serverhttpntlmdomain");
     if (serverHTTPNTLMDomain != null)
-      parameters.setParameter(LiveLinkParameters.serverHTTPNTLMDomain,serverHTTPNTLMDomain);
+      parameters.setParameter(CswsParameters.serverHTTPNTLMDomain,serverHTTPNTLMDomain);
     String serverHTTPNTLMUserName = variableContext.getParameter("serverhttpntlmusername");
     if (serverHTTPNTLMUserName != null)
-      parameters.setParameter(LiveLinkParameters.serverHTTPNTLMUsername,serverHTTPNTLMUserName);
+      parameters.setParameter(CswsParameters.serverHTTPNTLMUsername,serverHTTPNTLMUserName);
     String serverHTTPNTLMPassword = variableContext.getParameter("serverhttpntlmpassword");
     if (serverHTTPNTLMPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword,variableContext.mapKeyToPassword(serverHTTPNTLMPassword));
+      parameters.setObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword,variableContext.mapKeyToPassword(serverHTTPNTLMPassword));
     
     String serverHTTPSKeystoreValue = variableContext.getParameter("serverhttpskeystoredata");
     final String serverConfigOp = variableContext.getParameter("serverconfigop");
@@ -1902,27 +1900,27 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         serverHTTPSKeystoreValue = mgr.getString();
       }
     }
-    parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
+    parameters.setParameter(CswsParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
     
     // Ingest parameters
     String ingestProtocol = variableContext.getParameter("ingestprotocol");
     if (ingestProtocol != null)
-      parameters.setParameter(LiveLinkParameters.ingestProtocol,ingestProtocol);
+      parameters.setParameter(CswsParameters.ingestProtocol,ingestProtocol);
     String ingestPort = variableContext.getParameter("ingestport");
     if (ingestPort != null)
-      parameters.setParameter(LiveLinkParameters.ingestPort,ingestPort);
+      parameters.setParameter(CswsParameters.ingestPort,ingestPort);
     String ingestCgiPath = variableContext.getParameter("ingestcgipath");
     if (ingestCgiPath != null)
-      parameters.setParameter(LiveLinkParameters.ingestCgiPath,ingestCgiPath);
+      parameters.setParameter(CswsParameters.ingestCgiPath,ingestCgiPath);
     String ingestNtlmDomain = variableContext.getParameter("ingestntlmdomain");
     if (ingestNtlmDomain != null)
-      parameters.setParameter(LiveLinkParameters.ingestNtlmDomain,ingestNtlmDomain);
+      parameters.setParameter(CswsParameters.ingestNtlmDomain,ingestNtlmDomain);
     String ingestNtlmUsername = variableContext.getParameter("ingestntlmusername");
     if (ingestNtlmUsername != null)
-      parameters.setParameter(LiveLinkParameters.ingestNtlmUsername,ingestNtlmUsername);
+      parameters.setParameter(CswsParameters.ingestNtlmUsername,ingestNtlmUsername);
     String ingestNtlmPassword = variableContext.getParameter("ingestntlmpassword");
     if (ingestNtlmPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.ingestNtlmPassword,variableContext.mapKeyToPassword(ingestNtlmPassword));
+      parameters.setObfuscatedParameter(CswsParameters.ingestNtlmPassword,variableContext.mapKeyToPassword(ingestNtlmPassword));
     
     String ingestKeystoreValue = variableContext.getParameter("ingestkeystoredata");
     final String ingestConfigOp = variableContext.getParameter("ingestconfigop");
@@ -1977,7 +1975,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         ingestKeystoreValue = mgr.getString();
       }
     }
-    parameters.setParameter(LiveLinkParameters.ingestKeystore,ingestKeystoreValue);
+    parameters.setParameter(CswsParameters.ingestKeystore,ingestKeystoreValue);
 
     return null;
   }
@@ -2010,7 +2008,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               param.length() > "truststore".length() && param.substring(param.length()-"truststore".length()).equalsIgnoreCase("truststore"))
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
-        configMap.put(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param),"=&lt;"+Integer.toString(kmanager.getContents().length)+Messages.getBodyString(locale,"LivelinkConnector.certificates")+"&gt;");
+        configMap.put(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param),"=&lt;"+Integer.toString(kmanager.getContents().length)+Messages.getBodyString(locale,"CswsConnector.certificates")+"&gt;");
       }
       else
       {
@@ -2038,10 +2036,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     int connectionSequenceNumber, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add(Messages.getString(locale,"LivelinkConnector.Paths"));
-    tabsArray.add(Messages.getString(locale,"LivelinkConnector.Filters"));
-    tabsArray.add(Messages.getString(locale,"LivelinkConnector.Security"));
-    tabsArray.add(Messages.getString(locale,"LivelinkConnector.Metadata"));
+    tabsArray.add(Messages.getString(locale,"CswsConnector.Paths"));
+    tabsArray.add(Messages.getString(locale,"CswsConnector.Filters"));
+    tabsArray.add(Messages.getString(locale,"CswsConnector.Security"));
+    tabsArray.add(Messages.getString(locale,"CswsConnector.Metadata"));
     
     String seqPrefixParam = "s" + connectionSequenceNumber + "_";
 
@@ -2081,9 +2079,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     fillInMetadataTab(velocityContext,out,ds);
 
     // Now, do the part of the tabs that requires context logic
-    if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Paths")))
+    if (tabName.equals(Messages.getString(locale,"CswsConnector.Paths")))
       fillInTransientPathsInfo(velocityContext,connectionSequenceNumber);
-    else if (tabName.equals(Messages.getString(locale,"LivelinkConnector.Metadata")))
+    else if (tabName.equals(Messages.getString(locale,"CswsConnector.Metadata")))
       fillInTransientMetadataInfo(velocityContext,connectionSequenceNumber);
 
     Messages.outputResourceWithVelocity(out,locale,EDIT_SPECIFICATION_PATHS_HTML,velocityContext);
@@ -2913,7 +2911,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    return getChildFolders(new LivelinkContext(),pathString);
+    return getChildFolders(new CswsContext(),pathString);
   }
 
 
@@ -2925,7 +2923,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    return getChildCategories(new LivelinkContext(),pathString);
+    return getChildCategories(new CswsContext(),pathString);
   }
 
   /** Given a category path, get a list of legal attribute names.
@@ -2936,10 +2934,10 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     throws ManifoldCFException, ServiceInterruption
   {
     getSession();
-    return getCategoryAttributes(new LivelinkContext(), pathString);
+    return getCategoryAttributes(new CswsContext(), pathString);
   }
   
-  protected String[] getCategoryAttributes(LivelinkContext llc, String pathString)
+  protected String[] getCategoryAttributes(CswsContext llc, String pathString)
     throws ManifoldCFException, ServiceInterruption
   {
     // Start at root
@@ -2961,7 +2959,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   /** Create the login URI.  This must be a relative URI.
   */
-  protected String createLivelinkLoginURI()
+  protected String createCswsLoginURI()
     throws ManifoldCFException
   {
       StringBuilder llURI = new StringBuilder();
@@ -2978,11 +2976,11 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
 
   /**
-  * Connects to the specified Livelink document using HTTP protocol
+  * Connects to the specified Csws document using HTTP protocol
   * @param documentIdentifier is the document identifier (as far as the crawler knows).
   * @param activities is the process activity structure, so we can ingest
   */
-  protected void ingestFromLiveLink(LivelinkContext llc,
+  protected void ingestFromCsws(CswsContext llc,
     String documentIdentifier, String version,
     String[] actualAcls, String[] denyAcls,
     String[] categoryPaths,
@@ -3022,7 +3020,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (viewHttpAddress == null)
       {
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: No view URI "+contextMsg+" - not ingesting");
+          Logging.connectors.debug("Csws: No view URI "+contextMsg+" - not ingesting");
         resultCode = "NOVIEWURI";
         resultDescription = "Document had no view URI";
         activities.noDocument(documentIdentifier,version);
@@ -3036,7 +3034,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         resultCode = activities.EXCLUDED_URL;
         resultDescription = "URL ("+viewHttpAddress+") was rejected by output connector";
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Excluding document "+documentIdentifier+" because its URL ("+viewHttpAddress+") was rejected by output connector");
+          Logging.connectors.debug("Csws: Excluding document "+documentIdentifier+" because its URL ("+viewHttpAddress+") was rejected by output connector");
         activities.noDocument(documentIdentifier,version);
         return;
       }
@@ -3047,16 +3045,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       if (!objInfo.exists())
       {
         resultCode = "OBJECTNOTFOUND";
-        resultDescription = "Object was not found in Livelink";
-        Logging.connectors.debug("Livelink: No object "+contextMsg+": not ingesting");
+        resultDescription = "Object was not found in Csws";
+        Logging.connectors.debug("Csws: No object "+contextMsg+": not ingesting");
         activities.noDocument(documentIdentifier,version);
         return;
       }
       if (!versInfo.exists())
       {
         resultCode = "VERSIONNOTFOUND";
-        resultDescription = "Version was not found in Livelink";
-        Logging.connectors.debug("Livelink: No version data "+contextMsg+": not ingesting");
+        resultDescription = "Version was not found in Csws";
+        Logging.connectors.debug("Csws: No version data "+contextMsg+": not ingesting");
         activities.noDocument(documentIdentifier,version);
         return;
       }
@@ -3068,7 +3066,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         resultCode = activities.EXCLUDED_MIMETYPE;
         resultDescription = "Mime type ("+mimeType+") was rejected by output connector";
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Excluding document "+documentIdentifier+" because its mime type ("+mimeType+") was rejected by output connector");
+          Logging.connectors.debug("Csws: Excluding document "+documentIdentifier+" because its mime type ("+mimeType+") was rejected by output connector");
         activities.noDocument(documentIdentifier,version);
         return;
       }
@@ -3078,9 +3076,9 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       {
         // Document had no length
         resultCode = "DOCUMENTNOLENGTH";
-        resultDescription = "Document had no length in Livelink";
+        resultDescription = "Document had no length in Csws";
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Excluding document "+documentIdentifier+" because it had no length");
+          Logging.connectors.debug("Csws: Excluding document "+documentIdentifier+" because it had no length");
         activities.noDocument(documentIdentifier,version);
         return;
       }
@@ -3091,7 +3089,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         resultCode = activities.EXCLUDED_LENGTH;
         resultDescription = "Document length ("+dataSize+") was rejected by output connector";
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Excluding document "+documentIdentifier+" because its length ("+dataSize+") was rejected by output connector");
+          Logging.connectors.debug("Csws: Excluding document "+documentIdentifier+" because its length ("+dataSize+") was rejected by output connector");
         activities.noDocument(documentIdentifier,version);
         return;
       }
@@ -3103,7 +3101,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         resultCode = activities.EXCLUDED_DATE;
         resultDescription = "Document date ("+modifyDate+") was rejected by output connector";
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Livelink: Excluding document "+documentIdentifier+" because its date ("+modifyDate+") was rejected by output connector");
+          Logging.connectors.debug("Csws: Excluding document "+documentIdentifier+" because its date ("+modifyDate+") was rejected by output connector");
         activities.noDocument(documentIdentifier,version);
         return;
       }
@@ -3170,7 +3168,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
               if (metadataValue != null)
                 rd.addField(metadataName,metadataValue);
               else
-                Logging.connectors.warn("Livelink: Metadata attribute '"+metadataName+"' does not seem to exist; please correct the job");
+                Logging.connectors.warn("Csws: Metadata attribute '"+metadataName+"' does not seem to exist; please correct the job");
             }
           }
           
@@ -3188,7 +3186,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (pathString != null)
         {
           if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("Livelink: Path attribute name is '"+pathAttributeName+"'"+contextMsg+", value is '"+pathString+"'");
+            Logging.connectors.debug("Csws: Path attribute name is '"+pathAttributeName+"'"+contextMsg+", value is '"+pathString+"'");
           rd.addField(pathAttributeName,pathString);
         }
       }
@@ -3200,7 +3198,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         if (ingestHttpAddress == null)
         {
           if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("Livelink: No fetch URI "+contextMsg+" - not ingesting");
+            Logging.connectors.debug("Csws: No fetch URI "+contextMsg+" - not ingesting");
           resultCode = "NOURI";
           resultDescription = "Document had no fetch URI";
           activities.noDocument(documentIdentifier,version);
@@ -3213,7 +3211,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         long currentTime;
 
         if (Logging.connectors.isInfoEnabled())
-          Logging.connectors.info("Livelink: " + ingestHttpAddress);
+          Logging.connectors.info("Csws: " + ingestHttpAddress);
 
 
         HttpGet method = new HttpGet(getHost().toURI() + ingestHttpAddress);
@@ -3229,14 +3227,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           {
           case 500:
           case 502:
-            Logging.connectors.warn("Livelink: Service interruption during fetch "+contextMsg+" with Livelink HTTP Server, retrying...");
+            Logging.connectors.warn("Csws: Service interruption during fetch "+contextMsg+" with Csws HTTP Server, retrying...");
             resultCode = "FETCHFAILED";
             resultDescription = "HTTP error code "+statusCode+" fetching document";
             throw new ServiceInterruption("Service interruption during fetch",new ManifoldCFException(Integer.toString(statusCode)+" error while fetching"),System.currentTimeMillis()+60000L,
               System.currentTimeMillis()+600000L,-1,true);
 
           case HttpStatus.SC_UNAUTHORIZED:
-            Logging.connectors.warn("Livelink: Document fetch unauthorized for "+ingestHttpAddress+" ("+contextMsg+")");
+            Logging.connectors.warn("Csws: Document fetch unauthorized for "+ingestHttpAddress+" ("+contextMsg+")");
             // Since we logged in, we should fail here if the ingestion user doesn't have access to the
             // the document, but if we do, don't fail hard.
             resultCode = "UNAUTHORIZED";
@@ -3246,7 +3244,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
           case HttpStatus.SC_OK:
             if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Livelink: Created http document connection to Livelink "+contextMsg);
+              Logging.connectors.debug("Csws: Created http document connection to Csws "+contextMsg);
             // A non-existent content length will cause a value of -1 to be returned.  This seems to indicate that the session login did not work right.
             if (methodThread.getResponseContentLength() < 0)
             {
@@ -3268,7 +3266,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
                 readSize = dataSize;
                     
                 if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Livelink: Ingesting done "+contextMsg);
+                  Logging.connectors.debug("Csws: Ingesting done "+contextMsg);
 
               }
               finally
@@ -3304,7 +3302,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           default:
             resultCode = "UNKNOWNHTTPCODE";
             resultDescription = "Http request returned status "+Integer.toString(statusCode);
-            Logging.connectors.warn("Livelink: Attempt to retrieve document from '"+ingestHttpAddress+"' received a response of "+Integer.toString(statusCode)+"; retrying in one minute");
+            Logging.connectors.warn("Csws: Attempt to retrieve document from '"+ingestHttpAddress+"' received a response of "+Integer.toString(statusCode)+"; retrying in one minute");
             currentTime = System.currentTimeMillis();
             throw new ServiceInterruption("Fetch failed; retrying in 1 minute",new ManifoldCFException("Fetch failed with unknown code "+Integer.toString(statusCode)),
               currentTime+60000L,currentTime+600000L,-1,true);
@@ -3406,7 +3404,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
           resultDescription = e.getMessage();
-          handleLivelinkRuntimeException(e,0,true);
+          handleCswsRuntimeException(e,0,true);
         }
       }
     }
@@ -3428,7 +3426,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   {
     long currentTime = System.currentTimeMillis();
     // Treat unknown error ingesting data as a transient condition
-    Logging.connectors.warn("Livelink: HTTP exception ingesting "+contextMsg+": "+e.getMessage(),e);
+    Logging.connectors.warn("Csws: HTTP exception ingesting "+contextMsg+": "+e.getMessage(),e);
     throw new ServiceInterruption("HTTP exception ingesting "+contextMsg+": "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
   }
   
@@ -3438,28 +3436,28 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     long currentTime = System.currentTimeMillis();
     if (e instanceof java.net.SocketTimeoutException)
     {
-      Logging.connectors.warn("Livelink: Livelink socket timed out ingesting from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+      Logging.connectors.warn("Csws: Csws socket timed out ingesting from the Csws HTTP Server "+contextMsg+": "+e.getMessage(), e);
       throw new ServiceInterruption("Socket timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
     }
     if (e instanceof java.net.SocketException)
     {
-      Logging.connectors.warn("Livelink: Livelink socket error ingesting from the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+      Logging.connectors.warn("Csws: Csws socket error ingesting from the Csws HTTP Server "+contextMsg+": "+e.getMessage(), e);
       throw new ServiceInterruption("Socket error: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
     }
     if (e instanceof javax.net.ssl.SSLHandshakeException)
     {
-      Logging.connectors.warn("Livelink: SSL handshake failed authenticating "+contextMsg+": "+e.getMessage(),e);
+      Logging.connectors.warn("Csws: SSL handshake failed authenticating "+contextMsg+": "+e.getMessage(),e);
       throw new ServiceInterruption("SSL handshake error: "+e.getMessage(),e,currentTime+60000L,currentTime+300000L,-1,true);
     }
     if (e instanceof ConnectTimeoutException)
     {
-      Logging.connectors.warn("Livelink: Livelink socket timed out connecting to the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+      Logging.connectors.warn("Csws: Csws socket timed out connecting to the Csws HTTP Server "+contextMsg+": "+e.getMessage(), e);
       throw new ServiceInterruption("Connect timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
     }
     if (e instanceof InterruptedIOException)
       throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     // Treat unknown error ingesting data as a transient condition
-    Logging.connectors.warn("Livelink: IO exception ingesting "+contextMsg+": "+e.getMessage(),e);
+    Logging.connectors.warn("Csws: IO exception ingesting "+contextMsg+": "+e.getMessage(),e);
     throw new ServiceInterruption("IO exception ingesting "+contextMsg+": "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
   }
   
@@ -3469,25 +3467,25 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   {
     long currentTime;
     if (Logging.connectors.isDebugEnabled())
-      Logging.connectors.debug("Livelink: Session authenticating via http "+contextMsg+"...");
-    HttpGet authget = new HttpGet(getHost().toURI() + createLivelinkLoginURI());
+      Logging.connectors.debug("Csws: Session authenticating via http "+contextMsg+"...");
+    HttpGet authget = new HttpGet(getHost().toURI() + createCswsLoginURI());
     authget.setHeader(new BasicHeader("Accept","*/*"));
     try
     {
       if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("Livelink: Created new HttpGet "+contextMsg+"; executing authentication method");
+        Logging.connectors.debug("Csws: Created new HttpGet "+contextMsg+"; executing authentication method");
       int statusCode = executeMethodViaThread(httpClient,authget);
 
       if (statusCode == 502 || statusCode == 500)
       {
-        Logging.connectors.warn("Livelink: Service interruption during authentication "+contextMsg+" with Livelink HTTP Server, retrying...");
+        Logging.connectors.warn("Csws: Service interruption during authentication "+contextMsg+" with Csws HTTP Server, retrying...");
         currentTime = System.currentTimeMillis();
         throw new ServiceInterruption("502 error during authentication",new ManifoldCFException("502 error while authenticating"),
           currentTime+60000L,currentTime+600000L,-1,true);
       }
       if (statusCode != HttpStatus.SC_OK)
       {
-        Logging.connectors.error("Livelink: Failed to authenticate "+contextMsg+" against Livelink HTTP Server; Status code: " + statusCode);
+        Logging.connectors.error("Csws: Failed to authenticate "+contextMsg+" against Csws HTTP Server; Status code: " + statusCode);
         // Ok, so we didn't get in - simply do not ingest
         if (statusCode == HttpStatus.SC_UNAUTHORIZED)
           throw new ManifoldCFException("Session authorization failed with a 401 code; are credentials correct?");
@@ -3502,25 +3500,25 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     catch (java.net.SocketTimeoutException e)
     {
       currentTime = System.currentTimeMillis();
-      Logging.connectors.warn("Livelink: Socket timed out authenticating to the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+      Logging.connectors.warn("Csws: Socket timed out authenticating to the Csws HTTP Server "+contextMsg+": "+e.getMessage(), e);
       throw new ServiceInterruption("Socket timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
     }
     catch (java.net.SocketException e)
     {
       currentTime = System.currentTimeMillis();
-      Logging.connectors.warn("Livelink: Socket error authenticating to the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+      Logging.connectors.warn("Csws: Socket error authenticating to the Csws HTTP Server "+contextMsg+": "+e.getMessage(), e);
       throw new ServiceInterruption("Socket error: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
     }
     catch (javax.net.ssl.SSLHandshakeException e)
     {
       currentTime = System.currentTimeMillis();
-      Logging.connectors.warn("Livelink: SSL handshake failed authenticating "+contextMsg+": "+e.getMessage(),e);
+      Logging.connectors.warn("Csws: SSL handshake failed authenticating "+contextMsg+": "+e.getMessage(),e);
       throw new ServiceInterruption("SSL handshake error: "+e.getMessage(),e,currentTime+60000L,currentTime+300000L,-1,true);
     }
     catch (ConnectTimeoutException e)
     {
       currentTime = System.currentTimeMillis();
-      Logging.connectors.warn("Livelink: Connect timed out authenticating to the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
+      Logging.connectors.warn("Csws: Connect timed out authenticating to the Csws HTTP Server "+contextMsg+": "+e.getMessage(), e);
       throw new ServiceInterruption("Connect timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
     }
     catch (InterruptedIOException e)
@@ -3529,13 +3527,13 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     }
     catch (HttpException e)
     {
-      Logging.connectors.error("Livelink: HTTP exception when authenticating to the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-      throw new ManifoldCFException("Unable to communicate with the Livelink HTTP Server: "+e.getMessage(), e);
+      Logging.connectors.error("Csws: HTTP exception when authenticating to the Csws HTTP Server "+contextMsg+": "+e.getMessage(), e);
+      throw new ManifoldCFException("Unable to communicate with the Csws HTTP Server: "+e.getMessage(), e);
     }
     catch (IOException e)
     {
-      Logging.connectors.error("Livelink: IO exception when authenticating to the Livelink HTTP Server "+contextMsg+": "+e.getMessage(), e);
-      throw new ManifoldCFException("Unable to communicate with the Livelink HTTP Server: "+e.getMessage(), e);
+      Logging.connectors.error("Csws: IO exception when authenticating to the Csws HTTP Server "+contextMsg+": "+e.getMessage(), e);
+      throw new ManifoldCFException("Unable to communicate with the Csws HTTP Server: "+e.getMessage(), e);
     }
 
     return httpClient;
@@ -3562,7 +3560,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param pathString is the current path (folder names and project names, separated by dots (.)).
   *@return a list of folder and project names, in sorted order, or null if the path was invalid.
   */
-  protected String[] getChildFolders(LivelinkContext llc, String pathString)
+  protected String[] getChildFolders(CswsContext llc, String pathString)
     throws ManifoldCFException, ServiceInterruption
   {
     RootValue rv = new RootValue(llc,pathString);
@@ -3609,7 +3607,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (RuntimeException e)
       {
-        sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
         continue;
       }
     }
@@ -3620,7 +3618,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param pathString is the current path (folder names and project names, separated by dots (.)).
   *@return a list of category names, in sorted order, or null if the path was invalid.
   */
-  protected String[] getChildCategories(LivelinkContext llc, String pathString)
+  protected String[] getChildCategories(CswsContext llc, String pathString)
     throws ManifoldCFException, ServiceInterruption
   {
     // Start at root
@@ -3668,7 +3666,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (RuntimeException e)
       {
-        sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
         continue;
       }
     }
@@ -3787,7 +3785,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (RuntimeException e)
       {
-        sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
         continue;
       }
     }
@@ -3896,16 +3894,16 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       catch (NullPointerException npe)
       {
         // LAPI throws a null pointer exception under very rare conditions when the GetObjectAttributesEx is
-        // called.  The conditions are not clear at this time - it could even be due to Livelink corruption.
+        // called.  The conditions are not clear at this time - it could even be due to Csws corruption.
         // However, I'm going to have to treat this as
         // indicating that this category version does not exist for this document.
-        Logging.connectors.warn("Livelink: Null pointer exception thrown trying to get cat version for category "+
+        Logging.connectors.warn("Csws: Null pointer exception thrown trying to get cat version for category "+
           Integer.toString(catID)+" for object "+Integer.toString(objID));
         return null;
       }
       catch (RuntimeException e)
       {
-        sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
         continue;
       }
     }
@@ -4018,7 +4016,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (RuntimeException e)
       {
-        sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
         continue;
       }
     }
@@ -4084,7 +4082,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   }
 
   /** Get an object's rights.  This will be an array of right id's, including the special
-  * ones defined by Livelink, or null will be returned (if the object is not found).
+  * ones defined by Csws, or null will be returned (if the object is not found).
   *@param vol is the volume id
   *@param objID is the object id
   *@return the array.
@@ -4159,7 +4157,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (RuntimeException e)
       {
-        sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
         continue;
       }
     }
@@ -4167,7 +4165,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
   /** Local cache for various kinds of objects that may be useful more than once.
   */
-  protected class LivelinkContext
+  protected class CswsContext
   {
     /** Cache of ObjectInformation objects. */
     protected final Map<ObjectInformation,ObjectInformation> objectInfoMap = new HashMap<ObjectInformation,ObjectInformation>();
@@ -4176,7 +4174,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     /** Cache of UserInformation objects */
     protected final Map<UserInformation,UserInformation> userInfoMap = new HashMap<UserInformation,UserInformation>();
     
-    public LivelinkContext()
+    public CswsContext()
     {
     }
     
@@ -4276,7 +4274,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           }
           catch (RuntimeException e)
           {
-            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
             continue;
           }
         }
@@ -4418,7 +4416,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           }
           catch (RuntimeException e)
           {
-            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
             continue;
           }
         }
@@ -4579,7 +4577,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           }
           catch (RuntimeException e)
           {
-            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
             continue;
 
           }
@@ -4686,7 +4684,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           }
           catch (RuntimeException e)
           {
-            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
             continue;
           }
         }
@@ -4825,7 +4823,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
           }
           catch (RuntimeException e)
           {
-            sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+            sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
             continue;
           }
         }
@@ -4871,12 +4869,12 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
         if (Logging.connectors.isDebugEnabled())
         {
-          Logging.connectors.debug("Livelink: User list retrieved: status="+Integer.toString(status));
+          Logging.connectors.debug("Csws: User list retrieved: status="+Integer.toString(status));
         }
 
         if (status < 0)
         {
-          Logging.connectors.debug("Livelink: User list inaccessable ("+llServer.getErrors()+")");
+          Logging.connectors.debug("Csws: User list inaccessable ("+llServer.getErrors()+")");
           return;
         }
 
@@ -4939,7 +4937,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         // Need to detect if object was deleted, and return null in this case!!!
         if (Logging.connectors.isDebugEnabled())
         {
-          Logging.connectors.debug("Livelink: User status retrieved for "+Integer.toString(user)+": status="+Integer.toString(status));
+          Logging.connectors.debug("Csws: User status retrieved for "+Integer.toString(user)+": status="+Integer.toString(status));
         }
 
         // Treat both 103101 and 103102 as 'object not found'. 401101 is 'user not found'.
@@ -4949,7 +4947,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         // This error means we don't have permission to get the object's status, apparently
         if (status < 0)
         {
-          Logging.connectors.debug("Livelink: User info inaccessable for user "+Integer.toString(user)+
+          Logging.connectors.debug("Csws: User info inaccessable for user "+Integer.toString(user)+
             " ("+llServer.getErrors()+")");
           return;
         }
@@ -5015,7 +5013,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         // Need to detect if object was deleted, and return null in this case!!!
         if (Logging.connectors.isDebugEnabled())
         {
-          Logging.connectors.debug("Livelink: Version status retrieved for "+Integer.toString(vol)+":"+Integer.toString(id)+", rev "+revNumber+": status="+Integer.toString(status));
+          Logging.connectors.debug("Csws: Version status retrieved for "+Integer.toString(vol)+":"+Integer.toString(id)+", rev "+revNumber+": status="+Integer.toString(status));
         }
 
         // Treat both 103101 and 103102 as 'object not found'.
@@ -5025,7 +5023,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         // This error means we don't have permission to get the object's status, apparently
         if (status < 0)
         {
-          Logging.connectors.debug("Livelink: Version info inaccessable for object "+Integer.toString(vol)+":"+Integer.toString(id)+", rev "+revNumber+
+          Logging.connectors.debug("Csws: Version info inaccessable for object "+Integer.toString(vol)+":"+Integer.toString(id)+", rev "+revNumber+
             " ("+llServer.getErrors()+")");
           return;
         }
@@ -5089,7 +5087,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         // Need to detect if object was deleted, and return null in this case!!!
         if (Logging.connectors.isDebugEnabled())
         {
-          Logging.connectors.debug("Livelink: Status retrieved for "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status));
+          Logging.connectors.debug("Csws: Status retrieved for "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status));
         }
 
         // Treat both 103101 and 103102 as 'object not found'.
@@ -5099,7 +5097,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         // This error means we don't have permission to get the object's status, apparently
         if (status < 0)
         {
-          Logging.connectors.debug("Livelink: Object info inaccessable for object "+Integer.toString(vol)+":"+Integer.toString(id)+
+          Logging.connectors.debug("Csws: Object info inaccessable for object "+Integer.toString(vol)+":"+Integer.toString(id)+
             " ("+llServer.getErrors()+")");
           return;
         }
@@ -5221,7 +5219,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         // Need to detect if object was deleted, and return null in this case!!!
         if (Logging.connectors.isDebugEnabled())
         {
-          Logging.connectors.debug("Livelink: Status value for getting object categories for "+Integer.toString(vol)+":"+Integer.toString(id)+" is: "+Integer.toString(status));
+          Logging.connectors.debug("Csws: Status value for getting object categories for "+Integer.toString(vol)+":"+Integer.toString(id)+" is: "+Integer.toString(status));
         }
 
         if (status == 103101)
@@ -5292,7 +5290,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
         if (Logging.connectors.isDebugEnabled())
         {
-          Logging.connectors.debug("Livelink: Object "+Integer.toString(vol)+":"+Integer.toString(id)+" has "+Integer.toString(size)+" attached categories");
+          Logging.connectors.debug("Csws: Object "+Integer.toString(vol)+":"+Integer.toString(id)+" has "+Integer.toString(size)+" attached categories");
         }
 
         // Count the category ids
@@ -5324,7 +5322,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
 
         if (Logging.connectors.isDebugEnabled())
         {
-          Logging.connectors.debug("Livelink: Object "+Integer.toString(vol)+":"+Integer.toString(id)+" has "+Integer.toString(rval.length)+" attached library categories");
+          Logging.connectors.debug("Csws: Object "+Integer.toString(vol)+":"+Integer.toString(id)+" has "+Integer.toString(rval.length)+" attached library categories");
         }
 
         return rval;
@@ -5336,7 +5334,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       }
       catch (RuntimeException e)
       {
-        sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount,true);
+        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
         continue;
       }
     }
@@ -5409,7 +5407,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param objID is the file ID.
   *@param documentSpecification is the specification.
   */
-  protected boolean checkIngest(LivelinkContext llc, int objID, Specification documentSpecification)
+  protected boolean checkIngest(CswsContext llc, int objID, Specification documentSpecification)
     throws ManifoldCFException
   {
     // Since the only exclusions at this point are not based on file contents, this is a no-op.
@@ -5595,7 +5593,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   protected class SystemMetadataDescription
   {
     // The livelink context
-    protected final LivelinkContext llc;
+    protected final CswsContext llc;
     
     // The path attribute name
     protected final String pathAttributeName;
@@ -5620,7 +5618,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     protected final boolean includeAllMetadata;
 
     /** Constructor */
-    public SystemMetadataDescription(LivelinkContext llc, Specification spec)
+    public SystemMetadataDescription(CswsContext llc, Specification spec)
       throws ManifoldCFException, ServiceInterruption
     {
       this.llc = llc;
@@ -5854,7 +5852,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           // The document identifier describes a path that does not exist.
           // This is unexpected, but don't die: just log a warning and allow the higher level to deal with it.
-          Logging.connectors.warn("Livelink: Bad document identifier: '"+documentIdentifier+"' apparently does not exist, but need to find its path");
+          Logging.connectors.warn("Csws: Bad document identifier: '"+documentIdentifier+"' apparently does not exist, but need to find its path");
           return null;
         }
 
@@ -5888,14 +5886,14 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected class MetadataDescription
   {
-    protected final LivelinkContext llc;
+    protected final CswsContext llc;
     
     // This is a map of category name to category ID and attributes
     protected final Map<String,MetadataPathItem> categoryMap = new HashMap<String,MetadataPathItem>();
 
     /** Constructor.
     */
-    public MetadataDescription(LivelinkContext llc)
+    public MetadataDescription(CswsContext llc)
     {
       this.llc = llc;
     }
@@ -5966,8 +5964,8 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected class CategoryPathAccumulator
   {
-    // Livelink context
-    protected final LivelinkContext llc;
+    // Csws context
+    protected final CswsContext llc;
     
     // This is the map from category ID to category path name.
     // It's keyed by an Integer formed from the id, and has String values.
@@ -5978,7 +5976,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     protected final Map<Integer,String[]> attributeMap = new HashMap<Integer,String[]>();
 
     /** Constructor */
-    public CategoryPathAccumulator(LivelinkContext llc)
+    public CategoryPathAccumulator(CswsContext llc)
     {
       this.llc = llc;
     }
@@ -6051,7 +6049,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           // The document identifier describes a path that does not exist.
           // This is unexpected, but an exception would terminate the job, and we don't want that.
-          Logging.connectors.warn("Livelink: Bad identifier found? "+currentObject.toString()+" apparently does not exist, but need to look up its path");
+          Logging.connectors.warn("Csws: Bad identifier found? "+currentObject.toString()+" apparently does not exist, but need to look up its path");
           return null;
         }
 
@@ -6068,7 +6066,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
         {
           // Oops, hit the top of the path without finding the workspace we're in.
           // No idea where it lives; note this condition and exit.
-          Logging.connectors.warn("Livelink: Object ID "+currentObject.toString()+" doesn't seem to live in enterprise or category workspace!  Path I got was '"+path+"'");
+          Logging.connectors.warn("Csws: Object ID "+currentObject.toString()+" doesn't seem to live in enterprise or category workspace!  Path I got was '"+path+"'");
           return null;
         }
         currentObject = llc.getObjectInformation(0,parentID);
@@ -6091,7 +6089,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   */
   protected class RootValue
   {
-    protected final LivelinkContext llc;
+    protected final CswsContext llc;
     protected final String workspaceName;
     protected ObjectInformation rootValue = null;
     protected final String remainderPath;
@@ -6099,7 +6097,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     /** Constructor.
     *@param pathString is the path string.
     */
-    public RootValue(LivelinkContext llc, String pathString)
+    public RootValue(CswsContext llc, String pathString)
     {
       this.llc = llc;
       int colonPos = pathString.indexOf(":");
@@ -6141,7 +6139,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       
       if (!rootValue.exists())
       {
-        Logging.connectors.warn("Livelink: Could not get workspace/volume ID!  Retrying...");
+        Logging.connectors.warn("Csws: Could not get workspace/volume ID!  Retrying...");
         // This cannot mean a real failure; it MUST mean that we have had an intermittent communication hiccup.  So, pass it off as a service interruption.
         throw new ServiceInterruption("Service interruption getting root value",new ManifoldCFException("Could not get workspace/volume id"),System.currentTimeMillis()+60000L,
           System.currentTimeMillis()+600000L,-1,true);
@@ -6165,7 +6163,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
   *@param e is the RuntimeException caught
   *@param failIfTimeout is true if, for transient conditions, we want to signal failure if the timeout condition is acheived.
   */
-  protected int handleLivelinkRuntimeException(RuntimeException e, int sanityRetryCount, boolean failIfTimeout)
+  protected int handleCswsRuntimeException(RuntimeException e, int sanityRetryCount, boolean failIfTimeout)
     throws ManifoldCFException, ServiceInterruption
   {
     if (
@@ -6183,7 +6181,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     {
       String details = llServer.getErrors();
       long currentTime = System.currentTimeMillis();
-      throw new ServiceInterruption("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,currentTime + 5*60000L,currentTime+12*60*60000L,-1,failIfTimeout);
+      throw new ServiceInterruption("Csws API error: "+e.getMessage()+((details==null)?"":"; "+details),e,currentTime + 5*60000L,currentTime+12*60*60000L,-1,failIfTimeout);
     }
     else if (
       e instanceof com.opentext.api.LLBadServerCertificateException ||
@@ -6197,7 +6195,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
     )
     {
       String details = llServer.getErrors();
-      throw new ManifoldCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
+      throw new ManifoldCFException("Csws API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
     }
     else if (e instanceof com.opentext.api.LLSSLNotAvailableException)
     {
@@ -6209,7 +6207,7 @@ public class LivelinkConnector extends org.apache.manifoldcf.crawler.connectors.
       // This usually means that LAPI has had a minor communication difficulty but hasn't reported it accurately.
       // We *could* throw a ServiceInterruption, but OpenText recommends to just retry almost immediately.
       String details = llServer.getErrors();
-      return assessRetry(sanityRetryCount,new ManifoldCFException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
+      return assessRetry(sanityRetryCount,new ManifoldCFException("Csws API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
     }
     else if (e instanceof com.opentext.api.LLIOException || (e instanceof RuntimeException && e.getClass().getName().startsWith("com.opentext.api.")))
     {

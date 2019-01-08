@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.authorities.authorities.livelink;
+package org.apache.manifoldcf.authorities.authorities.csws;
 
 import java.util.Locale;
 import java.util.Map;

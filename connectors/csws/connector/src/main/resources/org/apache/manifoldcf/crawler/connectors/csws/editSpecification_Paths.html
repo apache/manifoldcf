@@ -15,12 +15,12 @@
  limitations under the License.
 -->
 
-#if($TabName == $ResourceBundle.getString('LivelinkConnector.Paths') && ${SeqNum} == ${SelectedNum})
+#if($TabName == $ResourceBundle.getString('CswsConnector.Paths') && ${SeqNum} == ${SelectedNum})
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.CrawlUserWorkspaces'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.CrawlUserWorkspaces'))</nobr>
     </td>
     <td class="value">
   #if($USERWORKSPACES)
@@ -42,7 +42,7 @@
       <a name="s${SeqNum}_path_${pathcounter}">
         <input type="button" value="Delete"
                onClick="Javascript:s${SeqNum}_SpecOp('s${SeqNum}_pathop_${pathcounter}','Delete','s${SeqNum}_path_${pathcounter}')"
-               alt="$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DeletePath'))${pathcounter}"/>
+               alt="$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.DeletePath'))${pathcounter}"/>
       </a>
     </td>
     <td class="value">
@@ -59,7 +59,7 @@
   #if($pathcounter == 0)
   <tr>
     <td class="message" colspan="2">
-      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoStartingPointsDefined'))
+      $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.NoStartingPointsDefined'))
     </td>
   </tr>
   #end
@@ -78,7 +78,7 @@
         #set($anchorSuffix = $pathcounter+1)
         <input type="button" value="Add"
                onClick="Javascript:s${SeqNum}_SpecOp('s${SeqNum}_pathop','Add','s${SeqNum}_path_${anchorSuffix}')"
-              alt="$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.AddPath'))"/>
+              alt="$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.AddPath'))"/>
       </a>
     </td>
     <td class="value">
@@ -93,9 +93,9 @@
     #if($CHILDLIST && $CHILDLIST.size() > 0)
       <input type="button" value="+"
              onClick="Javascript:s${SeqNum}_SpecAddToPath('s${SeqNum}_path_${pathcounter}')"
-             alt="$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.AddPath'))"/>
+             alt="$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.AddPath'))"/>
       <select name="s${SeqNum}_pathaddon">
-        <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PickAFolder'))</option>
+        <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.PickAFolder'))</option>
         #foreach($child in $CHILDLIST)
           <option value="$Encoder.attributeEscape($child)">$Encoder.bodyEscape($child)</option>
         #end

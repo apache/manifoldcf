@@ -29,7 +29,7 @@
     console.log(anchorvalue);
       if (editjob.${SEQPREFIX}pathaddon.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.SelectAFolderFirst'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.SelectAFolderFirst'))");
         editjob.${SEQPREFIX}pathaddon.focus();
         return;
       }
@@ -41,7 +41,7 @@
     {
       if (editjob.${SEQPREFIX}specfile.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.TypeInAFileSpecification'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.TypeInAFileSpecification'))");
         editjob.${SEQPREFIX}specfile.focus();
         return;
       }
@@ -52,7 +52,7 @@
     {
       if (editjob.${SEQPREFIX}spectoken.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.TypeInAnAccessToken'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.TypeInAnAccessToken'))");
         editjob.${SEQPREFIX}spectoken.focus();
         return;
       }
@@ -63,7 +63,7 @@
     {
       if (editjob.${SEQPREFIX}metadataaddon.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.SelectAFolderFirst'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.SelectAFolderFirst'))");
         editjob.${SEQPREFIX}metadataaddon.focus();
         return;
       }
@@ -74,7 +74,7 @@
     {
       if (editjob.${SEQPREFIX}metadataaddon.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.SelectAWorkspaceFirst'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.SelectAWorkspaceFirst'))");
         editjob.${SEQPREFIX}metadataaddon.focus();
         return;
       }
@@ -85,7 +85,7 @@
     {
       if (editjob.${SEQPREFIX}categoryaddon.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.SelectACategoryFirst'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.SelectACategoryFirst'))");
         editjob.${SEQPREFIX}categoryaddon.focus();
         return;
       }
@@ -96,7 +96,7 @@
     {
       if (editjob.${SEQPREFIX}attributeselect.value == "" && editjob.${SEQPREFIX}attributeall.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.SelectAtLeastOneAttributeFirst'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.SelectAtLeastOneAttributeFirst'))");
         editjob.${SEQPREFIX}attributeselect.focus();
         return;
       }
@@ -107,13 +107,13 @@
     {
       if (editjob.${SEQPREFIX}specmatch.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.MatchStringCannotBeEmpty'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.MatchStringCannotBeEmpty'))");
         editjob.${SEQPREFIX}specmatch.focus();
         return;
       }
       if (!isRegularExpression(editjob.${SEQPREFIX}specmatch.value))
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.MatchStringMustBeValidRegularExpression'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.MatchStringMustBeValidRegularExpression'))");
         editjob.${SEQPREFIX}specmatch.focus();
         return;
       }

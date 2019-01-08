@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.livelink;
+package org.apache.manifoldcf.csws;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.common.Base64;
@@ -28,9 +28,6 @@ import org.apache.manifoldcf.connectorcommon.interfaces.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-
-import com.opentext.api.LLSession;
-import com.opentext.api.LLValue;
 
 /**
 * @author Riccardo, modified extensively by Karl Wright

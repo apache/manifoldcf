@@ -18,10 +18,10 @@
 <table class="displaytable">
   <tr>
     <td class="description"/>
-    <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.CrawlUserWorkspaces'))</nobr>
+    <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.CrawlUserWorkspaces'))</nobr>
     </td>
     <td class="value"/>
-    #if($USERWORKSPACES)$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Yes'))#{else}$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.No'))#end
+    #if($USERWORKSPACES)$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.Yes'))#{else}$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.No'))#end
     </td>
   </tr>
   <tr>
@@ -31,7 +31,7 @@
   </tr>
   <tr>
     #if($PATHS && $PATHS.size() > 0)
-    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Roots'))</td>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.Roots'))</td>
     <td class="value">
       #foreach($path in $PATHS)
       $path
@@ -40,7 +40,7 @@
     </td>
     #else
     <td class="message" colspan="2">
-      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoStartPointsSpecified'))
+      $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.NoStartPointsSpecified'))
     </td>
     #end
   </tr>
@@ -51,7 +51,7 @@
   </tr>
   <tr>
     #if($FILESPECS && $FILESPECS.size() > 0)
-    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.FileSpecs'))</td>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.FileSpecs'))</td>
     <td class="value">
       #foreach($fileSpec in $FILESPECS)
       $fileSpec.Left:&nbsp;$fileSpec.Right
@@ -60,7 +60,7 @@
     </td>
     #else
     <td class="message" colspan="2">
-      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoFileSpecsSpecified'))
+      $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.NoFileSpecsSpecified'))
     </td>
     #end
   </tr>
@@ -70,12 +70,12 @@
     </td>
   </tr>
   <tr>
-    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.SecurityColon'))</td>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.SecurityColon'))</td>
     <td class="value">
       #if($SECURITY == "on")
-        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Enabled2'))
+        $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.Enabled2'))
       #else
-        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Disabled'))
+        $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.Disabled'))
       #end
     </td>
   </tr>
@@ -86,7 +86,7 @@
   </tr>
   <tr>
     #if($ACCESSTOKENS && $ACCESSTOKENS.size() > 0)
-    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.AccessTokens'))</td>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.AccessTokens'))</td>
     <td class="value">
       #foreach($accessToken in $ACCESSTOKENS)
       $accessToken
@@ -95,7 +95,7 @@
     </td>
     #else
     <td class="message" colspan="2">
-      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoAccessTokensSpecified'))
+      $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.NoAccessTokensSpecified'))
     </td>
     #end
   </tr>
@@ -106,14 +106,14 @@
   </tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.MetadataSpecification'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.MetadataSpecification'))</nobr>
     </td>
     <td class="value">
       <nobr>
         #if($INGESTALLMETADATA)
-        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.AllDocumentMetadataWillBeIngested'))
+        $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.AllDocumentMetadataWillBeIngested'))
         #else
-        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.OnlySpecifiedMetadataWillBeIngested'))
+        $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.OnlySpecifiedMetadataWillBeIngested'))
         #end
       </nobr>
     </td>
@@ -125,7 +125,7 @@
   </tr>
   <tr>
     #if($METADATA && $METADATA.size() > 0)
-    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.SpecificMetadata'))</td>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.SpecificMetadata'))</td>
     <td class="value">
       #foreach($meta in $METADATA)
       $Encoder.bodyEscape($meta.Left):
@@ -139,7 +139,7 @@
     </td>
     #else
     <td class="message" colspan="2">
-      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoMetadataSpecified'))
+      $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.NoMetadataSpecified'))
     </td>
     #end
   </tr>
@@ -151,18 +151,18 @@
   #if($PATHNAMEATTRIBUTE && $PATHNAMEATTRIBUTE.length() > 0)
   <tr>
     <td class="description">
-      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PathNameMetadataAttribute'))
+      $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.PathNameMetadataAttribute'))
     </td>
     <td class="value">$Encoder.bodyEscape($PATHNAMEATTRIBUTE)</td>
   </tr>
   <tr>
-    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PathSeparatorString'))</td>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.PathSeparatorString'))</td>
     <td class="value">$Encoder.bodyEscape($PATHNAMESEPARATOR)</td>
   </tr>
   #else
   <tr>
     <td class="message" colspan="2">
-      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoPathNameMetadataAttributeSpecified'))
+      $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.NoPathNameMetadataAttributeSpecified'))
     </td>
   </tr>
   #end
@@ -173,7 +173,7 @@
   </tr>
   <tr>
     #if($MATCHMAP && $MATCHMAP.size() > 0)
-    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PathValueMapping'))</td>
+    <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.PathValueMapping'))</td>
     <td class="value">
       <table class="displaytable">
         #foreach($entry in $MATCHMAP.entrySet())
@@ -187,7 +187,7 @@
     </td>
     #else
     <td class="message" colspan="2">
-      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoMappingsSpecified'))
+      $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.NoMappingsSpecified'))
     </td>
     #end
   </tr>

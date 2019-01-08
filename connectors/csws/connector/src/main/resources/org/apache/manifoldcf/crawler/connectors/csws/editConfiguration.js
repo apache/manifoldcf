@@ -28,7 +28,7 @@
     {
       if (editconnection.servercertificate.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.ChooseACertificateFile'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.ChooseACertificateFile'))");
         editconnection.servercertificate.focus();
       }
       else
@@ -49,7 +49,7 @@
     {
       if (editconnection.ingestcertificate.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.ChooseACertificateFile'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.ChooseACertificateFile'))");
         editconnection.ingestcertificate.focus();
       }
       else
@@ -63,19 +63,19 @@
     {
       if (editconnection.serverport.value != "" && !isInteger(editconnection.serverport.value))
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.AValidNumberIsRequired'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.AValidNumberIsRequired'))");
         editconnection.serverport.focus();
         return false;
       }
       if (editconnection.ingestport.value != "" && !isInteger(editconnection.ingestport.value))
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.AValidNumberOrBlankIsRequired'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.AValidNumberOrBlankIsRequired'))");
         editconnection.ingestport.focus();
         return false;
       }
       if (editconnection.viewport.value != "" && !isInteger(editconnection.viewport.value))
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.AValidNumberOrBlankIsRequired'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.AValidNumberOrBlankIsRequired'))");
         editconnection.viewport.focus();
         return false;
       }
@@ -86,57 +86,57 @@
     {
       if (editconnection.servername.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.EnterALivelinkServerName'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.Server'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.EnterALivelinkServerName'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
         editconnection.servername.focus();
         return false;
       }
       if (editconnection.serverport.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.AServerPortNumberIsRequired'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.Server'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.AServerPortNumberIsRequired'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
         editconnection.serverport.focus();
         return false;
       }
       if (editconnection.serverhttpcgipath.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.EnterTheServerCgiPathToLivelink'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.Server'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.EnterTheServerCgiPathToLivelink'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
         editconnection.serverhttpcgipath.focus();
         return false;
       }
       if (editconnection.serverhttpcgipath.value.substring(0,1) != "/")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.TheServerCgiPathMustBeginWithACharacter'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.Server'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.TheServerCgiPathMustBeginWithACharacter'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
         editconnection.serverhttpcgipath.focus();
         return false;
       }
       if (editconnection.viewprotocol.value == "" && editconnection.ingestprotocol.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.SelectAViewProtocol'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.DocumentView'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.SelectAViewProtocol'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.DocumentView'))");
         editconnection.viewprotocol.focus();
         return false;
       }
       if (editconnection.viewcgipath.value == "" && editconnection.ingestcgipath.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.EnterTheViewCgiPathToLivelink'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.DocumentView'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.EnterTheViewCgiPathToLivelink'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.DocumentView'))");
         editconnection.viewcgipath.focus();
         return false;
       }
       if (editconnection.ingestcgipath.value != "" && editconnection.ingestcgipath.value.substring(0,1) != "/")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.TheIngestCgiPathMustBeBlankOrBeginWithACharacter'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.DocumentAccess'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.TheIngestCgiPathMustBeBlankOrBeginWithACharacter'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.DocumentAccess'))");
         editconnection.ingestcgipath.focus();
         return false;
       }
       if (editconnection.viewcgipath.value != "" && editconnection.viewcgipath.value.substring(0,1) != "/")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.TheViewCgiPathMustBeBlankOrBeginWithACharacter'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.DocumentView'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.TheViewCgiPathMustBeBlankOrBeginWithACharacter'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.DocumentView'))");
         editconnection.viewcgipath.focus();
         return false;
       }

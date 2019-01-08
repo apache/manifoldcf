@@ -1,4 +1,4 @@
-/* $Id: LivelinkAuthority.java 988245 2010-08-23 18:39:35Z kwright $ */
+/* $Id: CswsAuthority.java 988245 2010-08-23 18:39:35Z kwright $ */
 
 /**
 * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.authorities.authorities.livelink;
+package org.apache.manifoldcf.authorities.authorities.csws;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
@@ -26,28 +26,24 @@ import org.apache.manifoldcf.authorities.system.ManifoldCF;
 
 import org.apache.manifoldcf.connectorcommon.interfaces.*;
 
-import org.apache.manifoldcf.livelink.*;
+import org.apache.manifoldcf.csws.*;
 
 import java.io.*;
 import java.util.*;
 import java.net.*;
 import java.util.regex.*;
 
-import com.opentext.api.*;
-
-/** This is the Livelink implementation of the IAuthorityConnector interface.
-* This is not based on Volant code, but has been developed by me at the behest of
-* James Maupin for use at Shell.
+/** This is the Csws implementation of the IAuthorityConnector interface.
 *
 * Access tokens for livelink are simply user and usergroup node identifiers.  Therefore,
 * this class retrieves those using the standard livelink call, being sure to map anything
-* that looks like an active directory user name to something that looks like a Livelink
+* that looks like an active directory user name to something that looks like a Csws
 * domain/username form.
 *
 */
-public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authorities.BaseAuthorityConnector
+public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities.BaseAuthorityConnector
 {
-  public static final String _rcsid = "@(#)$Id: LivelinkAuthority.java 988245 2010-08-23 18:39:35Z kwright $";
+  public static final String _rcsid = "@(#)$Id: CswsAuthority.java 988245 2010-08-23 18:39:35Z kwright $";
 
   //Forward to the javascript to check the configuration parameters.
   private static final String EDIT_CONFIGURATION_JS = "editConfiguration.js";
@@ -80,7 +76,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   private String serverHTTPNTLMPassword = null;
   private IKeystoreManager serverHTTPSKeystore = null;
 
-  // Data required for maintaining livelink connection
+  // Data required for maintaining Csws connection
   private LAPI_USERS LLUsers = null;
   private LLSERVER llServer = null;
 
@@ -97,13 +93,13 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   /** Cache manager. */
   protected ICacheManager cacheManager = null;
   
-  // Livelink does not have "deny" permissions, and there is no such thing as a document with no tokens, so it is safe to not have a local "deny" token.
+  // Csws does not have "deny" permissions, and there is no such thing as a document with no tokens, so it is safe to not have a local "deny" token.
   // However, people feel that a suspenders-and-belt approach is called for, so this restriction has been added.
-  // Livelink tokens are numbers, "SYSTEM", or "GUEST", so they can't collide with the standard form.
+  // Csws tokens are numbers, "SYSTEM", or "GUEST", so they can't collide with the standard form.
 
   /** Constructor.
   */
-  public LivelinkAuthority()
+  public CswsAuthority()
   {
   }
 
@@ -143,15 +139,15 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     if (!hasSessionParameters)
     {
       // Server parameters
-      serverProtocol = params.getParameter(LiveLinkParameters.serverProtocol);
-      serverName = params.getParameter(LiveLinkParameters.serverName);
-      String serverPortString = params.getParameter(LiveLinkParameters.serverPort);
-      serverUsername = params.getParameter(LiveLinkParameters.serverUsername);
-      serverPassword = params.getObfuscatedParameter(LiveLinkParameters.serverPassword);
-      serverHTTPCgi = params.getParameter(LiveLinkParameters.serverHTTPCgiPath);
-      serverHTTPNTLMDomain = params.getParameter(LiveLinkParameters.serverHTTPNTLMDomain);
-      serverHTTPNTLMUsername = params.getParameter(LiveLinkParameters.serverHTTPNTLMUsername);
-      serverHTTPNTLMPassword = params.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
+      serverProtocol = params.getParameter(CswsParameters.serverProtocol);
+      serverName = params.getParameter(CswsParameters.serverName);
+      String serverPortString = params.getParameter(CswsParameters.serverPort);
+      serverUsername = params.getParameter(CswsParameters.serverUsername);
+      serverPassword = params.getObfuscatedParameter(CswsParameters.serverPassword);
+      serverHTTPCgi = params.getParameter(CswsParameters.serverHTTPCgiPath);
+      serverHTTPNTLMDomain = params.getParameter(CswsParameters.serverHTTPNTLMDomain);
+      serverHTTPNTLMUsername = params.getParameter(CswsParameters.serverHTTPNTLMUsername);
+      serverHTTPNTLMPassword = params.getObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword);
 
       // Server parameter processing
 
@@ -172,14 +168,14 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       }
 
       // Set up server ssl if indicated
-      String serverHTTPSKeystoreData = params.getParameter(LiveLinkParameters.serverHTTPSKeystore);
+      String serverHTTPSKeystoreData = params.getParameter(CswsParameters.serverHTTPSKeystore);
       if (serverHTTPSKeystoreData != null)
         serverHTTPSKeystore = KeystoreManagerFactory.make("",serverHTTPSKeystoreData);
 
-      cacheLifetime = params.getParameter(LiveLinkParameters.cacheLifetime);
+      cacheLifetime = params.getParameter(CswsParameters.cacheLifetime);
       if (cacheLifetime == null)
         cacheLifetime = "1";
-      cacheLRUsize = params.getParameter(LiveLinkParameters.cacheLRUSize);
+      cacheLRUsize = params.getParameter(CswsParameters.cacheLRUSize);
       if (cacheLRUsize == null)
         cacheLRUsize = "1000";
       
@@ -196,7 +192,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       if (Logging.authorityConnectors.isDebugEnabled())
       {
         String passwordExists = (serverPassword!=null && serverPassword.length() > 0)?"password exists":"";
-        Logging.authorityConnectors.debug("Livelink: Livelink connection parameters: Server='"+serverName+"'; port='"+serverPort+"'; user name='"+serverUsername+"'; "+passwordExists);
+        Logging.authorityConnectors.debug("Csws: Csws connection parameters: Server='"+serverName+"'; port='"+serverPort+"'; user name='"+serverUsername+"'; "+passwordExists);
       }
       hasSessionParameters = true;
     }
@@ -225,14 +221,14 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
           LLUsers = new LAPI_USERS(llServer.getLLSession());
           if (Logging.authorityConnectors.isDebugEnabled())
           {
-            Logging.authorityConnectors.debug("Livelink: Livelink session created.");
+            Logging.authorityConnectors.debug("Csws: Csws session created.");
           }
           hasConnected = true;
           break;
         }
         catch (RuntimeException e)
         {
-          sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount);
+          sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount);
         }
       }
     }
@@ -270,7 +266,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         }
         catch (RuntimeException e)
         {
-          sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount);
+          sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount);
         }
       }
     }
@@ -412,7 +408,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     {
       getSession();
       // First, do what's necessary to map the user name that comes in to a reasonable
-      // Livelink domain\\user combination.
+      // Csws domain\\user combination.
 
       if (Logging.authorityConnectors.isDebugEnabled())
       {
@@ -423,7 +419,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
 
       if (Logging.authorityConnectors.isDebugEnabled())
       {
-        Logging.authorityConnectors.debug("Livelink: Livelink user name = '"+domainAndUser+"'");
+        Logging.authorityConnectors.debug("Csws: Csws user name = '"+domainAndUser+"'");
       }
 
       int sanityRetryCount = FAILURE_RETRY_COUNT;
@@ -442,13 +438,13 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
           if (status == 103101 || status == 401203)
           {
             if (Logging.authorityConnectors.isDebugEnabled())
-              Logging.authorityConnectors.debug("Livelink: Livelink user '"+domainAndUser+"' does not exist");
+              Logging.authorityConnectors.debug("Csws: Csws user '"+domainAndUser+"' does not exist");
             return RESPONSE_USERNOTFOUND;
           }
 
           if (status != 0)
           {
-            Logging.authorityConnectors.warn("Livelink: User '"+domainAndUser+"' GetUserInfo error # "+Integer.toString(status)+" "+llServer.getErrors());
+            Logging.authorityConnectors.warn("Csws: User '"+domainAndUser+"' GetUserInfo error # "+Integer.toString(status)+" "+llServer.getErrors());
             // The server is probably down.
             return RESPONSE_UNREACHABLE;
           }
@@ -457,7 +453,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
           if (deleted == 1)
           {
             if (Logging.authorityConnectors.isDebugEnabled())
-              Logging.authorityConnectors.debug("Livelink: Livelink user '"+domainAndUser+"' has been deleted");
+              Logging.authorityConnectors.debug("Csws: Csws user '"+domainAndUser+"' has been deleted");
             // Since the user cannot become undeleted, then this should be treated as 'user does not exist'.
             return RESPONSE_USERNOTFOUND;
           }
@@ -472,7 +468,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
           if (status == 103101 || status == 401203)
           {
             if (Logging.authorityConnectors.isDebugEnabled())
-              Logging.authorityConnectors.debug("Livelink: Livelink error looking up user rights for '"+domainAndUser+"' - user does not exist");
+              Logging.authorityConnectors.debug("Csws: Csws error looking up user rights for '"+domainAndUser+"' - user does not exist");
             return RESPONSE_USERNOTFOUND;
           }
 
@@ -480,7 +476,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
           {
             // If the user doesn't exist, return null.  Right now, not sure how to figure out the
             // right error code, so just stuff it in the log.
-            Logging.authorityConnectors.warn("Livelink: For user '"+domainAndUser+"', ListRights error # "+Integer.toString(status)+" "+llServer.getErrors());
+            Logging.authorityConnectors.warn("Csws: For user '"+domainAndUser+"', ListRights error # "+Integer.toString(status)+" "+llServer.getErrors());
             // An error code at this level has to indicate a suddenly unreachable authority
             return RESPONSE_UNREACHABLE;
           }
@@ -539,13 +535,13 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         }
         catch (RuntimeException e)
         {
-          sanityRetryCount = handleLivelinkRuntimeException(e,sanityRetryCount);
+          sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount);
         }
       }
     }
     catch (ServiceInterruption e)
     {
-      Logging.authorityConnectors.warn("Livelink: Server seems to be down: "+e.getMessage(),e);
+      Logging.authorityConnectors.warn("Csws: Server seems to be down: "+e.getMessage(),e);
       return RESPONSE_UNREACHABLE;
     }
   }
@@ -579,8 +575,8 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     Locale locale, ConfigParams parameters, List<String> tabsArray)
     throws ManifoldCFException, IOException
   {
-    tabsArray.add(Messages.getString(locale,"LivelinkConnector.Server"));
-    tabsArray.add(Messages.getString(locale,"LivelinkConnector.Cache"));
+    tabsArray.add(Messages.getString(locale,"CswsConnector.Server"));
+    tabsArray.add(Messages.getString(locale,"CswsConnector.Cache"));
 
     Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_JS, null, true);  
   }
@@ -613,38 +609,38 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   protected static void fillInServerTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
   {
     // LAPI parameters
-    String serverProtocol = parameters.getParameter(LiveLinkParameters.serverProtocol);
+    String serverProtocol = parameters.getParameter(CswsParameters.serverProtocol);
     if (serverProtocol == null)
       serverProtocol = "internal";
-    String serverName = parameters.getParameter(LiveLinkParameters.serverName);
+    String serverName = parameters.getParameter(CswsParameters.serverName);
     if (serverName == null)
       serverName = "localhost";
-    String serverPort = parameters.getParameter(LiveLinkParameters.serverPort);
+    String serverPort = parameters.getParameter(CswsParameters.serverPort);
     if (serverPort == null)
       serverPort = "2099";
-    String serverUserName = parameters.getParameter(LiveLinkParameters.serverUsername);
+    String serverUserName = parameters.getParameter(CswsParameters.serverUsername);
     if (serverUserName == null)
       serverUserName = "";
-    String serverPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverPassword);
+    String serverPassword = parameters.getObfuscatedParameter(CswsParameters.serverPassword);
     if (serverPassword == null)
       serverPassword = "";
     else
       serverPassword = out.mapPasswordToKey(serverPassword);
-    String serverHTTPCgiPath = parameters.getParameter(LiveLinkParameters.serverHTTPCgiPath);
+    String serverHTTPCgiPath = parameters.getParameter(CswsParameters.serverHTTPCgiPath);
     if (serverHTTPCgiPath == null)
       serverHTTPCgiPath = "/livelink/livelink.exe";
-    String serverHTTPNTLMDomain = parameters.getParameter(LiveLinkParameters.serverHTTPNTLMDomain);
+    String serverHTTPNTLMDomain = parameters.getParameter(CswsParameters.serverHTTPNTLMDomain);
     if (serverHTTPNTLMDomain == null)
       serverHTTPNTLMDomain = "";
-    String serverHTTPNTLMUserName = parameters.getParameter(LiveLinkParameters.serverHTTPNTLMUsername);
+    String serverHTTPNTLMUserName = parameters.getParameter(CswsParameters.serverHTTPNTLMUsername);
     if (serverHTTPNTLMUserName == null)
       serverHTTPNTLMUserName = "";
-    String serverHTTPNTLMPassword = parameters.getObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword);
+    String serverHTTPNTLMPassword = parameters.getObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword);
     if (serverHTTPNTLMPassword == null)
       serverHTTPNTLMPassword = "";
     else
       serverHTTPNTLMPassword = out.mapPasswordToKey(serverHTTPNTLMPassword);
-    String serverHTTPSKeystore = parameters.getParameter(LiveLinkParameters.serverHTTPSKeystore);
+    String serverHTTPSKeystore = parameters.getParameter(CswsParameters.serverHTTPSKeystore);
 
     IKeystoreManager localServerHTTPSKeystore;
     Map<String,String> serverCertificatesMap = null;
@@ -697,10 +693,10 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   /** Fill in Cache tab */
   private void fillInCacheTab(Map<String, Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
   {
-    String cacheLifetime = parameters.getParameter(LiveLinkParameters.cacheLifetime);
+    String cacheLifetime = parameters.getParameter(CswsParameters.cacheLifetime);
     if (cacheLifetime == null)
       cacheLifetime = "1";
-    String cacheLRUsize = parameters.getParameter(LiveLinkParameters.cacheLRUSize);
+    String cacheLRUsize = parameters.getParameter(CswsParameters.cacheLRUSize);
     if (cacheLRUsize == null)
       cacheLRUsize = "1000";
 
@@ -725,31 +721,31 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     // Server parameters
     String serverProtocol = variableContext.getParameter("serverprotocol");
     if (serverProtocol != null)
-      parameters.setParameter(LiveLinkParameters.serverProtocol,serverProtocol);
+      parameters.setParameter(CswsParameters.serverProtocol,serverProtocol);
     String serverName = variableContext.getParameter("servername");
     if (serverName != null)
-      parameters.setParameter(LiveLinkParameters.serverName,serverName);
+      parameters.setParameter(CswsParameters.serverName,serverName);
     String serverPort = variableContext.getParameter("serverport");
     if (serverPort != null)
-      parameters.setParameter(LiveLinkParameters.serverPort,serverPort);
+      parameters.setParameter(CswsParameters.serverPort,serverPort);
     String serverUserName = variableContext.getParameter("serverusername");
     if (serverUserName != null)
-      parameters.setParameter(LiveLinkParameters.serverUsername,serverUserName);
+      parameters.setParameter(CswsParameters.serverUsername,serverUserName);
     String serverPassword = variableContext.getParameter("serverpassword");
     if (serverPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.serverPassword,variableContext.mapKeyToPassword(serverPassword));
+      parameters.setObfuscatedParameter(CswsParameters.serverPassword,variableContext.mapKeyToPassword(serverPassword));
     String serverHTTPCgiPath = variableContext.getParameter("serverhttpcgipath");
     if (serverHTTPCgiPath != null)
-      parameters.setParameter(LiveLinkParameters.serverHTTPCgiPath,serverHTTPCgiPath);
+      parameters.setParameter(CswsParameters.serverHTTPCgiPath,serverHTTPCgiPath);
     String serverHTTPNTLMDomain = variableContext.getParameter("serverhttpntlmdomain");
     if (serverHTTPNTLMDomain != null)
-      parameters.setParameter(LiveLinkParameters.serverHTTPNTLMDomain,serverHTTPNTLMDomain);
+      parameters.setParameter(CswsParameters.serverHTTPNTLMDomain,serverHTTPNTLMDomain);
     String serverHTTPNTLMUserName = variableContext.getParameter("serverhttpntlmusername");
     if (serverHTTPNTLMUserName != null)
-      parameters.setParameter(LiveLinkParameters.serverHTTPNTLMUsername,serverHTTPNTLMUserName);
+      parameters.setParameter(CswsParameters.serverHTTPNTLMUsername,serverHTTPNTLMUserName);
     String serverHTTPNTLMPassword = variableContext.getParameter("serverhttpntlmpassword");
     if (serverHTTPNTLMPassword != null)
-      parameters.setObfuscatedParameter(LiveLinkParameters.serverHTTPNTLMPassword,variableContext.mapKeyToPassword(serverHTTPNTLMPassword));
+      parameters.setObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword,variableContext.mapKeyToPassword(serverHTTPNTLMPassword));
     
     String serverHTTPSKeystoreValue = variableContext.getParameter("serverhttpskeystoredata");
     final String serverConfigOp = variableContext.getParameter("serverconfigop");
@@ -805,15 +801,15 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         serverHTTPSKeystoreValue = mgr.getString();
       }
     }
-    parameters.setParameter(LiveLinkParameters.serverHTTPSKeystore, serverHTTPSKeystoreValue);
+    parameters.setParameter(CswsParameters.serverHTTPSKeystore, serverHTTPSKeystoreValue);
 
     // Cache parameters
     String cacheLifetime = variableContext.getParameter("cachelifetime");
     if (cacheLifetime != null)
-      parameters.setParameter(LiveLinkParameters.cacheLifetime,cacheLifetime);
+      parameters.setParameter(CswsParameters.cacheLifetime,cacheLifetime);
     String cacheLRUsize = variableContext.getParameter("cachelrusize");
     if (cacheLRUsize != null)
-      parameters.setParameter(LiveLinkParameters.cacheLRUSize,cacheLRUsize);
+      parameters.setParameter(CswsParameters.cacheLRUSize,cacheLRUsize);
 
     return null;
   }
@@ -846,7 +842,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
         param.length() > "truststore".length() && param.substring(param.length()-"truststore".length()).equalsIgnoreCase("truststore"))
       {
         IKeystoreManager kmanager = KeystoreManagerFactory.make("",value);
-        configMap.put(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param),"=&lt;"+Integer.toString(kmanager.getContents().length)+Messages.getBodyString(locale,"LivelinkConnector.certificates")+"&gt;");
+        configMap.put(org.apache.manifoldcf.ui.util.Encoder.bodyEscape(param),"=&lt;"+Integer.toString(kmanager.getContents().length)+Messages.getBodyString(locale,"CswsConnector.certificates")+"&gt;");
       }
       else
       {
@@ -863,7 +859,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
   * wait has been already performed).
   *@param e is the RuntimeException caught
   */
-  protected int handleLivelinkRuntimeException(RuntimeException e, int sanityRetryCount)
+  protected int handleCswsRuntimeException(RuntimeException e, int sanityRetryCount)
     throws ManifoldCFException, ServiceInterruption
   {
     if (
@@ -878,7 +874,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     )
     {
       String details = llServer.getErrors();
-      throw new ManifoldCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e,ManifoldCFException.REPOSITORY_CONNECTION_ERROR);
+      throw new ManifoldCFException("Csws API error: "+e.getMessage()+((details==null)?"":"; "+details),e,ManifoldCFException.REPOSITORY_CONNECTION_ERROR);
     }
     else if (
       e instanceof com.opentext.api.LLBadServerCertificateException ||
@@ -892,7 +888,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
     )
     {
       String details = llServer.getErrors();
-      throw new ManifoldCFException("Livelink API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
+      throw new ManifoldCFException("Csws API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
     }
     else if (e instanceof com.opentext.api.LLSSLNotAvailableException)
     {
@@ -904,7 +900,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       // This usually means that LAPI has had a minor communication difficulty but hasn't reported it accurately.
       // We *could* throw a ServiceInterruption, but OpenText recommends to just retry almost immediately.
       String details = llServer.getErrors();
-      return assessRetry(sanityRetryCount,new ManifoldCFException("Livelink API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
+      return assessRetry(sanityRetryCount,new ManifoldCFException("Csws API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
     }
     else if (e instanceof com.opentext.api.LLIOException || (e instanceof RuntimeException && e.getClass().getName().startsWith("com.opentext.api.")))
     {
@@ -990,7 +986,7 @@ public class LivelinkAuthority extends org.apache.manifoldcf.authorities.authori
       long responseLifetime, int LRUsize)
       throws ManifoldCFException
     {
-      super("LiveLinkAuthority",LRUsize);
+      super("CswsAuthority",LRUsize);
       this.userName = userName;
       
       this.serverProtocol = serverProtocol;
