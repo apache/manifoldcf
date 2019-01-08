@@ -16,7 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.crawler.connectors.livelink;
+package org.apache.manifoldcf.crawler.connectors.csws;
 
 import java.util.Locale;
 import java.util.Map;

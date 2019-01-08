@@ -15,23 +15,23 @@
  limitations under the License.
 -->
 
-#if($TabName == $ResourceBundle.getString('LivelinkConnector.Metadata') && ${SeqNum} == ${SelectedNum})
+#if($TabName == $ResourceBundle.getString('CswsConnector.Metadata') && ${SeqNum} == ${SelectedNum})
 <input type="hidden" name="s${SeqNum}_specmappingcount" value="$MATCHMAP.size()"/>
 <input type="hidden" name="s${SeqNum}_specmappingop" value=""/>
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description" colspan="1">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.IngestALLMetadata'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.IngestALLMetadata'))</nobr>
     </td>
     <td class="value" colspan="3">
       <nobr>
         <input type="radio" name="s${SeqNum}_specallmetadata" value="true"  #if($INGESTALLMETADATA) checked="true" #{else} "" #end />
-        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.Yes'))
+        $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.Yes'))
       </nobr>&nbsp;
       <nobr>
         <input type="radio" name="s${SeqNum}_specallmetadata" value="false" #if(!$INGESTALLMETADATA) checked="true" #{else} "" #end/>
-        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.No'))
+        $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.No'))
       </nobr>
     </td>
   </tr>
@@ -48,7 +48,7 @@
       <a name="s${SeqNum}_metadata_${counter}">
         <input type="button" value="Delete"
                onClick="Javascript:s${SeqNum}_SpecOp('s${SeqNum}_metadataop_${counter}','Delete','s${SeqNum}_metadata_${counter}')"
-               alt="$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.DeleteMetadata'))${counter}"/>
+               alt="$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.DeleteMetadata'))${counter}"/>
       </a>
     </td>
     <td class="value" colspan="3">
@@ -66,7 +66,7 @@
   #if($counter == 0)
   <tr>
     <td class="message" colspan="4">
-      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoMetadataSpecified'))
+      $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.NoMetadataSpecified'))
     </td>
   </tr>
   #end
@@ -86,7 +86,7 @@
       <a name="s${SeqNum}_metadata_${counter}">
         <input type="button" value="Add"
                onClick="Javascript:s${SeqNum}_SpecAddMetadata('s${SeqNum}_metadata_${anchorSuffix}')"
-              alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.AddMetadataItem'))"/>
+              alt="$Encoder.attributeEscape($ResourceBundle.getString('CswsConnector.AddMetadataItem'))"/>
       </a>
     </td>
     <td class="value" colspan="3">
@@ -95,10 +95,10 @@
         <tr>
           <td class="value">
             <input type="checkbox" name="s${SeqNum}_attributeall" value="true"/>
-            $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.AllAttributesInThisCategory'))
+            $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.AllAttributesInThisCategory'))
             <br/>
             <select name="s${SeqNum}_attributeselect">
-              <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PickAttributes'))</option>
+              <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.PickAttributes'))</option>
               #foreach($attrName in $ATTRIBUTELIST)
               <option value="$Encoder.attributeEscape($attrName)">$Encoder.bodyEscape($attrName)</option>
               #end
@@ -112,10 +112,10 @@
       <a name="s${SeqNum}_metadata_${counter}">
         <input type="button" value="+"
                onClick="Javascript:s${SeqNum}_SpecSetWorkspace('s${SeqNum}_metadata_${anchorSuffix}')"
-               alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.AddToMetadataPath'))"/>
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('CswsConnector.AddToMetadataPath'))"/>
       </a>
       <select name="s${SeqNum}_metadataaddon">
-        <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PickWorkspace'))</option>
+        <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.PickWorkspace'))</option>
         #foreach($workSpace in $WORKSPACELIST)
           <option value="$Encoder.attributeEscape($workSpace)">$Encoder.bodyEscape($workSpace)</option>
         #end
@@ -128,15 +128,15 @@
       #else
         <input type="button" value="-"
                onClick='Javascript:s${SeqNum}_SpecOp("s${SeqNum}_metadataop","Up","s${SeqNum}_metadata_${counter}")'
-               alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.BackUpMetadataPath'))"/>&nbsp;
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('CswsConnector.BackUpMetadataPath'))"/>&nbsp;
         $Encoder.bodyEscape($CATEGORYSOFAR)
       #end
       #if($CHILDLIST && $CHILDLIST.size() > 0)
         <input type="button" value="+"
                onClick='Javascript:s${SeqNum}_SpecAddToMetadata("s${SeqNum}_metadata_${counter}")'
-               alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.AddToMetadataPath'))"/>&nbsp;
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('CswsConnector.AddToMetadataPath'))"/>&nbsp;
         <select name="s${SeqNum}_metadataaddon">
-          <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PickAFolder'))</option>
+          <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.PickAFolder'))</option>
         #foreach($child in $CHILDLIST)
           <option value="$Encoder.attributeEscape($child)">$Encoder.bodyEscape($child)</option>
         #end
@@ -145,9 +145,9 @@
       #if($CATEGORYLIST && $CATEGORYLIST.size() > 0)
         <input type="button" value="+"
                onClick='Javascript:s${SeqNum}_SpecAddCategory("s${SeqNum}_metadata_${counter}")'
-               alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.AddCategory'))"/>&nbsp;
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('CswsConnector.AddCategory'))"/>&nbsp;
         <select name="s${SeqNum}_categoryaddon">
-          <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PickACategory'))</option>
+          <option value="" selected="selected">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.PickACategory'))</option>
           #foreach($category in $CATEGORYLIST)
             <option value="$Encoder.attributeEscape($category)">$Encoder.bodyEscape($category)</option>
           #end
@@ -159,14 +159,14 @@
   <tr><td class="separator" colspan="4"><hr/></td></tr>
   <tr>
     <td class="description" colspan="1">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PathAttributeName'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.PathAttributeName'))</nobr>
     </td>
     <td class="value" colspan="1">
       <input type="text" name="s${SeqNum}_specpathnameattribute" size="20"
              value="$Encoder.attributeEscape($PATHNAMEATTRIBUTE)"/>
     </td>
     <td class="description" colspan="1">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.PathSeparatorString'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.PathSeparatorString'))</nobr>
     </td>
     <td class="value" colspan="1">
       <input type="text" name="s${SeqNum}_specpathnameseparator" size="20"
@@ -181,7 +181,7 @@
       <input type="hidden" name="s${SeqNum}_specmappingop_${foreach.index}" value=""/>
       <a name="s${SeqNum}_mapping_${foreach.index}">
         <input type="button" onClick='Javascript:s${SeqNum}_SpecOp("s${SeqNum}_specmappingop_${foreach.index}","Delete","s${SeqNum}_mapping_${foreach.index}")'
-                 alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.DeleteMapping'))${foreach.index}" value="Delete"/>
+                 alt="$Encoder.attributeEscape($ResourceBundle.getString('CswsConnector.DeleteMapping'))${foreach.index}" value="Delete"/>
       </a>
     </td>
     <td class="value">
@@ -198,7 +198,7 @@
   #if($matchMapCount == 0)
     <tr>
       <td colspan="4" class="message">
-        $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.NoMappingsSpecified'))
+        $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.NoMappingsSpecified'))
       </td>
     </tr>
   #end
@@ -208,7 +208,7 @@
       #set($anchorSuffix = $matchMapCount +1)
       <a name="s${SeqNum}_mapping_${matchMapCount}">
         <input type="button" onClick='Javascript:s${SeqNum}_SpecAddMapping("s${SeqNum}_mapping_${anchorSuffix}")'
-               alt="$Encoder.attributeEscape($ResourceBundle.getString('LivelinkConnector.AddToMappings'))" value="Add"/>
+               alt="$Encoder.attributeEscape($ResourceBundle.getString('CswsConnector.AddToMappings'))" value="Add"/>
       </a>
     </td>
     <td class="value">Match regexp:&nbsp;<input type="text" name="s${SeqNum}_specmatch" size="32" value=""/></td>

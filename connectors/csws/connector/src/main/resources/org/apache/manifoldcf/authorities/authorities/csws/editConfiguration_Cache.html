@@ -14,18 +14,18 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 -->
-#if($TabName == $ResourceBundle.getString('LivelinkConnector.Cache'))
+#if($TabName == $ResourceBundle.getString('CswsConnector.Cache'))
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.CacheLifetime'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.CacheLifetime'))</nobr></td>
     <td class="value">
       <input type="text" size="5" name="cachelifetime" value="$Encoder.attributeEscape($CACHELIFETIME)"/>
-      $Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.minutes'))
+      $Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.minutes'))
     </td>
   </tr>
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LivelinkConnector.CacheLRUSize'))</nobr></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.CacheLRUSize'))</nobr></td>
     <td class="value">
       <input type="text" size="5" name="cachelrusize" value="$Encoder.attributeEscape($CACHELRUSIZE)"/>
     </td>

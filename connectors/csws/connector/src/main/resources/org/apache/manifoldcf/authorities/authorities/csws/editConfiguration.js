@@ -27,7 +27,7 @@
     {
       if (editconnection.servercertificate.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.ChooseACertificateFile'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.ChooseACertificateFile'))");
         editconnection.servercertificate.focus();
       }
       else
@@ -41,7 +41,7 @@
     {
       if (editconnection.serverport.value != "" && !isInteger(editconnection.serverport.value))
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.AValidNumberIsRequired'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.AValidNumberIsRequired'))");
         editconnection.serverport.focus();
         return false;
       }
@@ -52,43 +52,43 @@
     {
       if (editconnection.servername.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.EnterALivelinkServerName'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.Server'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.EnterALivelinkServerName'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
         editconnection.servername.focus();
         return false;
       }
       if (editconnection.serverport.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.AServerPortNumberIsRequired'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.Server'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.AServerPortNumberIsRequired'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
         editconnection.serverport.focus();
         return false;
       }
       if (editconnection.cachelifetime.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.CacheLifetimeCannotBeNull'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.Cache'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.CacheLifetimeCannotBeNull'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Cache'))");
         editconnection.cachelifetime.focus();
         return false;
       }
       if (editconnection.cachelifetime.value != "" && !isInteger(editconnection.cachelifetime.value))
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.CacheLifetimeMustBeAnInteger'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.Cache'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.CacheLifetimeMustBeAnInteger'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Cache'))");
         editconnection.cachelifetime.focus();
         return false;
       }
       if (editconnection.cachelrusize.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.CacheLRUSizeCannotBeNull'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.Cache'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.CacheLRUSizeCannotBeNull'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Cache'))");
         editconnection.cachelrusize.focus();
         return false;
       }
       if (editconnection.cachelrusize.value != "" && !isInteger(editconnection.cachelrusize.value))
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.CacheLRUSizeMustBeAnInteger'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('LivelinkConnector.Cache'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.CacheLRUSizeMustBeAnInteger'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Cache'))");
         editconnection.cachelrusize.focus();
         return false;
       }

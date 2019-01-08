@@ -16,11 +16,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package org.apache.manifoldcf.livelink;
+package org.apache.manifoldcf.csws;
 
 /** This class describes live link connection parameters.
 */
-public class LiveLinkParameters
+public class CswsParameters
 {
   public static final String _rcsid = "@(#)$Id: LiveLinkParameters.java 988245 2010-08-23 18:39:35Z kwright $";
 
@@ -38,7 +38,7 @@ public class LiveLinkParameters
   /** NTLM domain (set if NTLM desired) */
   public final static String ingestNtlmDomain = "NTLM domain";
   /** Livelink SSL keystore */
-  public final static String ingestKeystore = "Livelink SSL keystore";
+  public final static String ingestKeystore = "SSL keystore";
   
   // These parameters are for viewing: constructing a URL the user can use to view the document
   /** View CGI protocol */
