@@ -30,6 +30,21 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
+    <target name="classcreate-wsdls" depends="precompile-check" if="canBuild">
+        <antcall target="classcreate-wsdl">
+            <param name="wsdlname" value="wsdls/Authentication.wsdl"/>
+        </antcall>
+        <antcall target="classcreate-wsdl">
+            <param name="wsdlname" value="wsdls/ContentService.wsdl"/>
+        </antcall>
+        <antcall target="classcreate-wsdl">
+            <param name="wsdlname" value="wsdls/DocumentManagement.wsdl"/>
+        </antcall>
+        <antcall target="classcreate-wsdl">
+            <param name="wsdlname" value="wsdls/MemberService.wsdl"/>
+        </antcall>
+    </target>
+
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="lib-proprietary" includes="*.jar"/>
