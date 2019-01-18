@@ -49,6 +49,8 @@ if [ -e "$JAVA_HOME"/bin/java ] ; then
             if [[ $JAVA_LIB_PATH != "" ]] ; then
                 LIB_STATEMENT=-Djava.library.path="$JAVA_LIB_PATH"
             fi
+            # Modern DFC's can't seem to find dfc.properties without this
+            CLASSPATH="$CLASSPATH""$PATHSEP""$DOCUMENTUM"
             "$JAVA_HOME/bin/java" -Xmx512m -Xms32m $LIB_STATEMENT -cp "$CLASSPATH" org.apache.manifoldcf.crawler.server.DCTM.DCTM
             exit $?
         else
