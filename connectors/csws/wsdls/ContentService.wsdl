@@ -27,8 +27,8 @@
 </wsp:Policy>
 <wsdl:types>
 <xsd:schema targetNamespace="urn:Core.service.livelink.opentext.com/Imports">
-<xsd:import schemaLocation="https://llotadm2:443/cws/services/ContentService?xsd=3" namespace="urn:Core.service.livelink.opentext.com" local="CoreService.xsd"/>
-<xsd:import schemaLocation="https://llotadm2:443/cws/services/ContentService?xsd=2" namespace="urn:api.ecm.opentext.com" local="ApiEcm.xsd"/>
+<xsd:import schemaLocation="https://llotadm2:443/cws/services/ContentService?xsd=3" namespace="urn:Core.service.livelink.opentext.com" location="CoreService.xsd"/>
+<xsd:import schemaLocation="https://llotadm2:443/cws/services/ContentService?xsd=2" namespace="urn:api.ecm.opentext.com" location="ApiEcm.xsd"/>
 <xsd:import schemaLocation="https://llotadm2:443/cws/services/ContentService?xsd=1" namespace="http://schemas.microsoft.com/Message"/>
 </xsd:schema>
 </wsdl:types>
