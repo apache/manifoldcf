@@ -21,8 +21,8 @@
 <wsdl:types>
 <xsd:schema targetNamespace="urn:MemberService.service.livelink.opentext.com/Imports">
 <xsd:import location="MemberService2.xsd" namespace="urn:MemberService.service.livelink.opentext.com"/>
-<xsd:import location="MemberService1.xsd" namespace="urn:api.ecm.opentext.com" location="ApiEcm.xsd"/>
-<xsd:import location="MemberService3.xsd" namespace="urn:Core.service.livelink.opentext.com" location="CoreService.xsd"/>
+<xsd:import location="MemberService1.xsd" namespace="urn:api.ecm.opentext.com"/>
+<xsd:import location="MemberService3.xsd" namespace="urn:Core.service.livelink.opentext.com"/>
 </xsd:schema>
 </wsdl:types>
 <wsdl:message name="AddListOfMembersToGroupRequest">

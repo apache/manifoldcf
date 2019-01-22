@@ -27,8 +27,8 @@
 </wsp:Policy>
 <wsdl:types>
 <xsd:schema targetNamespace="urn:Core.service.livelink.opentext.com/Imports">
-<xsd:import location="ContentService3.xsd" namespace="urn:Core.service.livelink.opentext.com" location="CoreService.xsd"/>
-<xsd:import location="ContentService2.xsd" namespace="urn:api.ecm.opentext.com" location="ApiEcm.xsd"/>
+<xsd:import location="ContentService3.xsd" namespace="urn:Core.service.livelink.opentext.com"/>
+<xsd:import location="ContentService2.xsd" namespace="urn:api.ecm.opentext.com"/>
 <xsd:import location="ContentService1.xsd" namespace="http://schemas.microsoft.com/Message"/>
 </xsd:schema>
 </wsdl:types>
