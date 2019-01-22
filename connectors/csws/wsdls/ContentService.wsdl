@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <!-- Licensed to the Apache Software Foundation (ASF) under one or more
      contributor license agreements. See the NOTICE file distributed with
      this work for additional information regarding copyright ownership.
@@ -27,9 +29,9 @@
 </wsp:Policy>
 <wsdl:types>
 <xsd:schema targetNamespace="urn:Core.service.livelink.opentext.com/Imports">
-<xsd:import location="ContentService3.xsd" namespace="urn:Core.service.livelink.opentext.com"/>
-<xsd:import location="ContentService2.xsd" namespace="urn:api.ecm.opentext.com"/>
-<xsd:import location="ContentService1.xsd" namespace="http://schemas.microsoft.com/Message"/>
+<xsd:import schemaLocation="ContentService3.xsd" namespace="urn:Core.service.livelink.opentext.com"/>
+<xsd:import schemaLocation="ContentService2.xsd" namespace="urn:api.ecm.opentext.com"/>
+<xsd:import schemaLocation="ContentService1.xsd" namespace="http://schemas.microsoft.com/Message"/>
 </xsd:schema>
 </wsdl:types>
 <wsdl:message name="DownloadContentRequest">
