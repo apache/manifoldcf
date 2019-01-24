@@ -44,7 +44,7 @@
     <property name="castor.version" value="1.0.5"/>
     <property name="wsdl4j.version" value="1.6.2"/>
     <property name="commons-codec.version" value="1.10"/>
-    <property name="commons-collections.version" value="3.2.1"/>
+    <property name="commons-collections.version" value="3.2.2"/>
     <property name="commons-collections4.version" value="4.1"/>
     <property name="commons-discovery.version" value="0.5"/>
     <property name="commons-el.version" value="1.0"/>
