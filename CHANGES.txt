@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.13-dev =====================
 
+CONNECTORS-1565: Upgrades commons-collections to 3.2.2. Please consider instructions
+in https://commons.apache.org/proper/commons-collections/security-reports.html if your
+custom connector makes use of the org.apache.commons.collections.functors package.
+(Markus Schuch)
+
 CONNECTORS-1506: Add fixes for CSS preservation when opening in new tab in UI.
 (Kishore Kumar)
 
