@@ -45,7 +45,6 @@
             <include name="chemistry*.jar"/>
             <include name="stax*.jar"/>
             <include name="streambuffer*.jar"/>
-            <include name="jaxws*.jar"/>
             <include name="woodstox-core-asl*.jar"/>
             <include name="mimepull*.jar"/>
             <include name="resolver*.jar"/>
