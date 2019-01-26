@@ -488,6 +488,33 @@
 	</java>
     </target>
 
+    <target name="classcreate-xsd-bindings">
+	<mkdir dir="build/xsdjava"/>
+	<java classname="org.exolab.castor.builder.SourceGeneratorMain" fork="true">
+              <classpath>
+                  <fileset dir="${mcf-dist}/connector-common-lib">
+                      <include name="castor*.jar"/>
+                      <include name="geronimo-activation_1.1_spec*.jar"/>
+                      <include name="geronimo-javamail_1.4_spec*.jar"/>
+                      <include name="xerces*.jar"/>
+                  </fileset>
+                  <fileset dir="${mcf-dist}/lib">
+                      <include name="commons-logging*.jar"/>
+                  </fileset>
+              </classpath>
+              <jvmarg value="-Dfile.encoding=UTF-8"/>
+              <arg value="-i"/>
+              <arg value="${xsdname}"/>
+              <arg value="-binding-file"/>
+              <arg value="${bindingfile}"/>
+              <arg value="-f"/>
+              <arg value="-dest"/>
+              <arg value="build/xsdjava"/>
+              <arg value="-package"/>
+              <arg value="org.apache.manifoldcf.crawler.connectors.${packagename}"/>
+          </java>
+    </target>
+
     <target name="classcreate-wsdls"/>
 
     <target name="has-wsdls-check" depends="classcreate-wsdls,precompile-check" if="canBuild">
