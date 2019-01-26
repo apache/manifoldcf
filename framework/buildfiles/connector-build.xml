@@ -407,7 +407,30 @@
             </and>
         </condition>
     </target>
-    
+
+
+    <target name="classcreate-wsdl-cxf">
+        <mkdir dir="build/wsdljava"/>
+        <java classname="org.apache.cxf.tools.wsdlto.WSDLToJava" fork="true">
+            <classpath>
+                <fileset dir="${mcf-dist}/connector-common-lib">
+                    <include name="cxf*.jar"/>
+                    <include name="jaxws*.jar"/>
+                    <include name="jaxb-impl*.java"/>
+                    <include name="jaxb-xjc*.java"/>
+                    <include name="wsdl4j*.java"/>
+                    <include name="woodstox*.java"/>
+                </fileset>
+            </classpath>
+            <jvmarg value="-Dorg.apache.cxf.stax.allowInsecureParser=1"/>
+            <jvmarg value="-Dfile.encoding=UTF-8"/>
+            <arg value="-client"/>
+            <arg value="-d"/>
+            <arg value="build/wsdljava"/>
+            <arg value="${wsdlname}"/>
+        </java>
+    </target>
+
     <target name="classcreate-wsdl">
         <mkdir dir="build/wsdljava"/>
         <java classname="org.apache.axis.wsdl.WSDL2Java" fork="true">
