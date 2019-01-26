@@ -1550,6 +1550,12 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/sun/xml/bind"/>
+            <param name="artifact-version" value="${jaxb-impl.version}"/>
+            <param name="artifact-name" value="jaxb-xjc"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/glassfish/jaxb"/>
             <param name="artifact-version" value="${jaxb-glassfish.version}"/>
             <param name="artifact-name" value="jaxb-core"/>
@@ -2313,6 +2319,18 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
     
     <target name="download-cxf" depends="download-xml-resolver,download-asm,download-jaxb">
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-tools-wsdlto-core"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-tools-common"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/cxf"/>
             <param name="artifact-name" value="cxf-core"/>
