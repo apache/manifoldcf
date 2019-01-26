@@ -480,7 +480,7 @@
 	    <jvmarg value="-Dfile.encoding=UTF-8"/>
 	    <arg value="-i"/>
 	    <arg value="${xsdname}"/>
-	    <arg value="=f"/>
+	    <arg value="-f"/>
 	    <arg value="-dest"/>
 	    <arg value="build/xsdjava"/>
 	    <arg value="-package"/>
