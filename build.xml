@@ -2327,6 +2327,18 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-tools-wsdlto-frontend-jaxws"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
+            <param name="artifact-name" value="cxf-tools-wsdlto-databinding-jaxb"/>
+            <param name="artifact-version" value="${cxf.version}"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/cxf"/>
             <param name="artifact-name" value="cxf-tools-common"/>
             <param name="artifact-version" value="${cxf.version}"/>
             <param name="artifact-type" value="jar"/>
