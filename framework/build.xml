@@ -176,6 +176,7 @@
             <include name="dec*.jar"/>
             <include name="cxf-*.jar"/>
             <include name="neethi*.jar"/>
+            <include name="xml-resolver*.jar"/>
             <include name="xmlschema-core*.jar"/>
             <include name="javax.annotation-api*.jar"/>
             <include name="javax.ws.rs-api*.jar"/>
@@ -1617,6 +1618,7 @@
                 <include name="dec*.jar"/>
                 <include name="cxf-*.jar"/>
                 <include name="neethi*.jar"/>
+                <include name="xml-resolver*.jar"/>
                 <include name="xmlschema-core*.jar"/>
                 <include name="javax.annotation-api*.jar"/>
                 <include name="javax.ws.rs-api*.jar"/>
