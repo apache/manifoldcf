@@ -419,6 +419,8 @@
 		    <include name="woodstox*.jar"/>
 		    <include name="stax2-api*.jar"/>
 		    <include name="xmlschema*.jar"/>
+		    <include name="neethi*.jar"/>
+		    <include name="xml-resolver*.jar"/>
 		</fileset>
 		<fileset dir="${mcf-dist}/lib">
 		    <include name="velocity*.jar"/>
