@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.13-dev =====================
 
+CONNECTORS-1535: Modify documentum server script on Linux because otherwise
+dfc.properties can't be found.
+(James Thomas)
+
 CONNECTORS-1565: Upgrades commons-collections to 3.2.2. Please consider instructions
 in https://commons.apache.org/proper/commons-collections/security-reports.html if your
 custom connector makes use of the org.apache.commons.collections.functors package.
