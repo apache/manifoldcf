@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.13-dev =====================
 
+CONNECTORS-1579: Fix for JDBC connector's incorrect tracking of rejected
+documents.
+(Donald Van den Driessche, Karl Wright)
+
 CONNECTORS-1535: Modify documentum server script on Linux because otherwise
 dfc.properties can't be found.
 (James Thomas)
