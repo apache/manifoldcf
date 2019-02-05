@@ -698,6 +698,11 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
             // This document was marked as "not scan only", so we expect to find it.
             if (Logging.connectors.isDebugEnabled())
               Logging.connectors.debug("JDBC: Document data result found for '"+id+"'");
+            
+            // We will determine the disposition of the document here, so remove this id from the map in order that we know what we still
+            // need to delete when all done.
+            map.remove(id);
+
             o = row.getValue(JDBCConstants.urlReturnColumnName);
             if (o == null)
             {
@@ -743,9 +748,6 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
               continue;
             }
             
-            // We will ingest something, so remove this id from the map in order that we know what we still
-            // need to delete when all done.
-            map.remove(id);
             String contentType;
             o = row.getValue(JDBCConstants.contentTypeReturnColumnName);
             if (o != null)
