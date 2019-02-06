@@ -45,7 +45,7 @@
         </antcall>
     </target>
 
-    <target name="classcreate-xsds" depends="precompile-check" if="canBuild">
+    <!--target name="classcreate-xsds" depends="precompile-check" if="canBuild">
         <delete dir="build/xsdjava"/>
         <antcall target="classcreate-xsd-bindings">
             <param name="xsdname" value="wsdls/Authentication1.xsd"/>
@@ -77,7 +77,7 @@
             <param name="packagename" value="opentext.Core"/>
             <param name="bindingfile" value="wsdls/castor_binding.xml"/>
         </antcall>
-        <antcall target="classcreate-xsd-bindings">
+        <!--antcall target="classcreate-xsd-bindings">
             <param name="xsdname" value="wsdls/DocumentManagement2.xsd"/>
             <param name="packagename" value="opentext.DocMan"/>
             <param name="bindingfile" value="wsdls/castor_binding.xml"/>
@@ -102,39 +102,7 @@
             <param name="packagename" value="opentext.Core"/>
             <param name="bindingfile" value="wsdls/castor_binding.xml"/>
         </antcall>
-    </target>
-
-    <path id="connector-classpath">
-        <path refid="mcf-connector-build.connector-classpath"/>
-        <fileset dir="lib-proprietary" includes="*.jar"/>
-    </path>
-
-    <target name="has-proprietary-materials-check">
-        <available file="lib-proprietary/lapi.jar" property="lapiStatus"/>
-        <condition property="proprietaryMaterialsAvailable">
-            <isset property="cswsStatus"/>
-        </condition>
-    </target>
-    
-    <target name="calculate-run-condition" depends="has-proprietary-materials-check">
-        <condition property="libs-present">
-            <isset property="proprietaryMaterialsAvailable"/>
-        </condition>
-    </target>
-    
-    <target name="prerun-warn" depends="calculate-run-condition" unless="libs-present">
-        <echo message="CSWS connector requires ???.jar to be runnable"/>
-    </target>
-    
-    <target name="copy-proprietary-libs" depends="prerun-check" if="canRun">
-        <mkdir dir="dist/lib-proprietary-only"/>
-        <copy todir="dist/lib-proprietary-only">
-            <fileset dir="lib-proprietary" includes="*.jar"/>
-        </copy>
-    </target>
-    
-    <target name="lib" depends="mcf-connector-build.lib,copy-proprietary-libs,precompile-check" if="canBuild">
-    </target>
+    </target-->
 
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-authority-connector">
