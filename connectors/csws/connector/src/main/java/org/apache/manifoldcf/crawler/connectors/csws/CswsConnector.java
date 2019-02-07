@@ -149,12 +149,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   // Idle session expiration interval
   private final static long expirationInterval = 300000L;
 
-  // Data required for maintaining livelink connection
-  private LAPI_DOCUMENTS LLDocs = null;
-  private LAPI_ATTRIBUTES LLAttributes = null;
-  private LAPI_USERS LLUsers = null;
+  // Data required for maintaining csws connection
+  // MHL
   
-  private LLSERVER llServer = null;
+  // Various IDs we need
   private int LLENTWK_VOL;
   private int LLENTWK_ID;
   private int LLCATWK_VOL;
@@ -166,15 +164,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   private int serverPort = -1;
   private String serverUsername = null;
   private String serverPassword = null;
-  private String serverHTTPCgi = null;
+  private String authenticationServicePath = null;
+  private String documentManagementServicePath = null;
+  private String contentServiceServicePath = null;
+  private String memberServiceServicePath = null;
   private String serverHTTPNTLMDomain = null;
   private String serverHTTPNTLMUsername = null;
   private String serverHTTPNTLMPassword = null;
   private IKeystoreManager serverHTTPSKeystore = null;
-
-  private String ingestProtocol = null;
-  private String ingestPort = null;
-  private String ingestCgiPath = null;
 
   private String viewProtocol = null;
   private String viewServerName = null;
@@ -182,22 +179,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   private String viewCgiPath = null;
   private String viewAction = null;
 
-  private String ingestNtlmDomain = null;
-  private String ingestNtlmUsername = null;
-  private String ingestNtlmPassword = null;
-
-  // SSL support for ingestion
-  private IKeystoreManager ingestKeystoreManager = null;
-
   // Connection management
   private HttpClientConnectionManager connectionManager = null;
   private HttpClient httpClient = null;
   
   // Base path for viewing
   private String viewBasePath = null;
-
-  // Ingestion port number
-  private int ingestPortNumber = -1;
 
   // Activities list
   private static final String[] activitiesList = new String[]{ACTIVITY_SEED,ACTIVITY_FETCH};
@@ -269,20 +256,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         // Create the session
-        llServer = new LLSERVER(!serverProtocol.equals("internal"),serverProtocol.equals("https"),
-          serverName,serverPort,serverUsername,serverPassword,
-          serverHTTPCgi,serverHTTPNTLMDomain,serverHTTPNTLMUsername,serverHTTPNTLMPassword,
-          serverHTTPSKeystore);
-
-        LLDocs = new LAPI_DOCUMENTS(llServer.getLLSession());
-        LLAttributes = new LAPI_ATTRIBUTES(llServer.getLLSession());
-        LLUsers = new LAPI_USERS(llServer.getLLSession());
+        // MHL
         
         if (Logging.connectors.isDebugEnabled())
         {
           String passwordExists = (serverPassword!=null&&serverPassword.length()>0)?"password exists":"";
           Logging.connectors.debug("Csws: Csws Session: Server='"+serverName+"'; port='"+serverPort+"'; user name='"+serverUsername+"'; "+passwordExists);
         }
+        /* Here we need to obtain IDs for LLENTWK and LLCATWK
         LLValue entinfo = new LLValue().setAssoc();
 
         int status;
@@ -304,6 +285,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
         else
           throw new ManifoldCFException("Error accessing category workspace: "+status);
+          */
       }
       catch (Throwable e)
       {
@@ -347,11 +329,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     return new String[]{serverName};
   }
 
-  protected HttpHost getHost()
-  {
-    return new HttpHost(llServer.getHost(),ingestPortNumber,ingestProtocol);
-  }
-
   protected void getSessionParameters()
     throws ManifoldCFException
   {
@@ -359,56 +336,62 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       // Do the initial setup part (what used to be part of connect() itself)
 
-      // Get the parameters
-      ingestProtocol = params.getParameter(CswsParameters.ingestProtocol);
-      ingestPort = params.getParameter(CswsParameters.ingestPort);
-      ingestCgiPath = params.getParameter(CswsParameters.ingestCgiPath);
-
       viewProtocol = params.getParameter(CswsParameters.viewProtocol);
       viewServerName = params.getParameter(CswsParameters.viewServerName);
       viewPort = params.getParameter(CswsParameters.viewPort);
       viewCgiPath = params.getParameter(CswsParameters.viewCgiPath);
       viewAction = params.getParameter(CswsParameters.viewAction);
 
-      ingestNtlmDomain = params.getParameter(CswsParameters.ingestNtlmDomain);
-      ingestNtlmUsername = params.getParameter(CswsParameters.ingestNtlmUsername);
-      ingestNtlmPassword = params.getObfuscatedParameter(CswsParameters.ingestNtlmPassword);
-
       serverProtocol = params.getParameter(CswsParameters.serverProtocol);
       String serverPortString = params.getParameter(CswsParameters.serverPort);
       serverUsername = params.getParameter(CswsParameters.serverUsername);
       serverPassword = params.getObfuscatedParameter(CswsParameters.serverPassword);
-      serverHTTPCgi = params.getParameter(CswsParameters.serverHTTPCgiPath);
+      authenticationServicePath = params.getParameter(CswsParameters.authenticationPath);
+      documentManagementServicePath = params.getParameter(CswsParameters.documentManagementPath);
+      contentServiceServicePath = params.getParameter(CswsParameters.contentServicePath);
+      memberServiceServicePath = params.getParameter(CswsParameters.memberServicePath);
       serverHTTPNTLMDomain = params.getParameter(CswsParameters.serverHTTPNTLMDomain);
       serverHTTPNTLMUsername = params.getParameter(CswsParameters.serverHTTPNTLMUsername);
       serverHTTPNTLMPassword = params.getObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword);
 
-      if (ingestProtocol == null || ingestProtocol.length() == 0)
-        ingestProtocol = null;
+
+      // Server parameter processing
+
+      if (serverProtocol == null || serverProtocol.length() == 0)
+        serverProtocol = "http";
+      
+      if (serverPortString == null)
+        serverPort = 2099;
+      else
+        serverPort = new Integer(serverPortString).intValue();
+      
+      if (serverHTTPNTLMDomain != null && serverHTTPNTLMDomain.length() == 0)
+        serverHTTPNTLMDomain = null;
+      if (serverHTTPNTLMUsername == null || serverHTTPNTLMUsername.length() == 0)
+      {
+        serverHTTPNTLMUsername = null;
+        serverHTTPNTLMPassword = null;
+      }
+      
+      // Set up server ssl if indicated
+      String serverHTTPSKeystoreData = params.getParameter(CswsParameters.serverHTTPSKeystore);
+      if (serverHTTPSKeystoreData != null)
+        serverHTTPSKeystore = KeystoreManagerFactory.make("",serverHTTPSKeystoreData);
+
+      // View parameters
+      // View parameter processing
+      
       if (viewProtocol == null || viewProtocol.length() == 0)
       {
-        if (ingestProtocol == null)
+        if (serverProtocol == null)
           viewProtocol = "http";
         else
-          viewProtocol = ingestProtocol;
-      }
-
-      if (ingestPort == null || ingestPort.length() == 0)
-      {
-        if (ingestProtocol != null)
-        {
-          if (!ingestProtocol.equals("https"))
-            ingestPort = "80";
-          else
-            ingestPort = "443";
-        }
-        else
-          ingestPort = null;
+          viewProtocol = serverProtocol;
       }
 
       if (viewPort == null || viewPort.length() == 0)
       {
-        if (ingestProtocol == null || !viewProtocol.equals(ingestProtocol))
+        if (serverProtocol == null || !viewProtocol.equals(serverProtocol))
         {
           if (!viewProtocol.equals("https"))
             viewPort = "80";
@@ -416,19 +399,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             viewPort = "443";
         }
         else
-          viewPort = ingestPort;
-      }
-
-      if (ingestPort != null)
-      {
-        try
-        {
-          ingestPortNumber = Integer.parseInt(ingestPort);
-        }
-        catch (NumberFormatException e)
-        {
-          throw new ManifoldCFException("Bad ingest port: "+e.getMessage(),e);
-        }
+          viewPort = serverPort;
       }
 
       String viewPortString;
@@ -453,60 +424,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
 
       if (viewCgiPath == null || viewCgiPath.length() == 0)
-        viewCgiPath = ingestCgiPath;
-
-      if (ingestNtlmDomain != null && ingestNtlmDomain.length() == 0)
-        ingestNtlmDomain = null;
-      if (ingestNtlmDomain == null)
-      {
-        ingestNtlmUsername = null;
-        ingestNtlmPassword = null;
-      }
-      else
-      {
-        if (ingestNtlmUsername == null || ingestNtlmUsername.length() == 0)
-        {
-          ingestNtlmUsername = serverUsername;
-          if (ingestNtlmPassword == null || ingestNtlmPassword.length() == 0)
-            ingestNtlmPassword = serverPassword;
-        }
-        else
-        {
-          if (ingestNtlmPassword == null)
-            ingestNtlmPassword = "";
-        }
-      }
-
-      // Set up ingest ssl if indicated
-      String ingestKeystoreData = params.getParameter(CswsParameters.ingestKeystore);
-      if (ingestKeystoreData != null)
-        ingestKeystoreManager = KeystoreManagerFactory.make("",ingestKeystoreData);
-
-
-      // Server parameter processing
-
-      if (serverProtocol == null || serverProtocol.length() == 0)
-        serverProtocol = "internal";
+        viewCgiPath = "";
       
-      if (serverPortString == null)
-        serverPort = 2099;
-      else
-        serverPort = new Integer(serverPortString).intValue();
-      
-      if (serverHTTPNTLMDomain != null && serverHTTPNTLMDomain.length() == 0)
-        serverHTTPNTLMDomain = null;
-      if (serverHTTPNTLMUsername == null || serverHTTPNTLMUsername.length() == 0)
-      {
-        serverHTTPNTLMUsername = null;
-        serverHTTPNTLMPassword = null;
-      }
-      
-      // Set up server ssl if indicated
-      String serverHTTPSKeystoreData = params.getParameter(CswsParameters.serverHTTPSKeystore);
-      if (serverHTTPSKeystoreData != null)
-        serverHTTPSKeystore = KeystoreManagerFactory.make("",serverHTTPSKeystoreData);
-
-      // View parameters
       if (viewServerName == null || viewServerName.length() == 0)
         viewServerName = serverName;
 
@@ -527,9 +446,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       // Set up ingest ssl if indicated
       SSLConnectionSocketFactory myFactory = null;
-      if (ingestKeystoreManager != null)
+      if (serverKeystoreManager != null)
       {
-        myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(ingestKeystoreManager.getSecureSocketFactory(), connectionTimeout),
+        myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(serverKeystoreManager.getSecureSocketFactory(), connectionTimeout),
           NoopHostnameVerifier.INSTANCE);
       }
       else
@@ -553,10 +472,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
       // Set up authentication to use
-      if (ingestNtlmDomain != null)
+      if (serverHTTPNTLMDomain != null)
       {
         credentialsProvider.setCredentials(AuthScope.ANY,
-          new NTCredentials(ingestNtlmUsername,ingestNtlmPassword,currentHost,ingestNtlmDomain));
+          new NTCredentials(serverHTTPNTLMUsername,serverHTTPNTLMPassword,currentHost,serverHTTPNTLMDomain));
       }
 
       HttpClientBuilder builder = HttpClients.custom()
@@ -639,69 +558,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       // Destroy saved session setup and repeat it
       hasConnected = false;
       getSession();
-
-      // Now, set up trial of ingestion connection
-      if (ingestProtocol != null)
-      {
-        String contextMsg = "for document access";
-        String ingestHttpAddress = ingestCgiPath;
-
-        HttpClient client = getInitializedClient(contextMsg);
-        HttpGet method = new HttpGet(getHost().toURI() + ingestHttpAddress);
-        method.setHeader(new BasicHeader("Accept","*/*"));
-        try
-        {
-          int statusCode = executeMethodViaThread(client,method);
-          switch (statusCode)
-          {
-          case 502:
-            return "Fetch test had transient 502 error response";
-
-          case HttpStatus.SC_UNAUTHORIZED:
-            return "Fetch test returned UNAUTHORIZED (401) response; check the security credentials and configuration";
-
-          case HttpStatus.SC_OK:
-            return super.check();
-
-          default:
-            return "Fetch test returned an unexpected response code of "+Integer.toString(statusCode);
-          }
-        }
-        catch (InterruptedException e)
-        {
-          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-        }
-        catch (java.net.SocketTimeoutException e)
-        {
-          return "Fetch test timed out reading from the Csws HTTP Server: "+e.getMessage();
-        }
-        catch (java.net.SocketException e)
-        {
-          return "Fetch test received a socket error reading from Csws HTTP Server: "+e.getMessage();
-        }
-        catch (javax.net.ssl.SSLHandshakeException e)
-        {
-          return "Fetch test was unable to set up a SSL connection to Csws HTTP Server: "+e.getMessage();
-        }
-        catch (ConnectTimeoutException e)
-        {
-          return "Fetch test connection timed out reading from Csws HTTP Server: "+e.getMessage();
-        }
-        catch (InterruptedIOException e)
-        {
-          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-        }
-        catch (HttpException e)
-        {
-          return "Fetch test had an HTTP exception: "+e.getMessage();
-        }
-        catch (IOException e)
-        {
-          return "Fetch test had an IO failure: "+e.getMessage();
-        }
-      }
-      else
-        return super.check();
+      // Do a check of all web services
+      // MHL
+      return super.check();
     }
     catch (ServiceInterruption e)
     {
@@ -731,13 +590,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       hasConnected = false;
       expirationTime = -1L;
 
-      // Shutdown livelink connection
-      if (llServer != null)
-      {
-        llServer.disconnect();
-        llServer = null;
-      }
-      
       // Shutdown pool
       if (connectionManager != null)
       {
@@ -766,15 +618,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     hasSessionParameters = false;
     hasConnected = false;
     expirationTime = -1L;
-    if (llServer != null)
-    {
-      llServer.disconnect();
-      llServer = null;
-    }
-    LLDocs = null;
-    LLAttributes = null;
-    ingestKeystoreManager = null;
-    ingestPortNumber = -1;
 
     serverProtocol = null;
     serverName = null;
@@ -1024,6 +867,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     CswsContext llc = new CswsContext();
     
     // First, grab the root LLValue
+    // MHL
+    ObjectInformation rootValue = null;
+    /*
     ObjectInformation rootValue = llc.getObjectInformation(LLENTWK_VOL,LLENTWK_ID);
     if (!rootValue.exists())
     {
@@ -1032,7 +878,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       throw new ServiceInterruption("Service interruption during seeding",new ManifoldCFException("Could not looking root workspace object during seeding"),System.currentTimeMillis()+60000L,
         System.currentTimeMillis()+600000L,-1,true);
     }
-
+    */
+    
     // Walk the specification for the "startpoint" types.  Amalgamate these into a list of strings.
     // Presume that all roots are startpoint nodes
     boolean doUserWorkspaces = false;
@@ -1073,6 +920,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (doUserWorkspaces)
       {
         // Do ListUsers and enumerate the values.
+        // MHL - TBD
+        /*
         int sanityRetryCount = FAILURE_RETRY_COUNT;
         while (true)
         {
@@ -1080,17 +929,17 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           try
           {
             t.start();
-	    LLValue childrenDocs;
+            // MHL - need the web services equivalent
+            LLValue childrenDocs;
 	    try
-	    {
-	      childrenDocs = t.finishUp();
-	    }
-	    catch (ManifoldCFException e)
-	    {
-	      sanityRetryCount = assessRetry(sanityRetryCount,e);
-	      continue;
-	    }
-
+            {
+              childrenDocs = t.finishUp();
+            }
+            catch (ManifoldCFException e)
+            {
+              sanityRetryCount = assessRetry(sanityRetryCount,e);
+              continue;
+            }
             int size = 0;
 
             if (childrenDocs.isRecord())
@@ -1125,6 +974,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             continue;
           }
         }
+        */
       }
       
     }
@@ -1257,7 +1107,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         
       // We were able to get rights, so object still exists.
           
-      // Changed folder versioning for MCF 2.0
       if (isFolder)
       {
         // === Csws folder ===
@@ -1265,7 +1114,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // The code below assumes one-level only, so we always scan folders and there's no versioning
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Csws: Processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
-
+        
+        // TBD
+        
+        /*
         int sanityRetryCount = FAILURE_RETRY_COUNT;
         while (true)
         {
@@ -1347,6 +1199,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             continue;
           }
         }
+        */
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Csws: Done processing folder "+Integer.toString(vol)+":"+Integer.toString(objID));
       }
@@ -1486,7 +1339,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected final int objID;
     protected final String filterString;
     protected Throwable exception = null;
-    protected LLValue rval = null;
+    //protected LLValue rval = null;
 
     public ListObjectsThread(int vol, int objID, String filterString)
     {
@@ -1501,6 +1354,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
+        // MHL - TBD
+        /*
         LLValue childrenDocs = new LLValue();
         int status = LLDocs.ListObjects(vol, objID, null, filterString, LAPI_DOCUMENTS.PERM_SEECONTENTS, childrenDocs);
         if (status != 0)
@@ -1508,6 +1363,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           throw new ManifoldCFException("Error retrieving contents of folder "+Integer.toString(vol)+":"+Integer.toString(objID)+" : Status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
         }
         rval = childrenDocs;
+        */
       }
       catch (Throwable e)
       {
@@ -1531,7 +1387,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	else
 	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
       }
-      return rval;
+      return null;//rval;
     }
   }
 
@@ -1546,7 +1402,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     // it becomes worthwhile, because we will be able to do what is needed to look up the correct CATID node
     // only once per n requests!  So it's a tradeoff between the advantage gained by threading, and the
     // savings gained by CATID lookup.
-    // Note that at Shell, the fact that the network hiccups a lot makes it better to choose a smaller value.
     return 6;
   }
 
@@ -1572,7 +1427,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, IOException
   {
     tabsArray.add(Messages.getString(locale,"CswsConnector.Server"));
-    tabsArray.add(Messages.getString(locale,"CswsConnector.DocumentAccess"));
     tabsArray.add(Messages.getString(locale,"CswsConnector.DocumentView"));
     
     Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_JS, null, true);
@@ -1596,11 +1450,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     velocityContext.put(TAB_NAME_PARAM,tabName);
 
     fillInServerTab(velocityContext, out, parameters);
-    fillInDocumentAccessTab(velocityContext, out, parameters);
     fillInDocumentViewTab(velocityContext, out, parameters);
 
     Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_SERVER_HTML, velocityContext);
-    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_ACCESS_HTML, velocityContext);
     Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_VIEW_HTML, velocityContext);
   }
 
@@ -1610,7 +1462,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     // LAPI parameters
     String serverProtocol = parameters.getParameter(CswsParameters.serverProtocol);
     if (serverProtocol == null)
-      serverProtocol = "internal";
+      serverProtocol = "http";
     String serverName = parameters.getParameter(CswsParameters.serverName);
     if (serverName == null)
       serverName = "localhost";
@@ -1625,9 +1477,20 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       serverPassword = "";
     else
       serverPassword = out.mapPasswordToKey(serverPassword);
-    String serverHTTPCgiPath = parameters.getParameter(CswsParameters.serverHTTPCgiPath);
-    if (serverHTTPCgiPath == null)
-      serverHTTPCgiPath = "/livelink/livelink.exe";
+    
+    String authenticationServicePath = parameters.getParameter(CswsParameters.authenticationPath);
+    if (authenticationServicePath == null)
+      authenticationServicePath = "";
+    String contentServiceServicePath = parameters.getParameter(CswsParameters.contentServicePath);
+    if (contentServiceServicePath == null)
+      contentServiceServicePath = "";
+    String documentManagementServicePath = parameters.getParameter(CswsParameters.documentManagementPath);
+    if (documentManagementServicePath == null)
+      documentManagementServicePath = "";
+    String memberServiceServicePath = parameters.getParameter(CswsParameters.memberServicePath);
+    if (memberServiceServicePath == null)
+      memberServiceServicePath = "";
+    
     String serverHTTPNTLMDomain = parameters.getParameter(CswsParameters.serverHTTPNTLMDomain);
     if(serverHTTPNTLMDomain == null)
       serverHTTPNTLMDomain = "";
@@ -1677,7 +1540,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     velocityContext.put("SERVERPORT",serverPort);
     velocityContext.put("SERVERUSERNAME",serverUserName);
     velocityContext.put("SERVERPASSWORD",serverPassword);
-    velocityContext.put("SERVERHTTPCGIPATH",serverHTTPCgiPath);
+    
+    velocityContext.put("AUTHENTICATIONSERVICEPATH", authenticationServicePath);
+    velocityContext.put("CONTENTSERVICESERVICEPATH", contentServiceServicePath);
+    velocityContext.put("DOCUMENTMANAGEMENTSERVICEPATH", documentManagementServicePath);
+    velocityContext.put("MEMBERSERVICESERVICEPATH", memberServiceServicePath);
+
     velocityContext.put("SERVERHTTPNTLMDOMAIN",serverHTTPNTLMDomain);
     velocityContext.put("SERVERHTTPNTLMUSERNAME",serverHTTPNTLMUserName);
     velocityContext.put("SERVERHTTPNTLMPASSWORD",serverHTTPNTLMPassword);
@@ -1685,76 +1553,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       velocityContext.put("SERVERHTTPSKEYSTORE",serverHTTPSKeystore);
     if(serverCertificatesMap != null)
     velocityContext.put("SERVERCERTIFICATESMAP", serverCertificatesMap);
-    if(message != null)
-      velocityContext.put("MESSAGE", message);
-  }
-
-  /** Fill in Document Access tab */
-  protected static void fillInDocumentAccessTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
-  {
-    // Document access parameters
-    String ingestProtocol = parameters.getParameter(CswsParameters.ingestProtocol);
-    if(ingestProtocol == null)
-      ingestProtocol = "";
-    String ingestPort = parameters.getParameter(CswsParameters.ingestPort);
-    if(ingestPort == null)
-      ingestPort = "";
-    String ingestCgiPath = parameters.getParameter(CswsParameters.ingestCgiPath);
-    if(ingestCgiPath == null)
-      ingestCgiPath = "";
-    String ingestNtlmUsername = parameters.getParameter(CswsParameters.ingestNtlmUsername);
-    if(ingestNtlmUsername == null)
-      ingestNtlmUsername = "";
-    String ingestNtlmPassword = parameters.getObfuscatedParameter(CswsParameters.ingestNtlmPassword);
-    if (ingestNtlmPassword == null)
-      ingestNtlmPassword = "";
-    else
-      ingestNtlmPassword = out.mapPasswordToKey(ingestNtlmPassword);
-    String ingestNtlmDomain = parameters.getParameter(CswsParameters.ingestNtlmDomain);
-    if(ingestNtlmDomain == null)
-      ingestNtlmDomain = "";
-    String ingestKeystore = parameters.getParameter(CswsParameters.ingestKeystore);
-
-    IKeystoreManager localIngestKeystore;
-    Map<String,String> ingestCertificatesMap = null;
-    String message = null;
-
-    try{
-      if (ingestKeystore == null)
-        localIngestKeystore = KeystoreManagerFactory.make("");
-      else
-        localIngestKeystore = KeystoreManagerFactory.make("",ingestKeystore);
-
-      String[] contents = localIngestKeystore.getContents();
-      if (contents.length > 0)
-      {
-        ingestCertificatesMap = new HashMap<>();
-        int i = 0;
-        while (i < contents.length)
-        {
-          String alias = contents[i];
-          String description = localIngestKeystore.getDescription(alias);
-          if (description.length() > 128)
-            description = description.substring(0,125) + "...";
-          ingestCertificatesMap.put(alias,description);
-          i++;
-        }
-      }
-
-    } catch (ManifoldCFException e) {
-      message = e.getMessage();
-      Logging.connectors.warn(e);
-    }
-
-    velocityContext.put("INGESTPROTOCOL",ingestProtocol);
-    velocityContext.put("INGESTPORT",ingestPort);
-    velocityContext.put("INGESTCGIPATH",ingestCgiPath);
-    velocityContext.put("INGESTNTLMUSERNAME",ingestNtlmUsername);
-    velocityContext.put("INGESTNTLMPASSWORD",ingestNtlmPassword);
-    velocityContext.put("INGESTNTLMDOMAIN",ingestNtlmDomain);
-    velocityContext.put("INGESTKEYSTORE",ingestKeystore);
-    if(ingestCertificatesMap != null)
-      velocityContext.put("INGESTCERTIFICATESMAP", ingestCertificatesMap);
     if(message != null)
       velocityContext.put("MESSAGE", message);
   }
@@ -1834,9 +1632,25 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String serverPassword = variableContext.getParameter("serverpassword");
     if (serverPassword != null)
       parameters.setObfuscatedParameter(CswsParameters.serverPassword,variableContext.mapKeyToPassword(serverPassword));
+    
+    // MHL ???
+    String authenticationServicePath = variableContext.getParameter("authenticationservicepath");
+    if (authenticationServicePath != null)
+      parameters.setParameter(CswsParameters.authenticationPath, authenticationServicePath);
+    String contentServiceServicePath = variableContext.getParameter("contentserviceservicepath");
+    if (contentServiceServicePath != null)
+      parameters.setParameter(CswsParameters.contentServicePath, contentServiceServicePath);
+    String documentManagementServicePath = variableContext.getParameter("documentmanagementservicepath");
+    if (documentManagermentServicePath != null)
+      parameters.setParameter(CswsParameters.documentManagementPath, documentManagementServicePath);
+    String memberServiceServicePath = variableContext.getParameter("memberserviceservicepath");
+    if (memberServiceServicePath != null)
+      parameters.setParameter(CswsParameters.memberServicePath, memberServiceServicePath);
+
     String serverHTTPCgiPath = variableContext.getParameter("serverhttpcgipath");
     if (serverHTTPCgiPath != null)
       parameters.setParameter(CswsParameters.serverHTTPCgiPath,serverHTTPCgiPath);
+    
     String serverHTTPNTLMDomain = variableContext.getParameter("serverhttpntlmdomain");
     if (serverHTTPNTLMDomain != null)
       parameters.setParameter(CswsParameters.serverHTTPNTLMDomain,serverHTTPNTLMDomain);
@@ -1902,81 +1716,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
     parameters.setParameter(CswsParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
     
-    // Ingest parameters
-    String ingestProtocol = variableContext.getParameter("ingestprotocol");
-    if (ingestProtocol != null)
-      parameters.setParameter(CswsParameters.ingestProtocol,ingestProtocol);
-    String ingestPort = variableContext.getParameter("ingestport");
-    if (ingestPort != null)
-      parameters.setParameter(CswsParameters.ingestPort,ingestPort);
-    String ingestCgiPath = variableContext.getParameter("ingestcgipath");
-    if (ingestCgiPath != null)
-      parameters.setParameter(CswsParameters.ingestCgiPath,ingestCgiPath);
-    String ingestNtlmDomain = variableContext.getParameter("ingestntlmdomain");
-    if (ingestNtlmDomain != null)
-      parameters.setParameter(CswsParameters.ingestNtlmDomain,ingestNtlmDomain);
-    String ingestNtlmUsername = variableContext.getParameter("ingestntlmusername");
-    if (ingestNtlmUsername != null)
-      parameters.setParameter(CswsParameters.ingestNtlmUsername,ingestNtlmUsername);
-    String ingestNtlmPassword = variableContext.getParameter("ingestntlmpassword");
-    if (ingestNtlmPassword != null)
-      parameters.setObfuscatedParameter(CswsParameters.ingestNtlmPassword,variableContext.mapKeyToPassword(ingestNtlmPassword));
-    
-    String ingestKeystoreValue = variableContext.getParameter("ingestkeystoredata");
-    final String ingestConfigOp = variableContext.getParameter("ingestconfigop");
-    if (ingestConfigOp != null)
-    {
-      if (ingestConfigOp.equals("Delete"))
-      {
-        String alias = variableContext.getParameter("ingestkeystorealias");
-        final IKeystoreManager mgr;
-        if (ingestKeystoreValue != null)
-          mgr = KeystoreManagerFactory.make("",ingestKeystoreValue);
-        else
-          mgr = KeystoreManagerFactory.make("");
-        mgr.remove(alias);
-        ingestKeystoreValue = mgr.getString();
-      }
-      else if (ingestConfigOp.equals("Add"))
-      {
-        String alias = IDFactory.make(threadContext);
-        byte[] certificateValue = variableContext.getBinaryBytes("ingestcertificate");
-        final IKeystoreManager mgr;
-        if (ingestKeystoreValue != null)
-          mgr = KeystoreManagerFactory.make("",ingestKeystoreValue);
-        else
-          mgr = KeystoreManagerFactory.make("");
-        java.io.InputStream is = new java.io.ByteArrayInputStream(certificateValue);
-        String certError = null;
-        try
-        {
-          mgr.importCertificate(alias,is);
-        }
-        catch (Throwable e)
-        {
-          certError = e.getMessage();
-        }
-        finally
-        {
-          try
-          {
-            is.close();
-          }
-          catch (IOException e)
-          {
-            // Eat this exception
-          }
-        }
-
-        if (certError != null)
-        {
-          return "Illegal certificate: "+certError;
-        }
-        ingestKeystoreValue = mgr.getString();
-      }
-    }
-    parameters.setParameter(CswsParameters.ingestKeystore,ingestKeystoreValue);
-
     return null;
   }
   

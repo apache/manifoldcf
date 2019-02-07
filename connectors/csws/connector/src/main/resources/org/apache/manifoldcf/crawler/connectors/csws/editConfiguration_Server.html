@@ -25,7 +25,6 @@
     <td class="description">$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.ServerProtocol'))</td>
     <td class="value">
       <select name="serverprotocol" size="2">
-        <option value="internal" #if($SERVERPROTOCOL == 'internal') selected="selected" #{else} "" #end >$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.internal'))</option>
         <option value="http"     #if($SERVERPROTOCOL == 'http')     selected="selected" #{else} "" #end >http</option>
         <option value="https"    #if($SERVERPROTOCOL == 'https')    selected="selected" #{else} "" #end >https</option>
        </select>
@@ -66,12 +65,38 @@
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.ServerHTTPCGIPath'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.AuthenticationServicePath'))</nobr>
     </td>
     <td class="value">
-      <input type="text" size="32" name="serverhttpcgipath" value="$Encoder.attributeEscape($SERVERHTTPCGIPATH)"/>
+      <input type="text" size="32" name="authenticationservicepath" value="$Encoder.attributeEscape($AUTHENTICATIONSERVICEPATH)"/>
     </td>
   </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.DocumentManagementServicePath'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="documentmanagementservicepath" value="$Encoder.attributeEscape($DOCUMENTMANAGEMENTSERVICEPATH)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.ContentServiceServicePath'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="contentserviceservicepath" value="$Encoder.attributeEscape($CONTENTSERVICESERVICEPATH)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.MemberServiceServicePath'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="memberserviceservicepath" value="$Encoder.attributeEscape($MEMBERSERVICESERVICEPATH)"/>
+    </td>
+  </tr>
+
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.ServerHTTPNTLMDomain'))</nobr>
