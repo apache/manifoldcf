@@ -41,7 +41,7 @@ public class GetConnectionInfo
       System.err.println("Usage: GetConnectionInfo <connection_name>");
       System.err.println("");
       System.err.println("The result will be printed to standard out, in UTF-8 encoding, and will contain the following columns:");
-      System.err.println("    livelink_server");
+      System.err.println("    csws_server");
       System.exit(1);
     }
 
@@ -56,12 +56,12 @@ public class GetConnectionInfo
       if (connection == null)
         throw new ManifoldCFException("Connection "+connectionName+" does not exist");
 
-      if (connection.getClassName() == null || !connection.getClassName().equals("org.apache.manifoldcf.crawler.connectors.livelink.LivelinkConnector"))
-        throw new ManifoldCFException("Command can only be used on working Livelink connections.");
+      if (connection.getClassName() == null || !connection.getClassName().equals("org.apache.manifoldcf.crawler.connectors.csws.CswsConnector"))
+        throw new ManifoldCFException("Command can only be used on working Csws connections.");
 
       ConfigParams cfg = connection.getConfigParams();
 
-      UTF8Stdout.println(commaEscape(cfg.getParameter(LiveLinkParameters.serverName)));
+      UTF8Stdout.println(commaEscape(cfg.getParameter(CswsParameters.serverName)));
 
       System.err.println("Connection info done");
     }

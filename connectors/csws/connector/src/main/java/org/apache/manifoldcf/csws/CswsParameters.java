@@ -24,22 +24,6 @@ public class CswsParameters
 {
   public static final String _rcsid = "@(#)$Id: LiveLinkParameters.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  // These parameters are for ingestion: picking up a document after we discover it through LAPI
-  /** Ingestion CGI protocol */
-  public final static String ingestProtocol = "Protocol";
-  /** Ingestion CGI port **/
-  public final static String ingestPort = "Port";
-  /** Ingestion CGI path (path to fetch document from for ingestion) */
-  public final static String ingestCgiPath = "CGI path";
-  /** NTLM username */
-  public final static String ingestNtlmUsername = "NTLM user name";
-  /** NTLM password */
-  public final static String ingestNtlmPassword = "NTLM password";
-  /** NTLM domain (set if NTLM desired) */
-  public final static String ingestNtlmDomain = "NTLM domain";
-  /** Livelink SSL keystore */
-  public final static String ingestKeystore = "SSL keystore";
-  
   // These parameters are for viewing: constructing a URL the user can use to view the document
   /** View CGI protocol */
   public final static String viewProtocol = "View protocol";
@@ -52,8 +36,8 @@ public class CswsParameters
   /** Document View Action**/
   public final static String viewAction = "View Action";
   
-  // These parameters are for LAPI
-  /** Connection options; choices are "internal", "http", "https" */
+  // These parameters are for Web Services
+  /** Connection options; choices are "http", "https" */
   public final static String serverProtocol = "Server protocol";
   /** Server name */
   public final static String serverName = "Server name";
@@ -63,8 +47,14 @@ public class CswsParameters
   public final static String serverUsername = "Server user name";
   /** Server password */
   public final static String serverPassword = "Server password";
-  /** Server CGI path (path to use for viewing) */
-  public final static String serverHTTPCgiPath = "Server HTTP CGI path";
+  /** Authentication service CGI path */
+  public final static String authenticationPath = "Server Authentication Service path";
+  /** ContentService service CGI path */
+  public final static String contentServicePath = "Server ContentService Service path";
+  /** DocumentManagement service CGI path */
+  public final static String documentManagementPath = "Server DocumentManagement Service path";
+  /** MemberService service CGI path */
+  public final static String memberServicePath = "Server MemberService Service path";
   /** Server domain, if NTLM */
   public final static String serverHTTPNTLMDomain = "Server HTTP NTLM domain";
   /** Server HTTP user */

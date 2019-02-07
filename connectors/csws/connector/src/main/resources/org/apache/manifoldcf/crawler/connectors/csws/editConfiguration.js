@@ -38,39 +38,12 @@
       }
     }
 
-    function IngestDeleteCertificate(aliasName)
-    {
-      editconnection.ingestkeystorealias.value = aliasName;
-      editconnection.ingestconfigop.value = "Delete";
-      postForm();
-    }
-
-    function IngestAddCertificate()
-    {
-      if (editconnection.ingestcertificate.value == "")
-      {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.ChooseACertificateFile'))");
-        editconnection.ingestcertificate.focus();
-      }
-      else
-      {
-        editconnection.ingestconfigop.value = "Add";
-        postForm();
-      }
-    }
-
     function checkConfig()
     {
       if (editconnection.serverport.value != "" && !isInteger(editconnection.serverport.value))
       {
         alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.AValidNumberIsRequired'))");
         editconnection.serverport.focus();
-        return false;
-      }
-      if (editconnection.ingestport.value != "" && !isInteger(editconnection.ingestport.value))
-      {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.AValidNumberOrBlankIsRequired'))");
-        editconnection.ingestport.focus();
         return false;
       }
       if (editconnection.viewport.value != "" && !isInteger(editconnection.viewport.value))
@@ -98,39 +71,76 @@
         editconnection.serverport.focus();
         return false;
       }
-      if (editconnection.serverhttpcgipath.value == "")
+
+      if (editconnection.authenticationservicepath.value == "")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.EnterTheServerCgiPathToLivelink'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.EnterTheAuthenticationServicePath'))");
         SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
-        editconnection.serverhttpcgipath.focus();
+        editconnection.authenticationservicepath.focus();
         return false;
       }
-      if (editconnection.serverhttpcgipath.value.substring(0,1) != "/")
+      if (editconnection.authenticationservicepath.value.substring(0,1) != "/")
       {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.TheServerCgiPathMustBeginWithACharacter'))");
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.TheAuthenticationServicePathMustBeginWithACharacter'))");
         SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
-        editconnection.serverhttpcgipath.focus();
+        editconnection.authenticationservicepath.focus();
         return false;
       }
-      if (editconnection.viewprotocol.value == "" && editconnection.ingestprotocol.value == "")
+      if (editconnection.documentmanagementservicepath.value == "")
+      {
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.EnterTheDocumentManagementServicePath'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
+        editconnection.documentmanagementservicepath.focus();
+        return false;
+      }
+      if (editconnection.documentmanagementservicepath.value.substring(0,1) != "/")
+      {
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.TheDocumentManagementServicePathMustBeginWithACharacter'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
+        editconnection.documentmanagementservicepath.focus();
+        return false;
+      }
+      if (editconnection.memberserviceservicepath.value == "")
+      {
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.EnterTheMemberServiceServicePath'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
+        editconnection.memberserviceservicepath.focus();
+        return false;
+      }
+      if (editconnection.memberserviceservicepath.value.substring(0,1) != "/")
+      {
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.TheMemberServiceServicePathMustBeginWithACharacter'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
+        editconnection.memberserviceservicepath.focus();
+        return false;
+      }
+      if (editconnection.contentserviceservicepath.value == "")
+      {
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.EnterTheContentServiceServicePath'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
+        editconnection.contentserviceservicepath.focus();
+        return false;
+      }
+      if (editconnection.contentserviceservicepath.value.substring(0,1) != "/")
+      {
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.TheContentServiceServicePathMustBeginWithACharacter'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
+        editconnection.contentserviceservicepath.focus();
+        return false;
+      }
+
+      if (editconnection.viewprotocol.value == "")
       {
         alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.SelectAViewProtocol'))");
         SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.DocumentView'))");
         editconnection.viewprotocol.focus();
         return false;
       }
-      if (editconnection.viewcgipath.value == "" && editconnection.ingestcgipath.value == "")
+      if (editconnection.viewcgipath.value == "")
       {
         alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.EnterTheViewCgiPathToLivelink'))");
         SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.DocumentView'))");
         editconnection.viewcgipath.focus();
-        return false;
-      }
-      if (editconnection.ingestcgipath.value != "" && editconnection.ingestcgipath.value.substring(0,1) != "/")
-      {
-        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.TheIngestCgiPathMustBeBlankOrBeginWithACharacter'))");
-        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.DocumentAccess'))");
-        editconnection.ingestcgipath.focus();
         return false;
       }
       if (editconnection.viewcgipath.value != "" && editconnection.viewcgipath.value.substring(0,1) != "/")
