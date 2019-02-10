@@ -867,7 +867,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     CswsContext llc = new CswsContext();
     
     // First, grab the root LLValue
-    // MHL
+    // MHL - TBD
     ObjectInformation rootValue = null;
     /*
     ObjectInformation rootValue = llc.getObjectInformation(LLENTWK_VOL,LLENTWK_ID);
@@ -920,8 +920,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (doUserWorkspaces)
       {
         // Do ListUsers and enumerate the values.
-        // MHL - TBD
-        /*
         int sanityRetryCount = FAILURE_RETRY_COUNT;
         while (true)
         {
@@ -929,8 +927,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           try
           {
             t.start();
-            // MHL - need the web services equivalent
-            LLValue childrenDocs;
+            int[] childrenDocs;
 	    try
             {
               childrenDocs = t.finishUp();
@@ -940,18 +937,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
               sanityRetryCount = assessRetry(sanityRetryCount,e);
               continue;
             }
-            int size = 0;
-
-            if (childrenDocs.isRecord())
-              size = 1;
-            if (childrenDocs.isTable())
-              size = childrenDocs.size();
-
-            // Do the scan
-            for (int j = 0; j < size; j++)
+            
+            for (int childID : childrenDocs)
             {
-              int childID = childrenDocs.toInteger(j, "ID");
-              
               // Skip admin user
               if (childID == 1000 || childID == 1001)
                 continue;
@@ -961,6 +949,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
               activities.addSeedDocument("F0:"+Integer.toString(childID));
             }
+            
             break;
           }
           catch (InterruptedException e)
@@ -974,7 +963,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             continue;
           }
         }
-        */
       }
       
     }
@@ -1633,7 +1621,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     if (serverPassword != null)
       parameters.setObfuscatedParameter(CswsParameters.serverPassword,variableContext.mapKeyToPassword(serverPassword));
     
-    // MHL ???
     String authenticationServicePath = variableContext.getParameter("authenticationservicepath");
     if (authenticationServicePath != null)
       parameters.setParameter(CswsParameters.authenticationPath, authenticationServicePath);
@@ -1647,10 +1634,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     if (memberServiceServicePath != null)
       parameters.setParameter(CswsParameters.memberServicePath, memberServiceServicePath);
 
-    String serverHTTPCgiPath = variableContext.getParameter("serverhttpcgipath");
-    if (serverHTTPCgiPath != null)
-      parameters.setParameter(CswsParameters.serverHTTPCgiPath,serverHTTPCgiPath);
-    
     String serverHTTPNTLMDomain = variableContext.getParameter("serverhttpntlmdomain");
     if (serverHTTPNTLMDomain != null)
       parameters.setParameter(CswsParameters.serverHTTPNTLMDomain,serverHTTPNTLMDomain);
@@ -4346,7 +4329,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected class ListUsersThread extends Thread
   {
-    protected LLValue rval = null;
+    protected int[] rval = null;
     protected Throwable exception = null;
 
     public ListUsersThread()
@@ -4359,6 +4342,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
+        // MHL - TBD
+        /*
         LLValue userList = new LLValue();
         int status = LLUsers.ListUsers(userList);
 
@@ -4378,7 +4363,24 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           throw new ManifoldCFException("Error retrieving user list: status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
         }
         
-        rval = userList;
+        if (userList != null)
+        {
+          int size = 0;
+
+          if (userList.isRecord())
+            size = 1;
+          if (userList.isTable())
+            size = childrenDocs.size();
+
+          rval = new int[size];
+          // Do the scan
+          for (int j = 0; j < size; j++)
+          {
+            int childID = userList.toInteger(j, "ID");
+            rval[j] = childID;
+          }
+        }
+        */
       }
       catch (Throwable e)
       {
@@ -4386,7 +4388,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    public LLValue finishUp()
+    public int[] finishUp()
       throws ManifoldCFException, InterruptedException
     {
       join();
