@@ -2930,221 +2930,65 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
       }
 
-      if (ingestProtocol != null)
+      // Use FetchVersion instead
+      long currentTime;
+              
+      // Fire up the document reading thread
+      DocumentReadingThread t = new DocumentReadingThread(vol,objID,0);
+      boolean wasInterrupted = false;
+      t.start();
+      try 
       {
-        // Use HTTP to fetch document!
-        String ingestHttpAddress = convertToIngestURI(documentIdentifier);
-        if (ingestHttpAddress == null)
-        {
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("Csws: No fetch URI "+contextMsg+" - not ingesting");
-          resultCode = "NOURI";
-          resultDescription = "Document had no fetch URI";
-          activities.noDocument(documentIdentifier,version);
-          return;
-        }
-
-        // Set up connection
-        HttpClient client = getInitializedClient(contextMsg);
-
-        long currentTime;
-
-        if (Logging.connectors.isInfoEnabled())
-          Logging.connectors.info("Csws: " + ingestHttpAddress);
-
-
-        HttpGet method = new HttpGet(getHost().toURI() + ingestHttpAddress);
-        method.setHeader(new BasicHeader("Accept","*/*"));
-
-        boolean wasInterrupted = false;
-        ExecuteMethodThread methodThread = new ExecuteMethodThread(client,method);
-        methodThread.start();
         try
         {
-          int statusCode = methodThread.getResponseCode();
-          switch (statusCode)
+          InputStream is = t.getSafeInputStream();
+          try 
           {
-          case 500:
-          case 502:
-            Logging.connectors.warn("Csws: Service interruption during fetch "+contextMsg+" with Csws HTTP Server, retrying...");
-            resultCode = "FETCHFAILED";
-            resultDescription = "HTTP error code "+statusCode+" fetching document";
-            throw new ServiceInterruption("Service interruption during fetch",new ManifoldCFException(Integer.toString(statusCode)+" error while fetching"),System.currentTimeMillis()+60000L,
-              System.currentTimeMillis()+600000L,-1,true);
-
-          case HttpStatus.SC_UNAUTHORIZED:
-            Logging.connectors.warn("Csws: Document fetch unauthorized for "+ingestHttpAddress+" ("+contextMsg+")");
-            // Since we logged in, we should fail here if the ingestion user doesn't have access to the
-            // the document, but if we do, don't fail hard.
-            resultCode = "UNAUTHORIZED";
-            resultDescription = "Document fetch was unauthorized by IIS";
-            activities.noDocument(documentIdentifier,version);
-            return;
-
-          case HttpStatus.SC_OK:
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Csws: Created http document connection to Csws "+contextMsg);
-            // A non-existent content length will cause a value of -1 to be returned.  This seems to indicate that the session login did not work right.
-            if (methodThread.getResponseContentLength() < 0)
-            {
-              resultCode = "SESSIONLOGINFAILED";
-              resultDescription = "Response content length was -1, which usually means session login did not succeed";
-              activities.noDocument(documentIdentifier,version);
-              return;
-            }
-              
-            try
-            {
-              InputStream is = methodThread.getSafeInputStream();
-              try
-              {
-                rd.setBinary(is,dataSize);
-                            
-                activities.ingestDocumentWithException(documentIdentifier,version,viewHttpAddress,rd);
-                resultCode = "OK";
-                readSize = dataSize;
-                    
-                if (Logging.connectors.isDebugEnabled())
-                  Logging.connectors.debug("Csws: Ingesting done "+contextMsg);
-
-              }
-              finally
-              {
-                // Close stream via thread, since otherwise this can hang
-                is.close();
-              }
-            }
-            catch (InterruptedException e)
-            {
-              wasInterrupted = true;
-              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-            }
-            catch (HttpException e)
-            {
-              resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-              resultDescription = e.getMessage();
-              handleHttpException(contextMsg,e);
-            }
-            catch (IOException e)
-            {
-              resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-              resultDescription = e.getMessage();
-              handleIOException(contextMsg,e);
-            }
-            break;
-          case HttpStatus.SC_BAD_REQUEST:
-          case HttpStatus.SC_USE_PROXY:
-          case HttpStatus.SC_GONE:
-            resultCode = "HTTPERROR";
-            resultDescription = "Http request returned status "+Integer.toString(statusCode);
-            throw new ManifoldCFException("Unrecoverable request failure; error = "+Integer.toString(statusCode));
-          default:
-            resultCode = "UNKNOWNHTTPCODE";
-            resultDescription = "Http request returned status "+Integer.toString(statusCode);
-            Logging.connectors.warn("Csws: Attempt to retrieve document from '"+ingestHttpAddress+"' received a response of "+Integer.toString(statusCode)+"; retrying in one minute");
-            currentTime = System.currentTimeMillis();
-            throw new ServiceInterruption("Fetch failed; retrying in 1 minute",new ManifoldCFException("Fetch failed with unknown code "+Integer.toString(statusCode)),
-              currentTime+60000L,currentTime+600000L,-1,true);
-          }
-        }
-        catch (InterruptedException e)
-        {
-          // Drop the connection on the floor
-          methodThread.interrupt();
-          methodThread = null;
-          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-        }
-        catch (HttpException e)
-        {
-          resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-          resultDescription = e.getMessage();
-          handleHttpException(contextMsg,e);
-        }
-        catch (IOException e)
-        {
-          resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-          resultDescription = e.getMessage();
-          handleIOException(contextMsg,e);
-        }
-        finally
-        {
-          if (methodThread != null)
-          {
-            methodThread.abort();
-            try
-            {
-              if (!wasInterrupted)
-                methodThread.finishUp();
-            }
-            catch (InterruptedException e)
-            {
-              throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-            }
-          }
-        }
-      }
-      else
-      {
-        // Use FetchVersion instead
-        long currentTime;
-              
-        // Fire up the document reading thread
-        DocumentReadingThread t = new DocumentReadingThread(vol,objID,0);
-        boolean wasInterrupted = false;
-        t.start();
-        try 
-        {
-          try
-          {
-            InputStream is = t.getSafeInputStream();
-            try 
-            {
-              // Can only index while background thread is running!
-              rd.setBinary(is, dataSize);
-              activities.ingestDocumentWithException(documentIdentifier, version, viewHttpAddress, rd);
-              resultCode = "OK";
-              readSize = dataSize;
-            }
-            finally
-            {
-              is.close();
-            }
-          }
-          catch (java.net.SocketTimeoutException e)
-          {
-            throw e;
-          }
-          catch (InterruptedIOException e)
-          {
-            wasInterrupted = true;
-            throw e;
+            // Can only index while background thread is running!
+            rd.setBinary(is, dataSize);
+            activities.ingestDocumentWithException(documentIdentifier, version, viewHttpAddress, rd);
+            resultCode = "OK";
+            readSize = dataSize;
           }
           finally
           {
-            if (!wasInterrupted)
-              t.finishUp();
+            is.close();
           }
+        }
+        catch (java.net.SocketTimeoutException e)
+        {
+          throw e;
+        }
+        catch (InterruptedIOException e)
+        {
+          wasInterrupted = true;
+          throw e;
+        }
+        finally
+        {
+          if (!wasInterrupted)
+            t.finishUp();
+        }
 
-          // No errors.  Record the fact that we made it.
-        }
-        catch (InterruptedException e) 
-        {
-          t.interrupt();
-          throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
-            ManifoldCFException.INTERRUPTED);
-        }
-        catch (IOException e)
-        {
-          resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-          resultDescription = e.getMessage();
-          handleIOException(contextMsg,e);
-        }
-        catch (RuntimeException e)
-        {
-          resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-          resultDescription = e.getMessage();
-          handleCswsRuntimeException(e,0,true);
-        }
+        // No errors.  Record the fact that we made it.
+      }
+      catch (InterruptedException e) 
+      {
+        t.interrupt();
+        throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
+          ManifoldCFException.INTERRUPTED);
+      }
+      catch (IOException e)
+      {
+        resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+        resultDescription = e.getMessage();
+        handleIOException(contextMsg,e);
+      }
+      catch (RuntimeException e)
+      {
+        resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+        resultDescription = e.getMessage();
+        handleCswsRuntimeException(e,0,true);
       }
     }
     catch (ManifoldCFException e)
@@ -3160,15 +3004,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
   }
 
-  protected static void handleHttpException(String contextMsg, HttpException e)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    long currentTime = System.currentTimeMillis();
-    // Treat unknown error ingesting data as a transient condition
-    Logging.connectors.warn("Csws: HTTP exception ingesting "+contextMsg+": "+e.getMessage(),e);
-    throw new ServiceInterruption("HTTP exception ingesting "+contextMsg+": "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
-  }
-  
   protected static void handleIOException(String contextMsg, IOException e)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -3200,84 +3035,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throw new ServiceInterruption("IO exception ingesting "+contextMsg+": "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
   }
   
-  /** Initialize a livelink client connection */
-  protected HttpClient getInitializedClient(String contextMsg)
-    throws ServiceInterruption, ManifoldCFException
-  {
-    long currentTime;
-    if (Logging.connectors.isDebugEnabled())
-      Logging.connectors.debug("Csws: Session authenticating via http "+contextMsg+"...");
-    HttpGet authget = new HttpGet(getHost().toURI() + createCswsLoginURI());
-    authget.setHeader(new BasicHeader("Accept","*/*"));
-    try
-    {
-      if (Logging.connectors.isDebugEnabled())
-        Logging.connectors.debug("Csws: Created new HttpGet "+contextMsg+"; executing authentication method");
-      int statusCode = executeMethodViaThread(httpClient,authget);
-
-      if (statusCode == 502 || statusCode == 500)
-      {
-        Logging.connectors.warn("Csws: Service interruption during authentication "+contextMsg+" with Csws HTTP Server, retrying...");
-        currentTime = System.currentTimeMillis();
-        throw new ServiceInterruption("502 error during authentication",new ManifoldCFException("502 error while authenticating"),
-          currentTime+60000L,currentTime+600000L,-1,true);
-      }
-      if (statusCode != HttpStatus.SC_OK)
-      {
-        Logging.connectors.error("Csws: Failed to authenticate "+contextMsg+" against Csws HTTP Server; Status code: " + statusCode);
-        // Ok, so we didn't get in - simply do not ingest
-        if (statusCode == HttpStatus.SC_UNAUTHORIZED)
-          throw new ManifoldCFException("Session authorization failed with a 401 code; are credentials correct?");
-        else
-          throw new ManifoldCFException("Session authorization failed with code "+Integer.toString(statusCode));
-      }
-    }
-    catch (InterruptedException e)
-    {
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
-    catch (java.net.SocketTimeoutException e)
-    {
-      currentTime = System.currentTimeMillis();
-      Logging.connectors.warn("Csws: Socket timed out authenticating to the Csws HTTP Server "+contextMsg+": "+e.getMessage(), e);
-      throw new ServiceInterruption("Socket timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
-    }
-    catch (java.net.SocketException e)
-    {
-      currentTime = System.currentTimeMillis();
-      Logging.connectors.warn("Csws: Socket error authenticating to the Csws HTTP Server "+contextMsg+": "+e.getMessage(), e);
-      throw new ServiceInterruption("Socket error: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
-    }
-    catch (javax.net.ssl.SSLHandshakeException e)
-    {
-      currentTime = System.currentTimeMillis();
-      Logging.connectors.warn("Csws: SSL handshake failed authenticating "+contextMsg+": "+e.getMessage(),e);
-      throw new ServiceInterruption("SSL handshake error: "+e.getMessage(),e,currentTime+60000L,currentTime+300000L,-1,true);
-    }
-    catch (ConnectTimeoutException e)
-    {
-      currentTime = System.currentTimeMillis();
-      Logging.connectors.warn("Csws: Connect timed out authenticating to the Csws HTTP Server "+contextMsg+": "+e.getMessage(), e);
-      throw new ServiceInterruption("Connect timed out: "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,true);
-    }
-    catch (InterruptedIOException e)
-    {
-      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-    }
-    catch (HttpException e)
-    {
-      Logging.connectors.error("Csws: HTTP exception when authenticating to the Csws HTTP Server "+contextMsg+": "+e.getMessage(), e);
-      throw new ManifoldCFException("Unable to communicate with the Csws HTTP Server: "+e.getMessage(), e);
-    }
-    catch (IOException e)
-    {
-      Logging.connectors.error("Csws: IO exception when authenticating to the Csws HTTP Server "+contextMsg+": "+e.getMessage(), e);
-      throw new ManifoldCFException("Unable to communicate with the Csws HTTP Server: "+e.getMessage(), e);
-    }
-
-    return httpClient;
-  }
-
   /** Pack category and attribute */
   protected static String packCategoryAttribute(String category, String attribute)
   {
@@ -3415,7 +3172,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     protected final int catObjectID;
     protected Throwable exception = null;
-    protected LLValue rval = null;
+    protected String[] rval = null;
 
     public GetCategoryAttributesThread(int catObjectID)
     {
@@ -3428,6 +3185,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
+        // MHL - TBD
+        /*
         LLValue catID = new LLValue();
         catID.setAssoc();
         catID.add("ID", catObjectID);
@@ -3448,7 +3207,21 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           throw new ManifoldCFException("Error getting attribute names: "+Integer.toString(status));
         }
-        rval = children;
+        
+        if (children != null)
+        {
+          rval = new String[children.size()];
+          LLValueEnumeration en = children.enumerateValues();
+
+          int j = 0;
+          while (en.hasMoreElements())
+          {
+            LLValue v = (LLValue)en.nextElement();
+            rval[j] = v.toString();
+            j++;
+          }
+        }
+        */
       }
       catch (Throwable e)
       {
@@ -3491,7 +3264,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         t.start();
-	LLValue children;
+        String[] children;
 	try
 	{
 	  children = t.finishUp();
@@ -3502,20 +3275,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  continue;
         }
 
-        if (children == null)
-          return null;
-
-        String[] rval = new String[children.size()];
-        LLValueEnumeration en = children.enumerateValues();
-
-        int j = 0;
-        while (en.hasMoreElements())
-        {
-          LLValue v = (LLValue)en.nextElement();
-          rval[j] = v.toString();
-          j++;
-        }
-        return rval;
+        return children;
       }
       catch (InterruptedException e)
       {
@@ -3549,6 +3309,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
+        // MHL - TBD
+        /*
         // Set up the right llvalues
 
         // Object ID
@@ -3574,7 +3336,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
 
         rval = rvalue;
-
+        */
       }
       catch (Throwable e)
       {
@@ -3630,16 +3392,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         t.interrupt();
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
-      catch (NullPointerException npe)
-      {
-        // LAPI throws a null pointer exception under very rare conditions when the GetObjectAttributesEx is
-        // called.  The conditions are not clear at this time - it could even be due to Csws corruption.
-        // However, I'm going to have to treat this as
-        // indicating that this category version does not exist for this document.
-        Logging.connectors.warn("Csws: Null pointer exception thrown trying to get cat version for category "+
-          Integer.toString(catID)+" for object "+Integer.toString(objID));
-        return null;
-      }
       catch (RuntimeException e)
       {
         sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
@@ -3653,7 +3405,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected final LLValue categoryVersion;
     protected final String attributeName;
     protected Throwable exception = null;
-    protected LLValue rval = null;
+    protected String[] rval = null;
 
     public GetAttributeValueThread(LLValue categoryVersion, String attributeName)
     {
@@ -3667,6 +3419,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
+        // MHL - TBD
+        /*
         // Set up the right llvalues
         LLValue children = new LLValue();
         int status = LLAttributes.AttrGetValues(categoryVersion,attributeName,
@@ -3682,7 +3436,21 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           throw new ManifoldCFException("Error retrieving attribute value: "+Integer.toString(status)+": "+llServer.getErrors());
         }
-        rval = children;
+        
+        if (children != null)
+        {
+          rval = new String[children.size()];
+          LLValueEnumeration en = children.enumerateValues();
+
+          int j = 0;
+          while (en.hasMoreElements())
+          {
+            LLValue v = (LLValue)en.nextElement();
+            rval[j] = v.toString();
+            j++;
+          }
+        }
+        */
       }
       catch (Throwable e)
       {
@@ -3690,7 +3458,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    public LLValue finishUp()
+    public String[] finishUp()
       throws ManifoldCFException, InterruptedException
     {
       join();
@@ -3723,7 +3491,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         t.start();
-	LLValue children;
+	String[] children;
 	try
 	{
 	  children = t.finishUp();
@@ -3734,19 +3502,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  continue;
         }
 	
-        if (children == null)
-          return null;
-        String[] rval = new String[children.size()];
-        LLValueEnumeration en = children.enumerateValues();
-
-        int j = 0;
-        while (en.hasMoreElements())
-        {
-          LLValue v = (LLValue)en.nextElement();
-          rval[j] = v.toString();
-          j++;
-        }
-        return rval;
+        return children;
       }
       catch (InterruptedException e)
       {
@@ -3766,7 +3522,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected final int vol;
     protected final int objID;
     protected Throwable exception = null;
-    protected LLValue rval = null;
+    protected int[] rval = null;
 
     public GetObjectRightsThread(int vol, int objID)
     {
@@ -3780,6 +3536,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
+        // MHL - TBD
+        /*
         LLValue childrenObjects = new LLValue();
         int status = LLDocs.GetObjectRights(vol, objID, childrenObjects);
         // If the rights object doesn't exist, behave civilly
@@ -3791,7 +3549,46 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           throw new ManifoldCFException("Error retrieving document rights: "+Integer.toString(status)+": "+llServer.getErrors());
         }
 
-        rval = childrenObjects;
+        if (childrenObjects != null)
+        {
+          int size;
+          if (childrenObjects.isRecord())
+            size = 1;
+          else if (childrenObjects.isTable())
+            size = childrenObjects.size();
+          else
+            size = 0;
+
+          int minPermission = LAPI_DOCUMENTS.PERM_SEE +
+            LAPI_DOCUMENTS.PERM_SEECONTENTS;
+
+          int j = 0;
+          int count = 0;
+          while (j < size)
+          {
+            int permission = childrenObjects.toInteger(j, "Permissions");
+            // Only if the permission is "see contents" can we consider this
+            // access token!
+            if ((permission & minPermission) == minPermission)
+              count++;
+            j++;
+          }
+
+          rval = new int[count];
+          j = 0;
+          count = 0;
+          while (j < size)
+          {
+            int token = childrenObjects.toInteger(j, "RightID");
+            int permission = childrenObjects.toInteger(j, "Permissions");
+            // Only if the permission is "see contents" can we consider this
+            // access token!
+            if ((permission & minPermission) == minPermission)
+              rval[count++] = token;
+            j++;
+          }
+        }
+        */
       }
       catch (Throwable e)
       {
@@ -3799,7 +3596,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    public LLValue finishUp()
+    public int[] finishUp()
       throws ManifoldCFException, InterruptedException
     {
       join();
@@ -3836,7 +3633,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         t.start();
-	LLValue childrenObjects;
+	int[] childrenObjects;
 	try
 	{
 	  childrenObjects = t.finishUp();
@@ -3846,48 +3643,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  sanityRetryCount = assessRetry(sanityRetryCount,e);
 	  continue;
         }
-
-        if (childrenObjects == null)
-          return null;
-
-        int size;
-        if (childrenObjects.isRecord())
-          size = 1;
-        else if (childrenObjects.isTable())
-          size = childrenObjects.size();
-        else
-          size = 0;
-
-        int minPermission = LAPI_DOCUMENTS.PERM_SEE +
-          LAPI_DOCUMENTS.PERM_SEECONTENTS;
-
-
-        int j = 0;
-        int count = 0;
-        while (j < size)
-        {
-          int permission = childrenObjects.toInteger(j, "Permissions");
-          // Only if the permission is "see contents" can we consider this
-          // access token!
-          if ((permission & minPermission) == minPermission)
-            count++;
-          j++;
-        }
-
-        int[] rval = new int[count];
-        j = 0;
-        count = 0;
-        while (j < size)
-        {
-          int token = childrenObjects.toInteger(j, "RightID");
-          int permission = childrenObjects.toInteger(j, "Permissions");
-          // Only if the permission is "see contents" can we consider this
-          // access token!
-          if ((permission & minPermission) == minPermission)
-            rval[count++] = token;
-          j++;
-        }
-        return rval;
+        return childrenObjects;
       }
       catch (InterruptedException e)
       {
