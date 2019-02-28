@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.13-dev =====================
 
+CONNECTORS-1588: Apply override of jcifs properties only if they are not
+already specified.
+(Cihad Guzel)
+
 CONNECTORS-1579: Fix for JDBC connector's incorrect tracking of rejected
 documents.
 (Donald Van den Driessche, Karl Wright)
