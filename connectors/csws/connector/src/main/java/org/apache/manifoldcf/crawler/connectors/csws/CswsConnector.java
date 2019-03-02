@@ -29,6 +29,19 @@ import org.apache.manifoldcf.connectorcommon.common.XThreadOutputStream;
 import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
 import org.apache.manifoldcf.core.common.DateParser;
 
+import com.opentext.ecm.api.OTAuthentication;
+import com.opentext.livelink.service.core.Authentication;
+import com.opentext.livelink.service.core.Authentication_Service;
+import com.opentext.livelink.service.core.ContentService;
+import com.opentext.livelink.service.core.ContentService_Service;
+import com.opentext.livelink.service.core.FileAtts;
+import com.opentext.livelink.service.docman.AttributeGroup;
+import com.opentext.livelink.service.docman.CategoryInheritance;
+import com.opentext.livelink.service.docman.DocumentManagement;
+import com.opentext.livelink.service.docman.DocumentManagement_Service;
+import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
+import com.opentext.livelink.service.docman.Node;
+
 import org.apache.manifoldcf.csws.*;
 
 import java.io.*;
