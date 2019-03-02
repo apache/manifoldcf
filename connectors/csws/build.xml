@@ -77,7 +77,7 @@
             <param name="packagename" value="opentext.Core"/>
             <param name="bindingfile" value="wsdls/castor_binding.xml"/>
         </antcall>
-        <!--antcall target="classcreate-xsd-bindings">
+        <antcall target="classcreate-xsd-bindings">
             <param name="xsdname" value="wsdls/DocumentManagement2.xsd"/>
             <param name="packagename" value="opentext.DocMan"/>
             <param name="bindingfile" value="wsdls/castor_binding.xml"/>

@@ -409,32 +409,34 @@
     </target>
 
     <target name="classcreate-wsdl-cxf">
-	<mkdir dir="build/wsdljava"/>
-	<java classname="org.apache.cxf.tools.wsdlto.WSDLToJava" fork="true">
-	    <classpath>
-		<fileset dir="${mcf-dist}/connector-common-lib">
-		    <include name="cxf*.jar"/>
-		    <include name="jaxb*.jar"/>
-		    <include name="wsdl4j*.jar"/>
-		    <include name="woodstox*.jar"/>
-		    <include name="stax2-api*.jar"/>
-		    <include name="xmlschema*.jar"/>
-		    <include name="neethi*.jar"/>
-		    <include name="xml-resolver*.jar"/>
-		</fileset>
-		<fileset dir="${mcf-dist}/lib">
-		    <include name="velocity*.jar"/>
-		    <include name="commons-collections*.jar"/>
-		    <include name="commons-lang*.jar"/>
-		</fileset>
-	    </classpath>
-	    <jvmarg value="-Dorg.apache.cxf.stax.allowInsecureParser=1"/>
-	    <jvmarg value="-Dfile.encoding=UTF-8"/>
-	    <arg value="-client"/>
-	    <arg value="-d"/>
-	    <arg value="build/wsdljava"/>
-	    <arg value="${wsdlname}"/>
-	</java>
+          <mkdir dir="build/wsdljava"/>
+          <java classname="org.apache.cxf.tools.wsdlto.WSDLToJava" fork="true">
+              <classpath>
+                  <fileset dir="${mcf-dist}/connector-common-lib">
+                      <include name="cxf*.jar"/>
+                      <include name="jaxb*.jar"/>
+                      <include name="wsdl4j*.jar"/>
+                      <include name="woodstox*.jar"/>
+                      <include name="stax2-api*.jar"/>
+                      <include name="xmlschema*.jar"/>
+                      <include name="neethi*.jar"/>
+                      <include name="xml-resolver*.jar"/>
+                  </fileset>
+                  <fileset dir="${mcf-dist}/lib">
+                      <include name="velocity*.jar"/>
+                      <include name="commons-collections*.jar"/>
+                      <include name="commons-lang*.jar"/>
+                  </fileset>
+              </classpath>
+              <jvmarg value="-Dorg.apache.cxf.stax.allowInsecureParser=1"/>
+              <jvmarg value="-Dfile.encoding=UTF-8"/>
+              <arg value="-client"/>
+              <arg value="-exsh"/>
+              <arg value="true"/>
+              <arg value="-d"/>
+              <arg value="build/wsdljava"/>
+              <arg value="${wsdlname}"/>
+          </java>
     </target>
 
     <target name="classcreate-wsdl">
