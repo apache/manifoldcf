@@ -18,6 +18,10 @@
 */
 package org.apache.manifoldcf.csws;
 
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
 import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPElement;
@@ -29,17 +33,20 @@ import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
 import javax.xml.ws.soap.MTOMFeature;
 import javax.xml.ws.soap.SOAPFaultException;
+import javax.xml.ws.BindingProvider;
 
 import com.opentext.ecm.api.OTAuthentication;
 import com.opentext.livelink.service.core.Authentication;
 import com.opentext.livelink.service.core.Authentication_Service;
 import com.opentext.livelink.service.core.ContentService;
 import com.opentext.livelink.service.core.ContentService_Service;
-import com.opentext.livelink.service.core.FileAtts;
-import com.opentext.livelink.service.docman.AttributeGroup;
-import com.opentext.livelink.service.docman.CategoryInheritance;
+import com.opentext.livelink.service.memberservice.MemberService;
+import com.opentext.livelink.service.memberservice.MemberService_Service;
 import com.opentext.livelink.service.docman.DocumentManagement;
 import com.opentext.livelink.service.docman.DocumentManagement_Service;
+
+import com.opentext.livelink.service.docman.AttributeGroup;
+import com.opentext.livelink.service.docman.CategoryInheritance;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
 
@@ -60,11 +67,21 @@ public class CswsSession
   private final Authentication_Service authService;
   private final ContentService_Service contentServiceService;
   private final DocumentManagement_Service documentManagementService;
+  private final MemberService_Service memberServiceService;
   
   // Authentication support
   private final Authentication authClientHandle;
   private final DocumentManagement documentManagementHandle;
   private final ContentService contentServiceHandle;
+  private final MemberService memberServiceHandle;
+  
+  // Transient data
+  
+  // Cached root node types
+  private List<? extends String> rootNodeTypes = null;
+  
+  // Cached workspace root nodes
+  private Map<String, Node> workspaceTypeNodes = new HashMap<>();
   
   // Transient data that will need to be periodically rebuilt
   private long currentSessionExpiration = -1L;
@@ -73,66 +90,115 @@ public class CswsSession
   public CswsSession(final String userName,
     final String password, 
     final long sessionExpirationInterval,
-    final Authentication_Service authenticationService,
-    final ContentService_Service contentServiceService,
-    final DocumentManagement_Service documentManagementService) {
+    final String authenticationServiceURL,
+    final String documentManagementServiceURL,
+    final String contentServiceServiceURL,
+    final String memberServiceServiceURL) {
+      
+    // Save username/password
     this.userName = userName;
     this.password = password;
+    // Save expiration interval
     this.sessionExpirationInterval = sessionExpirationInterval;
-    this.authService = authService;
-    this.contentServiceService = contentServiceService;
-    this.documentManagementService = documentManagementService;
-
+    // Construct service references from the URLs
+    this.authService = new Authentication_Service();
+    this.documentManagementService = new DocumentManagement_Service();
+    this.contentServiceService = new ContentService_Service();
+    this.memberServiceService = new MemberService_Service();
     // Initialize authclient etc.
     this.authClientHandle = authService.getBasicHttpBindingAuthentication();
     this.documentManagementHandle = documentManagementService.getBasicHttpBindingDocumentManagement();
     this.contentServiceHandle = contentServiceService.getBasicHttpBindingContentService();
+    this.memberServiceHandle = memberServiceService.getBasicHttpBindingMemberService();
+    // Set up endpoints
+    ((BindingProvider)authClientHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, authenticationServiceURL);
+    ((BindingProvider)documentManagementHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, documentManagementServiceURL);
+    ((BindingProvider)contentServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, contentServiceServiceURL);
+    ((BindingProvider)memberServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, memberServiceServiceURL);
   }
-  
-  public ContentService getContentServiceHandle() {
-    // MHL
-    return null;
-  }
-  
-  public DocumentManagement getDocumentManagementHandle() {
-    // Set the outgoing headers; all we need is the auth token
-    // Create a SOAP header
-    final SOAPHeader header = MessageFactory.newInstance().createMessage().getSOAPPart().getEnvelope().getHeader();
-    //((WSBindingProvider)documentManagementHandle).setOutboundHeaders(createAuthHeader(header));
-    
-    List<String> rootNodeTypes = documentManagementHandle.getRootNodeTypes();
 
+  /**
+   * Fetch initialized DocumentManagement handle.
+   */
+  public DocumentManagement getDocumentManagementHandle() {
+    // MHL to set up transport etc.
     return documentManagementHandle;
   }
+
+  /**
+   * Fetch initialized ContentService handle.
+   */
+  public ContentService getContentServiceHandle() {
+    // MHL to set up transport etc.
+    return contentServiceHandle;
+  }
   
-  // Private methods
+  /** 
+   * Fetch initialized MemberService handle.
+   */
+  public MemberService getMemberServiceHandle() {
+    // MHL
+    return memberServiceHandle;
+  }
   
-  /*
-  private Header createAuthHeader(final SOAPHeader header) {
+  // Accessors for information that only needs to be accessed once per session, which we will cache
+  
+  /**
+   * Fetch root node types.   These will be cached so we only need to do it once.
+   */
+  public List<? extends String> getRootNodeTypes() {
+    if (rootNodeTypes == null) {
+      // Fetch them
+      this.rootNodeTypes = getDocumentManagementHandle().getRootNodeTypes(getOTAuthentication());
+    }
+    return this.rootNodeTypes;
+  }
+  
+  /**
+   * Fetch root node given type.
+   */
+  public Node getRootNode(final String nodeType) {
+    Node thisWorkspaceNode = workspaceTypeNodes.get(nodeType);
+    if (thisWorkspaceNode == null) {
+      thisWorkspaceNode = getDocumentManagementHandle().getRootNode(nodeType, getOTAuthentication());
+      workspaceTypeNodes.put(nodeType, thisWorkspaceNode);
+    }
+    return thisWorkspaceNode;
+  }
+  
+  // Helper methods -- helpful simplifications of API
+  
+  public List<? extends Node> getChildren(final String nodeId) {
+    final GetNodesInContainerOptions gnico = new GetNodesInContainerOptions();
+    // Depth 0 - default listing and Depth 1 - One level down
+    gnico.setMaxDepth(0);
+    // We're listing folder by folder so hopefully this is nowhere near what we'll ever get back
+    gnico.setMaxResults(1000000);
+    return getDocumentManagementHandle().getNodesInContainer(nodeId, gnico);
+  }
+  
+  public List<? extends CategoryInheritance> getCategoryInheritance(final String parentId) {
+    return getDocumentManagementHandle().getCategoryInheritance(parentId, getOTAuthentication());
+  }
+
+  public Node getNode(final String parentId) {
+    return getDocumentManagementHandle().getNode(parentId, getOTAuthentication());
+  }
+  
+  // Construct authentication token argument, which must be passed as last argument for every method
+  
+  /**
+   * Construct OTAuthentication structure (to be passed as an argument)
+   */
+  public OTAuthentication getOTAuthentication() {
     final String authToken = getAuthToken();
     // Create the OTAuthentication object and set the authentication token
     final OTAuthentication otAuth = new OTAuthentication();
     otAuth.setAuthenticationToken(authToken);
-
-    // We need to manually set the SOAP header to include the authentication token
-
-    // Add the OTAuthentication SOAP header element
-    final SOAPHeaderElement otAuthElement = header.addHeaderElement(new QName(ECM_API_NAMESPACE, "OTAuthentication"));
-
-    // Add the AuthenticationToken SOAP element
-    final SOAPElement authTokenElement = otAuthElement.addChildElement(new QName(ECM_API_NAMESPACE, "AuthenticationToken"));
-    authTokenElement.addTextNode(otAuth.getAuthenticationToken());
-    return Headers.create(otAuthElement);
+    return otAuth;
   }
-  */
-  
-  /*
-  private static Header getContentIDHeader(final SOAPHeader header, String contentID) {
-    final SOAPHeaderElement contentIDElement = header.addHeaderElement(new QName(CORE_NAMESPACE, "contextID"));
-    contentIDElement.addTextNode(contentID);
-    return Headers.create(contentIDElement);
-  }
-  */
+
+  // Private methods
   
   private String getAuthToken() {
     final long currentTime = System.currentTimeMillis();
@@ -140,8 +206,6 @@ public class CswsSession
       // Kill current auth token etc
       currentSessionExpiration = -1L;
       currentAuthToken = null;
-      documentManagementHandle = null;
-      contentServiceHandle = null;
       // Refetch the auth token (this may fail)
       currentAuthToken = authClient.authenticateUser(userName, password);
       currentSessionExpiration = currentTime + expirationInterval;
