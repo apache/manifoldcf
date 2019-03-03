@@ -42,6 +42,7 @@ import com.opentext.livelink.service.docman.DocumentManagement_Service;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
 import com.opentext.livelink.service.docman.NodePermissions;
+import com.opentext.livelink.service.docman.Version;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.manifoldcf.csws.*;
@@ -3103,53 +3104,35 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     // We want only folders that are children of the current object and which match the specified subfolder
     String filterString = "SubType="+ LAPI_DOCUMENTS.CATEGORYSUBTYPE;
 
-    int sanityRetryCount = FAILURE_RETRY_COUNT;
-    while (true)
+    final ListObjectsThread t = new ListObjectsThread(vid.getVolumeID(), vid.getPathId(), filterString);
+    try
     {
-      ListObjectsThread t = new ListObjectsThread(vid.getVolumeID(), vid.getPathId(), filterString);
-      try
-      {
-        t.start();
-	LLValue children;
-	try
-	{
-	  children = t.finishUp();
-	}
-	catch (ManifoldCFException e)
-	{
-	  sanityRetryCount = assessRetry(sanityRetryCount,e);
-	  continue;
-        }
+      t.start();
+      final List<? extends String> children = t.finishUp();
 
-        String[] rval = new String[children.size()];
-        int j = 0;
-        while (j < children.size())
-        {
-          rval[j] = children.toString(j,"Name");
-          j++;
-        }
-        return rval;
-      }
-      catch (InterruptedException e)
+      final String[] rval = new String[children.size()];
+      int j = 0;
+      while (j < children.size())
       {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        rval[j] = children.get(j).getName();
+        j++;
       }
-      catch (RuntimeException e)
-      {
-        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
-        continue;
-      }
+      return rval;
+    }
+    catch (InterruptedException e)
+    {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
   }
 
   protected class GetCategoryAttributesThread extends Thread
   {
-    protected final int catObjectID;
+    protected final long catObjectID;
     protected Throwable exception = null;
     protected String[] rval = null;
 
-    public GetCategoryAttributesThread(int catObjectID)
+    public GetCategoryAttributesThread(long catObjectID)
     {
       super();
       setDaemon(true);
@@ -3229,50 +3212,30 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param catObjectID is the object id of the category.
   *@return a list of attribute names, in sorted order, or null of the path was invalid.
   */
-  protected String[] getCategoryAttributes(int catObjectID)
+  protected String[] getCategoryAttributes(long catObjectID)
     throws ManifoldCFException, ServiceInterruption
   {
-    int sanityRetryCount = FAILURE_RETRY_COUNT;
-    while (true)
+    final GetCategoryAttributesThread t = new GetCategoryAttributesThread(catObjectID);
+    try
     {
-      GetCategoryAttributesThread t = new GetCategoryAttributesThread(catObjectID);
-      try
-      {
-        t.start();
-        String[] children;
-	try
-	{
-	  children = t.finishUp();
-	}
-	catch (ManifoldCFException e)
-	{
-	  sanityRetryCount = assessRetry(sanityRetryCount,e);
-	  continue;
-        }
-
-        return children;
-      }
-      catch (InterruptedException e)
-      {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-      }
-      catch (RuntimeException e)
-      {
-        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
-        continue;
-      }
+      t.start();
+      return t.finishUp();
+    }
+    catch (InterruptedException e)
+    {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
   }
 
   protected class GetCategoryVersionThread extends Thread
   {
-    protected final int objID;
-    protected final int catID;
+    protected final long objID;
+    protected final long catID;
     protected Throwable exception = null;
     protected LLValue rval = null;
 
-    public GetCategoryVersionThread(int objID, int catID)
+    public GetCategoryVersionThread(long objID, long catID)
     {
       super();
       setDaemon(true);
@@ -3342,36 +3305,19 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   /** Get a category version for document.
   */
-  protected LLValue getCatVersion(int objID, int catID)
+  protected LLValue getCatVersion(long objID, long catID)
     throws ManifoldCFException, ServiceInterruption
   {
-    int sanityRetryCount = FAILURE_RETRY_COUNT;
-    while (true)
+    final GetCategoryVersionThread t = new GetCategoryVersionThread(objID, catID);
+    try
     {
-      GetCategoryVersionThread t = new GetCategoryVersionThread(objID,catID);
-      try
-      {
-        t.start();
-	try
-	{
-	  return t.finishUp();
-	}
-	catch (ManifoldCFException e)
-	{
-	  sanityRetryCount = assessRetry(sanityRetryCount,e);
-	  continue;
-        }
-      }
-      catch (InterruptedException e)
-      {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-      }
-      catch (RuntimeException e)
-      {
-        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
-        continue;
-      }
+      t.start();
+      return t.finishUp();
+    }
+    catch (InterruptedException e)
+    {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
   }
 
@@ -3459,47 +3405,27 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected String[] getAttributeValue(LLValue categoryVersion, String attributeName)
     throws ManifoldCFException, ServiceInterruption
   {
-    int sanityRetryCount = FAILURE_RETRY_COUNT;
-    while (true)
+    final GetAttributeValueThread t = new GetAttributeValueThread(categoryVersion, attributeName);
+    try
     {
-      GetAttributeValueThread t = new GetAttributeValueThread(categoryVersion, attributeName);
-      try
-      {
-        t.start();
-	String[] children;
-	try
-	{
-	  children = t.finishUp();
-	}
-	catch (ManifoldCFException e)
-	{
-	  sanityRetryCount = assessRetry(sanityRetryCount,e);
-	  continue;
-        }
-	
-        return children;
-      }
-      catch (InterruptedException e)
-      {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-      }
-      catch (RuntimeException e)
-      {
-        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
-        continue;
-      }
+      t.start();
+      return t.finishUp();
+    }
+    catch (InterruptedException e)
+    {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
   }
 
   protected class GetObjectRightsThread extends Thread
   {
-    protected final int vol;
-    protected final int objID;
+    protected final long vol;
+    protected final long objID;
     protected Throwable exception = null;
     protected int[] rval = null;
 
-    public GetObjectRightsThread(int vol, int objID)
+    public GetObjectRightsThread(long vol, long objID)
     {
       super();
       setDaemon(true);
@@ -3598,38 +3524,19 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param objID is the object id
   *@return the array.
   */
-  protected int[] getObjectRights(int vol, int objID)
+  protected int[] getObjectRights(long vol, long objID)
     throws ManifoldCFException, ServiceInterruption
   {
-    int sanityRetryCount = FAILURE_RETRY_COUNT;
-    while (true)
+    final GetObjectRightsThread t = new GetObjectRightsThread(vol, objID);
+    try
     {
-      GetObjectRightsThread t = new GetObjectRightsThread(vol,objID);
-      try
-      {
-        t.start();
-	int[] childrenObjects;
-	try
-	{
-	  childrenObjects = t.finishUp();
-	}
-	catch (ManifoldCFException e)
-	{
-	  sanityRetryCount = assessRetry(sanityRetryCount,e);
-	  continue;
-        }
-        return childrenObjects;
-      }
-      catch (InterruptedException e)
-      {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-      }
-      catch (RuntimeException e)
-      {
-        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
-        continue;
-      }
+      t.start();
+      return t.finishUp();
+    }
+    catch (InterruptedException e)
+    {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
   }
 
@@ -3660,7 +3567,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return lookupValue;
     }
 
-    public ObjectInformation getObjectInformation(int volumeID, int objectID)
+    public ObjectInformation getObjectInformation(long volumeID, long objectID)
     {
       ObjectInformation oi = new ObjectInformation(volumeID, objectID);
       ObjectInformation lookupValue = objectInfoMap.get(oi);
@@ -3672,25 +3579,25 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return lookupValue;
     }
     
-    public VersionInformation getVersionInformation(int volumeID, int objectID, int revisionNumber)
+    public VersionInformation getVersionInformation(long volumeID, long objectID, int revisionNumber)
     {
       VersionInformation vi = new VersionInformation(volumeID,objectID,revisionNumber);
       VersionInformation lookupValue = versionInfoMap.get(vi);
       if (lookupValue == null)
       {
-        versionInfoMap.put(vi,vi);
+        versionInfoMap.put(vi, vi);
         return vi;
       }
       return lookupValue;
     }
     
-    public UserInformation getUserInformation(int userID)
+    public UserInformation getUserInformation(long userID)
     {
       UserInformation ui = new UserInformation(userID);
       UserInformation lookupValue = userInfoMap.get(ui);
       if (lookupValue == null)
       {
-        userInfoMap.put(ui,ui);
+        userInfoMap.put(ui, ui);
         return ui;
       }
       return lookupValue;
@@ -3702,7 +3609,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected class UserInformation
   {
-    protected final int userID;
+    protected final long userID;
     
     protected LLValue userValue = null;
     
@@ -3793,13 +3700,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected class VersionInformation
   {
-    protected final int volumeID;
-    protected final int objectID;
-    protected final int revisionNumber;
+    protected final long volumeID;
+    protected final long objectID;
+    protected final long revisionNumber;
     
-    protected LLValue versionValue = null;
+    protected Version versionValue = null;
     
-    public VersionInformation(int volumeID, int objectID, int revisionNumber)
+    public VersionInformation(long volumeID, long objectID, long revisionNumber)
     {
       this.volumeID = volumeID;
       this.objectID = objectID;
@@ -3817,10 +3724,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public Long getDataSize()
       throws ServiceInterruption, ManifoldCFException
     {
-      LLValue elem = getVersionValue();
+      final Version elem = getVersionValue();
       if (elem == null)
         return null;
-      return new Long(elem.toLong("FILEDATASIZE"));
+      return elem.getFileDataSize();
     }
 
     /** Get file name.
@@ -3828,10 +3735,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public String getFileName()
       throws ServiceInterruption, ManifoldCFException
     {
-      LLValue elem = getVersionValue();
+      final Version elem = getVersionValue();
       if (elem == null)
         return null;
-      return elem.toString("FILENAME");
+      return elem.getFileName();
     }
 
     /** Get mime type.
@@ -3839,68 +3746,50 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public String getMimeType()
       throws ServiceInterruption, ManifoldCFException
     {
-      LLValue elem = getVersionValue();
+      final Version elem = getVersionValue();
       if (elem == null)
         return null;
-      return elem.toString("MIMETYPE");
+      return elem.getMimeType();
     }
 
     /** Get modify date.
     */
-    public Date getModifyDate()
+    public XMLGregorianCalendar getModifyDate()
       throws ServiceInterruption, ManifoldCFException
     {
-      LLValue elem = getVersionValue();
+      final Version elem = getVersionValue();
       if (elem == null)
         return null;
-      return elem.toDate("MODIFYDATE"); 
+      return elem.getModifyDate(); 
     }
 
     /** Get modifier.
     */
-    public Integer getOwnerId()
+    public Long getOwnerId()
       throws ServiceInterruption, ManifoldCFException
     {
-      LLValue elem = getVersionValue();
+      final Version elem = getVersionValue();
       if (elem == null)
         return null;
-      return new Integer(elem.toInteger("OWNER")); 
+      return elem.getOwner(); 
     }
 
     /** Get version LLValue */
-    protected LLValue getVersionValue()
+    protected Version getVersionValue()
       throws ServiceInterruption, ManifoldCFException
     {
       if (versionValue == null)
       {
-        int sanityRetryCount = FAILURE_RETRY_COUNT;
-        while (true)
+        final GetVersionInfoThread t = new GetVersionInfoThread(objectID, revisionNumber);
+        try
         {
-          GetVersionInfoThread t = new GetVersionInfoThread(volumeID,objectID,revisionNumber);
-          try
-          {
-            t.start();
-	    try
-	    {
-	      versionValue = t.finishUp();
-	    }
-	    catch (ManifoldCFException e)
-	    {
-	      sanityRetryCount = assessRetry(sanityRetryCount,e);
-	      continue;
-            }
-            break;
-          }
-          catch (InterruptedException e)
-          {
-            t.interrupt();
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (RuntimeException e)
-          {
-            sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
-            continue;
-          }
+          t.start();
+          versionValue = t.finishUp();
+        }
+        catch (InterruptedException e)
+        {
+          t.interrupt();
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
       }
       return versionValue;
@@ -3917,7 +3806,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       if (!(o instanceof VersionInformation))
         return false;
-      VersionInformation other = (VersionInformation)o;
+      final VersionInformation other = (VersionInformation)o;
       return volumeID == other.volumeID && objectID == other.objectID && revisionNumber == other.revisionNumber;
     }
 
@@ -3979,13 +3868,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public VolumeAndId getPathId(String startPath)
       throws ServiceInterruption, ManifoldCFException
     {
-      Node objInfo = getObjectValue();
+      final Node objInfo = getObjectValue();
       if (objInfo == null)
         return null;
 
       // Grab the volume ID and starting object
-      int obj = objInfo.getID();
-      int vol = objInfo.getVolumeId();
+      long obj = objInfo.getID();
+      long vol = objInfo.getVolumeId();
 
       // Pick apart the start path.  This is a string separated by slashes.
       int charindex = 0;
@@ -4144,7 +4033,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public NodePermissions getPermissions()
       throws ServiceInterruption, ManifoldCFException
     {
-      Node elem = getObjectValue();
+      final Node elem = getObjectValue();
       if (elem == null)
         return null;
       return new elem.getPermissions();
@@ -4155,7 +4044,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public String getName()
       throws ServiceInterruption, ManifoldCFException
     {
-      Node elem = getObjectValue();
+      final Node elem = getObjectValue();
       if (elem == null)
         return null;
       return elem.getName(); 
@@ -4166,7 +4055,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public String getComments()
       throws ServiceInterruption, ManifoldCFException
     {
-      Node elem = getObjectValue();
+      final Node elem = getObjectValue();
       if (elem == null)
         return null;
       return elem.getComment(); 
@@ -4177,7 +4066,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public Long getParentId()
       throws ServiceInterruption, ManifoldCFException
     {
-      Node elem = getObjectValue();
+      final Node elem = getObjectValue();
       if (elem == null)
         return null;
       return elem.getParentID(); 
@@ -4188,7 +4077,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public Long getOwnerId()
       throws ServiceInterruption, ManifoldCFException
     {
-      Node elem = getObjectValue();
+      final Node elem = getObjectValue();
       if (elem == null)
         return null;
       return elem.getUserID();
@@ -4199,7 +4088,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public Long getGroupId()
       throws ServiceInterruption, ManifoldCFException
     {
-      Node elem = getObjectValue();
+      final Node elem = getObjectValue();
       if (elem == null)
         return null;
       return elem.getGroupID(); 
@@ -4210,7 +4099,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public XMLGregorianCalendar getCreationDate()
       throws ServiceInterruption, ManifoldCFException
     {
-      Node elem = getObjectValue();
+      final Node elem = getObjectValue();
       if (elem == null)
         return null;
       return elem.getCreateDate(); 
@@ -4221,7 +4110,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public Long getCreatorId()
       throws ServiceInterruption, ManifoldCFException
     {
-      Node elem = getObjectValue();
+      final Node elem = getObjectValue();
       if (elem == null)
         return null;
       return new elem.getCreatedBy(); 
@@ -4232,7 +4121,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public XMLGregorianCalendar getModifyDate()
       throws ServiceInterruption, ManifoldCFException
     {
-      Node elem = getObjectValue();
+      final Node elem = getObjectValue();
       if (elem == null)
         return null;
       return elem.getModifyDate(); 
@@ -4245,16 +4134,30 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       if (objectValue == null)
       {
-        final GetObjectInfoThread t = new GetObjectInfoThread(volumeID, objectID);
-        try
-        {
-          t.start();
-          objectValue = t.finishUp();
-        }
-        catch (InterruptedException e)
-        {
-          t.interrupt();
-          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        if (workspaceName != null) {
+          final GetWorkspaceInfoThread t = new GetWorkspaceInfoThread(workspaceName);
+          try
+          {
+            t.start();
+            objectValue = t.finishUp();
+          }
+          catch (InterruptedException e)
+          {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
+        } else {
+          final GetObjectInfoThread t = new GetObjectInfoThread(objectID);
+          try
+          {
+            t.start();
+            objectValue = t.finishUp();
+          }
+          catch (InterruptedException e)
+          {
+            t.interrupt();
+            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+          }
         }
       }
       return objectValue;
@@ -4445,17 +4348,15 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected class GetVersionInfoThread extends Thread
   {
-    protected final int vol;
-    protected final int id;
-    protected final int revNumber;
+    protected final long id;
+    protected final long revNumber;
     protected Throwable exception = null;
-    protected LLValue rval = null;
+    protected Version rval = null;
 
-    public GetVersionInfoThread(int vol, int id, int revNumber)
+    public GetVersionInfoThread(final long id, final long revNumber)
     {
       super();
       setDaemon(true);
-      this.vol = vol;
       this.id = id;
       this.revNumber = revNumber;
     }
@@ -4464,32 +4365,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
-        LLValue versioninfo = new LLValue().setAssocNotSet();
-        int status = LLDocs.GetVersionInfo(vol,id,revNumber,versioninfo);
-
-        // Need to detect if object was deleted, and return null in this case!!!
-        if (Logging.connectors.isDebugEnabled())
-        {
-          Logging.connectors.debug("Csws: Version status retrieved for "+Integer.toString(vol)+":"+Integer.toString(id)+", rev "+revNumber+": status="+Integer.toString(status));
-        }
-
-        // Treat both 103101 and 103102 as 'object not found'.
-        if (status == 103101 || status == 103102)
-          return;
-
-        // This error means we don't have permission to get the object's status, apparently
-        if (status < 0)
-        {
-          Logging.connectors.debug("Csws: Version info inaccessable for object "+Integer.toString(vol)+":"+Integer.toString(id)+", rev "+revNumber+
-            " ("+llServer.getErrors()+")");
-          return;
-        }
-
-        if (status != 0)
-        {
-          throw new ManifoldCFException("Error retrieving document version "+Integer.toString(vol)+":"+Integer.toString(id)+", rev "+revNumber+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
-        }
-        rval = versioninfo;
+        //int status = LLDocs.GetVersionInfo(vol,id,revNumber,versioninfo);
+        rval = cswsSession.getVersion(id, revNumber);
       }
       catch (Throwable e)
       {
@@ -4497,7 +4374,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    public LLValue finishUp()
+    public Version finishUp()
       throws ManifoldCFException, InterruptedException
     {
       join();
@@ -4521,16 +4398,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected class GetObjectInfoThread extends Thread
   {
-    protected int vol;
-    protected int id;
+    protected final long id;
     protected Throwable exception = null;
-    protected LLValue rval = null;
+    protected Node rval = null;
 
-    public GetObjectInfoThread(int vol, int id)
+    public GetObjectInfoThread(long id)
     {
       super();
       setDaemon(true);
-      this.vol = vol;
       this.id = id;
     }
 
@@ -4538,32 +4413,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
-        LLValue objinfo = new LLValue().setAssocNotSet();
-        int status = LLDocs.GetObjectInfo(vol,id,objinfo);
-
-        // Need to detect if object was deleted, and return null in this case!!!
-        if (Logging.connectors.isDebugEnabled())
-        {
-          Logging.connectors.debug("Csws: Status retrieved for "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status));
-        }
-
-        // Treat both 103101 and 103102 as 'object not found'.
-        if (status == 103101 || status == 103102)
-          return;
-
-        // This error means we don't have permission to get the object's status, apparently
-        if (status < 0)
-        {
-          Logging.connectors.debug("Csws: Object info inaccessable for object "+Integer.toString(vol)+":"+Integer.toString(id)+
-            " ("+llServer.getErrors()+")");
-          return;
-        }
-
-        if (status != 0)
-        {
-          throw new ManifoldCFException("Error retrieving document object "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
-        }
-        rval = objinfo;
+        // int status = LLDocs.GetObjectInfo(vol,id,objinfo);
+        this.rval = cswsSession.getNode(id);
       }
       catch (Throwable e)
       {
@@ -4571,7 +4422,52 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    public LLValue finishUp()
+    public Node finishUp()
+      throws ManifoldCFException, InterruptedException
+    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+	if (thr instanceof RuntimeException)
+	  throw (RuntimeException)thr;
+	else if (thr instanceof ManifoldCFException)
+	  throw (ManifoldCFException)thr;
+	else if (thr instanceof Error)
+	  throw (Error)thr;
+	else
+	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
+      return rval;
+    }
+  }
+
+  protected class GetWorkspaceInfoThread extends Thread
+  {
+    protected final String workspaceName;
+    protected Throwable exception = null;
+    protected Node rval = null;
+
+    public GetWorkspaceInfoThread(final String workspaceName)
+    {
+      super();
+      setDaemon(true);
+      this.workspaceName = workspaceName;
+    }
+
+    public void run()
+    {
+      try
+      {
+        this.rval = cswsSession.getRootNode(workspaceName);
+      }
+      catch (Throwable e)
+      {
+        this.exception = e;
+      }
+    }
+
+    public Node finishUp()
       throws ManifoldCFException, InterruptedException
     {
       join();
