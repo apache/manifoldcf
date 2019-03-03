@@ -32,7 +32,7 @@ public abstract class BaseDescription implements ICacheDescription
 
   protected ICacheClass cacheClass = null;
 
-  protected final static Integer max_value = new Integer(Integer.MAX_VALUE);
+  protected final static int MAX_VALUE = Integer.MAX_VALUE;
 
   public BaseDescription(String objectClassName)
   {
@@ -40,10 +40,18 @@ public abstract class BaseDescription implements ICacheDescription
       cacheClass = new LocalCacheClass(objectClassName);
   }
 
+  public BaseDescription(String objectClassName, IThreadContext threadContext)
+    throws ManifoldCFException
+  {
+    if (objectClassName != null) {
+      cacheClass = new LocalCacheClass(objectClassName, threadContext);
+    }
+  }
+  
   public BaseDescription(String objectClassName, int maxLRUCount)
   {
     if (objectClassName != null)
-      cacheClass = new LocalCacheClass(objectClassName,maxLRUCount);
+      cacheClass = new LocalCacheClass(objectClassName, maxLRUCount);
   }
 
   /** Get the object class for an object.  The object class is used to determine
@@ -75,16 +83,21 @@ public abstract class BaseDescription implements ICacheDescription
     protected String objectClassName;
     protected Integer maxLRUCount = null;
 
-    public LocalCacheClass(String objectClassName)
+    public LocalCacheClass(String objectClassName, IThreadContext threadContext)
+      throws ManifoldCFException
     {
-      this(objectClassName,-1);
+      this(objectClassName, new Integer(LockManagerFactory.getIntProperty(threadContext, "cache."+objectClassName+".lrusize", MAX_VALUE)));
     }
     
-    public LocalCacheClass(String objectClassName, int maxLRUCount)
+    public LocalCacheClass(String objectClassName)
+    {
+      this(objectClassName, (Integer)null);
+    }
+    
+    public LocalCacheClass(String objectClassName, Integer maxLRUCount)
     {
       this.objectClassName = objectClassName;
-      if (maxLRUCount != -1)
-        this.maxLRUCount = new Integer(maxLRUCount);
+      this.maxLRUCount = maxLRUCount;
     }
 
     /** Get the name of the object class.
@@ -92,6 +105,7 @@ public abstract class BaseDescription implements ICacheDescription
     * LRU pool.
     *@return the class name.
     */
+    @Override
     public String getClassName()
     {
       return objectClassName;
@@ -101,24 +115,14 @@ public abstract class BaseDescription implements ICacheDescription
     *@return the maximum number of the objects of the particular class
     * allowed.
     */
+    @Override
     public int getMaxLRUCount()
     {
       if (maxLRUCount == null)
       {
-        try
-        {
-          String x = null; // JSKW.getProperty("cache."+objectClassName+".lrusize");
-          if (x == null)
-            maxLRUCount = max_value;
-          else
-            maxLRUCount = new Integer(x);
-        }
-        catch (Exception e)
-        {
-          maxLRUCount = max_value;
-        }
+        return MAX_VALUE;
       }
-      return maxLRUCount.intValue();
+      return maxLRUCount;
     }
   }
 }
