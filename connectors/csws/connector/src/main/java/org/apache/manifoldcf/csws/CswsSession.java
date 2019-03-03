@@ -178,9 +178,7 @@ public class CswsSession
     return thisWorkspaceNode;
   }
   
-  // Helper methods -- helpful simplifications of API
-  
-  public List<? extends Node> getChildren(final String nodeId)
+  public List<? extends Node> getChildren(final long nodeId)
     throws ManifoldCFException, ServiceInterruption {
     final GetNodesInContainerOptions gnico = new GetNodesInContainerOptions();
     // Depth 0 - default listing and Depth 1 - One level down
@@ -194,7 +192,7 @@ public class CswsSession
     }
   }
   
-  public List<? extends CategoryInheritance> getCategoryInheritance(final String parentId)
+  public List<? extends CategoryInheritance> getCategoryInheritance(final long parentId)
     throws ManifoldCFException, ServiceInterruption {
     try {
       return getDocumentManagementHandle().getCategoryInheritance(parentId, getOTAuthentication());
@@ -203,10 +201,21 @@ public class CswsSession
     }
   }
 
-  public Node getNode(final String parentId) 
+  public Node getNode(final long nodeId) 
+    throws ManifoldCFException, ServiceInterruption {
+    // Need to detect if object was deleted, and return null in this case!!!
+    // MHL
+    try {
+      return getDocumentManagementHandle().getNode(nodeId, getOTAuthentication());
+      } catch (SOAPFaultException e) {
+        processSOAPFault(e);
+      }
+  }
+
+  public Version getVersion(final long nodeId, final long version) 
     throws ManifoldCFException, ServiceInterruption {
     try {
-      return getDocumentManagementHandle().getNode(parentId, getOTAuthentication());
+      return getDocumentManagementHandle().getVersion(nodeId, version, getOTAuthentication());
       } catch (SOAPFaultException e) {
         processSOAPFault(e);
       }
