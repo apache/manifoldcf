@@ -41,6 +41,8 @@ import com.opentext.livelink.service.docman.DocumentManagement;
 import com.opentext.livelink.service.docman.DocumentManagement_Service;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
+import com.opentext.livelink.service.docman.NodePermissions;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.manifoldcf.csws.*;
 
@@ -1069,48 +1071,41 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       int colonPos = docID.indexOf(":",1);
 
-      int objID;
-      int vol;
+      long objID;
+      long vol;
 
-      if (colonPos == -1)
-      {
-        objID = new Integer(docID.substring(1)).intValue();
-        vol = LLENTWK_VOL;
-      }
-      else
-      {
-        objID = new Integer(docID.substring(colonPos+1)).intValue();
-        vol = new Integer(docID.substring(1,colonPos)).intValue();
-      }
+      objID = new Long(docID.substring(colonPos+1)).longValue();
+      vol = new Long(docID.substring(1,colonPos)).longValue();
 
       getSession();
-      ObjectInformation value = llc.getObjectInformation(vol,objID);
+      
+      final ObjectInformation value = llc.getObjectInformation(vol, objID);
       if (!value.exists())
       {
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Csws: Object "+Integer.toString(vol)+":"+Integer.toString(objID)+" has no information - deleting");
+          Logging.connectors.debug("Csws: Object "+vol+":"+objID+" has no information - deleting");
         activities.deleteDocument(documentIdentifier);
         continue;
       }
         
       // Make sure we have permission to see the object's contents
-      int permissions = value.getPermissions().intValue();
-      if ((permissions & LAPI_DOCUMENTS.PERM_SEECONTENTS) == 0)
+      final NodePermissions permissions = value.getPermissions();
+      if (!permissions.seeContentsPermission())
       {
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Csws: Crawl user cannot see contents of object "+Integer.toString(vol)+":"+Integer.toString(objID)+" - deleting");
+          Logging.connectors.debug("Csws: Crawl user cannot see contents of object "+vol+":"+objID+" - deleting");
         activities.deleteDocument(documentIdentifier);
         continue;
       }
-        
-        
-      Date dt = value.getModifyDate();
+
+      final Date dt = new Date(value.getModifyDate().toGregorianCalendar().getTimeInMillis());
+
       // The rights don't change when the object changes, so we have to include those too.
-      int[] rights = getObjectRights(vol,objID);
+      int[] rights = getObjectRights(vol, objID);
       if (rights == null)
       {
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Csws: Could not get rights for object "+Integer.toString(vol)+":"+Integer.toString(objID)+" - deleting");
+          Logging.connectors.debug("Csws: Could not get rights for object "+vol+":"+objID+" - deleting");
         activities.deleteDocument(documentIdentifier);
         continue;
       }
@@ -1131,7 +1126,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         final List<? extends Node> childrenDocs = t.finishUp();
         for (final Node childDoc : childrenDocs)
         {
-          final int childID = childDoc.getId();
+          final long childID = childDoc.getID();
 
           if (Logging.connectors.isDebugEnabled())
           {
@@ -1281,35 +1276,35 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // processDocuments.
         sb.append("=").append(pathNameAttributeVersion);
           
-        // Tack on ingestCgiPath, to insulate us against changes to the repository connection setup.  Added 9/7/07.
+        // Tack on ingestCgiPath, to insulate us against changes to the repository connection setup. 
         sb.append("_").append(viewBasePath);
 
         String versionString = sb.toString();
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Csws: Successfully calculated version string for document "+Integer.toString(vol)+":"+Integer.toString(objID)+" : '"+versionString+"'");
+          Logging.connectors.debug("Csws: Successfully calculated version string for document "+vol+":"+objID+" : '"+versionString+"'");
               
-        if (!activities.checkDocumentNeedsReindexing(documentIdentifier,versionString))
+        if (!activities.checkDocumentNeedsReindexing(documentIdentifier, versionString))
           continue;
         
         // Index the document
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Csws: Processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
+          Logging.connectors.debug("Csws: Processing document "+vol+":"+objID);
         if (!checkIngest(llc,objID,spec))
         {
           if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("Csws: Decided not to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID)+" - Did not match ingestion criteria");
+            Logging.connectors.debug("Csws: Decided not to ingest document "+vol+":"+objID+" - Did not match ingestion criteria");
           activities.noDocument(documentIdentifier,versionString);
           continue;
         }
 
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Csws: Decided to ingest document "+Integer.toString(vol)+":"+Integer.toString(objID));
+          Logging.connectors.debug("Csws: Decided to ingest document "+vol+":"+objID);
 
         // Grab the access tokens for this file from the version string, inside ingest method.
-        ingestFromCsws(llc,documentIdentifier,versionString,actualAcls,denyAcls,categoryPaths,activities,desc,sDesc);
+        ingestFromCsws(llc, documentIdentifier, versionString, actualAcls, denyAcls, categoryPaths, activities, desc, sDesc);
           
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Csws: Done processing document "+Integer.toString(vol)+":"+Integer.toString(objID));
+          Logging.connectors.debug("Csws: Done processing document "+vol+":"+objID);
       }
     }
   }
@@ -1319,13 +1314,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
    */
   protected class ListObjectsThread extends Thread
   {
-    protected final int vol;
-    protected final int objID;
+    protected final long vol;
+    protected final long objID;
     protected final String filterString;
     protected Throwable exception = null;
     protected List<? extends Node> rval = null;
 
-    public ListObjectsThread(int vol, int objID, String filterString)
+    public ListObjectsThread(long vol, long objID, String filterString)
     {
       super();
       setDaemon(true);
@@ -1339,6 +1334,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         //         int status = LLDocs.ListObjects(vol, objID, null, filterString, LAPI_DOCUMENTS.PERM_SEECONTENTS, childrenDocs);
+        // No filter support!!! TBD
         rval = cswsSession.getChildren(objID);
       }
       catch (Throwable e)
@@ -3934,13 +3930,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected class ObjectInformation
   {
-    protected final int volumeID;
-    protected final int objectID;
+    protected final long volumeID;
+    protected final long objectID;
     protected final String workspaceName;
     
     protected Node objectValue = null;
     
-    public ObjectInformation(final int volumeID, final int objectID)
+    public ObjectInformation(final long volumeID, final long objectID)
     {
       this.volumeID = volumeID;
       this.objectID = objectID;
@@ -3949,8 +3945,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     public ObjectInformation(final String workspaceName) {
       this.workspaceName = workspaceName;
-      this.volumeID = -1;
-      this.objectID = -1;
+      this.volumeID = -1L;
+      this.objectID = -1L;
     }
     
     /**
@@ -3988,7 +3984,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         return null;
 
       // Grab the volume ID and starting object
-      int obj = objInfo.getId();
+      int obj = objInfo.getID();
       int vol = objInfo.getVolumeId();
 
       // Pick apart the start path.  This is a string separated by slashes.
@@ -4016,57 +4012,39 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         String filterString = "(SubType="+ LAPI_DOCUMENTS.FOLDERSUBTYPE + " or SubType=" + LAPI_DOCUMENTS.PROJECTSUBTYPE +
           " or SubType=" + LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE + ") and Name='" + subFolder + "'";
 
-        int sanityRetryCount = FAILURE_RETRY_COUNT;
-        while (true)
+        final ListObjectsThread t = new ListObjectsThread(vol,obj,filterString);
+        try
         {
-          ListObjectsThread t = new ListObjectsThread(vol,obj,filterString);
-          try
+          t.start();
+          final List<? extends Node> children = t.finishUp();
+
+          if (children == null) {
+            return null;
+          }
+
+          // If there is one child, then we are okay.
+          if (children.size() == 1)
           {
-            t.start();
-	    LLValue children;
-	    try
-	    {
-	      children = t.finishUp();
-	    }
-	    catch (ManifoldCFException e)
-	    {
-	      sanityRetryCount = assessRetry(sanityRetryCount,e);
-	      continue;
-            }
-
-            if (children == null)
-              return null;
-
-            // If there is one child, then we are okay.
-            if (children.size() == 1)
+            // New starting point is the one we found.
+            final Node child = children.get(0);
+            obj = child.getID();
+            final int subtype = child.getSubtype();
+            if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
             {
-              // New starting point is the one we found.
-              obj = children.toInteger(0, "ID");
-              int subtype = children.toInteger(0, "SubType");
-              if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
-              {
-                vol = obj;
-                obj = -obj;
-              }
+              vol = obj;
+              obj = -obj;
             }
-            else
-            {
-              // Couldn't find the path.  Instead of throwing up, return null to indicate
-              // illegal node.
-              return null;
-            }
-            break;
+          }
+          else
+          {
+            // Couldn't find the path.  Instead of throwing up, return null to indicate
+            // illegal node.
+            return null;
           }
           catch (InterruptedException e)
           {
             t.interrupt();
             throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (RuntimeException e)
-          {
-            sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
-            continue;
-
           }
         }
 
@@ -4078,7 +4056,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     * Returns the category ID specified by the path name.
     * @param startPath is the folder name, ending in a category name (a string with slashes as separators)
     */
-    public int getCategoryId(String startPath)
+    public long getCategoryId(String startPath)
       throws ManifoldCFException, ServiceInterruption
     {
       final Node objInfo = getObjectValue();
@@ -4086,8 +4064,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         return -1;
 
       // Grab the volume ID and starting object
-      int obj = objInfo.getId();
-      int vol = objInfo.getVolumeId();
+      long obj = objInfo.getID();
+      long vol = objInfo.getVolumeID();
 
       // Pick apart the start path.  This is a string separated by slashes.
       if (startPath.length() == 0)
@@ -4137,7 +4115,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           {
             // New starting point is the one we found.
             final Node child = children.get(0);
-            obj = child.getId();
+            obj = child.getID();
             final int subtype = child.getSubtype();
             if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
             {
@@ -4149,7 +4127,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           {
             // Couldn't find the path.  Instead of throwing up, return null to indicate
             // illegal node.
-            return -1;
+            return -1L;
           }
         }
         catch (InterruptedException e)
@@ -4163,13 +4141,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     /** Get permissions.
     */
-    public Integer getPermissions()
+    public NodePermissions getPermissions()
       throws ServiceInterruption, ManifoldCFException
     {
       Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return new Integer(objectValue.toInteger("Permissions"));
+      return new elem.getPermissions();
     }
     
     /** Get OpenText document name.
@@ -4180,7 +4158,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return elem.toString("NAME"); 
+      return elem.getName(); 
     }
 
     /** Get OpenText comments/description.
@@ -4191,73 +4169,73 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return elem.toString("COMMENT"); 
+      return elem.getComment(); 
     }
 
     /** Get parent ID.
     */
-    public Integer getParentId()
+    public Long getParentId()
       throws ServiceInterruption, ManifoldCFException
     {
       Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return new Integer(elem.toInteger("ParentId")); 
+      return elem.getParentID(); 
     }
 
     /** Get owner ID.
     */
-    public Integer getOwnerId()
+    public Long getOwnerId()
       throws ServiceInterruption, ManifoldCFException
     {
       Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return new Integer(elem.toInteger("UserId")); 
+      return elem.getUserID();
     }
 
     /** Get group ID.
     */
-    public Integer getGroupId()
+    public Long getGroupId()
       throws ServiceInterruption, ManifoldCFException
     {
       Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return new Integer(elem.toInteger("GroupId")); 
+      return elem.getGroupID(); 
     }
     
     /** Get creation date.
     */
-    public Date getCreationDate()
+    public XMLGregorianCalendar getCreationDate()
       throws ServiceInterruption, ManifoldCFException
     {
       Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return elem.toDate("CREATEDATE"); 
+      return elem.getCreateDate(); 
     }
     
     /** Get creator ID.
     */
-    public Integer getCreatorId()
+    public Long getCreatorId()
       throws ServiceInterruption, ManifoldCFException
     {
       Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return new Integer(elem.toInteger("CREATEDBY")); 
+      return new elem.getCreatedBy(); 
     }
 
     /* Get modify date.
     */
-    public Date getModifyDate()
+    public XMLGregorianCalendar getModifyDate()
       throws ServiceInterruption, ManifoldCFException
     {
       Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return elem.toDate("ModifyDate"); 
+      return elem.getModifyDate(); 
     }
 
     /** Get the objInfo object.
@@ -4277,10 +4255,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           t.interrupt();
           throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-        }
-        catch (RuntimeException e)
-        {
-          handleCswsRuntimeException(e,sanityRetryCount,true);
         }
       }
       return objectValue;

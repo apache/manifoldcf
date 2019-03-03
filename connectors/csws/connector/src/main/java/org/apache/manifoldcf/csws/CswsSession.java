@@ -50,6 +50,8 @@ import com.opentext.livelink.service.docman.CategoryInheritance;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
 
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 
 /** This class describes a livelink csws session.  It manages OAuth authentication
 * and provides logged-in access to csws services via methods provided within.
@@ -146,10 +148,15 @@ public class CswsSession
   /**
    * Fetch root node types.   These will be cached so we only need to do it once.
    */
-  public List<? extends String> getRootNodeTypes() {
+  public List<? extends String> getRootNodeTypes()
+    throws ManifoldCFException, ServiceInterruption {
     if (rootNodeTypes == null) {
       // Fetch them
-      this.rootNodeTypes = getDocumentManagementHandle().getRootNodeTypes(getOTAuthentication());
+      try {
+        this.rootNodeTypes = getDocumentManagementHandle().getRootNodeTypes(getOTAuthentication());
+      } catch (SOAPFaultException e) {
+        processSOAPFault(e);
+      }
     }
     return this.rootNodeTypes;
   }
@@ -157,10 +164,15 @@ public class CswsSession
   /**
    * Fetch root node given type.
    */
-  public Node getRootNode(final String nodeType) {
+  public Node getRootNode(final String nodeType) 
+  throws ManifoldCFException, ServiceInterruption {
     Node thisWorkspaceNode = workspaceTypeNodes.get(nodeType);
     if (thisWorkspaceNode == null) {
-      thisWorkspaceNode = getDocumentManagementHandle().getRootNode(nodeType, getOTAuthentication());
+      try {
+        thisWorkspaceNode = getDocumentManagementHandle().getRootNode(nodeType, getOTAuthentication());
+      } catch (SOAPFaultException e) {
+        processSOAPFault(e);
+      }
       workspaceTypeNodes.put(nodeType, thisWorkspaceNode);
     }
     return thisWorkspaceNode;
@@ -168,21 +180,36 @@ public class CswsSession
   
   // Helper methods -- helpful simplifications of API
   
-  public List<? extends Node> getChildren(final String nodeId) {
+  public List<? extends Node> getChildren(final String nodeId)
+    throws ManifoldCFException, ServiceInterruption {
     final GetNodesInContainerOptions gnico = new GetNodesInContainerOptions();
     // Depth 0 - default listing and Depth 1 - One level down
     gnico.setMaxDepth(0);
     // We're listing folder by folder so hopefully this is nowhere near what we'll ever get back
     gnico.setMaxResults(1000000);
-    return getDocumentManagementHandle().getNodesInContainer(nodeId, gnico);
+    try {
+      return getDocumentManagementHandle().getNodesInContainer(nodeId, gnico);
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
   }
   
-  public List<? extends CategoryInheritance> getCategoryInheritance(final String parentId) {
-    return getDocumentManagementHandle().getCategoryInheritance(parentId, getOTAuthentication());
+  public List<? extends CategoryInheritance> getCategoryInheritance(final String parentId)
+    throws ManifoldCFException, ServiceInterruption {
+    try {
+      return getDocumentManagementHandle().getCategoryInheritance(parentId, getOTAuthentication());
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
   }
 
-  public Node getNode(final String parentId) {
-    return getDocumentManagementHandle().getNode(parentId, getOTAuthentication());
+  public Node getNode(final String parentId) 
+    throws ManifoldCFException, ServiceInterruption {
+    try {
+      return getDocumentManagementHandle().getNode(parentId, getOTAuthentication());
+      } catch (SOAPFaultException e) {
+        processSOAPFault(e);
+      }
   }
   
   // Construct authentication token argument, which must be passed as last argument for every method
@@ -190,7 +217,8 @@ public class CswsSession
   /**
    * Construct OTAuthentication structure (to be passed as an argument)
    */
-  public OTAuthentication getOTAuthentication() {
+  public OTAuthentication getOTAuthentication() 
+    throws ManifoldCFException, ServiceInterruption {
     final String authToken = getAuthToken();
     // Create the OTAuthentication object and set the authentication token
     final OTAuthentication otAuth = new OTAuthentication();
@@ -200,17 +228,26 @@ public class CswsSession
 
   // Private methods
   
-  private String getAuthToken() {
+  private String getAuthToken()
+    throws ManifoldCFException, ServiceInterruption {
     final long currentTime = System.currentTimeMillis();
     if (currentSessionExpiration == -1L || currentTime > currentSessionExpiraton) {
       // Kill current auth token etc
       currentSessionExpiration = -1L;
       currentAuthToken = null;
       // Refetch the auth token (this may fail)
-      currentAuthToken = authClient.authenticateUser(userName, password);
+      try {
+        currentAuthToken = authClient.authenticateUser(userName, password);
+      } catch (SOAPFaultException e) {
+        processSOAPFault(e);
+      }
       currentSessionExpiration = currentTime + expirationInterval;
     }
     return currentAuthToken;
   }
   
+  private void processSOAPFault(SOAPFaultException e)
+    throws ManifoldCFException, ServiceInterruption {
+    // MHL
+  }
 }
