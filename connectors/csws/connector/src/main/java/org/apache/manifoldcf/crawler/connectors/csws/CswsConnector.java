@@ -30,19 +30,14 @@ import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
 import org.apache.manifoldcf.core.common.DateParser;
 
 import com.opentext.ecm.api.OTAuthentication;
-import com.opentext.livelink.service.core.Authentication;
-import com.opentext.livelink.service.core.Authentication_Service;
-import com.opentext.livelink.service.core.ContentService;
-import com.opentext.livelink.service.core.ContentService_Service;
 import com.opentext.livelink.service.core.FileAtts;
 import com.opentext.livelink.service.docman.AttributeGroup;
 import com.opentext.livelink.service.docman.CategoryInheritance;
-import com.opentext.livelink.service.docman.DocumentManagement;
-import com.opentext.livelink.service.docman.DocumentManagement_Service;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
 import com.opentext.livelink.service.docman.NodePermissions;
 import com.opentext.livelink.service.docman.Version;
+import com.opentext.livelink.service.memberservice.User;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.manifoldcf.csws.*;
@@ -2823,7 +2818,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       
       String fileName = versInfo.getFileName();
       Date creationDate = objInfo.getCreationDate();
-      Integer parentID = objInfo.getParentId();
+      Long parentID = objInfo.getParentId();
       
       
       RepositoryDocument rd = new RepositoryDocument();
@@ -2846,9 +2841,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         rd.addField(GENERAL_MODIFYDATE_FIELD,DateParser.formatISO8601Date(modifyDate));
       if (parentID != null)
         rd.addField(GENERAL_PARENTID,parentID.toString());
-      UserInformation owner = llc.getUserInformation(objInfo.getOwnerId().intValue());
-      UserInformation creator = llc.getUserInformation(objInfo.getCreatorId().intValue());
-      UserInformation modifier = llc.getUserInformation(versInfo.getOwnerId().intValue());
+      UserInformation owner = llc.getUserInformation(objInfo.getOwnerId());
+      UserInformation creator = llc.getUserInformation(objInfo.getCreatorId());
+      UserInformation modifier = llc.getUserInformation(versInfo.getOwnerId());
       if (owner != null)
         rd.addField(GENERAL_OWNER,owner.getName());
       if (creator != null)
@@ -3611,9 +3606,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     protected final long userID;
     
-    protected LLValue userValue = null;
+    protected User userValue = null;
     
-    public UserInformation(int userID)
+    public UserInformation(long userID)
     {
       this.userID = userID;
     }
@@ -3627,45 +3622,27 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public String getName()
       throws ServiceInterruption, ManifoldCFException
     {
-      LLValue userValue = getUserValue();
+      final User userValue = getUserValue();
       if (userValue == null)
         return null;
-      return userValue.toString("NAME");
+      return userValue.getName();
     }
       
-    protected LLValue getUserValue()
+    protected User getUserValue()
       throws ServiceInterruption, ManifoldCFException
     {
       if (userValue == null)
       {
-        int sanityRetryCount = FAILURE_RETRY_COUNT;
-        while (true)
+        final GetUserInfoThread t = new GetUserInfoThread(userID);
+        try
         {
-          GetUserInfoThread t = new GetUserInfoThread(userID);
-          try
-          {
-            t.start();
-	    try
-	    {
-	      userValue = t.finishUp();
-	    }
-	    catch (ManifoldCFException e)
-	    {
-	      sanityRetryCount = assessRetry(sanityRetryCount,e);
-	      continue;
-	    }
-            break;
-          }
-          catch (InterruptedException e)
-          {
-            t.interrupt();
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (RuntimeException e)
-          {
-            sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
-            continue;
-          }
+          t.start();
+          userValue = t.finishUp();
+        }
+        catch (InterruptedException e)
+        {
+          t.interrupt();
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
       }
       return userValue;
@@ -3688,7 +3665,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       if (!(o instanceof UserInformation))
         return false;
-      UserInformation other = (UserInformation)o;
+      final UserInformation other = (UserInformation)o;
       return userID == other.userID;
     }
 
@@ -4276,11 +4253,11 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected class GetUserInfoThread extends Thread
   {
-    protected final int user;
+    protected final long user;
     protected Throwable exception = null;
-    protected LLValue rval = null;
+    protected User rval = null;
 
-    public GetUserInfoThread(int user)
+    public GetUserInfoThread(long user)
     {
       super();
       setDaemon(true);
@@ -4291,32 +4268,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
-        LLValue userinfo = new LLValue().setAssoc();
-        int status = LLUsers.GetUserByID(user,userinfo);
-
-        // Need to detect if object was deleted, and return null in this case!!!
-        if (Logging.connectors.isDebugEnabled())
-        {
-          Logging.connectors.debug("Csws: User status retrieved for "+Integer.toString(user)+": status="+Integer.toString(status));
-        }
-
-        // Treat both 103101 and 103102 as 'object not found'. 401101 is 'user not found'.
-        if (status == 103101 || status == 103102 || status == 401101)
-          return;
-
-        // This error means we don't have permission to get the object's status, apparently
-        if (status < 0)
-        {
-          Logging.connectors.debug("Csws: User info inaccessable for user "+Integer.toString(user)+
-            " ("+llServer.getErrors()+")");
-          return;
-        }
-
-        if (status != 0)
-        {
-          throw new ManifoldCFException("Error retrieving user "+Integer.toString(user)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
-        }
-        rval = userinfo;
+        rval = cswsSession.getUser(user);
       }
       catch (Throwable e)
       {
@@ -4324,7 +4276,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    public LLValue finishUp()
+    public User finishUp()
       throws ManifoldCFException, InterruptedException
     {
       join();

@@ -49,6 +49,9 @@ import com.opentext.livelink.service.docman.AttributeGroup;
 import com.opentext.livelink.service.docman.CategoryInheritance;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
+import com.opentext.livelink.service.docman.NodePermission;
+import com.opentext.livelink.service.docman.Version;
+import com.opentext.livelink.service.memberservice.User;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -216,6 +219,15 @@ public class CswsSession
     throws ManifoldCFException, ServiceInterruption {
     try {
       return getDocumentManagementHandle().getVersion(nodeId, version, getOTAuthentication());
+      } catch (SOAPFaultException e) {
+        processSOAPFault(e);
+      }
+  }
+
+  public User getUser(final long userId) 
+    throws ManifoldCFException, ServiceInterruption {
+    try {
+      return getMemberServiceHandle().getMemberById(userId, getOTAuthentication());
       } catch (SOAPFaultException e) {
         processSOAPFault(e);
       }
