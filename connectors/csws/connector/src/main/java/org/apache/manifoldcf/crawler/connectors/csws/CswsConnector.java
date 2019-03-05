@@ -185,6 +185,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   private String documentManagementServicePath = null;
   private String contentServiceServicePath = null;
   private String memberServiceServicePath = null;
+  private String searchServiceServicePath = null;
   private String serverHTTPNTLMDomain = null;
   private String serverHTTPNTLMUsername = null;
   private String serverHTTPNTLMPassword = null;
@@ -367,6 +368,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       documentManagementServicePath = params.getParameter(CswsParameters.documentManagementPath);
       contentServiceServicePath = params.getParameter(CswsParameters.contentServicePath);
       memberServiceServicePath = params.getParameter(CswsParameters.memberServicePath);
+      searchServiceServicePath = params.getParameter(CswsParameters.searchServicePath);
       serverHTTPNTLMDomain = params.getParameter(CswsParameters.serverHTTPNTLMDomain);
       serverHTTPNTLMUsername = params.getParameter(CswsParameters.serverHTTPNTLMUsername);
       serverHTTPNTLMPassword = params.getObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword);
@@ -517,6 +519,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       final String documentManagementServiceURL = baseURL + documentManagementServicePath;
       final String contentServiceServiceURL = baseURL + contentServiceServicePath;
       final String memberServiceServiceURL = baseURL + memberServiceServicePath;
+      final String searchServiceServiceURL = baseURL + searchServiceServicePath;
 
       // Build web services connection management object
       if (Logging.connectors.isDebugEnabled())
@@ -526,7 +529,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
 
       // Construct a new csws session object for setting up this session
-      cswsSession = new CswsSession(userName, password, 1000L * 60L * 15L, authenticationServiceURL, documentManagementServiceURL, contentServiceServiceURL, memberServiceServiceURL);
+      cswsSession = new CswsSession(userName, password, 1000L * 60L * 15L, 
+        authenticationServiceURL, documentManagementServiceURL, contentServiceServiceURL, memberServiceServiceURL, searchServiceServiceURL);
 
       final GetSessionThread t = new GetSessionThread();
       try
@@ -1462,6 +1466,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String memberServiceServicePath = parameters.getParameter(CswsParameters.memberServicePath);
     if (memberServiceServicePath == null)
       memberServiceServicePath = "";
+    String searchServiceServicePath = parameters.getParameter(CswsParameters.searchServicePath);
+    if (searchServiceServicePath == null)
+      searchServiceServicePath = "";
     
     String serverHTTPNTLMDomain = parameters.getParameter(CswsParameters.serverHTTPNTLMDomain);
     if(serverHTTPNTLMDomain == null)
@@ -1517,6 +1524,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     velocityContext.put("CONTENTSERVICESERVICEPATH", contentServiceServicePath);
     velocityContext.put("DOCUMENTMANAGEMENTSERVICEPATH", documentManagementServicePath);
     velocityContext.put("MEMBERSERVICESERVICEPATH", memberServiceServicePath);
+    velocityContext.put("SEARCHSERVICESERVICEPATH", searchServiceServicePath);
 
     velocityContext.put("SERVERHTTPNTLMDOMAIN",serverHTTPNTLMDomain);
     velocityContext.put("SERVERHTTPNTLMUSERNAME",serverHTTPNTLMUserName);
@@ -1617,6 +1625,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String memberServiceServicePath = variableContext.getParameter("memberserviceservicepath");
     if (memberServiceServicePath != null)
       parameters.setParameter(CswsParameters.memberServicePath, memberServiceServicePath);
+    String searchServiceServicePath = variableContext.getParameter("searchserviceservicepath");
+    if (searchServiceServicePath != null)
+      parameters.setParameter(CswsParameters.searchServicePath, searchServiceServicePath);
 
     String serverHTTPNTLMDomain = variableContext.getParameter("serverhttpntlmdomain");
     if (serverHTTPNTLMDomain != null)

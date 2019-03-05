@@ -95,6 +95,14 @@
       <input type="text" size="32" name="memberserviceservicepath" value="$Encoder.attributeEscape($MEMBERSERVICESERVICEPATH)"/>
     </td>
   </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.SearchServiceServicePath'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="searchserviceservicepath" value="$Encoder.attributeEscape($SEARCHSERVICESERVICEPATH)"/>
+    </td>
+  </tr>
 
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
@@ -167,4 +175,10 @@
 <input type="hidden" name="serverhttpntlmdomain"    value="$Encoder.attributeEscape($SERVERHTTPNTLMDOMAIN)"/>
 <input type="hidden" name="serverhttpntlmusername"  value="$Encoder.attributeEscape($SERVERHTTPNTLMUSERNAME)"/>
 <input type="hidden" name="serverhttpntlmpassword"  value="$Encoder.attributeEscape($SERVERHTTPNTLMPASSWORD)"/>
+<input type="hidden" name="authenticationservicepath" value="$Encoder.attributeEscape($AUTHENTICATIONSERVICEPATH)"/>
+<input type="hidden" name="documentmanagementservicepath" value="$Encoder.attributeEscape($DOCUMENTMANAGEMENTSERVICEPATH)"/>
+<input type="hidden" name="contentserviceservicepath" value="$Encoder.attributeEscape($CONTENTSERVICESERVICEPATH)"/>
+<input type="hidden" name="memberserviceservicepath" value="$Encoder.attributeEscape($MEMBERSERVICESERVICEPATH)"/>
+<input type="hidden" name="searchserviceservicepath" value="$Encoder.attributeEscape($SEARCHSERVICESERVICEPATH)"/>
+
 #end
