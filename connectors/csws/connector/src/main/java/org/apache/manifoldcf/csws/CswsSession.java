@@ -44,6 +44,8 @@ import com.opentext.livelink.service.memberservice.MemberService;
 import com.opentext.livelink.service.memberservice.MemberService_Service;
 import com.opentext.livelink.service.docman.DocumentManagement;
 import com.opentext.livelink.service.docman.DocumentManagement_Service;
+import com.opentext.livelink.service.searchservices.SearchService;
+import com.opentext.livelink.service.searchservices.SearchService_Service;
 
 import com.opentext.livelink.service.docman.AttributeGroup;
 import com.opentext.livelink.service.docman.CategoryInheritance;
@@ -80,6 +82,7 @@ public class CswsSession
   private final DocumentManagement documentManagementHandle;
   private final ContentService contentServiceHandle;
   private final MemberService memberServiceHandle;
+  private final SearchService searchServiceHandle;
   
   // Transient data
   
@@ -99,7 +102,8 @@ public class CswsSession
     final String authenticationServiceURL,
     final String documentManagementServiceURL,
     final String contentServiceServiceURL,
-    final String memberServiceServiceURL) {
+    final String memberServiceServiceURL,
+    final String searchServiceServiceURL) {
       
     // Save username/password
     this.userName = userName;
@@ -111,16 +115,21 @@ public class CswsSession
     this.documentManagementService = new DocumentManagement_Service();
     this.contentServiceService = new ContentService_Service();
     this.memberServiceService = new MemberService_Service();
+    this.searchServiceService = new SearchService_Service();
+      
     // Initialize authclient etc.
     this.authClientHandle = authService.getBasicHttpBindingAuthentication();
     this.documentManagementHandle = documentManagementService.getBasicHttpBindingDocumentManagement();
     this.contentServiceHandle = contentServiceService.getBasicHttpBindingContentService();
     this.memberServiceHandle = memberServiceService.getBasicHttpBindingMemberService();
+    this.searchServiceHandle = searchServiceService.getBasicHttpBindingSearchService();
+
     // Set up endpoints
     ((BindingProvider)authClientHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, authenticationServiceURL);
     ((BindingProvider)documentManagementHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, documentManagementServiceURL);
     ((BindingProvider)contentServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, contentServiceServiceURL);
     ((BindingProvider)memberServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, memberServiceServiceURL);
+    ((BindingProvider)searchServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, searchServiceServiceURL);
   }
 
   /**
@@ -145,6 +154,14 @@ public class CswsSession
   public MemberService getMemberServiceHandle() {
     // MHL
     return memberServiceHandle;
+  }
+
+  /** 
+   * Fetch initialized SearchService handle.
+   */
+  public SearchService getSearchServiceHandle() {
+    // MHL
+    return searchServiceHandle;
   }
   
   // Accessors for information that only needs to be accessed once per session, which we will cache
