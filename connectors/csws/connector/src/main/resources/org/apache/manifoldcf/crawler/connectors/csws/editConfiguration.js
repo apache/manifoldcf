@@ -128,6 +128,20 @@
         editconnection.contentserviceservicepath.focus();
         return false;
       }
+      if (editconnection.searchserviceservicepath.value == "")
+      {
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.EnterTheSearchServiceServicePath'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
+        editconnection.searchserviceservicepath.focus();
+        return false;
+      }
+      if (editconnection.searchserviceservicepath.value.substring(0,1) != "/")
+      {
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.TheSearchServiceServicePathMustBeginWithACharacter'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
+        editconnection.searchserviceservicepath.focus();
+        return false;
+      }
 
       if (editconnection.viewprotocol.value == "")
       {

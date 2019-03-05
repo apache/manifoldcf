@@ -53,6 +53,8 @@ public class CswsParameters
   public final static String contentServicePath = "Server ContentService Service path";
   /** DocumentManagement service CGI path */
   public final static String documentManagementPath = "Server DocumentManagement Service path";
+  /** SearchService service CGI path */
+  public final static String searchServicePath = "Server SearchService Service path";
   /** MemberService service CGI path */
   public final static String memberServicePath = "Server MemberService Service path";
   /** Server domain, if NTLM */
