@@ -1132,20 +1132,24 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           }
           
           // All we need to know is whether the child is a container or not, and there is a way to do that directly from the node
-          /*
-          int subtype = childDoc.getSubtype();
-          boolean childIsFolder = (subtype == LAPI_DOCUMENTS.FOLDERSUBTYPE || subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE ||
-            subtype == LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE);
-                */
-          final boolean childIsFolder = childDoc.isContainer();
+          final String subtype = childDoc.getType();
+          final boolean childIsFolder = subType.equals("Folder") || subType.equals("Project") || subType.equals("CompoundDocument");
           
           // If it's a folder, we just let it through for now
-          if (!childIsFolder && checkInclude(childDoc.getName() + "." + childDoc.getFileType(), spec) == false)
+          if (!childIsFolder)
           {
-            if (Logging.connectors.isDebugEnabled()) {
-              Logging.connectors.debug("Csws: Child identifier "+childID+" was excluded by inclusion criteria");
+            final List<? extends Version> docVersions = childDoc.getVersions();
+            if (docVersions.size() > 0)
+            {
+              final Version lastVersion = docVersions.get(docVersions.size()-1);
+              if (checkInclude(lastVersion.getFilename() + "." + lastVersion.getFileType(), spec) == false)
+              {
+                if (Logging.connectors.isDebugEnabled()) {
+                  Logging.connectors.debug("Csws: Child identifier "+childID+" was excluded by inclusion criteria");
+                }
+                continue;
+              }
             }
-            continue;
           }
 
           if (childIsFolder)
@@ -1153,7 +1157,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             if (Logging.connectors.isDebugEnabled()) {
               Logging.connectors.debug("Csws: Child identifier "+childID+" is a folder, project, or compound document; adding a reference");
             }
-            if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
+            if (subtype.equals("Project"))
             {
               // If we pick up a project object, we need to describe the volume object (which
               // will be the root of all documents beneath)
@@ -3840,8 +3844,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             // New starting point is the one we found.
             final Node child = children.get(0);
             obj = child.getID();
-            final int subtype = child.getSubtype();
-            if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
+            final String subtype = child.getType();
+            if (subtype.equals("Project"))
             {
               vol = obj;
               obj = -obj;
@@ -3928,8 +3932,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             // New starting point is the one we found.
             final Node child = children.get(0);
             obj = child.getID();
-            final int subtype = child.getSubtype();
-            if (subtype == LAPI_DOCUMENTS.PROJECTSUBTYPE)
+            final String subtype = child.getType();
+            if (subtype.equals("Project"))
             {
               vol = obj;
               obj = -obj;
@@ -4400,12 +4404,11 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     if (evaluateRight(rights.getOwnerGroupRight())) {
       tokenAccumulator.add(objInfo.getGroupId().toString());
     }
-    // I presume this is WORLD right
     if (evaluateRight(rights.getPublicRight())) {
-      tokenAccumulator.add("GUEST");
+      tokenAccumulator.add("SYSTEM");
     }
-    // What happened to SYSTEM right??
-    // MHL -TBD - for "SYSTEM" token
+    // What happened to Guest/World right??
+    // MHL -TBD - for "GUEST" token
     
     for (final NodeRight nr : rights.getACLRights()) {
       if (evaluateRight(nr)) {
