@@ -37,6 +37,8 @@ import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
 import com.opentext.livelink.service.docman.NodePermissions;
 import com.opentext.livelink.service.docman.Version;
+import com.opentext.livelink.service.docman.NodeRights;
+import com.opentext.livelink.service.docman.NodeRight;
 import com.opentext.livelink.service.memberservice.User;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -1097,7 +1099,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       final Date dt = new Date(value.getModifyDate().toGregorianCalendar().getTimeInMillis());
 
       // The rights don't change when the object changes, so we have to include those too.
-      int[] rights = getObjectRights(vol, objID);
+      final NodeRights rights = getObjectRights(objID);
       if (rights == null)
       {
         if (Logging.connectors.isDebugEnabled())
@@ -1117,7 +1119,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           Logging.connectors.debug("Csws: Processing folder "+vol+":"+objID);
         }
         
-        final ListObjectsThread t = new ListObjectsThread(vol, objID, filterString);
+        final ListObjectsThread t = new ListObjectsThread(objID, filterString);
         t.start();
         final List<? extends Node> childrenDocs = t.finishUp();
         for (final Node childDoc : childrenDocs)
@@ -1310,17 +1312,15 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
    */
   protected class ListObjectsThread extends Thread
   {
-    protected final long vol;
     protected final long objID;
     protected final String filterString;
     protected Throwable exception = null;
     protected List<? extends Node> rval = null;
 
-    public ListObjectsThread(long vol, long objID, String filterString)
+    public ListObjectsThread(long objID, String filterString)
     {
       super();
       setDaemon(true);
-      this.vol = vol;
       this.objID = objID;
       this.filterString = filterString;
     }
@@ -3043,7 +3043,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     int sanityRetryCount = FAILURE_RETRY_COUNT;
     while (true)
     {
-      ListObjectsThread t = new ListObjectsThread(vid.getVolumeID(), vid.getPathId(), filterString);
+      ListObjectsThread t = new ListObjectsThread(vid.getPathId(), filterString);
       try
       {
         t.start();
@@ -3099,7 +3099,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     // We want only folders that are children of the current object and which match the specified subfolder
     String filterString = "SubType="+ LAPI_DOCUMENTS.CATEGORYSUBTYPE;
 
-    final ListObjectsThread t = new ListObjectsThread(vid.getVolumeID(), vid.getPathId(), filterString);
+    final ListObjectsThread t = new ListObjectsThread(vid.getPathId(), filterString);
     try
     {
       t.start();
@@ -3415,16 +3415,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   protected class GetObjectRightsThread extends Thread
   {
-    protected final long vol;
     protected final long objID;
     protected Throwable exception = null;
-    protected int[] rval = null;
+    protected NodeRights rval = null;
 
-    public GetObjectRightsThread(long vol, long objID)
+    public GetObjectRightsThread(long objID)
     {
       super();
       setDaemon(true);
-      this.vol = vol;
       this.objID = objID;
     }
 
@@ -3432,59 +3430,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
-        // MHL - TBD
-        /*
-        LLValue childrenObjects = new LLValue();
-        int status = LLDocs.GetObjectRights(vol, objID, childrenObjects);
-        // If the rights object doesn't exist, behave civilly
-        if (status == 103101)
-          return;
-
-        if (status != 0)
-        {
-          throw new ManifoldCFException("Error retrieving document rights: "+Integer.toString(status)+": "+llServer.getErrors());
-        }
-
-        if (childrenObjects != null)
-        {
-          int size;
-          if (childrenObjects.isRecord())
-            size = 1;
-          else if (childrenObjects.isTable())
-            size = childrenObjects.size();
-          else
-            size = 0;
-
-          int minPermission = LAPI_DOCUMENTS.PERM_SEE +
-            LAPI_DOCUMENTS.PERM_SEECONTENTS;
-
-          int j = 0;
-          int count = 0;
-          while (j < size)
-          {
-            int permission = childrenObjects.toInteger(j, "Permissions");
-            // Only if the permission is "see contents" can we consider this
-            // access token!
-            if ((permission & minPermission) == minPermission)
-              count++;
-            j++;
-          }
-
-          rval = new int[count];
-          j = 0;
-          count = 0;
-          while (j < size)
-          {
-            int token = childrenObjects.toInteger(j, "RightID");
-            int permission = childrenObjects.toInteger(j, "Permissions");
-            // Only if the permission is "see contents" can we consider this
-            // access token!
-            if ((permission & minPermission) == minPermission)
-              rval[count++] = token;
-            j++;
-          }
-        }
-        */
+        rval = cswsSession.getNodeRights(objID);
       }
       catch (Throwable e)
       {
@@ -3492,7 +3438,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    public int[] finishUp()
+    public NodeRights finishUp()
       throws ManifoldCFException, InterruptedException
     {
       join();
@@ -3517,12 +3463,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   * ones defined by Csws, or null will be returned (if the object is not found).
   *@param vol is the volume id
   *@param objID is the object id
-  *@return the array.
+  *@return the NodeRights object
   */
-  protected int[] getObjectRights(long vol, long objID)
+  protected NodeRights getObjectRights(long objID)
     throws ManifoldCFException, ServiceInterruption
   {
-    final GetObjectRightsThread t = new GetObjectRightsThread(vol, objID);
+    final GetObjectRightsThread t = new GetObjectRightsThread(objID);
     try
     {
       t.start();
@@ -3878,7 +3824,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         String filterString = "(SubType="+ LAPI_DOCUMENTS.FOLDERSUBTYPE + " or SubType=" + LAPI_DOCUMENTS.PROJECTSUBTYPE +
           " or SubType=" + LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE + ") and Name='" + subFolder + "'";
 
-        final ListObjectsThread t = new ListObjectsThread(vol,obj,filterString);
+        final ListObjectsThread t = new ListObjectsThread(obj,filterString);
         try
         {
           t.start();
@@ -3967,7 +3913,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
         filterString += " and Name='" + subFolder + "'";
 
-        final ListObjectsThread t = new ListObjectsThread(vol, obj, filterString);
+        final ListObjectsThread t = new ListObjectsThread(obj, filterString);
         try
         {
           t.start();
@@ -4440,11 +4386,30 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /** Build a set of actual acls given a set of rights */
-  protected String[] lookupTokens(int[] rights, ObjectInformation objInfo)
+  protected String[] lookupTokens(final NodeRights rights, final ObjectInformation objInfo)
     throws ManifoldCFException, ServiceInterruption
   {
     if (!objInfo.exists())
       return null;
+    
+    // MHL - TBD
+    // We filter each NodeRight first by whether it conveys the permissions we care about
+    /*
+              int minPermission = LAPI_DOCUMENTS.PERM_SEE +
+            LAPI_DOCUMENTS.PERM_SEECONTENTS;
+
+          int j = 0;
+          int count = 0;
+          while (j < size)
+          {
+            int permission = childrenObjects.toInteger(j, "Permissions");
+            // Only if the permission is "see contents" can we consider this
+            // access token!
+            if ((permission & minPermission) == minPermission)
+              count++;
+            j++;
+          }
+        */
     
     String[] convertedAcls = new String[rights.length];
 

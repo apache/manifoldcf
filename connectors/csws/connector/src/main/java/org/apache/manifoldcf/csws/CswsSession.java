@@ -51,6 +51,7 @@ import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
 import com.opentext.livelink.service.docman.NodePermission;
 import com.opentext.livelink.service.docman.Version;
+import com.opentext.livelink.service.docman.NodeRights;
 import com.opentext.livelink.service.memberservice.User;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
@@ -210,6 +211,17 @@ public class CswsSession
     // MHL
     try {
       return getDocumentManagementHandle().getNode(nodeId, getOTAuthentication());
+      } catch (SOAPFaultException e) {
+        processSOAPFault(e);
+      }
+  }
+
+  public NodeRights getNodeRights(final long nodeId) 
+    throws ManifoldCFException, ServiceInterruption {
+    // Need to detect if object was deleted, and return null in this case!!!
+    // MHL
+    try {
+      return getDocumentManagementHandle().getNodeRights(nodeId, getOTAuthentication());
       } catch (SOAPFaultException e) {
         processSOAPFault(e);
       }
