@@ -4386,76 +4386,40 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /** Build a set of actual acls given a set of rights */
-  protected String[] lookupTokens(final NodeRights rights, final ObjectInformation objInfo)
+  protected static String[] lookupTokens(final NodeRights rights, final ObjectInformation objInfo)
     throws ManifoldCFException, ServiceInterruption
   {
     if (!objInfo.exists())
       return null;
     
-    // MHL - TBD
-    // We filter each NodeRight first by whether it conveys the permissions we care about
-    /*
-              int minPermission = LAPI_DOCUMENTS.PERM_SEE +
-            LAPI_DOCUMENTS.PERM_SEECONTENTS;
-
-          int j = 0;
-          int count = 0;
-          while (j < size)
-          {
-            int permission = childrenObjects.toInteger(j, "Permissions");
-            // Only if the permission is "see contents" can we consider this
-            // access token!
-            if ((permission & minPermission) == minPermission)
-              count++;
-            j++;
-          }
-        */
+    final List<String> tokenAccumulator = new ArrayList<>();
     
-    String[] convertedAcls = new String[rights.length];
-
-    LLValue infoObject = null;
-    int j = 0;
-    int k = 0;
-    while (j < rights.length)
-    {
-      int token = rights[j++];
-      String tokenValue;
-      // Consider this token
-      switch (token)
-      {
-      case LAPI_DOCUMENTS.RIGHT_OWNER:
-        // Look up user for current document (UserID attribute)
-        tokenValue = objInfo.getOwnerId().toString();
-        break;
-      case LAPI_DOCUMENTS.RIGHT_GROUP:
-        tokenValue = objInfo.getGroupId().toString();
-        break;
-      case LAPI_DOCUMENTS.RIGHT_WORLD:
-        // Add "Guest" token
-        tokenValue = "GUEST";
-        break;
-      case LAPI_DOCUMENTS.RIGHT_SYSTEM:
-        // Add "System" token
-        tokenValue = "SYSTEM";
-        break;
-      default:
-        tokenValue = Integer.toString(token);
-        break;
+    if (evaluateRight(rights.getOwnerRight())) {
+      tokenAccumulator.add(objInfo.getOwnerId().toString());
+    }
+    if (evaluateRight(rights.getOwnerGroupRight())) {
+      tokenAccumulator.add(objInfo.getGroupId().toString());
+    }
+    // I presume this is WORLD right
+    if (evaluateRight(rights.getPublicRight())) {
+      tokenAccumulator.add("GUEST");
+    }
+    // What happened to SYSTEM right??
+    // MHL -TBD - for "SYSTEM" token
+    
+    for (final NodeRight nr : rights.getACLRights()) {
+      if (evaluateRight(nr)) {
+        tokenAccumulator.add(new Long(nr.getRightID()).toString());
       }
+    }
 
-      // This might return a null if we could not look up the object corresponding to the right.  If so, it is safe to skip it because
-      // that always RESTRICTS view of the object (maybe erroneously), but does not expand visibility.
-      if (tokenValue != null)
-        convertedAcls[k++] = tokenValue;
-    }
-    String[] actualAcls = new String[k];
-    j = 0;
-    while (j < k)
-    {
-      actualAcls[j] = convertedAcls[j];
-      j++;
-    }
-    return actualAcls;
+    return tokenAccumulator.toArray(new String[tokenAccumulator.size()]);
+  }
+  
+  /** Check if NodeRight conveys the permissions we need */
+  protected static boolean evaluateRight(final NodeRight nr) {
+    final NodePermissions np = nr.getPermissions();
+    return np.isSeePermission() && np.isSeeContentsPermission();
   }
 
   protected class GetObjectCategoryIDsThread extends Thread
