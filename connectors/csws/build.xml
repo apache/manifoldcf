@@ -43,6 +43,9 @@
         <antcall target="classcreate-wsdl-cxf">
             <param name="wsdlname" value="wsdls/MemberService.wsdl"/>
         </antcall>
+        <antcall target="classcreate-wsdl-cxf">
+            <param name="wsdlname" value="wsdls/SearchService.wsdl"/>
+        </antcall>
     </target>
 
     <!--target name="classcreate-xsds" depends="precompile-check" if="canBuild">

@@ -192,6 +192,9 @@ public class CswsSession
     try {
       return getDocumentManagementHandle().getNodesInContainer(nodeId, gnico);
     } catch (SOAPFaultException e) {
+      if (e.getFault().getFaultCode().equals("ns0:DocMan.ErrorGettingParentNode")) {
+        return null;
+      }
       processSOAPFault(e);
     }
   }
