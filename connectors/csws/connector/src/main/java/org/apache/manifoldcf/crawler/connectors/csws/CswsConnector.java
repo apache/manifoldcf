@@ -3751,6 +3751,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected final String workspaceName;
     
     protected Node objectValue = null;
+    protected boolean fetched = false;
     
     public ObjectInformation(final long volumeID, final long objectID)
     {
@@ -4059,7 +4060,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected Node getObjectValue()
       throws ServiceInterruption, ManifoldCFException
     {
-      if (objectValue == null)
+      if (!fetched)
       {
         if (workspaceName != null) {
           final GetWorkspaceInfoThread t = new GetWorkspaceInfoThread(workspaceName);
@@ -4073,6 +4074,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             t.interrupt();
             throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
           }
+          fetched = true;
         } else {
           final GetObjectInfoThread t = new GetObjectInfoThread(objectID);
           try
@@ -4085,6 +4087,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             t.interrupt();
             throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
           }
+          fetched = true;
         }
       }
       return objectValue;
