@@ -1142,17 +1142,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           // If it's a folder, we just let it through for now
           if (!childIsFolder)
           {
-            final List<? extends Version> docVersions = childDoc.getVersions();
-            if (docVersions.size() > 0)
+            if (checkInclude(childDoc.getName(), spec) == false)
             {
-              final Version lastVersion = docVersions.get(docVersions.size()-1);
-              if (checkInclude(lastVersion.getFilename() + "." + lastVersion.getFileType(), spec) == false)
-              {
-                if (Logging.connectors.isDebugEnabled()) {
-                  Logging.connectors.debug("Csws: Child identifier "+childID+" was excluded by inclusion criteria");
-                }
-                continue;
+              if (Logging.connectors.isDebugEnabled()) {
+                Logging.connectors.debug("Csws: Child identifier "+childID+" was excluded by inclusion criteria");
               }
+              continue;
             }
           }
 
@@ -2765,8 +2760,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       
       // Add general metadata
-      ObjectInformation objInfo = llc.getObjectInformation(vol,objID);
-      VersionInformation versInfo = llc.getVersionInformation(vol,objID,0);
+      ObjectInformation objInfo = llc.getObjectInformation(vol, objID);
+      VersionInformation versInfo = llc.getVersionInformation(objID, 0);
       if (!objInfo.exists())
       {
         resultCode = "OBJECTNOTFOUND";
@@ -3055,43 +3050,25 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String filterString = "(SubType="+ LAPI_DOCUMENTS.FOLDERSUBTYPE + " or SubType=" + LAPI_DOCUMENTS.PROJECTSUBTYPE +
       " or SubType=" + LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE + ")";
 
-    int sanityRetryCount = FAILURE_RETRY_COUNT;
-    while (true)
+    final ListObjectsThread t = new ListObjectsThread(vid.getPathId(), filterString);
+    try
     {
-      ListObjectsThread t = new ListObjectsThread(vid.getPathId(), filterString);
-      try
-      {
-        t.start();
-	LLValue children;
-	try
-	{
-	  children = t.finishUp();
-	}
-	catch (ManifoldCFException e)
-	{
-	  sanityRetryCount = assessRetry(sanityRetryCount,e);
-	  continue;
-	}
+      t.start();
+      final List<? extends Node> children = t.finishUp();
 
-        String[] rval = new String[children.size()];
-        int j = 0;
-        while (j < children.size())
-        {
-          rval[j] = children.toString(j,"Name");
-          j++;
-        }
-        return rval;
-      }
-      catch (InterruptedException e)
+      final String[] rval = new String[children.size()];
+      int j = 0;
+      for (final Node node : children)
       {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        rval[j] = node.getName();
+        j++;
       }
-      catch (RuntimeException e)
-      {
-        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
-        continue;
-      }
+      return rval;
+    }
+    catch (InterruptedException e)
+    {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
   }
 
@@ -3535,9 +3512,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return lookupValue;
     }
     
-    public VersionInformation getVersionInformation(long volumeID, long objectID, int revisionNumber)
+    public VersionInformation getVersionInformation(long objectID, int revisionNumber)
     {
-      VersionInformation vi = new VersionInformation(volumeID,objectID,revisionNumber);
+      VersionInformation vi = new VersionInformation(objectID, revisionNumber);
       VersionInformation lookupValue = versionInfoMap.get(vi);
       if (lookupValue == null)
       {
@@ -3567,6 +3544,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     protected final long userID;
     
+    protected boolean fetched = false;
     protected User userValue = null;
     
     public UserInformation(long userID)
@@ -3592,7 +3570,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected User getUserValue()
       throws ServiceInterruption, ManifoldCFException
     {
-      if (userValue == null)
+      if (!fetched)
       {
         final GetUserInfoThread t = new GetUserInfoThread(userID);
         try
@@ -3605,6 +3583,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           t.interrupt();
           throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
+        fetched = true;
       }
       return userValue;
     }
@@ -3618,7 +3597,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     @Override
     public int hashCode()
     {
-      return (userID << 5) ^ (userID >> 3);
+      return Long.hashCode(userID);
     }
     
     @Override
@@ -3638,15 +3617,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected class VersionInformation
   {
-    protected final long volumeID;
     protected final long objectID;
     protected final long revisionNumber;
     
+    protected boolean fetched = false;
     protected Version versionValue = null;
     
-    public VersionInformation(long volumeID, long objectID, long revisionNumber)
+    public VersionInformation(long objectID, long revisionNumber)
     {
-      this.volumeID = volumeID;
       this.objectID = objectID;
       this.revisionNumber = revisionNumber;
     }
@@ -3716,7 +3694,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected Version getVersionValue()
       throws ServiceInterruption, ManifoldCFException
     {
-      if (versionValue == null)
+      if (!fetched)
       {
         final GetVersionInfoThread t = new GetVersionInfoThread(objectID, revisionNumber);
         try
@@ -3729,6 +3707,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           t.interrupt();
           throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
+        fetched = true;
       }
       return versionValue;
     }
@@ -3736,7 +3715,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     @Override
     public int hashCode()
     {
-      return (volumeID << 5) ^ (volumeID >> 3) ^ (objectID << 5) ^ (objectID >> 3) ^ (revisionNumber << 5) ^ (revisionNumber >> 3);
+      return Long.hashCode(objectID) + Long.hashCode(revisionNumber);
     }
     
     @Override
@@ -3745,7 +3724,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (!(o instanceof VersionInformation))
         return false;
       final VersionInformation other = (VersionInformation)o;
-      return volumeID == other.volumeID && objectID == other.objectID && revisionNumber == other.revisionNumber;
+      return objectID == other.objectID && revisionNumber == other.revisionNumber;
     }
 
   }
@@ -3840,7 +3819,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         String filterString = "(SubType="+ LAPI_DOCUMENTS.FOLDERSUBTYPE + " or SubType=" + LAPI_DOCUMENTS.PROJECTSUBTYPE +
           " or SubType=" + LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE + ") and Name='" + subFolder + "'";
 
-        final ListObjectsThread t = new ListObjectsThread(obj,filterString);
+        final ListObjectsThread t = new ListObjectsThread(obj, filterString);
         try
         {
           t.start();
@@ -4110,7 +4089,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (workspaceName != null) {
         return workspaceName.hashCode();
       }
-      return (volumeID << 5) ^ (volumeID >> 3) ^ (objectID << 5) ^ (objectID >> 3);
+      return Long.hashCode(volumeID) + Long.hashCode(objectID);
     }
     
     @Override
