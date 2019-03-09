@@ -29,9 +29,16 @@ import org.apache.manifoldcf.connectorcommon.common.XThreadOutputStream;
 import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
 import org.apache.manifoldcf.core.common.DateParser;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import com.opentext.ecm.api.OTAuthentication;
-import com.opentext.livelink.service.core.FileAtts;
+import com.opentext.livelink.service.core.DataValue;
+import com.opentext.livelink.service.core.StringValue;
+import com.opentext.livelink.service.core.RealValue;
+import com.opentext.livelink.service.core.BooleanValue;
+import com.opentext.livelink.service.core.DateValue;
+import com.opentext.livelink.service.core.IntegerValue;
 import com.opentext.livelink.service.docman.AttributeGroup;
+import com.opentext.livelink.service.docman.Metadata;
 import com.opentext.livelink.service.docman.CategoryInheritance;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
@@ -2856,9 +2863,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (modifier != null)
         rd.addField(GENERAL_MODIFIER,modifier.getName());
 
+      /* Old-style code.  Category paths come out of description.  Then
+          we look up the category path to get the category version for the
+          specific document.  Then we iterate over all attribute names for the
+          category version, and fetch their values.
+      
       // Iterate over the metadata items.  These are organized by category
       // for speed of lookup.
-
       Iterator<MetadataItem> catIter = desc.getItems(categoryPaths);
       while (catIter.hasNext())
       {
@@ -2887,6 +2898,58 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             }
           }
           
+        }
+      }
+      */
+      // New-style code.  We have a list of AttributeGroup objects attached to the item.  We iterate over them and
+      // use the ones we want.
+      final List<? extends AttributeGroup> attributeGroups = objInfo.getAttributeGroups();
+      for (final AttributeGroup g : attributeGroups) {
+        // Get the attribute name (qualified?  Unqualified?  Don't know)
+        // TBD
+        final String groupName = g.getKey();
+        // Get the data values
+        final List<? extends DataValue> dataValues = g.getValues();
+        for (final DataValue dv : dataValues) {
+          // Is this right?  TBD
+          final String attrName = groupName + ":" + dv.getKey();
+          // We only know how to handle certain kinds of attributes, ones whose types are scalar
+          if (dv instanceof StringValue) {
+            final String[] attrValues = ((StringValue)dv).getValues().toArray(new String[0]);
+            rd.addField(attrName, attrValues);
+          } else if (dv instanceof RealValue) {
+            final List<? extends Double> realValues = ((RealValue)dv).getValues();
+            final String[] reals = new String[realValues.size()];
+            int i = 0;
+            for (final Double value : realValues) {
+              reals[i++] = value.toString();
+            }
+            rd.addField(attrName, reals);
+          } else if (dv instanceof BooleanValue) {
+            final List<? extends Boolean> boolValues = ((BooleanValue)dv).getValues();
+            final String[] bools = new String[boolValues.size()];
+            int i = 0;
+            for (final Boolean value : boolValues) {
+              bools[i++] = value.toString();
+            }
+            rd.addField(attrName, bools);
+          } else if (dv instanceof DateValue) {
+            final List<? extends XMLGregorianCalendar> dateValues = ((DateValue)dv).getValues();
+            final Date[] dates = new Date[dateValues.size()];
+            int i = 0;
+            for (final XMLGregorianCalendar c : dateValues) {
+              dates[i++] = new Date(c.toGregorianCalendar().getTimeInMillis());
+            }
+            rd.addField(attrName, dates);
+          } else if (dv instanceof IntegerValue) {
+            final List<? extends Long> longValues = ((LongValue)dv).getValues();
+            final String[] longs = new String[longValues.size()];
+            int i = 0;
+            for (final Long value : longValues) {
+              longs[i++] = value.toString();
+            }
+            rd.addField(attrName, longs);
+          }
         }
       }
 
@@ -3206,6 +3269,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
   }
 
+  /* Unused -- done a different way
   protected class GetCategoryVersionThread extends Thread
   {
     protected final long objID;
@@ -3225,8 +3289,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
-        // MHL - TBD
-        /*
         // Set up the right llvalues
 
         // Object ID
@@ -3252,7 +3314,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
 
         rval = rvalue;
-        */
       }
       catch (Throwable e)
       {
@@ -3282,9 +3343,11 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
   }
-
+  */
+  
   /** Get a category version for document.
   */
+  /* Unused -- done a different way
   protected LLValue getCatVersion(long objID, long catID)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -3300,7 +3363,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
   }
+  */
 
+  /* Unused; done a different way
   protected class GetAttributeValueThread extends Thread
   {
     protected final LLValue categoryVersion;
@@ -3320,8 +3385,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
-        // MHL - TBD
-        /*
         // Set up the right llvalues
         LLValue children = new LLValue();
         int status = LLAttributes.AttrGetValues(categoryVersion,attributeName,
@@ -3351,7 +3414,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             j++;
           }
         }
-        */
       }
       catch (Throwable e)
       {
@@ -3381,9 +3443,11 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
   }
-
+  */
+  
   /** Get an attribute value from a category version.
   */
+  /* Unused -- done a different way
   protected String[] getAttributeValue(LLValue categoryVersion, String attributeName)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -3399,7 +3463,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
   }
-
+  */
+  
   protected class GetObjectRightsThread extends Thread
   {
     protected final long objID;
@@ -3856,6 +3921,23 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return new VolumeAndId(vol,obj);
     }
 
+    /**
+    * Get AttributeGroups
+    */
+    public List<? extends AttributeGroup> getAttributeGroups()
+      throws ManifoldCFException, ServiceInterruption
+    {
+      final Node elem = getObjectValue();
+      if (elem == null) {
+        return null;
+      }
+      final Metadata m = elem.getMetadata();
+      if (m == null) {
+        return new ArrayList<>(0);
+      }
+      return m.getAttributeGroups();
+    }
+    
     /**
     * Returns the category ID specified by the path name.
     * @param startPath is the folder name, ending in a category name (a string with slashes as separators)
