@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
+import java.io.OutputStream;
+
+import javax.activation.DataHandler;
 import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPElement;
@@ -228,12 +231,11 @@ public class CswsSession
   public Node getNode(final long nodeId) 
     throws ManifoldCFException, ServiceInterruption {
     // Need to detect if object was deleted, and return null in this case!!!
-    // MHL
     try {
       return getDocumentManagementHandle().getNode(nodeId, getOTAuthentication());
-      } catch (SOAPFaultException e) {
-        processSOAPFault(e);
-      }
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
   }
 
   public NodeRights getNodeRights(final long nodeId) 
@@ -242,27 +244,39 @@ public class CswsSession
     // MHL
     try {
       return getDocumentManagementHandle().getNodeRights(nodeId, getOTAuthentication());
-      } catch (SOAPFaultException e) {
-        processSOAPFault(e);
-      }
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
   }
 
   public Version getVersion(final long nodeId, final long version) 
     throws ManifoldCFException, ServiceInterruption {
     try {
       return getDocumentManagementHandle().getVersion(nodeId, version, getOTAuthentication());
-      } catch (SOAPFaultException e) {
-        processSOAPFault(e);
-      }
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
   }
 
   public User getUser(final long userId) 
     throws ManifoldCFException, ServiceInterruption {
     try {
       return getMemberServiceHandle().getMemberById(userId, getOTAuthentication());
-      } catch (SOAPFaultException e) {
-        processSOAPFault(e);
-      }
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
+  }
+  
+  public void getVersionContents(final long nodeId, final long version, final OutputStream os)
+    throws ManifoldCFException, ServiceInterruption {
+    try {
+      final OTAuthentication auth = getOTAuthentication();
+      long contextID = getDocumentManagementHandle().getVersionContentsContext(nodeId, version, auth);
+      final DataHandler dataHandler = getContentServiceHandle().downloadContent(contextID, auth);
+      dataHandler.writeTo(os);
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
   }
   
   // Construct authentication token argument, which must be passed as last argument for every method
