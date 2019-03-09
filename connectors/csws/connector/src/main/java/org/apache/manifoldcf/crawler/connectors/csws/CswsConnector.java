@@ -40,7 +40,6 @@ import com.opentext.livelink.service.docman.Version;
 import com.opentext.livelink.service.docman.NodeRights;
 import com.opentext.livelink.service.docman.NodeRight;
 import com.opentext.livelink.service.memberservice.User;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.manifoldcf.csws.*;
 
@@ -312,7 +311,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     public void finishUp()
-      throws ManifoldCFException, InterruptedException
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
       Throwable thr = exception;
@@ -322,6 +321,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  throw (RuntimeException)thr;
 	else if (thr instanceof ManifoldCFException)
 	  throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
 	else if (thr instanceof Error)
 	  throw (Error)thr;
 	else
@@ -1100,7 +1101,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         continue;
       }
 
-      final Date dt = new Date(value.getModifyDate().toGregorianCalendar().getTimeInMillis());
+      final Date dt = value.getModifyDate();
 
       // The rights don't change when the object changes, so we have to include those too.
       final NodeRights rights = getObjectRights(objID);
@@ -1343,7 +1344,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     public List<? extends Node> finishUp()
-      throws ManifoldCFException, InterruptedException
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
       Throwable thr = exception;
@@ -1353,6 +1354,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  throw (RuntimeException)thr;
 	else if (thr instanceof ManifoldCFException)
 	  throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
 	else if (thr instanceof Error)
 	  throw (Error)thr;
 	else
@@ -2717,26 +2720,18 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String resultCode = null;
     String resultDescription = null;
     Long readSize = null;
-    int objID;
-    int vol;
+    long objID;
+    long vol;
 
     int colonPos = documentIdentifier.indexOf(":",1);
         
-    if (colonPos == -1)
-    {
-      objID = new Integer(documentIdentifier.substring(1)).intValue();
-      vol = LLENTWK_VOL;
-    }
-    else
-    {
-      objID = new Integer(documentIdentifier.substring(colonPos+1)).intValue();
-      vol = new Integer(documentIdentifier.substring(1,colonPos)).intValue();
-    }
+    objID = new Integer(documentIdentifier.substring(colonPos+1)).intValue();
+    vol = new Integer(documentIdentifier.substring(1,colonPos)).intValue();
     
     // Try/finally for fetch logging
     try
     {
-      String viewHttpAddress = convertToViewURI(documentIdentifier);
+      final String viewHttpAddress = convertToViewURI(documentIdentifier);
       if (viewHttpAddress == null)
       {
         if (Logging.connectors.isDebugEnabled())
@@ -2760,8 +2755,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       
       // Add general metadata
-      ObjectInformation objInfo = llc.getObjectInformation(vol, objID);
-      VersionInformation versInfo = llc.getVersionInformation(objID, 0);
+      final ObjectInformation objInfo = llc.getObjectInformation(vol, objID);
+      final VersionInformation versInfo = llc.getVersionInformation(objID, 0);
       if (!objInfo.exists())
       {
         resultCode = "OBJECTNOTFOUND";
@@ -2779,7 +2774,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         return;
       }
 
-      String mimeType = versInfo.getMimeType();
+      final String mimeType = versInfo.getMimeType();
       if (!activities.checkMimeTypeIndexable(mimeType))
       {
         // Document not indexable because of its mime type
@@ -2791,7 +2786,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         return;
       }
         
-      Long dataSize = versInfo.getDataSize();
+      final Long dataSize = versInfo.getDataSize();
       if (dataSize == null)
       {
         // Document had no length
@@ -2814,7 +2809,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         return;
       }
 
-      Date modifyDate = versInfo.getModifyDate();
+      final Date modifyDate = versInfo.getModifyDate();
       if (!activities.checkDateIndexable(modifyDate))
       {
         // Document not indexable because of its date
@@ -2826,9 +2821,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         return;
       }
       
-      String fileName = versInfo.getFileName();
-      Date creationDate = objInfo.getCreationDate();
-      Long parentID = objInfo.getParentId();
+      final String fileName = versInfo.getFileName();
+      final Date creationDate = objInfo.getCreationDate();
+      final Long parentID = objInfo.getParentId();
       
       
       RepositoryDocument rd = new RepositoryDocument();
@@ -2899,7 +2894,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,actualAcls,denyAcls);
 
       // Add the path metadata item into the mix, if enabled
-      String pathAttributeName = sDesc.getPathAttributeName();
+      final String pathAttributeName = sDesc.getPathAttributeName();
       if (pathAttributeName != null && pathAttributeName.length() > 0)
       {
         String pathString = sDesc.getPathAttributeValue(documentIdentifier);
@@ -2915,7 +2910,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       long currentTime;
               
       // Fire up the document reading thread
-      DocumentReadingThread t = new DocumentReadingThread(vol,objID,0);
+      final DocumentReadingThread t = new DocumentReadingThread(objID, 0);
       boolean wasInterrupted = false;
       t.start();
       try 
@@ -2964,12 +2959,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
         resultDescription = e.getMessage();
         handleIOException(contextMsg,e);
-      }
-      catch (RuntimeException e)
-      {
-        resultCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
-        resultDescription = e.getMessage();
-        handleCswsRuntimeException(e,0,true);
       }
     }
     catch (ManifoldCFException e)
@@ -3175,7 +3164,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     public LLValue finishUp()
-      throws ManifoldCFException, InterruptedException
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
       Throwable thr = exception;
@@ -3185,6 +3174,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  throw (RuntimeException)thr;
 	else if (thr instanceof ManifoldCFException)
 	  throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
 	else if (thr instanceof Error)
 	  throw (Error)thr;
 	else
@@ -3270,7 +3261,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     public LLValue finishUp()
-      throws ManifoldCFException, InterruptedException
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
       Throwable thr = exception;
@@ -3280,6 +3271,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  throw (RuntimeException)thr;
 	else if (thr instanceof ManifoldCFException)
 	  throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
 	else if (thr instanceof Error)
 	  throw (Error)thr;
 	else
@@ -3367,7 +3360,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     public String[] finishUp()
-      throws ManifoldCFException, InterruptedException
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
       Throwable thr = exception;
@@ -3377,6 +3370,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  throw (RuntimeException)thr;
 	else if (thr instanceof ManifoldCFException)
 	  throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
 	else if (thr instanceof Error)
 	  throw (Error)thr;
 	else
@@ -3441,6 +3436,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  throw (RuntimeException)thr;
 	else if (thr instanceof ManifoldCFException)
 	  throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
 	else if (thr instanceof Error)
 	  throw (Error)thr;
 	else
@@ -3670,13 +3667,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     /** Get modify date.
     */
-    public XMLGregorianCalendar getModifyDate()
+    public Date getModifyDate()
       throws ServiceInterruption, ManifoldCFException
     {
       final Version elem = getVersionValue();
       if (elem == null)
         return null;
-      return elem.getModifyDate(); 
+      return new Date(elem.getModifyDate().toGregorianCalendar().getTimeInMillis());
     }
 
     /** Get modifier.
@@ -4014,13 +4011,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     
     /** Get creation date.
     */
-    public XMLGregorianCalendar getCreationDate()
+    public Date getCreationDate()
       throws ServiceInterruption, ManifoldCFException
     {
       final Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return elem.getCreateDate(); 
+      return new Date(elem.getCreateDate().toGregorianCalendar().getTimeInMillis());
     }
     
     /** Get creator ID.
@@ -4036,13 +4033,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     /* Get modify date.
     */
-    public XMLGregorianCalendar getModifyDate()
+    public Date getModifyDate()
       throws ServiceInterruption, ManifoldCFException
     {
       final Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return elem.getModifyDate(); 
+      return new Date(elem.getModifyDate().toGregorianCalendar().getTimeInMillis());
     }
 
     /** Get the objInfo object.
@@ -4172,7 +4169,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     public int[] finishUp()
-      throws ManifoldCFException, InterruptedException
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
       Throwable thr = exception;
@@ -4182,6 +4179,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  throw (RuntimeException)thr;
 	else if (thr instanceof ManifoldCFException)
 	  throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
 	else if (thr instanceof Error)
 	  throw (Error)thr;
 	else
@@ -4220,7 +4219,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     public User finishUp()
-      throws ManifoldCFException, InterruptedException
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
       Throwable thr = exception;
@@ -4230,6 +4229,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  throw (RuntimeException)thr;
 	else if (thr instanceof ManifoldCFException)
 	  throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
 	else if (thr instanceof Error)
 	  throw (Error)thr;
 	else
@@ -4270,7 +4271,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     public Version finishUp()
-      throws ManifoldCFException, InterruptedException
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
       Throwable thr = exception;
@@ -4280,6 +4281,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  throw (RuntimeException)thr;
 	else if (thr instanceof ManifoldCFException)
 	  throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
 	else if (thr instanceof Error)
 	  throw (Error)thr;
 	else
@@ -4318,7 +4321,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     public Node finishUp()
-      throws ManifoldCFException, InterruptedException
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
       Throwable thr = exception;
@@ -4328,6 +4331,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  throw (RuntimeException)thr;
 	else if (thr instanceof ManifoldCFException)
 	  throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
 	else if (thr instanceof Error)
 	  throw (Error)thr;
 	else
@@ -4363,7 +4368,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     public Node finishUp()
-      throws ManifoldCFException, InterruptedException
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
       Throwable thr = exception;
@@ -4373,6 +4378,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  throw (RuntimeException)thr;
 	else if (thr instanceof ManifoldCFException)
 	  throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
 	else if (thr instanceof Error)
 	  throw (Error)thr;
 	else
@@ -4468,7 +4475,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     public LLValue finishUp()
-      throws ManifoldCFException, InterruptedException
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
       Throwable thr = exception;
@@ -4478,6 +4485,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  throw (RuntimeException)thr;
 	else if (thr instanceof ManifoldCFException)
 	  throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
 	else if (thr instanceof Error)
 	  throw (Error)thr;
 	else
@@ -5495,15 +5504,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
 
     protected Throwable exception = null;
-    protected final int volumeID;
-    protected final int docID;
-    protected final int versionNumber;
+    protected final long docID;
+    protected final long versionNumber;
     protected final XThreadInputStream stream;
     
-    public DocumentReadingThread(int volumeID, int docID, int versionNumber)
+    public DocumentReadingThread(final long docID, final long versionNumber)
     {
       super();
-      this.volumeID = volumeID;
       this.docID = docID;
       this.versionNumber = versionNumber;
       this.stream = new XThreadInputStream();
@@ -5515,14 +5522,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
-        XThreadOutputStream outputStream = new XThreadOutputStream(stream);
+        final XThreadOutputStream outputStream = new XThreadOutputStream(stream);
         try 
         {
-          int status = LLDocs.FetchVersion(volumeID, docID, versionNumber, outputStream);
-          if (status != 0)
-          {
-            throw new ManifoldCFException("Error retrieving contents of document "+Integer.toString(volumeID)+":"+Integer.toString(docID)+" revision "+versionNumber+" : Status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
-          }
+          cswsSession.getVersionContents(docID, versionNumber, outputStream);
         }
         finally
         {
@@ -5538,7 +5541,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
     
     public void finishUp()
-      throws InterruptedException, ManifoldCFException
+      throws InterruptedException, ManifoldCFException, ServiceInterruption
     {
       // This will be called during the finally
       // block in the case where all is well (and
@@ -5550,6 +5553,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (thr != null) {
         if (thr instanceof ManifoldCFException)
           throw (ManifoldCFException) thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
         else if (thr instanceof RuntimeException)
           throw (RuntimeException) thr;
         else if (thr instanceof Error)
