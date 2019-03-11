@@ -954,49 +954,26 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (doUserWorkspaces)
       {
         // Do ListUsers and enumerate the values.
-        int sanityRetryCount = FAILURE_RETRY_COUNT;
-        while (true)
+        final ListUsersThread t = new ListUsersThread();
+        t.start();
+        final long[] childrenDocs = t.finishUp();
+            
+        for (long childID : childrenDocs)
         {
-          ListUsersThread t = new ListUsersThread();
-          try
-          {
-            t.start();
-            int[] childrenDocs;
-	    try
-            {
-              childrenDocs = t.finishUp();
-            }
-            catch (ManifoldCFException e)
-            {
-              sanityRetryCount = assessRetry(sanityRetryCount,e);
-              continue;
-            }
-            
-            for (int childID : childrenDocs)
-            {
-              // Skip admin user
-              if (childID == 1000 || childID == 1001)
-                continue;
-              
-              if (Logging.connectors.isDebugEnabled())
-                Logging.connectors.debug("Csws: Found a user: ID="+Integer.toString(childID));
-
-              activities.addSeedDocument("F0:"+Integer.toString(childID));
-            }
-            
-            break;
-          }
-          catch (InterruptedException e)
-          {
-            t.interrupt();
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
-          catch (RuntimeException e)
-          {
-            sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
+          // Skip admin user
+          if (childID == 1000L || childID == 1001L)
             continue;
-          }
+              
+          if (Logging.connectors.isDebugEnabled())
+            Logging.connectors.debug("Csws: Found a user: ID="+Integer.toString(childID));
+
+          activities.addSeedDocument("F0:"+Integer.toString(childID));
         }
+      }
+      catch (InterruptedException e)
+      {
+        t.interrupt();
+        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       
     }
@@ -5147,28 +5124,19 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
         // See if there's a volume label; if not, use the default.
         int colonPosition = identifierPart.indexOf(":");
-        int volumeID;
-        int objectID;
+        long volumeID;
+        long objectID;
         try
         {
-          if (colonPosition == -1)
-          {
-            // Default volume ID
-            volumeID = LLENTWK_VOL;
-            objectID = Integer.parseInt(identifierPart);
-          }
-          else
-          {
-            volumeID = Integer.parseInt(identifierPart.substring(0,colonPosition));
-            objectID = Integer.parseInt(identifierPart.substring(colonPosition+1));
-          }
+          volumeID = Integer.parseInt(identifierPart.substring(0,colonPosition));
+          objectID = Integer.parseInt(identifierPart.substring(colonPosition+1));
         }
         catch (NumberFormatException e)
         {
           throw new ManifoldCFException("Bad document identifier: "+e.getMessage(),e);
         }
 
-        ObjectInformation objInfo = llc.getObjectInformation(volumeID,objectID);
+        final ObjectInformation objInfo = llc.getObjectInformation(volumeID,objectID);
         if (!objInfo.exists())
         {
           // The document identifier describes a path that does not exist.
@@ -5180,11 +5148,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // Get the name attribute
         String name = objInfo.getName();
         // Get the parentID attribute
-        int parentID = objInfo.getParentId().intValue();
-        if (parentID == -1)
+        if (objInfo.getParentId() == null) {
           path = name;
-        else
-        {
+        } else {
+          long parentID = objInfo.getParentId().longValue();
           String parentIdentifier = "F"+volumeID+":"+parentID;
           String parentPath = getNodePathString(parentIdentifier);
           if (parentPath == null)
@@ -5289,12 +5256,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected final CswsContext llc;
     
     // This is the map from category ID to category path name.
-    // It's keyed by an Integer formed from the id, and has String values.
-    protected final Map<Integer,String> categoryPathMap = new HashMap<Integer,String>();
+    // It's keyed by a Long formed from the id, and has String values.
+    protected final Map<Long,String> categoryPathMap = new HashMap<>();
 
     // This is the map from category ID to attribute names.  Keyed
-    // by an Integer formed from the id, and has a String[] value.
-    protected final Map<Integer,String[]> attributeMap = new HashMap<Integer,String[]>();
+    // by a Long formed from the id, and has a String[] value.
+    protected final Map<Long,String[]> attributeMap = new HashMap<>();
 
     /** Constructor */
     public CategoryPathAccumulator(CswsContext llc)
@@ -5303,13 +5270,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     /** Get a specified set of packed category paths with attribute names, given the category identifiers */
-    public String[] getCategoryPathsAttributeNames(int[] catIDs)
+    public String[] getCategoryPathsAttributeNames(long[] catIDs)
       throws ManifoldCFException, ServiceInterruption
     {
       Set<String> set = new HashSet<String>();
-      for (int x : catIDs)
+      for (long x : catIDs)
       {
-        Integer key = new Integer(x);
+        Long key = new Long(x);
         String pathValue = categoryPathMap.get(key);
         if (pathValue == null)
         {
@@ -5347,7 +5314,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     /** Find a category path given a category ID */
-    protected String findPath(int catID)
+    protected String findPath(long catID)
       throws ManifoldCFException, ServiceInterruption
     {
       return getObjectPath(llc.getObjectInformation(0, catID));
@@ -5381,15 +5348,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           path = name + "/" + path;
 
         // Get the parentID attribute
-        int parentID = currentObject.getParentId().intValue();
-        if (parentID == -1)
-        {
+        if (currentObject.getParentId() == null) {
+          long parentID = currentObject.getParentId().longValue();
           // Oops, hit the top of the path without finding the workspace we're in.
           // No idea where it lives; note this condition and exit.
           Logging.connectors.warn("Csws: Object ID "+currentObject.toString()+" doesn't seem to live in enterprise or category workspace!  Path I got was '"+path+"'");
           return null;
         }
-        currentObject = llc.getObjectInformation(0,parentID);
+        currentObject = llc.getObjectInformation(0, parentID);
       }
     }
 
@@ -5449,12 +5415,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       if (rootValue == null)
       {
-        if (workspaceName.equals(CATEGORY_NAME))
-          rootValue = llc.getObjectInformation(LLCATWK_VOL,LLCATWK_ID);
-        else if (workspaceName.equals(ENTWKSPACE_NAME))
-          rootValue = llc.getObjectInformation(LLENTWK_VOL,LLENTWK_ID);
-        else
-          throw new ManifoldCFException("Bad workspace name: "+workspaceName);
+        rootValue = llc.getObjectInformation(workspaceName);
       }
       
       if (!rootValue.exists())
@@ -5467,116 +5428,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       return rootValue;
     }
-  }
-
-  // Here's an interesting note.  All of the LAPI exceptions are subclassed off of RuntimeException.  This makes life
-  // hell because there is no superclass exception to capture, and even tweaky server communication issues wind up throwing
-  // uncaught RuntimeException's up the stack.
-  //
-  // To fix this rather bad design, all places that invoke LAPI need to catch RuntimeException and run it through the following
-  // method for interpretation and logging.
-  //
-
-  /** Interpret runtimeexception to search for livelink API errors.  Throws an appropriately reinterpreted exception, or
-  * just returns if the exception indicates that a short-cycle retry attempt should be made.  (In that case, the appropriate
-  * wait has been already performed).
-  *@param e is the RuntimeException caught
-  *@param failIfTimeout is true if, for transient conditions, we want to signal failure if the timeout condition is acheived.
-  */
-  protected int handleCswsRuntimeException(RuntimeException e, int sanityRetryCount, boolean failIfTimeout)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    if (
-      e instanceof com.opentext.api.LLHTTPAccessDeniedException ||
-      e instanceof com.opentext.api.LLHTTPClientException ||
-      e instanceof com.opentext.api.LLHTTPServerException ||
-      e instanceof com.opentext.api.LLIndexOutOfBoundsException ||
-      e instanceof com.opentext.api.LLNoFieldSpecifiedException ||
-      e instanceof com.opentext.api.LLNoValueSpecifiedException ||
-      e instanceof com.opentext.api.LLSecurityProviderException ||
-      e instanceof com.opentext.api.LLUnknownFieldException ||
-      e instanceof NumberFormatException ||
-      e instanceof ArrayIndexOutOfBoundsException
-    )
-    {
-      String details = llServer.getErrors();
-      long currentTime = System.currentTimeMillis();
-      throw new ServiceInterruption("Csws API error: "+e.getMessage()+((details==null)?"":"; "+details),e,currentTime + 5*60000L,currentTime+12*60*60000L,-1,failIfTimeout);
-    }
-    else if (
-      e instanceof com.opentext.api.LLBadServerCertificateException ||
-      e instanceof com.opentext.api.LLHTTPCGINotFoundException ||
-      e instanceof com.opentext.api.LLCouldNotConnectHTTPException ||
-      e instanceof com.opentext.api.LLHTTPForbiddenException ||
-      e instanceof com.opentext.api.LLHTTPProxyAuthRequiredException ||
-      e instanceof com.opentext.api.LLHTTPRedirectionException ||
-      e instanceof com.opentext.api.LLUnsupportedAuthMethodException ||
-      e instanceof com.opentext.api.LLWebAuthInitException
-    )
-    {
-      String details = llServer.getErrors();
-      throw new ManifoldCFException("Csws API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
-    }
-    else if (e instanceof com.opentext.api.LLSSLNotAvailableException)
-    {
-      String details = llServer.getErrors();
-      throw new ManifoldCFException("Missing llssl.jar error: "+e.getMessage()+((details==null)?"":"; "+details),e);
-    }
-    else if (e instanceof com.opentext.api.LLIllegalOperationException)
-    {
-      // This usually means that LAPI has had a minor communication difficulty but hasn't reported it accurately.
-      // We *could* throw a ServiceInterruption, but OpenText recommends to just retry almost immediately.
-      String details = llServer.getErrors();
-      return assessRetry(sanityRetryCount,new ManifoldCFException("Csws API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
-    }
-    else if (e instanceof com.opentext.api.LLIOException || (e instanceof RuntimeException && e.getClass().getName().startsWith("com.opentext.api.")))
-    {
-      // Catching obfuscated and unspecified opentext runtime exceptions now too - these come from llssl.jar.  We
-      // have to presume these are SSL connection errors; nothing else to go by unfortunately.  UGH.
-      
-      // Treat this as a transient error; try again in 5 minutes, and only fail after 12 hours of trying
-
-      // LAPI is returning errors that are not terribly explicit, and I don't have control over their wording, so check that server can be resolved by DNS,
-      // so that a better error message can be returned.
-      try
-      {
-        InetAddress.getByName(serverName);
-      }
-      catch (UnknownHostException e2)
-      {
-        throw new ManifoldCFException("Server name '"+serverName+"' cannot be resolved",e2);
-      }
-
-      long currentTime = System.currentTimeMillis();
-      throw new ServiceInterruption(e.getMessage(),e,currentTime + 5*60000L,currentTime+12*60*60000L,-1,failIfTimeout);
-    }
-    else
-      throw e;
-  }
-
-  /** Do a retry, or throw an exception if the retry count has been exhausted
-  */
-  protected static int assessRetry(int sanityRetryCount, ManifoldCFException e)
-    throws ManifoldCFException
-  {
-    if (sanityRetryCount == 0)
-    {
-      throw e;
-    }
-
-    sanityRetryCount--;
-
-    try
-    {
-      ManifoldCF.sleep(1000L);
-    }
-    catch (InterruptedException e2)
-    {
-      throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
-    }
-    // Exit the method
-    return sanityRetryCount;
-
   }
 
   /** This thread performs a LAPI FetchVersion command, streaming the resulting
