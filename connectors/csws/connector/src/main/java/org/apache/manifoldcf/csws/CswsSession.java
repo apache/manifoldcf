@@ -39,6 +39,7 @@ import javax.xml.ws.soap.SOAPFaultException;
 import javax.xml.ws.BindingProvider;
 
 import com.opentext.ecm.api.OTAuthentication;
+import com.opentext.livelink.service.core.PageHandle;
 import com.opentext.livelink.service.core.Authentication;
 import com.opentext.livelink.service.core.Authentication_Service;
 import com.opentext.livelink.service.core.ContentService;
@@ -50,6 +51,8 @@ import com.opentext.livelink.service.docman.DocumentManagement_Service;
 import com.opentext.livelink.service.searchservices.SearchService;
 import com.opentext.livelink.service.searchservices.SearchService_Service;
 
+import com.opentext.livelink.service.memberservice.MemberSearchOptions;
+import com.opentext.livelink.service.memberservice.MemberSearchResults;
 import com.opentext.livelink.service.docman.AttributeGroup;
 import com.opentext.livelink.service.docman.CategoryInheritance;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
@@ -58,6 +61,7 @@ import com.opentext.livelink.service.docman.NodePermission;
 import com.opentext.livelink.service.docman.Version;
 import com.opentext.livelink.service.docman.NodeRights;
 import com.opentext.livelink.service.memberservice.User;
+import com.opentext.livelink.service.memberservice.Member;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -274,6 +278,36 @@ public class CswsSession
       long contextID = getDocumentManagementHandle().getVersionContentsContext(nodeId, version, auth);
       final DataHandler dataHandler = getContentServiceHandle().downloadContent(contextID, auth);
       dataHandler.writeTo(os);
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
+  }
+  
+  public PageHandle getAllUsers() 
+    throws ManifoldCFException, ServiceInterruption {
+    final MemberSearchOptions srchMemOptions  = new MemberSearchOptions();
+    srchMemOptions.setFilter(SearchFilter.USER);
+    srchMemOptions.setScope(SearchScope.SYSTEM);
+    srchMemOptions.setSearch("");
+    try {
+      return getMemberServiceHandle().searchForMembers(srchMemOptions, getOTAuthentication());
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
+  }
+
+  public List<? extends Member> getNextUserSearchResults(PageHandle pgHandle)
+    throws ManifoldCFException, ServiceInterruption {
+    try {
+      final MemberSearchResults msr = getMemberServiceHandle().getSearchResults(pgHandle, getOTAuthentication());
+      if (msr == null) {
+        return null;
+      }
+      final List<? extends Member> rval = msr.getMembers();
+      if (rval == null || rval.size() == 0) {
+        return null;
+      }
+      return rval;
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
     }
