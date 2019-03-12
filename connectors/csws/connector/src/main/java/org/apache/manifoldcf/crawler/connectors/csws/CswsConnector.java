@@ -30,7 +30,7 @@ import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
 import org.apache.manifoldcf.core.common.DateParser;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import com.opentext.ecm.api.OTAuthentication;
+import com.opentext.livelink.service.core.PageHandle;
 import com.opentext.livelink.service.core.DataValue;
 import com.opentext.livelink.service.core.StringValue;
 import com.opentext.livelink.service.core.RealValue;
@@ -47,6 +47,7 @@ import com.opentext.livelink.service.docman.Version;
 import com.opentext.livelink.service.docman.NodeRights;
 import com.opentext.livelink.service.docman.NodeRight;
 import com.opentext.livelink.service.memberservice.User;
+import com.opentext.livelink.service.memberservice.Member;
 
 import org.apache.manifoldcf.csws.*;
 
@@ -956,18 +957,31 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // Do ListUsers and enumerate the values.
         final ListUsersThread t = new ListUsersThread();
         t.start();
-        final long[] childrenDocs = t.finishUp();
+        final PageHandle resultPageHandle = t.finishUp();
+        
+        // Now walk through the results and add them
+        while (true) {
+          final GetUserResultsThread t = new GetUserResultsThread(resultPageHandle);
+          t.start();
+          final List<? extends Member> childrenDocs = t.finishUp();
+          if (childrenDocs == null) {
+            // We're done
+            break;
+          }
             
-        for (long childID : childrenDocs)
-        {
-          // Skip admin user
-          if (childID == 1000L || childID == 1001L)
-            continue;
-              
-          if (Logging.connectors.isDebugEnabled())
-            Logging.connectors.debug("Csws: Found a user: ID="+Integer.toString(childID));
+          for (final Member m : childrenDocs)
+          {
+            final long childID = m.getID();
+            
+            // Skip admin user
+            if (childID == 1000L || childID == 1001L)
+              continue;
+                
+            if (Logging.connectors.isDebugEnabled())
+              Logging.connectors.debug("Csws: Found a user: ID="+childID);
 
-          activities.addSeedDocument("F0:"+Integer.toString(childID));
+            activities.addSeedDocument("F0:"+childID);
+          }
         }
       }
       catch (InterruptedException e)
@@ -4168,7 +4182,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected class ListUsersThread extends Thread
   {
-    protected int[] rval = null;
+    protected PageHandle rval = null;
     protected Throwable exception = null;
 
     public ListUsersThread()
@@ -4181,45 +4195,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
-        // MHL - TBD
-        /*
-        LLValue userList = new LLValue();
-        int status = LLUsers.ListUsers(userList);
-
-        if (Logging.connectors.isDebugEnabled())
-        {
-          Logging.connectors.debug("Csws: User list retrieved: status="+Integer.toString(status));
-        }
-
-        if (status < 0)
-        {
-          Logging.connectors.debug("Csws: User list inaccessable ("+llServer.getErrors()+")");
-          return;
-        }
-
-        if (status != 0)
-        {
-          throw new ManifoldCFException("Error retrieving user list: status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
-        }
-        
-        if (userList != null)
-        {
-          int size = 0;
-
-          if (userList.isRecord())
-            size = 1;
-          if (userList.isTable())
-            size = childrenDocs.size();
-
-          rval = new int[size];
-          // Do the scan
-          for (int j = 0; j < size; j++)
-          {
-            int childID = userList.toInteger(j, "ID");
-            rval[j] = childID;
-          }
-        }
-        */
+        rval = cswsSession.getAllUsers();
       }
       catch (Throwable e)
       {
@@ -4227,7 +4203,58 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    public int[] finishUp()
+    public PageHandle finishUp()
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
+    {
+      join();
+      Throwable thr = exception;
+      if (thr != null)
+      {
+	if (thr instanceof RuntimeException)
+	  throw (RuntimeException)thr;
+	else if (thr instanceof ManifoldCFException)
+	  throw (ManifoldCFException)thr;
+        else if (thr instanceof ServiceInterruption)
+          throw (ServiceInterruption) thr;
+	else if (thr instanceof Error)
+	  throw (Error)thr;
+	else
+	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
+      }
+      return rval;
+    }
+
+  }
+
+  /** Thread we can abandon that lists all users (except admin).
+  */
+  protected class GetUserResultsThread extends Thread
+  {
+    protected final PageHandle pageHandle;
+    
+    protected List<? extends Member> rval = null;
+    protected Throwable exception = null;
+
+    public GetUserResultsThread(final PageHandle pageHandle)
+    {
+      super();
+      this.pageHandle = pageHandle;
+      setDaemon(true);
+    }
+
+    public void run()
+    {
+      try
+      {
+        rval = cswsSession.getNextUserSearchResults(pageHandle);
+      }
+      catch (Throwable e)
+      {
+        this.exception = e;
+      }
+    }
+
+    public List<? extends Member> finishUp()
       throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
