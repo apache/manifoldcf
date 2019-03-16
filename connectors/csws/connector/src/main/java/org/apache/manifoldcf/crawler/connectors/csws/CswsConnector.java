@@ -48,6 +48,8 @@ import com.opentext.livelink.service.docman.NodeRights;
 import com.opentext.livelink.service.docman.NodeRight;
 import com.opentext.livelink.service.memberservice.User;
 import com.opentext.livelink.service.memberservice.Member;
+import com.opentext.livelink.service.searchservices.SGraph;
+import com.opentext.livelink.service.searchservices.SNode;
 
 import org.apache.manifoldcf.csws.*;
 
@@ -1122,26 +1124,28 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           Logging.connectors.debug("Csws: Processing folder "+vol+":"+objID);
         }
         
-        final ListObjectsThread t = new ListObjectsThread(objID, filterString);
+        final ListObjectsThread t = new ListObjectsThread(objID, new String[]{"OTDataID", "OTSubTypeString", "OTName"}, filterString, "OTDataID");
         t.start();
-        final List<? extends Node> childrenDocs = t.finishUp();
-        for (final Node childDoc : childrenDocs)
+        final List<? extends SGraph> childrenDocs = t.finishUp();
+        for (final SGraph childDoc : childrenDocs)
         {
-          final long childID = childDoc.getID();
-
+          // Decode results
+          final long childID = childDoc.???;
+          final String subtype = childDoc.???;
+          final String name = childDoc.???;
+          
           if (Logging.connectors.isDebugEnabled())
           {
             Logging.connectors.debug("Csws: Found a child of folder "+vol+":"+objID+" : ID="+childID);
           }
           
           // All we need to know is whether the child is a container or not, and there is a way to do that directly from the node
-          final String subtype = childDoc.getType();
           final boolean childIsFolder = subType.equals("Folder") || subType.equals("Project") || subType.equals("CompoundDocument");
           
           // If it's a folder, we just let it through for now
           if (!childIsFolder)
           {
-            if (checkInclude(childDoc.getName(), spec) == false)
+            if (checkInclude(name, spec) == false)
             {
               if (Logging.connectors.isDebugEnabled()) {
                 Logging.connectors.debug("Csws: Child identifier "+childID+" was excluded by inclusion criteria");
@@ -1310,30 +1314,34 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /**
-   * Thread that reads child objects that have a specified filter criteria, given a volume ID and object ID.
+   * Thread that reads child objects that have a specified filter criteria, given an object ID.
    */
   protected class ListObjectsThread extends Thread
   {
     protected final long objID;
+    protected final String[] outputColumns;
     protected final String filterString;
+    protected final String orderingColumn;
     protected Throwable exception = null;
-    protected List<? extends Node> rval = null;
+    protected List<? extends SGraph> rval = null;
 
-    public ListObjectsThread(long objID, String filterString)
+    public ListObjectsThread(final long objID, final String[] outputColumns, final String filterString, final String orderingColumn)
     {
       super();
       setDaemon(true);
       this.objID = objID;
+      this.outputColumns = outputColumns;
       this.filterString = filterString;
+      this.orderingColumn = orderingColumn;
     }
 
     public void run()
     {
       try
       {
-        //         int status = LLDocs.ListObjects(vol, objID, null, filterString, LAPI_DOCUMENTS.PERM_SEECONTENTS, childrenDocs);
-        // No filter support!!! TBD
-        rval = cswsSession.getChildren(objID);
+        // Worry about paging later.  Since these are all children of a specific node, we are unlikely to have a problem in any case.
+        // TBD
+        rval = cswsSession.searchFor(objID, outputColumns, filterString, orderingColumn, 0, 100000); 
       }
       catch (Throwable e)
       {
@@ -1341,7 +1349,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    public List<? extends Node> finishUp()
+    public List<? extends SGraph> finishUp()
       throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
@@ -3090,21 +3098,19 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     if (vid == null)
       return null;
 
-    String filterString = "(SubType="+ LAPI_DOCUMENTS.FOLDERSUBTYPE + " or SubType=" + LAPI_DOCUMENTS.PROJECTSUBTYPE +
-      " or SubType=" + LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE + ")";
+    final String filterString = "where1=(\"OTSubType\":0 OR \"OTSubType\":202 OR \"OTSubType\":136)";
 
-    final ListObjectsThread t = new ListObjectsThread(vid.getPathId(), filterString);
+    final ListObjectsThread t = new ListObjectsThread(vid.getPathId(), new String[]{"OTName"}, filterString, "OTName");
     try
     {
       t.start();
-      final List<? extends Node> children = t.finishUp();
+      final List<? extends SGraph> children = t.finishUp();
 
       final String[] rval = new String[children.size()];
       int j = 0;
-      for (final Node node : children)
+      for (final SGraph node : children)
       {
-        rval[j] = node.getName();
-        j++;
+        rval[j++] = node.???;
       }
       return rval;
     }
@@ -3132,20 +3138,19 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return null;
 
     // We want only folders that are children of the current object and which match the specified subfolder
-    String filterString = "SubType="+ LAPI_DOCUMENTS.CATEGORYSUBTYPE;
+    String filterString = "\"OTSubType\":131";
 
-    final ListObjectsThread t = new ListObjectsThread(vid.getPathId(), filterString);
+    final ListObjectsThread t = new ListObjectsThread(vid.getPathId(), new String[]{"OTName"}, filterString, "OTName");
     try
     {
       t.start();
-      final List<? extends String> children = t.finishUp();
+      final List<? extends SGraph> children = t.finishUp();
 
       final String[] rval = new String[children.size()];
       int j = 0;
-      while (j < children.size())
+      while (final SGraph sg : children)
       {
-        rval[j] = children.get(j).getName();
-        j++;
+        rval[j++] = sg.???;
       }
       return rval;
     }
@@ -3869,14 +3874,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
         final String subFolder = currentTokenBuffer.toString();
         // We want only folders that are children of the current object and which match the specified subfolder
-        String filterString = "(SubType="+ LAPI_DOCUMENTS.FOLDERSUBTYPE + " or SubType=" + LAPI_DOCUMENTS.PROJECTSUBTYPE +
-          " or SubType=" + LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE + ") and Name='" + subFolder + "'";
+        final String filterString = "(\"OTSubType\":0 OR \"OTSubType\":202 OR \"OTSubType\":136) AND \"OTName\":\""+subFolder+"\"";
 
-        final ListObjectsThread t = new ListObjectsThread(obj, filterString);
+        final ListObjectsThread t = new ListObjectsThread(obj, new String[]{"OTDataID", "OTSubTypeName"}, filterString, "OTDataID");
         try
         {
           t.start();
-          final List<? extends Node> children = t.finishUp();
+          final List<? extends SGraph> children = t.finishUp();
 
           if (children == null) {
             return null;
@@ -3885,14 +3889,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           // If there is one child, then we are okay.
           if (children.size() == 1)
           {
-            // New starting point is the one we found.
-            final Node child = children.get(0);
-            obj = child.getID();
-            final String subtype = child.getType();
-            if (subtype.equals("Project"))
-            {
-              vol = obj;
-              obj = -obj;
+            for (final SGraph child : children) {
+              obj = child.???getID();
+              final String subtype = child.???getType();
+              if (subtype.equals("Project"))
+              {
+                vol = obj;
+                obj = -obj;
+              }
             }
           }
           else
@@ -3970,19 +3974,19 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         String filterString;
 
         // We want only folders that are children of the current object and which match the specified subfolder
-        if (charindex < startPath.length())
-          filterString = "(SubType="+ LAPI_DOCUMENTS.FOLDERSUBTYPE + " or SubType=" + LAPI_DOCUMENTS.PROJECTSUBTYPE +
-          " or SubType=" + LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE + ")";
-        else
-          filterString = "SubType="+LAPI_DOCUMENTS.CATEGORYSUBTYPE;
+        if (charindex < startPath.length()) {
+          filterString = "(\"OTSubType\":0 OR \"OTSubType\":202 OR \"OTSubType\":136)";
+        } else {
+          filterString = "\"OTSubType\":131";
+        }
+        
+        filterString += " AND \"OTName:\"" + subFolder + "\"";
 
-        filterString += " and Name='" + subFolder + "'";
-
-        final ListObjectsThread t = new ListObjectsThread(obj, filterString);
+        final ListObjectsThread t = new ListObjectsThread(obj, new String[]{"OTDataID", "OTSubTypeName"}, filterString, "OTDataID");
         try
         {
           t.start();
-          final List<? extends Node> children = t.finishUp();
+          final List<? extends SGraph> children = t.finishUp();
           if (children == null) {
             return -1;
           }
@@ -3990,14 +3994,15 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           // If there is one child, then we are okay.
           if (children.size() == 1)
           {
-            // New starting point is the one we found.
-            final Node child = children.get(0);
-            obj = child.getID();
-            final String subtype = child.getType();
-            if (subtype.equals("Project"))
-            {
-              vol = obj;
-              obj = -obj;
+            for (final SGraph child : children) {
+              // New starting point is the one we found.
+              obj = child.???getID();
+              final String subtype = child.???getType();
+              if (subtype.equals("Project"))
+              {
+                vol = obj;
+                obj = -obj;
+              }
             }
           }
           else

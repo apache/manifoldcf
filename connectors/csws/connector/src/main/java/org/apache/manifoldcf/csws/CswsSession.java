@@ -322,7 +322,13 @@ public class CswsSession
   
   /**
   * Return a set of IDs matching the specification.
-  * @param searchSpec is the search specification, e.g. "where1=(\"OTSubType\":0 OR \"OTSubType\":1 OR \"OTSubType\":144) AND \"OTParentID\":2000 AND \"OTModifyDate\":<20190312"
+  * @param parentID is the parent ID.
+  * @param returnColumns is an array of return column names.
+  * For reference:
+  * OTDataID
+  * OTSubTypeName
+  * OTName
+  * @param searchSpec is the search specification, e.g. "\"OTSubType\":0 OR \"OTSubType\":1 OR \"OTSubType\":144) AND \"OTModifyDate\":<20190312"
   *  For reference:
   * OTSubType Details 
   * 0 - Folder 
@@ -336,12 +342,13 @@ public class CswsSession
   * 207 - Channel 
   * 215 - Discussion 
   * 299 - LiveReport
-  * @param sortOrderSpec is the sort order specification, or null, e.g. "sortByRegion=OTName&sortDirection=ascending"
+  * @param orderingColumn is the column name to order the result by
   * @param start is the ID of the result to return (0-based)
   * @param count is the maximum number of IDs to return
   * @return an array of IDs corresponding to documents or categories requested
   */
-  public long[] searchFor(final String searchSpec, final String sortOrderSpec, final int start, final int count)
+  public List<? extends SGraph> searchFor(final long parentID,
+    final String[] returnColumns, final String searchSpec, final String orderingColumn, final int start, final int count)
     throws ManifoldCFException, ServiceInterruption {
     try {
       final SingleSearchRequest singleSrchReq = new SingleSearchRequest();
@@ -349,12 +356,13 @@ public class CswsSession
       singleSrchReq.setQueryLanguage("Livelink Search API V1"); //Search Query Language API
       singleSrchReq.setFirstResultToRetrieve(start + 1);
       singleSrchReq.setNumResultsToRetrieve(count);
-      if (sortOrderSpec != null) {
-        singleSrchReq.setResultOrderSpec(sortOrderSpec);
+      if (orderingColumn != null) {
+        singleSrchReq.setResultOrderSpec("sortByRegion="+orderingColumn+"&sortDirection=ascending");
       }
-      singleSrchReq.setResultSetSpec(searchSpec);
-      // We only ever want to get IDs back
-      singleSrchReq.getResultTransformationSpec().add("OTDataID");
+      singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+")");
+      for (final String returnColumn : returnColumns) {
+        singleSrchReq.getResultTransformationSpec().add(returnColumn);
+      }
       // Fire off the query
       final SingleSearchResponse results = getSearchServiceHandle().search(singleSrchReq, "", getOTAuthentication());
       if (results == null) {
@@ -366,24 +374,7 @@ public class CswsSession
         return null;
       }
       // Get the list of actual result rows (?)
-      final List<? extends SGraph> items = srp.getItem();
-      if (items == null) {
-        return null;
-      }
-      // Create the output array
-      final long[] rval = new long[items.size()];
-      int i = 0;
-      for (final SGraph sg : items) {
-        // Get the SNodes for the graph element; there should be exactly one because that's what we asked for
-        final List<? extends SNode> nodes = sg.getN();
-        if (nodes == null || nodes.size() != 1) {
-          throw new ManifoldCFException("Unexpected result row size back from search: "+(nodes == null)?"null":nodes.size());
-        }
-        final SNode node = nodes.get(0);
-        // I have no idea what field I ought to get from the node for OTDataID.  String?  Integer??  And these come back as lists too!!  Please clarify.
-        // MHL
-        rval[i++] = new Long(node.getI().get(0)).longValue();
-      }
+      return srp.getItem();
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
     }
