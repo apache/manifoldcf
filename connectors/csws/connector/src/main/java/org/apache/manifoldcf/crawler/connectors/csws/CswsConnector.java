@@ -5053,11 +5053,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       else
       {
         StringBuilder sb = new StringBuilder();
-        sb.append("SubType=").append(new Integer(LAPI_DOCUMENTS.FOLDERSUBTYPE).toString());
-        sb.append(" or SubType=").append(new Integer(LAPI_DOCUMENTS.COMPOUNDDOCUMENTSUBTYPE).toString());
-        sb.append(" or SubType=").append(new Integer(LAPI_DOCUMENTS.PROJECTSUBTYPE).toString());
-        sb.append(" or (SubType=").append(new Integer(LAPI_DOCUMENTS.DOCUMENTSUBTYPE).toString());
-        sb.append(" and (");
+        sb.append("\"OTSubType\":0 OR \"OTSubType\":136 OR \"OTSubType\":202 OR (\"OTSubType\":144 AND (");
         // Walk through the document spec to find the documents that match under the specified root
         // include lower(column)=spec
         sb.append(filterStringPiece);
