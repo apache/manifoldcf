@@ -1130,9 +1130,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         for (final SGraph childDoc : childrenDocs)
         {
           // Decode results
-          final long childID = childDoc.???;
-          final String subtype = childDoc.???;
-          final String name = childDoc.???;
+          final long childID = getID(childDoc, 0);
+          final String subtype = getString(childDoc, 1);
+          final String name = getString(childDoc, 2);
           
           if (Logging.connectors.isDebugEnabled())
           {
@@ -1313,6 +1313,27 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
   }
 
+  private static long getID(final SGraph sg, final int nodeIndex) {
+    final String value = getString(sg, nodeIndex);
+    return new Long(value).longValue();
+  }
+  
+  private static String getString(final SGraph sg, final int nodeIndex) {
+    final List<? extends SNode> nodes = sg.getN();
+    if (nodes == null || nodes.size() <= nodeIndex) {
+      throw new IllegalArgumentException("Looking for nodeIndex "+nodeIndex+" but graph node did not have that many");
+    }
+    final SNode node = nodes.get(nodeIndex);
+    final List<? extends String> stringValues = node.getS();
+    if (stringValues == null || stringValues.size() == 0) {
+      return null;
+    }
+    if (stringValues.size() > 1) {
+      throw new IllegalArgumentException("Expecting 0 or 1 values, not "+stringValues.size());
+    }
+    return stringValues.get(0);
+  }
+  
   /**
    * Thread that reads child objects that have a specified filter criteria, given an object ID.
    */
@@ -3110,7 +3131,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       int j = 0;
       for (final SGraph node : children)
       {
-        rval[j++] = node.???;
+        rval[j++] = getString(node, 0);
       }
       return rval;
     }
@@ -3150,7 +3171,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       int j = 0;
       while (final SGraph sg : children)
       {
-        rval[j++] = sg.???;
+        rval[j++] = getString(sg, 0);
       }
       return rval;
     }
@@ -3890,8 +3911,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           if (children.size() == 1)
           {
             for (final SGraph child : children) {
-              obj = child.???getID();
-              final String subtype = child.???getType();
+              obj = getID(child, 0);
+              final String subtype = getString(child, 1);
               if (subtype.equals("Project"))
               {
                 vol = obj;
@@ -3996,8 +4017,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           {
             for (final SGraph child : children) {
               // New starting point is the one we found.
-              obj = child.???getID();
-              final String subtype = child.???getType();
+              obj = getID(child, 0);
+              final String subtype = getString(child, 1);
               if (subtype.equals("Project"))
               {
                 vol = obj;
@@ -4997,12 +5018,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             int index = includeMatch.lastIndexOf(".");
             if (index != -1)
             {
-              String type = includeMatch.substring(index+1).toLowerCase(Locale.ROOT).replace('*','%');
+              String type = includeMatch.substring(index+1).toLowerCase(Locale.ROOT);
               if (first)
                 first = false;
               else
-                fsb.append(" or ");
-              fsb.append("lower(FileType) like '").append(type).append("'");
+                fsb.append(" OR ");
+              fsb.append("(\"OTFileType\":").append(type).append(" & lookfor1=complexquery)");
             }
           }
         }
