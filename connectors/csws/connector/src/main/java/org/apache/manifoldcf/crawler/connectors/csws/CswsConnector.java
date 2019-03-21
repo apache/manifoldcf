@@ -958,38 +958,48 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         // Do ListUsers and enumerate the values.
         final ListUsersThread t = new ListUsersThread();
-        t.start();
-        final PageHandle resultPageHandle = t.finishUp();
-        
-        // Now walk through the results and add them
-        while (true) {
-          final GetUserResultsThread t = new GetUserResultsThread(resultPageHandle);
+        try {
           t.start();
-          final List<? extends Member> childrenDocs = t.finishUp();
-          if (childrenDocs == null) {
-            // We're done
-            break;
-          }
+          final PageHandle resultPageHandle = t.finishUp();
+        
+          // Now walk through the results and add them
+          while (true) {
+            final GetUserResultsThread t = new GetUserResultsThread(resultPageHandle);
+            try {
+              t.start();
+              final List<? extends Member> childrenDocs = t.finishUp();
+              if (childrenDocs == null) {
+                // We're done
+                break;
+              }
             
-          for (final Member m : childrenDocs)
-          {
-            final long childID = m.getID();
+              for (final Member m : childrenDocs)
+              {
+                final long childID = m.getID();
             
-            // Skip admin user
-            if (childID == 1000L || childID == 1001L)
-              continue;
+                // Skip admin user
+                if (childID == 1000L || childID == 1001L)
+                  continue;
                 
-            if (Logging.connectors.isDebugEnabled())
-              Logging.connectors.debug("Csws: Found a user: ID="+childID);
+                if (Logging.connectors.isDebugEnabled())
+                  Logging.connectors.debug("Csws: Found a user: ID="+childID);
 
-            activities.addSeedDocument("F0:"+childID);
+                activities.addSeedDocument("F0:"+childID);
+              }
+            }
+            catch (InterruptedException e)
+            {
+              t.interrupt();
+              throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+            }
           }
         }
-      }
-      catch (InterruptedException e)
-      {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        catch (InterruptedException e)
+        {
+          t.interrupt();
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        }
+
       }
       
     }
@@ -3169,7 +3179,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       final String[] rval = new String[children.size()];
       int j = 0;
-      while (final SGraph sg : children)
+      for (final SGraph sg : children)
       {
         rval[j++] = getString(sg, 0);
       }
@@ -3926,11 +3936,11 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             // illegal node.
             return null;
           }
-          catch (InterruptedException e)
-          {
-            t.interrupt();
-            throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
-          }
+        }
+        catch (InterruptedException e)
+        {
+          t.interrupt();
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
         }
 
       }
