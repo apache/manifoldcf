@@ -57,7 +57,7 @@ import com.opentext.livelink.service.docman.AttributeGroup;
 import com.opentext.livelink.service.docman.CategoryInheritance;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
-import com.opentext.livelink.service.docman.NodePermission;
+import com.opentext.livelink.service.docman.NodePermissions;
 import com.opentext.livelink.service.docman.Version;
 import com.opentext.livelink.service.docman.NodeRights;
 import com.opentext.livelink.service.memberservice.User;
