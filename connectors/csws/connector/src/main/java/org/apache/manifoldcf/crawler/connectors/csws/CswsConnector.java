@@ -102,15 +102,7 @@ import org.apache.http.NoHttpResponseException;
 import org.apache.http.HttpException;
 
 
-/** This is the Csws implementation of the IRepositoryConnectr interface.
-* The original Volant code forced there to be one livelink session per JVM, with
-* lots of buggy synchronization present to try to enforce this.  This implementation
-* is multi-session.  However, since it is possible that the Volant restriction was
-* indeed needed, I have attempted to structure things to allow me to turn on
-* single-session if needed.
-*
-* For livelink, the document identifiers are the object identifiers.
-*
+/** This is the Csws implementation of the IRepositoryConnector interface.
 */
 public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector
 {
@@ -146,7 +138,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   // A couple of very important points.
   // First, the canonical document identifier has the following form:
-  // <D|F>[<volume_id>:]<object_id>
+  // <D|F><object_id>
   // Second, the only LEGAL objects for a document identifier to describe
   // are folders, documents, and volume objects.  Project objects are NOT
   // allowed; they must be mapped to the appropriate volume object before
@@ -176,14 +168,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   
   // Workspace Nodes (computed once and cached); should contain both enterprise and category workspaces
   private Map<String, Node> workspaceNodes = new HashMap<>();
-  /*
-  // Various IDs we need
-  private int LLENTWK_VOL;
-  private int LLENTWK_ID;
-  private int LLCATWK_VOL;
-  private int LLCATWK_ID;
-  */
-  
+  private String enterpriseWSName = null;
+  private String categoryWSName = null;
+
   // Parameter values we need
   private String serverProtocol = null;
   private String serverName = null;
@@ -286,33 +273,22 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         final List<? extends String> workspaceNames = cswsSession.getRootNodeTypes();
         // Loop over these and get the nodes (which we'll save for later)
         workspaceNodes.clear();
+        enterpriseWSName = null;
+        categoryWSName = null;
         for (final String workspaceName : workspaceNames) {
           workspaceNodes.put(workspaceName, cswsSession.getRootNode(workspaceName));
+          // I don't know the actual names so...
+          // TBD
+          if (workspaceName.toLowerCase(Locale.ROOT).indexOf("enterprise") != -1) {
+            enterpriseWSName = workspaceName;
+          } else if (workspaceName.toLowerCase(Locale.ROOT).indexOf("category") != -1) {
+            categoryWSName = workspaceName;
+          }
         }
         
-        /* Here we need to obtain IDs for LLENTWK and LLCATWK
-        LLValue entinfo = new LLValue().setAssoc();
-
-        int status;
-        status = LLDocs.AccessEnterpriseWS(entinfo);
-        if (status == 0)
-        {
-          LLENTWK_ID = entinfo.toInteger("ID");
-          LLENTWK_VOL = entinfo.toInteger("VolumeID");
+        if (enterpriseWSName == null || categoryWSName == null) {
+          throw new ManifoldCFException("Could not locate either enterprise or category workspaces");
         }
-        else
-          throw new ManifoldCFException("Error accessing enterprise workspace: "+status);
-
-        entinfo = new LLValue().setAssoc();
-        status = LLDocs.AccessCategoryWS(entinfo);
-        if (status == 0)
-        {
-          LLCATWK_ID = entinfo.toInteger("ID");
-          LLCATWK_VOL = entinfo.toInteger("VolumeID");
-        }
-        else
-          throw new ManifoldCFException("Error accessing category workspace: "+status);
-          */
       }
       catch (Throwable e)
       {
@@ -686,6 +662,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     ingestNtlmUsername = null;
     ingestNtlmPassword = null;
 
+    workspaceNodes.clear();
+    enterpriseWSName = null;
+    categoryWSName = null;
+
     if (connectionManager != null)
     {
       connectionManager.shutdown();
@@ -907,8 +887,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     getSession();
     CswsContext llc = new CswsContext();
     
-    // First, grab the root LLValue
-    ObjectInformation rootValue = llc.getObjectInformation(LLENTWK_VOL, LLENTWK_ID);
+    // First, grab the root object
+    ObjectInformation rootValue = llc.getObjectInformation(workspaceNodes.get(enterpriseWSName).getID());
     if (!rootValue.exists())
     {
       // If we get here, it HAS to be a bad network/transient problem.
@@ -928,13 +908,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // The id returned is simply the node path, which can't be messed up
         long beginTime = System.currentTimeMillis();
         String path = n.getAttributeValue("path");
-        VolumeAndId vaf = rootValue.getPathId(path);
+        Long vaf = rootValue.getPathId(path);
         if (vaf != null)
         {
           activities.recordActivity(new Long(beginTime),ACTIVITY_SEED,null,
             path,"OK",null,null);
 
-          String newID = "F" + vaf.getVolumeID()+":"+ vaf.getPathId();
+          String newID = "F" + vaf;
           activities.addSeedDocument(newID);
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("Csws: Seed = '"+newID+"'");
@@ -1081,22 +1061,15 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       String docID = documentIdentifier;
       
       boolean isFolder = docID.startsWith("F");
-
-      int colonPos = docID.indexOf(":",1);
-
-      long objID;
-      long vol;
-
-      objID = new Long(docID.substring(colonPos+1)).longValue();
-      vol = new Long(docID.substring(1,colonPos)).longValue();
+      long objID = new Long(docID.substring(1)).longValue();
 
       getSession();
       
-      final ObjectInformation value = llc.getObjectInformation(vol, objID);
+      final ObjectInformation value = llc.getObjectInformation(objID);
       if (!value.exists())
       {
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Csws: Object "+vol+":"+objID+" has no information - deleting");
+          Logging.connectors.debug("Csws: Object "+objID+" has no information - deleting");
         activities.deleteDocument(documentIdentifier);
         continue;
       }
@@ -1106,7 +1079,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (!permissions.seeContentsPermission())
       {
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Csws: Crawl user cannot see contents of object "+vol+":"+objID+" - deleting");
+          Logging.connectors.debug("Csws: Crawl user cannot see contents of object "+objID+" - deleting");
         activities.deleteDocument(documentIdentifier);
         continue;
       }
@@ -1118,7 +1091,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (rights == null)
       {
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Csws: Could not get rights for object "+vol+":"+objID+" - deleting");
+          Logging.connectors.debug("Csws: Could not get rights for object "+objID+" - deleting");
         activities.deleteDocument(documentIdentifier);
         continue;
       }
@@ -1131,7 +1104,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // I'm still not sure if Csws folder modified dates are one-level or hierarchical.
         // The code below assumes one-level only, so we always scan folders and there's no versioning
         if (Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug("Csws: Processing folder "+vol+":"+objID);
+          Logging.connectors.debug("Csws: Processing folder "+objID);
         }
         
         final ListObjectsThread t = new ListObjectsThread(objID, new String[]{"OTDataID", "OTSubTypeString", "OTName"}, filterString, "OTDataID");
@@ -1146,7 +1119,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           
           if (Logging.connectors.isDebugEnabled())
           {
-            Logging.connectors.debug("Csws: Found a child of folder "+vol+":"+objID+" : ID="+childID);
+            Logging.connectors.debug("Csws: Found a child of folder "+objID+" : ID="+childID);
           }
           
           // All we need to know is whether the child is a container or not, and there is a way to do that directly from the node
@@ -1173,11 +1146,11 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             {
               // If we pick up a project object, we need to describe the volume object (which
               // will be the root of all documents beneath)
-              activities.addDocumentReference("F"+childID+":"+(-childID));
+              activities.addDocumentReference("F"+(-childID));
             }
             else
             {
-              activities.addDocumentReference("F"+vol+":"+childID);
+              activities.addDocumentReference("F"+childID);
             }
           }
           else
@@ -1185,12 +1158,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             if (Logging.connectors.isDebugEnabled()) {
               Logging.connectors.debug("Csws: Child identifier "+childID+" is a simple document; adding a reference");
             }
-            activities.addDocumentReference("D"+vol+":"+childID);
+            activities.addDocumentReference("D"+childID);
           }
 
         }
         if (Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug("Csws: Done processing folder "+vol+":"+objID);
+          Logging.connectors.debug("Csws: Done processing folder "+objID);
         }
       }
       else
@@ -1211,7 +1184,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           // Find all the metadata associated with this object, and then
           // find the set of category pathnames that correspond to it.
-          int[] catIDs = getObjectCategoryIDs(vol,objID);
+          int[] catIDs = getObjectCategoryIDs(objID);
           categoryPaths = catAccum.getCategoryPathsAttributeNames(catIDs);
           // Sort!
           java.util.Arrays.sort(categoryPaths);
@@ -2640,12 +2613,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     Messages.outputResourceWithVelocity(out, locale, VIEW_SPECIFICATION_HTML, velocityContext);
   }
 
-  // The following public methods are NOT part of the interface.  They are here so that the UI can present information
-  // that will allow users to select what they need.
-
-  protected final static String CATEGORY_NAME = "CATEGORY";
-  protected final static String ENTWKSPACE_NAME = "ENTERPRISE";
-
   /** Get the allowed workspace names.
   *@return a list of workspace names.
   */
@@ -3125,13 +3092,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     RootValue rv = new RootValue(llc,pathString);
 
     // Get the volume, object id of the folder/project the path describes
-    VolumeAndId vid = getPathId(rv);
+    Long vid = getPathId(rv);
     if (vid == null)
       return null;
 
     final String filterString = "where1=(\"OTSubType\":0 OR \"OTSubType\":202 OR \"OTSubType\":136)";
 
-    final ListObjectsThread t = new ListObjectsThread(vid.getPathId(), new String[]{"OTName"}, filterString, "OTName");
+    final ListObjectsThread t = new ListObjectsThread(vid, new String[]{"OTName"}, filterString, "OTName");
     try
     {
       t.start();
@@ -3164,14 +3131,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     RootValue rv = new RootValue(llc,pathString);
 
     // Get the volume, object id of the folder/project the path describes
-    VolumeAndId vid = getPathId(rv);
+    Long vid = getPathId(rv);
     if (vid == null)
       return null;
 
     // We want only folders that are children of the current object and which match the specified subfolder
     String filterString = "\"OTSubType\":131";
 
-    final ListObjectsThread t = new ListObjectsThread(vid.getPathId(), new String[]{"OTName"}, filterString, "OTName");
+    final ListObjectsThread t = new ListObjectsThread(vid, new String[]{"OTName"}, filterString, "OTName");
     try
     {
       t.start();
@@ -3589,9 +3556,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return lookupValue;
     }
 
-    public ObjectInformation getObjectInformation(long volumeID, long objectID)
+    public ObjectInformation getObjectInformation(long objectID)
     {
-      ObjectInformation oi = new ObjectInformation(volumeID, objectID);
+      ObjectInformation oi = new ObjectInformation(objectID);
       ObjectInformation lookupValue = objectInfoMap.get(oi);
       if (lookupValue == null)
       {
@@ -3825,23 +3792,20 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected class ObjectInformation
   {
-    protected final long volumeID;
     protected final long objectID;
     protected final String workspaceName;
     
     protected Node objectValue = null;
     protected boolean fetched = false;
     
-    public ObjectInformation(final long volumeID, final long objectID)
+    public ObjectInformation(final long objectID)
     {
-      this.volumeID = volumeID;
       this.objectID = objectID;
       this.workspaceName = null;
     }
 
     public ObjectInformation(final String workspaceName) {
       this.workspaceName = workspaceName;
-      this.volumeID = -1L;
       this.objectID = -1L;
     }
     
@@ -3865,14 +3829,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     @Override
     public String toString()
     {
-      return "(Volume: "+volumeID+", Object: "+objectID+")";
+      return "(Object: "+objectID+")";
     }
     
     /**
     * Returns the object ID specified by the path name.
     * @param startPath is the folder name (a string with dots as separators)
     */
-    public VolumeAndId getPathId(String startPath)
+    public Long getPathId(String startPath)
       throws ServiceInterruption, ManifoldCFException
     {
       final Node objInfo = getObjectValue();
@@ -3881,7 +3845,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       // Grab the volume ID and starting object
       long obj = objInfo.getID();
-      long vol = objInfo.getVolumeId();
 
       // Pick apart the start path.  This is a string separated by slashes.
       int charindex = 0;
@@ -3925,7 +3888,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
               final String subtype = getString(child, 1);
               if (subtype.equals("Project"))
               {
-                vol = obj;
                 obj = -obj;
               }
             }
@@ -3977,7 +3939,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       // Grab the volume ID and starting object
       long obj = objInfo.getID();
-      long vol = objInfo.getVolumeID();
 
       // Pick apart the start path.  This is a string separated by slashes.
       if (startPath.length() == 0)
@@ -4031,7 +3992,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
               final String subtype = getString(child, 1);
               if (subtype.equals("Project"))
               {
-                vol = obj;
                 obj = -obj;
               }
             }
@@ -4195,7 +4155,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (workspaceName != null) {
         return workspaceName.hashCode();
       }
-      return Long.hashCode(volumeID) + Long.hashCode(objectID);
+      return Long.hashCode(objectID);
     }
     
     @Override
@@ -4210,7 +4170,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
         return workspaceName.equals(other.workspaceName);
       }
-      return volumeID == other.volumeID && objectID == other.objectID;
+      return objectID == other.objectID;
     }
   }
 
@@ -4549,16 +4509,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   protected class GetObjectCategoryIDsThread extends Thread
   {
-    protected final int vol;
-    protected final int id;
+    protected final long id;
     protected Throwable exception = null;
     protected LLValue rval = null;
 
-    public GetObjectCategoryIDsThread(int vol, int id)
+    public GetObjectCategoryIDsThread(long id)
     {
       super();
       setDaemon(true);
-      this.vol = vol;
       this.id = id;
     }
 
@@ -4578,7 +4536,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // Need to detect if object was deleted, and return null in this case!!!
         if (Logging.connectors.isDebugEnabled())
         {
-          Logging.connectors.debug("Csws: Status value for getting object categories for "+Integer.toString(vol)+":"+Integer.toString(id)+" is: "+Integer.toString(status));
+          Logging.connectors.debug("Csws: Status value for getting object categories for "+Integer.toString(id)+" is: "+Integer.toString(status));
         }
 
         if (status == 103101)
@@ -4619,91 +4577,68 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /** Get category IDs associated with an object.
-  * @param vol is the volume ID
   * @param id the object ID
   * @return an array of integers containing category identifiers, or null if the object is not found.
   */
-  protected int[] getObjectCategoryIDs(int vol, int id)
+  // REWORK - MHL/TBD
+  protected int[] getObjectCategoryIDs(long id)
     throws ManifoldCFException, ServiceInterruption
   {
-    int sanityRetryCount = FAILURE_RETRY_COUNT;
-    while (true)
+    final GetObjectCategoryIDsThread t = new GetObjectCategoryIDsThread(id);
+    try
     {
-      GetObjectCategoryIDsThread t = new GetObjectCategoryIDsThread(vol,id);
-      try
+      t.start();
+      LLValue catIDList = t.finishUp();
+
+      if (catIDList == null)
+        return null;
+
+      int size = catIDList.size();
+
+      // Count the category ids
+      int count = 0;
+      int j = 0;
+      while (j < size)
       {
-        t.start();
-	LLValue catIDList;
-	try
-	{
-	  catIDList = t.finishUp();
-	}
-	catch (ManifoldCFException e)
-	{
-	  sanityRetryCount = assessRetry(sanityRetryCount,e);
-	  continue;
-        }
-
-        if (catIDList == null)
-          return null;
-
-        int size = catIDList.size();
-
-        if (Logging.connectors.isDebugEnabled())
-        {
-          Logging.connectors.debug("Csws: Object "+Integer.toString(vol)+":"+Integer.toString(id)+" has "+Integer.toString(size)+" attached categories");
-        }
-
-        // Count the category ids
-        int count = 0;
-        int j = 0;
-        while (j < size)
-        {
-          int type = catIDList.toValue(j).toInteger("Type");
-          if (type == LAPI_ATTRIBUTES.CATEGORY_TYPE_LIBRARY)
-            count++;
-          j++;
-        }
-
-        int[] rval = new int[count];
-
-        // Do the scan
-        j = 0;
-        count = 0;
-        while (j < size)
-        {
-          int type = catIDList.toValue(j).toInteger("Type");
-          if (type == LAPI_ATTRIBUTES.CATEGORY_TYPE_LIBRARY)
-          {
-            int childID = catIDList.toValue(j).toInteger("ID");
-            rval[count++] = childID;
-          }
-          j++;
-        }
-
-        if (Logging.connectors.isDebugEnabled())
-        {
-          Logging.connectors.debug("Csws: Object "+Integer.toString(vol)+":"+Integer.toString(id)+" has "+Integer.toString(rval.length)+" attached library categories");
-        }
-
-        return rval;
+        int type = catIDList.toValue(j).toInteger("Type");
+        if (type == LAPI_ATTRIBUTES.CATEGORY_TYPE_LIBRARY)
+          count++;
+        j++;
       }
-      catch (InterruptedException e)
+
+      int[] rval = new int[count];
+
+      // Do the scan
+      j = 0;
+      count = 0;
+      while (j < size)
       {
-        t.interrupt();
-        throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        int type = catIDList.toValue(j).toInteger("Type");
+        if (type == LAPI_ATTRIBUTES.CATEGORY_TYPE_LIBRARY)
+        {
+          int childID = catIDList.toValue(j).toInteger("ID");
+          rval[count++] = childID;
+        }
+        j++;
       }
-      catch (RuntimeException e)
+
+      if (Logging.connectors.isDebugEnabled())
       {
-        sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount,true);
-        continue;
+        Logging.connectors.debug("Csws: Object "+Integer.toString(vol)+":"+Integer.toString(id)+" has "+Integer.toString(rval.length)+" attached library categories");
       }
+
+      return rval;
+    }
+    catch (InterruptedException e)
+    {
+      t.interrupt();
+      throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
     }
   }
 
   /** RootValue version of getPathId.
   */
-  protected VolumeAndId getPathId(RootValue rv)
+  protected Long getPathId(RootValue rv)
     throws ManifoldCFException, ServiceInterruption
   {
     return rv.getRootValue().getPathId(rv.getRemainderPath());
@@ -4711,7 +4646,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   /** Rootvalue version of getCategoryId.
   */
-  protected int getCategoryId(RootValue rv)
+  protected long getCategoryId(RootValue rv)
     throws ManifoldCFException, ServiceInterruption
   {
     return rv.getRootValue().getCategoryId(rv.getRemainderPath());
@@ -4849,30 +4784,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       else
         return false;
-    }
-  }
-
-  /** Class for returning volume id/folder id combination on path lookup.
-  */
-  protected static class VolumeAndId
-  {
-    protected final int volumeID;
-    protected final int folderID;
-
-    public VolumeAndId(int volumeID, int folderID)
-    {
-      this.volumeID = volumeID;
-      this.folderID = folderID;
-    }
-
-    public int getVolumeID()
-    {
-      return volumeID;
-    }
-
-    public int getPathId()
-    {
-      return folderID;
     }
   }
 
@@ -5449,7 +5360,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (colonPos == -1)
       {
         remainderPath = pathString;
-        workspaceName = ENTWKSPACE_NAME;
+        workspaceName = enterpriseWSName;
       }
       else
       {
