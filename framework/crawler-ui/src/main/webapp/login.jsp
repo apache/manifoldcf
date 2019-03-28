@@ -1,3 +1,4 @@
+<%@ page import="org.apache.manifoldcf.core.util.URLEncoder" %>
 <% response.setHeader("Pragma","No-cache");
 response.setDateHeader("Expires",0);
 response.setHeader("Cache-Control", "no-cache");
@@ -68,12 +69,13 @@ response.setContentType("text/html;charset=utf-8");
       <div class="login-box-body">
         <p class="login-box-msg">Sign in to start your session</p>
 
-        <form class="standardform" name="loginform" action="setupAdminProfile.jsp" method="POST">
+        <form class="standardform" name="loginform" autocomplete="off" action="setupAdminProfile.jsp" method="POST">
+          <input autocomplete="false" name="hidden" type="text" style="display:none;">
 <%
 if (request.getParameter("nextUrl") != null)
 {
 %>
-          <input type="hidden" name="nextUrl" value="<%=request.getParameter("nextUrl")%>">
+          <input type="hidden" name="nextUrl" value="<%= URLEncoder.encode(request.getParameter("nextUrl"))%>">
 <%
 }
 %>

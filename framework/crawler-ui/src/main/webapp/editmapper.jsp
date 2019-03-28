@@ -112,7 +112,7 @@ try
   String title = null;
   if (description.length() > 0)
   {
-    title = Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.EditMapping") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description);
+    title = Messages.getBodyString(pageContext.getRequest().getLocale(),"editmapper.EditMapping") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyJavascriptEscape(description);
   }
   else
   {

@@ -102,7 +102,7 @@ try
   if (description.length() > 0)
   {
     heading = Messages.getBodyString(pageContext.getRequest()
-            .getLocale(),"editoutput.EditOutputConnection") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description);
+            .getLocale(),"editoutput.EditOutputConnection") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyJavascriptEscape(description);
   }
   else
   {

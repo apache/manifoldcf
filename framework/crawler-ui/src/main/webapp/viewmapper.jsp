@@ -87,7 +87,7 @@ try
   <!--
   $.ManifoldCF.setTitle(
       '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewmapper.ApacheManifoldCFViewMappingConnectionStatus")%>',
-      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.ViewMappingConnectionStatus") + " - " + connectionName %>',
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewmapper.ViewMappingConnectionStatus") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyJavascriptEscape(connectionName) %>',
       'authorities'
   );
 
