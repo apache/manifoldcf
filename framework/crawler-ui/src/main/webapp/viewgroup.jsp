@@ -53,7 +53,7 @@ try
 
   $.ManifoldCF.setTitle(
       '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewgroup.ApacheManifoldCFViewGroup")%>',
-      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.ViewAuthorityGroup") + " - " + groupName %>',
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewgroup.ViewAuthorityGroup") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyJavascriptEscape(groupName) %>',
       'authorities'
   );
 

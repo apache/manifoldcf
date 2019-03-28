@@ -92,7 +92,7 @@ try
 
   $.ManifoldCF.setTitle(
       '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewconnection.ApacheManifoldCFViewRepositoryConnectionStatus")%>',
-      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewconnection.ViewRepositoryConnectionStatus")%>',
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewconnection.ViewRepositoryConnectionStatus") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyJavascriptEscape(connectionName) %>',
       'repositories'
   );
 

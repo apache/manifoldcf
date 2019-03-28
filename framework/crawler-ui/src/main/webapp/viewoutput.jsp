@@ -89,7 +89,7 @@ try
   <!--
   $.ManifoldCF.setTitle(
       '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewoutput.ApacheManifoldCFViewOutputConnectionStatus")%>',
-      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.ViewOutputConnectionStatus") + " - " + connectionName %>',
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewoutput.ViewOutputConnectionStatus") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyJavascriptEscape(connectionName) %>',
       'outputs'
   );
 

@@ -121,7 +121,7 @@ try
 
   $.ManifoldCF.setTitle(
       '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewjob.ApacheManifoldCFViewJob")%>',
-      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewjob.ViewAJob")%>',
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewjob.ViewAJob") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyJavascriptEscape(connectionName) %>',
       'jobs'
   );
 

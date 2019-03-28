@@ -96,7 +96,7 @@ try
   <!--
   $.ManifoldCF.setTitle(
       '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewauthority.ApacheManifoldCFViewAuthorityConnectionStatus")%>',
-      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.ViewAuthorityConnectionStatus") + " - " + connectionName %>',
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(),"viewauthority.ViewAuthorityConnectionStatus") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyJavascriptEscape(connectionName) %>',
       'authorities'
   );
   function Delete(connectionName)

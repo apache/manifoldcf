@@ -89,7 +89,7 @@ try
   <!--
   $.ManifoldCF.setTitle(
       '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewnotification.ApacheManifoldCFViewNotificationConnectionStatus")%>',
-      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewnotification.ViewNotificationConnectionStatus")%>',
+      '<%=Messages.getBodyString(pageContext.getRequest().getLocale(), "viewnotification.ViewNotificationConnectionStatus") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyJavascriptEscape(connectionName) %>',
       'repositories'
   );
   function Delete(connectionName)

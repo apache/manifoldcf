@@ -87,7 +87,7 @@ try
   String heading = null;
   if (description.length() > 0)
   {
-    heading = Messages.getBodyString(pageContext.getRequest().getLocale(),"editgroup.EditGroup") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyEscape(description);
+    heading = Messages.getBodyString(pageContext.getRequest().getLocale(),"editgroup.EditGroup") + " - " + org.apache.manifoldcf.ui.util.Encoder.bodyJavascriptEscape(description);
   }
   else
   {
