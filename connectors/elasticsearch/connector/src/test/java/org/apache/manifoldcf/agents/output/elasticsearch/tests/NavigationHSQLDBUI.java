@@ -57,9 +57,12 @@ public class NavigationHSQLDBUI extends BaseUIHSQLDB
     // Visit the Throttling tab
     testerInstance.clickTab("Throttling");
 
+    // Server tab
+    testerInstance.clickTab("Server");
+    testerInstance.setValue("serverlocation", "http://localhost:9200/");
+
     // Parameters tab
     testerInstance.clickTab("Parameters");
-    testerInstance.setValue("serverlocation", "http://localhost:9200/");
     testerInstance.setValue("indexname", "index");
     testerInstance.setValue("indextype", "generictype");
     
