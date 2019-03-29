@@ -38,6 +38,8 @@ import com.opentext.livelink.service.core.BooleanValue;
 import com.opentext.livelink.service.core.DateValue;
 import com.opentext.livelink.service.core.IntegerValue;
 import com.opentext.livelink.service.docman.AttributeGroup;
+import com.opentext.livelink.service.docman.AttributeGroupDefinition;
+import com.opentext.livelink.service.docman.Attribute;
 import com.opentext.livelink.service.docman.Metadata;
 import com.opentext.livelink.service.docman.CategoryInheritance;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
@@ -1184,6 +1186,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           // Find all the metadata associated with this object, and then
           // find the set of category pathnames that correspond to it.
+          // TBD
           int[] catIDs = getObjectCategoryIDs(objID);
           categoryPaths = catAccum.getCategoryPathsAttributeNames(catIDs);
           // Sort!
@@ -3176,43 +3179,22 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
-        // MHL - TBD
-        /*
-        LLValue catID = new LLValue();
-        catID.setAssoc();
-        catID.add("ID", catObjectID);
-        catID.add("Type", LAPI_ATTRIBUTES.CATEGORY_TYPE_LIBRARY);
-
-        LLValue catVersion = new LLValue();
-        int status = LLDocs.FetchCategoryVersion(catID,catVersion);
-        if (status == 107105 || status == 107106)
+        final AttributeGroupDefinition def = cswsSession.getCategoryDefinition(catObjectID);
+        if (def == null) {
           return;
-        if (status != 0)
-        {
-          throw new ManifoldCFException("Error getting category version: "+Integer.toString(status));
         }
-
-        LLValue children = new LLValue();
-        status = LLAttributes.AttrListNames(catVersion,null,children);
-        if (status != 0)
-        {
-          throw new ManifoldCFException("Error getting attribute names: "+Integer.toString(status));
+        final List<? extends Attribute> atts = def.getAttributes();
+        int attrCount = 0;
+        for (final Attribute at : atts) {
+          // Check for CATEGORY_TYPE_LIBRARY
+          //if (at.getType().equals(CATEGORY_TYPE_LIBRARY))
+          attrCount++;
         }
-        
-        if (children != null)
-        {
-          rval = new String[children.size()];
-          LLValueEnumeration en = children.enumerateValues();
-
-          int j = 0;
-          while (en.hasMoreElements())
-          {
-            LLValue v = (LLValue)en.nextElement();
-            rval[j] = v.toString();
-            j++;
-          }
+        rval = new String[attrCount];
+        attrCount = 0;
+        for (final Attribute at : atts) {
+          rval[attrCount++] = at.getDisplayName();
         }
-        */
       }
       catch (Throwable e)
       {
@@ -3220,7 +3202,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    public LLValue finishUp()
+    public String[] finishUp()
       throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();

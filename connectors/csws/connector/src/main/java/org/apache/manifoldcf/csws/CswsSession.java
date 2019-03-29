@@ -60,6 +60,8 @@ import com.opentext.livelink.service.docman.Node;
 import com.opentext.livelink.service.docman.NodePermissions;
 import com.opentext.livelink.service.docman.Version;
 import com.opentext.livelink.service.docman.NodeRights;
+import com.opentext.livelink.service.docman.AttributeGroupDefinition;
+import com.opentext.livelink.service.docman.Attribute;
 import com.opentext.livelink.service.memberservice.User;
 import com.opentext.livelink.service.memberservice.Member;
 import com.opentext.livelink.service.searchservices.SResultPage;
@@ -267,6 +269,15 @@ public class CswsSession
     }
   }
 
+  public AttributeGroupDefinition getCategoryDefinition(final long catId)
+    throws ManifoldCFException, ServiceInterruption {
+    try {
+      return getDocumentManagementHandle().getCategoryDefinition(catId, version, getOTAuthentication());
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }      
+  }
+  
   public User getUser(final long userId) 
     throws ManifoldCFException, ServiceInterruption {
     try {
