@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.13-dev =====================
+======================= Release 2.13 =====================
 
 CONNECTORS-1588: Apply override of jcifs properties only if they are not
 already specified.
