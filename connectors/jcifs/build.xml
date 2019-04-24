@@ -30,17 +30,21 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
-    <property name="jcifs.version" value="1.3.18.3"/>
+    <property name="jcifs-ng.version" value="2.1.2"/>
+    
+    <!--groupId>eu.agno3.jcifs</groupId>
+    <artifactId>jcifs-ng</artifactId>
+    <version>2.1.2</version/-->
     
     <target name="calculate-condition">
-        <available file="lib-proprietary/jcifs-${jcifs.version}.jar" property="jcifsStatus"/>
+        <available file="lib-proprietary/jcifs-ng-${jcifs-ng.version}.jar" property="jcifsStatus"/>
         <condition property="build-present">
             <isset property="jcifsStatus"/>
         </condition>
     </target>
 
     <target name="precompile-warn" depends="calculate-condition" unless="build-present">
-        <echo message="JCifs Connector cannot be built without jcifs.jar"/>
+        <echo message="JCifs Connector cannot be built without jcifs-ng.jar"/>
     </target>
 
     <path id="connector-classpath">
@@ -57,10 +61,10 @@
 
     <target name="download-jcifs">
         <antcall target="download-via-maven">
-            <param name="project-path" value="org/codelibs"/>
-            <param name="artifact-version" value="${jcifs.version}"/>
+            <param name="project-path" value="eu/agno3/jcifs"/>
+            <param name="artifact-version" value="${jcifs-ng.version}"/>
             <param name="target" value="lib-proprietary"/>
-            <param name="artifact-name" value="jcifs"/>
+            <param name="artifact-name" value="jcifs-ng"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>

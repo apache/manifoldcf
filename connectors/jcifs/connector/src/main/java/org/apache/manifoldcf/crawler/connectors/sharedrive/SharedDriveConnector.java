@@ -16,11 +16,12 @@
 */
 package org.apache.manifoldcf.crawler.connectors.sharedrive;
 
-import jcifs.smb.ACE;
-import jcifs.smb.NtlmPasswordAuthentication;
+import jcifs.ACE;
+import jcifs.smb.NtlmPasswordAuthenticator;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileFilter;
+import jcifs.context.SingletonContext;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.connectorcommon.extmimemap.ExtensionMimeMap;
@@ -113,7 +114,18 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     if (System.getProperty("jcifs.smb.client.responseTimeout") == null) {
       System.setProperty("jcifs.smb.client.responseTimeout","120000");
     }
-
+    if (System.getProperty("jcifs.smb.client.minVersion") == null) {
+      System.setProperty("jcifs.smb.client.minVersion","SMB1");
+    }
+    if (System.getProperty("jcifs.smb.client.maxVersion") == null) {
+      System.setProperty("jcifs.smb.client.maxVersion","SMB210");
+    }
+    if (System.getProperty("jcifs.traceResources") == null) {
+      System.setProperty("jcifs.traceResources","true");
+    }
+    if (System.getProperty("jcifs.smb.client.ipcSigningEnforced") == null) {
+      System.setProperty("jcifs.smb.client.ipcSigningEnforced","true");
+    }
     // Don't change these!!
     System.setProperty("jcifs.smb.client.listCount","20");
     System.setProperty("jcifs.smb.client.dfs.strictView","true");
@@ -127,7 +139,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   private boolean useSIDs = true;
   private String binName = null;
   
-  private NtlmPasswordAuthentication pa;
+  private NtlmPasswordAuthenticator pa;
   
   /** Deny access token for default authority */
   private final static String defaultAuthorityDenyToken = GLOBAL_DENY_TOKEN;
@@ -182,8 +194,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       try
       {
         // use NtlmPasswordAuthentication so that we can reuse credential for DFS support
-        pa = new NtlmPasswordAuthentication(domain,username,password);
-        SmbFile smbconnection = new SmbFile("smb://" + server + "/",pa);
+        pa = new NtlmPasswordAuthenticator(domain,username,password);
+        SmbFile smbconnection = new SmbFile("smb://" + server + "/",SingletonContext.getInstance().withCredentials(pa));
         smbconnectionPath = getFileCanonicalPath(smbconnection);
       }
       catch (MalformedURLException e)
@@ -594,7 +606,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       
       try
       {
-        file = new SmbFile(documentIdentifier,pa);
+        file = new SmbFile(documentIdentifier,SingletonContext.getInstance().withCredentials(pa));
         fileExists = fileExists(file);
 
         // File has to exist AND have a non-null canonical path to be readable.  If the canonical path is
@@ -625,7 +637,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
                 // It's a file of acceptable length.
                 // The ability to get ACLs, list files, and an inputstream under DFS all work now.
                 // The SmbFile for parentFolder acls.
-                SmbFile parentFolder = new SmbFile(file.getParent(),pa);
+                SmbFile parentFolder = new SmbFile(file.getParent(),SingletonContext.getInstance().withCredentials(pa));
 
                 // Compute the security information
                 String[] modelArray = new String[0];
@@ -1401,7 +1413,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     SmbFile server = null;
     try
     {
-      server = new SmbFile(serverURI,pa);
+      server = new SmbFile(serverURI,SingletonContext.getInstance().withCredentials(pa));
     }
     catch (MalformedURLException e1)
     {
@@ -2147,7 +2159,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
   {
     String smburi = smbconnectionPath;
     String uri = smburi + path + "/";
-    return getFileCanonicalPath(new SmbFile(uri,pa));
+    return getFileCanonicalPath(new SmbFile(uri,SingletonContext.getInstance().withCredentials(pa)));
   }
 
   // These methods allow me to experiment with cluster-mandated error handling on an entirely local level.  They correspond to individual SMBFile methods.
@@ -4624,7 +4636,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     SmbFile server = null;
     try
     {
-      server = new SmbFile(serverURI,pa);
+      server = new SmbFile(serverURI,SingletonContext.getInstance().withCredentials(pa));
     }
     catch (MalformedURLException e1)
     {
@@ -4665,7 +4677,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     SmbFile currentDirectory = null;
     try
     {
-      currentDirectory = new SmbFile(uri,pa);
+      currentDirectory = new SmbFile(uri,SingletonContext.getInstance().withCredentials(pa));
     }
     catch (MalformedURLException e1)
     {
@@ -4734,7 +4746,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     SmbFile currentDirectory = null;
     try
     {
-      currentDirectory = new SmbFile(uri,pa);
+      currentDirectory = new SmbFile(uri,SingletonContext.getInstance().withCredentials(pa));
     }
     catch (MalformedURLException e1)
     {
