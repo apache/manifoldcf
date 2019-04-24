@@ -31,11 +31,12 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import jcifs.smb.ACE;
-import jcifs.smb.NtlmPasswordAuthentication;
+import jcifs.ACE;
+import jcifs.smb.NtlmPasswordAuthenticator;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileFilter;
+import jcifs.context.SingletonContext;
 
 /** This class contains test code that is useful for performing test operations
 using JCifs from the appliance.  Basic operations are: addDocument, deleteDocument,
@@ -45,7 +46,7 @@ public class SharedDriveHelpers
 {
   public static final String _rcsid = "@(#)$Id: SharedDriveHelpers.java 988245 2010-08-23 18:39:35Z kwright $";
 
-  private NtlmPasswordAuthentication pa;
+  private NtlmPasswordAuthenticator pa;
   private SmbFile smbconnection;
 
   /** Construct the helper and initialize the connection.
@@ -60,8 +61,8 @@ public class SharedDriveHelpers
     {
       // make the smb connection to the server
       // use NtlmPasswordAuthentication so that we can reuse credential for DFS support
-      pa = new NtlmPasswordAuthentication(userName + ":" + password);
-      smbconnection = new SmbFile("smb://" + serverName + "/",pa);
+      pa = new NtlmPasswordAuthenticator(userName, password);
+      smbconnection = new SmbFile("smb://" + serverName + "/",SingletonContext.getInstance().withCredentials(pa));
     }
     catch (MalformedURLException e)
     {
@@ -90,7 +91,7 @@ public class SharedDriveHelpers
     try
     {
       String identifier = mapToIdentifier(targetPath);
-      SmbFile file = new SmbFile(identifier,pa);
+      SmbFile file = new SmbFile(identifier,SingletonContext.getInstance().withCredentials(pa));
       if (file.exists())
         return targetPath;
       return "";
@@ -113,7 +114,7 @@ public class SharedDriveHelpers
     try
     {
       String identifier = mapToIdentifier(targetPath);
-      SmbFile file = new SmbFile(identifier,pa);
+      SmbFile file = new SmbFile(identifier,SingletonContext.getInstance().withCredentials(pa));
       // Open source file for read
       InputStream is = new FileInputStream(sourceFile);
       try
@@ -122,7 +123,7 @@ public class SharedDriveHelpers
         if (!file.exists())
         {
           file.createNewFile();
-          file = new SmbFile(identifier,pa);
+          file = new SmbFile(identifier,SingletonContext.getInstance().withCredentials(pa));
         }
         OutputStream os = file.getOutputStream();
         try
@@ -164,7 +165,7 @@ public class SharedDriveHelpers
     try
     {
       String identifier = mapToIdentifier(targetPath);
-      SmbFile file = new SmbFile(identifier,pa);
+      SmbFile file = new SmbFile(identifier,SingletonContext.getInstance().withCredentials(pa));
       file.delete();
     }
     catch (IOException e)
@@ -202,7 +203,7 @@ public class SharedDriveHelpers
   {
     String smburi = smbconnection.getCanonicalPath();
     String uri = smburi + path + "/";
-    return new SmbFile(uri,pa).getCanonicalPath();
+    return new SmbFile(uri,SingletonContext.getInstance().withCredentials(pa)).getCanonicalPath();
   }
 
 }

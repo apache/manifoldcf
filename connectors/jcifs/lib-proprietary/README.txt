@@ -13,12 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-For the jcifs connector, certain changes were made to jcifs itself to work reliably
-with Samba systems.  This set of upstream changes is encapsulated in the following file:
-
-jcifs.diffs, against version 1.3.9 as downloaded from http://jcifs.samba.org.
-
-To build this connector, copy the jcifs.jar into this directory, and build the connector
+To build this connector, copy the jcifs-ng.jar into this directory, and build the connector
 using the standard ant build.  You can read more about the process on the
 "how-to-build-and-deploy.html" documentation page.
 
