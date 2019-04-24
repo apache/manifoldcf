@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 2.13 =====================
 
+CONNECTORS-1498: Redevelop the jcifs connector to use the newer jcifs-ng.jar.
+(Karl Wright)
+
 CONNECTORS-1588: Apply override of jcifs properties only if they are not
 already specified.
 (Cihad Guzel)
