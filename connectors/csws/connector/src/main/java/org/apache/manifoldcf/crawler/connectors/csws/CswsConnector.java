@@ -1186,8 +1186,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           // Find all the metadata associated with this object, and then
           // find the set of category pathnames that correspond to it.
-          // TBD
-          int[] catIDs = getObjectCategoryIDs(objID);
+          final ObjectInformation objectInfo = llc.getObjectInformation(objID);
+          int[] catIDs = objectInfo.getObjectCategoryIDs();
           categoryPaths = catAccum.getCategoryPathsAttributeNames(catIDs);
           // Sort!
           java.util.Arrays.sort(categoryPaths);
@@ -2762,7 +2762,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       
       // Add general metadata
-      final ObjectInformation objInfo = llc.getObjectInformation(vol, objID);
+      final ObjectInformation objInfo = llc.getObjectInformation(objID);
       final VersionInformation versInfo = llc.getVersionInformation(objID, 0);
       if (!objInfo.exists())
       {
@@ -3906,6 +3906,28 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         return new ArrayList<>(0);
       }
       return m.getAttributeGroups();
+    }
+    
+    /**
+    * Get category IDs available to the object with a specified object ID
+    */
+    public int[] getObjectCategoryIDs()
+      throws ManifoldCFException, ServiceInterruption
+    {
+      // How do we do this now?
+      // We need a list of category IDs that the object MIGHT have.
+      // MHL - TBD
+      /*
+        // Object ID
+        LLValue objIDValue = new LLValue().setAssocNotSet();
+        objIDValue.add("ID", id);
+
+        // Category ID List
+        LLValue catIDList = new LLValue().setAssocNotSet();
+
+        int status = LLDocs.ListObjectCategoryIDs(objIDValue,catIDList);
+
+        */
     }
     
     /**
@@ -5088,7 +5110,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           throw new ManifoldCFException("Bad document identifier: "+e.getMessage(),e);
         }
 
-        final ObjectInformation objInfo = llc.getObjectInformation(volumeID,objectID);
+        final ObjectInformation objInfo = llc.getObjectInformation(objectID);
         if (!objInfo.exists())
         {
           // The document identifier describes a path that does not exist.
@@ -5269,7 +5291,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected String findPath(long catID)
       throws ManifoldCFException, ServiceInterruption
     {
-      return getObjectPath(llc.getObjectInformation(0, catID));
+      return getObjectPath(llc.getObjectInformation(catID));
     }
 
     /** Get the complete path for an object.
@@ -5307,7 +5329,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           Logging.connectors.warn("Csws: Object ID "+currentObject.toString()+" doesn't seem to live in enterprise or category workspace!  Path I got was '"+path+"'");
           return null;
         }
-        currentObject = llc.getObjectInformation(0, parentID);
+        currentObject = llc.getObjectInformation(parentID);
       }
     }
 
