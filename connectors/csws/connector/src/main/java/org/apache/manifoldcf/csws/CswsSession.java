@@ -213,6 +213,18 @@ public class CswsSession
     return thisWorkspaceNode;
   }
   
+  public List<? extends Node> listNodes(final long nodeId)
+    throws ManifoldCFException, ServiceInterruption {
+    try {
+      return getDocumentManagementHandle().listNodes(nodeId, false, getOTAuthentication());
+    } catch (SOAPFaultException e) {
+      if (e.getFault().getFaultCode().equals("ns0:DocMan.ErrorGettingParentNode")) {
+        return null;
+      }
+      processSOAPFault(e);
+    }
+  }
+
   public List<? extends Node> getChildren(final long nodeId)
     throws ManifoldCFException, ServiceInterruption {
     final GetNodesInContainerOptions gnico = new GetNodesInContainerOptions();
@@ -221,7 +233,7 @@ public class CswsSession
     // We're listing folder by folder so hopefully this is nowhere near what we'll ever get back
     gnico.setMaxResults(1000000);
     try {
-      return getDocumentManagementHandle().getNodesInContainer(nodeId, gnico);
+      return getDocumentManagementHandle().getNodesInContainer(nodeId, gnico, getOTAuthentication());
     } catch (SOAPFaultException e) {
       if (e.getFault().getFaultCode().equals("ns0:DocMan.ErrorGettingParentNode")) {
         return null;
@@ -239,11 +251,29 @@ public class CswsSession
     }
   }
 
+  public List<? extends AttributeGroupDefinition> getCategoryDefinitions(final List<Long> categoryIDs)
+    throws ManifoldCFException, ServiceInterruption {
+    try {
+      return getDocumentManagementHandle().getCategoryDefinitions(categoryIDs, getOTAuthentication());
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
+  }
+  
   public Node getNode(final long nodeId) 
     throws ManifoldCFException, ServiceInterruption {
     // Need to detect if object was deleted, and return null in this case!!!
     try {
       return getDocumentManagementHandle().getNode(nodeId, getOTAuthentication());
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
+  }
+
+  public Node getNodeByPath(final long rootNode, final List<String> colonSeparatedPath)
+    throws ManifoldCFException, ServiceInterruption {
+    try {
+      return getDocumentManagementHandle().getNodeByPath(rootNode, colonSeparatedPath, getOTAuthentication());
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
     }

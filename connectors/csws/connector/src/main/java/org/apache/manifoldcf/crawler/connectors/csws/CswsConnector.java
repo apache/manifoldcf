@@ -155,7 +155,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected final static String GENERAL_CREATOR = "general_creator";
   protected final static String GENERAL_MODIFIER = "general_modifier";
   protected final static String GENERAL_PARENTID = "general_parentid";
-  
+
+  private static final String enterpriseWSName = "EnterpriseWS";
+  private static final String categoryWSName = "CategoryWS";
+
   // Signal that we have set up connection parameters properly
   private boolean hasSessionParameters = false;
   // Signal that we have set up a connection properly
@@ -170,9 +173,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   
   // Workspace Nodes (computed once and cached); should contain both enterprise and category workspaces
   private Map<String, Node> workspaceNodes = new HashMap<>();
-  private String enterpriseWSName = null;
-  private String categoryWSName = null;
-
+  private Long enterpriseWSID = null;
+  
   // Parameter values we need
   private String serverProtocol = null;
   private String serverName = null;
@@ -204,10 +206,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   // Activities list
   private static final String[] activitiesList = new String[]{ACTIVITY_SEED,ACTIVITY_FETCH};
-
-  // Retry count.  This is so we can try to install some measure of sanity into situations where LAPI gets confused communicating to the server.
-  // So, for some kinds of errors, we just retry for a while hoping it will go away.
-  private static final int FAILURE_RETRY_COUNT = 10;
 
   // Current host name
   private static String currentHost = null;
@@ -275,22 +273,28 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         final List<? extends String> workspaceNames = cswsSession.getRootNodeTypes();
         // Loop over these and get the nodes (which we'll save for later)
         workspaceNodes.clear();
+        /*
         enterpriseWSName = null;
         categoryWSName = null;
+        */
         for (final String workspaceName : workspaceNames) {
           workspaceNodes.put(workspaceName, cswsSession.getRootNode(workspaceName));
+          /* Hard-wired now
           // I don't know the actual names so...
-          // TBD
           if (workspaceName.toLowerCase(Locale.ROOT).indexOf("enterprise") != -1) {
             enterpriseWSName = workspaceName;
           } else if (workspaceName.toLowerCase(Locale.ROOT).indexOf("category") != -1) {
             categoryWSName = workspaceName;
           }
+          */
         }
         
         if (enterpriseWSName == null || categoryWSName == null) {
           throw new ManifoldCFException("Could not locate either enterprise or category workspaces");
         }
+        
+        enterpriseWSID = cswsSession.getRootNode(enterpriseWSName).getID();
+
       }
       catch (Throwable e)
       {
@@ -665,8 +669,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     ingestNtlmPassword = null;
 
     workspaceNodes.clear();
-    enterpriseWSName = null;
-    categoryWSName = null;
+    enterpriseWSID = null;
 
     if (connectionManager != null)
     {
@@ -890,7 +893,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     CswsContext llc = new CswsContext();
     
     // First, grab the root object
-    ObjectInformation rootValue = llc.getObjectInformation(workspaceNodes.get(enterpriseWSName).getID());
+    ObjectInformation rootValue = llc.getObjectInformation(enterpriseWSID);
     if (!rootValue.exists())
     {
       // If we get here, it HAS to be a bad network/transient problem.
@@ -2622,6 +2625,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   public String[] getWorkspaceNames()
     throws ManifoldCFException, ServiceInterruption
   {
+    return new String[]{categoryWSName, enterpriseWSName};
+    /*
     getSession();
     final Set<String> workspaceNames = workspaceNodes.keySet();
     final String[] rval = new String[workspaceNames.size()];
@@ -2631,10 +2636,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
     java.util.Arrays.sort(rval);
     return rval;
+    */
   }
 
   /** Given a path string, get a list of folders and projects under that node.
-  *@param pathString is the current path (folder names and project names, separated by dots (.)).
   *@return a list of folder and project names, in sorted order, or null if the path was invalid.
   */
   public String[] getChildFolderNames(String pathString)
@@ -3911,23 +3916,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     /**
     * Get category IDs available to the object with a specified object ID
     */
-    public int[] getObjectCategoryIDs()
+    public long[] getObjectCategoryIDs()
       throws ManifoldCFException, ServiceInterruption
     {
-      // How do we do this now?
-      // We need a list of category IDs that the object MIGHT have.
-      // MHL - TBD
-      /*
-        // Object ID
-        LLValue objIDValue = new LLValue().setAssocNotSet();
-        objIDValue.add("ID", id);
-
-        // Category ID List
-        LLValue catIDList = new LLValue().setAssocNotSet();
-
-        int status = LLDocs.ListObjectCategoryIDs(objIDValue,catIDList);
-
-        */
+      return getObjectCategoryIDs(objectID);
     }
     
     /**
@@ -4515,7 +4507,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     protected final long id;
     protected Throwable exception = null;
-    protected LLValue rval = null;
+    protected long[] rval;
 
     public GetObjectCategoryIDsThread(long id)
     {
@@ -4528,29 +4520,25 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
-        // Object ID
-        LLValue objIDValue = new LLValue().setAssocNotSet();
-        objIDValue.add("ID", id);
+        final List<? extends Node> categories = cswsSession.listNodes(id);
 
-        // Category ID List
-        LLValue catIDList = new LLValue().setAssocNotSet();
-
-        int status = LLDocs.ListObjectCategoryIDs(objIDValue,catIDList);
-
-        // Need to detect if object was deleted, and return null in this case!!!
-        if (Logging.connectors.isDebugEnabled())
-        {
-          Logging.connectors.debug("Csws: Status value for getting object categories for "+Integer.toString(id)+" is: "+Integer.toString(status));
-        }
-
-        if (status == 103101)
+        if (categories == null) {
           return;
-
-        if (status != 0)
-        {
-          throw new ManifoldCFException("Error retrieving document categories for "+Integer.toString(vol)+":"+Integer.toString(id)+": status="+Integer.toString(status)+" ("+llServer.getErrors()+")");
         }
-        rval = catIDList;
+        
+        int catCount = 0;
+        for (final Node category : categories) {
+          if (category.getType().equals("Category")) {
+            catCount++;
+          }
+        }
+        
+        rval = new long[catCount];
+        for (final Node category : categories) {
+          if (category.getType().equals("Category")) {
+            rval[catCount++] = category.getID();
+          }
+        }
       }
       catch (Throwable e)
       {
@@ -4558,7 +4546,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    public LLValue finishUp()
+    public long[] finishUp()
       throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
@@ -4582,56 +4570,16 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   /** Get category IDs associated with an object.
   * @param id the object ID
-  * @return an array of integers containing category identifiers, or null if the object is not found.
+  * @return an array of longs containing category identifiers, or null if the object is not found.
   */
-  // REWORK - MHL/TBD
-  protected int[] getObjectCategoryIDs(long id)
+  protected long[] getObjectCategoryIDs(long id)
     throws ManifoldCFException, ServiceInterruption
   {
     final GetObjectCategoryIDsThread t = new GetObjectCategoryIDsThread(id);
     try
     {
       t.start();
-      LLValue catIDList = t.finishUp();
-
-      if (catIDList == null)
-        return null;
-
-      int size = catIDList.size();
-
-      // Count the category ids
-      int count = 0;
-      int j = 0;
-      while (j < size)
-      {
-        int type = catIDList.toValue(j).toInteger("Type");
-        if (type == LAPI_ATTRIBUTES.CATEGORY_TYPE_LIBRARY)
-          count++;
-        j++;
-      }
-
-      int[] rval = new int[count];
-
-      // Do the scan
-      j = 0;
-      count = 0;
-      while (j < size)
-      {
-        int type = catIDList.toValue(j).toInteger("Type");
-        if (type == LAPI_ATTRIBUTES.CATEGORY_TYPE_LIBRARY)
-        {
-          int childID = catIDList.toValue(j).toInteger("ID");
-          rval[count++] = childID;
-        }
-        j++;
-      }
-
-      if (Logging.connectors.isDebugEnabled())
-      {
-        Logging.connectors.debug("Csws: Object "+Integer.toString(vol)+":"+Integer.toString(id)+" has "+Integer.toString(rval.length)+" attached library categories");
-      }
-
-      return rval;
+      return t.finishUp();
     }
     catch (InterruptedException e)
     {
