@@ -154,6 +154,10 @@ public class JsoupProcessing {
     // Englobing Tag
     if (whitelist!="body"){
       docToKeep = doc.select(whitelist).first();
+      // fallback to body tag if the tag chosen is not present in the page
+      if (doc.select(whitelist).size() == 0) {
+        docToKeep = doc.select("body").first();
+      }
     }
 
 
