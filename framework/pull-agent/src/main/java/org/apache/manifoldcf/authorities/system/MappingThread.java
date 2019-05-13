@@ -134,7 +134,7 @@ public class MappingThread extends Thread
           if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
           {
             // Shut the whole system down!
-            System.exit(1);
+            ManifoldCF.systemExit(1);
           }
 
         }
@@ -155,7 +155,7 @@ public class MappingThread extends Thread
       // Severe error on initialization
       System.err.println("Authority service mapping thread could not start - shutting down");
       Logging.authorityService.fatal("MappingThread initialization error tossed: "+e.getMessage(),e);
-      System.exit(-300);
+      ManifoldCF.systemExit(-300);
     }
   }
 

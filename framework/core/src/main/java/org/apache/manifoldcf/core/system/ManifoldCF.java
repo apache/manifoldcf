@@ -593,6 +593,28 @@ public class ManifoldCF
     return rval.toString();
   }
 
+  /** Shutdown the system using a background thread.
+   */
+  public static void systemExit(int rval) {
+    final Thread t = new SystemExitThread(rval);
+    t.start();
+    // do NOT wait for the thread to finish; doing so results in deadlock on later JVM versions
+  }
+  
+  private static class SystemExitThread extends Thread
+  {
+    private final int rval;
+    
+    public SystemExitThread(final int rval) {
+      this.rval = rval;
+      setDaemon(true);
+    }
+    
+    public void run() {
+      System.exit(rval);
+    }
+  }
+  
   /** Get the mcf version.
   *@return the version string
   */
