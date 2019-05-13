@@ -103,7 +103,7 @@ public class JobDeleteThread extends Thread
           if (e.getErrorCode() == ManifoldCFException.SETUP_ERROR)
           {
             // Shut the whole system down!
-            System.exit(1);
+            ManifoldCF.systemExit(1);
           }
 
         }
@@ -116,7 +116,7 @@ public class JobDeleteThread extends Thread
         {
           System.err.println("agents process ran out of memory - shutting down");
           e.printStackTrace(System.err);
-          System.exit(-200);
+          ManifoldCF.systemExit(-200);
         }
         catch (Throwable e)
         {
@@ -130,7 +130,7 @@ public class JobDeleteThread extends Thread
       // Severe error on initialization
       System.err.println("agents process could not start - shutting down");
       Logging.threads.fatal("JobDeleteThread initialization error tossed: "+e.getMessage(),e);
-      System.exit(-300);
+      ManifoldCF.systemExit(-300);
     }
   }
 
