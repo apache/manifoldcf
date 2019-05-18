@@ -537,10 +537,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         t.interrupt();
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
-      catch (RuntimeException e2)
-      {
-        handleCswsRuntimeException(e2);
-      }
     }
     expirationTime = System.currentTimeMillis() + expirationInterval;
   }
@@ -647,15 +643,17 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     serverPort = -1;
     serverUsername = null;
     serverPassword = null;
-    serverHTTPCgi = null;
+
+    authenticationServicePath = null;
+    documentManagementServicePath = null;
+    contentServiceServicePath = null;
+    memberServiceServicePath = null;
+    searchServiceServicePath = null;
+    
     serverHTTPNTLMDomain = null;
     serverHTTPNTLMUsername = null;
     serverHTTPNTLMPassword = null;
     serverHTTPSKeystore = null;
-
-    ingestPort = null;
-    ingestProtocol = null;
-    ingestCgiPath = null;
 
     viewPort = null;
     viewServerName = null;
@@ -663,10 +661,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     viewCgiPath = null;
 
     viewBasePath = null;
-
-    ingestNtlmDomain = null;
-    ingestNtlmUsername = null;
-    ingestNtlmPassword = null;
 
     workspaceNodes.clear();
     enterpriseWSID = null;
