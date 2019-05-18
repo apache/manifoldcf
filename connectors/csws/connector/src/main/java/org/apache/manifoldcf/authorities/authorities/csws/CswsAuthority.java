@@ -26,6 +26,8 @@ import org.apache.manifoldcf.authorities.system.ManifoldCF;
 
 import org.apache.manifoldcf.connectorcommon.interfaces.*;
 
+import com.opentext.livelink.service.memberservice.User;
+import com.opentext.livelink.service.memberservice.Member;
 import org.apache.manifoldcf.csws.*;
 
 import java.io.*;
@@ -70,25 +72,23 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
   private int serverPort = -1;
   private String serverUsername = null;
   private String serverPassword = null;
-  private String serverHTTPCgi = null;
+  //private String documentManagementServicePath = null;
+  //private String contentServiceServicePath = null;
+  private String memberServiceServicePath = null;
+  //private String searchServiceServicePath = null;
   private String serverHTTPNTLMDomain = null;
   private String serverHTTPNTLMUsername = null;
   private String serverHTTPNTLMPassword = null;
   private IKeystoreManager serverHTTPSKeystore = null;
 
   // Data required for maintaining Csws connection
-  private LAPI_USERS LLUsers = null;
-  private LLSERVER llServer = null;
+  private CswsSession cswsSession = null;
 
   // Cache variables
   private String cacheLifetime = null;
   private String cacheLRUsize = null;
   private long responseLifetime = 60000L;
   private int LRUsize = 1000;
-
-  // Retry count.  This is so we can try to install some measure of sanity into situations where LAPI gets confused communicating to the server.
-  // So, for some kinds of errors, we just retry for a while hoping it will go away.
-  private static final int FAILURE_RETRY_COUNT = 5;
 
   /** Cache manager. */
   protected ICacheManager cacheManager = null;
@@ -144,7 +144,11 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       String serverPortString = params.getParameter(CswsParameters.serverPort);
       serverUsername = params.getParameter(CswsParameters.serverUsername);
       serverPassword = params.getObfuscatedParameter(CswsParameters.serverPassword);
-      serverHTTPCgi = params.getParameter(CswsParameters.serverHTTPCgiPath);
+      authenticationServicePath = params.getParameter(CswsParameters.authenticationPath);
+      //documentManagementServicePath = params.getParameter(CswsParameters.documentManagementPath);
+      //contentServiceServicePath = params.getParameter(CswsParameters.contentServicePath);
+      memberServiceServicePath = params.getParameter(CswsParameters.memberServicePath);
+      //searchServiceServicePath = params.getParameter(CswsParameters.searchServicePath);      
       serverHTTPNTLMDomain = params.getParameter(CswsParameters.serverHTTPNTLMDomain);
       serverHTTPNTLMUsername = params.getParameter(CswsParameters.serverHTTPNTLMUsername);
       serverHTTPNTLMPassword = params.getObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword);
@@ -206,31 +210,23 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     getSessionParameters();
     if (!hasConnected)
     {
-
-      int sanityRetryCount = FAILURE_RETRY_COUNT;
-      while (true)
+      // Construct the various URLs we need
+      final String baseURL = serverProtocol + "://" + serverName + ":" + serverPortString;
+      final String authenticationServiceURL = baseURL + authenticationServicePath;
+      //final String documentManagementServiceURL = baseURL + documentManagementServicePath;
+      //final String contentServiceServiceURL = baseURL + contentServiceServicePath;
+      final String memberServiceServiceURL = baseURL + memberServiceServicePath;
+      //final String searchServiceServiceURL = baseURL + searchServiceServicePath;
+      
+      if (Logging.authorityConnectors.isDebugEnabled())
       {
-        try
-        {
-          // Create the session
-          llServer = new LLSERVER(!serverProtocol.equals("internal"),serverProtocol.equals("https"),
-            serverName,serverPort,serverUsername,serverPassword,
-            serverHTTPCgi,serverHTTPNTLMDomain,serverHTTPNTLMUsername,serverHTTPNTLMPassword,
-            serverHTTPSKeystore);
-
-          LLUsers = new LAPI_USERS(llServer.getLLSession());
-          if (Logging.authorityConnectors.isDebugEnabled())
-          {
-            Logging.authorityConnectors.debug("Csws: Csws session created.");
-          }
-          hasConnected = true;
-          break;
-        }
-        catch (RuntimeException e)
-        {
-          sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount);
-        }
+        Logging.authorityConnectors.debug("Csws: Csws session created.");
       }
+          
+      // Construct a new csws session object for setting up this session
+      cswsSession = new CswsSession(userName, password, 1000L * 60L * 15L,
+        authenticationServiceURL, null, null, memberServiceServiceURL, null);
+
     }
     expirationTime = System.currentTimeMillis() + expirationInterval;
   }
@@ -249,26 +245,19 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       // Reestablish the session
       hasConnected = false;
       getSession();
-      // Get user info for the crawl user, to make sure it works
-      int sanityRetryCount = FAILURE_RETRY_COUNT;
-      while (true)
-      {
-        try
-        {
-          LLValue userObject = new LLValue();
-          int status = LLUsers.GetUserInfo("Admin", userObject);
-          // User Not Found is ok; the server user name may include the domain.
-          if (status == 103101 || status == 401203)
-            return super.check();
-          if (status != 0)
-            return "Connection failed: User authentication failed";
-          return super.check();
-        }
-        catch (RuntimeException e)
-        {
-          sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount);
-        }
-      }
+      
+      // Need to do the equivalent
+      // TBD
+      /*
+      LLValue userObject = new LLValue();
+      int status = LLUsers.GetUserInfo("Admin", userObject);
+      // User Not Found is ok; the server user name may include the domain.
+      if (status == 103101 || status == 401203)
+        return super.check();
+      if (status != 0)
+        return "Connection failed: User authentication failed";
+      */
+      return super.check();
     }
     catch (ServiceInterruption e)
     {
@@ -332,14 +321,17 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       llServer.disconnect();
       llServer = null;
     }
-    LLUsers = null;
     
     serverProtocol = null;
     serverName = null;
     serverPort = -1;
     serverUsername = null;
     serverPassword = null;
-    serverHTTPCgi = null;
+    authenticationServicePath = null;
+    //documentManagementServicePath = null;
+    //contentServiceServicePath = null;
+    memberServiceServicePath = null;
+    //searchServiceServicePath = null;
     serverHTTPNTLMDomain = null;
     serverHTTPNTLMUsername = null;
     serverHTTPNTLMPassword = null;
@@ -433,6 +425,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
           // of the System group.
           // Get information about the current user.  This is how we will determine if the
           // user exists, and also what permissions s/he has.
+          // TBD
           LLValue userObject = new LLValue();
           int status = LLUsers.GetUserInfo(domainAndUser, userObject);
           if (status == 103101 || status == 401203)
