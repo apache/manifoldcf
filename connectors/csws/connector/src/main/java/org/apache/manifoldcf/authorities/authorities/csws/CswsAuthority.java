@@ -604,7 +604,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     // LAPI parameters
     String serverProtocol = parameters.getParameter(CswsParameters.serverProtocol);
     if (serverProtocol == null)
-      serverProtocol = "internal";
+      serverProtocol = "http";
     String serverName = parameters.getParameter(CswsParameters.serverName);
     if (serverName == null)
       serverName = "localhost";
@@ -612,21 +612,26 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     if (serverPort == null)
       serverPort = "2099";
     String serverUserName = parameters.getParameter(CswsParameters.serverUsername);
-    if (serverUserName == null)
+    if(serverUserName == null)
       serverUserName = "";
     String serverPassword = parameters.getObfuscatedParameter(CswsParameters.serverPassword);
     if (serverPassword == null)
       serverPassword = "";
     else
       serverPassword = out.mapPasswordToKey(serverPassword);
-    String serverHTTPCgiPath = parameters.getParameter(CswsParameters.serverHTTPCgiPath);
-    if (serverHTTPCgiPath == null)
-      serverHTTPCgiPath = "/livelink/livelink.exe";
+    
+    String authenticationServicePath = parameters.getParameter(CswsParameters.authenticationPath);
+    if (authenticationServicePath == null)
+      authenticationServicePath = "";
+    String memberServiceServicePath = parameters.getParameter(CswsParameters.memberServicePath);
+    if (memberServiceServicePath == null)
+      memberServiceServicePath = "";
+    
     String serverHTTPNTLMDomain = parameters.getParameter(CswsParameters.serverHTTPNTLMDomain);
-    if (serverHTTPNTLMDomain == null)
+    if(serverHTTPNTLMDomain == null)
       serverHTTPNTLMDomain = "";
     String serverHTTPNTLMUserName = parameters.getParameter(CswsParameters.serverHTTPNTLMUsername);
-    if (serverHTTPNTLMUserName == null)
+    if(serverHTTPNTLMUserName == null)
       serverHTTPNTLMUserName = "";
     String serverHTTPNTLMPassword = parameters.getObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword);
     if (serverHTTPNTLMPassword == null)
@@ -663,7 +668,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       }
     } catch (ManifoldCFException e) {
       message = e.getMessage();
-      org.apache.manifoldcf.crawler.system.Logging.connectors.warn(e);
+      Logging.connectors.warn(e);
     }
 
     velocityContext.put("SERVERPROTOCOL",serverProtocol);
@@ -671,14 +676,17 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     velocityContext.put("SERVERPORT",serverPort);
     velocityContext.put("SERVERUSERNAME",serverUserName);
     velocityContext.put("SERVERPASSWORD",serverPassword);
-    velocityContext.put("SERVERHTTPCGIPATH",serverHTTPCgiPath);
+    
+    velocityContext.put("AUTHENTICATIONSERVICEPATH", authenticationServicePath);
+    velocityContext.put("MEMBERSERVICESERVICEPATH", memberServiceServicePath);
+
     velocityContext.put("SERVERHTTPNTLMDOMAIN",serverHTTPNTLMDomain);
     velocityContext.put("SERVERHTTPNTLMUSERNAME",serverHTTPNTLMUserName);
     velocityContext.put("SERVERHTTPNTLMPASSWORD",serverHTTPNTLMPassword);
     if(serverHTTPSKeystore != null)
       velocityContext.put("SERVERHTTPSKEYSTORE",serverHTTPSKeystore);
     if(serverCertificatesMap != null)
-      velocityContext.put("SERVERCERTIFICATESMAP", serverCertificatesMap);
+    velocityContext.put("SERVERCERTIFICATESMAP", serverCertificatesMap);
     if(message != null)
       velocityContext.put("MESSAGE", message);
   }
@@ -727,9 +735,23 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     String serverPassword = variableContext.getParameter("serverpassword");
     if (serverPassword != null)
       parameters.setObfuscatedParameter(CswsParameters.serverPassword,variableContext.mapKeyToPassword(serverPassword));
-    String serverHTTPCgiPath = variableContext.getParameter("serverhttpcgipath");
-    if (serverHTTPCgiPath != null)
-      parameters.setParameter(CswsParameters.serverHTTPCgiPath,serverHTTPCgiPath);
+    
+    String authenticationServicePath = variableContext.getParameter("authenticationservicepath");
+    if (authenticationServicePath != null)
+      parameters.setParameter(CswsParameters.authenticationPath, authenticationServicePath);
+    String contentServiceServicePath = variableContext.getParameter("contentserviceservicepath");
+    if (contentServiceServicePath != null)
+      parameters.setParameter(CswsParameters.contentServicePath, contentServiceServicePath);
+    String documentManagementServicePath = variableContext.getParameter("documentmanagementservicepath");
+    if (documentManagermentServicePath != null)
+      parameters.setParameter(CswsParameters.documentManagementPath, documentManagementServicePath);
+    String memberServiceServicePath = variableContext.getParameter("memberserviceservicepath");
+    if (memberServiceServicePath != null)
+      parameters.setParameter(CswsParameters.memberServicePath, memberServiceServicePath);
+    String searchServiceServicePath = variableContext.getParameter("searchserviceservicepath");
+    if (searchServiceServicePath != null)
+      parameters.setParameter(CswsParameters.searchServicePath, searchServiceServicePath);
+
     String serverHTTPNTLMDomain = variableContext.getParameter("serverhttpntlmdomain");
     if (serverHTTPNTLMDomain != null)
       parameters.setParameter(CswsParameters.serverHTTPNTLMDomain,serverHTTPNTLMDomain);
@@ -790,12 +812,11 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
         {
           return "Illegal certificate: "+certError;
         }
-        
         serverHTTPSKeystoreValue = mgr.getString();
       }
     }
-    parameters.setParameter(CswsParameters.serverHTTPSKeystore, serverHTTPSKeystoreValue);
-
+    parameters.setParameter(CswsParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
+    
     // Cache parameters
     String cacheLifetime = variableContext.getParameter("cachelifetime");
     if (cacheLifetime != null)
