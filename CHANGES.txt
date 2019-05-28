@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.14-dev =====================
 
+CONNECTORS-1609: SharePoint: Treat document fetch 403 and 503 errors as meaning
+insufficient permissions, and skip the document.
+(Karl Wright)
+
 CONNECTORS-1605: HTML-extractor: Use body tag if specified tag is not available.
 (Olivier Tavard)
 
