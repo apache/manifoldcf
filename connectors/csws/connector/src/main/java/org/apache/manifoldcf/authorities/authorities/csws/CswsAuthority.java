@@ -59,8 +59,6 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
 
   // Signal that we have set up connection parameters properly
   private boolean hasSessionParameters = false;
-  // Signal that we have set up a connection properly
-  private boolean hasConnected = false;
   // Session expiration time
   private long expirationTime = -1L;
   // Idle session expiration interval
@@ -208,7 +206,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     throws ManifoldCFException, ServiceInterruption
   {
     getSessionParameters();
-    if (!hasConnected)
+    if (cswsSession == null)
     {
       // Construct the various URLs we need
       final String baseURL = serverProtocol + "://" + serverName + ":" + serverPortString;
@@ -243,21 +241,14 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     try
     {
       // Reestablish the session
-      hasConnected = false;
+      cswsSession = null;
       getSession();
       
-      // Need to do the equivalent
-      // TBD
-      /*
-      LLValue userObject = new LLValue();
-      int status = LLUsers.GetUserInfo("Admin", userObject);
-      // User Not Found is ok; the server user name may include the domain.
-      if (status == 103101 || status == 401203)
+      final User user = cswsSession.getUserByLoginName("Admin");
+      if (user == null) {
         return super.check();
-      if (status != 0)
-        return "Connection failed: User authentication failed";
-      */
-      return super.check();
+      }
+      return "Connection failed: User authentication failed";
     }
     catch (ServiceInterruption e)
     {
@@ -276,23 +267,14 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
   public void poll()
     throws ManifoldCFException
   {
-    if (!hasConnected)
+    if (cswsSession == null)
       return;
 
     long currentTime = System.currentTimeMillis();
     if (currentTime >= expirationTime)
     {
-      hasConnected = false;
       expirationTime = -1L;
-
-      // Shutdown livelink connection
-      if (llServer != null)
-      {
-        llServer.disconnect();
-        llServer = null;
-      }
-      
-      LLUsers = null;
+      cswsSession = null;
     }
   }
 
@@ -303,7 +285,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
   @Override
   public boolean isConnected()
   {
-    return hasConnected;
+    return cswsSession != null;
   }
 
   /** Close the connection.  Call this before discarding the repository connector.
@@ -313,14 +295,8 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     throws ManifoldCFException
   {
     hasSessionParameters = false;
-    hasConnected = false;
+    cswsSession = null;
     expirationTime = -1L;
-    
-    if (llServer != null)
-    {
-      llServer.disconnect();
-      llServer = null;
-    }
     
     serverProtocol = null;
     serverName = null;
@@ -414,123 +390,103 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
         Logging.authorityConnectors.debug("Csws: Csws user name = '"+domainAndUser+"'");
       }
 
-      int sanityRetryCount = FAILURE_RETRY_COUNT;
-      while (true)
-      {
-        try
-        {
-          ArrayList list = new ArrayList();
+      ArrayList list = new ArrayList();
 
-          // Find out if the specified user is a member of the Guest group, or is a member
-          // of the System group.
-          // Get information about the current user.  This is how we will determine if the
-          // user exists, and also what permissions s/he has.
-          // TBD
-          LLValue userObject = new LLValue();
-          int status = LLUsers.GetUserInfo(domainAndUser, userObject);
-          if (status == 103101 || status == 401203)
-          {
-            if (Logging.authorityConnectors.isDebugEnabled())
-              Logging.authorityConnectors.debug("Csws: Csws user '"+domainAndUser+"' does not exist");
-            return RESPONSE_USERNOTFOUND;
-          }
-
-          if (status != 0)
-          {
-            Logging.authorityConnectors.warn("Csws: User '"+domainAndUser+"' GetUserInfo error # "+Integer.toString(status)+" "+llServer.getErrors());
-            // The server is probably down.
-            return RESPONSE_UNREACHABLE;
-          }
-
-          int deleted = userObject.toInteger("Deleted");
-          if (deleted == 1)
-          {
-            if (Logging.authorityConnectors.isDebugEnabled())
-              Logging.authorityConnectors.debug("Csws: Csws user '"+domainAndUser+"' has been deleted");
-            // Since the user cannot become undeleted, then this should be treated as 'user does not exist'.
-            return RESPONSE_USERNOTFOUND;
-          }
-          int privs = userObject.toInteger("UserPrivileges");
-          if ((privs & LAPI_USERS.PRIV_PERM_WORLD) == LAPI_USERS.PRIV_PERM_WORLD)
-            list.add("GUEST");
-          if ((privs & LAPI_USERS.PRIV_PERM_BYPASS) == LAPI_USERS.PRIV_PERM_BYPASS)
-            list.add("SYSTEM");
-
-          LLValue childrenObjects = new LLValue();
-          status = LLUsers.ListRights(LAPI_USERS.USER, domainAndUser, childrenObjects);
-          if (status == 103101 || status == 401203)
-          {
-            if (Logging.authorityConnectors.isDebugEnabled())
-              Logging.authorityConnectors.debug("Csws: Csws error looking up user rights for '"+domainAndUser+"' - user does not exist");
-            return RESPONSE_USERNOTFOUND;
-          }
-
-          if (status != 0)
-          {
-            // If the user doesn't exist, return null.  Right now, not sure how to figure out the
-            // right error code, so just stuff it in the log.
-            Logging.authorityConnectors.warn("Csws: For user '"+domainAndUser+"', ListRights error # "+Integer.toString(status)+" "+llServer.getErrors());
-            // An error code at this level has to indicate a suddenly unreachable authority
-            return RESPONSE_UNREACHABLE;
-          }
-
-          // Go through the individual objects, and get their IDs.  These id's will be the access tokens
-          int size;
-
-          if (childrenObjects.isRecord())
-            size = 1;
-          else if (childrenObjects.isTable())
-            size = childrenObjects.size();
-          else
-            size = 0;
-
-          // We need also to add in support for the special rights objects.  These are:
-          // -1: RIGHT_WORLD
-          // -2: RIGHT_SYSTEM
-          // -3: RIGHT_OWNER
-          // -4: RIGHT_GROUP
-          //
-          // RIGHT_WORLD means guest access.
-          // RIGHT_SYSTEM is "Public Access".
-          // RIGHT_OWNER is access by the owner of the object.
-          // RIGHT_GROUP is access by a member of the base group containing the owner
-          //
-          // These objects are returned by the corresponding GetObjectRights() call made during
-          // the ingestion process.  We have to figure out how to map these to things that are
-          // the equivalent of acls.
-
-          // Idea:
-          // 1) RIGHT_WORLD is based on some property of the user.
-          // 2) RIGHT_SYSTEM is based on some property of the user.
-          // 3) RIGHT_OWNER and RIGHT_GROUP are managed solely in the ingestion side of the world.
-
-          // NOTE:  It turns out that -1 and -2 are in fact returned as part of the list of
-          // rights requested above.  They get mapped to special keywords already in the above
-          // code, so it *may* be reasonable to filter them from here.  It's not a real problem because
-          // it's effectively just a duplicate of what we are doing.
-
-          int j = 0;
-          while (j < size)
-          {
-            int token = childrenObjects.toInteger(j, "ID");
-            list.add(Integer.toString(token));
-            j++;
-          }
-          String[] rval = new String[list.size()];
-          j = 0;
-          while (j < rval.length)
-          {
-            rval[j] = (String)list.get(j);
-            j++;
-          }
-
-          return new AuthorizationResponse(rval,AuthorizationResponse.RESPONSE_OK);
-        }
-        catch (RuntimeException e)
-        {
-          sanityRetryCount = handleCswsRuntimeException(e,sanityRetryCount);
-        }
+      // Find out if the specified user is a member of the Guest group, or is a member
+      // of the System group.
+      // Get information about the current user.  This is how we will determine if the
+      // user exists, and also what permissions s/he has.
+      final User user = cswsSession.getUserByLoginName(domainAndUser);
+      if (user == null) {
+        if (Logging.authorityConnectors.isDebugEnabled())
+          Logging.authorityConnectors.debug("Csws: Csws user '"+domainAndUser+"' does not exist");
+        return RESPONSE_USERNOTFOUND;
       }
+
+      // TBD
+      int deleted = userObject.toInteger("Deleted");
+      if (deleted == 1)
+      {
+        if (Logging.authorityConnectors.isDebugEnabled())
+          Logging.authorityConnectors.debug("Csws: Csws user '"+domainAndUser+"' has been deleted");
+        // Since the user cannot become undeleted, then this should be treated as 'user does not exist'.
+        return RESPONSE_USERNOTFOUND;
+      }
+      int privs = userObject.toInteger("UserPrivileges");
+      if ((privs & LAPI_USERS.PRIV_PERM_WORLD) == LAPI_USERS.PRIV_PERM_WORLD)
+        list.add("GUEST");
+      if ((privs & LAPI_USERS.PRIV_PERM_BYPASS) == LAPI_USERS.PRIV_PERM_BYPASS)
+        list.add("SYSTEM");
+
+      LLValue childrenObjects = new LLValue();
+      status = LLUsers.ListRights(LAPI_USERS.USER, domainAndUser, childrenObjects);
+      if (status == 103101 || status == 401203)
+      {
+        if (Logging.authorityConnectors.isDebugEnabled())
+          Logging.authorityConnectors.debug("Csws: Csws error looking up user rights for '"+domainAndUser+"' - user does not exist");
+        return RESPONSE_USERNOTFOUND;
+      }
+
+      if (status != 0)
+      {
+        // If the user doesn't exist, return null.  Right now, not sure how to figure out the
+        // right error code, so just stuff it in the log.
+        Logging.authorityConnectors.warn("Csws: For user '"+domainAndUser+"', ListRights error # "+Integer.toString(status)+" "+llServer.getErrors());
+        // An error code at this level has to indicate a suddenly unreachable authority
+        return RESPONSE_UNREACHABLE;
+      }
+
+      // Go through the individual objects, and get their IDs.  These id's will be the access tokens
+      int size;
+
+      if (childrenObjects.isRecord())
+        size = 1;
+      else if (childrenObjects.isTable())
+        size = childrenObjects.size();
+      else
+        size = 0;
+
+      // We need also to add in support for the special rights objects.  These are:
+      // -1: RIGHT_WORLD
+      // -2: RIGHT_SYSTEM
+      // -3: RIGHT_OWNER
+      // -4: RIGHT_GROUP
+      //
+      // RIGHT_WORLD means guest access.
+      // RIGHT_SYSTEM is "Public Access".
+      // RIGHT_OWNER is access by the owner of the object.
+      // RIGHT_GROUP is access by a member of the base group containing the owner
+      //
+      // These objects are returned by the corresponding GetObjectRights() call made during
+      // the ingestion process.  We have to figure out how to map these to things that are
+      // the equivalent of acls.
+        
+      // Idea:
+      // 1) RIGHT_WORLD is based on some property of the user.
+      // 2) RIGHT_SYSTEM is based on some property of the user.
+      // 3) RIGHT_OWNER and RIGHT_GROUP are managed solely in the ingestion side of the world.
+
+      // NOTE:  It turns out that -1 and -2 are in fact returned as part of the list of
+      // rights requested above.  They get mapped to special keywords already in the above
+      // code, so it *may* be reasonable to filter them from here.  It's not a real problem because
+      // it's effectively just a duplicate of what we are doing.
+
+      int j = 0;
+      while (j < size)
+      {
+        int token = childrenObjects.toInteger(j, "ID");
+        list.add(Integer.toString(token));
+        j++;
+      }
+      String[] rval = new String[list.size()];
+      j = 0;
+      while (j < rval.length)
+      {
+        rval[j] = (String)list.get(j);
+        j++;
+      }
+
+      return new AuthorizationResponse(rval,AuthorizationResponse.RESPONSE_OK);
     }
     catch (ServiceInterruption e)
     {
