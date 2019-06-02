@@ -2942,7 +2942,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib-proprietary"/>
             <param name="project-path" value="mysql"/>
-            <param name="artifact-version" value="5.1.33"/>
+            <param name="artifact-version" value="5.1.47"/>
             <param name="artifact-name" value="mysql-connector-java"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
