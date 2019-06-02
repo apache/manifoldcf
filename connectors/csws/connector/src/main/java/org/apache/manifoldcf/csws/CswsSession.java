@@ -307,7 +307,16 @@ public class CswsSession
       processSOAPFault(e);
     }      
   }
-  
+
+  public User getUserByLoginName(final String userName)
+    throws ManifoldCFException, ServiceInterruption {
+    try {
+      return getMemberServiceHandle().getUserByLoginName(userName, getOTAuthentication());
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
+  }
+
   public User getUser(final long userId) 
     throws ManifoldCFException, ServiceInterruption {
     try {
