@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.14-dev =====================
 
+CONNECTORS-1612: JCIFS connector: adopt a single retry with a three-hour wait for
+unknown SMB errors.
+(Karl Wright)
+
 CONNECTORS-1609: SharePoint: Treat document fetch 403 and 503 errors as meaning
 insufficient permissions, and skip the document.
 (Karl Wright)

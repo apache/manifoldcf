@@ -1130,7 +1130,8 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
               Logging.connectors.error("JCIFS: SmbException tossed processing "+documentIdentifier,se);
               errorCode = se.getClass().getSimpleName().toUpperCase(Locale.ROOT);
               errorDesc = "Unknown: "+se.getMessage();
-              throw new ManifoldCFException("SmbException tossed: "+se.getMessage(),se);
+              throw new ServiceInterruption("Unknown SMBException thrown: "+se.getMessage(),se,currentTime + 3 * 60 * 60000L,
+                -1L,1,true);
             }
           }
           catch (IOException e)
@@ -1366,8 +1367,9 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
     }
     else
     {
-      Logging.connectors.error("SmbException thrown "+activity+" for "+documentIdentifier,se);
-      throw new ManifoldCFException("SmbException thrown: "+se.getMessage(),se);
+      Logging.connectors.error("Unrecognized SmbException thrown "+activity+" for "+documentIdentifier,se);
+      throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 3 * 60 * 60000L,
+        -1,1,true);
     }
   }
 
