@@ -28,6 +28,7 @@ import org.apache.manifoldcf.connectorcommon.interfaces.*;
 
 import com.opentext.livelink.service.memberservice.User;
 import com.opentext.livelink.service.memberservice.Member;
+import com.opentext.livelink.service.memberservice.MemberPrivileges;
 import org.apache.manifoldcf.csws.*;
 
 import java.io.*;
@@ -403,18 +404,21 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
         return RESPONSE_USERNOTFOUND;
       }
 
-      // TBD
-      int deleted = userObject.toInteger("Deleted");
-      if (deleted == 1)
+      if (user.isDeleted())
       {
         if (Logging.authorityConnectors.isDebugEnabled())
           Logging.authorityConnectors.debug("Csws: Csws user '"+domainAndUser+"' has been deleted");
         // Since the user cannot become undeleted, then this should be treated as 'user does not exist'.
         return RESPONSE_USERNOTFOUND;
       }
-      int privs = userObject.toInteger("UserPrivileges");
-      if ((privs & LAPI_USERS.PRIV_PERM_WORLD) == LAPI_USERS.PRIV_PERM_WORLD)
+      
+      final MemberPrivileges memberPrivileges = user.getPrivileges();
+      if (memberPrivileges.isPublicAccessEnabled()) {
+        // if ((privs & LAPI_USERS.PRIV_PERM_WORLD) == LAPI_USERS.PRIV_PERM_WORLD) ??
         list.add("GUEST");
+      }
+      
+      // TBD -- what is this??
       if ((privs & LAPI_USERS.PRIV_PERM_BYPASS) == LAPI_USERS.PRIV_PERM_BYPASS)
         list.add("SYSTEM");
 

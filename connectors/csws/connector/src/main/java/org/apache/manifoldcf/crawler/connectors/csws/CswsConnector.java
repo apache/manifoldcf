@@ -2862,11 +2862,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (modifier != null)
         rd.addField(GENERAL_MODIFIER,modifier.getName());
 
-      /* Old-style code.  Category paths come out of description.  Then
-          we look up the category path to get the category version for the
-          specific document.  Then we iterate over all attribute names for the
-          category version, and fetch their values.
-      
       // Iterate over the metadata items.  These are organized by category
       // for speed of lookup.
       Iterator<MetadataItem> catIter = desc.getItems(categoryPaths);
@@ -2876,8 +2871,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         MetadataPathItem pathItem = item.getPathItem();
         if (pathItem != null)
         {
-          int catID = pathItem.getCatID();
+          long catID = pathItem.getCatID();
+          
           // grab the associated catversion
+          // TBD
           LLValue catVersion = getCatVersion(objID,catID);
           if (catVersion != null)
           {
@@ -2889,6 +2886,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
               // Create a unique metadata name
               String metadataName = pathItem.getCatName()+":"+attrName;
               // Fetch the metadata and stuff it into the RepositoryData structure
+              // TBD
               String[] metadataValue = getAttributeValue(catVersion,attrName);
               if (metadataValue != null)
                 rd.addField(metadataName,metadataValue);
@@ -2899,7 +2897,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           
         }
       }
-      */
+      
+      /*
       // New-style code.  We have a list of AttributeGroup objects attached to the item.  We iterate over them and
       // use the ones we want.
       final List<? extends AttributeGroup> attributeGroups = objInfo.getAttributeGroups();
@@ -2951,6 +2950,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           }
         }
       }
+*/
 
       if (actualAcls != null && denyAcls != null)
         rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,actualAcls,denyAcls);
@@ -4737,12 +4737,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   */
   protected static class MetadataPathItem
   {
-    protected final int catID;
+    protected final long catID;
     protected final String catName;
 
     /** Constructor.
     */
-    public MetadataPathItem(int catID, String catName)
+    public MetadataPathItem(long catID, String catName)
     {
       this.catID = catID;
       this.catName = catName;
@@ -4751,7 +4751,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     /** Get the cat ID.
     *@return the id.
     */
-    public int getCatID()
+    public long getCatID()
     {
       return catID;
     }
@@ -5142,8 +5142,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             // Get the object id of the category the path describes.
             // NOTE: We don't use the RootValue version of getCategoryId because
             // we want to use the cached value of rootValue, if it was around.
-            int catObjectID = rootValue.getCategoryId(rv.getRemainderPath());
-            if (catObjectID != -1)
+            long catObjectID = rootValue.getCategoryId(rv.getRemainderPath());
+            if (catObjectID != -1L)
             {
               item = new MetadataPathItem(catObjectID,rv.getRemainderPath());
               categoryMap.put(category,item);
