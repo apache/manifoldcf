@@ -418,10 +418,12 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
         list.add("GUEST");
       }
       
-      // TBD -- what is this??
-      if ((privs & LAPI_USERS.PRIV_PERM_BYPASS) == LAPI_USERS.PRIV_PERM_BYPASS)
+      if (memberPrivileges. isCanAdministerSystem()) {
+        // if ((privs & LAPI_USERS.PRIV_PERM_BYPASS) == LAPI_USERS.PRIV_PERM_BYPASS)
         list.add("SYSTEM");
-
+      }
+      
+      // TBD
       LLValue childrenObjects = new LLValue();
       status = LLUsers.ListRights(LAPI_USERS.USER, domainAndUser, childrenObjects);
       if (status == 103101 || status == 401203)
