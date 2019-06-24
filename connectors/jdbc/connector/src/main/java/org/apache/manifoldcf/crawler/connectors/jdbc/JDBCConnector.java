@@ -2183,7 +2183,7 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
     for (final String attributeName : values.keySet())
     {
       final Set<String> attributes = values.get(attributeName);
-      final String[] attributeValues = new String[values.size()];
+      final String[] attributeValues = new String[attributes.size()];
       int i = 0;
       for (final String attributeValue : attributes)
       {
