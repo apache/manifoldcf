@@ -32,6 +32,7 @@ import java.util.Locale;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -127,11 +128,23 @@ public class ElasticSearchConnection
     @Override
     public void run()
     {
+      HttpHost target = new HttpHost(method.getURI().getHost(), method.getURI().getPort(), method.getURI().getScheme());
+      // Create AuthCache instance
+      AuthCache authCache = new BasicAuthCache();
+      // Generate BASIC scheme object and add it to the local
+      // auth cache
+      BasicScheme basicAuth = new BasicScheme();
+      authCache.put(target, basicAuth);
+
+      // Add AuthCache to the execution context
+      HttpClientContext localContext = HttpClientContext.create();
+      localContext.setAuthCache(authCache);
+
       try
       {
         try
         {
-          HttpResponse resp = client.execute(method);
+          HttpResponse resp = client.execute(method, localContext);
           resultCode = resp.getStatusLine().getStatusCode();
           response = getResponseBodyAsString(resp.getEntity());
         }

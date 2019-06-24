@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.14-dev =====================
 
+CONNECTORS-1519: Fix ElasticSearch connector HTTP PUT operations to work in an
+authorization environment without getting errors.
+(Glenn Laenen)
+
 CONNECTORS-1612: JCIFS connector: adopt a single retry with a three-hour wait for
 unknown SMB errors.
 (Karl Wright)
