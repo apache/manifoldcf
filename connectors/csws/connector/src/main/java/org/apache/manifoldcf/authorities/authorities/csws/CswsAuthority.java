@@ -28,6 +28,7 @@ import org.apache.manifoldcf.connectorcommon.interfaces.*;
 
 import com.opentext.livelink.service.memberservice.User;
 import com.opentext.livelink.service.memberservice.Member;
+import com.opentext.livelink.service.memberservice.Group;
 import com.opentext.livelink.service.memberservice.MemberPrivileges;
 import org.apache.manifoldcf.csws.*;
 
@@ -423,34 +424,20 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
         list.add("SYSTEM");
       }
       
-      // TBD
-      LLValue childrenObjects = new LLValue();
-      status = LLUsers.ListRights(LAPI_USERS.USER, domainAndUser, childrenObjects);
-      if (status == 103101 || status == 401203)
+      final Member member = cswsSession.getMemberByLoginName(domainAndUser);
+      if (member == null) {
+        if (Logging.authorityConnectors.isDebugEnabled())
+          Logging.authorityConnectors.debug("Csws: Csws member '"+domainAndUser+"' does not exist");
+        return RESPONSE_USERNOTFOUND;
+      }
+
+      final List<? extends Group> groups = cswsSession.listUserMemberOf(member.getID());
+      if (groups == null)
       {
         if (Logging.authorityConnectors.isDebugEnabled())
           Logging.authorityConnectors.debug("Csws: Csws error looking up user rights for '"+domainAndUser+"' - user does not exist");
         return RESPONSE_USERNOTFOUND;
       }
-
-      if (status != 0)
-      {
-        // If the user doesn't exist, return null.  Right now, not sure how to figure out the
-        // right error code, so just stuff it in the log.
-        Logging.authorityConnectors.warn("Csws: For user '"+domainAndUser+"', ListRights error # "+Integer.toString(status)+" "+llServer.getErrors());
-        // An error code at this level has to indicate a suddenly unreachable authority
-        return RESPONSE_UNREACHABLE;
-      }
-
-      // Go through the individual objects, and get their IDs.  These id's will be the access tokens
-      int size;
-
-      if (childrenObjects.isRecord())
-        size = 1;
-      else if (childrenObjects.isTable())
-        size = childrenObjects.size();
-      else
-        size = 0;
 
       // We need also to add in support for the special rights objects.  These are:
       // -1: RIGHT_WORLD
@@ -477,19 +464,10 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       // code, so it *may* be reasonable to filter them from here.  It's not a real problem because
       // it's effectively just a duplicate of what we are doing.
 
+      final String[] rval = new String[groups.size()];
       int j = 0;
-      while (j < size)
-      {
-        int token = childrenObjects.toInteger(j, "ID");
-        list.add(Integer.toString(token));
-        j++;
-      }
-      String[] rval = new String[list.size()];
-      j = 0;
-      while (j < rval.length)
-      {
-        rval[j] = (String)list.get(j);
-        j++;
+      for (final Group g : groups) {
+        rval[j++] = g.getName();
       }
 
       return new AuthorizationResponse(rval,AuthorizationResponse.RESPONSE_OK);

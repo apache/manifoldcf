@@ -64,6 +64,7 @@ import com.opentext.livelink.service.docman.AttributeGroupDefinition;
 import com.opentext.livelink.service.docman.Attribute;
 import com.opentext.livelink.service.memberservice.User;
 import com.opentext.livelink.service.memberservice.Member;
+import com.opentext.livelink.service.memberservice.Group;
 import com.opentext.livelink.service.searchservices.SResultPage;
 import com.opentext.livelink.service.searchservices.SNode;
 import com.opentext.livelink.service.searchservices.SGraph;
@@ -317,6 +318,24 @@ public class CswsSession
     }
   }
 
+  public Member getMemberByLoginName(final String memberName)
+    throws ManifoldCFException, ServiceInterruption {
+    try {
+      return getMemberServiceHandle().getMemberByLoginName(memberName, getOTAuthentication());
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
+  }
+
+  public List<? extends Group> listUserMemberOf(final long memberId)
+    throws ManifoldCFException, ServiceInterruption {
+    try {
+      return getMemberServiceHandle().listMemberOf(memberId, getOTAuthentication());
+    } catch (SOAPFaultException e) {
+      processSOAPFault(e);
+    }
+  }
+  
   public User getUser(final long userId) 
     throws ManifoldCFException, ServiceInterruption {
     try {
