@@ -304,10 +304,10 @@ public class CswsSession
     }
   }
 
-  public AttributeGroupDefinition getCategoryDefinition(final long catId, final long version)
+  public AttributeGroupDefinition getCategoryDefinition(final long catId)
     throws ManifoldCFException, ServiceInterruption {
     try {
-      return getDocumentManagementHandle().getCategoryDefinition(catId, version, getOTAuthentication());
+      return getDocumentManagementHandle().getCategoryDefinition(catId, getOTAuthentication());
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
     }      
