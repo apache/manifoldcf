@@ -37,6 +37,7 @@ import javax.xml.soap.SOAPPart;
 import javax.xml.ws.soap.MTOMFeature;
 import javax.xml.ws.soap.SOAPFaultException;
 import javax.xml.ws.BindingProvider;
+import javax.xml.ws.Holder;
 
 import com.opentext.ecm.api.OTAuthentication;
 import com.opentext.livelink.service.core.PageHandle;
@@ -70,6 +71,8 @@ import com.opentext.livelink.service.searchservices.SNode;
 import com.opentext.livelink.service.searchservices.SGraph;
 import com.opentext.livelink.service.searchservices.SingleSearchRequest;
 import com.opentext.livelink.service.searchservices.SingleSearchResponse;
+import com.opentext.livelink.service.memberservice.SearchScope;
+import com.opentext.livelink.service.memberservice.SearchFilter;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -86,12 +89,13 @@ public class CswsSession
 
   private final String userName;
   private final String password;
-  private final long expirationInterval;
+  private final long sessionExpirationInterval;
   private final Authentication_Service authService;
   private final ContentService_Service contentServiceService;
   private final DocumentManagement_Service documentManagementService;
   private final MemberService_Service memberServiceService;
-  
+  private final SearchService_Service searchServiceService;
+
   // Authentication support
   private final Authentication authClientHandle;
   private final DocumentManagement documentManagementHandle;
@@ -300,7 +304,7 @@ public class CswsSession
     }
   }
 
-  public AttributeGroupDefinition getCategoryDefinition(final long catId)
+  public AttributeGroupDefinition getCategoryDefinition(final long catId, final long version)
     throws ManifoldCFException, ServiceInterruption {
     try {
       return getDocumentManagementHandle().getCategoryDefinition(catId, version, getOTAuthentication());
@@ -336,10 +340,10 @@ public class CswsSession
     }
   }
   
-  public User getUser(final long userId) 
+  public Member getMember(final long memberId) 
     throws ManifoldCFException, ServiceInterruption {
     try {
-      return getMemberServiceHandle().getMemberById(userId, getOTAuthentication());
+      return getMemberServiceHandle().getMemberById(memberId, getOTAuthentication());
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
     }
@@ -348,8 +352,8 @@ public class CswsSession
   public void getVersionContents(final long nodeId, final long version, final OutputStream os)
     throws ManifoldCFException, ServiceInterruption {
     try {
-      final OTAuthentication auth = getOTAuthentication();
-      long contextID = getDocumentManagementHandle().getVersionContentsContext(nodeId, version, auth);
+      final Holder<OTAuthentication> auth = getOTAuthentication();
+      final String contextID = getDocumentManagementHandle().getVersionContentsContext(nodeId, version, auth);
       final DataHandler dataHandler = getContentServiceHandle().downloadContent(contextID, auth);
       dataHandler.writeTo(os);
     } catch (SOAPFaultException e) {
@@ -454,13 +458,15 @@ public class CswsSession
   /**
    * Construct OTAuthentication structure (to be passed as an argument)
    */
-  public OTAuthentication getOTAuthentication() 
+  public Holder<OTAuthentication> getOTAuthentication() 
     throws ManifoldCFException, ServiceInterruption {
     final String authToken = getAuthToken();
     // Create the OTAuthentication object and set the authentication token
+    final Holder<OTAuthentication> holder = new Holder<>();
     final OTAuthentication otAuth = new OTAuthentication();
     otAuth.setAuthenticationToken(authToken);
-    return otAuth;
+    holder.value = otAuth;
+    return holder;
   }
 
   // Private methods
@@ -468,17 +474,17 @@ public class CswsSession
   private String getAuthToken()
     throws ManifoldCFException, ServiceInterruption {
     final long currentTime = System.currentTimeMillis();
-    if (currentSessionExpiration == -1L || currentTime > currentSessionExpiraton) {
+    if (currentSessionExpiration == -1L || currentTime > currentSessionExpiration) {
       // Kill current auth token etc
       currentSessionExpiration = -1L;
       currentAuthToken = null;
       // Refetch the auth token (this may fail)
       try {
-        currentAuthToken = authClient.authenticateUser(userName, password);
+        currentAuthToken = authClientHandle.authenticateUser(userName, password);
       } catch (SOAPFaultException e) {
         processSOAPFault(e);
       }
-      currentSessionExpiration = currentTime + expirationInterval;
+      currentSessionExpiration = currentTime + sessionExpirationInterval;
     }
     return currentAuthToken;
   }
