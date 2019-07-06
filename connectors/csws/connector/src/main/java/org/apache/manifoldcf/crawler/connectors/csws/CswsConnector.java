@@ -53,7 +53,8 @@ import com.opentext.livelink.service.memberservice.Member;
 import com.opentext.livelink.service.searchservices.SGraph;
 import com.opentext.livelink.service.searchservices.SNode;
 
-import org.apache.manifoldcf.csws.*;
+import org.apache.manifoldcf.csws.CswsParameters;
+import org.apache.manifoldcf.csws.CswsSession;
 
 import java.io.*;
 import java.util.*;
@@ -4087,7 +4088,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       final Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return new elem.getCreatedBy(); 
+      return elem.getCreatedBy(); 
     }
 
     /* Get modify date.

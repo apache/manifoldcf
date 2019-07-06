@@ -72,6 +72,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
   private int serverPort = -1;
   private String serverUsername = null;
   private String serverPassword = null;
+  private String authenticationServicePath = null;
   //private String documentManagementServicePath = null;
   //private String contentServiceServicePath = null;
   private String memberServiceServicePath = null;
@@ -156,7 +157,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       // Server parameter processing
 
       if (serverProtocol == null || serverProtocol.length() == 0)
-        serverProtocol = "internal";
+        serverProtocol = "http";
         
       if (serverPortString == null)
         serverPort = 2099;
@@ -211,7 +212,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     if (cswsSession == null)
     {
       // Construct the various URLs we need
-      final String baseURL = serverProtocol + "://" + serverName + ":" + serverPortString;
+      final String baseURL = serverProtocol + "://" + serverName + ":" + serverPort;
       final String authenticationServiceURL = baseURL + authenticationServicePath;
       //final String documentManagementServiceURL = baseURL + documentManagementServicePath;
       //final String contentServiceServiceURL = baseURL + contentServiceServicePath;
@@ -224,7 +225,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       }
           
       // Construct a new csws session object for setting up this session
-      cswsSession = new CswsSession(userName, password, 1000L * 60L * 15L,
+      cswsSession = new CswsSession(serverUsername, serverPassword, 1000L * 60L * 15L,
         authenticationServiceURL, null, null, memberServiceServiceURL, null);
 
     }
@@ -337,7 +338,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     ICacheDescription objectDescription = new AuthorizationResponseDescription(userName,
       serverProtocol,serverName,serverPort,
       serverUsername,serverPassword,
-      serverHTTPCgi,serverHTTPNTLMDomain,serverHTTPNTLMUsername,serverHTTPNTLMPassword,
+      authenticationServicePath, memberServiceServicePath,
       serverHTTPSKeystore,
       responseLifetime,LRUsize);
       
@@ -608,7 +609,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       }
     } catch (ManifoldCFException e) {
       message = e.getMessage();
-      Logging.connectors.warn(e);
+      Logging.authorityConnectors.warn(e);
     }
 
     velocityContext.put("SERVERPROTOCOL",serverProtocol);
@@ -679,29 +680,10 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     String authenticationServicePath = variableContext.getParameter("authenticationservicepath");
     if (authenticationServicePath != null)
       parameters.setParameter(CswsParameters.authenticationPath, authenticationServicePath);
-    String contentServiceServicePath = variableContext.getParameter("contentserviceservicepath");
-    if (contentServiceServicePath != null)
-      parameters.setParameter(CswsParameters.contentServicePath, contentServiceServicePath);
-    String documentManagementServicePath = variableContext.getParameter("documentmanagementservicepath");
-    if (documentManagermentServicePath != null)
-      parameters.setParameter(CswsParameters.documentManagementPath, documentManagementServicePath);
     String memberServiceServicePath = variableContext.getParameter("memberserviceservicepath");
     if (memberServiceServicePath != null)
       parameters.setParameter(CswsParameters.memberServicePath, memberServiceServicePath);
-    String searchServiceServicePath = variableContext.getParameter("searchserviceservicepath");
-    if (searchServiceServicePath != null)
-      parameters.setParameter(CswsParameters.searchServicePath, searchServiceServicePath);
 
-    String serverHTTPNTLMDomain = variableContext.getParameter("serverhttpntlmdomain");
-    if (serverHTTPNTLMDomain != null)
-      parameters.setParameter(CswsParameters.serverHTTPNTLMDomain,serverHTTPNTLMDomain);
-    String serverHTTPNTLMUserName = variableContext.getParameter("serverhttpntlmusername");
-    if (serverHTTPNTLMUserName != null)
-      parameters.setParameter(CswsParameters.serverHTTPNTLMUsername,serverHTTPNTLMUserName);
-    String serverHTTPNTLMPassword = variableContext.getParameter("serverhttpntlmpassword");
-    if (serverHTTPNTLMPassword != null)
-      parameters.setObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword,variableContext.mapKeyToPassword(serverHTTPNTLMPassword));
-    
     String serverHTTPSKeystoreValue = variableContext.getParameter("serverhttpskeystoredata");
     final String serverConfigOp = variableContext.getParameter("serverconfigop");
     if (serverConfigOp != null)
@@ -808,101 +790,6 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIGURATION_HTML, paramMap);    
   }
 
-  /** Interpret runtimeexception to search for livelink API errors.  Throws an appropriately reinterpreted exception, or
-  * just returns if the exception indicates that a short-cycle retry attempt should be made.  (In that case, the appropriate
-  * wait has been already performed).
-  *@param e is the RuntimeException caught
-  */
-  protected int handleCswsRuntimeException(RuntimeException e, int sanityRetryCount)
-    throws ManifoldCFException, ServiceInterruption
-  {
-    if (
-      e instanceof com.opentext.api.LLHTTPAccessDeniedException ||
-      e instanceof com.opentext.api.LLHTTPClientException ||
-      e instanceof com.opentext.api.LLHTTPServerException ||
-      e instanceof com.opentext.api.LLIndexOutOfBoundsException ||
-      e instanceof com.opentext.api.LLNoFieldSpecifiedException ||
-      e instanceof com.opentext.api.LLNoValueSpecifiedException ||
-      e instanceof com.opentext.api.LLSecurityProviderException ||
-      e instanceof com.opentext.api.LLUnknownFieldException
-    )
-    {
-      String details = llServer.getErrors();
-      throw new ManifoldCFException("Csws API error: "+e.getMessage()+((details==null)?"":"; "+details),e,ManifoldCFException.REPOSITORY_CONNECTION_ERROR);
-    }
-    else if (
-      e instanceof com.opentext.api.LLBadServerCertificateException ||
-      e instanceof com.opentext.api.LLHTTPCGINotFoundException ||
-      e instanceof com.opentext.api.LLCouldNotConnectHTTPException ||
-      e instanceof com.opentext.api.LLHTTPForbiddenException ||
-      e instanceof com.opentext.api.LLHTTPProxyAuthRequiredException ||
-      e instanceof com.opentext.api.LLHTTPRedirectionException ||
-      e instanceof com.opentext.api.LLUnsupportedAuthMethodException ||
-      e instanceof com.opentext.api.LLWebAuthInitException
-    )
-    {
-      String details = llServer.getErrors();
-      throw new ManifoldCFException("Csws API error: "+e.getMessage()+((details==null)?"":"; "+details),e);
-    }
-    else if (e instanceof com.opentext.api.LLSSLNotAvailableException)
-    {
-      String details = llServer.getErrors();
-      throw new ManifoldCFException("Missing llssl.jar error: "+e.getMessage()+((details==null)?"":"; "+details),e);
-    }
-    else if (e instanceof com.opentext.api.LLIllegalOperationException)
-    {
-      // This usually means that LAPI has had a minor communication difficulty but hasn't reported it accurately.
-      // We *could* throw a ServiceInterruption, but OpenText recommends to just retry almost immediately.
-      String details = llServer.getErrors();
-      return assessRetry(sanityRetryCount,new ManifoldCFException("Csws API illegal operation error: "+e.getMessage()+((details==null)?"":"; "+details),e));
-    }
-    else if (e instanceof com.opentext.api.LLIOException || (e instanceof RuntimeException && e.getClass().getName().startsWith("com.opentext.api.")))
-    {
-      // Catching obfuscated and unspecified opentext runtime exceptions now too - these come from llssl.jar.  We
-      // have to presume these are SSL connection errors; nothing else to go by unfortunately.  UGH.
-
-      // LAPI is returning errors that are not terribly explicit, and I don't have control over their wording, so check that server can be resolved by DNS,
-      // so that a better error message can be returned.
-      try
-      {
-        InetAddress.getByName(serverName);
-      }
-      catch (UnknownHostException e2)
-      {
-        throw new ManifoldCFException("Server name '"+serverName+"' cannot be resolved",e2);
-      }
-
-      throw new ServiceInterruption("Transient error: "+e.getMessage(),e,System.currentTimeMillis()+5*60000L,System.currentTimeMillis()+12*60*60000L,-1,true);
-    }
-    else
-      throw e;
-  }
-
-  /** Do a retry, or throw an exception if the retry count has been exhausted
-  */
-  protected static int assessRetry(int sanityRetryCount, ManifoldCFException e)
-    throws ManifoldCFException
-  {
-    if (sanityRetryCount == 0)
-    {
-      throw e;
-    }
-
-    sanityRetryCount--;
-
-    try
-    {
-      ManifoldCF.sleep(1000L);
-    }
-    catch (InterruptedException e2)
-    {
-      throw new ManifoldCFException(e2.getMessage(),e2,ManifoldCFException.INTERRUPTED);
-    }
-    // Exit the method
-    return sanityRetryCount;
-
-  }
-
   protected static StringSet emptyStringSet = new StringSet();
   
   /** This is the cache object descriptor for cached access tokens from
@@ -919,10 +806,8 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     protected final int serverPort;
     protected final String serverUsername;
     protected final String serverPassword;
-    protected final String serverHTTPCgi;
-    protected final String serverHTTPNTLMDomain;
-    protected final String serverHTTPNTLMUsername;
-    protected final String serverHTTPNTLMPassword;
+    protected final String authenticationServicePath;
+    protected final String memberServicePath;
     protected final String serverHTTPSKeystore;
 
     protected long responseLifetime;
@@ -935,7 +820,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       String serverProtocol,
       String serverName, int serverPort,
       String serverUsername, String serverPassword,
-      String serverHTTPCgi, String serverHTTPNTLMDomain, String serverHTTPNTLMUsername, String serverHTTPNTLMPassword,
+      String authenticationServicePath, String memberServicePath,
       IKeystoreManager serverHTTPSKeystore,
       long responseLifetime, int LRUsize)
       throws ManifoldCFException
@@ -948,10 +833,8 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       this.serverPort = serverPort;
       this.serverUsername = serverUsername;
       this.serverPassword = serverPassword;
-      this.serverHTTPCgi = (serverHTTPCgi==null)?"":serverHTTPCgi;
-      this.serverHTTPNTLMDomain = (serverHTTPNTLMDomain==null)?"":serverHTTPNTLMDomain;
-      this.serverHTTPNTLMUsername = (serverHTTPNTLMUsername==null)?"":serverHTTPNTLMUsername;
-      this.serverHTTPNTLMPassword = (serverHTTPNTLMPassword==null)?"":serverHTTPNTLMPassword;
+      this.authenticationServicePath = authenticationServicePath;
+      this.memberServicePath = memberServicePath;
       if (serverHTTPSKeystore != null)
         this.serverHTTPSKeystore = serverHTTPSKeystore.getString();
       else
@@ -970,8 +853,8 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     {
       return getClass().getName() + "-" + userName + "-" + serverProtocol + "-" + serverName +
         "-" + Integer.toString(serverPort) + "-" + serverUsername + "-" + serverPassword +
-        "-" + serverHTTPCgi + "-" + serverHTTPNTLMDomain + "-" + serverHTTPNTLMUsername +
-        "-" + serverHTTPNTLMPassword + "-" + ((serverHTTPSKeystore==null)?"":serverHTTPSKeystore);
+        "-" + authenticationServicePath + "-" + memberServicePath +
+        "-" + ((serverHTTPSKeystore==null)?"":serverHTTPSKeystore);
     }
 
     /** Return the object expiration interval */
@@ -987,8 +870,8 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       return userName.hashCode() +
         serverProtocol.hashCode() + serverName.hashCode() + new Integer(serverPort).hashCode() +
         serverUsername.hashCode() + serverPassword.hashCode() +
-        serverHTTPCgi.hashCode() + serverHTTPNTLMDomain.hashCode() + serverHTTPNTLMUsername.hashCode() +
-        serverHTTPNTLMPassword.hashCode() + ((serverHTTPSKeystore==null)?0:serverHTTPSKeystore.hashCode());
+        authenticationServicePath.hashCode() + memberServicePath.hashCode() +
+        ((serverHTTPSKeystore==null)?0:serverHTTPSKeystore.hashCode());
     }
     
     public boolean equals(Object o)
@@ -999,8 +882,8 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       return ard.userName.equals(userName) &&
         ard.serverProtocol.equals(serverProtocol) && ard.serverName.equals(serverName) && ard.serverPort == serverPort &&
         ard.serverUsername.equals(serverUsername) && ard.serverPassword.equals(serverPassword) &&
-        ard.serverHTTPCgi.equals(serverHTTPCgi) && ard.serverHTTPNTLMDomain.equals(serverHTTPNTLMDomain) &&
-        ard.serverHTTPNTLMUsername.equals(serverHTTPNTLMUsername) && ard.serverHTTPNTLMPassword.equals(serverHTTPNTLMPassword) &&
+        ard.authenticationServicePath.equals(authenticationServicePath) &&
+        ard.memberServicePath.equals(memberServicePath) &&
         ((ard.serverHTTPSKeystore != null && serverHTTPSKeystore != null && ard.serverHTTPSKeystore.equals(serverHTTPSKeystore)) ||
           ((ard.serverHTTPSKeystore == null || serverHTTPSKeystore == null) && ard.serverHTTPSKeystore == serverHTTPSKeystore));
     }
