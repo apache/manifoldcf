@@ -24,6 +24,8 @@ import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
+import org.apache.manifoldcf.csws.CswsParameters;
+
 /** Get a livelink connection's information in printed form.
 */
 public class GetConnectionInfo

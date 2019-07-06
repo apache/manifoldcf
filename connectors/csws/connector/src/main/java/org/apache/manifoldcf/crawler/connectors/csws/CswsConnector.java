@@ -3599,13 +3599,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public String getName()
       throws ServiceInterruption, ManifoldCFException
     {
-      final User userValue = getUserValue();
+      final Member userValue = getUserValue();
       if (userValue == null)
         return null;
       return userValue.getName();
     }
       
-    protected User getUserValue()
+    protected Member getUserValue()
       throws ServiceInterruption, ManifoldCFException
     {
       if (!fetched)
@@ -4011,7 +4011,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       final Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return new elem.getPermissions();
+      return elem.getPermissions();
     }
     
     /** Get OpenText document name.
@@ -4270,7 +4270,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     protected final long user;
     protected Throwable exception = null;
-    protected User rval = null;
+    protected Member rval = null;
 
     public GetUserInfoThread(long user)
     {
@@ -4283,7 +4283,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       try
       {
-        rval = cswsSession.getUser(user);
+        rval = cswsSession.getMember(user);
       }
       catch (Throwable e)
       {
@@ -4291,7 +4291,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
 
-    public User finishUp()
+    public Member finishUp()
       throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
@@ -5266,12 +5266,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
         // Get the parentID attribute
         if (currentObject.getParentId() == null) {
-          long parentID = currentObject.getParentId().longValue();
           // Oops, hit the top of the path without finding the workspace we're in.
           // No idea where it lives; note this condition and exit.
           Logging.connectors.warn("Csws: Object ID "+currentObject.toString()+" doesn't seem to live in enterprise or category workspace!  Path I got was '"+path+"'");
           return null;
         }
+        long parentID = currentObject.getParentId().longValue();
         currentObject = llc.getObjectInformation(parentID);
       }
     }
