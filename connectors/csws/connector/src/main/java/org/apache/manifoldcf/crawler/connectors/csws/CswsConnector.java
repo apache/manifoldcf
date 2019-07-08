@@ -412,7 +412,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             viewPort = "443";
         }
         else
-          viewPort = serverPort;
+          viewPort = new Integer(serverPort).toString();
       }
 
       String viewPortString;
@@ -459,9 +459,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       // Set up ingest ssl if indicated
       SSLConnectionSocketFactory myFactory = null;
-      if (serverKeystoreManager != null)
+      if (serverHTTPSKeystore != null)
       {
-        myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(serverKeystoreManager.getSecureSocketFactory(), connectionTimeout),
+        myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(serverHTTPSKeystore.getSecureSocketFactory(), connectionTimeout),
           NoopHostnameVerifier.INSTANCE);
       }
       else
@@ -508,7 +508,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       httpClient = builder.build();
 
       // Construct the various URLs we need
-      final String baseURL = serverProtocol + "://" + serverName + ":" + serverPortString;
+      final String baseURL = serverProtocol + "://" + serverName + ":" + serverPort;
       final String authenticationServiceURL = baseURL + authenticationServicePath;
       final String documentManagementServiceURL = baseURL + documentManagementServicePath;
       final String contentServiceServiceURL = baseURL + contentServiceServicePath;
@@ -926,10 +926,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         
           // Now walk through the results and add them
           while (true) {
-            final GetUserResultsThread t = new GetUserResultsThread(resultPageHandle);
+            final GetUserResultsThread t2 = new GetUserResultsThread(resultPageHandle);
             try {
-              t.start();
-              final List<? extends Member> childrenDocs = t.finishUp();
+              t2.start();
+              final List<? extends Member> childrenDocs = t2.finishUp();
               if (childrenDocs == null) {
                 // We're done
                 break;
@@ -951,7 +951,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             }
             catch (InterruptedException e)
             {
-              t.interrupt();
+              t2.interrupt();
               throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
             }
           }
@@ -1058,7 +1058,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         
       // Make sure we have permission to see the object's contents
       final NodePermissions permissions = value.getPermissions();
-      if (!permissions.seeContentsPermission())
+      if (!permissions.isSeeContentsPermission())
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Csws: Crawl user cannot see contents of object "+objID+" - deleting");
@@ -1096,7 +1096,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           // Decode results
           final long childID = getID(childDoc, 0);
-          final String subtype = getString(childDoc, 1);
+          final String subType = getString(childDoc, 1);
           final String name = getString(childDoc, 2);
           
           if (Logging.connectors.isDebugEnabled())
@@ -1124,7 +1124,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
             if (Logging.connectors.isDebugEnabled()) {
               Logging.connectors.debug("Csws: Child identifier "+childID+" is a folder, project, or compound document; adding a reference");
             }
-            if (subtype.equals("Project"))
+            if (subType.equals("Project"))
             {
               // If we pick up a project object, we need to describe the volume object (which
               // will be the root of all documents beneath)
