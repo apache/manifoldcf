@@ -2816,11 +2816,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         rd.addField(GENERAL_MODIFYDATE_FIELD,DateParser.formatISO8601Date(modifyDate));
       if (parentID != null)
         rd.addField(GENERAL_PARENTID,parentID.toString());
-      UserInformation owner = llc.getUserInformation(objInfo.getOwnerId());
+      // TBD: this comes from NodeRights now, e.g cswsSession.getNodeRights(docId)
+      //UserInformation owner = llc.getUserInformation(objInfo.getOwnerId());
       UserInformation creator = llc.getUserInformation(objInfo.getCreatorId());
       UserInformation modifier = llc.getUserInformation(versInfo.getOwnerId());
-      if (owner != null)
-        rd.addField(GENERAL_OWNER,owner.getName());
+      // TBD
+      //if (owner != null)
+      //  rd.addField(GENERAL_OWNER,owner.getName());
       if (creator != null)
         rd.addField(GENERAL_CREATOR,creator.getName());
       if (modifier != null)
@@ -4011,30 +4013,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return elem.getParentID(); 
     }
 
-    /** Get owner ID.
-    */
-    public Long getOwnerId()
-      throws ServiceInterruption, ManifoldCFException
-    {
-      final Node elem = getObjectValue();
-      if (elem == null)
-        return null;
-      // TBD - need this
-      return elem.getUserID();
-    }
-
-    /** Get group ID.
-    */
-    public Long getGroupId()
-      throws ServiceInterruption, ManifoldCFException
-    {
-      final Node elem = getObjectValue();
-      if (elem == null)
-        return null;
-      // TBD - need this
-      return elem.getGroupID(); 
-    }
-    
     /** Get creation date.
     */
     public Date getCreationDate()
@@ -4438,10 +4416,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     final List<String> tokenAccumulator = new ArrayList<>();
     
     if (evaluateRight(rights.getOwnerRight())) {
-      tokenAccumulator.add(objInfo.getOwnerId().toString());
+      tokenAccumulator.add(rights.getOwnerRight().toString());
     }
     if (evaluateRight(rights.getOwnerGroupRight())) {
-      tokenAccumulator.add(objInfo.getGroupId().toString());
+      tokenAccumulator.add(rights.getOwnerGroupRight().toString());
     }
     if (evaluateRight(rights.getPublicRight())) {
       tokenAccumulator.add("SYSTEM");
