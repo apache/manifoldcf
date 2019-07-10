@@ -1091,7 +1091,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         
         final ListObjectsThread t = new ListObjectsThread(objID, new String[]{"OTDataID", "OTSubTypeString", "OTName"}, filterString, "OTDataID");
         t.start();
-        final List<? extends SGraph> childrenDocs = t.finishUp();
+        final List<? extends SGraph> childrenDocs;
+        try {
+          childrenDocs = t.finishUp();
+        } catch (InterruptedException e) {
+          t.interrupt();
+          throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+        }
         for (final SGraph childDoc : childrenDocs)
         {
           // Decode results
@@ -3433,7 +3439,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
     public NodeRights finishUp()
-      throws ManifoldCFException, InterruptedException
+      throws ManifoldCFException, ServiceInterruption, InterruptedException
     {
       join();
       Throwable thr = exception;
