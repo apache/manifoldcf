@@ -123,7 +123,7 @@ public class CswsSession
     final String documentManagementServiceURL,
     final String contentServiceServiceURL,
     final String memberServiceServiceURL,
-    final String searchServiceServiceURL) {
+    final String searchServiceServiceURL) throws ManifoldCFException {
       
     // Save username/password
     this.userName = userName;
@@ -131,12 +131,15 @@ public class CswsSession
     // Save expiration interval
     this.sessionExpirationInterval = sessionExpirationInterval;
     // Construct service references from the URLs
-    this.authService = new Authentication_Service();
-    this.documentManagementService = new DocumentManagement_Service();
-    this.contentServiceService = new ContentService_Service();
-    this.memberServiceService = new MemberService_Service();
-    this.searchServiceService = new SearchService_Service();
-      
+    try {
+      this.authService = new Authentication_Service();
+      this.documentManagementService = new DocumentManagement_Service();
+      this.contentServiceService = new ContentService_Service();
+      this.memberServiceService = new MemberService_Service();
+      this.searchServiceService = new SearchService_Service();
+    } catch (javax.xml.ws.WebServiceException e) {
+      throw new ManifoldCFException("Error initializing web services: "+e.getMessage(), e);
+    }
     // Initialize authclient etc.
     this.authClientHandle = authService.getBasicHttpBindingAuthentication();
     this.documentManagementHandle = documentManagementService.getBasicHttpBindingDocumentManagement();
