@@ -31,6 +31,11 @@
     <import file="${mcf-dist}/connector-build.xml"/>
 
     <target name="classcreate-wsdls" depends="precompile-check" if="canBuild">
+        <mkdir dir="build/metainf/wsdls"/>
+        <copy todir="build/metainf/wsdls">
+          <fileset dir="wsdls"/>
+        </copy>
+        <copy todir="build/metainf" file="jax-ws-catalog.xml"/>
         <antcall target="classcreate-wsdl-cxf">
             <param name="wsdlname" value="wsdls/DocumentManagement.wsdl"/>
         </antcall>
