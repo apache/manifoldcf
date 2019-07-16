@@ -691,14 +691,16 @@
     </target>
 
     <target name="jar-connector" depends="compile-connector,precompile-check" if="canBuild">
-	<mkdir dir="build/xsdclasses"/>
-	<mkdir dir="build/wsdlclasses"/>
-	<mkdir dir="build/jar"/>
-	<jar destfile="build/jar/mcf-${ant.project.name}-connector.jar">
-		<fileset dir="build/connector/classes"/>
-	  <fileset dir="build/xsdclasses"/>
-	  <fileset dir="build/wsdlclasses"/>
-	</jar>
+          <mkdir dir="build/xsdclasses"/>
+          <mkdir dir="build/wsdlclasses"/>
+          <mkdir dir="build/jar"/>
+          <mkdir dir="build/metainf"/>
+          <jar destfile="build/jar/mcf-${ant.project.name}-connector.jar">
+            <fileset dir="build/connector/classes"/>
+            <fileset dir="build/xsdclasses"/>
+            <fileset dir="build/wsdlclasses"/>
+            <metainf dir="build/metainf"/>
+          </jar>
     </target>
 
     <target name="jar-interface" depends="compile-interface,has-RMI-check" if="hasRMI">
