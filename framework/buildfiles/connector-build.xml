@@ -433,6 +433,8 @@
               <arg value="-client"/>
               <arg value="-exsh"/>
               <arg value="true"/>
+              <arg value="-wsdlLocation"/>
+              <arg value="http://localhost/${wsdlname}"/>
               <arg value="-d"/>
               <arg value="build/wsdljava"/>
               <arg value="${wsdlname}"/>
