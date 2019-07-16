@@ -48,65 +48,6 @@
         </antcall>
     </target>
 
-    <!--target name="classcreate-xsds" depends="precompile-check" if="canBuild">
-        <delete dir="build/xsdjava"/>
-        <antcall target="classcreate-xsd-bindings">
-            <param name="xsdname" value="wsdls/Authentication1.xsd"/>
-            <param name="packagename" value="opentext.API"/>
-            <param name="bindingfile" value="wsdls/castor_binding.xml"/>
-        </antcall>
-        <antcall target="classcreate-xsd-bindings">
-            <param name="xsdname" value="wsdls/Authentication2.xsd"/>
-            <param name="packagename" value="opentext.Core"/>
-            <param name="bindingfile" value="wsdls/castor_binding.xml"/>
-        </antcall>
-        <antcall target="classcreate-xsd-bindings">
-            <param name="xsdname" value="wsdls/ContentService1.xsd"/>
-            <param name="packagename" value="microsoft.Message"/>
-            <param name="bindingfile" value="wsdls/castor_binding.xml"/>
-        </antcall>
-        <antcall target="classcreate-xsd-bindings">
-            <param name="xsdname" value="wsdls/ContentService2.xsd"/>
-            <param name="packagename" value="opentext.API"/>
-            <param name="bindingfile" value="wsdls/castor_binding.xml"/>
-        </antcall>
-        <antcall target="classcreate-xsd-bindings">
-            <param name="xsdname" value="wsdls/ContentService3.xsd"/>
-            <param name="packagename" value="opentext.Core"/>
-            <param name="bindingfile" value="wsdls/castor_binding.xml"/>
-        </antcall>
-        <antcall target="classcreate-xsd-bindings">
-            <param name="xsdname" value="wsdls/DocumentManagement1.xsd"/>
-            <param name="packagename" value="opentext.Core"/>
-            <param name="bindingfile" value="wsdls/castor_binding.xml"/>
-        </antcall>
-        <antcall target="classcreate-xsd-bindings">
-            <param name="xsdname" value="wsdls/DocumentManagement2.xsd"/>
-            <param name="packagename" value="opentext.DocMan"/>
-            <param name="bindingfile" value="wsdls/castor_binding.xml"/>
-        </antcall>
-        <antcall target="classcreate-xsd-bindings">
-            <param name="xsdname" value="wsdls/DocumentManagement3.xsd"/>
-            <param name="packagename" value="opentext.API"/>
-            <param name="bindingfile" value="wsdls/castor_binding.xml"/>
-        </antcall>
-        <antcall target="classcreate-xsd-bindings">
-            <param name="xsdname" value="wsdls/MemberService1.xsd"/>
-            <param name="packagename" value="opentext.API"/>
-            <param name="bindingfile" value="wsdls/castor_binding.xml"/>
-        </antcall>
-        <antcall target="classcreate-xsd-bindings">
-            <param name="xsdname" value="wsdls/MemberService2.xsd"/>
-            <param name="packagename" value="opentext.MemberService"/>
-            <param name="bindingfile" value="wsdls/castor_binding.xml"/>
-        </antcall>
-        <antcall target="classcreate-xsd-bindings">
-            <param name="xsdname" value="wsdls/MemberService3.xsd"/>
-            <param name="packagename" value="opentext.Core"/>
-            <param name="bindingfile" value="wsdls/castor_binding.xml"/>
-        </antcall>
-    </target-->
-
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-authority-connector">
             <param name="connector-label" value="ContentServer Web Services"/>
