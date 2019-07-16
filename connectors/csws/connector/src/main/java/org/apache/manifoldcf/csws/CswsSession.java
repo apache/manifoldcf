@@ -197,6 +197,8 @@ public class CswsSession
         this.rootNodeTypes = getDocumentManagementHandle().getRootNodeTypes(getOTAuthentication());
       } catch (SOAPFaultException e) {
         processSOAPFault(e);
+      } catch (javax.xml.ws.WebServiceException e) {
+        processWSException(e);
       }
     }
     return this.rootNodeTypes;
@@ -213,6 +215,8 @@ public class CswsSession
         thisWorkspaceNode = getDocumentManagementHandle().getRootNode(nodeType, getOTAuthentication());
       } catch (SOAPFaultException e) {
         processSOAPFault(e);
+      } catch (javax.xml.ws.WebServiceException e) {
+        processWSException(e);
       }
       workspaceTypeNodes.put(nodeType, thisWorkspaceNode);
     }
@@ -228,6 +232,9 @@ public class CswsSession
         return null;
       }
       processSOAPFault(e);
+      return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
       return null;
     }
   }
@@ -247,6 +254,9 @@ public class CswsSession
       }
       processSOAPFault(e);
       return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
+      return null;
     }
   }
   
@@ -257,6 +267,9 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
+      return null;
     }
   }
 
@@ -266,6 +279,9 @@ public class CswsSession
       return getDocumentManagementHandle().getCategoryDefinitions(categoryIDs, getOTAuthentication());
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
+      return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
       return null;
     }
   }
@@ -278,6 +294,9 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
+      return null;
     }
   }
 
@@ -287,6 +306,9 @@ public class CswsSession
       return getDocumentManagementHandle().getNodeByPath(rootNode, colonSeparatedPath, getOTAuthentication());
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
+      return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
       return null;
     }
   }
@@ -299,6 +321,9 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
+      return null;
     }
   }
 
@@ -308,6 +333,9 @@ public class CswsSession
       return getDocumentManagementHandle().getVersion(nodeId, version, getOTAuthentication());
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
+      return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
       return null;
     }
   }
@@ -319,6 +347,9 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
+      return null;
     }      
   }
 
@@ -328,6 +359,9 @@ public class CswsSession
       return getMemberServiceHandle().getUserByLoginName(userName, getOTAuthentication());
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
+      return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
       return null;
     }
   }
@@ -339,6 +373,9 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
+      return null;
     }
   }
 
@@ -349,6 +386,9 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
+      return null;
     }
   }
   
@@ -358,6 +398,9 @@ public class CswsSession
       return getMemberServiceHandle().getMemberById(memberId, getOTAuthentication());
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
+      return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
       return null;
     }
   }
@@ -373,6 +416,8 @@ public class CswsSession
       processSOAPFault(e);
     } catch (IOException e) {
       processIOException(e);
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
     }
   }
   
@@ -386,6 +431,9 @@ public class CswsSession
       return getMemberServiceHandle().searchForMembers(srchMemOptions, getOTAuthentication());
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
+      return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
       return null;
     }
   }
@@ -404,6 +452,9 @@ public class CswsSession
       return rval;
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
+      return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
       return null;
     }
   }
@@ -468,6 +519,9 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
+    } catch (javax.xml.ws.WebServiceException e) {
+      processWSException(e);
+      return null;
     }
   }
                                                 
@@ -501,6 +555,8 @@ public class CswsSession
         currentAuthToken = authClientHandle.authenticateUser(userName, password);
       } catch (SOAPFaultException e) {
         processSOAPFault(e);
+      } catch (javax.xml.ws.WebServiceException e) {
+        processWSException(e);
       }
       currentSessionExpiration = currentTime + sessionExpirationInterval;
     }
@@ -509,11 +565,18 @@ public class CswsSession
   
   private void processIOException(IOException e)
     throws ManifoldCFException, ServiceInterruption {
+    throw new ManifoldCFException("IO exception: "+e.getMessage(), e);
     // MHL
   }
   
   private void processSOAPFault(SOAPFaultException e)
     throws ManifoldCFException, ServiceInterruption {
+    throw new ManifoldCFException("SOAP exception: "+e.getMessage(), e);
     // MHL
+  }
+  
+  private void processWSException(javax.xml.ws.WebServiceException e)
+    throws ManifoldCFException, ServiceInterruption {
+    throw new ManifoldCFException("Web service communication issue: "+e.getMessage(), e);
   }
 }
