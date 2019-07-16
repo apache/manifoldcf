@@ -22,6 +22,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
+import java.net.URL;
+import java.net.MalformedURLException;
+
 import java.io.OutputStream;
 import java.io.IOException;
 
@@ -133,12 +136,14 @@ public class CswsSession
     // Construct service references from the URLs
     try {
       this.authService = new Authentication_Service();
-      this.documentManagementService = new DocumentManagement_Service();
-      this.contentServiceService = new ContentService_Service();
-      this.memberServiceService = new MemberService_Service();
-      this.searchServiceService = new SearchService_Service();
+      this.documentManagementService = new DocumentManagement_Service(new URL(documentManagementServiceURL));
+      this.contentServiceService = new ContentService_Service(new URL(contentServiceServiceURL));
+      this.memberServiceService = new MemberService_Service(new URL(memberServiceServiceURL));
+      this.searchServiceService = new SearchService_Service(new URL(searchServiceServiceURL));
     } catch (javax.xml.ws.WebServiceException e) {
       throw new ManifoldCFException("Error initializing web services: "+e.getMessage(), e);
+    } catch (MalformedURLException e) {
+      throw new ManifoldCFException("Malformed URL: "+e.getMessage(), e);
     }
     // Initialize authclient etc.
     this.authClientHandle = authService.getBasicHttpBindingAuthentication();
