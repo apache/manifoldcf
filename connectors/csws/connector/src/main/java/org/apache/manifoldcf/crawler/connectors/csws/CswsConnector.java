@@ -1453,19 +1453,19 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     
     String authenticationServicePath = parameters.getParameter(CswsParameters.authenticationPath);
     if (authenticationServicePath == null)
-      authenticationServicePath = "";
+      authenticationServicePath = CswsParameters.authenticationPathDefault;
     String contentServiceServicePath = parameters.getParameter(CswsParameters.contentServicePath);
     if (contentServiceServicePath == null)
-      contentServiceServicePath = "";
+      contentServiceServicePath = CswsParameters.contentServicePathDefault;
     String documentManagementServicePath = parameters.getParameter(CswsParameters.documentManagementPath);
     if (documentManagementServicePath == null)
-      documentManagementServicePath = "";
+      documentManagementServicePath = CswsParameters.documentManagementPathDefault;
     String memberServiceServicePath = parameters.getParameter(CswsParameters.memberServicePath);
     if (memberServiceServicePath == null)
-      memberServiceServicePath = "";
+      memberServiceServicePath = CswsParameters.memberServicePathDefault;
     String searchServiceServicePath = parameters.getParameter(CswsParameters.searchServicePath);
     if (searchServiceServicePath == null)
-      searchServiceServicePath = "";
+      searchServiceServicePath = CswsParameters.searchServicePathDefault;
     
     String serverHTTPNTLMDomain = parameters.getParameter(CswsParameters.serverHTTPNTLMDomain);
     if(serverHTTPNTLMDomain == null)
