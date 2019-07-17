@@ -135,7 +135,7 @@ public class CswsSession
     this.sessionExpirationInterval = sessionExpirationInterval;
     // Construct service references from the URLs
     try {
-      this.authService = new Authentication_Service();
+      this.authService = new Authentication_Service(new URL(authenticationServiceURL));
       this.documentManagementService = new DocumentManagement_Service(new URL(documentManagementServiceURL));
       this.contentServiceService = new ContentService_Service(new URL(contentServiceServiceURL));
       this.memberServiceService = new MemberService_Service(new URL(memberServiceServiceURL));
