@@ -653,7 +653,7 @@ public class GenericConnector extends BaseRepositoryConnector {
             + "    <td class=\"formcolumncell\">\n"
             + "      <input type=\"hidden\" name=\"" + paramOpName + "\" value=\"\"/>\n"
             + "      <a name=\"" + seqPrefix + "param_" + Integer.toString(k) + "\">\n"
-            + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "generic.Delete") + "\" onClick='Javascript:SpecOp(\"" + paramOpName + "\",\"Delete\",\"param" + paramDescription + "\")' alt=\"" + Messages.getAttributeString(locale, "generic.DeleteParameter") + Integer.toString(k) + "\"/>\n"
+            + "        <input type=\"button\" value=\"" + Messages.getAttributeString(locale, "generic.Delete") + "\" onClick='Javascript:"+seqPrefix+"SpecOp(\"" + paramOpName + "\",\"Delete\",\"param" + paramDescription + "\")' alt=\"" + Messages.getAttributeString(locale, "generic.DeleteParameter") + Integer.toString(k) + "\"/>\n"
             + "      </a>&nbsp;\n"
             + "    </td>\n"
             + "    <td class=\"formcolumncell\">\n"
