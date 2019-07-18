@@ -80,6 +80,7 @@ import com.opentext.livelink.service.memberservice.SearchFilter;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.connectorcommon.interfaces.*;
 
 /** This class describes a livelink csws session.  It manages OAuth authentication
 * and provides logged-in access to csws services via methods provided within.
@@ -115,12 +116,15 @@ public class CswsSession
   // Cached workspace root nodes
   private Map<String, Node> workspaceTypeNodes = new HashMap<>();
   
+  private final static String sslSocketFactoryProperty = "com.sun.xml.internal.ws.transport.https.client.SSLSocketFactory";
+  
   // Transient data that will need to be periodically rebuilt
   private long currentSessionExpiration = -1L;
   private String currentAuthToken = null;
   
   public CswsSession(final String userName,
-    final String password, 
+    final String password,
+    final javax.net.ssl.SSLSocketFactory sslSocketFactory,
     final long sessionExpirationInterval,
     final String authenticationServiceURL,
     final String documentManagementServiceURL,
@@ -158,6 +162,15 @@ public class CswsSession
     ((BindingProvider)contentServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, contentServiceServiceURL);
     ((BindingProvider)memberServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, memberServiceServiceURL);
     ((BindingProvider)searchServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, searchServiceServiceURL);
+    
+    // Set SSLSocketFactory's
+    if (sslSocketFactory != null) {
+      ((BindingProvider)authClientHandle).getRequestContext().put(sslSocketFactoryProperty, sslSocketFactory);
+      ((BindingProvider)documentManagementHandle).getRequestContext().put(sslSocketFactoryProperty, sslSocketFactory);
+      ((BindingProvider)contentServiceHandle).getRequestContext().put(sslSocketFactoryProperty, sslSocketFactory);
+      ((BindingProvider)memberServiceHandle).getRequestContext().put(sslSocketFactoryProperty, sslSocketFactory);
+      ((BindingProvider)searchServiceHandle).getRequestContext().put(sslSocketFactoryProperty, sslSocketFactory);
+    }
   }
 
   /**

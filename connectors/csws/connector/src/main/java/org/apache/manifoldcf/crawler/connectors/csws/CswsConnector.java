@@ -458,14 +458,16 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       int connectionTimeout = 300000;
 
       // Set up ingest ssl if indicated
-      SSLConnectionSocketFactory myFactory = null;
+      final SSLConnectionSocketFactory myFactory;
+      final javax.net.ssl.SSLSocketFactory mySslFactory;
       if (serverHTTPSKeystore != null)
       {
-        myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(serverHTTPSKeystore.getSecureSocketFactory(), connectionTimeout),
-          NoopHostnameVerifier.INSTANCE);
+        mySslFactory = new InterruptibleSocketFactory(serverHTTPSKeystore.getSecureSocketFactory(), connectionTimeout);
+        myFactory = new SSLConnectionSocketFactory(mySslFactory, NoopHostnameVerifier.INSTANCE);
       }
       else
       {
+        mySslFactory = null;
         myFactory = SSLConnectionSocketFactory.getSocketFactory();
       }
 
@@ -523,7 +525,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
 
       // Construct a new csws session object for setting up this session
-      cswsSession = new CswsSession(serverUsername, serverPassword, 1000L * 60L * 15L, 
+      cswsSession = new CswsSession(serverUsername, serverPassword, mySslFactory, 1000L * 60L * 15L, 
         authenticationServiceURL, documentManagementServiceURL, contentServiceServiceURL, memberServiceServiceURL, searchServiceServiceURL);
 
       final GetSessionThread t = new GetSessionThread();
