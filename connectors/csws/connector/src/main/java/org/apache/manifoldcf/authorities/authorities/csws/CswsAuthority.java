@@ -25,6 +25,7 @@ import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.ManifoldCF;
 
 import org.apache.manifoldcf.connectorcommon.interfaces.*;
+import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
 
 import com.opentext.livelink.service.memberservice.User;
 import com.opentext.livelink.service.memberservice.Member;
@@ -223,9 +224,21 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       {
         Logging.authorityConnectors.debug("Csws: Csws session created.");
       }
-          
+
+      final int connectionTimeout = 15 * 1000;
+      
+      final javax.net.ssl.SSLSocketFactory mySslFactory;
+      if (serverHTTPSKeystore != null)
+      {
+        mySslFactory = new InterruptibleSocketFactory(serverHTTPSKeystore.getSecureSocketFactory(), connectionTimeout);
+      }
+      else
+      {
+        mySslFactory = null;
+      }
+
       // Construct a new csws session object for setting up this session
-      cswsSession = new CswsSession(serverUsername, serverPassword, 1000L * 60L * 15L,
+      cswsSession = new CswsSession(serverUsername, serverPassword, mySslFactory, 1000L * 60L * 15L,
         authenticationServiceURL, null, null, memberServiceServiceURL, null);
 
     }
