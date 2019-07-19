@@ -49,19 +49,19 @@ public class CswsParameters
   public final static String serverPassword = "Server password";
   /** Authentication service CGI path */
   public final static String authenticationPath = "Server Authentication Service path";
-  public final static String authenticationPathDefault = "/cws/Authentication.svc?wsdl";
+  public final static String authenticationPathDefault = "/cws/Authentication.svc";
   /** ContentService service CGI path */
   public final static String contentServicePath = "Server ContentService Service path";
-  public final static String contentServicePathDefault = "/cws/ContentService.svc?wsdl";
+  public final static String contentServicePathDefault = "/cws/ContentService.svc";
   /** DocumentManagement service CGI path */
   public final static String documentManagementPath = "Server DocumentManagement Service path";
-  public final static String documentManagementPathDefault = "/cws/DocumentManagement.svc?wsdl";
+  public final static String documentManagementPathDefault = "/cws/DocumentManagement.svc";
   /** SearchService service CGI path */
   public final static String searchServicePath = "Server SearchService Service path";
-  public final static String searchServicePathDefault = "/cws/SearchService.svc?wsdl";
+  public final static String searchServicePathDefault = "/cws/SearchService.svc";
   /** MemberService service CGI path */
   public final static String memberServicePath = "Server MemberService Service path";
-  public final static String memberServicePathDefault = "/cws/MemberService.svc?wsdl";
+  public final static String memberServicePathDefault = "/cws/MemberService.svc";
   /** Server domain, if NTLM */
   public final static String serverHTTPNTLMDomain = "Server HTTP NTLM domain";
   /** Server HTTP user */
