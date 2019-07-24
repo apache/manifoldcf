@@ -48,9 +48,8 @@ import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
 
 import com.opentext.ecm.api.OTAuthentication;
+import com.opentext.ecm.services.authws.AuthenticationException_Exception;
 import com.opentext.livelink.service.core.PageHandle;
-import com.opentext.livelink.service.core.Authentication;
-import com.opentext.livelink.service.core.Authentication_Service;
 import com.opentext.livelink.service.core.ContentService;
 import com.opentext.livelink.service.core.ContentService_Service;
 import com.opentext.livelink.service.memberservice.MemberService;
@@ -65,6 +64,8 @@ import com.opentext.livelink.service.memberservice.SearchColumn;
 import com.opentext.livelink.service.memberservice.MemberSearchOptions;
 import com.opentext.livelink.service.memberservice.MemberSearchResults;
 import com.opentext.livelink.service.docman.AttributeGroup;
+import com.opentext.ecm.services.authws.AuthenticationService;
+import com.opentext.ecm.services.authws.Authentication;
 import com.opentext.livelink.service.docman.CategoryInheritance;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
@@ -101,7 +102,7 @@ public class CswsSession
   private final String userName;
   private final String password;
   private final long sessionExpirationInterval;
-  private final Authentication_Service authService;
+  private final AuthenticationService authService;
   private final ContentService_Service contentServiceService;
   private final DocumentManagement_Service documentManagementService;
   private final MemberService_Service memberServiceService;
@@ -153,10 +154,10 @@ public class CswsSession
     config.setTlsClientParameters(tlsConfig);
     final HttpConduitFeature conduitFeature = new HttpConduitFeature();
     conduitFeature.setConduitConfig(config);
-    
+
     // Construct service references from the URLs
     try {
-      this.authService = new Authentication_Service(new URL(authenticationServiceURL), conduitFeature);
+      this.authService = new AuthenticationService(new URL(authenticationServiceURL), conduitFeature);
       this.documentManagementService = new DocumentManagement_Service(new URL(documentManagementServiceURL), conduitFeature);
       this.contentServiceService = new ContentService_Service(new URL(contentServiceServiceURL), conduitFeature);
       this.memberServiceService = new MemberService_Service(new URL(memberServiceServiceURL), conduitFeature);
@@ -167,7 +168,7 @@ public class CswsSession
       throw new ManifoldCFException("Malformed URL: "+e.getMessage(), e);
     }
     // Initialize authclient etc.
-    this.authClientHandle = authService.getBasicHttpBindingAuthentication();
+    this.authClientHandle = authService.getAuthenticationPort();
     this.documentManagementHandle = documentManagementService.getBasicHttpBindingDocumentManagement();
     this.contentServiceHandle = contentServiceService.getBasicHttpBindingContentService();
     this.memberServiceHandle = memberServiceService.getBasicHttpBindingMemberService();
@@ -594,11 +595,14 @@ public class CswsSession
       currentAuthToken = null;
       // Refetch the auth token (this may fail)
       try {
-        currentAuthToken = authClientHandle.authenticateUser(userName, password);
+        javax.xml.ws.Holder<com.opentext.ecm.api.OTAuthentication> authenticationHeader = new javax.xml.ws.Holder<>();
+        currentAuthToken = authClientHandle.authenticate(userName, password, authenticationHeader);
       } catch (SOAPFaultException e) {
         processSOAPFault(e);
       } catch (javax.xml.ws.WebServiceException e) {
         processWSException(e);
+      } catch (AuthenticationException_Exception e) {
+        processAuthException(e);
       }
       currentSessionExpiration = currentTime + sessionExpirationInterval;
     }
@@ -620,5 +624,10 @@ public class CswsSession
   private void processWSException(javax.xml.ws.WebServiceException e)
     throws ManifoldCFException, ServiceInterruption {
     throw new ManifoldCFException("Web service communication issue: "+e.getMessage(), e);
+  }
+
+  private void processAuthException(AuthenticationException_Exception e)
+          throws ManifoldCFException, ServiceInterruption {
+    throw new ManifoldCFException("Auth Exceüption: "+e.getMessage(), e);
   }
 }

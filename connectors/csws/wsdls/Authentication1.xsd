@@ -1,28 +1,154 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?><!-- Published by JAX-WS RI (http://jax-ws.java.net). RI's version is JAX-WS RI 2.2.10 svn-revision#919b322c92f13ad085a933e8dd6dd35d4947364b. --><xs:schema xmlns:tns="urn:authws.services.ecm.opentext.com" xmlns:xs="http://www.w3.org/2001/XMLSchema" version="1.0" targetNamespace="urn:authws.services.ecm.opentext.com">
 
-<!-- Licensed to the Apache Software Foundation (ASF) under one or more
-     contributor license agreements. See the NOTICE file distributed with
-     this work for additional information regarding copyright ownership.
-     The ASF licenses this file to You under the Apache License, Version 2.0
-     (the "License"); you may not use this file except in compliance with
-     the License. You may obtain a copy of the License at
+<xs:element name="Authenticate" type="tns:Authenticate"/>
 
-     http://www.apache.org/licenses/LICENSE-2.0
+<xs:element name="AuthenticateCurrentUser" type="tns:AuthenticateCurrentUser"/>
 
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
--->
-<!--
- Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.7-b01  svn-revision#${svn.Last.Changed.Rev}. 
--->
-<xs:schema xmlns:tns="urn:api.ecm.opentext.com" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="urn:api.ecm.opentext.com">
-<xs:element name="OTAuthentication" type="tns:OTAuthentication"/>
-<xs:complexType name="OTAuthentication">
+<xs:element name="AuthenticateCurrentUserResponse" type="tns:AuthenticateCurrentUserResponse"/>
+
+<xs:element name="AuthenticateCurrentUserWithCode" type="tns:AuthenticateCurrentUserWithCode"/>
+
+<xs:element name="AuthenticateCurrentUserWithCodeResponse" type="tns:AuthenticateCurrentUserWithCodeResponse"/>
+
+<xs:element name="AuthenticateResponse" type="tns:AuthenticateResponse"/>
+
+<xs:element name="AuthenticateWithPasswordAndCode" type="tns:AuthenticateWithPasswordAndCode"/>
+
+<xs:element name="AuthenticateWithPasswordAndCodeResponse" type="tns:AuthenticateWithPasswordAndCodeResponse"/>
+
+<xs:element name="AuthenticateWithToken" type="tns:AuthenticateWithToken"/>
+
+<xs:element name="AuthenticateWithTokenAndCode" type="tns:AuthenticateWithTokenAndCode"/>
+
+<xs:element name="AuthenticateWithTokenAndCodeResponse" type="tns:AuthenticateWithTokenAndCodeResponse"/>
+
+<xs:element name="AuthenticateWithTokenResponse" type="tns:AuthenticateWithTokenResponse"/>
+
+<xs:element name="GetResourceId" type="tns:GetResourceId"/>
+
+<xs:element name="GetResourceIdResponse" type="tns:GetResourceIdResponse"/>
+
+<xs:element name="GetTicketForUser" type="tns:GetTicketForUser"/>
+
+<xs:element name="GetTicketForUserResponse" type="tns:GetTicketForUserResponse"/>
+
+<xs:complexType name="Authenticate">
 <xs:sequence>
-<xs:element minOccurs="0" maxOccurs="1" name="AuthenticationToken" type="xs:string"/>
+<xs:element name="username" type="xs:string" minOccurs="0"/>
+<xs:element name="password" type="xs:string" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AuthenticateResponse">
+<xs:sequence>
+<xs:element name="return" type="xs:string" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AuthenticationException">
+<xs:sequence>
+<xs:element name="faultCode" type="xs:string" minOccurs="0"/>
+<xs:element name="message" type="xs:string" minOccurs="0"/>
+<xs:element name="parameters">
+<xs:complexType>
+<xs:sequence>
+<xs:element name="entry" minOccurs="0" maxOccurs="unbounded">
+<xs:complexType>
+<xs:sequence>
+<xs:element name="key" minOccurs="0" type="xs:string"/>
+<xs:element name="value" minOccurs="0" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="GetTicketForUser">
+<xs:sequence>
+<xs:element name="username" type="xs:string" minOccurs="0"/>
+<xs:element name="resourceId" type="xs:string" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="GetTicketForUserResponse">
+<xs:sequence>
+<xs:element name="return" type="xs:string" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="GetResourceId">
+<xs:sequence/>
+</xs:complexType>
+
+<xs:complexType name="GetResourceIdResponse">
+<xs:sequence>
+<xs:element name="return" type="xs:string" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AuthenticateWithToken">
+<xs:sequence>
+<xs:element name="username" type="xs:string" minOccurs="0"/>
+<xs:element name="token" type="xs:base64Binary" nillable="true" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AuthenticateWithTokenResponse">
+<xs:sequence>
+<xs:element name="return" type="xs:string" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AuthenticateCurrentUser">
+<xs:sequence/>
+</xs:complexType>
+
+<xs:complexType name="AuthenticateCurrentUserResponse">
+<xs:sequence>
+<xs:element name="return" type="xs:string" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AuthenticateWithTokenAndCode">
+<xs:sequence>
+<xs:element name="username" type="xs:string" minOccurs="0"/>
+<xs:element name="token" type="xs:base64Binary" nillable="true" minOccurs="0"/>
+<xs:element name="code" type="xs:string" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AuthenticateWithTokenAndCodeResponse">
+<xs:sequence>
+<xs:element name="return" type="xs:string" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AuthenticateCurrentUserWithCode">
+<xs:sequence>
+<xs:element name="code" type="xs:string" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AuthenticateCurrentUserWithCodeResponse">
+<xs:sequence>
+<xs:element name="return" type="xs:string" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AuthenticateWithPasswordAndCode">
+<xs:sequence>
+<xs:element name="username" type="xs:string" minOccurs="0"/>
+<xs:element name="password" type="xs:string" minOccurs="0"/>
+<xs:element name="code" type="xs:string" minOccurs="0"/>
+</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="AuthenticateWithPasswordAndCodeResponse">
+<xs:sequence>
+<xs:element name="return" type="xs:string" minOccurs="0"/>
 </xs:sequence>
 </xs:complexType>
 </xs:schema>
