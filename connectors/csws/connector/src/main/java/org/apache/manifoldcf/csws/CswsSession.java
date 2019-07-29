@@ -55,6 +55,8 @@ import com.opentext.livelink.service.docman.DocumentManagement;
 import com.opentext.livelink.service.docman.DocumentManagement_Service;
 import com.opentext.livelink.service.searchservices.SearchService;
 import com.opentext.livelink.service.searchservices.SearchService_Service;
+import com.opentext.livelink.service.memberservice.SearchMatching;
+import com.opentext.livelink.service.memberservice.SearchColumn;
 
 import com.opentext.livelink.service.memberservice.MemberSearchOptions;
 import com.opentext.livelink.service.memberservice.MemberSearchResults;
@@ -447,6 +449,8 @@ public class CswsSession
     final MemberSearchOptions srchMemOptions  = new MemberSearchOptions();
     srchMemOptions.setFilter(SearchFilter.USER);
     srchMemOptions.setScope(SearchScope.SYSTEM);
+    srchMemOptions.setColumn(SearchColumn.NAME);
+    srchMemOptions.setMatching(SearchMatching.STARTSWITH);
     srchMemOptions.setSearch("");
     try {
       return getMemberServiceHandle().searchForMembers(srchMemOptions, getOTAuthentication());
