@@ -948,7 +948,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug("Csws: Found a user: ID="+childID);
 
-                activities.addSeedDocument("F0:"+childID);
+                activities.addSeedDocument("F"+childID);
               }
             }
             catch (InterruptedException e)
