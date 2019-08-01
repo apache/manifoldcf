@@ -699,10 +699,22 @@ public class ConfluenceClient {
   private List<String> permissionsFromHttpEntity(HttpEntity entity) throws Exception {
     String stringEntity = EntityUtils.toString(entity, "UTF-8");
     final JSONParser parser = new JSONParser();
-    final JSONArray responseObject = (JSONArray)parser.parse(new StringReader(stringEntity));
+    final Object parsedReponse = parser.parse(new StringReader(stringEntity));
     final List<String> permissions = Lists.newArrayList();
-    for(int i=0,len=responseObject.size();i<len;i++) {
-      permissions.add(responseObject.get(i).toString());
+    if(parsedReponse instanceof JSONArray) {
+      final JSONArray responseObject = (JSONArray)parsedReponse;
+      for(int i=0,len=responseObject.size();i<len;i++) {
+        permissions.add(responseObject.get(i).toString());
+      }
+    } else {
+      final JSONObject responseObject = (JSONObject)parsedReponse;
+      if(responseObject.containsKey("error")) {
+        final JSONObject error = (JSONObject) responseObject.get("error");
+        final String message = error.get("message").toString();
+        throw new ConfluenceException(message);
+      } else {
+        throw new Exception("Unexpected JSON format: " + responseObject);
+      }
     }
 
     return permissions;
