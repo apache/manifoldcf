@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Locale;
 
 import org.apache.commons.codec.binary.Base64;
@@ -711,7 +712,9 @@ public class ConfluenceClient {
       if(responseObject.containsKey("error")) {
         final JSONObject error = (JSONObject) responseObject.get("error");
         final String message = error.get("message").toString();
-        throw new ConfluenceException(message);
+        // Probably has no permissions to get this space's permissions
+        logger.warn("Confluence authority: Can't get user permissions; "+message);
+        return new ArrayList<>(0);
       } else {
         throw new Exception("Unexpected JSON format: " + responseObject);
       }
