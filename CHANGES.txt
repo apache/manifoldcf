@@ -3,6 +3,12 @@ $Id$
 
 ======================= 2.14-dev =====================
 
+CONNECTORS-1611: Update MySQL driver version.
+(Furkan Kamaci)
+
+CONNECTORS-1616: Improve error reporting for confluence authority.
+(Karl Wright, Julien Massiera)
+
 CONNECTORS-1614: Delete parameter for Generic Connector was broken.
 (Olivier Tavard)
 
