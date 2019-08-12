@@ -12,10 +12,10 @@
 </xsd:complexType>
 </xsd:schema>
 <xsd:schema>
-<xsd:import namespace="urn:authws.services.ecm.opentext.com" schemaLocation="https://athene-au-fe1.inet-test.comp.db.de:443/otdsws/services/Authentication?xsd=1"/>
+<xsd:import namespace="urn:authws.services.ecm.opentext.com" schemaLocation="Authentication1.xsd"/>
 </xsd:schema>
 <xsd:schema>
-<xsd:import namespace="urn:api.ecm.opentext.com" schemaLocation="https://athene-au-fe1.inet-test.comp.db.de:443/otdsws/services/Authentication?xsd=2"/>
+<xsd:import namespace="urn:api.ecm.opentext.com" schemaLocation="Authentication2.xsd"/>
 </xsd:schema>
 </types>
 <message name="AuthenticateWithToken">

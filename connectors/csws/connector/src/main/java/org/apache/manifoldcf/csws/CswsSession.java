@@ -536,14 +536,15 @@ public class CswsSession
     throws ManifoldCFException, ServiceInterruption {
     try {
       final SingleSearchRequest singleSrchReq = new SingleSearchRequest();
-      singleSrchReq.setDataCollectionSpec("'LES Enterprise'");//Livelink Enterprise Server
+      singleSrchReq.setDataCollectionSpec("'LES Athene'");//Livelink Enterprise Server
       singleSrchReq.setQueryLanguage("Livelink Search API V1"); //Search Query Language API
       singleSrchReq.setFirstResultToRetrieve(start + 1);
       singleSrchReq.setNumResultsToRetrieve(count);
       if (orderingColumn != null) {
         singleSrchReq.setResultOrderSpec("sortByRegion="+orderingColumn+"&sortDirection=ascending");
       }
-      singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+")");
+      //singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+")");
+      singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+")");
       for (final String returnColumn : returnColumns) {
         singleSrchReq.getResultTransformationSpec().add(returnColumn);
       }
