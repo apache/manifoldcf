@@ -1302,9 +1302,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     if (stringValues == null || stringValues.size() == 0) {
       return null;
     }
-    if (stringValues.size() > 1) {
-      throw new IllegalArgumentException("Expecting 0 or 1 values, not "+stringValues.size());
-    }
     return stringValues.get(0);
   }
   
