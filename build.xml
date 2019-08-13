@@ -31,8 +31,8 @@
     
     <property name="hsqldb.version" value="2.3.2"/>
     <property name="jetty.version" value="9.2.3.v20140905"/>
-    <property name="httpclient.version" value="4.5.6"/>
-    <property name="httpmime.version" value="4.5.6"/>
+    <property name="httpclient.version" value="4.5.8"/>
+    <property name="httpmime.version" value="4.5.8"/>
     <property name="httpcore.version" value="4.4.10"/>
     <property name="xerces.version" value="2.10.0"/>
     <property name="zookeeper.version" value="3.4.10"/>
@@ -45,19 +45,19 @@
     <property name="wsdl4j.version" value="1.6.2"/>
     <property name="commons-codec.version" value="1.10"/>
     <property name="commons-collections.version" value="3.2.2"/>
-    <property name="commons-collections4.version" value="4.1"/>
+    <property name="commons-collections4.version" value="4.2"/>
     <property name="commons-discovery.version" value="0.5"/>
     <property name="commons-el.version" value="1.0"/>
     <property name="commons-fileupload.version" value="1.3.3"/>
     <property name="commons-io.version" value="2.5"/>
     <property name="commons-lang.version" value="2.6"/>
-    <property name="commons-lang3.version" value="3.6"/>
+    <property name="commons-lang3.version" value="3.9"/>
     <property name="commons-logging.version" value="1.2"/>
     <property name="commons-configuration.version" value="1.6"/>
     <property name="commons-cli.version" value="1.2"/>
     <property name="slf4j.version" value="1.7.25"/>
     <property name="xalan.version" value="2.7.1"/>
-    <property name="poi.version" value="4.0.0"/>
+    <property name="poi.version" value="4.0.1"/>
     <property name="activation.version" value="1.1.1"/>
     <property name="avalon.version" value="4.3.1"/>
     <property name="ecj.version" value="4.3.1"/>
@@ -66,14 +66,17 @@
     <property name="tomcat.version" value="6.0.35"/>
     <property name="jaxb-api.version" value="2.3.0"/>
     <property name="jaxb-impl.version" value="2.3.0"/>
-    <property name="jaxb-glassfish.version" value="2.3.0.1"/>
-    <property name="istack-commons-runtime.version" value="3.0.5"/>
-    <property name="stax-ex.version" value="1.7.8"/>
-    <property name="fastinfoset.version" value="1.2.13"/>
+    <property name="jaxb-glassfish.version" value="2.3.2"/>
+    <property name="sun-bind.version" value="2.3.2"/>
+    <property name="dtd-parser.version" value="1.4.1"/>
+    <property name="istack-commons.version" value="3.0.8"/>
+    <property name="ant-jar.version" value="1.10.5"/>
+    <property name="stax-ex.version" value="1.8.1"/>
+    <property name="fastinfoset.version" value="1.2.16"/>
     <property name="jaxws.version" value="2.2.6"/>
     <property name="solrj.version" value="7.4.0"/>
     <property name="noggit.version" value="0.8"/>
-    <property name="commons-math3.version" value="3.4.1"/>
+    <property name="commons-math3.version" value="3.6.1"/>
     <property name="chemistry.version" value="1.1.0"/>
     <property name="glassfish.version" value="2.1.v20091210"/>
     <property name="junit.version" value="4.12"/>
@@ -106,7 +109,7 @@
     <property name="google-http-client.version" value="1.25.0"/>
     <property name="findbugs.version" value="3.0.2"/>
     <property name="j2objc.version" value="1.1"/>
-    <property name="jackson-core.version" value="2.9.6"/>
+    <property name="jackson-core.version" value="2.9.8"/>
     <property name="jetty-jsp-jdt.version" value="2.3.3"/>
     <property name="jetty-schemas.version" value="3.1.M0"/>
     <property name="alfresco-indexer.version" value="0.8.1"/>
@@ -115,56 +118,56 @@
     <property name="mockito.version" value="1.9.5"/>
     <property name="wiremock.version" value="2.5.1"/>
     <property name="objenesis.version" value="2.1"/>
-    <property name="tika.version" value="1.19.1"/>
+    <property name="tika.version" value="1.21"/>
     <property name="tagsoup.version" value="1.2.1"/>
-    <property name="james.version" value="0.8.2"/>
+    <property name="james.version" value="0.8.3"/>
     <property name="vorbis.version" value="0.8"/>
     <property name="metadata-extractor.version" value="2.11.0"/>
     <property name="aspectjrt.version" value="1.8.6"/>
     <property name="jhighlight.version" value="1.0.3"/>
     <property name="xmlbeans.version" value="3.0.1"/>
-    <property name="bc.version" value="1.60"/>
+    <property name="bc.version" value="1.61"/>
     <property name="tukaani.version" value="1.8"/>
-    <property name="parso.version" value="2.0.9"/>
+    <property name="parso.version" value="2.0.11"/>
     <property name="dec.version" value="0.1.2"/>
-    <property name="pdfbox.version" value="2.0.11"/>
-    <property name="jempbox.version" value="1.8.15"/>
+    <property name="pdfbox.version" value="2.0.15"/>
+    <property name="jempbox.version" value="1.8.16"/>
     <property name="commons-compress.version" value="1.18"/>
-    <property name="commons-csv.version" value="1.5"/>
+    <property name="commons-csv.version" value="1.6"/>
     <property name="commons-exec.version" value="1.3"/>
     <property name="juniversalchardet.version" value="1.0.3"/>
     <property name="ucar.version" value="4.5.5"/>
-    <property name="jna.version" value="4.3.0"/>
+    <property name="jna.version" value="5.3.1"/>
     <property name="cglib.version" value="3.2.4"/>
     <property name="jcommander.version" value="1.35"/>
-    <property name="protobuf.version" value="2.5.0"/>
+    <property name="protobuf.version" value="3.7.1"/>
     <property name="jcip-annotations.version" value="1.0"/>
     <property name="ehcache.version" value="2.6.2"/>
     <property name="bzip2.version" value="0.9.1"/>
     <property name="jdom2.version" value="2.0.6"/>
-    <property name="jbig2-imageio.version" value="3.0.1"/>
+    <property name="jbig2-imageio.version" value="3.0.2"/>
     <property name="jai-imageio.version" value="1.4.0"/>
     <property name="quartz.version" value="2.2.0"/>
     <property name="boilerpipe.version" value="1.1.0"/>
     <property name="dom4j.version" value="1.6.1"/>
-    <property name="asm.version" value="6.2"/>
+    <property name="asm.version" value="7.1"/>
     <property name="xmpcore.version" value="5.1.3"/>
-    <property name="rome.version" value="1.5.1"/>
+    <property name="rome.version" value="1.12.0"/>
     <property name="mp4parser.version" value="1.1.22"/>
     <property name="jmatio.version" value="1.5"/>
     <property name="java-libpst.version" value="0.8.1"/>
     <property name="commons-httpclient.version" value="3.1"/>
-    <property name="jackson-databind.version" value="2.9.6"/>
-    <property name="jackson-annotations.version" value="2.9.6"/>
+    <property name="jackson-databind.version" value="2.9.8"/>
+    <property name="jackson-annotations.version" value="2.9.8"/>
     <property name="resteasy.client.version" value="3.0.16.Final"/>
     <property name="jsoup.version" value="1.11.3"/>
     <property name="jj2000.version" value="5.2"/>
     <property name="hadoop.version" value="2.6.0"/>
     <property name="aws-sdk.version" value="1.9.0"/>
     <property name="joda-time.version" value="2.9.7"/>
-    <property name="junrar.version" value="2.0.0"/>
-    <property name="jackcess.version" value="2.1.12"/>
-    <property name="jackcess-encrypt.version" value="2.1.4"/>
+    <property name="junrar.version" value="4.0.0"/>
+    <property name="jackcess.version" value="3.0.1"/>
+    <property name="jackcess-encrypt.version" value="3.0.0"/>
     <property name="opennlp.version" value="1.9.0"/>
     <property name="openjson.version" value="1.0.10"/>
     <property name="sis.version" value="0.8"/>
@@ -179,12 +182,12 @@
     <property name="sentiment-analysis.version" value="0.1"/>
     <property name="uimafit.version" value="2.2.0"/>
     <property name="uimaj.version" value="2.9.0"/>
-    <property name="cxf.version" value="3.2.6"/>
+    <property name="cxf.version" value="3.3.1"/>
     <property name="neethi.version" value="3.0.3"/>
-    <property name="xmlschema.version" value="2.2.2"/>
-    <property name="annotation-api.version" value="1.3"/>
+    <property name="xmlschema.version" value="2.2.4"/>
+    <property name="annotation-api.version" value="1.3.2"/>
     <property name="javax.ws.rs-api.version" value="2.1"/>
-    <property name="virtuald.version" value="1.04"/>
+    <property name="virtuald.version" value="1.05"/>
     <property name="rat.bootstrap.version" value="0.12"/>
     <property name="rat_checksum_sha1" value="16398550402b27f81cd0d508cef54b3e47a4a6da"/>
     <property name="rat_install_path" location="${user.home}/.ant/lib" />
@@ -1550,8 +1553,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/glassfish/jaxb"/>
-            <param name="artifact-version" value="${jaxb-glassfish.version}"/>
+            <param name="project-path" value="com/sun/xml/bind"/>
+            <param name="artifact-version" value="${jaxb-impl.version}"/>
             <param name="artifact-name" value="jaxb-core"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1564,12 +1567,66 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/glassfish/jaxb"/>
             <param name="artifact-version" value="${jaxb-glassfish.version}"/>
+            <param name="artifact-name" value="jaxb-xjc"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/glassfish/jaxb"/>
+            <param name="artifact-version" value="${jaxb-glassfish.version}"/>
+            <param name="artifact-name" value="xsom"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/glassfish/jaxb"/>
+            <param name="artifact-version" value="${jaxb-glassfish.version}"/>
+            <param name="artifact-name" value="codemodel"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/sun/xml/bind/external"/>
+            <param name="artifact-version" value="${sun-bind.version}"/>
+            <param name="artifact-name" value="rngom"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/sun/xml/bind/external"/>
+            <param name="artifact-version" value="${sun-bind.version}"/>
+            <param name="artifact-name" value="relaxng-datatype"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/sun/xml/dtd-parser"/>
+            <param name="artifact-version" value="${dtd-parser.version}"/>
+            <param name="artifact-name" value="dtd-parser"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="com/sun/istack"/>
+            <param name="artifact-version" value="${istack-commons.version}"/>
+            <param name="artifact-name" value="istack-commons-tools"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/ant"/>
+            <param name="artifact-version" value="${ant-jar.version}"/>
+            <param name="artifact-name" value="ant"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/ant"/>
+            <param name="artifact-version" value="${ant-jar.version}"/>
+            <param name="artifact-name" value="ant-launcher"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/glassfish/jaxb"/>
+            <param name="artifact-version" value="${jaxb-glassfish.version}"/>
             <param name="artifact-name" value="txw2"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="com/sun/istack"/>
-            <param name="artifact-version" value="${istack-commons-runtime.version}"/>
+            <param name="artifact-version" value="${istack-commons.version}"/>
             <param name="artifact-name" value="istack-commons-runtime"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
