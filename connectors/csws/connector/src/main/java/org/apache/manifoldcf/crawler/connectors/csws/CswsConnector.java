@@ -1294,15 +1294,15 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   
   private static String getString(final SGraph sg, final int nodeIndex) {
     final List<? extends SNode> nodes = sg.getN();
-    if (nodes == null || nodes.size() <= nodeIndex) {
-      throw new IllegalArgumentException("Looking for nodeIndex "+nodeIndex+" but graph node did not have that many");
+    if (nodes == null || nodes.size() < 1) {
+      throw new IllegalArgumentException("Expecting exactly one SNode");
     }
-    final SNode node = nodes.get(nodeIndex);
+    final SNode node = nodes.get(0);
     final List<? extends String> stringValues = node.getS();
-    if (stringValues == null || stringValues.size() == 0) {
+    if (stringValues == null || stringValues.size() <= nodeIndex) {
       return null;
     }
-    return stringValues.get(0);
+    return stringValues.get(nodeIndex);
   }
   
   /**
