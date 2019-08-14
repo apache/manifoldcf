@@ -3076,7 +3076,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     if (vid == null)
       return null;
 
-    final String filterString = "where1=(\"OTSubType\":0 OR \"OTSubType\":202 OR \"OTSubType\":136)";
+    final String filterString = "\"OTSubType\":0 OR \"OTSubType\":202 OR \"OTSubType\":136";
 
     final ListObjectsThread t = new ListObjectsThread(vid, new String[]{"OTName"}, filterString, "OTName");
     try
