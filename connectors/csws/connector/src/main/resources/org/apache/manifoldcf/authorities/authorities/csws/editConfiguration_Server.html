@@ -66,12 +66,22 @@
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
-      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.ServerHTTPCGIPath'))</nobr>
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.AuthenticationServicePath'))</nobr>
     </td>
     <td class="value">
-      <input type="text" size="32" name="serverhttpcgipath" value="$Encoder.attributeEscape($SERVERHTTPCGIPATH)"/>
+      <input type="text" size="32" name="authenticationservicepath" value="$Encoder.attributeEscape($AUTHENTICATIONSERVICEPATH)"/>
     </td>
   </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.ContentServiceServicePath'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="contentserviceservicepath" value="$Encoder.attributeEscape($CONTENTSERVICESERVICEPATH)"/>
+    </td>
+  </tr>
+  
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
       <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.ServerHTTPNTLMDomain'))</nobr>
@@ -138,7 +148,8 @@
 <input type="hidden" name="serverport"              value="$!SERVERPORT"/>
 <input type="hidden" name="serverusername"          value="$Encoder.attributeEscape($SERVERUSERNAME)"/>
 <input type="hidden" name="serverpassword"          value="$Encoder.attributeEscape($SERVERPASSWORD)"/>
-<input type="hidden" name="serverhttpcgipath"       value="$Encoder.attributeEscape($SERVERHTTPCGIPATH)"/>
+<input type="hidden" name="authenticationservicepath"   value="$Encoder.attributeEscape($AUTHENTICATIONSERVICEPATH)"/>
+<input type="hidden" name="memberserviceservicepath"  value="$Encoder.attributeEscape($MEMBERSERVICESERVICEPATH)"/>
 <input type="hidden" name="serverhttpntlmdomain"    value="$Encoder.attributeEscape($SERVERHTTPNTLMDOMAIN)"/>
 <input type="hidden" name="serverhttpntlmusername"  value="$Encoder.attributeEscape($SERVERHTTPNTLMUSERNAME)"/>
 <input type="hidden" name="serverhttpntlmpassword"  value="$Encoder.attributeEscape($SERVERHTTPNTLMPASSWORD)"/>
