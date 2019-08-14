@@ -868,6 +868,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String lastSeedVersion, long seedTime, int jobMode)
     throws ManifoldCFException, ServiceInterruption
   {
+    Logging.connectors.debug("Csws: addSeedDocuments");
     getSession();
     CswsContext llc = new CswsContext();
     
@@ -880,6 +881,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       throw new ServiceInterruption("Service interruption during seeding",new ManifoldCFException("Could not looking root workspace object during seeding"),System.currentTimeMillis()+60000L,
         System.currentTimeMillis()+600000L,-1,true);
     }
+    
+    Logging.connectors.debug("Csws: Picking up starting paths");
     
     // Walk the specification for the "startpoint" types.  Amalgamate these into a list of strings.
     // Presume that all roots are startpoint nodes
@@ -905,6 +908,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
         else
         {
+          Logging.connectors.debug("Csws: Path '"+path+"' no longer present.");
           activities.recordActivity(new Long(beginTime),ACTIVITY_SEED,null,
             path,"NOT FOUND",null,null);
         }
@@ -923,6 +927,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // Do ListUsers and enumerate the values.
         final ListUsersThread t = new ListUsersThread();
         try {
+          Logging.connectors.debug("Csws: Going through user workspaces");
           t.start();
           final PageHandle resultPageHandle = t.finishUp();
         
@@ -965,8 +970,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
 
       }
-      
+      Logging.connectors.debug("Csws: Done user workspaces");
     }
+    
     return "";
   }
 
