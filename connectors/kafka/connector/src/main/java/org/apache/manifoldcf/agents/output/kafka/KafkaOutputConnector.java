@@ -312,7 +312,7 @@ public class KafkaOutputConnector extends org.apache.manifoldcf.agents.output.Ba
    * data.
    */
   @Override
-  public int addOrReplaceDocumentWithException(String documentURI, VersionContext outputDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
+  public int addOrReplaceDocumentWithException(String documentURI, VersionContext pipelineDescription, RepositoryDocument document, String authorityNameString, IOutputAddActivity activities)
           throws ManifoldCFException, ServiceInterruption, IOException {
     //System.out.println("Starting to ingest document....");
     try {

@@ -45,8 +45,8 @@ import java.util.*;
 /**
  * "Package" class modeling a SearchBox document as a POJO
  *
- * @author Rafa Haro <rharo@apache.org>
- * @author Antonio David Perez Morales <adperezmorales@apache.org>
+ * @author Rafa Haro &lt;rharo@apache.org&gt;
+ * @author Antonio David Perez Morales &lt;adperezmorales@apache.org&gt;
  */
 public class SearchBloxDocument {
 
@@ -178,7 +178,6 @@ public class SearchBloxDocument {
   /**
    * Clean a String from html tags or  break lines
    * @param content
-   * @return
    */
   private String clean(String content) {
     content = content.replaceAll("(\r\n|\n)", " ");

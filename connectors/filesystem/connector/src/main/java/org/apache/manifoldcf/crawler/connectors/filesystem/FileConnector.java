@@ -110,8 +110,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   /** Convert a document identifier to a URI.  The URI is the URI that will be the unique key from
   * the search index, and will be presented to the user as part of the search results.
-  *@param filePath is the document filePath.
-  *@param repositoryPath is the document repositoryPath.
+  *@param path is the document filePath.
   *@return the document uri.
   */
   protected static String convertToWGETURI(String path)
@@ -194,7 +193,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param activities is the interface this method should use to perform whatever framework actions are desired.
   *@param spec is a document specification (that comes from the job).
   *@param seedTime is the end of the time range of documents to consider, exclusive.
-  *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
+  *@param lastSeedVersion is the last seeding version string for this job, or null if the job has no previous seeding version string.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@return an updated seeding version string, to be stored with the job.
   */
@@ -489,7 +488,6 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** This method finds the part of the path that should be converted to a URI.
   * Returns null if the path should not be converted.
   *@param spec is the document specification.
-  *@param documentIdentifier is the document identifier.
   *@return the part of the path to be converted, or null.
   */
   protected static String findConvertPath(Specification spec, File theFile)
@@ -572,7 +570,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   * This method is called in the body section of a job page which has selected a repository connection of the
   * current type.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate
-  *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
+  *  &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.  The name of the form is always "editjob".
   * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the locale the output is preferred to be in.
@@ -992,7 +990,7 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** View specification.
   * This method is called in the body section of a job's view page.  Its purpose is to present the document
   * specification information to the user.  The coder can presume that the HTML that is output from
-  * this configuration will be within appropriate <html> and <body> tags.
+  * this configuration will be within appropriate &lt;html&gt; and &lt;body&gt;tags.
   * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the locale the output is preferred to be in.

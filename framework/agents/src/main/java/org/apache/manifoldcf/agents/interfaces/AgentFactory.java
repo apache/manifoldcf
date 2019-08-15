@@ -32,7 +32,6 @@ public class AgentFactory
   }
 
   /** Make an agent, given a class name.
-  *@param tc is the thread context.
   *@param className is the agent class name.
   *@return the agent.
   */

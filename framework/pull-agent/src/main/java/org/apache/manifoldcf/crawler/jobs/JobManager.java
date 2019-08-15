@@ -5186,7 +5186,6 @@ public class JobManager implements IJobManager
   *@param dataNames are the names of the data to carry down to the child from this parent.
   *@param dataValues are the values to carry down to the child from this parent, corresponding to dataNames above.  If CharacterInput objects are passed in here,
   *       it is the caller's responsibility to clean these up.
-  *@param currentTime is the time in milliseconds since epoch that will be recorded for this operation.
   *@param documentPriorities are the desired document priorities for the documents.
   *@param prereqEventNames are the events that must be completed before a document can be queued.
   */

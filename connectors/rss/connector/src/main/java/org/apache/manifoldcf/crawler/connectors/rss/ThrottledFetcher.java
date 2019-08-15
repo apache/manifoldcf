@@ -381,11 +381,6 @@ public class ThrottledFetcher
     * @param urlPath is the path part of the url, e.g. "/robots.txt"
     * @param userAgent is the value of the userAgent header to use.
     * @param from is the value of the from header to use.
-    * @param proxyHost is the proxy host, or null if none.
-    * @param proxyPort is the proxy port, or -1 if none.
-    * @param proxyAuthDomain is the proxy authentication domain, or null.
-    * @param proxyAuthUsername is the proxy authentication user name, or null.
-    * @param proxyAuthPassword is the proxy authentication password, or null.
     * @param lastETag is the requested lastETag header value.
     * @param lastModified is the requested lastModified header value.
     * @return the status code: success, static error, or dynamic error.

@@ -19,13 +19,11 @@
 package org.apache.manifoldcf.crawler.reprioritizationtracker;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 import org.apache.manifoldcf.crawler.system.Logging;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.io.*;
 
 /** This class tracks cluster-wide reprioritization operations.
 * These operations are driven forward by whatever thread needs them,
@@ -60,7 +58,6 @@ public class ReprioritizationTracker implements IReprioritizationTracker
   }
   
   /** Start a reprioritization activity.
-  *@param prioritizationTime is the timestamp of the prioritization.
   *@param processID is the process ID of the process performing/waiting for the prioritization
   * to complete.
   *@param reproID is the reprocessing thread ID
@@ -108,7 +105,7 @@ public class ReprioritizationTracker implements IReprioritizationTracker
   
   /** Complete a reprioritization activity.  Prioritization will be marked as complete
   * only if the processID matches the one that started the current reprioritization.
-  *@param processID is the process ID of the process completing the prioritization.
+  *@param reproID is the process ID of the process completing the prioritization.
   */
   @Override
   public void doneReprioritization(String reproID)
@@ -380,7 +377,7 @@ public class ReprioritizationTracker implements IReprioritizationTracker
   }
   
   /** Write minimum depth.
-  *@param the minimum depth.
+  *@param depth the minimum depth.
   */
   protected void writeMinimumDepth(double depth)
     throws ManifoldCFException

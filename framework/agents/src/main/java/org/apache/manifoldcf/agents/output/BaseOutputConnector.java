@@ -32,9 +32,10 @@ import java.util.*;
 * handle is used only if all the connection parameters for the handle match.
 *
 * Implementers of this interface should provide a default constructor which has this signature:
-*
+* <pre>
 * xxx();
-*
+* </pre>
+* 
 * Connectors are either configured or not.  If configured, they will persist in a pool, and be
 * reused multiple times.  Certain methods of a connector may be called before the connector is
 * configured.  This includes basically all methods that permit inspection of the connector's
@@ -261,7 +262,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
 
   /** Output the specification body section.
   * This method is called in the body section of a job page which has selected an output connection of the current type.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.  The name of the
   * form is "editjob".
   *@param out is the output to which any HTML should be sent.
   *@param locale is the preferred local of the output.
@@ -297,7 +298,7 @@ public abstract class BaseOutputConnector extends org.apache.manifoldcf.core.con
 
   /** View specification.
   * This method is called in the body section of a job's view page.  Its purpose is to present the output specification information to the user.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt; and &lt;body&gt; tags.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the preferred local of the output.
   *@param connectionSequenceNumber is the unique number of this connection within the job.

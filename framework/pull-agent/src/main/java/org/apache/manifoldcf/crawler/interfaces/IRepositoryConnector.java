@@ -177,7 +177,7 @@ public interface IRepositoryConnector extends IConnector
   *@param activities is the interface this method should use to perform whatever framework actions are desired.
   *@param spec is a document specification (that comes from the job).
   *@param seedTime is the end of the time range of documents to consider, exclusive.
-  *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
+  *@param lastSeedVersion is the last seeding version string for this job, or null if the job has no previous seeding version string.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@return an updated seeding version string, to be stored with the job.
   */
@@ -252,7 +252,7 @@ public interface IRepositoryConnector extends IConnector
   * This method is called in the body section of a job page which has selected a repository connection of the
   * current type.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate
-  *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
+  *  &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.  The name of the form is always "editjob".
   * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the locale the output is preferred to be in.
@@ -285,7 +285,7 @@ public interface IRepositoryConnector extends IConnector
   /** View specification.
   * This method is called in the body section of a job's view page.  Its purpose is to present the document
   * specification information to the user.  The coder can presume that the HTML that is output from
-  * this configuration will be within appropriate <html> and <body> tags.
+  * this configuration will be within appropriate &lt;html&gt; and &lt;body&gt;tags.
   * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the locale the output is preferred to be in.

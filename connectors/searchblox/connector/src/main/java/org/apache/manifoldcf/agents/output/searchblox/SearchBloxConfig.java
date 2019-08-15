@@ -18,7 +18,7 @@ package org.apache.manifoldcf.agents.output.searchblox;
 
 /**
  * <p>SearchBloxConfig class</p>
- * @author Antonio David Perez Morales <adperezmorales@apache.org>
+ * @author Antonio David Perez Morales &lt;adperezmorales@apache.org&gt;
  * 
  */
 class SearchBloxConfig {

@@ -99,7 +99,6 @@ public class LdapAuthenticator implements IAuth {
   /**
    * @param userId
    * @param password
-   * @return
    */
   @Override
   public boolean verifyUILogin(final String userId, final String password)

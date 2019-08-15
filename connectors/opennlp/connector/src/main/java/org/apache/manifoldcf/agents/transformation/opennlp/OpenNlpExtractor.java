@@ -95,7 +95,7 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
    * This method presumes that the underlying connector object has been
    * configured.
    * 
-   * @param spec
+   * @param os
    *            is the current pipeline specification object for this
    *            connection for the job that is doing the crawling.
    * @return a string, of unlimited length, which uniquely describes
@@ -126,7 +126,7 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
    *            process and serve the document. This URI is constructed by the
    *            repository connector which fetches the document, and is thus
    *            universal across all output connectors.
-   * @param outputDescription
+   * @param pipelineDescription
    *            is the description string that was constructed for this
    *            document by the getOutputDescription() method.
    * @param document
@@ -354,7 +354,7 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
    * section of a job page which has selected an output connection of the
    * current type. Its purpose is to present the required form elements for
    * editing. The coder can presume that the HTML that is output from this
-   * configuration will be within appropriate <html>, <body>, and <form> tags.
+   * configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.
    * The name of the form is "editjob".
    * 
    * @param out
@@ -478,7 +478,7 @@ public class OpenNlpExtractor extends BaseTransformationConnector {
    * View specification. This method is called in the body section of a job's
    * view page. Its purpose is to present the output specification information
    * to the user. The coder can presume that the HTML that is output from this
-   * configuration will be within appropriate <html> and <body> tags.
+   * configuration will be within appropriate &lt;html&gt; and &lt;body&gt;tags.
    * 
    * @param out
    *            is the output to which any HTML should be sent.

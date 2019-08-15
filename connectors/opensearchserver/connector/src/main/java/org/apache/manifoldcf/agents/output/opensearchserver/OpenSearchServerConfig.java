@@ -41,7 +41,6 @@ public class OpenSearchServerConfig extends OpenSearchServerParam {
    * value returned by ConfigParams.getParameter is null, the default value is
    * set.
    * 
-   * @param paramList
    * @param params
    */
   public OpenSearchServerConfig(ConfigParams params) {

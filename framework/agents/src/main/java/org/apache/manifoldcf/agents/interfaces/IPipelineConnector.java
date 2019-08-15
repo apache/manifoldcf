@@ -19,7 +19,6 @@
 package org.apache.manifoldcf.agents.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
 
 import java.io.*;
 import java.util.*;
@@ -160,7 +159,7 @@ public interface IPipelineConnector extends IConnector
   
   /** Output the specification body section.
   * This method is called in the body section of a job page which has selected a pipeline connection of the current type.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.  The name of the
   * form is "editjob".
   *@param out is the output to which any HTML should be sent.
   *@param locale is the preferred local of the output.
@@ -189,7 +188,7 @@ public interface IPipelineConnector extends IConnector
   
   /** View specification.
   * This method is called in the body section of a job's view page.  Its purpose is to present the pipeline specification information to the user.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt; and &lt;body&gt; tags.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the preferred local of the output.
   *@param connectionSequenceNumber is the unique number of this connection within the job.

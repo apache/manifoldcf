@@ -127,9 +127,6 @@ public class PriorityCalculator implements IPriorityCalculator
 
   /** Calculate a document priority value.  Priorities are reversed, and in log space, so that
   * zero (0.0) is considered the highest possible priority, and larger priority values are considered lower in actual priority.
-  *@param binNames are the global bins to which the document belongs.
-  *@param connection is the connection, from which the throttles may be obtained.  More highly throttled connections are given
-  *          less favorable priority.
   *@return the priority value, based on recent history.  Also updates statistics atomically.
   */
   @Override
