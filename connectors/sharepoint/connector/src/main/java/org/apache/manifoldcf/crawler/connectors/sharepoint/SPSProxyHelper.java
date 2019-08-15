@@ -107,7 +107,6 @@ public class SPSProxyHelper {
   * @param site
   * @param guid is the list/library GUID
   * @return array of sids
-  * @throws Exception
   */
   public String[] getACLs(String site, String guid, boolean activeDirectoryAuthority )
     throws ManifoldCFException, ServiceInterruption
@@ -548,7 +547,6 @@ public class SPSProxyHelper {
   /**
   *
   * @param site
-  * @param docLibrary
   * @return an XML document
   * @throws ManifoldCFException
   * @throws ServiceInterruption
@@ -1027,7 +1025,7 @@ public class SPSProxyHelper {
   /**
   *
   * @param parentSite
-  * @param list name
+  * @param listName name
   * @return document library ID
   * @throws ManifoldCFException
   * @throws ServiceInterruption
@@ -1410,8 +1408,6 @@ public class SPSProxyHelper {
   *
   * @param userCall
   * @param userLogin
-  * @return
-  * @throws Exception
   */
   private String getSidForUser(com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String userLogin,
     boolean activeDirectoryAuthority)
@@ -1460,8 +1456,6 @@ public class SPSProxyHelper {
   *
   * @param userCall
   * @param groupName
-  * @return
-  * @throws Exception
   */
   private List<String> getSidsForGroup(com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String groupName,
     boolean activeDirectoryAuthority)
@@ -1533,8 +1527,6 @@ public class SPSProxyHelper {
   *
   * @param userCall
   * @param roleName
-  * @return
-  * @throws Exception
   */
   private List<String> getSidsForRole( com.microsoft.schemas.sharepoint.soap.directory.UserGroupSoap userCall, String roleName,
     boolean activeDirectoryAuthority)
@@ -1583,9 +1575,8 @@ public class SPSProxyHelper {
   /**
   *
   * @return true if connection OK
-  * @throws java.net.MalformedURLException
-  * @throws javax.xml.rpc.ServiceException
-  * @throws java.rmi.RemoteException
+  * @throws ManifoldCFException
+  * @throws ServiceInterruption
   */
   public boolean checkConnection( String site, boolean sps30 )
     throws ManifoldCFException, ServiceInterruption
@@ -1826,7 +1817,7 @@ public class SPSProxyHelper {
   /**
   * Gets a list of field names of the given document library
   * @param site
-  * @param list/library name
+  * @param listName list/library name
   * @return list of the fields
   */
   public Map<String,String> getFieldList( String site, String listName )

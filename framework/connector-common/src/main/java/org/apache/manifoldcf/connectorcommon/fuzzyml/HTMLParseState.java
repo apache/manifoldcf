@@ -84,7 +84,7 @@ public class HTMLParseState extends TagParseState
     return false;
   }
   
-  /** This method is called for every <? ... ?> construct, or 'qtag'.
+  /** This method is called for every &lt;? ... ?&gt; construct, or 'qtag'.
   * This is not useful for HTML.
   *@return true to halt further processing.
   */
@@ -95,7 +95,7 @@ public class HTMLParseState extends TagParseState
     return super.noteQTag(tagName, attributes);
   }
 
-  /** This method is called for every <! <token> ... > construct, or 'btag'.
+  /** This method is called for every &lt;! &lt;token&gt; ... &gt; construct, or 'btag'.
   * Override it to intercept these.
   *@return true to halt further processing.
   */
@@ -107,7 +107,7 @@ public class HTMLParseState extends TagParseState
   }
 
   /** This method is called for the end of every btag, or any time
-  * there's a naked '>' in the document.  Override it if you want to intercept these.
+  * there's a naked '&gt;' in the document.  Override it if you want to intercept these.
   *@return true to halt further processing.
   */
   @Override
@@ -117,7 +117,7 @@ public class HTMLParseState extends TagParseState
     return super.noteEndBTag();
   }
 
-  /** Called for the start of every cdata-like tag, e.g. <![ <token> [ ... ]]>
+  /** Called for the start of every cdata-like tag, e.g. &lt;![ &lt;token&gt; [ ... ]]&gt;
   *@param token may be empty!!!
   *@return true to halt further processing.
   */

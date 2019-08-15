@@ -143,7 +143,8 @@ public class HttpPoster
   * @param documentURI is the document's uri.
   * @param document is the document structure to ingest.
   * @return true if the ingestion was successful, or false if the ingestion is illegal.
-  * @throws ManifoldCFException, ServiceInterruption
+  * @throws ManifoldCFException
+  * @throws ServiceInterruption
   */
   public boolean indexPost(String documentURI,
     List<String> collections, String documentTemplate, String authorityNameString,

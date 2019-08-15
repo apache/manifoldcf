@@ -52,7 +52,7 @@ import org.nuxeo.client.objects.Repository;
 import org.nuxeo.client.objects.blob.FileBlob;
 
 /**
- * @author David Arroyo Escobar <arroyoescobardavid@gmail.com>
+ * @author David Arroyo Escobar &lt;arroyoescobardavid@gmail.com&gt;
  *
  */
 @RunWith(MockitoJUnitRunner.class)

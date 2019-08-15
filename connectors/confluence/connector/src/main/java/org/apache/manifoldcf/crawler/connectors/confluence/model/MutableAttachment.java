@@ -28,7 +28,7 @@ import java.util.Date;
  * Represents a Confluence Attachment which can be mutated
  * </p>
  * 
- * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+ * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
  */
 public class MutableAttachment extends Attachment {
 

@@ -19,7 +19,7 @@ package org.apache.manifoldcf.crawler.connectors.confluence.exception;
 
 /**
  * 
- * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+ * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
  *
  */
 public class PageNotFoundException extends Exception {

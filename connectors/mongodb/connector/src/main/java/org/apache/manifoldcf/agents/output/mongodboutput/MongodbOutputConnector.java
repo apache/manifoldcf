@@ -286,7 +286,7 @@ public class MongodbOutputConnector extends BaseOutputConnector {
      * connector's view configuration page. Its purpose is to present the
      * connection information to the user. The coder can presume that the HTML
      * that is output from this configuration will be within appropriate
-     * <html> and <body> tags.
+     * &lt;html&gt; and &lt;body&gt;tags.
      *
      * @param threadContext is the local thread context.
      * @param out           is the output to which any HTML should be sent.

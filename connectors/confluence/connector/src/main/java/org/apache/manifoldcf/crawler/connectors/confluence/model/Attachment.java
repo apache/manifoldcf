@@ -34,7 +34,7 @@ import org.json.simple.parser.ParseException;
  * Represents a Confluence Attachment
  * </p>
  * 
- * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+ * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
  */
 public class Attachment extends Page {
 
@@ -83,7 +83,7 @@ public class Attachment extends Page {
    * Used to build Attachments
    * </p>
    * 
-   * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+   * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
    *
    */
   public static class AttachmentBuilder implements ConfluenceResourceBuilder<Attachment>{

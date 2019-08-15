@@ -63,7 +63,7 @@ public class XMLParseState extends TagParseState
     return false;
   }
 
-  /** This method is called for every <? ... ?> construct, or 'qtag'.
+  /** This method is called for every &lt;? ... ?&gt; construct, or 'qtag'.
   * Override it to intercept such constructs.
   *@return true to halt further processing.
   */

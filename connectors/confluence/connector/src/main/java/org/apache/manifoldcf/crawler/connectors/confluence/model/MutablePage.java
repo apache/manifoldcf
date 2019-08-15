@@ -29,7 +29,7 @@ import java.util.List;
  * <code>Page.builder()</code> method
  * </p>
  * 
- * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+ * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
  */
 public class MutablePage extends Page {
 

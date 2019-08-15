@@ -21,9 +21,6 @@ package org.apache.manifoldcf.crawler.repositoryconnectorpool;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 
-import java.util.*;
-import java.io.*;
-
 /** An implementation of IRepositoryConnectorPool.
 * Coordination and allocation among cluster members is managed within. 
 * These objects are thread-local, so do not share them among threads.
@@ -77,7 +74,7 @@ public class RepositoryConnectorPool implements IRepositoryConnectorPool
 
   /** Get a repository connector.
   * The connector is specified by a repository connection object.
-  *@param authorityConnection is the repository connection to base the connector instance on.
+  *@param repositoryConnection is the repository connection to base the connector instance on.
   */
   @Override
   public IRepositoryConnector grab(IRepositoryConnection repositoryConnection)

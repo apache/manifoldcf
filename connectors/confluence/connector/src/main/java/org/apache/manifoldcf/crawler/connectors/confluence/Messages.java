@@ -28,7 +28,7 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
  * <p>Class used to render templates along with specific values</p>
  * <p>Also used to get messages for specific Locales</p>
  * 
- * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+ * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
  *
  */
 public class Messages extends org.apache.manifoldcf.ui.i18n.Messages

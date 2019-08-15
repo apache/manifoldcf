@@ -34,7 +34,7 @@ import static org.mockito.Matchers.anyString;
 import org.mockito.runners.MockitoJUnitRunner;
 
 /**
- * @author David Arroyo Escobar <arroyoescobardavid@gmail.com>
+ * @author David Arroyo Escobar &lt;arroyoescobardavid@gmail.com&gt;
  *
  */
 @RunWith(MockitoJUnitRunner.class)

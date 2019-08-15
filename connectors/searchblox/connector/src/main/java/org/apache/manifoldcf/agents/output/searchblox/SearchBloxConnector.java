@@ -38,8 +38,8 @@ import java.util.concurrent.TimeUnit;
  * metadata using the SearchBox REST API
  * (http://www.searchblox.com/developers-2/api-2)
  *
- * @author Rafa Haro <rharo@apache.org>
- * @author Antonio David Perez Morales <adperezmorales@apache.org>
+ * @author Rafa Haro &lt;rharo@apache.org&gt;
+ * @author Antonio David Perez Morales &lt;adperezmorales@apache.org&gt;
  */
 public class SearchBloxConnector extends BaseOutputConnector {
 
@@ -198,7 +198,7 @@ public class SearchBloxConnector extends BaseOutputConnector {
    * method, and that a different version string (defined in
    * IRepositoryConnector) is used to describe the version of the actual
    * document.
-   * <p/>
+   * <p>
    * This method presumes that the connector object has been configured, and
    * it is thus able to communicate with the output data store should that be
    * necessary.
@@ -637,8 +637,8 @@ public class SearchBloxConnector extends BaseOutputConnector {
    * View specification. This method is called in the body section of a job's
    * view page. Its purpose is to present the pipeline specification
    * information to the user. The coder can presume that the HTML that is
-   * output from this configuration will be within appropriate <html> and
-   * <body> tags.
+   * output from this configuration will be within appropriate &lt;html&gt; and
+   * &lt;body&gt; tags.
    *
    * @param out
    *            is the output to which any HTML should be sent.
@@ -669,7 +669,7 @@ public class SearchBloxConnector extends BaseOutputConnector {
    * section of a job page which has selected a pipeline connection of the
    * current type. Its purpose is to present the required form elements for
    * editing. The coder can presume that the HTML that is output from this
-   * configuration will be within appropriate <html>, <body>, and <form> tags.
+   * configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.
    * The name of the form is "editjob".
    *
    * @param out

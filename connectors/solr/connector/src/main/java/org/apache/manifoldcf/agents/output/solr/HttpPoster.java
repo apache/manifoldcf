@@ -561,7 +561,8 @@ public class HttpPoster
    * @param arguments are the configuration arguments to pass in the post.  Key is argument name, value is a list of the argument values.
    * @param authorityNameString is the name of the governing authority for this document's acls, or null if none.
    * @param activities is the activities object, so we can report what's happening.   @return true if the ingestion was successful, or false if the ingestion is illegal.
-  * @throws ManifoldCFException, ServiceInterruption
+  * @throws ManifoldCFException
+  * @throws ServiceInterruption
   */
   public boolean indexPost(String documentURI,
     RepositoryDocument document, Map<String,List<String>> arguments,

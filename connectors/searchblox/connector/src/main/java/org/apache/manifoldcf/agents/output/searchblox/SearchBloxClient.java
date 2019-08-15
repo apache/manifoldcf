@@ -44,7 +44,7 @@ import org.xml.sax.SAXException;
 /**
  * SearchBox REST Client
  *
- * @author Rafa Haro <rharo@apache.org>
+ * @author Rafa Haro &lt;rharo@apache.org&gt;
  */
 public class SearchBloxClient {
 

@@ -249,8 +249,8 @@ public class AmazonS3Authority extends org.apache.manifoldcf.authorities.authori
    * View configuration. This method is called in the body section of the
    * connector's view configuration page. Its purpose is to present the
    * connection information to the user. The coder can presume that the HTML
-   * that is output from this configuration will be within appropriate <html>
-   * and <body> tags.
+   * that is output from this configuration will be within appropriate &lt;html&gt;
+   * and &lt;body&gt; tags.
    * 
    * */
   public void viewConfiguration(IThreadContext threadContext,

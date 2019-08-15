@@ -34,59 +34,69 @@ import org.apache.manifoldcf.core.interfaces.*;
 *   removed from the queue.  Write requests therefore serve to block read requests
 *   until the write request is serviced.
 * Preferred structure:
-* <wait_for_permission>
+* <pre>
+* &lt;wait_for_permission&gt;
 * try {
 * ... obtain the lock ...
 * } finally {
-*   <release_permission>
+*   &lt;release_permission&gt;
 * }
+* </pre>
 * Seeing lockups.  These lockups are characterized by a thread waiting on a lock object
 * while another thread waits on permission to do something else with the lock object.
 * It is by no means clear at this point how this situation causes a hang-up; the 
 * lock object is waiting to be awakened, but there is no obvious entity holding the lock elsewhere.
 * But one thread (A) seems always to be in a multi-lock situation, waiting to obtain a lock, e.g.:
+* <pre>
 	at java.lang.Object.wait(Native Method)
 	at java.lang.Object.wait(Object.java:503)
 	at org.apache.manifoldcf.core.lockmanager.LockObject.enterWriteLock(LockObject.java:80)
-	- locked <0x00000000fe205720> (a org.apache.manifoldcf.core.lockmanager.LockObject)
+	- locked &lt;0x00000000fe205720&gt; (a org.apache.manifoldcf.core.lockmanager.LockObject)
 	at org.apache.manifoldcf.core.lockmanager.LockGate.enterWriteLock(LockGate.java:132)
 	at org.apache.manifoldcf.core.lockmanager.BaseLockManager.enter(BaseLockManager.java:1483)
 	at org.apache.manifoldcf.core.lockmanager.BaseLockManager.enterCriticalSections(BaseLockManager.java:920)
 	at org.apache.manifoldcf.core.lockmanager.LockManager.enterCriticalSections(LockManager.java:455)
+	</pre>
 * Here's the second thread (B), which is waitingForPermission:
+* <pre>
 	at java.lang.Object.wait(Native Method)
-	- waiting on <0x00000000f8b71c78> (a org.apache.manifoldcf.core.lockmanager.LockGate)
+	- waiting on &lt;0x00000000f8b71c78&gt; (a org.apache.manifoldcf.core.lockmanager.LockGate)
 	at java.lang.Object.wait(Object.java:503)
 	at org.apache.manifoldcf.core.lockmanager.LockGate.waitForPermission(LockGate.java:91)
-	- locked <0x00000000f8b71c78> (a org.apache.manifoldcf.core.lockmanager.LockGate)
+	- locked &lt;0x00000000f8b71c78&gt; (a org.apache.manifoldcf.core.lockmanager.LockGate)
 	at org.apache.manifoldcf.core.lockmanager.LockGate.enterWriteLock(LockGate.java:129)
 	at org.apache.manifoldcf.core.lockmanager.BaseLockManager.enterWrite(BaseLockManager.java:1130)
 	at org.apache.manifoldcf.core.lockmanager.BaseLockManager.enterWriteCriticalSection(BaseLockManager.java:896)
 	at org.apache.manifoldcf.core.lockmanager.LockManager.enterWriteCriticalSection(LockManager.java:431)
 	at org.apache.manifoldcf.core.interfaces.IDFactory.make(IDFactory.java:55)
+	</pre>
 * The problem is that (A) has already obtained permission, but cannot obtain the lock.  (B) is somehow blocking
 * (A) from obtaining the lock even though it has not yet taken its own lock!  Or, maybe it has, and we don't see it in
 * the stack trace.
 * Another example: (C)
+* <pre>
 	at java.lang.Object.wait(Native Method)
-	- waiting on <0x00000000ffbdc038> (a org.apache.manifoldcf.core.lockmanager.LockGate)
+	- waiting on &lt;0x00000000ffbdc038&gt; (a org.apache.manifoldcf.core.lockmanager.LockGate)
 	at java.lang.Object.wait(Object.java:503)
 	at org.apache.manifoldcf.core.lockmanager.LockGate.waitForPermission(LockGate.java:91)
-	- locked <0x00000000ffbdc038> (a org.apache.manifoldcf.core.lockmanager.LockGate)
+	- locked &lt;0x00000000ffbdc038&gt; (a org.apache.manifoldcf.core.lockmanager.LockGate)
 	at org.apache.manifoldcf.core.lockmanager.LockGate.enterReadLock(LockGate.java:211)
 	at org.apache.manifoldcf.core.lockmanager.BaseLockManager.enter(BaseLockManager.java:1532)
 	at org.apache.manifoldcf.core.lockmanager.BaseLockManager.enterLocks(BaseLockManager.java:813)
 	at org.apache.manifoldcf.core.lockmanager.LockManager.enterLocks(LockManager.java:355)
+	</pre>
 * and (D):
+* <pre>
 	at java.lang.Object.wait(Native Method)
-	- waiting on <0x00000000ffbdd2f8> (a org.apache.manifoldcf.core.lockmanager.LockObject)
+	- waiting on &lt;0x00000000ffbdd2f8&gt; (a org.apache.manifoldcf.core.lockmanager.LockObject)
 	at java.lang.Object.wait(Object.java:503)
 	at org.apache.manifoldcf.core.lockmanager.LockObject.enterWriteLock(LockObject.java:83)
-	- locked <0x00000000ffbdd2f8> (a org.apache.manifoldcf.core.lockmanager.LockObject)
+	- locked &lt;0x00000000ffbdd2f8&gt; (a org.apache.manifoldcf.core.lockmanager.LockObject)
 	at org.apache.manifoldcf.core.lockmanager.LockGate.enterWriteLock(LockGate.java:132)
 	at org.apache.manifoldcf.core.lockmanager.BaseLockManager.enter(BaseLockManager.java:1483)
 	at org.apache.manifoldcf.core.lockmanager.BaseLockManager.enterLocks(BaseLockManager.java:813)
 	at org.apache.manifoldcf.core.lockmanager.LockManager.enterLocks(LockManager.java:355)
+	</pre>
 * Problem here: The LockGate 0x00000000ffbdc038 has no other instance anywhere, which should not be able to happen.
 * Debugging must entail dumping ALL outstanding locks periodically -- and who holds each.
 */

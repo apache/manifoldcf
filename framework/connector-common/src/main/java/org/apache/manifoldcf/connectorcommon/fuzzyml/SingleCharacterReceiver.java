@@ -67,7 +67,6 @@ public abstract class SingleCharacterReceiver extends CharacterReceiver
   *@param buffer is the buffer of characters that should come first.
   *@param offset is the offset within the buffer of the first character.
   *@param len is the number of characters in the buffer.
-  *@param inputStream is the stream that should come after the characters in the buffer.
   *@return true to abort, false if the end of the stream has been reached.
   */
   protected boolean dealWithRemainder(char[] buffer, int offset, int len, Reader reader)

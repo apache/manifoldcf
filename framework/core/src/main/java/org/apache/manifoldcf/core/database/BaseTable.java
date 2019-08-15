@@ -177,7 +177,7 @@ public class BaseTable
   *@param invalidateKeys are the cache keys, if needed (null if no cache desired).
   *@param queryClass is the LRU class name against which this query would be cached,
   * or null if no LRU behavior desired.
-  *@return a map of column names & ColumnDescription's, or null.
+  *@return a map of column names &amp; ColumnDescription's, or null.
   */
   protected Map getTableSchema(StringSet invalidateKeys, String queryClass)
     throws ManifoldCFException
@@ -291,7 +291,6 @@ public class BaseTable
   }
   
   /** Note a number of inserts, modifications, or deletions to a specific table.  This is so we can decide when to do appropriate maintenance.
-  *@param tableName is the name of the table being modified.
   *@param insertCount is the number of inserts.
   *@param modifyCount is the number of updates.
   *@param deleteCount is the number of deletions.

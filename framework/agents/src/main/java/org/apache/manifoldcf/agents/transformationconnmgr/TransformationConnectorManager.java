@@ -27,7 +27,7 @@ import java.util.*;
  * 
  * <br><br>
  * <b>transformationconnectors</b>
- * <table border="1" cellpadding="3" cellspacing="0">
+ * <table border="1" cellpadding="3" cellspacing="0" summary="">
  * <tr class="TableHeadingColor">
  * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
  * <tr><td>description</td><td>VARCHAR(255)</td><td></td></tr>

@@ -30,7 +30,7 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 * 
 * <br><br>
 * <b>hopcount</b>
-* <table border="1" cellpadding="3" cellspacing="0">
+* <table border="1" cellpadding="3" cellspacing="0" summary="">
 * <tr class="TableHeadingColor">
 * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
 * <tr><td>id</td><td>BIGINT</td><td>Primary Key</td></tr>
@@ -2198,7 +2198,7 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   * This basically includes the following:
   * - the document identifier
   * - the 'question' that was asked, which has the form (link type, maximum distance)
-  * - possibly the 'answer' to the question, which is either ">(maximum distance)", or a number.
+  * - possibly the 'answer' to the question, which is either "&gt;(maximum distance)", or a number.
   * - references to the nodes which care about this answer, if they are still queued.
   * - summary of the information we've gathered from children so far (if answer not known yet)
   * - references to the children of this node that can affect the answer, including link details

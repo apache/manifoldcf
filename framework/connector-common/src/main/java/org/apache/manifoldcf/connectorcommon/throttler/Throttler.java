@@ -418,7 +418,7 @@ public class Throttler
     // IConnectionThrottler support methods
     
     /** Wait for a connection to become available.
-    *@param poolCount is a description of how many connections
+    *@param poolCounts is a description of how many connections
     * are available in the current pool, across all bins.
     *@return the IConnectionThrottler codes for results.
     */

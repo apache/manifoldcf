@@ -28,7 +28,7 @@ import org.json.simple.JSONObject;
  * Represents a Confluence Label
  * </p>
  * 
- * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+ * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
  */
 public class Label extends ConfluenceResource{
 
@@ -73,7 +73,7 @@ public class Label extends ConfluenceResource{
    * Used to build Labels
    * </p>
    * 
-   * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+   * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
    *
    */
   public static class LabelBuilder implements ConfluenceResourceBuilder<Label>{

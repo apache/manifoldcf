@@ -429,8 +429,8 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
   * View configuration. This method is called in the body section of the
   * connector's view configuration page. Its purpose is to present the
   * connection information to the user. The coder can presume that the HTML that
-  * is output from this configuration will be within appropriate <html> and
-  * <body> tags.
+  * is output from this configuration will be within appropriate &lt;html&gt; and
+  * &lt;body&gt; tags.
   *
   * @param threadContext is the local thread context.
   * @param out is the output to which any HTML should be sent.
@@ -480,7 +480,7 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
   * This method is called in the body section of a job page which has selected a repository connection of the
   * current type.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate
-  *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
+  *  &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.  The name of the form is always "editjob".
   * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the locale the output is preferred to be in.
@@ -639,7 +639,7 @@ public class SlackConnector extends org.apache.manifoldcf.crawler.notifications.
   /** View specification.
   * This method is called in the body section of a job's view page.  Its purpose is to present the document
   * specification information to the user.  The coder can presume that the HTML that is output from
-  * this configuration will be within appropriate <html> and <body> tags.
+  * this configuration will be within appropriate &lt;html&gt; and &lt;body&gt;tags.
   * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the locale the output is preferred to be in.

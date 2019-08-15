@@ -41,7 +41,7 @@ public interface IAuthorityConnectorPool
 
   /** Get an authority connector.
   * The connector is specified by an authority connection object.
-  *@param outputConnection is the authority connection to base the connector instance on.
+  *@param authorityConnection is the authority connection to base the connector instance on.
   */
   public IAuthorityConnector grab(IAuthorityConnection authorityConnection)
     throws ManifoldCFException;

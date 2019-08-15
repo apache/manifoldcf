@@ -62,7 +62,6 @@ public class ElasticSearchConfig extends ElasticSearchParam
    * value returned by ConfigParams.getParameter is null, the default value is
    * set.
    * 
-   * @param paramList
    * @param params */
   public ElasticSearchConfig(ConfigParams params)
   {

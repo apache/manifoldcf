@@ -23,7 +23,7 @@ import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 
 /**
  * 
- * @author Rafa Haro <rharo@apache.org>
+ * @author Rafa Haro &lt;rharo@apache.org&gt;
  *
  */
 public class Messages extends org.apache.manifoldcf.ui.i18n.Messages
