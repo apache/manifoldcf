@@ -178,7 +178,7 @@ public class ElasticSearchConfig extends ElasticSearchParam
         {
           if (isPassword)
           {
-            parameters.setObfuscatedParameter(param.name(), p);
+            parameters.setObfuscatedParameter(param.name(), variableContext.mapKeyToPassword(p));
           }
           else
           {
