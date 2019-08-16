@@ -20,6 +20,7 @@ git:
 env:
   matrix:
     - TEST_SCRIPT="mvn -q install"
+    - TEST_SCRIPT="mvn javadoc:javadoc"
     - TEST_SCRIPT="ant make-core-deps make-deps test"
 script: $TEST_SCRIPT
 language: java
@@ -30,4 +31,5 @@ cache:
     - $HOME/.m2
 notifications:
   email: false
+dist: trusty
 

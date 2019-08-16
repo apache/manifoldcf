@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.14-dev =====================
 
+CONNECTORS-1618: Fix all malformed javadoc comments that broke the maven javadoc build.
+(Markus Schuch)
+
 CONNECTORS-1611: Update MySQL driver version.
 (Furkan Kamaci)
 
