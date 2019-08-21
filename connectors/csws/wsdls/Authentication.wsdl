@@ -228,7 +228,7 @@
 </binding>
 <service name="AuthenticationService">
 <port name="AuthenticationPort" binding="tns:AuthenticationPortBinding">
-<soap:address location="https://athene-au-fe1.inet-test.comp.db.de:443/otdsws/services/Authentication"/>
+<soap:address location=""/>
 </port>
 </service>
 </definitions>

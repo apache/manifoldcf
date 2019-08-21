@@ -1039,9 +1039,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     for (String documentIdentifier : documentIdentifiers)
     {
-
-      Logging.connectors.warn("CSWS Connector --- processing document: " + documentIdentifier);
-
       // Since each livelink access is time-consuming, be sure that we abort if the job has gone inactive
       activities.checkJobStillActive();
 
@@ -1063,6 +1060,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
         
       // Make sure we have permission to see the object's contents
+      // TODO: In our current environment, permissions cannot be fetched properly, this is a workaround
       final NodePermissions permissions = value.getPermissions();
       /*if (!permissions.isSeeContentsPermission())
       {
@@ -1075,14 +1073,15 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       final Date dt = value.getModifyDate();
 
       // The rights don't change when the object changes, so we have to include those too.
+      // TODO: This fails when the csws user is not an admin, so this workaround is used.
       //final NodeRights rights = getObjectRights(objID);
       final NodeRights rights = new NodeRights();
 
 
       if (rights == null)
       {
-        //if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.info("Csws: Could not get rights for object "+objID+" - deleting");
+        if (Logging.connectors.isDebugEnabled())
+          Logging.connectors.debug("Csws: Could not get rights for object "+objID+" - deleting");
         activities.deleteDocument(documentIdentifier);
         continue;
       }

@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?><!-- Published by JAX-WS RI (http://jax-ws.java.net). RI's version is JAX-WS RI 2.2.10 svn-revision#919b322c92f13ad085a933e8dd6dd35d4947364b. --><xs:schema xmlns:tns="urn:api.ecm.opentext.com" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="urn:api.ecm.opentext.com">
+  <xs:element name="OTAuthentication" type="tns:OTAuthentication"/>
+  <xs:complexType name="OTAuthentication">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="AuthenticationToken" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

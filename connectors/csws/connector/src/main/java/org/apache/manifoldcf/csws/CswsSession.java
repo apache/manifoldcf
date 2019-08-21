@@ -536,13 +536,16 @@ public class CswsSession
     throws ManifoldCFException, ServiceInterruption {
     try {
       final SingleSearchRequest singleSrchReq = new SingleSearchRequest();
-      singleSrchReq.setDataCollectionSpec("'LES Athene'");//Livelink Enterprise Server
+      // TODO: Apparently, this is different in some implementations. Fetch dynamically or make an input field.
+      singleSrchReq.setDataCollectionSpec("'LES Athene'"); //Livelink Enterprise Server
       singleSrchReq.setQueryLanguage("Livelink Search API V1"); //Search Query Language API
       singleSrchReq.setFirstResultToRetrieve(start + 1);
       singleSrchReq.setNumResultsToRetrieve(count);
       if (orderingColumn != null) {
         singleSrchReq.setResultOrderSpec("sortByRegion="+orderingColumn+"&sortDirection=ascending");
       }
+
+      // TODO: Don't ignore the searchSpec. This is part of the NodeRights issue.
       //singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+")");
       singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+")");
       for (final String returnColumn : returnColumns) {
@@ -629,6 +632,6 @@ public class CswsSession
 
   private void processAuthException(AuthenticationException_Exception e)
           throws ManifoldCFException, ServiceInterruption {
-    throw new ManifoldCFException("Auth Exceüption: "+e.getMessage(), e);
+    throw new ManifoldCFException("Auth Exception: "+e.getMessage(), e);
   }
 }
