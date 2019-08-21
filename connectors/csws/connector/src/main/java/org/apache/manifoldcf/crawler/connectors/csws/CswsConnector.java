@@ -697,12 +697,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     // The document identifier is the string form of the object ID for this connector.
     if (!documentIdentifier.startsWith("D"))
       return null;
-    String objectID = null;
-    int colonPosition = documentIdentifier.indexOf(":",1);
-    if (colonPosition == -1)
-      objectID = documentIdentifier.substring(1);
-    else
-      objectID = documentIdentifier.substring(colonPosition+1);
+    final String objectID = documentIdentifier.substring(1);
     String viewURL = null;
     switch(viewAction)
     {
@@ -2701,13 +2696,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String resultCode = null;
     String resultDescription = null;
     Long readSize = null;
-    long objID;
-    long vol;
 
-    int colonPos = documentIdentifier.indexOf(":",1);
-        
-    objID = new Integer(documentIdentifier.substring(colonPos+1)).intValue();
-    vol = new Integer(documentIdentifier.substring(1,colonPos)).intValue();
+    long objID = new Integer(documentIdentifier.substring(1)).intValue();
     
     // Try/finally for fetch logging
     try
@@ -3010,7 +3000,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     finally
     {
       if (resultCode != null)
-        activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,readSize,vol+":"+objID,resultCode,resultDescription,null);
+        activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,readSize,new Long(objID).toString(),resultCode,resultDescription,null);
     }
   }
 
