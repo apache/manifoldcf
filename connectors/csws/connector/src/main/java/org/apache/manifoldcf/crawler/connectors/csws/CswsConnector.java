@@ -525,7 +525,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
 
       // Construct a new csws session object for setting up this session
-      cswsSession = new CswsSession(serverUsername, serverPassword, serverHTTPSKeystore, 1000L * 60L * 15L, 
+      cswsSession = new CswsSession(serverUsername, serverPassword, serverHTTPSKeystore, 1000L * 60L * 15L,
         authenticationServiceURL, documentManagementServiceURL, contentServiceServiceURL, memberServiceServiceURL, searchServiceServiceURL);
 
       final GetSessionThread t = new GetSessionThread();
@@ -878,7 +878,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
     
     Logging.connectors.debug("Csws: Picking up starting paths");
-    
+
     // Walk the specification for the "startpoint" types.  Amalgamate these into a list of strings.
     // Presume that all roots are startpoint nodes
     boolean doUserWorkspaces = false;
@@ -967,7 +967,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       Logging.connectors.debug("Csws: Done user workspaces");
     }
-    
+
     return "";
   }
 
@@ -1301,14 +1301,17 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   
   private static String getString(final SGraph sg, final int nodeIndex) {
     final List<? extends SNode> nodes = sg.getN();
-    if (nodes == null || nodes.size() < 1) {
-      throw new IllegalArgumentException("Expecting exactly one SNode");
+    if (nodes == null || nodes.size() != 1) {
+      throw new IllegalArgumentException("Looking for nodeIndex "+nodeIndex+" but graph node did not have that many");
     }
     final SNode node = nodes.get(0);
     final List<? extends String> stringValues = node.getS();
     if (stringValues == null || stringValues.size() <= nodeIndex) {
       return null;
     }
+    /*if (stringValues.size() > 1) {
+      throw new IllegalArgumentException("Expecting 0 or 1 values, not "+stringValues.size());
+    }*/
     return stringValues.get(nodeIndex);
   }
   
