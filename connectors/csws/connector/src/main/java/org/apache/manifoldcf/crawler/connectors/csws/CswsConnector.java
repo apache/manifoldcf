@@ -1092,7 +1092,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           Logging.connectors.debug("Csws: Processing folder "+objID);
         }
         
-        final ListObjectsThread t = new ListObjectsThread(objID, new String[]{"OTDataID", "OTSubTypeString", "OTName"}, filterString, "OTDataID");
+        final ListObjectsThread t = new ListObjectsThread(objID, new String[]{"OTDataID", "OTSubTypeName", "OTName"}, filterString, "OTDataID");
         t.start();
         final List<? extends SGraph> childrenDocs;
         try {
@@ -1105,8 +1105,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           // Decode results
           final long childID = getID(childDoc, 0);
-          final String subType = getString(childDoc, 1);
-          final String name = getString(childDoc, 2);
+          final String subType = getString(childDoc, 2);
+          final String name = getString(childDoc, 1);
           
           if (Logging.connectors.isDebugEnabled())
           {
