@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.14-dev =====================
 
+CONNECTORS-1620: Add ability to extract links from application/xml documents.
+(Markus Schuch)
+
 CONNECTORS-1619: Fixes the elasticsearch output connector not to invalidate the 
 password when saving the configuration.
 (Michael Cizmar , Markus Schuch)

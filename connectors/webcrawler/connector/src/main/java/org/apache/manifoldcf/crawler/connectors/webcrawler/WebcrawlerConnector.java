@@ -88,6 +88,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     "application/x-msword",
     "application/x-word",
     "text/xml",
+    "application/xml",
     "no-type",
     "text/plain",
     "application/x-rtf",
