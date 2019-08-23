@@ -578,7 +578,9 @@ public class HttpPoster
     }
 
     // If not the right mime type, reject it.
-    if ((includedMimeTypes !=null || excludedMimeTypes != null) && !checkMimeTypeIndexable(document.getMimeType(), useExtractUpdateHandler, includedMimeTypes, excludedMimeTypes)) {
+    // Note: this code added as part of CONNECTORS-1482 was incorrect!  Document filtering specified in the solr connector is always against the
+    // ORIGINAL mime type (which is what's in the document).  This why the checkMimeTypeIndexable second argument is always "true".
+    if ((includedMimeTypes !=null || excludedMimeTypes != null) && !checkMimeTypeIndexable(document.getMimeType(), true, includedMimeTypes, excludedMimeTypes)) {
       activities.recordActivity(null,SolrConnector.INGEST_ACTIVITY,null,documentURI,activities.EXCLUDED_MIMETYPE,"Solr connector rejected document due to mime type restrictions: ("+document.getMimeType()+")");
       return false;
     }
@@ -812,9 +814,17 @@ public class HttpPoster
     final String lowerMimeType = (mimeType==null)?null:mimeType.toLowerCase(Locale.ROOT);
     if (useExtractUpdateHandler)
     {
-      if (includedMimeTypes != null && !includedMimeTypes.contains(lowerMimeType))
+      // Strip the charset off for this check
+      int index = lowerMimeType == null ? -1 : lowerMimeType.indexOf(";");
+      final String checkMimeType;
+      if (index != -1) {
+        checkMimeType = lowerMimeType.substring(0,index);
+      } else {
+        checkMimeType = lowerMimeType;
+      }
+      if (includedMimeTypes != null && !includedMimeTypes.contains(checkMimeType))
         return false;
-      if (excludedMimeTypes != null && excludedMimeTypes.contains(lowerMimeType))
+      if (excludedMimeTypes != null && excludedMimeTypes.contains(checkMimeType))
         return false;
       return true;
     }
