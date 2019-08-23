@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.14-dev =====================
 
+CONNECTORS-1621: Fix broken ability to index Tika-extracted documents in Solr.
+(Markus Schuch, Karl Wright)
+
 CONNECTORS-1620: Add ability to extract links from application/xml documents.
 (Markus Schuch)
 
