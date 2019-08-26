@@ -193,34 +193,25 @@
       -->
 
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>axistools-maven-plugin</artifactId>
-        <version>1.4</version>
-        
-        <dependencies>
-          <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-tools-wsdlto-core</artifactId>
-            <version>2.6.2</version>
-          </dependency>
-        </dependencies>
-        
-        <configuration>
-          <sourceDirectory>wsdls</sourceDirectory>
-          <verbose>true</verbose>
-          <allElements>true</allElements>
-        </configuration>
-
+        <groupId>org.apache.cxf</groupId>
+        <artifactId>cxf-codegen-plugin</artifactId>
+        <version>3.2.6</version>
         <executions>
           <execution>
+            <id>generate-sources</id>
+            <phase>generate-sources</phase>
+            <configuration>
+              <defaultOptions>
+                <extendedSoapHeaders>true</extendedSoapHeaders>
+              </defaultOptions>
+              <wsdlRoot>${basedir}/wsdls</wsdlRoot>
+              <includes>
+                <include>*.wsdl</include>
+              </includes>
+            </configuration>
             <goals>
               <goal>wsdl2java</goal>
             </goals>
-            <configuration>
-             <sourceDirectory>wsdls</sourceDirectory>
-              <verbose>true</verbose>
-              <allElements>true</allElements>
-            </configuration>
           </execution>
         </executions>
       </plugin>
