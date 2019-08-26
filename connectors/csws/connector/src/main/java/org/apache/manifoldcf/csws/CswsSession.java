@@ -494,7 +494,7 @@ public class CswsSession
   * OTDataID
   * OTSubTypeName
   * OTName
-  * @param searchSpec is the search specification, e.g. "\"OTSubType\":0 OR \"OTSubType\":1 OR \"OTSubType\":144) AND \"OTModifyDate\":<20190312"
+  * @param searchSpec is the search specification, e.g. "\"OTSubType\":0 OR \"OTSubType\":1 OR \"OTSubType\":144) AND \"OTModifyDate\":&lt;20190312"
   *  For reference:
   * OTSubType Details 
   * 0 - Folder 
