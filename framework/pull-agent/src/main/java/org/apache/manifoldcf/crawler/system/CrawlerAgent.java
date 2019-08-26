@@ -77,7 +77,6 @@ public class CrawlerAgent implements IAgent
   protected String processID = null;
 
   /** Constructor.
-  *@param threadContext is the thread context.
   */
   public CrawlerAgent()
     throws ManifoldCFException
@@ -140,7 +139,7 @@ public class CrawlerAgent implements IAgent
   * Call this method to clean up dangling persistent state when a cluster is just starting
   * to come up.  This method CANNOT be called when there are any active agents
   * processes at all.
-  *@param processID is the current process ID.
+  *@param currentProcessID is the current process ID.
   */
   @Override
   public void cleanUpAllAgentData(IThreadContext threadContext, String currentProcessID)

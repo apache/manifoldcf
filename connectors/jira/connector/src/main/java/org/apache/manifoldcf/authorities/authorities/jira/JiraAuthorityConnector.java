@@ -125,7 +125,7 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
    * connector will retrieve all the repositories exposed for this endpoint
    * the it will start to use the first one.
    *
-   * @param configParameters is the set of configuration parameters, which in
+   * @param configParams is the set of configuration parameters, which in
    * this case describe the target appliance, basic auth configuration, etc.
    * (This formerly came out of the ini file.)
    */
@@ -357,8 +357,8 @@ public class JiraAuthorityConnector extends BaseAuthorityConnector {
    * View configuration. This method is called in the body section of the
    * connector's view configuration page. Its purpose is to present the
    * connection information to the user. The coder can presume that the HTML
-   * that is output from this configuration will be within appropriate <html>
-   * and <body> tags.
+   * that is output from this configuration will be within appropriate &lt;html&gt;
+   * and &lt;body&gt; tags.
    *
    * @param threadContext is the local thread context.
    * @param out is the output to which any HTML should be sent.

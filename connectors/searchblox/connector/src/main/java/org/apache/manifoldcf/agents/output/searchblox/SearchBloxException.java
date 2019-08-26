@@ -18,7 +18,7 @@ package org.apache.manifoldcf.agents.output.searchblox;
 
 
 /**
- * @author Rafa Haro <rharo@apache.org>
+ * @author Rafa Haro &lt;rharo@apache.org&gt;
  */
 public class SearchBloxException
     extends Exception {

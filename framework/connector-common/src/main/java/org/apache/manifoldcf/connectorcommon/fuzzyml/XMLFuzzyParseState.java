@@ -141,7 +141,7 @@ public class XMLFuzzyParseState extends TagParseState
     return false;
   }
   
-  /** This method is called for every <? ... ?> construct, or 'qtag'.
+  /** This method is called for every &lt;? ... ?&gt; construct, or 'qtag'.
   * This is not useful for HTML.
   *@return true to halt further processing.
   */
@@ -173,7 +173,7 @@ public class XMLFuzzyParseState extends TagParseState
     return false;
   }
 
-  /** This method is called for every <! <token> ... > construct, or 'btag'.
+  /** This method is called for every &lt;! &lt;token&gt; ... &gt; construct, or 'btag'.
   * Override it to intercept these.
   *@return true to halt further processing.
   */
@@ -197,7 +197,7 @@ public class XMLFuzzyParseState extends TagParseState
     return false;
   }
 
-  /** Called for the start of every cdata-like tag, e.g. <![ <token> [ ... ]]>
+  /** Called for the start of every cdata-like tag, e.g. &lt;![ &lt;token&gt; [ ... ]]&gt;
   *@param token may be empty!!!
   *@return true to halt further processing.
   */

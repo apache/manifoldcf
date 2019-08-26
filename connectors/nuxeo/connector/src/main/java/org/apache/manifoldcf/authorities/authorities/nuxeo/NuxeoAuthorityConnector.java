@@ -41,7 +41,7 @@ import org.nuxeo.client.spi.NuxeoClientException;
  *
  * Nuxeo Authority Connector class
  * 
- * @author David Arroyo Escobar <arroyoescobardavid@gmail.com>
+ * @author David Arroyo Escobar &lt;arroyoescobardavid@gmail.com&gt;
  *
  */
 public class NuxeoAuthorityConnector extends BaseAuthorityConnector {

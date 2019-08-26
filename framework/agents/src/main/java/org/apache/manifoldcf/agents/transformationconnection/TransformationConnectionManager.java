@@ -32,7 +32,7 @@ import org.apache.manifoldcf.agents.system.ManifoldCF;
 * 
 * <br><br>
 * <b>transformationconnections</b>
-* <table border="1" cellpadding="3" cellspacing="0">
+* <table border="1" cellpadding="3" cellspacing="0" summary="">
 * <tr class="TableHeadingColor">
 * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
 * <tr><td>connectionname</td><td>VARCHAR(32)</td><td>Primary Key</td></tr>

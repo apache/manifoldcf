@@ -13,6 +13,9 @@ CONNECTORS-1619: Fixes the elasticsearch output connector not to invalidate the
 password when saving the configuration.
 (Michael Cizmar , Markus Schuch)
 
+CONNECTORS-1618: Fix all malformed javadoc comments that broke the maven javadoc build.
+(Markus Schuch)
+
 CONNECTORS-1611: Update MySQL driver version.
 (Furkan Kamaci)
 

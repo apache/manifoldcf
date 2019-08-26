@@ -42,7 +42,7 @@ import com.google.common.collect.Maps;
  * Represents a Confluence Page
  * </p>
  * 
- * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+ * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
  */
 public class Page extends ConfluenceResource{
 
@@ -257,7 +257,7 @@ public class Page extends ConfluenceResource{
   /**
    * <p>PageBuilder internal class</p>
    * <p>Used to build pages</p>
-   * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+   * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
    *
    */
   public static class PageBuilder implements ConfluenceResourceBuilder<Page>{

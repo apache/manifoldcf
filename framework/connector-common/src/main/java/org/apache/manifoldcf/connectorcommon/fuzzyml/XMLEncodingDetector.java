@@ -23,7 +23,7 @@ import java.util.*;
 import java.io.*;
 
 /** This is the XML encoding detector.
-* It is basically looking for the preamble's <?xml ... ?> tag, which it parses
+* It is basically looking for the preamble's &lt;?xml ... ?&gt; tag, which it parses
 * looking for the "encoding" attribute.  It stops either when it is beyond
 * any possibility of finding the preamble, or it finds the tag, whichever comes first.
 */
@@ -92,7 +92,7 @@ public class XMLEncodingDetector extends XMLParseState implements EncodingDetect
     return true;
   }
 
-  /** This method is called for every <! <token> ... > construct, or 'btag'.
+  /** This method is called for every &lt;! &lt;token&gt; ... &gt; construct, or 'btag'.
   * Override it to intercept these.
   *@return true to halt further processing.
   */
@@ -104,7 +104,7 @@ public class XMLEncodingDetector extends XMLParseState implements EncodingDetect
   }
 
   /** This method is called for the end of every btag, or any time
-  * there's a naked '>' in the document.  Override it if you want to intercept these.
+  * there's a naked '&gt;' in the document.  Override it if you want to intercept these.
   *@return true to halt further processing.
   */
   protected boolean noteEndBTag()
@@ -113,7 +113,7 @@ public class XMLEncodingDetector extends XMLParseState implements EncodingDetect
     return true;
   }
   
-  /** Called for the start of every cdata-like tag, e.g. <![ <token> [ ... ]]>
+  /** Called for the start of every cdata-like tag, e.g. &lt;![ &lt;token&gt; [ ... ]]&gt;
   *@param token may be empty!!!
   *@return true to halt further processing.
   */

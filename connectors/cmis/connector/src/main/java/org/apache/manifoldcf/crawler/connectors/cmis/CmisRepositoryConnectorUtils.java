@@ -171,7 +171,6 @@ public class CmisRepositoryConnectorUtils {
     }
 
     /**
-     * @param props : list properties of a document
      * @param rd : object that contains the properties to pass to connector
      * @param cmisQuery : cmis query
      */
@@ -210,7 +209,6 @@ public class CmisRepositoryConnectorUtils {
 
     /**
      * @param property : the property
-     * @param propertyDefinitionType : definition of the type of property
      * @param rd : object to which we add the association property -> value
      * @throws Exception
      *

@@ -29,7 +29,7 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
  * 
  * <br><br>
  * <b>intrinsiclink</b>
- * <table border="1" cellpadding="3" cellspacing="0">
+ * <table border="1" cellpadding="3" cellspacing="0" summary="">
  * <tr class="TableHeadingColor">
  * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
  * <tr><td>jobid</td><td>BIGINT</td><td>Reference:jobs.id</td></tr>

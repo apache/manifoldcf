@@ -21,9 +21,6 @@ package org.apache.manifoldcf.crawler.notificationconnectorpool;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.interfaces.*;
 
-import java.util.*;
-import java.io.*;
-
 /** An implementation of INotificationConnectorPool.
 * Coordination and allocation among cluster members is managed within. 
 * These objects are thread-local, so do not share them among threads.
@@ -77,7 +74,7 @@ public class NotificationConnectorPool implements INotificationConnectorPool
 
   /** Get a notification connector.
   * The connector is specified by a notification connection object.
-  *@param authorityConnection is the notification connection to base the connector instance on.
+  *@param notificationConnection is the notification connection to base the connector instance on.
   */
   @Override
   public INotificationConnector grab(INotificationConnection notificationConnection)

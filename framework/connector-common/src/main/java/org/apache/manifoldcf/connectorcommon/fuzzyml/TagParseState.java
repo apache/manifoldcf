@@ -25,18 +25,20 @@ import java.util.*;
 /** This class represents a basic xml/html tag parser.
 * It is capable of recognizing the following xml and html constructs:
 *
-* '<' <token> <attrs> '>' ... '</' <token> '>'
-* '<' <token> <attrs> '/>'
-* '<?' <token> <attrs>  '?>'
-* '<![' [<token>] '[' ... ']]>'
-* '<!' <token> ... '>'
-* '<!--' ... '-->'
-*
+* <pre>
+* '&lt;' &lt;token&gt; &lt;attrs&gt; '&gt;' ... '&lt;/' &lt;token&gt; '&gt;'
+* '&lt;' &lt;token&gt; &lt;attrs&gt; '/&gt;'
+* '&lt;?' &lt;token&gt; &lt;attrs&gt;  '?&gt;'
+* '&lt;![' [&lt;token&gt;] '[' ... ']]&gt;'
+* '&lt;!' &lt;token&gt; ... '&gt;'
+* '&lt;!--' ... '--&gt;'
+* </pre>
+* 
 * Each of these, save the comment, has supporting protected methods that will be
 * called by the parsing engine.  Overriding these methods will allow an extending
 * class to perform higher-level data extraction and parsing.
 *
-* Of these, the messiest is the <! ... > construct, since there can be multiple nested
+* Of these, the messiest is the &lt;! ... &gt; construct, since there can be multiple nested
 * btags, cdata-like escapes, and qtags inside.  Ideally the parser should produce a
 * sequence of preparsed tokens from these tags.  Since they can be nested, keeping
 * track of the depth is also essential, so we do that with a btag depth counter.
@@ -79,7 +81,7 @@ public class TagParseState extends SingleCharacterReceiver
   
   protected int currentState = TAGPARSESTATE_NORMAL;
 
-  /** The btag depth, which indicates btag behavior when > 0. */
+  /** The btag depth, which indicates btag behavior when &gt; 0. */
   protected int bTagDepth = 0;
   
   /** This is the only buffer we actually accumulate stuff in.
@@ -1006,7 +1008,7 @@ public class TagParseState extends SingleCharacterReceiver
     return false;
   }
 
-  /** This method is called for every <? ... ?> construct, or 'qtag'.
+  /** This method is called for every &lt;? ... ?&gt; construct, or 'qtag'.
   * Override it to intercept such constructs.
   *@return true to halt further processing.
   */
@@ -1018,7 +1020,7 @@ public class TagParseState extends SingleCharacterReceiver
     return false;
   }
   
-  /** This method is called for every <! <token> ... > construct, or 'btag'.
+  /** This method is called for every &lt;! &lt;token&gt; ... &gt; construct, or 'btag'.
   * Override it to intercept these.
   *@return true to halt further processing.
   */
@@ -1031,7 +1033,7 @@ public class TagParseState extends SingleCharacterReceiver
   }
   
   /** This method is called for the end of every btag, or any time
-  * there's a naked '>' in the document.  Override it if you want to intercept these.
+  * there's a naked '&gt;' in the document.  Override it if you want to intercept these.
   *@return true to halt further processing.
   */
   protected boolean noteEndBTag()
@@ -1041,7 +1043,7 @@ public class TagParseState extends SingleCharacterReceiver
     return false;
   }
   
-  /** Called for the start of every cdata-like tag, e.g. <![ <token> [ ... ]]>
+  /** Called for the start of every cdata-like tag, e.g. &lt;![ &lt;token&gt; [ ... ]]&gt;
   *@param token may be empty!!!
   *@return true to halt further processing.
   */

@@ -23,7 +23,7 @@ import java.util.List;
  * <p>ConfluenceUser class</p>
  * <p>Represents a Confluence user</p>
  * 
- * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+ * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
  *
  */
 public class ConfluenceUser {

@@ -29,7 +29,6 @@ public class Messages extends org.apache.manifoldcf.ui.i18n.Messages {
   public static final String DEFAULT_PATH_NAME = "org.apache.manifoldcf.crawler.connectors.nuxeo";
 
   /** Constructor - do no instantiate
-   * @
     */
   protected Messages()
   {

@@ -24,7 +24,7 @@ import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.core.system.Logging;
 
 /**
- * Create the database using the name as specified through the {@see ManifoldCF}. The username and password for the
+ * Create the database using the name as specified through the {@link ManifoldCF}. The username and password for the
  * configured database need to be specified during construction.
  */
 public class DBCreate extends DBInitializationCommand

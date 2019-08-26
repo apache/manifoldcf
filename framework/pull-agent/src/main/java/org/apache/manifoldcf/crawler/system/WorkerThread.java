@@ -943,7 +943,6 @@ public class WorkerThread extends Thread
   *@param jobManager is the job manager.
   *@param deleteList is a list of QueuedDocument objects to clean out.
   *@param ingester is the handle to the incremental ingestion API control object.
-  *@param ingesterDeleteList is a list of document id's to delete.
   */
   protected static void processDeleteLists(IPipelineConnections pipelineConnections,
     IRepositoryConnector connector,

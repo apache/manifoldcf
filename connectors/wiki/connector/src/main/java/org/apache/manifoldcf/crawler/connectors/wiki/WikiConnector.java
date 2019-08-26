@@ -867,7 +867,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   *@param activities is the interface this method should use to perform whatever framework actions are desired.
   *@param spec is a document specification (that comes from the job).
   *@param seedTime is the end of the time range of documents to consider, exclusive.
-  *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
+  *@param lastSeedVersion is the last seeding version string for this job, or null if the job has no previous seeding version string.
   *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
   *@return an updated seeding version string, to be stored with the job.
   */
@@ -1092,7 +1092,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   
   /** Output the configuration body section.
   * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.  The name of the
   * form is "editconnection".
   *@param threadContext is the local thread context.
   *@param out is the output to which any HTML should be sent.
@@ -1425,7 +1425,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   
   /** View configuration.
   * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt; and &lt;body&gt;tags.
   *@param threadContext is the local thread context.
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
@@ -1534,7 +1534,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   * This method is called in the body section of a job page which has selected a repository connection of the
   * current type.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate
-  *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
+  *  &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.  The name of the form is always "editjob".
   * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the locale the output is preferred to be in.
@@ -1912,7 +1912,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** View specification.
   * This method is called in the body section of a job's view page.  Its purpose is to present the document
   * specification information to the user.  The coder can presume that the HTML that is output from
-  * this configuration will be within appropriate <html> and <body> tags.
+  * this configuration will be within appropriate &lt;html&gt; and &lt;body&gt;tags.
   * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the locale the output is preferred to be in.
@@ -2207,16 +2207,18 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /** Parse check response, e.g.:
-  * <api xmlns="http://www.mediawiki.org/xml/api/">
-  *   <query>
-  *     <allpages>
-  *       <p pageid="19839654" ns="0" title="Kre&#039;fey" />
-  *     </allpages>
-  *   </query>
-  *   <query-continue>
-  *     <allpages apfrom="Krea" />
-  *   </query-continue>
-  * </api>
+  * <pre>
+  * &lt;api xmlns="http://www.mediawiki.org/xml/api/"&gt;
+  *   &lt;query&gt;
+  *     &lt;allpages&gt;
+  *       &lt;p pageid="19839654" ns="0" title="Kre&#039;fey" /&gt;
+  *     &lt;/allpages&gt;
+  *   &lt;/query&gt;
+  *   &lt;query-continue&gt;
+  *     &lt;allpages apfrom="Krea" /&gt;
+  *   &lt;/query-continue&gt;
+  * &lt;/api&gt;
+  * </pre>
   */
   protected static boolean parseCheckResponse(InputStream is)
     throws ManifoldCFException, ServiceInterruption
@@ -2577,20 +2579,22 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /** Parse list output, e.g.:
-  * <api xmlns="http://www.mediawiki.org/xml/api/">
-  *   <query>
-  *     <allpages>
-  *       <p pageid="19839654" ns="0" title="Kre&#039;fey" />
-  *       <p pageid="30955295" ns="0" title="Kre-O" />
-  *       <p pageid="14773725" ns="0" title="Kre8tiveworkz" />
-  *       <p pageid="19219017" ns="0" title="Kre M&#039;Baye" />
-  *       <p pageid="19319577" ns="0" title="Kre Mbaye" />
-  *     </allpages>
-  *   </query>
-  *   <query-continue>
-  *     <allpages apfrom="Krea" />
-  *   </query-continue>
-  * </api>
+  * <pre>
+  * &lt;api xmlns="http://www.mediawiki.org/xml/api/"&gt;
+  *   &lt;query&gt;
+  *     &lt;allpages&gt;
+  *       &lt;p pageid="19839654" ns="0" title="Kre&#039;fey" /&gt;
+  *       &lt;p pageid="30955295" ns="0" title="Kre-O" /&gt;
+  *       &lt;p pageid="14773725" ns="0" title="Kre8tiveworkz" /&gt;
+  *       &lt;p pageid="19219017" ns="0" title="Kre M&#039;Baye" /&gt;
+  *       &lt;p pageid="19319577" ns="0" title="Kre Mbaye" /&gt;
+  *     &lt;/allpages&gt;
+  *   &lt;/query&gt;
+  *   &lt;query-continue&gt;
+  *     &lt;allpages apfrom="Krea" /&gt;
+  *   &lt;/query-continue&gt;
+  * &lt;/api&gt;
+  * </pre>
   */
   protected static boolean parseListPagesResponse(InputStream is, XThreadStringBuffer buffer, String startPageTitle, ReturnString lastTitle)
     throws ManifoldCFException, ServiceInterruption
@@ -2947,13 +2951,15 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /** This method parses a response like the following:
-  * <api>
-  *   <query>
-  *     <pages>
-  *       <page pageid="27697087" ns="0" title="API" fullurl="..."/>
-  *     </pages>
-  *   </query>
-  * </api>
+  * <pre>
+  * &lt;api&gt;
+  *   &lt;query&gt;
+  *     &lt;pages&gt;
+  *       &lt;page pageid="27697087" ns="0" title="API" fullurl="..."/&gt;
+  *     &lt;/pages&gt;
+  *   &lt;/query&gt;
+  * &lt;/api&gt;
+  * </pre>
   */
   protected static boolean parseGetDocURLsResponse(InputStream is, Map<String,String> urls)
     throws ManifoldCFException, ServiceInterruption
@@ -3260,17 +3266,19 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
   }
 
   /** This method parses a response like the following:
-  * <api>
-  *   <query>
-  *     <pages>
-  *       <page pageid="27697087" ns="0" title="API">
-  *         <revisions>
-  *           <rev user="Graham87" timestamp="2010-06-13T08:41:17Z" />
-  *         </revisions>
-  *       </page>
-  *     </pages>
-  *   </query>
-  * </api>
+  * <pre>
+  * &lt;api&gt;
+  *   &lt;query&gt;
+  *     &lt;pages&gt;
+  *       &lt;page pageid="27697087" ns="0" title="API"&gt;
+  *         &lt;revisions&gt;
+  *           &lt;rev user="Graham87" timestamp="2010-06-13T08:41:17Z" /&gt;
+  *         &lt;/revisions&gt;
+  *       &lt;/page&gt;
+  *     &lt;/pages&gt;
+  *   &lt;/query&gt;
+  * &lt;/api&gt;
+  * </pre>
   */
   protected static boolean parseGetTimestampResponse(InputStream is, Map<String,String> versions)
     throws ManifoldCFException, ServiceInterruption

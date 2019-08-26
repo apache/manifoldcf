@@ -297,7 +297,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   
   /** Output the configuration body section.
   * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.  The name of the
   * form is "editconnection".
   *@param threadContext is the local thread context.
   *@param out is the output to which any HTML should be sent.
@@ -344,7 +344,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   
   /** View configuration.
   * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt; and &lt;body&gt;tags.
   *@param threadContext is the local thread context.
   *@param out is the output to which any HTML should be sent.
   *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
@@ -488,7 +488,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
    *          serve the document. This URI is constructed by the repository
    *          connector which fetches the document, and is thus universal across
    *          all output connectors.
-   * @param outputDescription
+   * @param pipelineDescription
    *          is the description string that was constructed for this document
    *          by the getOutputDescription() method.
    * @param document
@@ -860,7 +860,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
    * section of a job page which has selected a pipeline connection of the
    * current type. Its purpose is to present the required form elements for
    * editing. The coder can presume that the HTML that is output from this
-   * configuration will be within appropriate <html>, <body>, and <form> tags.
+   * configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.
    * The name of the form is "editjob".
    * 
    * @param out
@@ -999,7 +999,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
    * View specification. This method is called in the body section of a job's
    * view page. Its purpose is to present the pipeline specification information
    * to the user. The coder can presume that the HTML that is output from this
-   * configuration will be within appropriate <html> and <body> tags.
+   * configuration will be within appropriate &lt;html&gt; and &lt;body&gt;tags.
    * 
    * @param out
    *          is the output to which any HTML should be sent.

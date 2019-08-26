@@ -205,7 +205,6 @@ public class CmisOutputConnectorUtils {
 
     /**
      * @param property : the property
-     * @param propertyDefinitionType : definition of the type of property
      * @param rd : object to which we add the association property -> value
      * @throws Exception
      *

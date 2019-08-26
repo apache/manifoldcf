@@ -485,7 +485,7 @@ public class UserACLServlet extends HttpServlet
   * are met, and then when they are, firing off a MappingRequest.  One of these threads is spun up
   * for every IMappingConnection being handled.
   * NOTE WELL: The number of threads this might require is worrisome.  It is essentially
-  * <number_of_app_server_threads> * <number_of_mappers>.  I will try later to see if I can find
+  * {@literal<number_of_app_server_threads> * <number_of_mappers>}.  I will try later to see if I can find
   * a way of limiting this to sane numbers.
   */
   protected static class MappingOrderThread extends Thread
@@ -548,7 +548,7 @@ public class UserACLServlet extends HttpServlet
   * are met, and then when they are, firing off an AuthRequest.  One of these threads is spun up
   * for every IAuthorityConnection being handled.
   * NOTE WELL: The number of threads this might require is worrisome.  It is essentially
-  * <number_of_app_server_threads> * <number_of_authorities>.  I will try later to see if I can find
+  * {@literal<number_of_app_server_threads> * <number_of_authorities>}.  I will try later to see if I can find
   * a way of limiting this to sane numbers.
   */
   protected static class AuthOrderThread extends Thread

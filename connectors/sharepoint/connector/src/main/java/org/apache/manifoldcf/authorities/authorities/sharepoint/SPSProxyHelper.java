@@ -372,9 +372,7 @@ public class SPSProxyHelper {
   /**
   *
   * @return true if connection OK
-  * @throws java.net.MalformedURLException
-  * @throws javax.xml.rpc.ServiceException
-  * @throws java.rmi.RemoteException
+  * @throws ManifoldCFException
   */
   public boolean checkConnection( String site )
     throws ManifoldCFException

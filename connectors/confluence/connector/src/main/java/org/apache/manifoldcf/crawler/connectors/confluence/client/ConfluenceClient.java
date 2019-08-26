@@ -85,7 +85,7 @@ import com.google.common.collect.Lists;
  * them to leverage all the features provided by Confluence
  * </p>
  * 
- * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+ * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
  *
  */
 public class ConfluenceClient {
@@ -357,7 +357,7 @@ public class ConfluenceClient {
   /**
    * <p>Get the attachments of the given page</p>
    * @param pageId the page id
-   * @return a {@code ConfluenceResponse} instance containing the attachment results and some pagination values</p>
+   * @return a {@code ConfluenceResponse} instance containing the attachment results and some pagination values
    * @throws Exception
    */
   public ConfluenceResponse<Attachment> getPageAttachments(String pageId)
@@ -370,7 +370,7 @@ public class ConfluenceClient {
    * @param pageId the page id
    * @param start The start value to get attachments from
    * @param limit The number of attachments to get from start
-   * @return a {@code ConfluenceResponse} instance containing the attachment results and some pagination values</p>
+   * @return a {@code ConfluenceResponse} instance containing the attachment results and some pagination values
    * @throws Exception
    */
   public ConfluenceResponse<Attachment> getPageAttachments(String pageId, int start,
@@ -389,7 +389,6 @@ public class ConfluenceClient {
    * </p>
    * 
    * @param attachmentId
-   * @param pageId
    * @return the {@code Attachment} instance
    */
   public Attachment getAttachment(String attachmentId) {

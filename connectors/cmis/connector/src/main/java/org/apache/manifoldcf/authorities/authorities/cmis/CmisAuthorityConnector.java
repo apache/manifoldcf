@@ -116,7 +116,7 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
    * section of the authority connector's configuration page. Its purpose is to
    * present the required form elements for editing. The coder can presume that
    * the HTML that is output from this configuration will be within appropriate
-   * <html>, <body>, and <form> tags. The name of the form is "editconnection".
+   * &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags. The name of the form is "editconnection".
    * 
    * @param threadContext
    *          is the local thread context.
@@ -244,8 +244,8 @@ public class CmisAuthorityConnector extends BaseAuthorityConnector {
    * View configuration. This method is called in the body section of the
    * connector's view configuration page. Its purpose is to present the
    * connection information to the user. The coder can presume that the HTML that
-   * is output from this configuration will be within appropriate <html> and
-   * <body> tags.
+   * is output from this configuration will be within appropriate &lt;html&gt; and
+   * &lt;body&gt; tags.
    * 
    * @param threadContext
    *          is the local thread context.

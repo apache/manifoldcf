@@ -111,7 +111,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
   }
 
   /** Connect.
-   *@param configParameters is the set of configuration parameters, which
+   *@param configParams is the set of configuration parameters, which
    * in this case describe the target appliance, basic auth configuration, etc.  (This formerly came
    * out of the ini file.)
    */
@@ -351,7 +351,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
 
   /** Output the configuration body section.
    * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
-   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+   * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.  The name of the
    * form is "editconnection".
    *@param threadContext is the local thread context.
    *@param out is the output to which any HTML should be sent.
@@ -382,7 +382,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
 
   /** View configuration.
    * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
-   * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+   * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt; and &lt;body&gt;tags.
    *@param threadContext is the local thread context.
    *@param out is the output to which any HTML should be sent.
    *@param parameters are the configuration parameters, as they currently exist, for this connection being configured.
@@ -412,7 +412,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
 
   /** Output the specification body section.
   * This method is called in the body section of a job page which has selected a pipeline connection of the current type.  Its purpose is to present the required form elements for editing.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html>, <body>, and <form> tags.  The name of the
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.  The name of the
   * form is "editjob".
   *@param out is the output to which any HTML should be sent.
   *@param locale is the preferred local of the output.
@@ -459,7 +459,7 @@ public class HDFSOutputConnector extends BaseOutputConnector {
 
   /** View specification.
   * This method is called in the body section of a job's view page.  Its purpose is to present the pipeline specification information to the user.
-  * The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and <body> tags.
+  * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt; and &lt;body&gt;tags.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the preferred local of the output.
   *@param connectionSequenceNumber is the unique number of this connection within the job.
@@ -474,7 +474,6 @@ public class HDFSOutputConnector extends BaseOutputConnector {
 
   /**
    * @param os
-   * @return
    */
   final private SpecificationNode getSpecNode(Specification os)
   {
@@ -490,7 +489,6 @@ public class HDFSOutputConnector extends BaseOutputConnector {
 
   /**
    * @param os
-   * @return
    * @throws ManifoldCFException
    */
   final private HDFSOutputSpecs getSpecParameters(Specification os) throws ManifoldCFException {
@@ -499,7 +497,6 @@ public class HDFSOutputConnector extends BaseOutputConnector {
 
   /**
    * @param configParams
-   * @return
    */
   final private HDFSOutputConfig getConfigParameters(ConfigParams configParams) {
     if (configParams == null)
@@ -534,7 +531,6 @@ public class HDFSOutputConnector extends BaseOutputConnector {
 
   /**
    * @param documentURI
-   * @return
    * @throws URISyntaxException
    */
   final private String documentURItoFilePath(String documentURI) throws URISyntaxException {
@@ -863,8 +859,6 @@ public class HDFSOutputConnector extends BaseOutputConnector {
 
     /** Build a set of ElasticSearch parameters by reading an JSON object
      * 
-     * @param json
-     * @throws JSONException
      * @throws ManifoldCFException
      */
     public HDFSOutputSpecs(String versionString) throws ManifoldCFException {
@@ -920,7 +914,6 @@ public class HDFSOutputConnector extends BaseOutputConnector {
     }
 
     /**
-     * @return
      */
     public String getRootPath() {
       return get(ParameterEnum.rootpath);
@@ -928,7 +921,6 @@ public class HDFSOutputConnector extends BaseOutputConnector {
 
     /**
      * @param content
-     * @return
      * @throws ManifoldCFException
      */
     private final static TreeSet<String> createStringSet(String content) throws ManifoldCFException {

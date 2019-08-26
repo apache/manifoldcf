@@ -342,7 +342,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
     *@param activities is the interface this method should use to perform whatever framework actions are desired.
     *@param spec is a document specification (that comes from the job).
     *@param seedTime is the end of the time range of documents to consider, exclusive.
-    *@param lastSeedVersionString is the last seeding version string for this job, or null if the job has no previous seeding version string.
+    *@param lastSeedVersion is the last seeding version string for this job, or null if the job has no previous seeding version string.
     *@param jobMode is an integer describing how the job is being run, whether continuous or once-only.
     *@return an updated seeding version string, to be stored with the job.
      */
@@ -591,7 +591,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
      * section of the connector's configuration page. Its purpose is to present
      * the required form elements for editing. The coder can presume that the
      * HTML that is output from this configuration will be within appropriate
-     * <html>, <body>, and <form> tags. The name of the form is always
+     * &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags. The name of the form is always
      * "editconnection". The connector does not need to be connected for this
      * method to be called.
      *
@@ -687,8 +687,8 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
      * View configuration. This method is called in the body section of the
      * connector's view configuration page. Its purpose is to present the
      * connection information to the user. The coder can presume that the HTML
-     * that is output from this configuration will be within appropriate <html>
-     * and <body> tags. The connector does not need to be connected for this
+     * that is output from this configuration will be within appropriate &lt;html&gt;
+     * and &lt;body&gt; tags. The connector does not need to be connected for this
      * method to be called.
      *
      * @param threadContext is the local thread context.
