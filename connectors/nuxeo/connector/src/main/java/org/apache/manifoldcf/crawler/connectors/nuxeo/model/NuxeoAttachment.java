@@ -20,7 +20,7 @@ package org.apache.manifoldcf.crawler.connectors.nuxeo.model;
 import java.io.InputStream;
 
 /**
- * @author David Arroyo Escobar <arroyoescobardavid@gmail.com>
+ * @author David Arroyo Escobar &lt;arroyoescobardavid@gmail.com&gt;
  *
  */
 public class NuxeoAttachment {

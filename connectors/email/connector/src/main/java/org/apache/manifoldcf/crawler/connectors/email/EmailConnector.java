@@ -46,28 +46,28 @@ import java.util.regex.Pattern;
 /**
 * This interface describes an instance of a connection between a repository and ManifoldCF's
 * standard "pull" ingestion agent.
-* <p/>
+* <p>
 * Each instance of this interface is used in only one thread at a time. Connection Pooling
 * on these kinds of objects is performed by the factory which instantiates repository connectors
 * from symbolic names and config parameters, and is pooled by these parameters. That is, a pooled connector
 * handle is used only if all the connection parameters for the handle match.
-* <p/>
+* <p>
 * Implementers of this interface should provide a default constructor which has this signature:
-* <p/>
+* <pre>
 * xxx();
-* <p/>
+* </pre>
 * Connectors are either configured or not. If configured, they will persist in a pool, and be
 * reused multiple times. Certain methods of a connector may be called before the connector is
 * configured. This includes basically all methods that permit inspection of the connector's
 * capabilities. The complete list is:
-* <p/>
-* <p/>
+* <p>
+* <p>
 * The purpose of the repository connector is to allow documents to be fetched from the repository.
-* <p/>
+* <p>
 * Each repository connector describes a set of documents that are known only to that connector.
 * It therefore establishes a space of document identifiers. Each connector will only ever be
 * asked to deal with identifiers that have in some way originated from the connector.
-* <p/>
+* <p>
 * Documents are fetched in three stages. First, the getDocuments() method is called in the connector
 * implementation. This returns a set of document identifiers. The document identifiers are used to
 * obtain the current document version strings in the second stage, using the getDocumentVersions() method.
@@ -1204,8 +1204,8 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   * View configuration. This method is called in the body section of the
   * connector's view configuration page. Its purpose is to present the
   * connection information to the user. The coder can presume that the HTML that
-  * is output from this configuration will be within appropriate <html> and
-  * <body> tags.
+  * is output from this configuration will be within appropriate &lt;html&gt; and
+  * &lt;body&gt; tags.
   *
   * @param threadContext is the local thread context.
   * @param out is the output to which any HTML should be sent.
@@ -1257,7 +1257,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   * This method is called in the body section of a job page which has selected a repository connection of the
   * current type.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate
-  *  <html>, <body>, and <form> tags.  The name of the form is always "editjob".
+  *  &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.  The name of the form is always "editjob".
   * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the locale the output is preferred to be in.
@@ -1513,7 +1513,7 @@ public class EmailConnector extends org.apache.manifoldcf.crawler.connectors.Bas
   /** View specification.
   * This method is called in the body section of a job's view page.  Its purpose is to present the document
   * specification information to the user.  The coder can presume that the HTML that is output from
-  * this configuration will be within appropriate <html> and <body> tags.
+  * this configuration will be within appropriate &lt;html&gt; and &lt;body&gt;tags.
   * The connector will be connected before this method can be called.
   *@param out is the output to which any HTML should be sent.
   *@param locale is the locale the output is preferred to be in.

@@ -40,7 +40,7 @@ public interface IReprioritizationTracker
   
   /** Complete a reprioritization activity.  Prioritization will be marked as complete
   * only if the processID matches the one that started the current reprioritization.
-  *@param processID is the process ID of the process completing the prioritization.
+  *@param reproID is the process ID of the process completing the prioritization.
   */
   public void doneReprioritization(String reproID)
     throws ManifoldCFException;

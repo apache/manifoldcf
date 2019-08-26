@@ -25,7 +25,7 @@ import java.util.Locale;
  * <p>PageType class</p>
  * <p>Represents the kind of pages we can have in Confluence</p>
  * 
- * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+ * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
  *
  */
 public enum PageType {

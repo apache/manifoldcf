@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
  * ManifoldCF Authority connector to deal with Confluence documents
  * </p>
  * 
- * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+ * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
  *
  */
 public class ConfluenceAuthorityConnector extends BaseAuthorityConnector {

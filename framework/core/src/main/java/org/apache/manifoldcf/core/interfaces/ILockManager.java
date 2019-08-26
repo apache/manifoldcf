@@ -144,7 +144,6 @@ public interface ILockManager
   /** Get the current shared configuration.  This configuration is available in common among all nodes,
   * and thus must not be accessed through here for the purpose of finding configuration data that is specific to any one
   * specific node.
-  *@param configurationData is the globally-shared configuration information.
   */
   public ManifoldCFConfiguration getSharedConfiguration()
     throws ManifoldCFException;

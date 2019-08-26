@@ -64,7 +64,7 @@ import com.google.common.collect.Maps;
  * ManifoldCF Repository connector to deal with Confluence documents
  * </p>
  * 
- * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+ * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
  *
  */
 public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
@@ -1035,8 +1035,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
    * Process the specific page
    * </p>
    * 
-   * @param pageId
-   *            The pageId being an attachment
+   * @param page
+   *            The page to process
    * @param manifoldDocumentIdentifier
    * @param version
    *            The version of the page
@@ -1213,7 +1213,7 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
    * configuration in object format
    * </p>
    * 
-   * @author Antonio David Perez Morales <adperezmorales@gmail.com>
+   * @author Antonio David Perez Morales &lt;adperezmorales@gmail.com&gt;
    *
    */
   private static class ConfluenceSpecification {

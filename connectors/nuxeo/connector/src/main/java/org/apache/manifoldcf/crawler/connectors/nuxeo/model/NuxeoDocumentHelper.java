@@ -68,11 +68,6 @@ public class NuxeoDocumentHelper {
         processDocument();
     }
 
-    /**
-     *
-     *
-     * @return Map<String, Object>
-     */
     public Map<String, Object> getMetadata() {
         Map<String, Object> docMetadata = Maps.newHashMap();
 

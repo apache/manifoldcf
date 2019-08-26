@@ -28,7 +28,7 @@ import java.util.regex.*;
 * search and replace, where the replace string can include references to the groups present in the
 * search regexp.
 * MatchMaps can be converted to strings in two different ways.  The first way is to build a single
-* string of the form "match1=replace1&match2=replace2...".  Strings of this kind must escape & and =
+* string of the form "match1=replace1&amp;match2=replace2...".  Strings of this kind must escape &amp; and =
 * characters in the match and replace strings, where found.  The second way is to generate an array
 * of match strings and a corresponding array of replace strings.  This method requires no escaping
 * of the string contents.

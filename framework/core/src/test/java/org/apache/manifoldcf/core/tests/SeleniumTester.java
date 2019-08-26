@@ -211,7 +211,6 @@ public class SeleniumTester
   /**
    * Find an element by waiting we find it based on its visibility
    * @param selector
-   * @return
    */
   public WebElement waitFindElement(By selector)
   {
@@ -221,7 +220,6 @@ public class SeleniumTester
   /**
    * Find an element by waiting until it becomes clickable
    * @param selector
-   * @return
    */
   public WebElement waitElementClickable(By selector)
   {
@@ -231,7 +229,6 @@ public class SeleniumTester
   /**
    * Find an element by waiting until we find it's presence in dom
    * @param selector
-   * @return
    */
   public WebElement waitUntilPresenceOfElementLocated(By selector)
   {
@@ -381,7 +378,6 @@ public class SeleniumTester
 
   /**
    * Check if a alert box appeared in the browser.s
-   * @return
    */
   public boolean isAlertPresent()
   {
@@ -476,7 +472,6 @@ public class SeleniumTester
    * Check if an element has a class
    * @param element
    * @param className
-   * @return
    */
   private boolean hasClass(WebElement element, String className)
   {
@@ -489,7 +484,6 @@ public class SeleniumTester
    * Get the attribute value of an element
    * @param id
    * @param attribute
-   * @return
    */
   public String getAttributeValueById(String id, String attribute)
   {
@@ -724,7 +718,6 @@ public class SeleniumTester
 
   /**
    * Get the source of the html document
-   * @return
    */
   public String getRenderedSource()
   {
@@ -734,7 +727,6 @@ public class SeleniumTester
   /**
    * Get the source of an element by find it in DOM
    * @param selector
-   * @return
    */
   public String getRenderedSource(By selector)
   {
@@ -744,7 +736,6 @@ public class SeleniumTester
   /**
    * Get the source of an element
    * @param element
-   * @return
    */
   public String getRenderedSource(WebElement element)
   {

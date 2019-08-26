@@ -65,7 +65,7 @@ import com.google.common.collect.Maps;
  *
  * Nuxeo Repository Connector class
  *
- * @author David Arroyo Escobar <arroyoescobardavid@gmail.com>
+ * @author David Arroyo Escobar &lt;arroyoescobardavid@gmail.com&gt;
  *
  */
 public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
@@ -885,7 +885,6 @@ public class NuxeoRepositoryConnector extends BaseRepositoryConnector {
 
         /**
          * @param spec
-         * @return
          */
         public static NuxeoSpecification from(Specification spec) {
             NuxeoSpecification ns = new NuxeoSpecification();

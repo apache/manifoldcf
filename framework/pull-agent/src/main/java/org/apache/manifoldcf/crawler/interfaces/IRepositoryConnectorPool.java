@@ -20,9 +20,6 @@ package org.apache.manifoldcf.crawler.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
 
-import java.util.*;
-import java.io.*;
-
 /** An object implementing this interface functions as a pool of repository connectors.
 * Coordination and allocation among cluster members is managed within. 
 * These objects are thread-local, so do not share them among threads.
@@ -34,7 +31,7 @@ public interface IRepositoryConnectorPool
   /** Get multiple repository connectors, all at once.  Do this in a particular order
   * so that any connector exhaustion will not cause a deadlock.
   *@param orderingKeys are the keys which determine in what order the connectors are obtained.
-  *@param repositoryConnections are the connections to use the build the connector instances.
+  *@param authorityConnections are the connections to use the build the connector instances.
   */
   public IRepositoryConnector[] grabMultiple(String[] orderingKeys, IRepositoryConnection[] authorityConnections)
     throws ManifoldCFException;

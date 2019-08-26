@@ -20,9 +20,6 @@ package org.apache.manifoldcf.crawler.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
 
-import java.util.*;
-import java.io.*;
-
 /** An object implementing this interface functions as a pool of notification connectors.
 * Coordination and allocation among cluster members is managed within. 
 * These objects are thread-local, so do not share them among threads.
@@ -36,7 +33,7 @@ public interface INotificationConnectorPool
   *@param orderingKeys are the keys which determine in what order the connectors are obtained.
   *@param notificationConnections are the connections to use the build the connector instances.
   */
-  public INotificationConnector[] grabMultiple(String[] orderingKeys, INotificationConnection[] authorityConnections)
+  public INotificationConnector[] grabMultiple(String[] orderingKeys, INotificationConnection[] notificationConnections)
     throws ManifoldCFException;
 
   /** Get a notification connector.

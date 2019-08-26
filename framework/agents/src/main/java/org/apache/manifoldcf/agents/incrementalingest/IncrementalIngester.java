@@ -36,7 +36,7 @@ import java.io.*;
 *
 * <br><br>
 * <b>ingeststatus</b>
-* <table border="1" cellpadding="3" cellspacing="0">
+* <table border="1" cellpadding="3" cellspacing="0" summary="">
 * <tr class="TableHeadingColor">
 * <th>Field</th><th>Type</th><th>Description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
 * <tr><td>id</td><td>BIGINT</td><td>Primary Key</td></tr>
@@ -362,10 +362,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   }
 
   /** Grab the entire pipeline.
-  *@param transformationConnections - the transformation connections, in order
-  *@param outputConnection - the output connection
-  *@param transformationDescriptionStrings - the array of description strings for transformations
-  *@param outputDescriptionString - the output description string
+  *@param pipelineConnections - the pipeline specification with version information
   *@return the pipeline description, or null if any part of the pipeline cannot be grabbed.
   */
   protected PipelineObjectWithVersions pipelineGrabWithVersions(IPipelineSpecificationWithVersions pipelineConnections)
@@ -412,10 +409,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   }
 
   /** Grab the entire pipeline.
-  *@param transformationConnections - the transformation connections, in order
-  *@param outputConnection - the output connection
-  *@param transformationDescriptionStrings - the array of description strings for transformations
-  *@param outputDescriptionString - the output description string
+  *@param pipelineConnections - the pipeline specification
   *@return the pipeline description, or null if any part of the pipeline cannot be grabbed.
   */
   protected PipelineObject pipelineGrab(IPipelineSpecification pipelineConnections)
@@ -976,7 +970,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   *@param pipelineConnections is the pipeline specification.
   *@param identifierClasses are the names of the spaces in which the identifier hashes should be interpreted.
   *@param identifierHashes is tha array of document identifier hashes if the documents.
-  *@param activities is the object to use to log the details of the ingestion attempt.  May be null.
+  *@param originalActivities is the object to use to log the details of the ingestion attempt.  May be null.
   */
   @Override
   public void documentDeleteMultiple(
@@ -1769,7 +1763,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Get a chunk of document ingest data records.
   *@param rval is the document ingest status array where the data should be put.
   *@param map is the map from id to index.
-  *@param clause is the in clause for the query.
   *@param list is the parameter list for the query.
   */
   protected void getPipelineDocumentIngestDataChunk(IngestStatuses rval, Map<String,Integer> map, String[] outputConnectionNames, List<String> list,
@@ -1925,7 +1918,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   /** Query for and calculate the interval for a bunch of hashcodes.
   *@param rval is the array to stuff calculated return values into.
   *@param list is the list of parameters.
-  *@param queryPart is the part of the query pertaining to the list of hashcodes
   *@param returnMap is a mapping from document id to rval index.
   */
   protected void getIntervals(long[] rval, String[] outputConnectionNames, List<String> list, Map<String,Integer> returnMap)
@@ -2198,8 +2190,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
   
   /** Get a chunk of document uris.
   *@param rval is the string array where the uris should be put.
-  *@param map is the map from id to index.
-  *@param clause is the in clause for the query.
   *@param list are the doc keys for the query.
   */
   protected void getDocumentURIChunk(List<DeleteInfo> rval, String outputConnectionName,
@@ -2241,8 +2231,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
 
   /** Get a chunk of document uris.
   *@param rval is the string array where the uris should be put.
-  *@param map is the map from id to index.
-  *@param clause is the in clause for the query.
   *@param list are the doc keys for the query.
   *@param componentHash is the component hash, if any, for the query.
   */
