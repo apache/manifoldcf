@@ -20,6 +20,7 @@
 package org.apache.manifoldcf.connectorcommon.interfaces;
 
 import org.apache.manifoldcf.core.interfaces.*;
+import javax.net.ssl.TrustManager;
 import java.io.*;
 
 /** This interface describes a class that manages keys and certificates in a secure manner.
@@ -80,4 +81,8 @@ public interface IKeystoreManager extends ISSLSocketFactoryProducer
   public void addCertificate(String alias, java.security.cert.Certificate certificate)
     throws ManifoldCFException;
 
+  /** Get the trust stores for this keystore manager.
+  */
+  public TrustManager[] getTrustManagers()
+    throws ManifoldCFException;
 }
