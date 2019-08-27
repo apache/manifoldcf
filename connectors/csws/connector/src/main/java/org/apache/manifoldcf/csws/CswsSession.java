@@ -28,6 +28,10 @@ import java.net.MalformedURLException;
 import java.io.OutputStream;
 import java.io.IOException;
 
+import org.apache.cxf.transport.http.HttpConduitFeature;
+import org.apache.cxf.transport.http.HttpConduitConfig;
+import org.apache.cxf.configuration.jsse.TLSClientParameters;
+
 import javax.activation.DataHandler;
 import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
@@ -139,6 +143,12 @@ public class CswsSession
     this.password = password;
     // Save expiration interval
     this.sessionExpirationInterval = sessionExpirationInterval;
+    // Build TLSClientParameters
+    final TLSClientParameters tlsConfig = new TLSClientParameters();
+    // Build configuration for conduit
+    final HttpConduitConfig config = new HttpConduitConfig();
+    config.setTlsClientParameters(tlsConfig);
+    
     // Construct service references from the URLs
     try {
       this.authService = new Authentication_Service(new URL(authenticationServiceURL));

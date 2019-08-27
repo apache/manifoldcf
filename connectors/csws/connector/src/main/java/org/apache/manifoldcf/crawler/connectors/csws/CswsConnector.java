@@ -1279,8 +1279,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Csws: Decided to ingest document "+objID);
 
-        // Grab the access tokens for this file from the version string, inside ingest method.
-        ingestFromCsws(llc, documentIdentifier, versionString, actualAcls, denyAcls, categoryPaths, activities, desc, sDesc);
+        // Index it
+        ingestFromCsws(llc, documentIdentifier, versionString, actualAcls, denyAcls, rights.getOwnerRight().getRightID(), categoryPaths, activities, desc, sDesc);
           
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Csws: Done processing document "+objID);
@@ -2682,6 +2682,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected void ingestFromCsws(CswsContext llc,
     String documentIdentifier, String version,
     String[] actualAcls, String[] denyAcls,
+    long ownerID,
     String[] categoryPaths,
     IProcessActivity activities,
     MetadataDescription desc, SystemMetadataDescription sDesc)
@@ -2817,13 +2818,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         rd.addField(GENERAL_MODIFYDATE_FIELD,DateParser.formatISO8601Date(modifyDate));
       if (parentID != null)
         rd.addField(GENERAL_PARENTID,parentID.toString());
-      // TBD: this comes from NodeRights now, e.g cswsSession.getNodeRights(docId)
-      //UserInformation owner = llc.getUserInformation(objInfo.getOwnerId());
+
+      UserInformation owner = llc.getUserInformation(ownerID);  // from ObjectRights
       UserInformation creator = llc.getUserInformation(objInfo.getCreatorId());
       UserInformation modifier = llc.getUserInformation(versInfo.getOwnerId());
-      // TBD
-      //if (owner != null)
-      //  rd.addField(GENERAL_OWNER,owner.getName());
+      if (owner != null)
+        rd.addField(GENERAL_OWNER,owner.getName());
       if (creator != null)
         rd.addField(GENERAL_CREATOR,creator.getName());
       if (modifier != null)

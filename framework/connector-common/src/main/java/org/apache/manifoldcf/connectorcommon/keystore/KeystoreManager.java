@@ -22,6 +22,8 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.connectorcommon.interfaces.*;
 import org.apache.manifoldcf.core.common.*;
 import org.apache.manifoldcf.core.system.Logging;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import java.security.*;
 import java.security.cert.*;
 import java.security.cert.Certificate;
@@ -317,11 +319,10 @@ public class KeystoreManager implements IKeystoreManager
     }
   }
 
-  /** Build a secure socket factory based on this keystore.
+  /** Get the trust stores for this keystore manager.
   */
   @Override
-  public javax.net.ssl.SSLSocketFactory getSecureSocketFactory()
-    throws ManifoldCFException
+  public TrustManager[] getTrustManagers() throws ManifoldCFException
   {
     try
     {
@@ -330,7 +331,7 @@ public class KeystoreManager implements IKeystoreManager
       // javax.net.ssl.KeyManagerFactory keyManagerFactory = javax.net.ssl.KeyManagerFactory.getInstance(javax.net.ssl.KeyManagerFactory.getDefaultAlgorithm());
       // keyManagerFactory.init(keystore,passcode);
 
-      javax.net.ssl.TrustManagerFactory trustManagerFactory = javax.net.ssl.TrustManagerFactory.getInstance(javax.net.ssl.TrustManagerFactory.getDefaultAlgorithm());
+      TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
       Logging.keystore.debug("Contents of current trust keystore is:");
       if (Logging.keystore.isDebugEnabled())
       {
@@ -347,7 +348,7 @@ public class KeystoreManager implements IKeystoreManager
       if (Logging.keystore.isDebugEnabled())
       {
         Logging.keystore.debug("...done");
-        javax.net.ssl.TrustManager array[] = trustManagerFactory.getTrustManagers();
+        TrustManager array[] = trustManagerFactory.getTrustManagers();
         Logging.keystore.debug("Found "+Integer.toString(array.length)+" trust managers");
         int i = 0;
         while (i < array.length)
@@ -372,14 +373,7 @@ public class KeystoreManager implements IKeystoreManager
         Logging.keystore.debug("No more trust contents");
       }
 
-      java.security.SecureRandom secureRandom = java.security.SecureRandom.getInstance("SHA1PRNG");
-
-      // Create an SSL context
-      javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("SSL");
-      sslContext.init(((keyManagerFactory==null)?null:keyManagerFactory.getKeyManagers()),((trustManagerFactory==null)?null:trustManagerFactory.getTrustManagers()),
-        secureRandom);
-
-      return sslContext.getSocketFactory();
+      return (trustManagerFactory==null)?null:trustManagerFactory.getTrustManagers();
     }
     catch (java.security.NoSuchAlgorithmException e)
     {
@@ -388,6 +382,34 @@ public class KeystoreManager implements IKeystoreManager
     catch (java.security.KeyStoreException e)
     {
       throw new ManifoldCFException("Keystore exception: "+e.getMessage(),e);
+    }
+  }
+
+  /** Build a secure socket factory based on this keystore.
+  */
+  @Override
+  public javax.net.ssl.SSLSocketFactory getSecureSocketFactory()
+    throws ManifoldCFException
+  {
+    try
+    {
+      // Construct a key manager and a trust manager
+      javax.net.ssl.KeyManagerFactory keyManagerFactory = null;
+      // javax.net.ssl.KeyManagerFactory keyManagerFactory = javax.net.ssl.KeyManagerFactory.getInstance(javax.net.ssl.KeyManagerFactory.getDefaultAlgorithm());
+      // keyManagerFactory.init(keystore,passcode);
+
+      java.security.SecureRandom secureRandom = java.security.SecureRandom.getInstance("SHA1PRNG");
+
+      // Create an SSL context
+      javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("SSL");
+      sslContext.init(((keyManagerFactory==null)?null:keyManagerFactory.getKeyManagers()),getTrustManagers(),
+        secureRandom);
+
+      return sslContext.getSocketFactory();
+    }
+    catch (java.security.NoSuchAlgorithmException e)
+    {
+      throw new ManifoldCFException("No such algorithm: "+e.getMessage(),e);
     }
     catch (java.security.KeyManagementException e)
     {
