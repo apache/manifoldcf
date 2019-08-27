@@ -130,7 +130,7 @@ public class CswsSession
   
   public CswsSession(final String userName,
     final String password,
-    final javax.net.ssl.SSLSocketFactory sslSocketFactory,
+    final IKeystoreManager keystore,
     final long sessionExpirationInterval,
     final String authenticationServiceURL,
     final String documentManagementServiceURL,
@@ -145,6 +145,9 @@ public class CswsSession
     this.sessionExpirationInterval = sessionExpirationInterval;
     // Build TLSClientParameters
     final TLSClientParameters tlsConfig = new TLSClientParameters();
+    if (keystore != null) {
+      tlsConfig.setTrustManagers(keystore.getTrustManagers());
+    }
     // Build configuration for conduit
     final HttpConduitConfig config = new HttpConduitConfig();
     config.setTlsClientParameters(tlsConfig);
@@ -175,6 +178,7 @@ public class CswsSession
     ((BindingProvider)memberServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, memberServiceServiceURL);
     ((BindingProvider)searchServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, searchServiceServiceURL);
     
+    /*
     // Set SSLSocketFactory's
     if (sslSocketFactory != null) {
       ((BindingProvider)authClientHandle).getRequestContext().put(sslSocketFactoryProperty, sslSocketFactory);
@@ -183,6 +187,7 @@ public class CswsSession
       ((BindingProvider)memberServiceHandle).getRequestContext().put(sslSocketFactoryProperty, sslSocketFactory);
       ((BindingProvider)searchServiceHandle).getRequestContext().put(sslSocketFactoryProperty, sslSocketFactory);
     }
+    */
   }
 
   /**
