@@ -2838,88 +2838,11 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         MetadataPathItem pathItem = item.getPathItem();
         if (pathItem != null)
         {
-          long catID = pathItem.getCatID();
-          
-          // grab the associated catversion
-          // TBD
-          /*
-          LLValue catVersion = getCatVersion(objID,catID);
-          if (catVersion != null)
-          {
-            // Go through attributes now
-            Iterator<String> attrIter = item.getAttributeNames();
-            while (attrIter.hasNext())
-            {
-              String attrName = attrIter.next();
-              // Create a unique metadata name
-              String metadataName = pathItem.getCatName()+":"+attrName;
-              // Fetch the metadata and stuff it into the RepositoryData structure
-              // TBD
-              String[] metadataValue = getAttributeValue(catVersion,attrName);
-              if (metadataValue != null)
-                rd.addField(metadataName,metadataValue);
-              else
-                Logging.connectors.warn("Csws: Metadata attribute '"+metadataName+"' does not seem to exist; please correct the job");
-            }
-          }
-          */
+          final long catID = pathItem.getCatID();
+          objInfo.getSpecifiedCategoryAttribute(rd, catID, pathItem.getCatName());
         }
       }
       
-      /*
-      // New-style code.  We have a list of AttributeGroup objects attached to the item.  We iterate over them and
-      // use the ones we want.
-      final List<? extends AttributeGroup> attributeGroups = objInfo.getAttributeGroups();
-      for (final AttributeGroup g : attributeGroups) {
-        // Get the attribute name (qualified?  Unqualified?  Don't know)
-        // TBD
-        final String groupName = g.getKey();
-        // Get the data values
-        final List<? extends DataValue> dataValues = g.getValues();
-        for (final DataValue dv : dataValues) {
-          // Is this right?  TBD
-          final String attrName = groupName + ":" + dv.getKey();
-          // We only know how to handle certain kinds of attributes, ones whose types are scalar
-          if (dv instanceof StringValue) {
-            final String[] attrValues = ((StringValue)dv).getValues().toArray(new String[0]);
-            rd.addField(attrName, attrValues);
-          } else if (dv instanceof RealValue) {
-            final List<? extends Double> realValues = ((RealValue)dv).getValues();
-            final String[] reals = new String[realValues.size()];
-            int i = 0;
-            for (final Double value : realValues) {
-              reals[i++] = value.toString();
-            }
-            rd.addField(attrName, reals);
-          } else if (dv instanceof BooleanValue) {
-            final List<? extends Boolean> boolValues = ((BooleanValue)dv).getValues();
-            final String[] bools = new String[boolValues.size()];
-            int i = 0;
-            for (final Boolean value : boolValues) {
-              bools[i++] = value.toString();
-            }
-            rd.addField(attrName, bools);
-          } else if (dv instanceof DateValue) {
-            final List<? extends XMLGregorianCalendar> dateValues = ((DateValue)dv).getValues();
-            final Date[] dates = new Date[dateValues.size()];
-            int i = 0;
-            for (final XMLGregorianCalendar c : dateValues) {
-              dates[i++] = new Date(c.toGregorianCalendar().getTimeInMillis());
-            }
-            rd.addField(attrName, dates);
-          } else if (dv instanceof IntegerValue) {
-            final List<? extends Long> longValues = ((LongValue)dv).getValues();
-            final String[] longs = new String[longValues.size()];
-            int i = 0;
-            for (final Long value : longValues) {
-              longs[i++] = value.toString();
-            }
-            rd.addField(attrName, longs);
-          }
-        }
-      }
-*/
-
       if (actualAcls != null && denyAcls != null)
         rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,actualAcls,denyAcls);
 
@@ -3052,6 +2975,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     startPos = unpack(attribute,value,startPos,':');
   }
 
+ 
   /** Given a path string, get a list of folders and projects under that node.
   *@param pathString is the current path (folder names and project names, separated by dots (.)).
   *@return a list of folder and project names, in sorted order, or null if the path was invalid.
@@ -3780,6 +3704,59 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return "(Object: "+objectID+")";
     }
     
+    /**
+    * Fetch attribute value for a specified categoryID for a given object.
+    */
+    public boolean getSpecifiedCategoryAttribute(final RepositoryDocument rd, final long catID, final String catName)
+      throws ServiceInterruption, ManifoldCFException {
+      // grab the associated catversion
+      // TBD
+      /*
+            LLValue catVersion = getCatVersion(objID,catID);
+            if (catVersion != null)
+            {
+              // Go through attributes now
+              Iterator<String> attrIter = item.getAttributeNames();
+              while (attrIter.hasNext())
+              {
+                String attrName = attrIter.next();
+                // Create a unique metadata name
+                String metadataName = pathItem.getCatName()+":"+attrName;
+                // Fetch the metadata and stuff it into the RepositoryData structure
+                // TBD
+                String[] metadataValue = getAttributeValue(catVersion,attrName);
+                if (metadataValue != null)
+                  rd.addField(metadataName,metadataValue);
+                else
+                  Logging.connectors.warn("Csws: Metadata attribute '"+metadataName+"' does not seem to exist; please correct the job");
+              }
+            }
+        */
+      final Node objInfo = getObjectValue();
+      if (objInfo == null) {
+        return false;
+      }
+      final List<? extends AttributeGroup> attributeGroups = objInfo.getMetadata().getAttributeGroups();           
+      for (final AttributeGroup attribute : attributeGroups) {
+        final int index = attribute.getKey().indexOf(".");
+        final String categoryAttributeName = attribute.getDisplayName();
+        //System.out.println("CategoryName **:  " + attribute.getDisplayName());
+        final String categoryId = attribute.getKey().substring(0, index);
+        //System.out.println("CategoryId **:  " + categoryId);
+        final long attrCatID = new Long(categoryId).longValue();
+        if (attrCatID == catID) {
+          final List<? extends DataValue> dataValues = attribute.getValues();
+          final String[] valuesToIndex = new String[dataValues.size()];
+          int i = 0;
+          for (final DataValue dataValue : dataValues) {
+            valuesToIndex[i++] = dataValue.getDescription();
+          }
+          rd.addField(catName + "." + categoryAttributeName, valuesToIndex);
+        }
+      }
+      return true;
+    }
+
     /**
     * Returns the object ID specified by the path name.
     * @param startPath is the folder name (a string with dots as separators)
