@@ -564,10 +564,10 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     
     String authenticationServicePath = parameters.getParameter(CswsParameters.authenticationPath);
     if (authenticationServicePath == null)
-      authenticationServicePath = "";
+      authenticationServicePath = CswsParameters.authenticationPathDefault;
     String memberServiceServicePath = parameters.getParameter(CswsParameters.memberServicePath);
     if (memberServiceServicePath == null)
-      memberServiceServicePath = "";
+      memberServiceServicePath = CswsParameters.memberServicePathDefault;
     
     String serverHTTPNTLMDomain = parameters.getParameter(CswsParameters.serverHTTPNTLMDomain);
     if(serverHTTPNTLMDomain == null)
