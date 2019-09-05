@@ -1062,20 +1062,20 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       // Make sure we have permission to see the object's contents
       // TODO: In our current environment, permissions cannot be fetched properly, this is a workaround
       final NodePermissions permissions = value.getPermissions();
-      /*if (!permissions.isSeeContentsPermission())
+      if (!permissions.isSeeContentsPermission())
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.info("Csws: Crawl user cannot see contents of object "+objID+" - deleting");
         activities.deleteDocument(documentIdentifier);
         continue;
-      }*/
+      }
 
       final Date dt = value.getModifyDate();
 
       // The rights don't change when the object changes, so we have to include those too.
       // TODO: This fails when the csws user is not an admin, so this workaround is used.
-      //final NodeRights rights = getObjectRights(objID);
-      final NodeRights rights = new NodeRights();
+      final NodeRights rights = getObjectRights(objID);
+      //final NodeRights rights = new NodeRights();
 
 
       if (rights == null)
@@ -3642,9 +3642,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
     
     public boolean exists()
-      throws ServiceInterruption, ManifoldCFException
     {
-      return getVersionValue() != null;
+        try {
+            return getVersionValue() != null;
+        } catch (ServiceInterruption | ManifoldCFException e) {
+            if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Document " + objectID + " (rev " + revisionNumber + ") does not exist.");
+        }
+        return false;
     }
 
     /** Get data size.

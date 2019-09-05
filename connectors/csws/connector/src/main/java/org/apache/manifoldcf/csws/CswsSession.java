@@ -546,8 +546,8 @@ public class CswsSession
       }
 
       // TODO: Don't ignore the searchSpec. This is part of the NodeRights issue.
-      //singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+")");
-      singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+")");
+      singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+")");
+      //singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+")");
       for (final String returnColumn : returnColumns) {
         singleSrchReq.getResultTransformationSpec().add(returnColumn);
       }
