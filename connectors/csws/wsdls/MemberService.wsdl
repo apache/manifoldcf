@@ -1,0 +1,904 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<!--
+ Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.7-b01  svn-revision#${svn.Last.Changed.Rev}. 
+-->
+<wsdl:definitions xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="urn:MemberService.service.livelink.opentext.com" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" name="MemberService" targetNamespace="urn:MemberService.service.livelink.opentext.com">
+<wsdl:types>
+<xsd:schema targetNamespace="urn:MemberService.service.livelink.opentext.com/Imports">
+<xsd:import schemaLocation="MemberService2.xsd" namespace="urn:MemberService.service.livelink.opentext.com"/>
+<xsd:import schemaLocation="MemberService1.xsd" namespace="urn:api.ecm.opentext.com"/>
+<xsd:import schemaLocation="MemberService3.xsd" namespace="urn:Core.service.livelink.opentext.com"/>
+</xsd:schema>
+</wsdl:types>
+<wsdl:message name="AddListOfMembersToGroupRequest">
+<wsdl:part name="parameters" element="tns:AddListOfMembersToGroup"/>
+</wsdl:message>
+<wsdl:message name="AddListOfMembersToGroupRequest_Headers">
+<wsdl:part xmlns:q1="urn:api.ecm.opentext.com" name="OTAuthentication" element="q1:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddListOfMembersToGroupResponse">
+<wsdl:part name="parameters" element="tns:AddListOfMembersToGroupResponse"/>
+</wsdl:message>
+<wsdl:message name="AddListOfMembersToGroupResponse_Headers">
+<wsdl:part xmlns:q2="urn:api.ecm.opentext.com" name="OTAuthentication" element="q2:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddMemberToGroupRequest">
+<wsdl:part name="parameters" element="tns:AddMemberToGroup"/>
+</wsdl:message>
+<wsdl:message name="AddMemberToGroupRequest_Headers">
+<wsdl:part xmlns:q3="urn:api.ecm.opentext.com" name="OTAuthentication" element="q3:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddMemberToGroupResponse">
+<wsdl:part name="parameters" element="tns:AddMemberToGroupResponse"/>
+</wsdl:message>
+<wsdl:message name="AddMemberToGroupResponse_Headers">
+<wsdl:part xmlns:q4="urn:api.ecm.opentext.com" name="OTAuthentication" element="q4:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ConvertExternalUserToUserRequest">
+<wsdl:part name="parameters" element="tns:ConvertExternalUserToUser"/>
+</wsdl:message>
+<wsdl:message name="ConvertExternalUserToUserRequest_Headers">
+<wsdl:part xmlns:q5="urn:api.ecm.opentext.com" name="OTAuthentication" element="q5:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ConvertExternalUserToUserResponse">
+<wsdl:part name="parameters" element="tns:ConvertExternalUserToUserResponse"/>
+</wsdl:message>
+<wsdl:message name="ConvertExternalUserToUserResponse_Headers">
+<wsdl:part xmlns:q6="urn:api.ecm.opentext.com" name="OTAuthentication" element="q6:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateDomainRequest">
+<wsdl:part name="parameters" element="tns:CreateDomain"/>
+</wsdl:message>
+<wsdl:message name="CreateDomainRequest_Headers">
+<wsdl:part xmlns:q7="urn:api.ecm.opentext.com" name="OTAuthentication" element="q7:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateDomainResponse">
+<wsdl:part name="parameters" element="tns:CreateDomainResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateDomainResponse_Headers">
+<wsdl:part xmlns:q8="urn:api.ecm.opentext.com" name="OTAuthentication" element="q8:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateExternalGroupRequest">
+<wsdl:part name="parameters" element="tns:CreateExternalGroup"/>
+</wsdl:message>
+<wsdl:message name="CreateExternalGroupRequest_Headers">
+<wsdl:part xmlns:q9="urn:api.ecm.opentext.com" name="OTAuthentication" element="q9:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateExternalGroupResponse">
+<wsdl:part name="parameters" element="tns:CreateExternalGroupResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateExternalGroupResponse_Headers">
+<wsdl:part xmlns:q10="urn:api.ecm.opentext.com" name="OTAuthentication" element="q10:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateExternalUserRequest">
+<wsdl:part name="parameters" element="tns:CreateExternalUser"/>
+</wsdl:message>
+<wsdl:message name="CreateExternalUserRequest_Headers">
+<wsdl:part xmlns:q11="urn:api.ecm.opentext.com" name="OTAuthentication" element="q11:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateExternalUserResponse">
+<wsdl:part name="parameters" element="tns:CreateExternalUserResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateExternalUserResponse_Headers">
+<wsdl:part xmlns:q12="urn:api.ecm.opentext.com" name="OTAuthentication" element="q12:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateGroupRequest">
+<wsdl:part name="parameters" element="tns:CreateGroup"/>
+</wsdl:message>
+<wsdl:message name="CreateGroupRequest_Headers">
+<wsdl:part xmlns:q13="urn:api.ecm.opentext.com" name="OTAuthentication" element="q13:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateGroupResponse">
+<wsdl:part name="parameters" element="tns:CreateGroupResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateGroupResponse_Headers">
+<wsdl:part xmlns:q14="urn:api.ecm.opentext.com" name="OTAuthentication" element="q14:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateGroupInDomainRequest">
+<wsdl:part name="parameters" element="tns:CreateGroupInDomain"/>
+</wsdl:message>
+<wsdl:message name="CreateGroupInDomainRequest_Headers">
+<wsdl:part xmlns:q15="urn:api.ecm.opentext.com" name="OTAuthentication" element="q15:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateGroupInDomainResponse">
+<wsdl:part name="parameters" element="tns:CreateGroupInDomainResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateGroupInDomainResponse_Headers">
+<wsdl:part xmlns:q16="urn:api.ecm.opentext.com" name="OTAuthentication" element="q16:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateMemberRequest">
+<wsdl:part name="parameters" element="tns:CreateMember"/>
+</wsdl:message>
+<wsdl:message name="CreateMemberRequest_Headers">
+<wsdl:part xmlns:q17="urn:api.ecm.opentext.com" name="OTAuthentication" element="q17:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateMemberResponse">
+<wsdl:part name="parameters" element="tns:CreateMemberResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateMemberResponse_Headers">
+<wsdl:part xmlns:q18="urn:api.ecm.opentext.com" name="OTAuthentication" element="q18:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateUserRequest">
+<wsdl:part name="parameters" element="tns:CreateUser"/>
+</wsdl:message>
+<wsdl:message name="CreateUserRequest_Headers">
+<wsdl:part xmlns:q19="urn:api.ecm.opentext.com" name="OTAuthentication" element="q19:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateUserResponse">
+<wsdl:part name="parameters" element="tns:CreateUserResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateUserResponse_Headers">
+<wsdl:part xmlns:q20="urn:api.ecm.opentext.com" name="OTAuthentication" element="q20:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateUserInDomainRequest">
+<wsdl:part name="parameters" element="tns:CreateUserInDomain"/>
+</wsdl:message>
+<wsdl:message name="CreateUserInDomainRequest_Headers">
+<wsdl:part xmlns:q21="urn:api.ecm.opentext.com" name="OTAuthentication" element="q21:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateUserInDomainResponse">
+<wsdl:part name="parameters" element="tns:CreateUserInDomainResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateUserInDomainResponse_Headers">
+<wsdl:part xmlns:q22="urn:api.ecm.opentext.com" name="OTAuthentication" element="q22:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="DeleteListOfMembersRequest">
+<wsdl:part name="parameters" element="tns:DeleteListOfMembers"/>
+</wsdl:message>
+<wsdl:message name="DeleteListOfMembersRequest_Headers">
+<wsdl:part xmlns:q23="urn:api.ecm.opentext.com" name="OTAuthentication" element="q23:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="DeleteListOfMembersResponse">
+<wsdl:part name="parameters" element="tns:DeleteListOfMembersResponse"/>
+</wsdl:message>
+<wsdl:message name="DeleteListOfMembersResponse_Headers">
+<wsdl:part xmlns:q24="urn:api.ecm.opentext.com" name="OTAuthentication" element="q24:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="DeleteMemberRequest">
+<wsdl:part name="parameters" element="tns:DeleteMember"/>
+</wsdl:message>
+<wsdl:message name="DeleteMemberRequest_Headers">
+<wsdl:part xmlns:q25="urn:api.ecm.opentext.com" name="OTAuthentication" element="q25:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="DeleteMemberResponse">
+<wsdl:part name="parameters" element="tns:DeleteMemberResponse"/>
+</wsdl:message>
+<wsdl:message name="DeleteMemberResponse_Headers">
+<wsdl:part xmlns:q26="urn:api.ecm.opentext.com" name="OTAuthentication" element="q26:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetAuthenticatedUserRequest">
+<wsdl:part name="parameters" element="tns:GetAuthenticatedUser"/>
+</wsdl:message>
+<wsdl:message name="GetAuthenticatedUserRequest_Headers">
+<wsdl:part xmlns:q27="urn:api.ecm.opentext.com" name="OTAuthentication" element="q27:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetAuthenticatedUserResponse">
+<wsdl:part name="parameters" element="tns:GetAuthenticatedUserResponse"/>
+</wsdl:message>
+<wsdl:message name="GetAuthenticatedUserResponse_Headers">
+<wsdl:part xmlns:q28="urn:api.ecm.opentext.com" name="OTAuthentication" element="q28:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetGroupByNameRequest">
+<wsdl:part name="parameters" element="tns:GetGroupByName"/>
+</wsdl:message>
+<wsdl:message name="GetGroupByNameRequest_Headers">
+<wsdl:part xmlns:q29="urn:api.ecm.opentext.com" name="OTAuthentication" element="q29:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetGroupByNameResponse">
+<wsdl:part name="parameters" element="tns:GetGroupByNameResponse"/>
+</wsdl:message>
+<wsdl:message name="GetGroupByNameResponse_Headers">
+<wsdl:part xmlns:q30="urn:api.ecm.opentext.com" name="OTAuthentication" element="q30:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetGroupByNameInDomainRequest">
+<wsdl:part name="parameters" element="tns:GetGroupByNameInDomain"/>
+</wsdl:message>
+<wsdl:message name="GetGroupByNameInDomainRequest_Headers">
+<wsdl:part xmlns:q31="urn:api.ecm.opentext.com" name="OTAuthentication" element="q31:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetGroupByNameInDomainResponse">
+<wsdl:part name="parameters" element="tns:GetGroupByNameInDomainResponse"/>
+</wsdl:message>
+<wsdl:message name="GetGroupByNameInDomainResponse_Headers">
+<wsdl:part xmlns:q32="urn:api.ecm.opentext.com" name="OTAuthentication" element="q32:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetMemberByIdRequest">
+<wsdl:part name="parameters" element="tns:GetMemberById"/>
+</wsdl:message>
+<wsdl:message name="GetMemberByIdRequest_Headers">
+<wsdl:part xmlns:q33="urn:api.ecm.opentext.com" name="OTAuthentication" element="q33:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetMemberByIdResponse">
+<wsdl:part name="parameters" element="tns:GetMemberByIdResponse"/>
+</wsdl:message>
+<wsdl:message name="GetMemberByIdResponse_Headers">
+<wsdl:part xmlns:q34="urn:api.ecm.opentext.com" name="OTAuthentication" element="q34:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetMemberByLoginNameRequest">
+<wsdl:part name="parameters" element="tns:GetMemberByLoginName"/>
+</wsdl:message>
+<wsdl:message name="GetMemberByLoginNameRequest_Headers">
+<wsdl:part xmlns:q35="urn:api.ecm.opentext.com" name="OTAuthentication" element="q35:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetMemberByLoginNameResponse">
+<wsdl:part name="parameters" element="tns:GetMemberByLoginNameResponse"/>
+</wsdl:message>
+<wsdl:message name="GetMemberByLoginNameResponse_Headers">
+<wsdl:part xmlns:q36="urn:api.ecm.opentext.com" name="OTAuthentication" element="q36:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetMembersByIDRequest">
+<wsdl:part name="parameters" element="tns:GetMembersByID"/>
+</wsdl:message>
+<wsdl:message name="GetMembersByIDRequest_Headers">
+<wsdl:part xmlns:q37="urn:api.ecm.opentext.com" name="OTAuthentication" element="q37:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetMembersByIDResponse">
+<wsdl:part name="parameters" element="tns:GetMembersByIDResponse"/>
+</wsdl:message>
+<wsdl:message name="GetMembersByIDResponse_Headers">
+<wsdl:part xmlns:q38="urn:api.ecm.opentext.com" name="OTAuthentication" element="q38:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetMetadataLanguageRequest">
+<wsdl:part name="parameters" element="tns:GetMetadataLanguage"/>
+</wsdl:message>
+<wsdl:message name="GetMetadataLanguageRequest_Headers">
+<wsdl:part xmlns:q39="urn:api.ecm.opentext.com" name="OTAuthentication" element="q39:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetMetadataLanguageResponse">
+<wsdl:part name="parameters" element="tns:GetMetadataLanguageResponse"/>
+</wsdl:message>
+<wsdl:message name="GetMetadataLanguageResponse_Headers">
+<wsdl:part xmlns:q40="urn:api.ecm.opentext.com" name="OTAuthentication" element="q40:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetSearchResultsRequest">
+<wsdl:part name="parameters" element="tns:GetSearchResults"/>
+</wsdl:message>
+<wsdl:message name="GetSearchResultsRequest_Headers">
+<wsdl:part xmlns:q41="urn:api.ecm.opentext.com" name="OTAuthentication" element="q41:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetSearchResultsResponse">
+<wsdl:part name="parameters" element="tns:GetSearchResultsResponse"/>
+</wsdl:message>
+<wsdl:message name="GetSearchResultsResponse_Headers">
+<wsdl:part xmlns:q42="urn:api.ecm.opentext.com" name="OTAuthentication" element="q42:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetUserByLoginNameRequest">
+<wsdl:part name="parameters" element="tns:GetUserByLoginName"/>
+</wsdl:message>
+<wsdl:message name="GetUserByLoginNameRequest_Headers">
+<wsdl:part xmlns:q43="urn:api.ecm.opentext.com" name="OTAuthentication" element="q43:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetUserByLoginNameResponse">
+<wsdl:part name="parameters" element="tns:GetUserByLoginNameResponse"/>
+</wsdl:message>
+<wsdl:message name="GetUserByLoginNameResponse_Headers">
+<wsdl:part xmlns:q44="urn:api.ecm.opentext.com" name="OTAuthentication" element="q44:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetUserByLoginNameInDomainRequest">
+<wsdl:part name="parameters" element="tns:GetUserByLoginNameInDomain"/>
+</wsdl:message>
+<wsdl:message name="GetUserByLoginNameInDomainRequest_Headers">
+<wsdl:part xmlns:q45="urn:api.ecm.opentext.com" name="OTAuthentication" element="q45:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetUserByLoginNameInDomainResponse">
+<wsdl:part name="parameters" element="tns:GetUserByLoginNameInDomainResponse"/>
+</wsdl:message>
+<wsdl:message name="GetUserByLoginNameInDomainResponse_Headers">
+<wsdl:part xmlns:q46="urn:api.ecm.opentext.com" name="OTAuthentication" element="q46:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListMemberOfRequest">
+<wsdl:part name="parameters" element="tns:ListMemberOf"/>
+</wsdl:message>
+<wsdl:message name="ListMemberOfRequest_Headers">
+<wsdl:part xmlns:q47="urn:api.ecm.opentext.com" name="OTAuthentication" element="q47:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListMemberOfResponse">
+<wsdl:part name="parameters" element="tns:ListMemberOfResponse"/>
+</wsdl:message>
+<wsdl:message name="ListMemberOfResponse_Headers">
+<wsdl:part xmlns:q48="urn:api.ecm.opentext.com" name="OTAuthentication" element="q48:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListMembersRequest">
+<wsdl:part name="parameters" element="tns:ListMembers"/>
+</wsdl:message>
+<wsdl:message name="ListMembersRequest_Headers">
+<wsdl:part xmlns:q49="urn:api.ecm.opentext.com" name="OTAuthentication" element="q49:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListMembersResponse">
+<wsdl:part name="parameters" element="tns:ListMembersResponse"/>
+</wsdl:message>
+<wsdl:message name="ListMembersResponse_Headers">
+<wsdl:part xmlns:q50="urn:api.ecm.opentext.com" name="OTAuthentication" element="q50:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListRightsByIDRequest">
+<wsdl:part name="parameters" element="tns:ListRightsByID"/>
+</wsdl:message>
+<wsdl:message name="ListRightsByIDRequest_Headers">
+<wsdl:part xmlns:q51="urn:api.ecm.opentext.com" name="OTAuthentication" element="q51:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListRightsByIDResponse">
+<wsdl:part name="parameters" element="tns:ListRightsByIDResponse"/>
+</wsdl:message>
+<wsdl:message name="ListRightsByIDResponse_Headers">
+<wsdl:part xmlns:q52="urn:api.ecm.opentext.com" name="OTAuthentication" element="q52:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RemoveListOfMembersFromGroupRequest">
+<wsdl:part name="parameters" element="tns:RemoveListOfMembersFromGroup"/>
+</wsdl:message>
+<wsdl:message name="RemoveListOfMembersFromGroupRequest_Headers">
+<wsdl:part xmlns:q53="urn:api.ecm.opentext.com" name="OTAuthentication" element="q53:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RemoveListOfMembersFromGroupResponse">
+<wsdl:part name="parameters" element="tns:RemoveListOfMembersFromGroupResponse"/>
+</wsdl:message>
+<wsdl:message name="RemoveListOfMembersFromGroupResponse_Headers">
+<wsdl:part xmlns:q54="urn:api.ecm.opentext.com" name="OTAuthentication" element="q54:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RemoveMemberFromGroupRequest">
+<wsdl:part name="parameters" element="tns:RemoveMemberFromGroup"/>
+</wsdl:message>
+<wsdl:message name="RemoveMemberFromGroupRequest_Headers">
+<wsdl:part xmlns:q55="urn:api.ecm.opentext.com" name="OTAuthentication" element="q55:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RemoveMemberFromGroupResponse">
+<wsdl:part name="parameters" element="tns:RemoveMemberFromGroupResponse"/>
+</wsdl:message>
+<wsdl:message name="RemoveMemberFromGroupResponse_Headers">
+<wsdl:part xmlns:q56="urn:api.ecm.opentext.com" name="OTAuthentication" element="q56:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="SearchForMembersRequest">
+<wsdl:part name="parameters" element="tns:SearchForMembers"/>
+</wsdl:message>
+<wsdl:message name="SearchForMembersRequest_Headers">
+<wsdl:part xmlns:q57="urn:api.ecm.opentext.com" name="OTAuthentication" element="q57:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="SearchForMembersResponse">
+<wsdl:part name="parameters" element="tns:SearchForMembersResponse"/>
+</wsdl:message>
+<wsdl:message name="SearchForMembersResponse_Headers">
+<wsdl:part xmlns:q58="urn:api.ecm.opentext.com" name="OTAuthentication" element="q58:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="SetMetadataLanguageRequest">
+<wsdl:part name="parameters" element="tns:SetMetadataLanguage"/>
+</wsdl:message>
+<wsdl:message name="SetMetadataLanguageRequest_Headers">
+<wsdl:part xmlns:q59="urn:api.ecm.opentext.com" name="OTAuthentication" element="q59:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="SetMetadataLanguageResponse">
+<wsdl:part name="parameters" element="tns:SetMetadataLanguageResponse"/>
+</wsdl:message>
+<wsdl:message name="SetMetadataLanguageResponse_Headers">
+<wsdl:part xmlns:q60="urn:api.ecm.opentext.com" name="OTAuthentication" element="q60:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateMemberRequest">
+<wsdl:part name="parameters" element="tns:UpdateMember"/>
+</wsdl:message>
+<wsdl:message name="UpdateMemberRequest_Headers">
+<wsdl:part xmlns:q61="urn:api.ecm.opentext.com" name="OTAuthentication" element="q61:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateMemberResponse">
+<wsdl:part name="parameters" element="tns:UpdateMemberResponse"/>
+</wsdl:message>
+<wsdl:message name="UpdateMemberResponse_Headers">
+<wsdl:part xmlns:q62="urn:api.ecm.opentext.com" name="OTAuthentication" element="q62:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdatePasswordRequest">
+<wsdl:part name="parameters" element="tns:UpdatePassword"/>
+</wsdl:message>
+<wsdl:message name="UpdatePasswordRequest_Headers">
+<wsdl:part xmlns:q63="urn:api.ecm.opentext.com" name="OTAuthentication" element="q63:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdatePasswordResponse">
+<wsdl:part name="parameters" element="tns:UpdatePasswordResponse"/>
+</wsdl:message>
+<wsdl:message name="UpdatePasswordResponse_Headers">
+<wsdl:part xmlns:q64="urn:api.ecm.opentext.com" name="OTAuthentication" element="q64:OTAuthentication"/>
+</wsdl:message>
+<wsdl:portType name="MemberService">
+<wsdl:operation name="AddListOfMembersToGroup">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/AddListOfMembersToGroup" name="AddListOfMembersToGroupRequest" message="tns:AddListOfMembersToGroupRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/AddListOfMembersToGroupResponse" name="AddListOfMembersToGroupResponse" message="tns:AddListOfMembersToGroupResponse"/>
+</wsdl:operation>
+<wsdl:operation name="AddMemberToGroup">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/AddMemberToGroup" name="AddMemberToGroupRequest" message="tns:AddMemberToGroupRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/AddMemberToGroupResponse" name="AddMemberToGroupResponse" message="tns:AddMemberToGroupResponse"/>
+</wsdl:operation>
+<wsdl:operation name="ConvertExternalUserToUser">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/ConvertExternalUserToUser" name="ConvertExternalUserToUserRequest" message="tns:ConvertExternalUserToUserRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/ConvertExternalUserToUserResponse" name="ConvertExternalUserToUserResponse" message="tns:ConvertExternalUserToUserResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateDomain">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/CreateDomain" name="CreateDomainRequest" message="tns:CreateDomainRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/CreateDomainResponse" name="CreateDomainResponse" message="tns:CreateDomainResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateExternalGroup">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/CreateExternalGroup" name="CreateExternalGroupRequest" message="tns:CreateExternalGroupRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/CreateExternalGroupResponse" name="CreateExternalGroupResponse" message="tns:CreateExternalGroupResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateExternalUser">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/CreateExternalUser" name="CreateExternalUserRequest" message="tns:CreateExternalUserRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/CreateExternalUserResponse" name="CreateExternalUserResponse" message="tns:CreateExternalUserResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateGroup">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/CreateGroup" name="CreateGroupRequest" message="tns:CreateGroupRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/CreateGroupResponse" name="CreateGroupResponse" message="tns:CreateGroupResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateGroupInDomain">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/CreateGroupInDomain" name="CreateGroupInDomainRequest" message="tns:CreateGroupInDomainRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/CreateGroupInDomainResponse" name="CreateGroupInDomainResponse" message="tns:CreateGroupInDomainResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateMember">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/CreateMember" name="CreateMemberRequest" message="tns:CreateMemberRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/CreateMemberResponse" name="CreateMemberResponse" message="tns:CreateMemberResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateUser">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/CreateUser" name="CreateUserRequest" message="tns:CreateUserRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/CreateUserResponse" name="CreateUserResponse" message="tns:CreateUserResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateUserInDomain">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/CreateUserInDomain" name="CreateUserInDomainRequest" message="tns:CreateUserInDomainRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/CreateUserInDomainResponse" name="CreateUserInDomainResponse" message="tns:CreateUserInDomainResponse"/>
+</wsdl:operation>
+<wsdl:operation name="DeleteListOfMembers">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/DeleteListOfMembers" name="DeleteListOfMembersRequest" message="tns:DeleteListOfMembersRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/DeleteListOfMembersResponse" name="DeleteListOfMembersResponse" message="tns:DeleteListOfMembersResponse"/>
+</wsdl:operation>
+<wsdl:operation name="DeleteMember">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/DeleteMember" name="DeleteMemberRequest" message="tns:DeleteMemberRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/DeleteMemberResponse" name="DeleteMemberResponse" message="tns:DeleteMemberResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetAuthenticatedUser">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/GetAuthenticatedUser" name="GetAuthenticatedUserRequest" message="tns:GetAuthenticatedUserRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/GetAuthenticatedUserResponse" name="GetAuthenticatedUserResponse" message="tns:GetAuthenticatedUserResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetGroupByName">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/GetGroupByName" name="GetGroupByNameRequest" message="tns:GetGroupByNameRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/GetGroupByNameResponse" name="GetGroupByNameResponse" message="tns:GetGroupByNameResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetGroupByNameInDomain">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/GetGroupByNameInDomain" name="GetGroupByNameInDomainRequest" message="tns:GetGroupByNameInDomainRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/GetGroupByNameInDomainResponse" name="GetGroupByNameInDomainResponse" message="tns:GetGroupByNameInDomainResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetMemberById">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/GetMemberById" name="GetMemberByIdRequest" message="tns:GetMemberByIdRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/GetMemberByIdResponse" name="GetMemberByIdResponse" message="tns:GetMemberByIdResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetMemberByLoginName">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/GetMemberByLoginName" name="GetMemberByLoginNameRequest" message="tns:GetMemberByLoginNameRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/GetMemberByLoginNameResponse" name="GetMemberByLoginNameResponse" message="tns:GetMemberByLoginNameResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetMembersByID">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/GetMembersByID" name="GetMembersByIDRequest" message="tns:GetMembersByIDRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/GetMembersByIDResponse" name="GetMembersByIDResponse" message="tns:GetMembersByIDResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetMetadataLanguage">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/GetMetadataLanguage" name="GetMetadataLanguageRequest" message="tns:GetMetadataLanguageRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/GetMetadataLanguageResponse" name="GetMetadataLanguageResponse" message="tns:GetMetadataLanguageResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetSearchResults">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/GetSearchResults" name="GetSearchResultsRequest" message="tns:GetSearchResultsRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/GetSearchResultsResponse" name="GetSearchResultsResponse" message="tns:GetSearchResultsResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetUserByLoginName">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/GetUserByLoginName" name="GetUserByLoginNameRequest" message="tns:GetUserByLoginNameRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/GetUserByLoginNameResponse" name="GetUserByLoginNameResponse" message="tns:GetUserByLoginNameResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetUserByLoginNameInDomain">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/GetUserByLoginNameInDomain" name="GetUserByLoginNameInDomainRequest" message="tns:GetUserByLoginNameInDomainRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/GetUserByLoginNameInDomainResponse" name="GetUserByLoginNameInDomainResponse" message="tns:GetUserByLoginNameInDomainResponse"/>
+</wsdl:operation>
+<wsdl:operation name="ListMemberOf">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/ListMemberOf" name="ListMemberOfRequest" message="tns:ListMemberOfRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/ListMemberOfResponse" name="ListMemberOfResponse" message="tns:ListMemberOfResponse"/>
+</wsdl:operation>
+<wsdl:operation name="ListMembers">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/ListMembers" name="ListMembersRequest" message="tns:ListMembersRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/ListMembersResponse" name="ListMembersResponse" message="tns:ListMembersResponse"/>
+</wsdl:operation>
+<wsdl:operation name="ListRightsByID">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/ListRightsByID" name="ListRightsByIDRequest" message="tns:ListRightsByIDRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/ListRightsByIDResponse" name="ListRightsByIDResponse" message="tns:ListRightsByIDResponse"/>
+</wsdl:operation>
+<wsdl:operation name="RemoveListOfMembersFromGroup">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/RemoveListOfMembersFromGroup" name="RemoveListOfMembersFromGroupRequest" message="tns:RemoveListOfMembersFromGroupRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/RemoveListOfMembersFromGroupResponse" name="RemoveListOfMembersFromGroupResponse" message="tns:RemoveListOfMembersFromGroupResponse"/>
+</wsdl:operation>
+<wsdl:operation name="RemoveMemberFromGroup">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/RemoveMemberFromGroup" name="RemoveMemberFromGroupRequest" message="tns:RemoveMemberFromGroupRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/RemoveMemberFromGroupResponse" name="RemoveMemberFromGroupResponse" message="tns:RemoveMemberFromGroupResponse"/>
+</wsdl:operation>
+<wsdl:operation name="SearchForMembers">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/SearchForMembers" name="SearchForMembersRequest" message="tns:SearchForMembersRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/SearchForMembersResponse" name="SearchForMembersResponse" message="tns:SearchForMembersResponse"/>
+</wsdl:operation>
+<wsdl:operation name="SetMetadataLanguage">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/SetMetadataLanguage" name="SetMetadataLanguageRequest" message="tns:SetMetadataLanguageRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/SetMetadataLanguageResponse" name="SetMetadataLanguageResponse" message="tns:SetMetadataLanguageResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UpdateMember">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/UpdateMember" name="UpdateMemberRequest" message="tns:UpdateMemberRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/UpdateMemberResponse" name="UpdateMemberResponse" message="tns:UpdateMemberResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UpdatePassword">
+<wsdl:input wsaw:Action="urn:MemberService.service.livelink.opentext.com/UpdatePassword" name="UpdatePasswordRequest" message="tns:UpdatePasswordRequest"/>
+<wsdl:output wsaw:Action="urn:MemberService.service.livelink.opentext.com/MemberService/UpdatePasswordResponse" name="UpdatePasswordResponse" message="tns:UpdatePasswordResponse"/>
+</wsdl:operation>
+</wsdl:portType>
+<wsdl:binding name="BasicHttpBinding_MemberService" type="tns:MemberService">
+<soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+<wsdl:operation name="AddListOfMembersToGroup">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/AddListOfMembersToGroup" style="document"/>
+<wsdl:input name="AddListOfMembersToGroupRequest">
+<soap:header message="tns:AddListOfMembersToGroupRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="AddListOfMembersToGroupResponse">
+<soap:header message="tns:AddListOfMembersToGroupResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="AddMemberToGroup">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/AddMemberToGroup" style="document"/>
+<wsdl:input name="AddMemberToGroupRequest">
+<soap:header message="tns:AddMemberToGroupRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="AddMemberToGroupResponse">
+<soap:header message="tns:AddMemberToGroupResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="ConvertExternalUserToUser">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/ConvertExternalUserToUser" style="document"/>
+<wsdl:input name="ConvertExternalUserToUserRequest">
+<soap:header message="tns:ConvertExternalUserToUserRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ConvertExternalUserToUserResponse">
+<soap:header message="tns:ConvertExternalUserToUserResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateDomain">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/CreateDomain" style="document"/>
+<wsdl:input name="CreateDomainRequest">
+<soap:header message="tns:CreateDomainRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateDomainResponse">
+<soap:header message="tns:CreateDomainResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateExternalGroup">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/CreateExternalGroup" style="document"/>
+<wsdl:input name="CreateExternalGroupRequest">
+<soap:header message="tns:CreateExternalGroupRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateExternalGroupResponse">
+<soap:header message="tns:CreateExternalGroupResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateExternalUser">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/CreateExternalUser" style="document"/>
+<wsdl:input name="CreateExternalUserRequest">
+<soap:header message="tns:CreateExternalUserRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateExternalUserResponse">
+<soap:header message="tns:CreateExternalUserResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateGroup">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/CreateGroup" style="document"/>
+<wsdl:input name="CreateGroupRequest">
+<soap:header message="tns:CreateGroupRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateGroupResponse">
+<soap:header message="tns:CreateGroupResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateGroupInDomain">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/CreateGroupInDomain" style="document"/>
+<wsdl:input name="CreateGroupInDomainRequest">
+<soap:header message="tns:CreateGroupInDomainRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateGroupInDomainResponse">
+<soap:header message="tns:CreateGroupInDomainResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateMember">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/CreateMember" style="document"/>
+<wsdl:input name="CreateMemberRequest">
+<soap:header message="tns:CreateMemberRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateMemberResponse">
+<soap:header message="tns:CreateMemberResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateUser">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/CreateUser" style="document"/>
+<wsdl:input name="CreateUserRequest">
+<soap:header message="tns:CreateUserRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateUserResponse">
+<soap:header message="tns:CreateUserResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateUserInDomain">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/CreateUserInDomain" style="document"/>
+<wsdl:input name="CreateUserInDomainRequest">
+<soap:header message="tns:CreateUserInDomainRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateUserInDomainResponse">
+<soap:header message="tns:CreateUserInDomainResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="DeleteListOfMembers">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/DeleteListOfMembers" style="document"/>
+<wsdl:input name="DeleteListOfMembersRequest">
+<soap:header message="tns:DeleteListOfMembersRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="DeleteListOfMembersResponse">
+<soap:header message="tns:DeleteListOfMembersResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="DeleteMember">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/DeleteMember" style="document"/>
+<wsdl:input name="DeleteMemberRequest">
+<soap:header message="tns:DeleteMemberRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="DeleteMemberResponse">
+<soap:header message="tns:DeleteMemberResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetAuthenticatedUser">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/GetAuthenticatedUser" style="document"/>
+<wsdl:input name="GetAuthenticatedUserRequest">
+<soap:header message="tns:GetAuthenticatedUserRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetAuthenticatedUserResponse">
+<soap:header message="tns:GetAuthenticatedUserResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetGroupByName">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/GetGroupByName" style="document"/>
+<wsdl:input name="GetGroupByNameRequest">
+<soap:header message="tns:GetGroupByNameRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetGroupByNameResponse">
+<soap:header message="tns:GetGroupByNameResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetGroupByNameInDomain">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/GetGroupByNameInDomain" style="document"/>
+<wsdl:input name="GetGroupByNameInDomainRequest">
+<soap:header message="tns:GetGroupByNameInDomainRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetGroupByNameInDomainResponse">
+<soap:header message="tns:GetGroupByNameInDomainResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetMemberById">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/GetMemberById" style="document"/>
+<wsdl:input name="GetMemberByIdRequest">
+<soap:header message="tns:GetMemberByIdRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetMemberByIdResponse">
+<soap:header message="tns:GetMemberByIdResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetMemberByLoginName">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/GetMemberByLoginName" style="document"/>
+<wsdl:input name="GetMemberByLoginNameRequest">
+<soap:header message="tns:GetMemberByLoginNameRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetMemberByLoginNameResponse">
+<soap:header message="tns:GetMemberByLoginNameResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetMembersByID">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/GetMembersByID" style="document"/>
+<wsdl:input name="GetMembersByIDRequest">
+<soap:header message="tns:GetMembersByIDRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetMembersByIDResponse">
+<soap:header message="tns:GetMembersByIDResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetMetadataLanguage">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/GetMetadataLanguage" style="document"/>
+<wsdl:input name="GetMetadataLanguageRequest">
+<soap:header message="tns:GetMetadataLanguageRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetMetadataLanguageResponse">
+<soap:header message="tns:GetMetadataLanguageResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetSearchResults">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/GetSearchResults" style="document"/>
+<wsdl:input name="GetSearchResultsRequest">
+<soap:header message="tns:GetSearchResultsRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetSearchResultsResponse">
+<soap:header message="tns:GetSearchResultsResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetUserByLoginName">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/GetUserByLoginName" style="document"/>
+<wsdl:input name="GetUserByLoginNameRequest">
+<soap:header message="tns:GetUserByLoginNameRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetUserByLoginNameResponse">
+<soap:header message="tns:GetUserByLoginNameResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetUserByLoginNameInDomain">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/GetUserByLoginNameInDomain" style="document"/>
+<wsdl:input name="GetUserByLoginNameInDomainRequest">
+<soap:header message="tns:GetUserByLoginNameInDomainRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetUserByLoginNameInDomainResponse">
+<soap:header message="tns:GetUserByLoginNameInDomainResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="ListMemberOf">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/ListMemberOf" style="document"/>
+<wsdl:input name="ListMemberOfRequest">
+<soap:header message="tns:ListMemberOfRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ListMemberOfResponse">
+<soap:header message="tns:ListMemberOfResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="ListMembers">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/ListMembers" style="document"/>
+<wsdl:input name="ListMembersRequest">
+<soap:header message="tns:ListMembersRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ListMembersResponse">
+<soap:header message="tns:ListMembersResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="ListRightsByID">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/ListRightsByID" style="document"/>
+<wsdl:input name="ListRightsByIDRequest">
+<soap:header message="tns:ListRightsByIDRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ListRightsByIDResponse">
+<soap:header message="tns:ListRightsByIDResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="RemoveListOfMembersFromGroup">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/RemoveListOfMembersFromGroup" style="document"/>
+<wsdl:input name="RemoveListOfMembersFromGroupRequest">
+<soap:header message="tns:RemoveListOfMembersFromGroupRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="RemoveListOfMembersFromGroupResponse">
+<soap:header message="tns:RemoveListOfMembersFromGroupResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="RemoveMemberFromGroup">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/RemoveMemberFromGroup" style="document"/>
+<wsdl:input name="RemoveMemberFromGroupRequest">
+<soap:header message="tns:RemoveMemberFromGroupRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="RemoveMemberFromGroupResponse">
+<soap:header message="tns:RemoveMemberFromGroupResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="SearchForMembers">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/SearchForMembers" style="document"/>
+<wsdl:input name="SearchForMembersRequest">
+<soap:header message="tns:SearchForMembersRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="SearchForMembersResponse">
+<soap:header message="tns:SearchForMembersResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="SetMetadataLanguage">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/SetMetadataLanguage" style="document"/>
+<wsdl:input name="SetMetadataLanguageRequest">
+<soap:header message="tns:SetMetadataLanguageRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="SetMetadataLanguageResponse">
+<soap:header message="tns:SetMetadataLanguageResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UpdateMember">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/UpdateMember" style="document"/>
+<wsdl:input name="UpdateMemberRequest">
+<soap:header message="tns:UpdateMemberRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UpdateMemberResponse">
+<soap:header message="tns:UpdateMemberResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UpdatePassword">
+<soap:operation soapAction="urn:MemberService.service.livelink.opentext.com/UpdatePassword" style="document"/>
+<wsdl:input name="UpdatePasswordRequest">
+<soap:header message="tns:UpdatePasswordRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UpdatePasswordResponse">
+<soap:header message="tns:UpdatePasswordResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:service name="MemberService">
+<wsdl:port name="BasicHttpBinding_MemberService" binding="tns:BasicHttpBinding_MemberService">
+<soap:address location="https://llotadm2:443/cws/services/MemberService"/>
+</wsdl:port>
+</wsdl:service>
+</wsdl:definitions>

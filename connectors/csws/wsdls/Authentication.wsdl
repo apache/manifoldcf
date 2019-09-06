@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<!--
+ Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.7-b01  svn-revision#${svn.Last.Changed.Rev}. 
+-->
+<wsdl:definitions xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="urn:Core.service.livelink.opentext.com" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" name="Authentication" targetNamespace="urn:Core.service.livelink.opentext.com">
+<wsdl:types>
+<xsd:schema targetNamespace="urn:Core.service.livelink.opentext.com/Imports">
+<xsd:import schemaLocation="Authentication2.xsd" namespace="urn:Core.service.livelink.opentext.com"/>
+<xsd:import schemaLocation="Authentication1.xsd" namespace="urn:api.ecm.opentext.com"/>
+</xsd:schema>
+</wsdl:types>
+<wsdl:message name="AuthenticateApplicationRequest">
+<wsdl:part name="parameters" element="tns:AuthenticateApplication"/>
+</wsdl:message>
+<wsdl:message name="AuthenticateApplicationRequest_Headers">
+<wsdl:part xmlns:q1="urn:api.ecm.opentext.com" name="OTAuthentication" element="q1:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AuthenticateApplicationResponse">
+<wsdl:part name="parameters" element="tns:AuthenticateApplicationResponse"/>
+</wsdl:message>
+<wsdl:message name="AuthenticateApplicationResponse_Headers">
+<wsdl:part xmlns:q2="urn:api.ecm.opentext.com" name="OTAuthentication" element="q2:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AuthenticateUserRequest">
+<wsdl:part name="parameters" element="tns:AuthenticateUser"/>
+</wsdl:message>
+<wsdl:message name="AuthenticateUserResponse">
+<wsdl:part name="parameters" element="tns:AuthenticateUserResponse"/>
+</wsdl:message>
+<wsdl:message name="AuthenticateUserWithApplicationTokenRequest">
+<wsdl:part name="parameters" element="tns:AuthenticateUserWithApplicationToken"/>
+</wsdl:message>
+<wsdl:message name="AuthenticateUserWithApplicationTokenResponse">
+<wsdl:part name="parameters" element="tns:AuthenticateUserWithApplicationTokenResponse"/>
+</wsdl:message>
+<wsdl:message name="CombineApplicationTokenRequest">
+<wsdl:part name="parameters" element="tns:CombineApplicationToken"/>
+</wsdl:message>
+<wsdl:message name="CombineApplicationTokenRequest_Headers">
+<wsdl:part xmlns:q3="urn:api.ecm.opentext.com" name="OTAuthentication" element="q3:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CombineApplicationTokenResponse">
+<wsdl:part name="parameters" element="tns:CombineApplicationTokenResponse"/>
+</wsdl:message>
+<wsdl:message name="CombineApplicationTokenResponse_Headers">
+<wsdl:part xmlns:q4="urn:api.ecm.opentext.com" name="OTAuthentication" element="q4:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetOTDSResourceIDRequest">
+<wsdl:part name="parameters" element="tns:GetOTDSResourceID"/>
+</wsdl:message>
+<wsdl:message name="GetOTDSResourceIDResponse">
+<wsdl:part name="parameters" element="tns:GetOTDSResourceIDResponse"/>
+</wsdl:message>
+<wsdl:message name="GetOTDSServerRequest">
+<wsdl:part name="parameters" element="tns:GetOTDSServer"/>
+</wsdl:message>
+<wsdl:message name="GetOTDSServerResponse">
+<wsdl:part name="parameters" element="tns:GetOTDSServerResponse"/>
+</wsdl:message>
+<wsdl:message name="GetSessionExpirationDateRequest">
+<wsdl:part name="parameters" element="tns:GetSessionExpirationDate"/>
+</wsdl:message>
+<wsdl:message name="GetSessionExpirationDateRequest_Headers">
+<wsdl:part xmlns:q5="urn:api.ecm.opentext.com" name="OTAuthentication" element="q5:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetSessionExpirationDateResponse">
+<wsdl:part name="parameters" element="tns:GetSessionExpirationDateResponse"/>
+</wsdl:message>
+<wsdl:message name="GetSessionExpirationDateResponse_Headers">
+<wsdl:part xmlns:q6="urn:api.ecm.opentext.com" name="OTAuthentication" element="q6:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ImpersonateApplicationRequest">
+<wsdl:part name="parameters" element="tns:ImpersonateApplication"/>
+</wsdl:message>
+<wsdl:message name="ImpersonateApplicationRequest_Headers">
+<wsdl:part xmlns:q7="urn:api.ecm.opentext.com" name="OTAuthentication" element="q7:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ImpersonateApplicationResponse">
+<wsdl:part name="parameters" element="tns:ImpersonateApplicationResponse"/>
+</wsdl:message>
+<wsdl:message name="ImpersonateApplicationResponse_Headers">
+<wsdl:part xmlns:q8="urn:api.ecm.opentext.com" name="OTAuthentication" element="q8:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ImpersonateUserRequest">
+<wsdl:part name="parameters" element="tns:ImpersonateUser"/>
+</wsdl:message>
+<wsdl:message name="ImpersonateUserRequest_Headers">
+<wsdl:part xmlns:q9="urn:api.ecm.opentext.com" name="OTAuthentication" element="q9:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ImpersonateUserResponse">
+<wsdl:part name="parameters" element="tns:ImpersonateUserResponse"/>
+</wsdl:message>
+<wsdl:message name="ImpersonateUserResponse_Headers">
+<wsdl:part xmlns:q10="urn:api.ecm.opentext.com" name="OTAuthentication" element="q10:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RefreshTokenRequest">
+<wsdl:part name="parameters" element="tns:RefreshToken"/>
+</wsdl:message>
+<wsdl:message name="RefreshTokenRequest_Headers">
+<wsdl:part xmlns:q11="urn:api.ecm.opentext.com" name="OTAuthentication" element="q11:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RefreshTokenResponse">
+<wsdl:part name="parameters" element="tns:RefreshTokenResponse"/>
+</wsdl:message>
+<wsdl:message name="RefreshTokenResponse_Headers">
+<wsdl:part xmlns:q12="urn:api.ecm.opentext.com" name="OTAuthentication" element="q12:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ValidateUserRequest">
+<wsdl:part name="parameters" element="tns:ValidateUser"/>
+</wsdl:message>
+<wsdl:message name="ValidateUserResponse">
+<wsdl:part name="parameters" element="tns:ValidateUserResponse"/>
+</wsdl:message>
+<wsdl:portType name="Authentication">
+<wsdl:operation name="AuthenticateApplication">
+<wsdl:input wsaw:Action="urn:Core.service.livelink.opentext.com/AuthenticateApplication" name="AuthenticateApplicationRequest" message="tns:AuthenticateApplicationRequest"/>
+<wsdl:output wsaw:Action="urn:Core.service.livelink.opentext.com/Authentication/AuthenticateApplicationResponse" name="AuthenticateApplicationResponse" message="tns:AuthenticateApplicationResponse"/>
+</wsdl:operation>
+<wsdl:operation name="AuthenticateUser">
+<wsdl:input wsaw:Action="urn:Core.service.livelink.opentext.com/AuthenticateUser" name="AuthenticateUserRequest" message="tns:AuthenticateUserRequest"/>
+<wsdl:output wsaw:Action="urn:Core.service.livelink.opentext.com/Authentication/AuthenticateUserResponse" name="AuthenticateUserResponse" message="tns:AuthenticateUserResponse"/>
+</wsdl:operation>
+<wsdl:operation name="AuthenticateUserWithApplicationToken">
+<wsdl:input wsaw:Action="urn:Core.service.livelink.opentext.com/AuthenticateUserWithApplicationToken" name="AuthenticateUserWithApplicationTokenRequest" message="tns:AuthenticateUserWithApplicationTokenRequest"/>
+<wsdl:output wsaw:Action="urn:Core.service.livelink.opentext.com/Authentication/AuthenticateUserWithApplicationTokenResponse" name="AuthenticateUserWithApplicationTokenResponse" message="tns:AuthenticateUserWithApplicationTokenResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CombineApplicationToken">
+<wsdl:input wsaw:Action="urn:Core.service.livelink.opentext.com/CombineApplicationToken" name="CombineApplicationTokenRequest" message="tns:CombineApplicationTokenRequest"/>
+<wsdl:output wsaw:Action="urn:Core.service.livelink.opentext.com/Authentication/CombineApplicationTokenResponse" name="CombineApplicationTokenResponse" message="tns:CombineApplicationTokenResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetOTDSResourceID">
+<wsdl:input wsaw:Action="urn:Core.service.livelink.opentext.com/GetOTDSResourceID" name="GetOTDSResourceIDRequest" message="tns:GetOTDSResourceIDRequest"/>
+<wsdl:output wsaw:Action="urn:Core.service.livelink.opentext.com/Authentication/GetOTDSResourceIDResponse" name="GetOTDSResourceIDResponse" message="tns:GetOTDSResourceIDResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetOTDSServer">
+<wsdl:input wsaw:Action="urn:Core.service.livelink.opentext.com/GetOTDSServer" name="GetOTDSServerRequest" message="tns:GetOTDSServerRequest"/>
+<wsdl:output wsaw:Action="urn:Core.service.livelink.opentext.com/Authentication/GetOTDSServerResponse" name="GetOTDSServerResponse" message="tns:GetOTDSServerResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetSessionExpirationDate">
+<wsdl:input wsaw:Action="urn:Core.service.livelink.opentext.com/GetSessionExpirationDate" name="GetSessionExpirationDateRequest" message="tns:GetSessionExpirationDateRequest"/>
+<wsdl:output wsaw:Action="urn:Core.service.livelink.opentext.com/Authentication/GetSessionExpirationDateResponse" name="GetSessionExpirationDateResponse" message="tns:GetSessionExpirationDateResponse"/>
+</wsdl:operation>
+<wsdl:operation name="ImpersonateApplication">
+<wsdl:input wsaw:Action="urn:Core.service.livelink.opentext.com/ImpersonateApplication" name="ImpersonateApplicationRequest" message="tns:ImpersonateApplicationRequest"/>
+<wsdl:output wsaw:Action="urn:Core.service.livelink.opentext.com/Authentication/ImpersonateApplicationResponse" name="ImpersonateApplicationResponse" message="tns:ImpersonateApplicationResponse"/>
+</wsdl:operation>
+<wsdl:operation name="ImpersonateUser">
+<wsdl:input wsaw:Action="urn:Core.service.livelink.opentext.com/ImpersonateUser" name="ImpersonateUserRequest" message="tns:ImpersonateUserRequest"/>
+<wsdl:output wsaw:Action="urn:Core.service.livelink.opentext.com/Authentication/ImpersonateUserResponse" name="ImpersonateUserResponse" message="tns:ImpersonateUserResponse"/>
+</wsdl:operation>
+<wsdl:operation name="RefreshToken">
+<wsdl:input wsaw:Action="urn:Core.service.livelink.opentext.com/RefreshToken" name="RefreshTokenRequest" message="tns:RefreshTokenRequest"/>
+<wsdl:output wsaw:Action="urn:Core.service.livelink.opentext.com/Authentication/RefreshTokenResponse" name="RefreshTokenResponse" message="tns:RefreshTokenResponse"/>
+</wsdl:operation>
+<wsdl:operation name="ValidateUser">
+<wsdl:input wsaw:Action="urn:Core.service.livelink.opentext.com/ValidateUser" name="ValidateUserRequest" message="tns:ValidateUserRequest"/>
+<wsdl:output wsaw:Action="urn:Core.service.livelink.opentext.com/Authentication/ValidateUserResponse" name="ValidateUserResponse" message="tns:ValidateUserResponse"/>
+</wsdl:operation>
+</wsdl:portType>
+<wsdl:binding name="BasicHttpBinding_Authentication" type="tns:Authentication">
+<soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+<wsdl:operation name="AuthenticateApplication">
+<soap:operation soapAction="urn:Core.service.livelink.opentext.com/AuthenticateApplication" style="document"/>
+<wsdl:input name="AuthenticateApplicationRequest">
+<soap:header message="tns:AuthenticateApplicationRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="AuthenticateApplicationResponse">
+<soap:header message="tns:AuthenticateApplicationResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="AuthenticateUser">
+<soap:operation soapAction="urn:Core.service.livelink.opentext.com/AuthenticateUser" style="document"/>
+<wsdl:input name="AuthenticateUserRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="AuthenticateUserResponse">
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="AuthenticateUserWithApplicationToken">
+<soap:operation soapAction="urn:Core.service.livelink.opentext.com/AuthenticateUserWithApplicationToken" style="document"/>
+<wsdl:input name="AuthenticateUserWithApplicationTokenRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="AuthenticateUserWithApplicationTokenResponse">
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CombineApplicationToken">
+<soap:operation soapAction="urn:Core.service.livelink.opentext.com/CombineApplicationToken" style="document"/>
+<wsdl:input name="CombineApplicationTokenRequest">
+<soap:header message="tns:CombineApplicationTokenRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CombineApplicationTokenResponse">
+<soap:header message="tns:CombineApplicationTokenResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetOTDSResourceID">
+<soap:operation soapAction="urn:Core.service.livelink.opentext.com/GetOTDSResourceID" style="document"/>
+<wsdl:input name="GetOTDSResourceIDRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetOTDSResourceIDResponse">
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetOTDSServer">
+<soap:operation soapAction="urn:Core.service.livelink.opentext.com/GetOTDSServer" style="document"/>
+<wsdl:input name="GetOTDSServerRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetOTDSServerResponse">
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetSessionExpirationDate">
+<soap:operation soapAction="urn:Core.service.livelink.opentext.com/GetSessionExpirationDate" style="document"/>
+<wsdl:input name="GetSessionExpirationDateRequest">
+<soap:header message="tns:GetSessionExpirationDateRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetSessionExpirationDateResponse">
+<soap:header message="tns:GetSessionExpirationDateResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="ImpersonateApplication">
+<soap:operation soapAction="urn:Core.service.livelink.opentext.com/ImpersonateApplication" style="document"/>
+<wsdl:input name="ImpersonateApplicationRequest">
+<soap:header message="tns:ImpersonateApplicationRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ImpersonateApplicationResponse">
+<soap:header message="tns:ImpersonateApplicationResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="ImpersonateUser">
+<soap:operation soapAction="urn:Core.service.livelink.opentext.com/ImpersonateUser" style="document"/>
+<wsdl:input name="ImpersonateUserRequest">
+<soap:header message="tns:ImpersonateUserRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ImpersonateUserResponse">
+<soap:header message="tns:ImpersonateUserResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="RefreshToken">
+<soap:operation soapAction="urn:Core.service.livelink.opentext.com/RefreshToken" style="document"/>
+<wsdl:input name="RefreshTokenRequest">
+<soap:header message="tns:RefreshTokenRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="RefreshTokenResponse">
+<soap:header message="tns:RefreshTokenResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="ValidateUser">
+<soap:operation soapAction="urn:Core.service.livelink.opentext.com/ValidateUser" style="document"/>
+<wsdl:input name="ValidateUserRequest">
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ValidateUserResponse">
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:service name="Authentication">
+<wsdl:port name="BasicHttpBinding_Authentication" binding="tns:BasicHttpBinding_Authentication">
+<soap:address location="https://llotadm2:443/cws/services/Authentication"/>
+</wsdl:port>
+</wsdl:service>
+</wsdl:definitions>

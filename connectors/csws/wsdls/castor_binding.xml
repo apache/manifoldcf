@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<binding xmlns="http://www.castor.org/SourceGenerator/Binding" 
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+              xsi:schemaLocation="http://www.castor.org/SourceGenerator/Binding" 
+              defaultBinding="element">
+
+   <elementBinding name="/fileAtts">
+      <java-class name="FileAttsElement"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:FileAtts">
+      <java-class name="FileAtts"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:TableValue/Values">
+      <java-class name="TableValueValues"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:RowValue/Values">
+      <java-class name="RowValueValues"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:AttributeGroup/Values">
+      <java-class name="AttributeGroupValues"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:SetAttribute/Values">
+      <java-class name="SetAttributeValues"/>
+   </elementBinding>
+
+   <elementBinding name="/AddToCollection/collectionItems">
+      <java-class name="AddToCollectionCollectionItems"/>
+   </elementBinding>
+
+   <elementBinding name="/RemoveFromCollection/collectionItems">
+      <java-class name="RemoveFromCollectionCollectionItems"/>
+   </elementBinding>
+
+   <elementBinding name="/GetPagedNodeAuditData/pageHandle">
+      <java-class name="PagedNodeAuditDataPageHandleElement"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:PagedNodeAuditData/PageHandle">
+      <java-class name="PagedNodeAuditDataPageHandle"/>
+   </elementBinding>
+
+   <elementBinding name="/MoveNode/moveOptions">
+      <java-class name="MoveNodeMoveOptions"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:MoveOptions">
+      <java-class name="MoveOptions"/>
+   </elementBinding>
+
+   <elementBinding name="/UpdateNodeRight/nodeRight">
+      <java-class name="UpdateNodeRightNodeRight"/>
+   </elementBinding>
+
+   <elementBinding name="/AddNodeRight/nodeRight">
+      <java-class name="AddNodeRightNodeRight"/>
+   </elementBinding>
+
+   <elementBinding name="/RemoveNodeRight/nodeRight">
+      <java-class name="RemoveNodeRightNodeRight"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:NodeRight">
+      <java-class name="NodeRight"/>
+   </elementBinding>
+
+   <elementBinding name="/CopyNode/copyOptions">
+      <java-class name="CopyNodeCopyOptions"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:CopyOptions">
+      <java-class name="CopyOptions"/>
+   </elementBinding>
+
+   <elementBinding name="/UpdateNodeRights/context">
+      <java-class name="UpdateNodeRightsSlashContext"/>
+   </elementBinding>
+
+   <elementBinding name="/UpgradeCategoryItems/context">
+      <java-class name="UpdateCategoryItemsContext"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:NodeRightUpdateInfo/Context">
+      <java-class name="NodeRightUpdateInfoContext"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:CategoryItemsUpgradeInfo/Context">
+      <java-class name="CategoryItemsUpgradeInfoContext"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateNodeAndVersionContext/node">
+      <java-class name="CreateNodeAndVersionContextNode"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateNodeAndVersion/node">
+      <java-class name="CreateNodeAndVersionNode"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateNode/node">
+      <java-class name="CreateNodeNode"/>
+   </elementBinding>
+
+   <elementBinding name="/UpdateNode/node">
+      <java-class name="UpdateNodeNode"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:Node">
+      <java-class name="Node"/>
+   </elementBinding>
+
+   <elementBinding name="/UpdateNodeRightsContext/rights">
+      <java-class name="UpdateNodeRightsContextRights"/>
+   </elementBinding>
+
+   <elementBinding name="/SetNodeRights/rights">
+      <java-class name="SetNodeRightsRights"/>
+   </elementBinding>
+
+   <elementBinding name="/UpdateCategory/attributes">
+      <java-class name="UpdateCategoryAttributes"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateCategory/attributes">
+      <java-class name="CreateCategoryAttributes"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:SetAttribute/Attributes">
+      <java-class name="SetAttributeAttributes"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:AttributeGroupDefinition/Attributes">
+      <java-class name="AttributeGroupDefinitionAttributes"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:Node/Permissions">
+      <java-class name="NodeSlashPermissions"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:NodeRight/Permissions">
+      <java-class name="NodeRightPermissions"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateNodeAndVersion/attach">
+      <java-class name="CreateNodeAndVersionAttach"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateDocument/attach">
+      <java-class name="CreateDocumentAttach"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateSimpleDocument/attach">
+      <java-class name="CreateSimpleDocumentAttach"/>
+   </elementBinding>
+
+   <elementBinding name="/AddMajorVersion/attach">
+      <java-class name="AddMajorVersionAttach"/>
+   </elementBinding>
+
+   <elementBinding name="/AddVersion/attach">
+      <java-class name="AddVersionAttach"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateRendition/attach">
+      <java-class name="CreateRenditionAttach"/>
+   </elementBinding>
+
+   <elementBinding name="/UpdateVersion/version">
+      <java-class name="UpdateVersionVersion"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:Version">
+      <java-class name="Version"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateDocument/metadata">
+      <java-class name="CreateDocumentMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateURL/metadata">
+      <java-class name="CreateURLMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="/PromoteVersion/metadata">
+      <java-class name="PromoteVersionMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="/AddVersionContext/metadata">
+      <java-class name="AddVersionContextMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateDocumentContext/metadata">
+      <java-class name="CreateDocumentContextMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="/UpdateMultilingualMetadata/metadata">
+      <java-class name="UpdateMultilingualMetadataMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateShortcut/metadata">
+      <java-class name="CreateShortcutMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="/AddMajorVersionContext/metadata">
+      <java-class name="AddMajorVersionContextMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="/AddMajorVersion/metadata">
+      <java-class name="AddMajorVersionMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateCategory/metadata">
+      <java-class name="CreateCategoryMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="/SetNodeMetadata/metadata">
+      <java-class name="SetNodeMetadataMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="/AddVersion/metadata">
+      <java-class name="AddVersionMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateFolder/metadata">
+      <java-class name="CreateFolderMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:Node/Metadata">
+      <java-class name="NodeMetadata"/>
+   </elementBinding>
+
+<elementBinding name="complexType:Version/Metadata">
+      <java-class name="VersionMetadata"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:Metadata">
+      <java-class name="Metadata"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:PageHandle">
+      <java-class name="PageHandle"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:ServiceDataObject">
+      <java-class name="ServiceDataObject"/>
+   </elementBinding>
+
+   <elementBinding name="/ConvertExternalUserToUser/memberPrivileges">
+      <java-class name="ConvertExternalUserToUserMemberPrivileges"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:MemberPrivileges">
+      <java-class name="MemberPrivileges"/>
+   </elementBinding>
+
+   <elementBinding name="/GetSearchResults/pageHandle">
+      <java-class name="GetSearchResultsPageHandle"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:MemberSearchResults/PageHandle">
+      <java-class name="MemberSearchResultsPageHandle"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateMember/member">
+      <java-class name="CreateMemberMember"/>
+   </elementBinding>
+
+   <elementBinding name="/UpdateMember/member">
+      <java-class name="UpdateMemberMember"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:Member">
+      <java-class name="Member"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateExternalUser/user">
+      <java-class name="CreateExternalUserUser"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateUserInDomain/user">
+      <java-class name="CreateUserInDomainUser"/>
+   </elementBinding>
+
+   <elementBinding name="/CreateUser/user">
+      <java-class name="CreateUserUser"/>
+   </elementBinding>
+
+   <elementBinding name="complexType:User">
+      <java-class name="User"/>
+   </elementBinding>
+
+   <elementBinding name="/OTAuthentication">
+      <java-class name="OTAuthenticationElement"/>
+   </elementBinding>
+	
+   <elementBinding name="complexType:OTAuthentication">
+      <java-class name="OTAuthentication"/>
+   </elementBinding>
+   
+</binding>

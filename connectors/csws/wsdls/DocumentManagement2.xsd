@@ -1,0 +1,1850 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<!--
+ Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.7-b01  svn-revision#${svn.Last.Changed.Rev}. 
+-->
+<xs:schema xmlns:tns="urn:DocMan.service.livelink.opentext.com" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="urn:DocMan.service.livelink.opentext.com">
+<xs:import schemaLocation="DocumentManagement1.xsd" namespace="urn:Core.service.livelink.opentext.com"/>
+<xs:element name="RemoveFavorite">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="RemoveFavoriteResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="RemoveFromCollection">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="collectionID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="collectionItems" nillable="true" type="tns:CollectionItem"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="CollectionItem">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="NodeID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Version" nillable="true" type="xs:long"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="ServiceDataObject" abstract="true"/>
+<xs:element name="RemoveFromCollectionResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="RemoveNodeRight">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="nodeRight" type="tns:NodeRight"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="NodeRight">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="Permissions" type="tns:NodePermissions"/>
+<xs:element minOccurs="1" maxOccurs="1" name="RightID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Type" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="NodePermissions">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="AddItemsPermission" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="DeletePermission" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="DeleteVersionsPermission" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="EditAttributesPermission" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="EditPermissionsPermission" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ModifyPermission" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ReservePermission" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="SeeContentsPermission" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="SeePermission" type="xs:boolean"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="RemoveNodeRightResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="RenameNode">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="newName" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="RenameNodeResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="RepositionNode">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="position" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="RepositionNodeResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="ReserveNode">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="userID" nillable="true" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ReserveNodeResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="RunReport">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="reportID" type="xs:long"/>
+<xs:element xmlns:q1="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="unbounded" name="inputs" nillable="true" type="q1:DataValue"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="RunReportResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="RunReportResult" type="tns:ReportResult"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="ReportResult">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element xmlns:q2="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="unbounded" name="Contents" type="q2:RowValue"/>
+<xs:element minOccurs="1" maxOccurs="1" name="IsLimit" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="SubReportID" nillable="true" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="SubReportParameters" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Title" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="SetCategoryInheritance">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="categoryInheritanceObjs" nillable="true" type="tns:CategoryInheritance"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="CategoryInheritance">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="CategoryID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Inheritance" type="xs:boolean"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="SetCategoryInheritanceResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="SetNodeMetadata">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="metadata" type="tns:Metadata"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="Metadata">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="AttributeGroups" type="tns:AttributeGroup"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="AttributeGroup">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="DisplayName" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Key" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Type" type="xs:string"/>
+<xs:element xmlns:q3="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="unbounded" name="Values" type="q3:DataValue"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="SetNodeMetadataResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="SetNodeRights">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="rights" type="tns:NodeRights"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="NodeRights">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ACLRights" type="tns:NodeRight"/>
+<xs:element minOccurs="0" maxOccurs="1" name="OwnerGroupRight" type="tns:NodeRight"/>
+<xs:element minOccurs="0" maxOccurs="1" name="OwnerRight" type="tns:NodeRight"/>
+<xs:element minOccurs="0" maxOccurs="1" name="PublicRight" type="tns:NodeRight"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="SetNodeRightsResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="UnlockRelease">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="major" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="minor" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="UnlockReleaseResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="UnlockVersion">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNum" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="UnlockVersionResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="UnreserveNode">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="UnreserveNodeResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="UpdateCategory">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="categoryID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="attributes" nillable="true" type="tns:Attribute"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="Attribute">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="DisplayName" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Key" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="MaxValues" nillable="true" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="MinValues" nillable="true" type="xs:int"/>
+<xs:element xmlns:q4="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="ReadOnly" type="q4:BooleanObject"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Required" nillable="true" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Searchable" nillable="true" type="xs:boolean"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Type" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="SetAttribute">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:Attribute">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Attributes" type="tns:Attribute"/>
+<xs:element xmlns:q5="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="unbounded" name="Values" type="q5:RowValue"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="PrimitiveAttribute">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:Attribute"/>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="BooleanAttribute">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:PrimitiveAttribute">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Values" nillable="true" type="xs:boolean"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="DateAttribute">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:PrimitiveAttribute">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ShowTime" nillable="true" type="xs:boolean"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ValidValues" type="xs:dateTime"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Values" nillable="true" type="xs:dateTime"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="UserAttribute">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:PrimitiveAttribute">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="AllowGroups" nillable="true" type="xs:boolean"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ValidValues" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Values" nillable="true" type="xs:long"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="IntegerAttribute">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:PrimitiveAttribute">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ValidValues" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Values" nillable="true" type="xs:long"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="RealAttribute">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:PrimitiveAttribute">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ValidValues" type="xs:double"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Values" nillable="true" type="xs:double"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="MultiLineAttribute">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:PrimitiveAttribute">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="Columns" nillable="true" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Rows" nillable="true" type="xs:int"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Values" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="ItemReferenceAttribute">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:PrimitiveAttribute">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ValidTypes" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Values" nillable="true" type="xs:long"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="StringAttribute">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:PrimitiveAttribute">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="DisplayLength" nillable="true" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="MaxLength" nillable="true" type="xs:int"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ValidValues" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Values" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="UpdateCategoryResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="UpdateCategoryResult" type="tns:AttributeGroupDefinition"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="AttributeGroupDefinition">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Attributes" type="tns:Attribute"/>
+<xs:element minOccurs="0" maxOccurs="1" name="DisplayName" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Key" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Type" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="UpdateMultilingualMetadata">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="metadata" nillable="true" type="tns:MultilingualMetadata"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="MultilingualMetadata">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="Description" nillable="true" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="LanguageCode" nillable="true" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Name" nillable="true" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="UpdateMultilingualMetadataResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="UpdateNode">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="node" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="Node">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="Catalog" nillable="true" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Comment" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="ContainerInfo" type="tns:NodeContainerInfo"/>
+<xs:element minOccurs="1" maxOccurs="1" name="CreateDate" nillable="true" type="xs:dateTime"/>
+<xs:element minOccurs="1" maxOccurs="1" name="CreatedBy" nillable="true" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="DisplayType" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Features" type="tns:NodeFeature"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="IsContainer" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="IsReference" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="IsReservable" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="IsVersionable" type="xs:boolean"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Metadata" type="tns:Metadata"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ModifyDate" nillable="true" type="xs:dateTime"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Nickname" nillable="true" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ParentID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="PartialData" type="xs:boolean"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Permissions" type="tns:NodePermissions"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Position" nillable="true" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="ReferenceInfo" type="tns:NodeReferenceInfo"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Released" type="xs:boolean"/>
+<xs:element minOccurs="0" maxOccurs="1" name="ReservationInfo" type="tns:NodeReservationInfo"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Type" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="VersionInfo" type="tns:NodeVersionInfo"/>
+<xs:element minOccurs="1" maxOccurs="1" name="VolumeID" type="xs:long"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="NodeContainerInfo">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ChildCount" type="xs:int"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ChildTypes" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="NodeFeature">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="BooleanValue" nillable="true" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="DateValue" nillable="true" type="xs:dateTime"/>
+<xs:element minOccurs="1" maxOccurs="1" name="IntegerValue" nillable="true" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="LongValue" nillable="true" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="StringValue" nillable="true" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Type" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="NodeReferenceInfo">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="OriginalID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="OriginalType" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="VersionNum" nillable="true" type="xs:long"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="NodeReservationInfo">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="Reserved" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ReservedBy" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ReservedDate" nillable="true" type="xs:dateTime"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="NodeVersionInfo">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="AdvancedVersionControl" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="FileDataSize" nillable="true" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="FileResSize" nillable="true" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Major" nillable="true" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="MimeType" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="SupportsAdvancedVersionControl" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="VersionNum" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Versions" type="tns:Version"/>
+<xs:element minOccurs="1" maxOccurs="1" name="VersionsToKeep" nillable="true" type="xs:int"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="Version">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="Comment" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="CreateDate" nillable="true" type="xs:dateTime"/>
+<xs:element minOccurs="1" maxOccurs="1" name="FileCreateDate" nillable="true" type="xs:dateTime"/>
+<xs:element minOccurs="0" maxOccurs="1" name="FileCreator" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="FileDataSize" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="FileModifyDate" nillable="true" type="xs:dateTime"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Filename" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="FilePlatform" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="FileResSize" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="FileType" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Locked" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="LockedBy" nillable="true" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="LockedDate" nillable="true" type="xs:dateTime"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Metadata" type="tns:Metadata"/>
+<xs:element minOccurs="0" maxOccurs="1" name="MimeType" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ModifyDate" nillable="true" type="xs:dateTime"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="NodeID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Number" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Owner" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ProviderID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="ProviderName" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Type" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="VerMajor" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="VerMinor" type="xs:long"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="UpdateNodeResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="UpdateNodeRight">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="nodeRight" type="tns:NodeRight"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="UpdateNodeRightResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="UpdateNodeRights">
+<xs:complexType>
+<xs:sequence>
+<xs:element xmlns:q6="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="context" type="q6:ChunkedOperationContext"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="UpdateNodeRightsResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="UpdateNodeRightsResult" type="tns:NodeRightUpdateInfo"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="NodeRightUpdateInfo">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element xmlns:q7="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="Context" type="q7:ChunkedOperationContext"/>
+<xs:element minOccurs="1" maxOccurs="1" name="NodeCount" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="SkippedNodeCount" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="TotalNodeCount" type="xs:int"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="UpdateNodeRightsContext">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="operation" type="tns:RightOperation"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="rights" nillable="true" type="tns:NodeRight"/>
+<xs:element minOccurs="1" maxOccurs="1" name="propagation" type="tns:RightPropagation"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:simpleType name="RightOperation">
+<xs:restriction base="xs:string">
+<xs:enumeration value="Add"/>
+<xs:enumeration value="AddReplace"/>
+<xs:enumeration value="Delete"/>
+<xs:enumeration value="Replace"/>
+</xs:restriction>
+</xs:simpleType>
+<xs:simpleType name="RightPropagation">
+<xs:restriction base="xs:string">
+<xs:enumeration value="ChildrenOnly"/>
+<xs:enumeration value="TargetAndChildren"/>
+<xs:enumeration value="TargetOnly"/>
+</xs:restriction>
+</xs:simpleType>
+<xs:element name="UpdateNodeRightsContextResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element xmlns:q8="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="UpdateNodeRightsContextResult" type="q8:ChunkedOperationContext"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="UpdateVersion">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="version" type="tns:Version"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="UpdateVersionResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="UpgradeCategoryItems">
+<xs:complexType>
+<xs:sequence>
+<xs:element xmlns:q9="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="context" type="q9:ChunkedOperationContext"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="UpgradeCategoryItemsResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="UpgradeCategoryItemsResult" type="tns:CategoryItemsUpgradeInfo"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="CategoryItemsUpgradeInfo">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element xmlns:q10="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="Context" type="q10:ChunkedOperationContext"/>
+<xs:element minOccurs="1" maxOccurs="1" name="SkippedCount" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="UpgradedCount" type="xs:int"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="UpgradeCategoryItemsContext">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="categoryID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="version" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="addVersion" type="xs:boolean"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="UpgradeCategoryItemsContextResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element xmlns:q11="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="UpgradeCategoryItemsContextResult" type="q11:ChunkedOperationContext"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetMultilingualMetadata">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="languageCodes" nillable="true" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetMultilingualMetadataResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="GetMultilingualMetadataResult" nillable="true" type="tns:MultilingualMetadata"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNode">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetNodeResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeAuditRecords">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeAuditRecordsResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="GetNodeAuditRecordsResult" nillable="true" type="tns:NodeAuditRecord"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="NodeAuditRecord">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="AuditDate" type="xs:dateTime"/>
+<xs:element minOccurs="1" maxOccurs="1" name="AuditNumber" type="xs:int"/>
+<xs:element minOccurs="0" maxOccurs="1" name="AuditString" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="NodeID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="PerformerID" type="xs:long"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="GetNodeByGUID">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="guid" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeByGUIDResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetNodeByGUIDResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeByName">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeByNameResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetNodeByNameResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeByNickname">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="nickname" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeByNicknameResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetNodeByNicknameResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeByPath">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="rootID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="pathElements" nillable="true" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeByPathResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetNodeByPathResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeGUID">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeGUIDResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetNodeGUIDResult" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeRights">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeRightsResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetNodeRightsResult" type="tns:NodeRights"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodes">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="IDs" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodesResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="GetNodesResult" nillable="true" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodesByNickname">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="nicknames" nillable="true" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodesByNicknameResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="GetNodesByNicknameResult" nillable="true" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodesInContainer">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="containerID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="options" type="tns:GetNodesInContainerOptions"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="GetNodesInContainerOptions">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="MaxDepth" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="MaxResults" type="xs:int"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="GetNodesInContainerResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="GetNodesInContainerResult" nillable="true" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeTemplate">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="nodeType" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeTemplateResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetNodeTemplateResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetNodeTypes">
+<xs:complexType/>
+</xs:element>
+<xs:element name="GetNodeTypesResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="GetNodeTypesResult" nillable="true" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetPagedNodeAuditData">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element xmlns:q12="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="pageHandle" type="q12:PageHandle"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetPagedNodeAuditDataResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetPagedNodeAuditDataResult" type="tns:PagedNodeAuditData"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="PagedNodeAuditData">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="AuditRecords" type="tns:NodeAuditRecord"/>
+<xs:element xmlns:q13="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="PageHandle" type="q13:PageHandle"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="GetRelease">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="major" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="minor" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetReleaseResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetReleaseResult" type="tns:CompoundDocRelease"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="CompoundDocRelease">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="Comment" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="CompoundDocID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Locked" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="LockedBy" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="LockedDate" nillable="true" type="xs:dateTime"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Major" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Minor" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ReleaseID" type="xs:long"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="GetRenditionContents">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNum" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="renditionType" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetRenditionContentsResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element xmlns:q14="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="GetRenditionContentsResult" type="q14:Attachment"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetRenditionContentsContext">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNum" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="renditionType" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetRenditionContentsContextResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetRenditionContentsContextResult" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetRootNode">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="rootType" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetRootNodeResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetRootNodeResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetRootNodeTypes">
+<xs:complexType/>
+</xs:element>
+<xs:element name="GetRootNodeTypesResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="GetRootNodeTypesResult" nillable="true" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetVersion">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNum" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetVersionResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetVersionResult" type="tns:Version"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetVersionByGUID">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="guid" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetVersionByGUIDResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetVersionByGUIDResult" type="tns:Version"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetVersionContents">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNum" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetVersionContentsResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element xmlns:q15="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="GetVersionContentsResult" type="q15:Attachment"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetVersionContentsContext">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNum" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetVersionContentsContextResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetVersionContentsContextResult" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetVersionGUID">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNumber" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetVersionGUIDResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetVersionGUIDResult" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListNodes">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="partialData" type="xs:boolean"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListNodesResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ListNodesResult" nillable="true" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListNodesByPage">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="pageSpec" type="tns:NodePageSpecification"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="NodePageSpecification">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ContainersOnly" type="xs:boolean"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ExcludeTypes" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="IncludeHiddenNodes" type="xs:boolean"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="IncludeTypes" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="NameFilter" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="PageContext" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="PageNumber" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="PageSize" type="xs:int"/>
+<xs:element minOccurs="0" maxOccurs="1" name="TypeFilter" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="ListNodesByPageResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="ListNodesByPageResult" type="tns:NodePageResult"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="NodePageResult">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Nodes" type="tns:Node"/>
+<xs:element minOccurs="1" maxOccurs="1" name="NumberOfPages" type="xs:int"/>
+<xs:element minOccurs="0" maxOccurs="1" name="PageContext" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="PageNumber" type="xs:int"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="ListReferences">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListReferencesResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ListReferencesResult" nillable="true" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListReleases">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListReleasesResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ListReleasesResult" nillable="true" type="tns:CompoundDocRelease"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListRenditions">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNum" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListRenditionsResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ListRenditionsResult" nillable="true" type="tns:Version"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="LockRelease">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="major" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="minor" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="LockReleaseResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="LockVersion">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNum" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="LockVersionResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="MoveNode">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="newName" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="moveOptions" type="tns:MoveOptions"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="MoveOptions">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="AddVersion" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="AttrSourceType" type="tns:AttributeSourceType"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ForceInheritPermissions" type="xs:boolean"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:simpleType name="AttributeSourceType">
+<xs:restriction base="xs:string">
+<xs:enumeration value="DESTINATION"/>
+<xs:enumeration value="MERGE"/>
+<xs:enumeration value="ORIGINAL"/>
+</xs:restriction>
+</xs:simpleType>
+<xs:element name="MoveNodeResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="PromoteVersion">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNum" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="metadata" type="tns:Metadata"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="PromoteVersionResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="PromoteVersionResult" type="tns:Version"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="PurgeVersions">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="numberToKeep" type="xs:int"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="PurgeVersionsResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="RearrangeNodes">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="positions" nillable="true" type="tns:NodePosition"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="NodePosition">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="NodeID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Position" type="xs:long"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="RearrangeNodesResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="AddFavorite">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="AddFavoriteResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="AddMajorVersion">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="metadata" type="tns:Metadata"/>
+<xs:element xmlns:q16="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="attach" type="q16:Attachment"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="AddMajorVersionResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="AddMajorVersionResult" type="tns:Version"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="AddMajorVersionContext">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="metadata" type="tns:Metadata"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="AddMajorVersionContextResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="AddMajorVersionContextResult" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="AddNodeRight">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="nodeRight" type="tns:NodeRight"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="AddNodeRightResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="AddToCollection">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="collectionID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="collectionItems" nillable="true" type="tns:CollectionItem"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="AddToCollectionResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="AddVersion">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="metadata" type="tns:Metadata"/>
+<xs:element xmlns:q17="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="attach" type="q17:Attachment"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="AddVersionResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="AddVersionResult" type="tns:Version"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="AddVersionContext">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="metadata" type="tns:Metadata"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="AddVersionContextResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="AddVersionContextResult" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CopyNode">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="newName" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="copyOptions" type="tns:CopyOptions"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="CopyOptions">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="AddVersion" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="AttrSourceType" type="tns:AttributeSourceType"/>
+<xs:element minOccurs="1" maxOccurs="1" name="CopyCurrent" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="CurrentUserAsOwner" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="KeepReservedState" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="KeepVersionLocks" type="xs:boolean"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="CopyNodeResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CopyNodeResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateCategory">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="comment" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="attributes" nillable="true" type="tns:Attribute"/>
+<xs:element minOccurs="0" maxOccurs="1" name="metadata" type="tns:Metadata"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateCategoryResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateCategoryResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateDocument">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="comment" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="advancedVersionControl" type="xs:boolean"/>
+<xs:element minOccurs="0" maxOccurs="1" name="metadata" type="tns:Metadata"/>
+<xs:element xmlns:q18="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="attach" type="q18:Attachment"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateDocumentResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateDocumentResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateDocumentContext">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="comment" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="advancedVersionControl" type="xs:boolean"/>
+<xs:element minOccurs="0" maxOccurs="1" name="metadata" type="tns:Metadata"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateDocumentContextResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateDocumentContextResult" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateFolder">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="comment" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="metadata" type="tns:Metadata"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateFolderResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateFolderResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateNode">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="node" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateNodeResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateNodeResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateNodeAndVersion">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="node" type="tns:Node"/>
+<xs:element xmlns:q19="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="attach" type="q19:Attachment"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateNodeAndVersionResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateNodeAndVersionResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateNodeAndVersionContext">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="node" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateNodeAndVersionContextResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateNodeAndVersionContextResult" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateRelease">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="major" type="xs:boolean"/>
+<xs:element minOccurs="0" maxOccurs="1" name="releaseName" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateReleaseResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateReleaseResult" type="tns:CompoundDocRelease"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateRendition">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNum" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="renditionType" type="xs:string"/>
+<xs:element xmlns:q20="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="attach" type="q20:Attachment"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateRenditionResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateRenditionResult" type="tns:Version"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateRenditionContext">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNum" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="renditionType" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateRenditionContextResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateRenditionContextResult" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateShortcut">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="comment" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="sourceID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="metadata" type="tns:Metadata"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateShortcutResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateShortcutResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateSimpleDocument">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+<xs:element xmlns:q21="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="attach" type="q21:Attachment"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateSimpleDocumentResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="CreateSimpleDocumentResult" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateSimpleDocumentContext">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateSimpleDocumentContextResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateSimpleDocumentContextResult" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateSimpleFolder">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateSimpleFolderResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="CreateSimpleFolderResult" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateURL">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="parentID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="comment" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="location" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="metadata" type="tns:Metadata"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateURLResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateURLResult" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="DeleteNode">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="DeleteNodeResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="DeleteRelease">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="major" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="minor" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="DeleteReleaseResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="DeleteRendition">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNum" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="renditionType" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="DeleteRenditionResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="DeleteVersion">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="versionNum" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="DeleteVersionResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="GetAllFavorites">
+<xs:complexType/>
+</xs:element>
+<xs:element name="GetAllFavoritesResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="GetAllFavoritesResult" nillable="true" type="tns:Node"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetAllMultilingualMetadata">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetAllMultilingualMetadataResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="GetAllMultilingualMetadataResult" nillable="true" type="tns:MultilingualMetadata"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetAttributeGroupDefinition">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="type" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="key" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetAttributeGroupDefinitionResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetAttributeGroupDefinitionResult" type="tns:AttributeGroupDefinition"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetAttributeGroupTemplate">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="type" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="key" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetAttributeGroupTemplateResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetAttributeGroupTemplateResult" type="tns:AttributeGroup"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetCategoryDefinition">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="categoryID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetCategoryDefinitionResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetCategoryDefinitionResult" type="tns:AttributeGroupDefinition"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetCategoryDefinitions">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="categoryIDs" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetCategoryDefinitionsResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="GetCategoryDefinitionsResult" nillable="true" type="tns:AttributeGroupDefinition"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetCategoryInheritance">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="nodeID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetCategoryInheritanceResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="GetCategoryInheritanceResult" nillable="true" type="tns:CategoryInheritance"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetCategoryTemplate">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="categoryID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetCategoryTemplateResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetCategoryTemplateResult" type="tns:AttributeGroup"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetMetadataLanguages">
+<xs:complexType/>
+</xs:element>
+<xs:element name="GetMetadataLanguagesResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="GetMetadataLanguagesResult" nillable="true" type="tns:MetadataLanguage"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="MetadataLanguage">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="LanguageCode" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+</xs:schema>

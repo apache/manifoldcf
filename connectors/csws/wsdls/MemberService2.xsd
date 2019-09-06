@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<!--
+ Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.7-b01  svn-revision#${svn.Last.Changed.Rev}. 
+-->
+<xs:schema xmlns:tns="urn:MemberService.service.livelink.opentext.com" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="urn:MemberService.service.livelink.opentext.com">
+<xs:import schemaLocation="MemberService3.xsd" namespace="urn:Core.service.livelink.opentext.com"/>
+<xs:element name="AddListOfMembersToGroup">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="groupID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="memberIDs" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="AddListOfMembersToGroupResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="AddMemberToGroup">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="groupID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="memberID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="AddMemberToGroupResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="ConvertExternalUserToUser">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="userID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="groupID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="memberPrivileges" type="tns:MemberPrivileges"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="MemberPrivileges">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="CanAdministerSystem" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="CanAdministerUsers" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="CreateUpdateGroups" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="CreateUpdateUsers" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="LoginEnabled" type="xs:boolean"/>
+<xs:element minOccurs="1" maxOccurs="1" name="PublicAccessEnabled" type="xs:boolean"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="ServiceDataObject" abstract="true"/>
+<xs:element name="ConvertExternalUserToUserResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="CreateDomain">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateDomainResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="CreateDomainResult" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateExternalGroup">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="leaderID" nillable="true" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateExternalGroupResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="CreateExternalGroupResult" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateExternalUser">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="user" type="tns:User"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="User">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:Member">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="DepartmentGroupID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Email" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Fax" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="FirstName" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="LastName" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="MiddleName" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="OfficeLocation" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Password" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Phone" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Privileges" type="tns:MemberPrivileges"/>
+<xs:element minOccurs="1" maxOccurs="1" name="TimeZone" nillable="true" type="xs:int"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Title" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="Member">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="CreatedBy" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Deleted" type="xs:boolean"/>
+<xs:element minOccurs="0" maxOccurs="1" name="DisplayName" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Name" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Type" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="Domain">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:Member"/>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="Group">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:Member">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="LeaderID" nillable="true" type="xs:long"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="CreateExternalUserResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="CreateExternalUserResult" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateGroup">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="leaderID" nillable="true" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateGroupResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="CreateGroupResult" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateGroupInDomain">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="leaderID" nillable="true" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="domainID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateGroupInDomainResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="CreateGroupInDomainResult" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateMember">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="member" type="tns:Member"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateMemberResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="CreateMemberResult" type="tns:Member"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateUser">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="user" type="tns:User"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateUserResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="CreateUserResult" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateUserInDomain">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="user" type="tns:User"/>
+<xs:element minOccurs="1" maxOccurs="1" name="domainID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="CreateUserInDomainResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="CreateUserInDomainResult" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="DeleteListOfMembers">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="memberIDs" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="DeleteListOfMembersResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="DeleteMember">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="memberID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="DeleteMemberResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="GetAuthenticatedUser">
+<xs:complexType/>
+</xs:element>
+<xs:element name="GetAuthenticatedUserResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetAuthenticatedUserResult" type="tns:User"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetGroupByName">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetGroupByNameResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetGroupByNameResult" type="tns:Group"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetGroupByNameInDomain">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="name" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="domainID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetGroupByNameInDomainResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetGroupByNameInDomainResult" type="tns:Group"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetMemberById">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="memberID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetMemberByIdResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetMemberByIdResult" type="tns:Member"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetMemberByLoginName">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="loginName" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetMemberByLoginNameResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetMemberByLoginNameResult" type="tns:Member"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetMembersByID">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="memberIDs" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetMembersByIDResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="GetMembersByIDResult" nillable="true" type="tns:Member"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetMetadataLanguage">
+<xs:complexType/>
+</xs:element>
+<xs:element name="GetMetadataLanguageResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetMetadataLanguageResult" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetSearchResults">
+<xs:complexType>
+<xs:sequence>
+<xs:element xmlns:q1="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="pageHandle" type="q1:PageHandle"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetSearchResultsResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetSearchResultsResult" type="tns:MemberSearchResults"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="MemberSearchResults">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="Members" type="tns:Member"/>
+<xs:element xmlns:q2="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="PageHandle" type="q2:PageHandle"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="GetUserByLoginName">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="loginName" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetUserByLoginNameResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetUserByLoginNameResult" type="tns:User"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetUserByLoginNameInDomain">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="loginName" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="domainID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="GetUserByLoginNameInDomainResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="GetUserByLoginNameInDomainResult" type="tns:User"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListMemberOf">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="memberID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListMemberOfResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ListMemberOfResult" nillable="true" type="tns:Group"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListMembers">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="groupID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListMembersResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ListMembersResult" nillable="true" type="tns:Member"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListRightsByID">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="id" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="ListRightsByIDResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="ListRightsByIDResult" nillable="true" type="tns:MemberRight"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="MemberRight">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="ID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="LeaderID" nillable="true" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Name" nillable="true" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Type" nillable="true" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:element name="RemoveListOfMembersFromGroup">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="groupID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="unbounded" name="memberIDs" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="RemoveListOfMembersFromGroupResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="RemoveMemberFromGroup">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="groupID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="memberID" type="xs:long"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="RemoveMemberFromGroupResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="SearchForMembers">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="options" type="tns:MemberSearchOptions"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:complexType name="MemberSearchOptions">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="Column" type="tns:SearchColumn"/>
+<xs:element minOccurs="1" maxOccurs="1" name="DomainID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Filter" type="tns:SearchFilter"/>
+<xs:element minOccurs="1" maxOccurs="1" name="GroupID" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Matching" type="tns:SearchMatching"/>
+<xs:element minOccurs="1" maxOccurs="1" name="PageSize" type="xs:int"/>
+<xs:element minOccurs="1" maxOccurs="1" name="Scope" type="tns:SearchScope"/>
+<xs:element minOccurs="0" maxOccurs="1" name="Search" type="xs:string"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:simpleType name="SearchColumn">
+<xs:restriction base="xs:string">
+<xs:enumeration value="FIRSTNAME"/>
+<xs:enumeration value="LASTNAME"/>
+<xs:enumeration value="MAILADDRESS"/>
+<xs:enumeration value="NAME"/>
+</xs:restriction>
+</xs:simpleType>
+<xs:simpleType name="SearchFilter">
+<xs:restriction base="xs:string">
+<xs:enumeration value="ANY"/>
+<xs:enumeration value="DOMAIN"/>
+<xs:enumeration value="GROUP"/>
+<xs:enumeration value="USER"/>
+</xs:restriction>
+</xs:simpleType>
+<xs:simpleType name="SearchMatching">
+<xs:restriction base="xs:string">
+<xs:enumeration value="CONTAINS"/>
+<xs:enumeration value="ENDSWITH"/>
+<xs:enumeration value="SOUNDSLIKE"/>
+<xs:enumeration value="STARTSWITH"/>
+</xs:restriction>
+</xs:simpleType>
+<xs:simpleType name="SearchScope">
+<xs:restriction base="xs:string">
+<xs:enumeration value="GROUP"/>
+<xs:enumeration value="SYSTEM"/>
+</xs:restriction>
+</xs:simpleType>
+<xs:element name="SearchForMembersResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element xmlns:q3="urn:Core.service.livelink.opentext.com" minOccurs="0" maxOccurs="1" name="SearchForMembersResult" type="q3:PageHandle"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="SetMetadataLanguage">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="languageCode" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="SetMetadataLanguageResponse">
+<xs:complexType/>
+</xs:element>
+<xs:element name="UpdateMember">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="member" type="tns:Member"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="UpdateMemberResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="UpdateMemberResult" type="tns:Member"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="UpdatePassword">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="memberID" type="xs:long"/>
+<xs:element minOccurs="0" maxOccurs="1" name="newPassword" type="xs:string"/>
+<xs:element minOccurs="0" maxOccurs="1" name="oldPassword" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="UpdatePasswordResponse">
+<xs:complexType/>
+</xs:element>
+</xs:schema>

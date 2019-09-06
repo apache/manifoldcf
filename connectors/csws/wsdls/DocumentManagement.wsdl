@@ -1,0 +1,2578 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<!--
+ Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.7-b01  svn-revision#${svn.Last.Changed.Rev}. 
+-->
+<wsdl:definitions xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="urn:DocMan.service.livelink.opentext.com" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" name="DocumentManagement" targetNamespace="urn:DocMan.service.livelink.opentext.com">
+<wsdl:types>
+<xsd:schema targetNamespace="urn:DocMan.service.livelink.opentext.com/Imports">
+<xsd:import schemaLocation="DocumentManagement2.xsd" namespace="urn:DocMan.service.livelink.opentext.com"/>
+<xsd:import schemaLocation="DocumentManagement3.xsd" namespace="urn:api.ecm.opentext.com"/>
+<xsd:import schemaLocation="DocumentManagement1.xsd" namespace="urn:Core.service.livelink.opentext.com"/>
+</xsd:schema>
+</wsdl:types>
+<wsdl:message name="RemoveFavoriteRequest">
+<wsdl:part name="parameters" element="tns:RemoveFavorite"/>
+</wsdl:message>
+<wsdl:message name="RemoveFavoriteRequest_Headers">
+<wsdl:part xmlns:q1="urn:api.ecm.opentext.com" name="OTAuthentication" element="q1:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RemoveFavoriteResponse">
+<wsdl:part name="parameters" element="tns:RemoveFavoriteResponse"/>
+</wsdl:message>
+<wsdl:message name="RemoveFavoriteResponse_Headers">
+<wsdl:part xmlns:q2="urn:api.ecm.opentext.com" name="OTAuthentication" element="q2:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RemoveFromCollectionRequest">
+<wsdl:part name="parameters" element="tns:RemoveFromCollection"/>
+</wsdl:message>
+<wsdl:message name="RemoveFromCollectionRequest_Headers">
+<wsdl:part xmlns:q3="urn:api.ecm.opentext.com" name="OTAuthentication" element="q3:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RemoveFromCollectionResponse">
+<wsdl:part name="parameters" element="tns:RemoveFromCollectionResponse"/>
+</wsdl:message>
+<wsdl:message name="RemoveFromCollectionResponse_Headers">
+<wsdl:part xmlns:q4="urn:api.ecm.opentext.com" name="OTAuthentication" element="q4:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RemoveNodeRightRequest">
+<wsdl:part name="parameters" element="tns:RemoveNodeRight"/>
+</wsdl:message>
+<wsdl:message name="RemoveNodeRightRequest_Headers">
+<wsdl:part xmlns:q5="urn:api.ecm.opentext.com" name="OTAuthentication" element="q5:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RemoveNodeRightResponse">
+<wsdl:part name="parameters" element="tns:RemoveNodeRightResponse"/>
+</wsdl:message>
+<wsdl:message name="RemoveNodeRightResponse_Headers">
+<wsdl:part xmlns:q6="urn:api.ecm.opentext.com" name="OTAuthentication" element="q6:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RenameNodeRequest">
+<wsdl:part name="parameters" element="tns:RenameNode"/>
+</wsdl:message>
+<wsdl:message name="RenameNodeRequest_Headers">
+<wsdl:part xmlns:q7="urn:api.ecm.opentext.com" name="OTAuthentication" element="q7:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RenameNodeResponse">
+<wsdl:part name="parameters" element="tns:RenameNodeResponse"/>
+</wsdl:message>
+<wsdl:message name="RenameNodeResponse_Headers">
+<wsdl:part xmlns:q8="urn:api.ecm.opentext.com" name="OTAuthentication" element="q8:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RepositionNodeRequest">
+<wsdl:part name="parameters" element="tns:RepositionNode"/>
+</wsdl:message>
+<wsdl:message name="RepositionNodeRequest_Headers">
+<wsdl:part xmlns:q9="urn:api.ecm.opentext.com" name="OTAuthentication" element="q9:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RepositionNodeResponse">
+<wsdl:part name="parameters" element="tns:RepositionNodeResponse"/>
+</wsdl:message>
+<wsdl:message name="RepositionNodeResponse_Headers">
+<wsdl:part xmlns:q10="urn:api.ecm.opentext.com" name="OTAuthentication" element="q10:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ReserveNodeRequest">
+<wsdl:part name="parameters" element="tns:ReserveNode"/>
+</wsdl:message>
+<wsdl:message name="ReserveNodeRequest_Headers">
+<wsdl:part xmlns:q11="urn:api.ecm.opentext.com" name="OTAuthentication" element="q11:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ReserveNodeResponse">
+<wsdl:part name="parameters" element="tns:ReserveNodeResponse"/>
+</wsdl:message>
+<wsdl:message name="ReserveNodeResponse_Headers">
+<wsdl:part xmlns:q12="urn:api.ecm.opentext.com" name="OTAuthentication" element="q12:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RunReportRequest">
+<wsdl:part name="parameters" element="tns:RunReport"/>
+</wsdl:message>
+<wsdl:message name="RunReportRequest_Headers">
+<wsdl:part xmlns:q13="urn:api.ecm.opentext.com" name="OTAuthentication" element="q13:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RunReportResponse">
+<wsdl:part name="parameters" element="tns:RunReportResponse"/>
+</wsdl:message>
+<wsdl:message name="RunReportResponse_Headers">
+<wsdl:part xmlns:q14="urn:api.ecm.opentext.com" name="OTAuthentication" element="q14:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="SetCategoryInheritanceRequest">
+<wsdl:part name="parameters" element="tns:SetCategoryInheritance"/>
+</wsdl:message>
+<wsdl:message name="SetCategoryInheritanceRequest_Headers">
+<wsdl:part xmlns:q15="urn:api.ecm.opentext.com" name="OTAuthentication" element="q15:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="SetCategoryInheritanceResponse">
+<wsdl:part name="parameters" element="tns:SetCategoryInheritanceResponse"/>
+</wsdl:message>
+<wsdl:message name="SetCategoryInheritanceResponse_Headers">
+<wsdl:part xmlns:q16="urn:api.ecm.opentext.com" name="OTAuthentication" element="q16:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="SetNodeMetadataRequest">
+<wsdl:part name="parameters" element="tns:SetNodeMetadata"/>
+</wsdl:message>
+<wsdl:message name="SetNodeMetadataRequest_Headers">
+<wsdl:part xmlns:q17="urn:api.ecm.opentext.com" name="OTAuthentication" element="q17:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="SetNodeMetadataResponse">
+<wsdl:part name="parameters" element="tns:SetNodeMetadataResponse"/>
+</wsdl:message>
+<wsdl:message name="SetNodeMetadataResponse_Headers">
+<wsdl:part xmlns:q18="urn:api.ecm.opentext.com" name="OTAuthentication" element="q18:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="SetNodeRightsRequest">
+<wsdl:part name="parameters" element="tns:SetNodeRights"/>
+</wsdl:message>
+<wsdl:message name="SetNodeRightsRequest_Headers">
+<wsdl:part xmlns:q19="urn:api.ecm.opentext.com" name="OTAuthentication" element="q19:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="SetNodeRightsResponse">
+<wsdl:part name="parameters" element="tns:SetNodeRightsResponse"/>
+</wsdl:message>
+<wsdl:message name="SetNodeRightsResponse_Headers">
+<wsdl:part xmlns:q20="urn:api.ecm.opentext.com" name="OTAuthentication" element="q20:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UnlockReleaseRequest">
+<wsdl:part name="parameters" element="tns:UnlockRelease"/>
+</wsdl:message>
+<wsdl:message name="UnlockReleaseRequest_Headers">
+<wsdl:part xmlns:q21="urn:api.ecm.opentext.com" name="OTAuthentication" element="q21:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UnlockReleaseResponse">
+<wsdl:part name="parameters" element="tns:UnlockReleaseResponse"/>
+</wsdl:message>
+<wsdl:message name="UnlockReleaseResponse_Headers">
+<wsdl:part xmlns:q22="urn:api.ecm.opentext.com" name="OTAuthentication" element="q22:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UnlockVersionRequest">
+<wsdl:part name="parameters" element="tns:UnlockVersion"/>
+</wsdl:message>
+<wsdl:message name="UnlockVersionRequest_Headers">
+<wsdl:part xmlns:q23="urn:api.ecm.opentext.com" name="OTAuthentication" element="q23:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UnlockVersionResponse">
+<wsdl:part name="parameters" element="tns:UnlockVersionResponse"/>
+</wsdl:message>
+<wsdl:message name="UnlockVersionResponse_Headers">
+<wsdl:part xmlns:q24="urn:api.ecm.opentext.com" name="OTAuthentication" element="q24:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UnreserveNodeRequest">
+<wsdl:part name="parameters" element="tns:UnreserveNode"/>
+</wsdl:message>
+<wsdl:message name="UnreserveNodeRequest_Headers">
+<wsdl:part xmlns:q25="urn:api.ecm.opentext.com" name="OTAuthentication" element="q25:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UnreserveNodeResponse">
+<wsdl:part name="parameters" element="tns:UnreserveNodeResponse"/>
+</wsdl:message>
+<wsdl:message name="UnreserveNodeResponse_Headers">
+<wsdl:part xmlns:q26="urn:api.ecm.opentext.com" name="OTAuthentication" element="q26:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateCategoryRequest">
+<wsdl:part name="parameters" element="tns:UpdateCategory"/>
+</wsdl:message>
+<wsdl:message name="UpdateCategoryRequest_Headers">
+<wsdl:part xmlns:q27="urn:api.ecm.opentext.com" name="OTAuthentication" element="q27:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateCategoryResponse">
+<wsdl:part name="parameters" element="tns:UpdateCategoryResponse"/>
+</wsdl:message>
+<wsdl:message name="UpdateCategoryResponse_Headers">
+<wsdl:part xmlns:q28="urn:api.ecm.opentext.com" name="OTAuthentication" element="q28:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateMultilingualMetadataRequest">
+<wsdl:part name="parameters" element="tns:UpdateMultilingualMetadata"/>
+</wsdl:message>
+<wsdl:message name="UpdateMultilingualMetadataRequest_Headers">
+<wsdl:part xmlns:q29="urn:api.ecm.opentext.com" name="OTAuthentication" element="q29:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateMultilingualMetadataResponse">
+<wsdl:part name="parameters" element="tns:UpdateMultilingualMetadataResponse"/>
+</wsdl:message>
+<wsdl:message name="UpdateMultilingualMetadataResponse_Headers">
+<wsdl:part xmlns:q30="urn:api.ecm.opentext.com" name="OTAuthentication" element="q30:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRequest">
+<wsdl:part name="parameters" element="tns:UpdateNode"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRequest_Headers">
+<wsdl:part xmlns:q31="urn:api.ecm.opentext.com" name="OTAuthentication" element="q31:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeResponse">
+<wsdl:part name="parameters" element="tns:UpdateNodeResponse"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeResponse_Headers">
+<wsdl:part xmlns:q32="urn:api.ecm.opentext.com" name="OTAuthentication" element="q32:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRightRequest">
+<wsdl:part name="parameters" element="tns:UpdateNodeRight"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRightRequest_Headers">
+<wsdl:part xmlns:q33="urn:api.ecm.opentext.com" name="OTAuthentication" element="q33:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRightResponse">
+<wsdl:part name="parameters" element="tns:UpdateNodeRightResponse"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRightResponse_Headers">
+<wsdl:part xmlns:q34="urn:api.ecm.opentext.com" name="OTAuthentication" element="q34:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRightsRequest">
+<wsdl:part name="parameters" element="tns:UpdateNodeRights"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRightsRequest_Headers">
+<wsdl:part xmlns:q35="urn:api.ecm.opentext.com" name="OTAuthentication" element="q35:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRightsResponse">
+<wsdl:part name="parameters" element="tns:UpdateNodeRightsResponse"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRightsResponse_Headers">
+<wsdl:part xmlns:q36="urn:api.ecm.opentext.com" name="OTAuthentication" element="q36:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRightsContextRequest">
+<wsdl:part name="parameters" element="tns:UpdateNodeRightsContext"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRightsContextRequest_Headers">
+<wsdl:part xmlns:q37="urn:api.ecm.opentext.com" name="OTAuthentication" element="q37:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRightsContextResponse">
+<wsdl:part name="parameters" element="tns:UpdateNodeRightsContextResponse"/>
+</wsdl:message>
+<wsdl:message name="UpdateNodeRightsContextResponse_Headers">
+<wsdl:part xmlns:q38="urn:api.ecm.opentext.com" name="OTAuthentication" element="q38:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateVersionRequest">
+<wsdl:part name="parameters" element="tns:UpdateVersion"/>
+</wsdl:message>
+<wsdl:message name="UpdateVersionRequest_Headers">
+<wsdl:part xmlns:q39="urn:api.ecm.opentext.com" name="OTAuthentication" element="q39:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpdateVersionResponse">
+<wsdl:part name="parameters" element="tns:UpdateVersionResponse"/>
+</wsdl:message>
+<wsdl:message name="UpdateVersionResponse_Headers">
+<wsdl:part xmlns:q40="urn:api.ecm.opentext.com" name="OTAuthentication" element="q40:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpgradeCategoryItemsRequest">
+<wsdl:part name="parameters" element="tns:UpgradeCategoryItems"/>
+</wsdl:message>
+<wsdl:message name="UpgradeCategoryItemsRequest_Headers">
+<wsdl:part xmlns:q41="urn:api.ecm.opentext.com" name="OTAuthentication" element="q41:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpgradeCategoryItemsResponse">
+<wsdl:part name="parameters" element="tns:UpgradeCategoryItemsResponse"/>
+</wsdl:message>
+<wsdl:message name="UpgradeCategoryItemsResponse_Headers">
+<wsdl:part xmlns:q42="urn:api.ecm.opentext.com" name="OTAuthentication" element="q42:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpgradeCategoryItemsContextRequest">
+<wsdl:part name="parameters" element="tns:UpgradeCategoryItemsContext"/>
+</wsdl:message>
+<wsdl:message name="UpgradeCategoryItemsContextRequest_Headers">
+<wsdl:part xmlns:q43="urn:api.ecm.opentext.com" name="OTAuthentication" element="q43:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UpgradeCategoryItemsContextResponse">
+<wsdl:part name="parameters" element="tns:UpgradeCategoryItemsContextResponse"/>
+</wsdl:message>
+<wsdl:message name="UpgradeCategoryItemsContextResponse_Headers">
+<wsdl:part xmlns:q44="urn:api.ecm.opentext.com" name="OTAuthentication" element="q44:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetMultilingualMetadataRequest">
+<wsdl:part name="parameters" element="tns:GetMultilingualMetadata"/>
+</wsdl:message>
+<wsdl:message name="GetMultilingualMetadataRequest_Headers">
+<wsdl:part xmlns:q45="urn:api.ecm.opentext.com" name="OTAuthentication" element="q45:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetMultilingualMetadataResponse">
+<wsdl:part name="parameters" element="tns:GetMultilingualMetadataResponse"/>
+</wsdl:message>
+<wsdl:message name="GetMultilingualMetadataResponse_Headers">
+<wsdl:part xmlns:q46="urn:api.ecm.opentext.com" name="OTAuthentication" element="q46:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeRequest">
+<wsdl:part name="parameters" element="tns:GetNode"/>
+</wsdl:message>
+<wsdl:message name="GetNodeRequest_Headers">
+<wsdl:part xmlns:q47="urn:api.ecm.opentext.com" name="OTAuthentication" element="q47:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeResponse">
+<wsdl:part name="parameters" element="tns:GetNodeResponse"/>
+</wsdl:message>
+<wsdl:message name="GetNodeResponse_Headers">
+<wsdl:part xmlns:q48="urn:api.ecm.opentext.com" name="OTAuthentication" element="q48:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeAuditRecordsRequest">
+<wsdl:part name="parameters" element="tns:GetNodeAuditRecords"/>
+</wsdl:message>
+<wsdl:message name="GetNodeAuditRecordsRequest_Headers">
+<wsdl:part xmlns:q49="urn:api.ecm.opentext.com" name="OTAuthentication" element="q49:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeAuditRecordsResponse">
+<wsdl:part name="parameters" element="tns:GetNodeAuditRecordsResponse"/>
+</wsdl:message>
+<wsdl:message name="GetNodeAuditRecordsResponse_Headers">
+<wsdl:part xmlns:q50="urn:api.ecm.opentext.com" name="OTAuthentication" element="q50:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByGUIDRequest">
+<wsdl:part name="parameters" element="tns:GetNodeByGUID"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByGUIDRequest_Headers">
+<wsdl:part xmlns:q51="urn:api.ecm.opentext.com" name="OTAuthentication" element="q51:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByGUIDResponse">
+<wsdl:part name="parameters" element="tns:GetNodeByGUIDResponse"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByGUIDResponse_Headers">
+<wsdl:part xmlns:q52="urn:api.ecm.opentext.com" name="OTAuthentication" element="q52:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByNameRequest">
+<wsdl:part name="parameters" element="tns:GetNodeByName"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByNameRequest_Headers">
+<wsdl:part xmlns:q53="urn:api.ecm.opentext.com" name="OTAuthentication" element="q53:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByNameResponse">
+<wsdl:part name="parameters" element="tns:GetNodeByNameResponse"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByNameResponse_Headers">
+<wsdl:part xmlns:q54="urn:api.ecm.opentext.com" name="OTAuthentication" element="q54:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByNicknameRequest">
+<wsdl:part name="parameters" element="tns:GetNodeByNickname"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByNicknameRequest_Headers">
+<wsdl:part xmlns:q55="urn:api.ecm.opentext.com" name="OTAuthentication" element="q55:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByNicknameResponse">
+<wsdl:part name="parameters" element="tns:GetNodeByNicknameResponse"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByNicknameResponse_Headers">
+<wsdl:part xmlns:q56="urn:api.ecm.opentext.com" name="OTAuthentication" element="q56:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByPathRequest">
+<wsdl:part name="parameters" element="tns:GetNodeByPath"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByPathRequest_Headers">
+<wsdl:part xmlns:q57="urn:api.ecm.opentext.com" name="OTAuthentication" element="q57:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByPathResponse">
+<wsdl:part name="parameters" element="tns:GetNodeByPathResponse"/>
+</wsdl:message>
+<wsdl:message name="GetNodeByPathResponse_Headers">
+<wsdl:part xmlns:q58="urn:api.ecm.opentext.com" name="OTAuthentication" element="q58:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeGUIDRequest">
+<wsdl:part name="parameters" element="tns:GetNodeGUID"/>
+</wsdl:message>
+<wsdl:message name="GetNodeGUIDRequest_Headers">
+<wsdl:part xmlns:q59="urn:api.ecm.opentext.com" name="OTAuthentication" element="q59:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeGUIDResponse">
+<wsdl:part name="parameters" element="tns:GetNodeGUIDResponse"/>
+</wsdl:message>
+<wsdl:message name="GetNodeGUIDResponse_Headers">
+<wsdl:part xmlns:q60="urn:api.ecm.opentext.com" name="OTAuthentication" element="q60:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeRightsRequest">
+<wsdl:part name="parameters" element="tns:GetNodeRights"/>
+</wsdl:message>
+<wsdl:message name="GetNodeRightsRequest_Headers">
+<wsdl:part xmlns:q61="urn:api.ecm.opentext.com" name="OTAuthentication" element="q61:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeRightsResponse">
+<wsdl:part name="parameters" element="tns:GetNodeRightsResponse"/>
+</wsdl:message>
+<wsdl:message name="GetNodeRightsResponse_Headers">
+<wsdl:part xmlns:q62="urn:api.ecm.opentext.com" name="OTAuthentication" element="q62:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodesRequest">
+<wsdl:part name="parameters" element="tns:GetNodes"/>
+</wsdl:message>
+<wsdl:message name="GetNodesRequest_Headers">
+<wsdl:part xmlns:q63="urn:api.ecm.opentext.com" name="OTAuthentication" element="q63:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodesResponse">
+<wsdl:part name="parameters" element="tns:GetNodesResponse"/>
+</wsdl:message>
+<wsdl:message name="GetNodesResponse_Headers">
+<wsdl:part xmlns:q64="urn:api.ecm.opentext.com" name="OTAuthentication" element="q64:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodesByNicknameRequest">
+<wsdl:part name="parameters" element="tns:GetNodesByNickname"/>
+</wsdl:message>
+<wsdl:message name="GetNodesByNicknameRequest_Headers">
+<wsdl:part xmlns:q65="urn:api.ecm.opentext.com" name="OTAuthentication" element="q65:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodesByNicknameResponse">
+<wsdl:part name="parameters" element="tns:GetNodesByNicknameResponse"/>
+</wsdl:message>
+<wsdl:message name="GetNodesByNicknameResponse_Headers">
+<wsdl:part xmlns:q66="urn:api.ecm.opentext.com" name="OTAuthentication" element="q66:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodesInContainerRequest">
+<wsdl:part name="parameters" element="tns:GetNodesInContainer"/>
+</wsdl:message>
+<wsdl:message name="GetNodesInContainerRequest_Headers">
+<wsdl:part xmlns:q67="urn:api.ecm.opentext.com" name="OTAuthentication" element="q67:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodesInContainerResponse">
+<wsdl:part name="parameters" element="tns:GetNodesInContainerResponse"/>
+</wsdl:message>
+<wsdl:message name="GetNodesInContainerResponse_Headers">
+<wsdl:part xmlns:q68="urn:api.ecm.opentext.com" name="OTAuthentication" element="q68:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeTemplateRequest">
+<wsdl:part name="parameters" element="tns:GetNodeTemplate"/>
+</wsdl:message>
+<wsdl:message name="GetNodeTemplateRequest_Headers">
+<wsdl:part xmlns:q69="urn:api.ecm.opentext.com" name="OTAuthentication" element="q69:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeTemplateResponse">
+<wsdl:part name="parameters" element="tns:GetNodeTemplateResponse"/>
+</wsdl:message>
+<wsdl:message name="GetNodeTemplateResponse_Headers">
+<wsdl:part xmlns:q70="urn:api.ecm.opentext.com" name="OTAuthentication" element="q70:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeTypesRequest">
+<wsdl:part name="parameters" element="tns:GetNodeTypes"/>
+</wsdl:message>
+<wsdl:message name="GetNodeTypesRequest_Headers">
+<wsdl:part xmlns:q71="urn:api.ecm.opentext.com" name="OTAuthentication" element="q71:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetNodeTypesResponse">
+<wsdl:part name="parameters" element="tns:GetNodeTypesResponse"/>
+</wsdl:message>
+<wsdl:message name="GetNodeTypesResponse_Headers">
+<wsdl:part xmlns:q72="urn:api.ecm.opentext.com" name="OTAuthentication" element="q72:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetPagedNodeAuditDataRequest">
+<wsdl:part name="parameters" element="tns:GetPagedNodeAuditData"/>
+</wsdl:message>
+<wsdl:message name="GetPagedNodeAuditDataRequest_Headers">
+<wsdl:part xmlns:q73="urn:api.ecm.opentext.com" name="OTAuthentication" element="q73:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetPagedNodeAuditDataResponse">
+<wsdl:part name="parameters" element="tns:GetPagedNodeAuditDataResponse"/>
+</wsdl:message>
+<wsdl:message name="GetPagedNodeAuditDataResponse_Headers">
+<wsdl:part xmlns:q74="urn:api.ecm.opentext.com" name="OTAuthentication" element="q74:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetReleaseRequest">
+<wsdl:part name="parameters" element="tns:GetRelease"/>
+</wsdl:message>
+<wsdl:message name="GetReleaseRequest_Headers">
+<wsdl:part xmlns:q75="urn:api.ecm.opentext.com" name="OTAuthentication" element="q75:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetReleaseResponse">
+<wsdl:part name="parameters" element="tns:GetReleaseResponse"/>
+</wsdl:message>
+<wsdl:message name="GetReleaseResponse_Headers">
+<wsdl:part xmlns:q76="urn:api.ecm.opentext.com" name="OTAuthentication" element="q76:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetRenditionContentsRequest">
+<wsdl:part name="parameters" element="tns:GetRenditionContents"/>
+</wsdl:message>
+<wsdl:message name="GetRenditionContentsRequest_Headers">
+<wsdl:part xmlns:q77="urn:api.ecm.opentext.com" name="OTAuthentication" element="q77:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetRenditionContentsResponse">
+<wsdl:part name="parameters" element="tns:GetRenditionContentsResponse"/>
+</wsdl:message>
+<wsdl:message name="GetRenditionContentsResponse_Headers">
+<wsdl:part xmlns:q78="urn:api.ecm.opentext.com" name="OTAuthentication" element="q78:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetRenditionContentsContextRequest">
+<wsdl:part name="parameters" element="tns:GetRenditionContentsContext"/>
+</wsdl:message>
+<wsdl:message name="GetRenditionContentsContextRequest_Headers">
+<wsdl:part xmlns:q79="urn:api.ecm.opentext.com" name="OTAuthentication" element="q79:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetRenditionContentsContextResponse">
+<wsdl:part name="parameters" element="tns:GetRenditionContentsContextResponse"/>
+</wsdl:message>
+<wsdl:message name="GetRenditionContentsContextResponse_Headers">
+<wsdl:part xmlns:q80="urn:api.ecm.opentext.com" name="OTAuthentication" element="q80:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetRootNodeRequest">
+<wsdl:part name="parameters" element="tns:GetRootNode"/>
+</wsdl:message>
+<wsdl:message name="GetRootNodeRequest_Headers">
+<wsdl:part xmlns:q81="urn:api.ecm.opentext.com" name="OTAuthentication" element="q81:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetRootNodeResponse">
+<wsdl:part name="parameters" element="tns:GetRootNodeResponse"/>
+</wsdl:message>
+<wsdl:message name="GetRootNodeResponse_Headers">
+<wsdl:part xmlns:q82="urn:api.ecm.opentext.com" name="OTAuthentication" element="q82:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetRootNodeTypesRequest">
+<wsdl:part name="parameters" element="tns:GetRootNodeTypes"/>
+</wsdl:message>
+<wsdl:message name="GetRootNodeTypesRequest_Headers">
+<wsdl:part xmlns:q83="urn:api.ecm.opentext.com" name="OTAuthentication" element="q83:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetRootNodeTypesResponse">
+<wsdl:part name="parameters" element="tns:GetRootNodeTypesResponse"/>
+</wsdl:message>
+<wsdl:message name="GetRootNodeTypesResponse_Headers">
+<wsdl:part xmlns:q84="urn:api.ecm.opentext.com" name="OTAuthentication" element="q84:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetVersionRequest">
+<wsdl:part name="parameters" element="tns:GetVersion"/>
+</wsdl:message>
+<wsdl:message name="GetVersionRequest_Headers">
+<wsdl:part xmlns:q85="urn:api.ecm.opentext.com" name="OTAuthentication" element="q85:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetVersionResponse">
+<wsdl:part name="parameters" element="tns:GetVersionResponse"/>
+</wsdl:message>
+<wsdl:message name="GetVersionResponse_Headers">
+<wsdl:part xmlns:q86="urn:api.ecm.opentext.com" name="OTAuthentication" element="q86:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetVersionByGUIDRequest">
+<wsdl:part name="parameters" element="tns:GetVersionByGUID"/>
+</wsdl:message>
+<wsdl:message name="GetVersionByGUIDRequest_Headers">
+<wsdl:part xmlns:q87="urn:api.ecm.opentext.com" name="OTAuthentication" element="q87:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetVersionByGUIDResponse">
+<wsdl:part name="parameters" element="tns:GetVersionByGUIDResponse"/>
+</wsdl:message>
+<wsdl:message name="GetVersionByGUIDResponse_Headers">
+<wsdl:part xmlns:q88="urn:api.ecm.opentext.com" name="OTAuthentication" element="q88:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetVersionContentsRequest">
+<wsdl:part name="parameters" element="tns:GetVersionContents"/>
+</wsdl:message>
+<wsdl:message name="GetVersionContentsRequest_Headers">
+<wsdl:part xmlns:q89="urn:api.ecm.opentext.com" name="OTAuthentication" element="q89:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetVersionContentsResponse">
+<wsdl:part name="parameters" element="tns:GetVersionContentsResponse"/>
+</wsdl:message>
+<wsdl:message name="GetVersionContentsResponse_Headers">
+<wsdl:part xmlns:q90="urn:api.ecm.opentext.com" name="OTAuthentication" element="q90:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetVersionContentsContextRequest">
+<wsdl:part name="parameters" element="tns:GetVersionContentsContext"/>
+</wsdl:message>
+<wsdl:message name="GetVersionContentsContextRequest_Headers">
+<wsdl:part xmlns:q91="urn:api.ecm.opentext.com" name="OTAuthentication" element="q91:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetVersionContentsContextResponse">
+<wsdl:part name="parameters" element="tns:GetVersionContentsContextResponse"/>
+</wsdl:message>
+<wsdl:message name="GetVersionContentsContextResponse_Headers">
+<wsdl:part xmlns:q92="urn:api.ecm.opentext.com" name="OTAuthentication" element="q92:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetVersionGUIDRequest">
+<wsdl:part name="parameters" element="tns:GetVersionGUID"/>
+</wsdl:message>
+<wsdl:message name="GetVersionGUIDRequest_Headers">
+<wsdl:part xmlns:q93="urn:api.ecm.opentext.com" name="OTAuthentication" element="q93:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetVersionGUIDResponse">
+<wsdl:part name="parameters" element="tns:GetVersionGUIDResponse"/>
+</wsdl:message>
+<wsdl:message name="GetVersionGUIDResponse_Headers">
+<wsdl:part xmlns:q94="urn:api.ecm.opentext.com" name="OTAuthentication" element="q94:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListNodesRequest">
+<wsdl:part name="parameters" element="tns:ListNodes"/>
+</wsdl:message>
+<wsdl:message name="ListNodesRequest_Headers">
+<wsdl:part xmlns:q95="urn:api.ecm.opentext.com" name="OTAuthentication" element="q95:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListNodesResponse">
+<wsdl:part name="parameters" element="tns:ListNodesResponse"/>
+</wsdl:message>
+<wsdl:message name="ListNodesResponse_Headers">
+<wsdl:part xmlns:q96="urn:api.ecm.opentext.com" name="OTAuthentication" element="q96:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListNodesByPageRequest">
+<wsdl:part name="parameters" element="tns:ListNodesByPage"/>
+</wsdl:message>
+<wsdl:message name="ListNodesByPageRequest_Headers">
+<wsdl:part xmlns:q97="urn:api.ecm.opentext.com" name="OTAuthentication" element="q97:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListNodesByPageResponse">
+<wsdl:part name="parameters" element="tns:ListNodesByPageResponse"/>
+</wsdl:message>
+<wsdl:message name="ListNodesByPageResponse_Headers">
+<wsdl:part xmlns:q98="urn:api.ecm.opentext.com" name="OTAuthentication" element="q98:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListReferencesRequest">
+<wsdl:part name="parameters" element="tns:ListReferences"/>
+</wsdl:message>
+<wsdl:message name="ListReferencesRequest_Headers">
+<wsdl:part xmlns:q99="urn:api.ecm.opentext.com" name="OTAuthentication" element="q99:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListReferencesResponse">
+<wsdl:part name="parameters" element="tns:ListReferencesResponse"/>
+</wsdl:message>
+<wsdl:message name="ListReferencesResponse_Headers">
+<wsdl:part xmlns:q100="urn:api.ecm.opentext.com" name="OTAuthentication" element="q100:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListReleasesRequest">
+<wsdl:part name="parameters" element="tns:ListReleases"/>
+</wsdl:message>
+<wsdl:message name="ListReleasesRequest_Headers">
+<wsdl:part xmlns:q101="urn:api.ecm.opentext.com" name="OTAuthentication" element="q101:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListReleasesResponse">
+<wsdl:part name="parameters" element="tns:ListReleasesResponse"/>
+</wsdl:message>
+<wsdl:message name="ListReleasesResponse_Headers">
+<wsdl:part xmlns:q102="urn:api.ecm.opentext.com" name="OTAuthentication" element="q102:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListRenditionsRequest">
+<wsdl:part name="parameters" element="tns:ListRenditions"/>
+</wsdl:message>
+<wsdl:message name="ListRenditionsRequest_Headers">
+<wsdl:part xmlns:q103="urn:api.ecm.opentext.com" name="OTAuthentication" element="q103:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="ListRenditionsResponse">
+<wsdl:part name="parameters" element="tns:ListRenditionsResponse"/>
+</wsdl:message>
+<wsdl:message name="ListRenditionsResponse_Headers">
+<wsdl:part xmlns:q104="urn:api.ecm.opentext.com" name="OTAuthentication" element="q104:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="LockReleaseRequest">
+<wsdl:part name="parameters" element="tns:LockRelease"/>
+</wsdl:message>
+<wsdl:message name="LockReleaseRequest_Headers">
+<wsdl:part xmlns:q105="urn:api.ecm.opentext.com" name="OTAuthentication" element="q105:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="LockReleaseResponse">
+<wsdl:part name="parameters" element="tns:LockReleaseResponse"/>
+</wsdl:message>
+<wsdl:message name="LockReleaseResponse_Headers">
+<wsdl:part xmlns:q106="urn:api.ecm.opentext.com" name="OTAuthentication" element="q106:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="LockVersionRequest">
+<wsdl:part name="parameters" element="tns:LockVersion"/>
+</wsdl:message>
+<wsdl:message name="LockVersionRequest_Headers">
+<wsdl:part xmlns:q107="urn:api.ecm.opentext.com" name="OTAuthentication" element="q107:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="LockVersionResponse">
+<wsdl:part name="parameters" element="tns:LockVersionResponse"/>
+</wsdl:message>
+<wsdl:message name="LockVersionResponse_Headers">
+<wsdl:part xmlns:q108="urn:api.ecm.opentext.com" name="OTAuthentication" element="q108:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="MoveNodeRequest">
+<wsdl:part name="parameters" element="tns:MoveNode"/>
+</wsdl:message>
+<wsdl:message name="MoveNodeRequest_Headers">
+<wsdl:part xmlns:q109="urn:api.ecm.opentext.com" name="OTAuthentication" element="q109:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="MoveNodeResponse">
+<wsdl:part name="parameters" element="tns:MoveNodeResponse"/>
+</wsdl:message>
+<wsdl:message name="MoveNodeResponse_Headers">
+<wsdl:part xmlns:q110="urn:api.ecm.opentext.com" name="OTAuthentication" element="q110:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="PromoteVersionRequest">
+<wsdl:part name="parameters" element="tns:PromoteVersion"/>
+</wsdl:message>
+<wsdl:message name="PromoteVersionRequest_Headers">
+<wsdl:part xmlns:q111="urn:api.ecm.opentext.com" name="OTAuthentication" element="q111:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="PromoteVersionResponse">
+<wsdl:part name="parameters" element="tns:PromoteVersionResponse"/>
+</wsdl:message>
+<wsdl:message name="PromoteVersionResponse_Headers">
+<wsdl:part xmlns:q112="urn:api.ecm.opentext.com" name="OTAuthentication" element="q112:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="PurgeVersionsRequest">
+<wsdl:part name="parameters" element="tns:PurgeVersions"/>
+</wsdl:message>
+<wsdl:message name="PurgeVersionsRequest_Headers">
+<wsdl:part xmlns:q113="urn:api.ecm.opentext.com" name="OTAuthentication" element="q113:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="PurgeVersionsResponse">
+<wsdl:part name="parameters" element="tns:PurgeVersionsResponse"/>
+</wsdl:message>
+<wsdl:message name="PurgeVersionsResponse_Headers">
+<wsdl:part xmlns:q114="urn:api.ecm.opentext.com" name="OTAuthentication" element="q114:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RearrangeNodesRequest">
+<wsdl:part name="parameters" element="tns:RearrangeNodes"/>
+</wsdl:message>
+<wsdl:message name="RearrangeNodesRequest_Headers">
+<wsdl:part xmlns:q115="urn:api.ecm.opentext.com" name="OTAuthentication" element="q115:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="RearrangeNodesResponse">
+<wsdl:part name="parameters" element="tns:RearrangeNodesResponse"/>
+</wsdl:message>
+<wsdl:message name="RearrangeNodesResponse_Headers">
+<wsdl:part xmlns:q116="urn:api.ecm.opentext.com" name="OTAuthentication" element="q116:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddFavoriteRequest">
+<wsdl:part name="parameters" element="tns:AddFavorite"/>
+</wsdl:message>
+<wsdl:message name="AddFavoriteRequest_Headers">
+<wsdl:part xmlns:q117="urn:api.ecm.opentext.com" name="OTAuthentication" element="q117:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddFavoriteResponse">
+<wsdl:part name="parameters" element="tns:AddFavoriteResponse"/>
+</wsdl:message>
+<wsdl:message name="AddFavoriteResponse_Headers">
+<wsdl:part xmlns:q118="urn:api.ecm.opentext.com" name="OTAuthentication" element="q118:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddMajorVersionRequest">
+<wsdl:part name="parameters" element="tns:AddMajorVersion"/>
+</wsdl:message>
+<wsdl:message name="AddMajorVersionRequest_Headers">
+<wsdl:part xmlns:q119="urn:api.ecm.opentext.com" name="OTAuthentication" element="q119:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddMajorVersionResponse">
+<wsdl:part name="parameters" element="tns:AddMajorVersionResponse"/>
+</wsdl:message>
+<wsdl:message name="AddMajorVersionResponse_Headers">
+<wsdl:part xmlns:q120="urn:api.ecm.opentext.com" name="OTAuthentication" element="q120:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddMajorVersionContextRequest">
+<wsdl:part name="parameters" element="tns:AddMajorVersionContext"/>
+</wsdl:message>
+<wsdl:message name="AddMajorVersionContextRequest_Headers">
+<wsdl:part xmlns:q121="urn:api.ecm.opentext.com" name="OTAuthentication" element="q121:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddMajorVersionContextResponse">
+<wsdl:part name="parameters" element="tns:AddMajorVersionContextResponse"/>
+</wsdl:message>
+<wsdl:message name="AddMajorVersionContextResponse_Headers">
+<wsdl:part xmlns:q122="urn:api.ecm.opentext.com" name="OTAuthentication" element="q122:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddNodeRightRequest">
+<wsdl:part name="parameters" element="tns:AddNodeRight"/>
+</wsdl:message>
+<wsdl:message name="AddNodeRightRequest_Headers">
+<wsdl:part xmlns:q123="urn:api.ecm.opentext.com" name="OTAuthentication" element="q123:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddNodeRightResponse">
+<wsdl:part name="parameters" element="tns:AddNodeRightResponse"/>
+</wsdl:message>
+<wsdl:message name="AddNodeRightResponse_Headers">
+<wsdl:part xmlns:q124="urn:api.ecm.opentext.com" name="OTAuthentication" element="q124:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddToCollectionRequest">
+<wsdl:part name="parameters" element="tns:AddToCollection"/>
+</wsdl:message>
+<wsdl:message name="AddToCollectionRequest_Headers">
+<wsdl:part xmlns:q125="urn:api.ecm.opentext.com" name="OTAuthentication" element="q125:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddToCollectionResponse">
+<wsdl:part name="parameters" element="tns:AddToCollectionResponse"/>
+</wsdl:message>
+<wsdl:message name="AddToCollectionResponse_Headers">
+<wsdl:part xmlns:q126="urn:api.ecm.opentext.com" name="OTAuthentication" element="q126:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddVersionRequest">
+<wsdl:part name="parameters" element="tns:AddVersion"/>
+</wsdl:message>
+<wsdl:message name="AddVersionRequest_Headers">
+<wsdl:part xmlns:q127="urn:api.ecm.opentext.com" name="OTAuthentication" element="q127:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddVersionResponse">
+<wsdl:part name="parameters" element="tns:AddVersionResponse"/>
+</wsdl:message>
+<wsdl:message name="AddVersionResponse_Headers">
+<wsdl:part xmlns:q128="urn:api.ecm.opentext.com" name="OTAuthentication" element="q128:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddVersionContextRequest">
+<wsdl:part name="parameters" element="tns:AddVersionContext"/>
+</wsdl:message>
+<wsdl:message name="AddVersionContextRequest_Headers">
+<wsdl:part xmlns:q129="urn:api.ecm.opentext.com" name="OTAuthentication" element="q129:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="AddVersionContextResponse">
+<wsdl:part name="parameters" element="tns:AddVersionContextResponse"/>
+</wsdl:message>
+<wsdl:message name="AddVersionContextResponse_Headers">
+<wsdl:part xmlns:q130="urn:api.ecm.opentext.com" name="OTAuthentication" element="q130:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CopyNodeRequest">
+<wsdl:part name="parameters" element="tns:CopyNode"/>
+</wsdl:message>
+<wsdl:message name="CopyNodeRequest_Headers">
+<wsdl:part xmlns:q131="urn:api.ecm.opentext.com" name="OTAuthentication" element="q131:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CopyNodeResponse">
+<wsdl:part name="parameters" element="tns:CopyNodeResponse"/>
+</wsdl:message>
+<wsdl:message name="CopyNodeResponse_Headers">
+<wsdl:part xmlns:q132="urn:api.ecm.opentext.com" name="OTAuthentication" element="q132:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateCategoryRequest">
+<wsdl:part name="parameters" element="tns:CreateCategory"/>
+</wsdl:message>
+<wsdl:message name="CreateCategoryRequest_Headers">
+<wsdl:part xmlns:q133="urn:api.ecm.opentext.com" name="OTAuthentication" element="q133:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateCategoryResponse">
+<wsdl:part name="parameters" element="tns:CreateCategoryResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateCategoryResponse_Headers">
+<wsdl:part xmlns:q134="urn:api.ecm.opentext.com" name="OTAuthentication" element="q134:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateDocumentRequest">
+<wsdl:part name="parameters" element="tns:CreateDocument"/>
+</wsdl:message>
+<wsdl:message name="CreateDocumentRequest_Headers">
+<wsdl:part xmlns:q135="urn:api.ecm.opentext.com" name="OTAuthentication" element="q135:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateDocumentResponse">
+<wsdl:part name="parameters" element="tns:CreateDocumentResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateDocumentResponse_Headers">
+<wsdl:part xmlns:q136="urn:api.ecm.opentext.com" name="OTAuthentication" element="q136:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateDocumentContextRequest">
+<wsdl:part name="parameters" element="tns:CreateDocumentContext"/>
+</wsdl:message>
+<wsdl:message name="CreateDocumentContextRequest_Headers">
+<wsdl:part xmlns:q137="urn:api.ecm.opentext.com" name="OTAuthentication" element="q137:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateDocumentContextResponse">
+<wsdl:part name="parameters" element="tns:CreateDocumentContextResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateDocumentContextResponse_Headers">
+<wsdl:part xmlns:q138="urn:api.ecm.opentext.com" name="OTAuthentication" element="q138:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateFolderRequest">
+<wsdl:part name="parameters" element="tns:CreateFolder"/>
+</wsdl:message>
+<wsdl:message name="CreateFolderRequest_Headers">
+<wsdl:part xmlns:q139="urn:api.ecm.opentext.com" name="OTAuthentication" element="q139:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateFolderResponse">
+<wsdl:part name="parameters" element="tns:CreateFolderResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateFolderResponse_Headers">
+<wsdl:part xmlns:q140="urn:api.ecm.opentext.com" name="OTAuthentication" element="q140:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateNodeRequest">
+<wsdl:part name="parameters" element="tns:CreateNode"/>
+</wsdl:message>
+<wsdl:message name="CreateNodeRequest_Headers">
+<wsdl:part xmlns:q141="urn:api.ecm.opentext.com" name="OTAuthentication" element="q141:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateNodeResponse">
+<wsdl:part name="parameters" element="tns:CreateNodeResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateNodeResponse_Headers">
+<wsdl:part xmlns:q142="urn:api.ecm.opentext.com" name="OTAuthentication" element="q142:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateNodeAndVersionRequest">
+<wsdl:part name="parameters" element="tns:CreateNodeAndVersion"/>
+</wsdl:message>
+<wsdl:message name="CreateNodeAndVersionRequest_Headers">
+<wsdl:part xmlns:q143="urn:api.ecm.opentext.com" name="OTAuthentication" element="q143:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateNodeAndVersionResponse">
+<wsdl:part name="parameters" element="tns:CreateNodeAndVersionResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateNodeAndVersionResponse_Headers">
+<wsdl:part xmlns:q144="urn:api.ecm.opentext.com" name="OTAuthentication" element="q144:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateNodeAndVersionContextRequest">
+<wsdl:part name="parameters" element="tns:CreateNodeAndVersionContext"/>
+</wsdl:message>
+<wsdl:message name="CreateNodeAndVersionContextRequest_Headers">
+<wsdl:part xmlns:q145="urn:api.ecm.opentext.com" name="OTAuthentication" element="q145:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateNodeAndVersionContextResponse">
+<wsdl:part name="parameters" element="tns:CreateNodeAndVersionContextResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateNodeAndVersionContextResponse_Headers">
+<wsdl:part xmlns:q146="urn:api.ecm.opentext.com" name="OTAuthentication" element="q146:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateReleaseRequest">
+<wsdl:part name="parameters" element="tns:CreateRelease"/>
+</wsdl:message>
+<wsdl:message name="CreateReleaseRequest_Headers">
+<wsdl:part xmlns:q147="urn:api.ecm.opentext.com" name="OTAuthentication" element="q147:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateReleaseResponse">
+<wsdl:part name="parameters" element="tns:CreateReleaseResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateReleaseResponse_Headers">
+<wsdl:part xmlns:q148="urn:api.ecm.opentext.com" name="OTAuthentication" element="q148:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateRenditionRequest">
+<wsdl:part name="parameters" element="tns:CreateRendition"/>
+</wsdl:message>
+<wsdl:message name="CreateRenditionRequest_Headers">
+<wsdl:part xmlns:q149="urn:api.ecm.opentext.com" name="OTAuthentication" element="q149:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateRenditionResponse">
+<wsdl:part name="parameters" element="tns:CreateRenditionResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateRenditionResponse_Headers">
+<wsdl:part xmlns:q150="urn:api.ecm.opentext.com" name="OTAuthentication" element="q150:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateRenditionContextRequest">
+<wsdl:part name="parameters" element="tns:CreateRenditionContext"/>
+</wsdl:message>
+<wsdl:message name="CreateRenditionContextRequest_Headers">
+<wsdl:part xmlns:q151="urn:api.ecm.opentext.com" name="OTAuthentication" element="q151:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateRenditionContextResponse">
+<wsdl:part name="parameters" element="tns:CreateRenditionContextResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateRenditionContextResponse_Headers">
+<wsdl:part xmlns:q152="urn:api.ecm.opentext.com" name="OTAuthentication" element="q152:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateShortcutRequest">
+<wsdl:part name="parameters" element="tns:CreateShortcut"/>
+</wsdl:message>
+<wsdl:message name="CreateShortcutRequest_Headers">
+<wsdl:part xmlns:q153="urn:api.ecm.opentext.com" name="OTAuthentication" element="q153:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateShortcutResponse">
+<wsdl:part name="parameters" element="tns:CreateShortcutResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateShortcutResponse_Headers">
+<wsdl:part xmlns:q154="urn:api.ecm.opentext.com" name="OTAuthentication" element="q154:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateSimpleDocumentRequest">
+<wsdl:part name="parameters" element="tns:CreateSimpleDocument"/>
+</wsdl:message>
+<wsdl:message name="CreateSimpleDocumentRequest_Headers">
+<wsdl:part xmlns:q155="urn:api.ecm.opentext.com" name="OTAuthentication" element="q155:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateSimpleDocumentResponse">
+<wsdl:part name="parameters" element="tns:CreateSimpleDocumentResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateSimpleDocumentResponse_Headers">
+<wsdl:part xmlns:q156="urn:api.ecm.opentext.com" name="OTAuthentication" element="q156:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateSimpleDocumentContextRequest">
+<wsdl:part name="parameters" element="tns:CreateSimpleDocumentContext"/>
+</wsdl:message>
+<wsdl:message name="CreateSimpleDocumentContextRequest_Headers">
+<wsdl:part xmlns:q157="urn:api.ecm.opentext.com" name="OTAuthentication" element="q157:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateSimpleDocumentContextResponse">
+<wsdl:part name="parameters" element="tns:CreateSimpleDocumentContextResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateSimpleDocumentContextResponse_Headers">
+<wsdl:part xmlns:q158="urn:api.ecm.opentext.com" name="OTAuthentication" element="q158:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateSimpleFolderRequest">
+<wsdl:part name="parameters" element="tns:CreateSimpleFolder"/>
+</wsdl:message>
+<wsdl:message name="CreateSimpleFolderRequest_Headers">
+<wsdl:part xmlns:q159="urn:api.ecm.opentext.com" name="OTAuthentication" element="q159:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateSimpleFolderResponse">
+<wsdl:part name="parameters" element="tns:CreateSimpleFolderResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateSimpleFolderResponse_Headers">
+<wsdl:part xmlns:q160="urn:api.ecm.opentext.com" name="OTAuthentication" element="q160:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateURLRequest">
+<wsdl:part name="parameters" element="tns:CreateURL"/>
+</wsdl:message>
+<wsdl:message name="CreateURLRequest_Headers">
+<wsdl:part xmlns:q161="urn:api.ecm.opentext.com" name="OTAuthentication" element="q161:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="CreateURLResponse">
+<wsdl:part name="parameters" element="tns:CreateURLResponse"/>
+</wsdl:message>
+<wsdl:message name="CreateURLResponse_Headers">
+<wsdl:part xmlns:q162="urn:api.ecm.opentext.com" name="OTAuthentication" element="q162:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="DeleteNodeRequest">
+<wsdl:part name="parameters" element="tns:DeleteNode"/>
+</wsdl:message>
+<wsdl:message name="DeleteNodeRequest_Headers">
+<wsdl:part xmlns:q163="urn:api.ecm.opentext.com" name="OTAuthentication" element="q163:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="DeleteNodeResponse">
+<wsdl:part name="parameters" element="tns:DeleteNodeResponse"/>
+</wsdl:message>
+<wsdl:message name="DeleteNodeResponse_Headers">
+<wsdl:part xmlns:q164="urn:api.ecm.opentext.com" name="OTAuthentication" element="q164:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="DeleteReleaseRequest">
+<wsdl:part name="parameters" element="tns:DeleteRelease"/>
+</wsdl:message>
+<wsdl:message name="DeleteReleaseRequest_Headers">
+<wsdl:part xmlns:q165="urn:api.ecm.opentext.com" name="OTAuthentication" element="q165:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="DeleteReleaseResponse">
+<wsdl:part name="parameters" element="tns:DeleteReleaseResponse"/>
+</wsdl:message>
+<wsdl:message name="DeleteReleaseResponse_Headers">
+<wsdl:part xmlns:q166="urn:api.ecm.opentext.com" name="OTAuthentication" element="q166:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="DeleteRenditionRequest">
+<wsdl:part name="parameters" element="tns:DeleteRendition"/>
+</wsdl:message>
+<wsdl:message name="DeleteRenditionRequest_Headers">
+<wsdl:part xmlns:q167="urn:api.ecm.opentext.com" name="OTAuthentication" element="q167:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="DeleteRenditionResponse">
+<wsdl:part name="parameters" element="tns:DeleteRenditionResponse"/>
+</wsdl:message>
+<wsdl:message name="DeleteRenditionResponse_Headers">
+<wsdl:part xmlns:q168="urn:api.ecm.opentext.com" name="OTAuthentication" element="q168:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="DeleteVersionRequest">
+<wsdl:part name="parameters" element="tns:DeleteVersion"/>
+</wsdl:message>
+<wsdl:message name="DeleteVersionRequest_Headers">
+<wsdl:part xmlns:q169="urn:api.ecm.opentext.com" name="OTAuthentication" element="q169:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="DeleteVersionResponse">
+<wsdl:part name="parameters" element="tns:DeleteVersionResponse"/>
+</wsdl:message>
+<wsdl:message name="DeleteVersionResponse_Headers">
+<wsdl:part xmlns:q170="urn:api.ecm.opentext.com" name="OTAuthentication" element="q170:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetAllFavoritesRequest">
+<wsdl:part name="parameters" element="tns:GetAllFavorites"/>
+</wsdl:message>
+<wsdl:message name="GetAllFavoritesRequest_Headers">
+<wsdl:part xmlns:q171="urn:api.ecm.opentext.com" name="OTAuthentication" element="q171:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetAllFavoritesResponse">
+<wsdl:part name="parameters" element="tns:GetAllFavoritesResponse"/>
+</wsdl:message>
+<wsdl:message name="GetAllFavoritesResponse_Headers">
+<wsdl:part xmlns:q172="urn:api.ecm.opentext.com" name="OTAuthentication" element="q172:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetAllMultilingualMetadataRequest">
+<wsdl:part name="parameters" element="tns:GetAllMultilingualMetadata"/>
+</wsdl:message>
+<wsdl:message name="GetAllMultilingualMetadataRequest_Headers">
+<wsdl:part xmlns:q173="urn:api.ecm.opentext.com" name="OTAuthentication" element="q173:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetAllMultilingualMetadataResponse">
+<wsdl:part name="parameters" element="tns:GetAllMultilingualMetadataResponse"/>
+</wsdl:message>
+<wsdl:message name="GetAllMultilingualMetadataResponse_Headers">
+<wsdl:part xmlns:q174="urn:api.ecm.opentext.com" name="OTAuthentication" element="q174:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetAttributeGroupDefinitionRequest">
+<wsdl:part name="parameters" element="tns:GetAttributeGroupDefinition"/>
+</wsdl:message>
+<wsdl:message name="GetAttributeGroupDefinitionRequest_Headers">
+<wsdl:part xmlns:q175="urn:api.ecm.opentext.com" name="OTAuthentication" element="q175:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetAttributeGroupDefinitionResponse">
+<wsdl:part name="parameters" element="tns:GetAttributeGroupDefinitionResponse"/>
+</wsdl:message>
+<wsdl:message name="GetAttributeGroupDefinitionResponse_Headers">
+<wsdl:part xmlns:q176="urn:api.ecm.opentext.com" name="OTAuthentication" element="q176:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetAttributeGroupTemplateRequest">
+<wsdl:part name="parameters" element="tns:GetAttributeGroupTemplate"/>
+</wsdl:message>
+<wsdl:message name="GetAttributeGroupTemplateRequest_Headers">
+<wsdl:part xmlns:q177="urn:api.ecm.opentext.com" name="OTAuthentication" element="q177:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetAttributeGroupTemplateResponse">
+<wsdl:part name="parameters" element="tns:GetAttributeGroupTemplateResponse"/>
+</wsdl:message>
+<wsdl:message name="GetAttributeGroupTemplateResponse_Headers">
+<wsdl:part xmlns:q178="urn:api.ecm.opentext.com" name="OTAuthentication" element="q178:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryDefinitionRequest">
+<wsdl:part name="parameters" element="tns:GetCategoryDefinition"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryDefinitionRequest_Headers">
+<wsdl:part xmlns:q179="urn:api.ecm.opentext.com" name="OTAuthentication" element="q179:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryDefinitionResponse">
+<wsdl:part name="parameters" element="tns:GetCategoryDefinitionResponse"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryDefinitionResponse_Headers">
+<wsdl:part xmlns:q180="urn:api.ecm.opentext.com" name="OTAuthentication" element="q180:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryDefinitionsRequest">
+<wsdl:part name="parameters" element="tns:GetCategoryDefinitions"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryDefinitionsRequest_Headers">
+<wsdl:part xmlns:q181="urn:api.ecm.opentext.com" name="OTAuthentication" element="q181:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryDefinitionsResponse">
+<wsdl:part name="parameters" element="tns:GetCategoryDefinitionsResponse"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryDefinitionsResponse_Headers">
+<wsdl:part xmlns:q182="urn:api.ecm.opentext.com" name="OTAuthentication" element="q182:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryInheritanceRequest">
+<wsdl:part name="parameters" element="tns:GetCategoryInheritance"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryInheritanceRequest_Headers">
+<wsdl:part xmlns:q183="urn:api.ecm.opentext.com" name="OTAuthentication" element="q183:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryInheritanceResponse">
+<wsdl:part name="parameters" element="tns:GetCategoryInheritanceResponse"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryInheritanceResponse_Headers">
+<wsdl:part xmlns:q184="urn:api.ecm.opentext.com" name="OTAuthentication" element="q184:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryTemplateRequest">
+<wsdl:part name="parameters" element="tns:GetCategoryTemplate"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryTemplateRequest_Headers">
+<wsdl:part xmlns:q185="urn:api.ecm.opentext.com" name="OTAuthentication" element="q185:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryTemplateResponse">
+<wsdl:part name="parameters" element="tns:GetCategoryTemplateResponse"/>
+</wsdl:message>
+<wsdl:message name="GetCategoryTemplateResponse_Headers">
+<wsdl:part xmlns:q186="urn:api.ecm.opentext.com" name="OTAuthentication" element="q186:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetMetadataLanguagesRequest">
+<wsdl:part name="parameters" element="tns:GetMetadataLanguages"/>
+</wsdl:message>
+<wsdl:message name="GetMetadataLanguagesRequest_Headers">
+<wsdl:part xmlns:q187="urn:api.ecm.opentext.com" name="OTAuthentication" element="q187:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetMetadataLanguagesResponse">
+<wsdl:part name="parameters" element="tns:GetMetadataLanguagesResponse"/>
+</wsdl:message>
+<wsdl:message name="GetMetadataLanguagesResponse_Headers">
+<wsdl:part xmlns:q188="urn:api.ecm.opentext.com" name="OTAuthentication" element="q188:OTAuthentication"/>
+</wsdl:message>
+<wsdl:portType name="DocumentManagement">
+<wsdl:operation name="RemoveFavorite">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/RemoveFavorite" name="RemoveFavoriteRequest" message="tns:RemoveFavoriteRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/RemoveFavoriteResponse" name="RemoveFavoriteResponse" message="tns:RemoveFavoriteResponse"/>
+</wsdl:operation>
+<wsdl:operation name="RemoveFromCollection">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/RemoveFromCollection" name="RemoveFromCollectionRequest" message="tns:RemoveFromCollectionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/RemoveFromCollectionResponse" name="RemoveFromCollectionResponse" message="tns:RemoveFromCollectionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="RemoveNodeRight">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/RemoveNodeRight" name="RemoveNodeRightRequest" message="tns:RemoveNodeRightRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/RemoveNodeRightResponse" name="RemoveNodeRightResponse" message="tns:RemoveNodeRightResponse"/>
+</wsdl:operation>
+<wsdl:operation name="RenameNode">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/RenameNode" name="RenameNodeRequest" message="tns:RenameNodeRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/RenameNodeResponse" name="RenameNodeResponse" message="tns:RenameNodeResponse"/>
+</wsdl:operation>
+<wsdl:operation name="RepositionNode">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/RepositionNode" name="RepositionNodeRequest" message="tns:RepositionNodeRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/RepositionNodeResponse" name="RepositionNodeResponse" message="tns:RepositionNodeResponse"/>
+</wsdl:operation>
+<wsdl:operation name="ReserveNode">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/ReserveNode" name="ReserveNodeRequest" message="tns:ReserveNodeRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/ReserveNodeResponse" name="ReserveNodeResponse" message="tns:ReserveNodeResponse"/>
+</wsdl:operation>
+<wsdl:operation name="RunReport">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/RunReport" name="RunReportRequest" message="tns:RunReportRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/RunReportResponse" name="RunReportResponse" message="tns:RunReportResponse"/>
+</wsdl:operation>
+<wsdl:operation name="SetCategoryInheritance">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/SetCategoryInheritance" name="SetCategoryInheritanceRequest" message="tns:SetCategoryInheritanceRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/SetCategoryInheritanceResponse" name="SetCategoryInheritanceResponse" message="tns:SetCategoryInheritanceResponse"/>
+</wsdl:operation>
+<wsdl:operation name="SetNodeMetadata">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/SetNodeMetadata" name="SetNodeMetadataRequest" message="tns:SetNodeMetadataRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/SetNodeMetadataResponse" name="SetNodeMetadataResponse" message="tns:SetNodeMetadataResponse"/>
+</wsdl:operation>
+<wsdl:operation name="SetNodeRights">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/SetNodeRights" name="SetNodeRightsRequest" message="tns:SetNodeRightsRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/SetNodeRightsResponse" name="SetNodeRightsResponse" message="tns:SetNodeRightsResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UnlockRelease">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/UnlockRelease" name="UnlockReleaseRequest" message="tns:UnlockReleaseRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/UnlockReleaseResponse" name="UnlockReleaseResponse" message="tns:UnlockReleaseResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UnlockVersion">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/UnlockVersion" name="UnlockVersionRequest" message="tns:UnlockVersionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/UnlockVersionResponse" name="UnlockVersionResponse" message="tns:UnlockVersionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UnreserveNode">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/UnreserveNode" name="UnreserveNodeRequest" message="tns:UnreserveNodeRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/UnreserveNodeResponse" name="UnreserveNodeResponse" message="tns:UnreserveNodeResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UpdateCategory">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/UpdateCategory" name="UpdateCategoryRequest" message="tns:UpdateCategoryRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/UpdateCategoryResponse" name="UpdateCategoryResponse" message="tns:UpdateCategoryResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UpdateMultilingualMetadata">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/UpdateMultilingualMetadata" name="UpdateMultilingualMetadataRequest" message="tns:UpdateMultilingualMetadataRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/UpdateMultilingualMetadataResponse" name="UpdateMultilingualMetadataResponse" message="tns:UpdateMultilingualMetadataResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UpdateNode">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/UpdateNode" name="UpdateNodeRequest" message="tns:UpdateNodeRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/UpdateNodeResponse" name="UpdateNodeResponse" message="tns:UpdateNodeResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UpdateNodeRight">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/UpdateNodeRight" name="UpdateNodeRightRequest" message="tns:UpdateNodeRightRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/UpdateNodeRightResponse" name="UpdateNodeRightResponse" message="tns:UpdateNodeRightResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UpdateNodeRights">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/UpdateNodeRights" name="UpdateNodeRightsRequest" message="tns:UpdateNodeRightsRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/UpdateNodeRightsResponse" name="UpdateNodeRightsResponse" message="tns:UpdateNodeRightsResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UpdateNodeRightsContext">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/UpdateNodeRightsContext" name="UpdateNodeRightsContextRequest" message="tns:UpdateNodeRightsContextRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/UpdateNodeRightsContextResponse" name="UpdateNodeRightsContextResponse" message="tns:UpdateNodeRightsContextResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UpdateVersion">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/UpdateVersion" name="UpdateVersionRequest" message="tns:UpdateVersionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/UpdateVersionResponse" name="UpdateVersionResponse" message="tns:UpdateVersionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UpgradeCategoryItems">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/UpgradeCategoryItems" name="UpgradeCategoryItemsRequest" message="tns:UpgradeCategoryItemsRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/UpgradeCategoryItemsResponse" name="UpgradeCategoryItemsResponse" message="tns:UpgradeCategoryItemsResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UpgradeCategoryItemsContext">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/UpgradeCategoryItemsContext" name="UpgradeCategoryItemsContextRequest" message="tns:UpgradeCategoryItemsContextRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/UpgradeCategoryItemsContextResponse" name="UpgradeCategoryItemsContextResponse" message="tns:UpgradeCategoryItemsContextResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetMultilingualMetadata">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetMultilingualMetadata" name="GetMultilingualMetadataRequest" message="tns:GetMultilingualMetadataRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetMultilingualMetadataResponse" name="GetMultilingualMetadataResponse" message="tns:GetMultilingualMetadataResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetNode">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetNode" name="GetNodeRequest" message="tns:GetNodeRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetNodeResponse" name="GetNodeResponse" message="tns:GetNodeResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetNodeAuditRecords">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetNodeAuditRecords" name="GetNodeAuditRecordsRequest" message="tns:GetNodeAuditRecordsRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetNodeAuditRecordsResponse" name="GetNodeAuditRecordsResponse" message="tns:GetNodeAuditRecordsResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetNodeByGUID">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetNodeByGUID" name="GetNodeByGUIDRequest" message="tns:GetNodeByGUIDRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetNodeByGUIDResponse" name="GetNodeByGUIDResponse" message="tns:GetNodeByGUIDResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetNodeByName">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetNodeByName" name="GetNodeByNameRequest" message="tns:GetNodeByNameRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetNodeByNameResponse" name="GetNodeByNameResponse" message="tns:GetNodeByNameResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetNodeByNickname">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetNodeByNickname" name="GetNodeByNicknameRequest" message="tns:GetNodeByNicknameRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetNodeByNicknameResponse" name="GetNodeByNicknameResponse" message="tns:GetNodeByNicknameResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetNodeByPath">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetNodeByPath" name="GetNodeByPathRequest" message="tns:GetNodeByPathRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetNodeByPathResponse" name="GetNodeByPathResponse" message="tns:GetNodeByPathResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetNodeGUID">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetNodeGUID" name="GetNodeGUIDRequest" message="tns:GetNodeGUIDRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetNodeGUIDResponse" name="GetNodeGUIDResponse" message="tns:GetNodeGUIDResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetNodeRights">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetNodeRights" name="GetNodeRightsRequest" message="tns:GetNodeRightsRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetNodeRightsResponse" name="GetNodeRightsResponse" message="tns:GetNodeRightsResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetNodes">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetNodes" name="GetNodesRequest" message="tns:GetNodesRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetNodesResponse" name="GetNodesResponse" message="tns:GetNodesResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetNodesByNickname">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetNodesByNickname" name="GetNodesByNicknameRequest" message="tns:GetNodesByNicknameRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetNodesByNicknameResponse" name="GetNodesByNicknameResponse" message="tns:GetNodesByNicknameResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetNodesInContainer">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetNodesInContainer" name="GetNodesInContainerRequest" message="tns:GetNodesInContainerRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetNodesInContainerResponse" name="GetNodesInContainerResponse" message="tns:GetNodesInContainerResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetNodeTemplate">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetNodeTemplate" name="GetNodeTemplateRequest" message="tns:GetNodeTemplateRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetNodeTemplateResponse" name="GetNodeTemplateResponse" message="tns:GetNodeTemplateResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetNodeTypes">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetNodeTypes" name="GetNodeTypesRequest" message="tns:GetNodeTypesRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetNodeTypesResponse" name="GetNodeTypesResponse" message="tns:GetNodeTypesResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetPagedNodeAuditData">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetPagedNodeAuditData" name="GetPagedNodeAuditDataRequest" message="tns:GetPagedNodeAuditDataRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetPagedNodeAuditDataResponse" name="GetPagedNodeAuditDataResponse" message="tns:GetPagedNodeAuditDataResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetRelease">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetRelease" name="GetReleaseRequest" message="tns:GetReleaseRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetReleaseResponse" name="GetReleaseResponse" message="tns:GetReleaseResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetRenditionContents">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetRenditionContents" name="GetRenditionContentsRequest" message="tns:GetRenditionContentsRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetRenditionContentsResponse" name="GetRenditionContentsResponse" message="tns:GetRenditionContentsResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetRenditionContentsContext">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetRenditionContentsContext" name="GetRenditionContentsContextRequest" message="tns:GetRenditionContentsContextRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetRenditionContentsContextResponse" name="GetRenditionContentsContextResponse" message="tns:GetRenditionContentsContextResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetRootNode">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetRootNode" name="GetRootNodeRequest" message="tns:GetRootNodeRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetRootNodeResponse" name="GetRootNodeResponse" message="tns:GetRootNodeResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetRootNodeTypes">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetRootNodeTypes" name="GetRootNodeTypesRequest" message="tns:GetRootNodeTypesRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetRootNodeTypesResponse" name="GetRootNodeTypesResponse" message="tns:GetRootNodeTypesResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetVersion">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetVersion" name="GetVersionRequest" message="tns:GetVersionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetVersionResponse" name="GetVersionResponse" message="tns:GetVersionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetVersionByGUID">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetVersionByGUID" name="GetVersionByGUIDRequest" message="tns:GetVersionByGUIDRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetVersionByGUIDResponse" name="GetVersionByGUIDResponse" message="tns:GetVersionByGUIDResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetVersionContents">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetVersionContents" name="GetVersionContentsRequest" message="tns:GetVersionContentsRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetVersionContentsResponse" name="GetVersionContentsResponse" message="tns:GetVersionContentsResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetVersionContentsContext">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetVersionContentsContext" name="GetVersionContentsContextRequest" message="tns:GetVersionContentsContextRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetVersionContentsContextResponse" name="GetVersionContentsContextResponse" message="tns:GetVersionContentsContextResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetVersionGUID">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetVersionGUID" name="GetVersionGUIDRequest" message="tns:GetVersionGUIDRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetVersionGUIDResponse" name="GetVersionGUIDResponse" message="tns:GetVersionGUIDResponse"/>
+</wsdl:operation>
+<wsdl:operation name="ListNodes">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/ListNodes" name="ListNodesRequest" message="tns:ListNodesRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/ListNodesResponse" name="ListNodesResponse" message="tns:ListNodesResponse"/>
+</wsdl:operation>
+<wsdl:operation name="ListNodesByPage">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/ListNodesByPage" name="ListNodesByPageRequest" message="tns:ListNodesByPageRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/ListNodesByPageResponse" name="ListNodesByPageResponse" message="tns:ListNodesByPageResponse"/>
+</wsdl:operation>
+<wsdl:operation name="ListReferences">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/ListReferences" name="ListReferencesRequest" message="tns:ListReferencesRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/ListReferencesResponse" name="ListReferencesResponse" message="tns:ListReferencesResponse"/>
+</wsdl:operation>
+<wsdl:operation name="ListReleases">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/ListReleases" name="ListReleasesRequest" message="tns:ListReleasesRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/ListReleasesResponse" name="ListReleasesResponse" message="tns:ListReleasesResponse"/>
+</wsdl:operation>
+<wsdl:operation name="ListRenditions">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/ListRenditions" name="ListRenditionsRequest" message="tns:ListRenditionsRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/ListRenditionsResponse" name="ListRenditionsResponse" message="tns:ListRenditionsResponse"/>
+</wsdl:operation>
+<wsdl:operation name="LockRelease">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/LockRelease" name="LockReleaseRequest" message="tns:LockReleaseRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/LockReleaseResponse" name="LockReleaseResponse" message="tns:LockReleaseResponse"/>
+</wsdl:operation>
+<wsdl:operation name="LockVersion">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/LockVersion" name="LockVersionRequest" message="tns:LockVersionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/LockVersionResponse" name="LockVersionResponse" message="tns:LockVersionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="MoveNode">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/MoveNode" name="MoveNodeRequest" message="tns:MoveNodeRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/MoveNodeResponse" name="MoveNodeResponse" message="tns:MoveNodeResponse"/>
+</wsdl:operation>
+<wsdl:operation name="PromoteVersion">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/PromoteVersion" name="PromoteVersionRequest" message="tns:PromoteVersionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/PromoteVersionResponse" name="PromoteVersionResponse" message="tns:PromoteVersionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="PurgeVersions">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/PurgeVersions" name="PurgeVersionsRequest" message="tns:PurgeVersionsRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/PurgeVersionsResponse" name="PurgeVersionsResponse" message="tns:PurgeVersionsResponse"/>
+</wsdl:operation>
+<wsdl:operation name="RearrangeNodes">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/RearrangeNodes" name="RearrangeNodesRequest" message="tns:RearrangeNodesRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/RearrangeNodesResponse" name="RearrangeNodesResponse" message="tns:RearrangeNodesResponse"/>
+</wsdl:operation>
+<wsdl:operation name="AddFavorite">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/AddFavorite" name="AddFavoriteRequest" message="tns:AddFavoriteRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/AddFavoriteResponse" name="AddFavoriteResponse" message="tns:AddFavoriteResponse"/>
+</wsdl:operation>
+<wsdl:operation name="AddMajorVersion">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/AddMajorVersion" name="AddMajorVersionRequest" message="tns:AddMajorVersionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/AddMajorVersionResponse" name="AddMajorVersionResponse" message="tns:AddMajorVersionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="AddMajorVersionContext">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/AddMajorVersionContext" name="AddMajorVersionContextRequest" message="tns:AddMajorVersionContextRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/AddMajorVersionContextResponse" name="AddMajorVersionContextResponse" message="tns:AddMajorVersionContextResponse"/>
+</wsdl:operation>
+<wsdl:operation name="AddNodeRight">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/AddNodeRight" name="AddNodeRightRequest" message="tns:AddNodeRightRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/AddNodeRightResponse" name="AddNodeRightResponse" message="tns:AddNodeRightResponse"/>
+</wsdl:operation>
+<wsdl:operation name="AddToCollection">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/AddToCollection" name="AddToCollectionRequest" message="tns:AddToCollectionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/AddToCollectionResponse" name="AddToCollectionResponse" message="tns:AddToCollectionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="AddVersion">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/AddVersion" name="AddVersionRequest" message="tns:AddVersionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/AddVersionResponse" name="AddVersionResponse" message="tns:AddVersionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="AddVersionContext">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/AddVersionContext" name="AddVersionContextRequest" message="tns:AddVersionContextRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/AddVersionContextResponse" name="AddVersionContextResponse" message="tns:AddVersionContextResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CopyNode">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CopyNode" name="CopyNodeRequest" message="tns:CopyNodeRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CopyNodeResponse" name="CopyNodeResponse" message="tns:CopyNodeResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateCategory">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateCategory" name="CreateCategoryRequest" message="tns:CreateCategoryRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateCategoryResponse" name="CreateCategoryResponse" message="tns:CreateCategoryResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateDocument">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateDocument" name="CreateDocumentRequest" message="tns:CreateDocumentRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateDocumentResponse" name="CreateDocumentResponse" message="tns:CreateDocumentResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateDocumentContext">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateDocumentContext" name="CreateDocumentContextRequest" message="tns:CreateDocumentContextRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateDocumentContextResponse" name="CreateDocumentContextResponse" message="tns:CreateDocumentContextResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateFolder">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateFolder" name="CreateFolderRequest" message="tns:CreateFolderRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateFolderResponse" name="CreateFolderResponse" message="tns:CreateFolderResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateNode">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateNode" name="CreateNodeRequest" message="tns:CreateNodeRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateNodeResponse" name="CreateNodeResponse" message="tns:CreateNodeResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateNodeAndVersion">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateNodeAndVersion" name="CreateNodeAndVersionRequest" message="tns:CreateNodeAndVersionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateNodeAndVersionResponse" name="CreateNodeAndVersionResponse" message="tns:CreateNodeAndVersionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateNodeAndVersionContext">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateNodeAndVersionContext" name="CreateNodeAndVersionContextRequest" message="tns:CreateNodeAndVersionContextRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateNodeAndVersionContextResponse" name="CreateNodeAndVersionContextResponse" message="tns:CreateNodeAndVersionContextResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateRelease">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateRelease" name="CreateReleaseRequest" message="tns:CreateReleaseRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateReleaseResponse" name="CreateReleaseResponse" message="tns:CreateReleaseResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateRendition">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateRendition" name="CreateRenditionRequest" message="tns:CreateRenditionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateRenditionResponse" name="CreateRenditionResponse" message="tns:CreateRenditionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateRenditionContext">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateRenditionContext" name="CreateRenditionContextRequest" message="tns:CreateRenditionContextRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateRenditionContextResponse" name="CreateRenditionContextResponse" message="tns:CreateRenditionContextResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateShortcut">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateShortcut" name="CreateShortcutRequest" message="tns:CreateShortcutRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateShortcutResponse" name="CreateShortcutResponse" message="tns:CreateShortcutResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateSimpleDocument">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateSimpleDocument" name="CreateSimpleDocumentRequest" message="tns:CreateSimpleDocumentRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateSimpleDocumentResponse" name="CreateSimpleDocumentResponse" message="tns:CreateSimpleDocumentResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateSimpleDocumentContext">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateSimpleDocumentContext" name="CreateSimpleDocumentContextRequest" message="tns:CreateSimpleDocumentContextRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateSimpleDocumentContextResponse" name="CreateSimpleDocumentContextResponse" message="tns:CreateSimpleDocumentContextResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateSimpleFolder">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateSimpleFolder" name="CreateSimpleFolderRequest" message="tns:CreateSimpleFolderRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateSimpleFolderResponse" name="CreateSimpleFolderResponse" message="tns:CreateSimpleFolderResponse"/>
+</wsdl:operation>
+<wsdl:operation name="CreateURL">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/CreateURL" name="CreateURLRequest" message="tns:CreateURLRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/CreateURLResponse" name="CreateURLResponse" message="tns:CreateURLResponse"/>
+</wsdl:operation>
+<wsdl:operation name="DeleteNode">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/DeleteNode" name="DeleteNodeRequest" message="tns:DeleteNodeRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/DeleteNodeResponse" name="DeleteNodeResponse" message="tns:DeleteNodeResponse"/>
+</wsdl:operation>
+<wsdl:operation name="DeleteRelease">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/DeleteRelease" name="DeleteReleaseRequest" message="tns:DeleteReleaseRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/DeleteReleaseResponse" name="DeleteReleaseResponse" message="tns:DeleteReleaseResponse"/>
+</wsdl:operation>
+<wsdl:operation name="DeleteRendition">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/DeleteRendition" name="DeleteRenditionRequest" message="tns:DeleteRenditionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/DeleteRenditionResponse" name="DeleteRenditionResponse" message="tns:DeleteRenditionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="DeleteVersion">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/DeleteVersion" name="DeleteVersionRequest" message="tns:DeleteVersionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/DeleteVersionResponse" name="DeleteVersionResponse" message="tns:DeleteVersionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetAllFavorites">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetAllFavorites" name="GetAllFavoritesRequest" message="tns:GetAllFavoritesRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetAllFavoritesResponse" name="GetAllFavoritesResponse" message="tns:GetAllFavoritesResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetAllMultilingualMetadata">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetAllMultilingualMetadata" name="GetAllMultilingualMetadataRequest" message="tns:GetAllMultilingualMetadataRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetAllMultilingualMetadataResponse" name="GetAllMultilingualMetadataResponse" message="tns:GetAllMultilingualMetadataResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetAttributeGroupDefinition">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetAttributeGroupDefinition" name="GetAttributeGroupDefinitionRequest" message="tns:GetAttributeGroupDefinitionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetAttributeGroupDefinitionResponse" name="GetAttributeGroupDefinitionResponse" message="tns:GetAttributeGroupDefinitionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetAttributeGroupTemplate">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetAttributeGroupTemplate" name="GetAttributeGroupTemplateRequest" message="tns:GetAttributeGroupTemplateRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetAttributeGroupTemplateResponse" name="GetAttributeGroupTemplateResponse" message="tns:GetAttributeGroupTemplateResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetCategoryDefinition">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetCategoryDefinition" name="GetCategoryDefinitionRequest" message="tns:GetCategoryDefinitionRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetCategoryDefinitionResponse" name="GetCategoryDefinitionResponse" message="tns:GetCategoryDefinitionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetCategoryDefinitions">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetCategoryDefinitions" name="GetCategoryDefinitionsRequest" message="tns:GetCategoryDefinitionsRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetCategoryDefinitionsResponse" name="GetCategoryDefinitionsResponse" message="tns:GetCategoryDefinitionsResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetCategoryInheritance">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetCategoryInheritance" name="GetCategoryInheritanceRequest" message="tns:GetCategoryInheritanceRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetCategoryInheritanceResponse" name="GetCategoryInheritanceResponse" message="tns:GetCategoryInheritanceResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetCategoryTemplate">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetCategoryTemplate" name="GetCategoryTemplateRequest" message="tns:GetCategoryTemplateRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetCategoryTemplateResponse" name="GetCategoryTemplateResponse" message="tns:GetCategoryTemplateResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetMetadataLanguages">
+<wsdl:input wsaw:Action="urn:DocMan.service.livelink.opentext.com/GetMetadataLanguages" name="GetMetadataLanguagesRequest" message="tns:GetMetadataLanguagesRequest"/>
+<wsdl:output wsaw:Action="urn:DocMan.service.livelink.opentext.com/DocumentManagement/GetMetadataLanguagesResponse" name="GetMetadataLanguagesResponse" message="tns:GetMetadataLanguagesResponse"/>
+</wsdl:operation>
+</wsdl:portType>
+<wsdl:binding name="BasicHttpBinding_DocumentManagement" type="tns:DocumentManagement">
+<soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+<wsdl:operation name="RemoveFavorite">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/RemoveFavorite" style="document"/>
+<wsdl:input name="RemoveFavoriteRequest">
+<soap:header message="tns:RemoveFavoriteRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="RemoveFavoriteResponse">
+<soap:header message="tns:RemoveFavoriteResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="RemoveFromCollection">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/RemoveFromCollection" style="document"/>
+<wsdl:input name="RemoveFromCollectionRequest">
+<soap:header message="tns:RemoveFromCollectionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="RemoveFromCollectionResponse">
+<soap:header message="tns:RemoveFromCollectionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="RemoveNodeRight">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/RemoveNodeRight" style="document"/>
+<wsdl:input name="RemoveNodeRightRequest">
+<soap:header message="tns:RemoveNodeRightRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="RemoveNodeRightResponse">
+<soap:header message="tns:RemoveNodeRightResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="RenameNode">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/RenameNode" style="document"/>
+<wsdl:input name="RenameNodeRequest">
+<soap:header message="tns:RenameNodeRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="RenameNodeResponse">
+<soap:header message="tns:RenameNodeResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="RepositionNode">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/RepositionNode" style="document"/>
+<wsdl:input name="RepositionNodeRequest">
+<soap:header message="tns:RepositionNodeRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="RepositionNodeResponse">
+<soap:header message="tns:RepositionNodeResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="ReserveNode">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/ReserveNode" style="document"/>
+<wsdl:input name="ReserveNodeRequest">
+<soap:header message="tns:ReserveNodeRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ReserveNodeResponse">
+<soap:header message="tns:ReserveNodeResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="RunReport">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/RunReport" style="document"/>
+<wsdl:input name="RunReportRequest">
+<soap:header message="tns:RunReportRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="RunReportResponse">
+<soap:header message="tns:RunReportResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="SetCategoryInheritance">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/SetCategoryInheritance" style="document"/>
+<wsdl:input name="SetCategoryInheritanceRequest">
+<soap:header message="tns:SetCategoryInheritanceRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="SetCategoryInheritanceResponse">
+<soap:header message="tns:SetCategoryInheritanceResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="SetNodeMetadata">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/SetNodeMetadata" style="document"/>
+<wsdl:input name="SetNodeMetadataRequest">
+<soap:header message="tns:SetNodeMetadataRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="SetNodeMetadataResponse">
+<soap:header message="tns:SetNodeMetadataResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="SetNodeRights">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/SetNodeRights" style="document"/>
+<wsdl:input name="SetNodeRightsRequest">
+<soap:header message="tns:SetNodeRightsRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="SetNodeRightsResponse">
+<soap:header message="tns:SetNodeRightsResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UnlockRelease">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/UnlockRelease" style="document"/>
+<wsdl:input name="UnlockReleaseRequest">
+<soap:header message="tns:UnlockReleaseRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UnlockReleaseResponse">
+<soap:header message="tns:UnlockReleaseResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UnlockVersion">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/UnlockVersion" style="document"/>
+<wsdl:input name="UnlockVersionRequest">
+<soap:header message="tns:UnlockVersionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UnlockVersionResponse">
+<soap:header message="tns:UnlockVersionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UnreserveNode">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/UnreserveNode" style="document"/>
+<wsdl:input name="UnreserveNodeRequest">
+<soap:header message="tns:UnreserveNodeRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UnreserveNodeResponse">
+<soap:header message="tns:UnreserveNodeResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UpdateCategory">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/UpdateCategory" style="document"/>
+<wsdl:input name="UpdateCategoryRequest">
+<soap:header message="tns:UpdateCategoryRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UpdateCategoryResponse">
+<soap:header message="tns:UpdateCategoryResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UpdateMultilingualMetadata">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/UpdateMultilingualMetadata" style="document"/>
+<wsdl:input name="UpdateMultilingualMetadataRequest">
+<soap:header message="tns:UpdateMultilingualMetadataRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UpdateMultilingualMetadataResponse">
+<soap:header message="tns:UpdateMultilingualMetadataResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UpdateNode">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/UpdateNode" style="document"/>
+<wsdl:input name="UpdateNodeRequest">
+<soap:header message="tns:UpdateNodeRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UpdateNodeResponse">
+<soap:header message="tns:UpdateNodeResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UpdateNodeRight">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/UpdateNodeRight" style="document"/>
+<wsdl:input name="UpdateNodeRightRequest">
+<soap:header message="tns:UpdateNodeRightRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UpdateNodeRightResponse">
+<soap:header message="tns:UpdateNodeRightResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UpdateNodeRights">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/UpdateNodeRights" style="document"/>
+<wsdl:input name="UpdateNodeRightsRequest">
+<soap:header message="tns:UpdateNodeRightsRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UpdateNodeRightsResponse">
+<soap:header message="tns:UpdateNodeRightsResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UpdateNodeRightsContext">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/UpdateNodeRightsContext" style="document"/>
+<wsdl:input name="UpdateNodeRightsContextRequest">
+<soap:header message="tns:UpdateNodeRightsContextRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UpdateNodeRightsContextResponse">
+<soap:header message="tns:UpdateNodeRightsContextResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UpdateVersion">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/UpdateVersion" style="document"/>
+<wsdl:input name="UpdateVersionRequest">
+<soap:header message="tns:UpdateVersionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UpdateVersionResponse">
+<soap:header message="tns:UpdateVersionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UpgradeCategoryItems">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/UpgradeCategoryItems" style="document"/>
+<wsdl:input name="UpgradeCategoryItemsRequest">
+<soap:header message="tns:UpgradeCategoryItemsRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UpgradeCategoryItemsResponse">
+<soap:header message="tns:UpgradeCategoryItemsResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UpgradeCategoryItemsContext">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/UpgradeCategoryItemsContext" style="document"/>
+<wsdl:input name="UpgradeCategoryItemsContextRequest">
+<soap:header message="tns:UpgradeCategoryItemsContextRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UpgradeCategoryItemsContextResponse">
+<soap:header message="tns:UpgradeCategoryItemsContextResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetMultilingualMetadata">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetMultilingualMetadata" style="document"/>
+<wsdl:input name="GetMultilingualMetadataRequest">
+<soap:header message="tns:GetMultilingualMetadataRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetMultilingualMetadataResponse">
+<soap:header message="tns:GetMultilingualMetadataResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetNode">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetNode" style="document"/>
+<wsdl:input name="GetNodeRequest">
+<soap:header message="tns:GetNodeRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetNodeResponse">
+<soap:header message="tns:GetNodeResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetNodeAuditRecords">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetNodeAuditRecords" style="document"/>
+<wsdl:input name="GetNodeAuditRecordsRequest">
+<soap:header message="tns:GetNodeAuditRecordsRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetNodeAuditRecordsResponse">
+<soap:header message="tns:GetNodeAuditRecordsResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetNodeByGUID">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetNodeByGUID" style="document"/>
+<wsdl:input name="GetNodeByGUIDRequest">
+<soap:header message="tns:GetNodeByGUIDRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetNodeByGUIDResponse">
+<soap:header message="tns:GetNodeByGUIDResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetNodeByName">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetNodeByName" style="document"/>
+<wsdl:input name="GetNodeByNameRequest">
+<soap:header message="tns:GetNodeByNameRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetNodeByNameResponse">
+<soap:header message="tns:GetNodeByNameResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetNodeByNickname">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetNodeByNickname" style="document"/>
+<wsdl:input name="GetNodeByNicknameRequest">
+<soap:header message="tns:GetNodeByNicknameRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetNodeByNicknameResponse">
+<soap:header message="tns:GetNodeByNicknameResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetNodeByPath">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetNodeByPath" style="document"/>
+<wsdl:input name="GetNodeByPathRequest">
+<soap:header message="tns:GetNodeByPathRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetNodeByPathResponse">
+<soap:header message="tns:GetNodeByPathResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetNodeGUID">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetNodeGUID" style="document"/>
+<wsdl:input name="GetNodeGUIDRequest">
+<soap:header message="tns:GetNodeGUIDRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetNodeGUIDResponse">
+<soap:header message="tns:GetNodeGUIDResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetNodeRights">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetNodeRights" style="document"/>
+<wsdl:input name="GetNodeRightsRequest">
+<soap:header message="tns:GetNodeRightsRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetNodeRightsResponse">
+<soap:header message="tns:GetNodeRightsResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetNodes">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetNodes" style="document"/>
+<wsdl:input name="GetNodesRequest">
+<soap:header message="tns:GetNodesRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetNodesResponse">
+<soap:header message="tns:GetNodesResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetNodesByNickname">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetNodesByNickname" style="document"/>
+<wsdl:input name="GetNodesByNicknameRequest">
+<soap:header message="tns:GetNodesByNicknameRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetNodesByNicknameResponse">
+<soap:header message="tns:GetNodesByNicknameResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetNodesInContainer">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetNodesInContainer" style="document"/>
+<wsdl:input name="GetNodesInContainerRequest">
+<soap:header message="tns:GetNodesInContainerRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetNodesInContainerResponse">
+<soap:header message="tns:GetNodesInContainerResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetNodeTemplate">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetNodeTemplate" style="document"/>
+<wsdl:input name="GetNodeTemplateRequest">
+<soap:header message="tns:GetNodeTemplateRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetNodeTemplateResponse">
+<soap:header message="tns:GetNodeTemplateResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetNodeTypes">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetNodeTypes" style="document"/>
+<wsdl:input name="GetNodeTypesRequest">
+<soap:header message="tns:GetNodeTypesRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetNodeTypesResponse">
+<soap:header message="tns:GetNodeTypesResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetPagedNodeAuditData">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetPagedNodeAuditData" style="document"/>
+<wsdl:input name="GetPagedNodeAuditDataRequest">
+<soap:header message="tns:GetPagedNodeAuditDataRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetPagedNodeAuditDataResponse">
+<soap:header message="tns:GetPagedNodeAuditDataResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetRelease">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetRelease" style="document"/>
+<wsdl:input name="GetReleaseRequest">
+<soap:header message="tns:GetReleaseRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetReleaseResponse">
+<soap:header message="tns:GetReleaseResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetRenditionContents">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetRenditionContents" style="document"/>
+<wsdl:input name="GetRenditionContentsRequest">
+<soap:header message="tns:GetRenditionContentsRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetRenditionContentsResponse">
+<soap:header message="tns:GetRenditionContentsResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetRenditionContentsContext">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetRenditionContentsContext" style="document"/>
+<wsdl:input name="GetRenditionContentsContextRequest">
+<soap:header message="tns:GetRenditionContentsContextRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetRenditionContentsContextResponse">
+<soap:header message="tns:GetRenditionContentsContextResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetRootNode">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetRootNode" style="document"/>
+<wsdl:input name="GetRootNodeRequest">
+<soap:header message="tns:GetRootNodeRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetRootNodeResponse">
+<soap:header message="tns:GetRootNodeResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetRootNodeTypes">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetRootNodeTypes" style="document"/>
+<wsdl:input name="GetRootNodeTypesRequest">
+<soap:header message="tns:GetRootNodeTypesRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetRootNodeTypesResponse">
+<soap:header message="tns:GetRootNodeTypesResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetVersion">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetVersion" style="document"/>
+<wsdl:input name="GetVersionRequest">
+<soap:header message="tns:GetVersionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetVersionResponse">
+<soap:header message="tns:GetVersionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetVersionByGUID">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetVersionByGUID" style="document"/>
+<wsdl:input name="GetVersionByGUIDRequest">
+<soap:header message="tns:GetVersionByGUIDRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetVersionByGUIDResponse">
+<soap:header message="tns:GetVersionByGUIDResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetVersionContents">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetVersionContents" style="document"/>
+<wsdl:input name="GetVersionContentsRequest">
+<soap:header message="tns:GetVersionContentsRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetVersionContentsResponse">
+<soap:header message="tns:GetVersionContentsResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetVersionContentsContext">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetVersionContentsContext" style="document"/>
+<wsdl:input name="GetVersionContentsContextRequest">
+<soap:header message="tns:GetVersionContentsContextRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetVersionContentsContextResponse">
+<soap:header message="tns:GetVersionContentsContextResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetVersionGUID">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetVersionGUID" style="document"/>
+<wsdl:input name="GetVersionGUIDRequest">
+<soap:header message="tns:GetVersionGUIDRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetVersionGUIDResponse">
+<soap:header message="tns:GetVersionGUIDResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="ListNodes">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/ListNodes" style="document"/>
+<wsdl:input name="ListNodesRequest">
+<soap:header message="tns:ListNodesRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ListNodesResponse">
+<soap:header message="tns:ListNodesResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="ListNodesByPage">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/ListNodesByPage" style="document"/>
+<wsdl:input name="ListNodesByPageRequest">
+<soap:header message="tns:ListNodesByPageRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ListNodesByPageResponse">
+<soap:header message="tns:ListNodesByPageResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="ListReferences">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/ListReferences" style="document"/>
+<wsdl:input name="ListReferencesRequest">
+<soap:header message="tns:ListReferencesRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ListReferencesResponse">
+<soap:header message="tns:ListReferencesResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="ListReleases">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/ListReleases" style="document"/>
+<wsdl:input name="ListReleasesRequest">
+<soap:header message="tns:ListReleasesRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ListReleasesResponse">
+<soap:header message="tns:ListReleasesResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="ListRenditions">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/ListRenditions" style="document"/>
+<wsdl:input name="ListRenditionsRequest">
+<soap:header message="tns:ListRenditionsRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="ListRenditionsResponse">
+<soap:header message="tns:ListRenditionsResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="LockRelease">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/LockRelease" style="document"/>
+<wsdl:input name="LockReleaseRequest">
+<soap:header message="tns:LockReleaseRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="LockReleaseResponse">
+<soap:header message="tns:LockReleaseResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="LockVersion">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/LockVersion" style="document"/>
+<wsdl:input name="LockVersionRequest">
+<soap:header message="tns:LockVersionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="LockVersionResponse">
+<soap:header message="tns:LockVersionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="MoveNode">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/MoveNode" style="document"/>
+<wsdl:input name="MoveNodeRequest">
+<soap:header message="tns:MoveNodeRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="MoveNodeResponse">
+<soap:header message="tns:MoveNodeResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="PromoteVersion">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/PromoteVersion" style="document"/>
+<wsdl:input name="PromoteVersionRequest">
+<soap:header message="tns:PromoteVersionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="PromoteVersionResponse">
+<soap:header message="tns:PromoteVersionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="PurgeVersions">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/PurgeVersions" style="document"/>
+<wsdl:input name="PurgeVersionsRequest">
+<soap:header message="tns:PurgeVersionsRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="PurgeVersionsResponse">
+<soap:header message="tns:PurgeVersionsResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="RearrangeNodes">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/RearrangeNodes" style="document"/>
+<wsdl:input name="RearrangeNodesRequest">
+<soap:header message="tns:RearrangeNodesRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="RearrangeNodesResponse">
+<soap:header message="tns:RearrangeNodesResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="AddFavorite">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/AddFavorite" style="document"/>
+<wsdl:input name="AddFavoriteRequest">
+<soap:header message="tns:AddFavoriteRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="AddFavoriteResponse">
+<soap:header message="tns:AddFavoriteResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="AddMajorVersion">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/AddMajorVersion" style="document"/>
+<wsdl:input name="AddMajorVersionRequest">
+<soap:header message="tns:AddMajorVersionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="AddMajorVersionResponse">
+<soap:header message="tns:AddMajorVersionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="AddMajorVersionContext">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/AddMajorVersionContext" style="document"/>
+<wsdl:input name="AddMajorVersionContextRequest">
+<soap:header message="tns:AddMajorVersionContextRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="AddMajorVersionContextResponse">
+<soap:header message="tns:AddMajorVersionContextResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="AddNodeRight">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/AddNodeRight" style="document"/>
+<wsdl:input name="AddNodeRightRequest">
+<soap:header message="tns:AddNodeRightRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="AddNodeRightResponse">
+<soap:header message="tns:AddNodeRightResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="AddToCollection">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/AddToCollection" style="document"/>
+<wsdl:input name="AddToCollectionRequest">
+<soap:header message="tns:AddToCollectionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="AddToCollectionResponse">
+<soap:header message="tns:AddToCollectionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="AddVersion">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/AddVersion" style="document"/>
+<wsdl:input name="AddVersionRequest">
+<soap:header message="tns:AddVersionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="AddVersionResponse">
+<soap:header message="tns:AddVersionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="AddVersionContext">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/AddVersionContext" style="document"/>
+<wsdl:input name="AddVersionContextRequest">
+<soap:header message="tns:AddVersionContextRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="AddVersionContextResponse">
+<soap:header message="tns:AddVersionContextResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CopyNode">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CopyNode" style="document"/>
+<wsdl:input name="CopyNodeRequest">
+<soap:header message="tns:CopyNodeRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CopyNodeResponse">
+<soap:header message="tns:CopyNodeResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateCategory">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateCategory" style="document"/>
+<wsdl:input name="CreateCategoryRequest">
+<soap:header message="tns:CreateCategoryRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateCategoryResponse">
+<soap:header message="tns:CreateCategoryResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateDocument">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateDocument" style="document"/>
+<wsdl:input name="CreateDocumentRequest">
+<soap:header message="tns:CreateDocumentRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateDocumentResponse">
+<soap:header message="tns:CreateDocumentResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateDocumentContext">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateDocumentContext" style="document"/>
+<wsdl:input name="CreateDocumentContextRequest">
+<soap:header message="tns:CreateDocumentContextRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateDocumentContextResponse">
+<soap:header message="tns:CreateDocumentContextResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateFolder">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateFolder" style="document"/>
+<wsdl:input name="CreateFolderRequest">
+<soap:header message="tns:CreateFolderRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateFolderResponse">
+<soap:header message="tns:CreateFolderResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateNode">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateNode" style="document"/>
+<wsdl:input name="CreateNodeRequest">
+<soap:header message="tns:CreateNodeRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateNodeResponse">
+<soap:header message="tns:CreateNodeResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateNodeAndVersion">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateNodeAndVersion" style="document"/>
+<wsdl:input name="CreateNodeAndVersionRequest">
+<soap:header message="tns:CreateNodeAndVersionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateNodeAndVersionResponse">
+<soap:header message="tns:CreateNodeAndVersionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateNodeAndVersionContext">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateNodeAndVersionContext" style="document"/>
+<wsdl:input name="CreateNodeAndVersionContextRequest">
+<soap:header message="tns:CreateNodeAndVersionContextRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateNodeAndVersionContextResponse">
+<soap:header message="tns:CreateNodeAndVersionContextResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateRelease">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateRelease" style="document"/>
+<wsdl:input name="CreateReleaseRequest">
+<soap:header message="tns:CreateReleaseRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateReleaseResponse">
+<soap:header message="tns:CreateReleaseResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateRendition">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateRendition" style="document"/>
+<wsdl:input name="CreateRenditionRequest">
+<soap:header message="tns:CreateRenditionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateRenditionResponse">
+<soap:header message="tns:CreateRenditionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateRenditionContext">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateRenditionContext" style="document"/>
+<wsdl:input name="CreateRenditionContextRequest">
+<soap:header message="tns:CreateRenditionContextRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateRenditionContextResponse">
+<soap:header message="tns:CreateRenditionContextResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateShortcut">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateShortcut" style="document"/>
+<wsdl:input name="CreateShortcutRequest">
+<soap:header message="tns:CreateShortcutRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateShortcutResponse">
+<soap:header message="tns:CreateShortcutResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateSimpleDocument">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateSimpleDocument" style="document"/>
+<wsdl:input name="CreateSimpleDocumentRequest">
+<soap:header message="tns:CreateSimpleDocumentRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateSimpleDocumentResponse">
+<soap:header message="tns:CreateSimpleDocumentResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateSimpleDocumentContext">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateSimpleDocumentContext" style="document"/>
+<wsdl:input name="CreateSimpleDocumentContextRequest">
+<soap:header message="tns:CreateSimpleDocumentContextRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateSimpleDocumentContextResponse">
+<soap:header message="tns:CreateSimpleDocumentContextResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateSimpleFolder">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateSimpleFolder" style="document"/>
+<wsdl:input name="CreateSimpleFolderRequest">
+<soap:header message="tns:CreateSimpleFolderRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateSimpleFolderResponse">
+<soap:header message="tns:CreateSimpleFolderResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="CreateURL">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/CreateURL" style="document"/>
+<wsdl:input name="CreateURLRequest">
+<soap:header message="tns:CreateURLRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="CreateURLResponse">
+<soap:header message="tns:CreateURLResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="DeleteNode">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/DeleteNode" style="document"/>
+<wsdl:input name="DeleteNodeRequest">
+<soap:header message="tns:DeleteNodeRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="DeleteNodeResponse">
+<soap:header message="tns:DeleteNodeResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="DeleteRelease">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/DeleteRelease" style="document"/>
+<wsdl:input name="DeleteReleaseRequest">
+<soap:header message="tns:DeleteReleaseRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="DeleteReleaseResponse">
+<soap:header message="tns:DeleteReleaseResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="DeleteRendition">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/DeleteRendition" style="document"/>
+<wsdl:input name="DeleteRenditionRequest">
+<soap:header message="tns:DeleteRenditionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="DeleteRenditionResponse">
+<soap:header message="tns:DeleteRenditionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="DeleteVersion">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/DeleteVersion" style="document"/>
+<wsdl:input name="DeleteVersionRequest">
+<soap:header message="tns:DeleteVersionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="DeleteVersionResponse">
+<soap:header message="tns:DeleteVersionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetAllFavorites">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetAllFavorites" style="document"/>
+<wsdl:input name="GetAllFavoritesRequest">
+<soap:header message="tns:GetAllFavoritesRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetAllFavoritesResponse">
+<soap:header message="tns:GetAllFavoritesResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetAllMultilingualMetadata">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetAllMultilingualMetadata" style="document"/>
+<wsdl:input name="GetAllMultilingualMetadataRequest">
+<soap:header message="tns:GetAllMultilingualMetadataRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetAllMultilingualMetadataResponse">
+<soap:header message="tns:GetAllMultilingualMetadataResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetAttributeGroupDefinition">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetAttributeGroupDefinition" style="document"/>
+<wsdl:input name="GetAttributeGroupDefinitionRequest">
+<soap:header message="tns:GetAttributeGroupDefinitionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetAttributeGroupDefinitionResponse">
+<soap:header message="tns:GetAttributeGroupDefinitionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetAttributeGroupTemplate">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetAttributeGroupTemplate" style="document"/>
+<wsdl:input name="GetAttributeGroupTemplateRequest">
+<soap:header message="tns:GetAttributeGroupTemplateRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetAttributeGroupTemplateResponse">
+<soap:header message="tns:GetAttributeGroupTemplateResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetCategoryDefinition">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetCategoryDefinition" style="document"/>
+<wsdl:input name="GetCategoryDefinitionRequest">
+<soap:header message="tns:GetCategoryDefinitionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetCategoryDefinitionResponse">
+<soap:header message="tns:GetCategoryDefinitionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetCategoryDefinitions">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetCategoryDefinitions" style="document"/>
+<wsdl:input name="GetCategoryDefinitionsRequest">
+<soap:header message="tns:GetCategoryDefinitionsRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetCategoryDefinitionsResponse">
+<soap:header message="tns:GetCategoryDefinitionsResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetCategoryInheritance">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetCategoryInheritance" style="document"/>
+<wsdl:input name="GetCategoryInheritanceRequest">
+<soap:header message="tns:GetCategoryInheritanceRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetCategoryInheritanceResponse">
+<soap:header message="tns:GetCategoryInheritanceResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetCategoryTemplate">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetCategoryTemplate" style="document"/>
+<wsdl:input name="GetCategoryTemplateRequest">
+<soap:header message="tns:GetCategoryTemplateRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetCategoryTemplateResponse">
+<soap:header message="tns:GetCategoryTemplateResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetMetadataLanguages">
+<soap:operation soapAction="urn:DocMan.service.livelink.opentext.com/GetMetadataLanguages" style="document"/>
+<wsdl:input name="GetMetadataLanguagesRequest">
+<soap:header message="tns:GetMetadataLanguagesRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetMetadataLanguagesResponse">
+<soap:header message="tns:GetMetadataLanguagesResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:service name="DocumentManagement">
+<wsdl:port name="BasicHttpBinding_DocumentManagement" binding="tns:BasicHttpBinding_DocumentManagement">
+<soap:address location="https://llotadm2:443/cws/services/DocumentManagement"/>
+</wsdl:port>
+</wsdl:service>
+</wsdl:definitions>
