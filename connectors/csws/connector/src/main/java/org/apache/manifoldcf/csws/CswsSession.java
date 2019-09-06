@@ -155,17 +155,23 @@ public class CswsSession
     conduitFeature.setConduitConfig(config);
     
     // Construct service references from the URLs
+    // EVERYTHING depends on the right classloader being used to help us locate appropriate resources etc, so swap to the classloader for THIS
+    // class.
+    final ClassLoader savedCl = Thread.currentThread().getContextClassLoader();    
     try {
-        this.authService = new Authentication_Service(new URL(authenticationServiceURL)/*, conduitFeature*/);
-        this.documentManagementService = new DocumentManagement_Service(new URL(documentManagementServiceURL)/*, conduitFeature*/);
-        this.contentServiceService = new ContentService_Service(new URL(contentServiceServiceURL)/*, conduitFeature*/);
-        this.memberServiceService = new MemberService_Service(new URL(memberServiceServiceURL)/*, conduitFeature*/);
-        this.searchServiceService = new SearchService_Service(new URL(searchServiceServiceURL)/*, conduitFeature*/);
+      Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+      this.authService = new Authentication_Service(new URL(authenticationServiceURL), conduitFeature);
+      this.documentManagementService = new DocumentManagement_Service(new URL(documentManagementServiceURL), conduitFeature);
+      this.contentServiceService = new ContentService_Service(new URL(contentServiceServiceURL), conduitFeature);
+      this.memberServiceService = new MemberService_Service(new URL(memberServiceServiceURL), conduitFeature);
+      this.searchServiceService = new SearchService_Service(new URL(searchServiceServiceURL), conduitFeature);
     } catch (javax.xml.ws.WebServiceException e) {
       throw new ManifoldCFException("Error initializing web services: "+e.getMessage(), e);
     } catch (MalformedURLException e) {
       throw new ManifoldCFException("Malformed URL: "+e.getMessage(), e);
-    }
+    } finally {
+      Thread.currentThread().setContextClassLoader(savedCl);
+    } 
     // Initialize authclient etc.
     this.authClientHandle = authService.getBasicHttpBindingAuthentication();
     this.documentManagementHandle = documentManagementService.getBasicHttpBindingDocumentManagement();
