@@ -156,11 +156,11 @@ public class CswsSession
     
     // Construct service references from the URLs
     try {
-      this.authService = new Authentication_Service(new URL(authenticationServiceURL), conduitFeature);
-      this.documentManagementService = new DocumentManagement_Service(new URL(documentManagementServiceURL), conduitFeature);
-      this.contentServiceService = new ContentService_Service(new URL(contentServiceServiceURL), conduitFeature);
-      this.memberServiceService = new MemberService_Service(new URL(memberServiceServiceURL), conduitFeature);
-      this.searchServiceService = new SearchService_Service(new URL(searchServiceServiceURL), conduitFeature);
+        this.authService = new Authentication_Service(new URL(authenticationServiceURL)/*, conduitFeature*/);
+        this.documentManagementService = new DocumentManagement_Service(new URL(documentManagementServiceURL)/*, conduitFeature*/);
+        this.contentServiceService = new ContentService_Service(new URL(contentServiceServiceURL)/*, conduitFeature*/);
+        this.memberServiceService = new MemberService_Service(new URL(memberServiceServiceURL)/*, conduitFeature*/);
+        this.searchServiceService = new SearchService_Service(new URL(searchServiceServiceURL)/*, conduitFeature*/);
     } catch (javax.xml.ws.WebServiceException e) {
       throw new ManifoldCFException("Error initializing web services: "+e.getMessage(), e);
     } catch (MalformedURLException e) {
