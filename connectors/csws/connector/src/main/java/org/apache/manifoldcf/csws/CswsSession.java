@@ -157,7 +157,11 @@ public class CswsSession
     conduitFeature.setConduitConfig(config);
 
     // Construct service references from the URLs
+    // EVERYTHING depends on the right classloader being used to help us locate appropriate resources etc, so swap to the classloader for THIS
+    // class.
+    final ClassLoader savedCl = Thread.currentThread().getContextClassLoader();
     try {
+      Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
       this.authService = new AuthenticationService(new URL(authenticationServiceURL), conduitFeature);
       this.documentManagementService = new DocumentManagement_Service(new URL(documentManagementServiceURL), conduitFeature);
       this.contentServiceService = new ContentService_Service(new URL(contentServiceServiceURL), conduitFeature);
@@ -167,6 +171,8 @@ public class CswsSession
       throw new ManifoldCFException("Error initializing web services: "+e.getMessage(), e);
     } catch (MalformedURLException e) {
       throw new ManifoldCFException("Malformed URL: "+e.getMessage(), e);
+    } finally {
+      Thread.currentThread().setContextClassLoader(savedCl);
     }
     // Initialize authclient etc.
     this.authClientHandle = authService.getAuthenticationPort();
@@ -622,8 +628,8 @@ public class CswsSession
   
   private void processSOAPFault(SOAPFaultException e)
     throws ManifoldCFException, ServiceInterruption {
-    throw new ManifoldCFException("SOAP exception: "+e.getMessage(), e);
-    // MHL
+    // Repeat on SOAP Errors
+    throw new ServiceInterruption("SOAP exception: "+e.getMessage(), e, System.currentTimeMillis() + 5000,-1L, 5, false);
   }
   
   private void processWSException(javax.xml.ws.WebServiceException e)
