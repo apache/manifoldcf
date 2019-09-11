@@ -195,7 +195,7 @@
       <plugin>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-codegen-plugin</artifactId>
-        <version>3.2.6</version>
+        <version>${cxf.version}</version>
         <executions>
           <execution>
             <id>generate-sources</id>
