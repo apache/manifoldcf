@@ -160,11 +160,11 @@ public class CswsSession
     final ClassLoader savedCl = Thread.currentThread().getContextClassLoader();    
     try {
       Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
-      this.authService = new Authentication_Service(new URL(authenticationServiceURL), conduitFeature);
-      this.documentManagementService = new DocumentManagement_Service(new URL(documentManagementServiceURL), conduitFeature);
-      this.contentServiceService = new ContentService_Service(new URL(contentServiceServiceURL), conduitFeature);
-      this.memberServiceService = new MemberService_Service(new URL(memberServiceServiceURL), conduitFeature);
-      this.searchServiceService = new SearchService_Service(new URL(searchServiceServiceURL), conduitFeature);
+      this.authService = (authenticationServiceURL != null)?new Authentication_Service(new URL(authenticationServiceURL), conduitFeature):null;
+      this.documentManagementService = (documentManagementServiceURL != null)?new DocumentManagement_Service(new URL(documentManagementServiceURL), conduitFeature):null;
+      this.contentServiceService = (contentServiceServiceURL != null)?new ContentService_Service(new URL(contentServiceServiceURL), conduitFeature):null;
+      this.memberServiceService = (memberServiceServiceURL != null)?new MemberService_Service(new URL(memberServiceServiceURL), conduitFeature):null;
+      this.searchServiceService = (searchServiceServiceURL != null)?new SearchService_Service(new URL(searchServiceServiceURL), conduitFeature):null;
     } catch (javax.xml.ws.WebServiceException e) {
       throw new ManifoldCFException("Error initializing web services: "+e.getMessage(), e);
     } catch (MalformedURLException e) {
@@ -173,29 +173,37 @@ public class CswsSession
       Thread.currentThread().setContextClassLoader(savedCl);
     } 
     // Initialize authclient etc.
-    this.authClientHandle = authService.getBasicHttpBindingAuthentication();
-    this.documentManagementHandle = documentManagementService.getBasicHttpBindingDocumentManagement();
-    this.contentServiceHandle = contentServiceService.getBasicHttpBindingContentService();
-    this.memberServiceHandle = memberServiceService.getBasicHttpBindingMemberService();
-    this.searchServiceHandle = searchServiceService.getBasicHttpBindingSearchService();
-
-    // Set up endpoints
-    ((BindingProvider)authClientHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, authenticationServiceURL);
-    ((BindingProvider)documentManagementHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, documentManagementServiceURL);
-    ((BindingProvider)contentServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, contentServiceServiceURL);
-    ((BindingProvider)memberServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, memberServiceServiceURL);
-    ((BindingProvider)searchServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, searchServiceServiceURL);
-    
-    /*
-    // Set SSLSocketFactory's
-    if (sslSocketFactory != null) {
-      ((BindingProvider)authClientHandle).getRequestContext().put(sslSocketFactoryProperty, sslSocketFactory);
-      ((BindingProvider)documentManagementHandle).getRequestContext().put(sslSocketFactoryProperty, sslSocketFactory);
-      ((BindingProvider)contentServiceHandle).getRequestContext().put(sslSocketFactoryProperty, sslSocketFactory);
-      ((BindingProvider)memberServiceHandle).getRequestContext().put(sslSocketFactoryProperty, sslSocketFactory);
-      ((BindingProvider)searchServiceHandle).getRequestContext().put(sslSocketFactoryProperty, sslSocketFactory);
+    if (authService != null) {
+      this.authClientHandle = authService.getBasicHttpBindingAuthentication();
+      ((BindingProvider)authClientHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, authenticationServiceURL);
+    } else {
+      this.authClientHandle = null;
     }
-    */
+    if (documentManagementService != null) {
+      this.documentManagementHandle = documentManagementService.getBasicHttpBindingDocumentManagement();
+      ((BindingProvider)documentManagementHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, documentManagementServiceURL);
+    } else {
+      this.documentManagementHandle = null;
+    }
+    if (contentServiceService != null) {
+      this.contentServiceHandle = contentServiceService.getBasicHttpBindingContentService();
+      ((BindingProvider)contentServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, contentServiceServiceURL);
+    } else {
+      this.contentServiceHandle = null;
+    }
+    if (memberServiceService != null) {
+      this.memberServiceHandle = memberServiceService.getBasicHttpBindingMemberService();
+      ((BindingProvider)memberServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, memberServiceServiceURL);
+    } else {
+      this.memberServiceHandle = null;
+    }
+    if (searchServiceService != null) {
+      this.searchServiceHandle = searchServiceService.getBasicHttpBindingSearchService();
+      ((BindingProvider)searchServiceHandle).getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, searchServiceServiceURL);
+    } else {
+      this.searchServiceHandle = null;
+    }
+    
   }
 
   /**
