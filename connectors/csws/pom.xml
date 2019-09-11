@@ -174,28 +174,12 @@
         </executions>
       </plugin>
 
-      <!--
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-           <phase>generate-sources</phase>
-           <goals><goal>add-source</goal></goals>
-           <configuration>
-             <sources>
-             <source>build/wsdljava</source>
-           </sources>
-          </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      -->
+
 
       <plugin>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-codegen-plugin</artifactId>
-        <version>3.2.6</version>
+        <version>3.0.12</version>
         <executions>
           <execution>
             <id>generate-sources</id>
@@ -212,6 +196,23 @@
             <goals>
               <goal>wsdl2java</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals><goal>add-source</goal></goals>
+            <configuration>
+              <sources>
+                <source>target/generated-sources/cxf</source>
+              </sources>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -254,6 +255,11 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>${httpcomponent.httpclient.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-rt-transports-http</artifactId>
+      <version>3.2.6</version>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>

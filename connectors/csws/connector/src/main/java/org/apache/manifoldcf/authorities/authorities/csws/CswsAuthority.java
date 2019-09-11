@@ -214,6 +214,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     {
       // Construct the various URLs we need
       final String baseURL = serverProtocol + "://" + serverName + ":" + serverPort;
+      Logging.authorityConnectors.info(baseURL);
       final String authenticationServiceURL = baseURL + authenticationServicePath;
       //final String documentManagementServiceURL = baseURL + documentManagementServicePath;
       //final String contentServiceServiceURL = baseURL + contentServiceServicePath;
@@ -564,10 +565,10 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     
     String authenticationServicePath = parameters.getParameter(CswsParameters.authenticationPath);
     if (authenticationServicePath == null)
-      authenticationServicePath = "";
+      authenticationServicePath = CswsParameters.authenticationPathDefault;
     String memberServiceServicePath = parameters.getParameter(CswsParameters.memberServicePath);
     if (memberServiceServicePath == null)
-      memberServiceServicePath = "";
+      memberServiceServicePath = CswsParameters.memberServicePathDefault;
     
     String serverHTTPNTLMDomain = parameters.getParameter(CswsParameters.serverHTTPNTLMDomain);
     if(serverHTTPNTLMDomain == null)

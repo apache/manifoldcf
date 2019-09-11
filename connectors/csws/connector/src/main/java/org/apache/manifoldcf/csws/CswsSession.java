@@ -48,9 +48,8 @@ import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
 
 import com.opentext.ecm.api.OTAuthentication;
+import com.opentext.ecm.services.authws.AuthenticationException_Exception;
 import com.opentext.livelink.service.core.PageHandle;
-import com.opentext.livelink.service.core.Authentication;
-import com.opentext.livelink.service.core.Authentication_Service;
 import com.opentext.livelink.service.core.ContentService;
 import com.opentext.livelink.service.core.ContentService_Service;
 import com.opentext.livelink.service.memberservice.MemberService;
@@ -65,6 +64,8 @@ import com.opentext.livelink.service.memberservice.SearchColumn;
 import com.opentext.livelink.service.memberservice.MemberSearchOptions;
 import com.opentext.livelink.service.memberservice.MemberSearchResults;
 import com.opentext.livelink.service.docman.AttributeGroup;
+import com.opentext.ecm.services.authws.AuthenticationService;
+import com.opentext.ecm.services.authws.Authentication;
 import com.opentext.livelink.service.docman.CategoryInheritance;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
@@ -87,6 +88,7 @@ import com.opentext.livelink.service.memberservice.SearchFilter;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.connectorcommon.interfaces.*;
+import org.apache.manifoldcf.connectorcommon.interfaces.IKeystoreManager;
 
 /** This class describes a livelink csws session.  It manages OAuth authentication
 * and provides logged-in access to csws services via methods provided within.
@@ -101,7 +103,7 @@ public class CswsSession
   private final String userName;
   private final String password;
   private final long sessionExpirationInterval;
-  private final Authentication_Service authService;
+  private final AuthenticationService authService;
   private final ContentService_Service contentServiceService;
   private final DocumentManagement_Service documentManagementService;
   private final MemberService_Service memberServiceService;
@@ -153,10 +155,14 @@ public class CswsSession
     config.setTlsClientParameters(tlsConfig);
     final HttpConduitFeature conduitFeature = new HttpConduitFeature();
     conduitFeature.setConduitConfig(config);
-    
+
     // Construct service references from the URLs
+    // EVERYTHING depends on the right classloader being used to help us locate appropriate resources etc, so swap to the classloader for THIS
+    // class.
+    final ClassLoader savedCl = Thread.currentThread().getContextClassLoader();
     try {
-      this.authService = new Authentication_Service(new URL(authenticationServiceURL), conduitFeature);
+      Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+      this.authService = new AuthenticationService(new URL(authenticationServiceURL), conduitFeature);
       this.documentManagementService = new DocumentManagement_Service(new URL(documentManagementServiceURL), conduitFeature);
       this.contentServiceService = new ContentService_Service(new URL(contentServiceServiceURL), conduitFeature);
       this.memberServiceService = new MemberService_Service(new URL(memberServiceServiceURL), conduitFeature);
@@ -165,9 +171,11 @@ public class CswsSession
       throw new ManifoldCFException("Error initializing web services: "+e.getMessage(), e);
     } catch (MalformedURLException e) {
       throw new ManifoldCFException("Malformed URL: "+e.getMessage(), e);
+    } finally {
+      Thread.currentThread().setContextClassLoader(savedCl);
     }
     // Initialize authclient etc.
-    this.authClientHandle = authService.getBasicHttpBindingAuthentication();
+    this.authClientHandle = authService.getAuthenticationPort();
     this.documentManagementHandle = documentManagementService.getBasicHttpBindingDocumentManagement();
     this.contentServiceHandle = contentServiceService.getBasicHttpBindingContentService();
     this.memberServiceHandle = memberServiceService.getBasicHttpBindingMemberService();
@@ -535,14 +543,18 @@ public class CswsSession
     throws ManifoldCFException, ServiceInterruption {
     try {
       final SingleSearchRequest singleSrchReq = new SingleSearchRequest();
-      singleSrchReq.setDataCollectionSpec("'LES Enterprise'");//Livelink Enterprise Server
+      // TODO: Apparently, this is different in some implementations. Fetch dynamically or make an input field.
+      singleSrchReq.setDataCollectionSpec("'LES Athene'"); //Livelink Enterprise Server
       singleSrchReq.setQueryLanguage("Livelink Search API V1"); //Search Query Language API
       singleSrchReq.setFirstResultToRetrieve(start + 1);
       singleSrchReq.setNumResultsToRetrieve(count);
       if (orderingColumn != null) {
         singleSrchReq.setResultOrderSpec("sortByRegion="+orderingColumn+"&sortDirection=ascending");
       }
-      singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+")");
+
+      // TODO: Don't ignore the searchSpec. This is part of the NodeRights issue.
+      //singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+"))");
+      singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+")");
       for (final String returnColumn : returnColumns) {
         singleSrchReq.getResultTransformationSpec().add(returnColumn);
       }
@@ -559,7 +571,7 @@ public class CswsSession
       // Get the list of actual result rows (?)
       return srp.getItem();
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      //processSOAPFault(e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
       processWSException(e);
@@ -594,11 +606,14 @@ public class CswsSession
       currentAuthToken = null;
       // Refetch the auth token (this may fail)
       try {
-        currentAuthToken = authClientHandle.authenticateUser(userName, password);
+        javax.xml.ws.Holder<com.opentext.ecm.api.OTAuthentication> authenticationHeader = new javax.xml.ws.Holder<>();
+        currentAuthToken = authClientHandle.authenticate(userName, password, authenticationHeader);
       } catch (SOAPFaultException e) {
         processSOAPFault(e);
       } catch (javax.xml.ws.WebServiceException e) {
         processWSException(e);
+      } catch (AuthenticationException_Exception e) {
+        processAuthException(e);
       }
       currentSessionExpiration = currentTime + sessionExpirationInterval;
     }
@@ -613,12 +628,17 @@ public class CswsSession
   
   private void processSOAPFault(SOAPFaultException e)
     throws ManifoldCFException, ServiceInterruption {
-    throw new ManifoldCFException("SOAP exception: "+e.getMessage(), e);
-    // MHL
+    // Repeat on SOAP Errors
+    throw new ServiceInterruption("SOAP exception: "+e.getMessage(), e, System.currentTimeMillis() + 5000,-1L, 5, false);
   }
   
   private void processWSException(javax.xml.ws.WebServiceException e)
     throws ManifoldCFException, ServiceInterruption {
     throw new ManifoldCFException("Web service communication issue: "+e.getMessage(), e);
+  }
+
+  private void processAuthException(AuthenticationException_Exception e)
+          throws ManifoldCFException, ServiceInterruption {
+    throw new ManifoldCFException("Auth Exception: "+e.getMessage(), e);
   }
 }

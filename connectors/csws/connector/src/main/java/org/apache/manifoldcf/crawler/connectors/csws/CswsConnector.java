@@ -525,7 +525,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
 
       // Construct a new csws session object for setting up this session
-      cswsSession = new CswsSession(serverUsername, serverPassword, serverHTTPSKeystore, 1000L * 60L * 15L, 
+      cswsSession = new CswsSession(serverUsername, serverPassword, serverHTTPSKeystore, 1000L * 60L * 15L,
         authenticationServiceURL, documentManagementServiceURL, contentServiceServiceURL, memberServiceServiceURL, searchServiceServiceURL);
 
       final GetSessionThread t = new GetSessionThread();
@@ -878,7 +878,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
     
     Logging.connectors.debug("Csws: Picking up starting paths");
-    
+
     // Walk the specification for the "startpoint" types.  Amalgamate these into a list of strings.
     // Presume that all roots are startpoint nodes
     boolean doUserWorkspaces = false;
@@ -967,7 +967,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       Logging.connectors.debug("Csws: Done user workspaces");
     }
-    
+
     return "";
   }
 
@@ -1060,11 +1060,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
         
       // Make sure we have permission to see the object's contents
+      // TODO: In our current environment, permissions cannot be fetched properly, this is a workaround
       final NodePermissions permissions = value.getPermissions();
       if (!permissions.isSeeContentsPermission())
       {
         if (Logging.connectors.isDebugEnabled())
-          Logging.connectors.debug("Csws: Crawl user cannot see contents of object "+objID+" - deleting");
+          Logging.connectors.info("Csws: Crawl user cannot see contents of object "+objID+" - deleting");
         activities.deleteDocument(documentIdentifier);
         continue;
       }
@@ -1072,7 +1073,11 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       final Date dt = value.getModifyDate();
 
       // The rights don't change when the object changes, so we have to include those too.
+      // TODO: This fails when the csws user is not an admin, so this workaround is used.
       final NodeRights rights = getObjectRights(objID);
+      //final NodeRights rights = new NodeRights();
+
+
       if (rights == null)
       {
         if (Logging.connectors.isDebugEnabled())
@@ -1295,14 +1300,17 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   
   private static String getString(final SGraph sg, final int nodeIndex) {
     final List<? extends SNode> nodes = sg.getN();
-    if (nodes == null || nodes.size() < 1) {
-      throw new IllegalArgumentException("Expecting exactly one SNode");
+    if (nodes == null || nodes.size() != 1) {
+      throw new IllegalArgumentException("Looking for nodeIndex "+nodeIndex+" but graph node did not have that many");
     }
     final SNode node = nodes.get(0);
     final List<? extends String> stringValues = node.getS();
     if (stringValues == null || stringValues.size() <= nodeIndex) {
       return null;
     }
+    /*if (stringValues.size() > 1) {
+      throw new IllegalArgumentException("Expecting 0 or 1 values, not "+stringValues.size());
+    }*/
     return stringValues.get(nodeIndex);
   }
   
@@ -3634,9 +3642,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
     
     public boolean exists()
-      throws ServiceInterruption, ManifoldCFException
     {
-      return getVersionValue() != null;
+        try {
+            return getVersionValue() != null;
+        } catch (ServiceInterruption | ManifoldCFException e) {
+            if (Logging.connectors.isDebugEnabled())
+                Logging.connectors.debug("Document " + objectID + " (rev " + revisionNumber + ") does not exist.");
+        }
+        return false;
     }
 
     /** Get data size.
@@ -4438,6 +4451,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   
   /** Check if NodeRight conveys the permissions we need */
   protected static boolean evaluateRight(final NodeRight nr) {
+    if (nr == null) return false;
     final NodePermissions np = nr.getPermissions();
     return np.isSeePermission() && np.isSeeContentsPermission();
   }
