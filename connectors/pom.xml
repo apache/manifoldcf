@@ -76,6 +76,7 @@
     <module>rocketchat</module>
     <module>html-extractor</module>
     <module>mongodb</module>
+    <module>csws</module>
   </modules>
 
 </project>
