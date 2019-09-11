@@ -66,7 +66,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
   private long expirationTime = -1L;
   // Idle session expiration interval
   private final static long expirationInterval = 300000L;
-  
+
   // Data from the parameters
   private String serverProtocol = null;
   private String serverName = null;
@@ -94,7 +94,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
 
   /** Cache manager. */
   protected ICacheManager cacheManager = null;
-  
+
   // Csws does not have "deny" permissions, and there is no such thing as a document with no tokens, so it is safe to not have a local "deny" token.
   // However, people feel that a suspenders-and-belt approach is called for, so this restriction has been added.
   // Csws tokens are numbers, "SYSTEM", or "GUEST", so they can't collide with the standard form.
@@ -114,7 +114,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     super.setThreadContext(tc);
     cacheManager = CacheManagerFactory.make(tc);
   }
-  
+
   /** Clear thread context.
   */
   @Override
@@ -150,7 +150,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       //documentManagementServicePath = params.getParameter(CswsParameters.documentManagementPath);
       //contentServiceServicePath = params.getParameter(CswsParameters.contentServicePath);
       memberServiceServicePath = params.getParameter(CswsParameters.memberServicePath);
-      //searchServiceServicePath = params.getParameter(CswsParameters.searchServicePath);      
+      //searchServiceServicePath = params.getParameter(CswsParameters.searchServicePath);
       serverHTTPNTLMDomain = params.getParameter(CswsParameters.serverHTTPNTLMDomain);
       serverHTTPNTLMUsername = params.getParameter(CswsParameters.serverHTTPNTLMUsername);
       serverHTTPNTLMPassword = params.getObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword);
@@ -159,12 +159,12 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
 
       if (serverProtocol == null || serverProtocol.length() == 0)
         serverProtocol = "http";
-        
+
       if (serverPortString == null)
         serverPort = 2099;
       else
         serverPort = new Integer(serverPortString).intValue();
-        
+
       if (serverHTTPNTLMDomain != null && serverHTTPNTLMDomain.length() == 0)
         serverHTTPNTLMDomain = null;
       if (serverHTTPNTLMUsername == null || serverHTTPNTLMUsername.length() == 0)
@@ -184,7 +184,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       cacheLRUsize = params.getParameter(CswsParameters.cacheLRUSize);
       if (cacheLRUsize == null)
         cacheLRUsize = "1000";
-      
+
       try
       {
         responseLifetime = Long.parseLong(this.cacheLifetime) * 60L * 1000L;
@@ -203,7 +203,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       hasSessionParameters = true;
     }
   }
-  
+
   /** Set up a session.
   */
   protected void getSession()
@@ -219,7 +219,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       //final String contentServiceServiceURL = baseURL + contentServiceServicePath;
       final String memberServiceServiceURL = baseURL + memberServiceServicePath;
       //final String searchServiceServiceURL = baseURL + searchServiceServicePath;
-      
+
       if (Logging.authorityConnectors.isDebugEnabled())
       {
         Logging.authorityConnectors.debug("Csws: Csws session created.");
@@ -247,9 +247,9 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       // Reestablish the session
       cswsSession = null;
       getSession();
-      
-      final User user = cswsSession.getUserByLoginName("Admin");
-      if (user == null) {
+
+      final User user = cswsSession.getUserByLoginName(this.serverUsername);
+      if (user != null) {
         return super.check();
       }
       return "Connection failed: User authentication failed";
@@ -301,7 +301,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     hasSessionParameters = false;
     cswsSession = null;
     expirationTime = -1L;
-    
+
     serverProtocol = null;
     serverName = null;
     serverPort = -1;
@@ -342,7 +342,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       authenticationServicePath, memberServiceServicePath,
       serverHTTPSKeystore,
       responseLifetime,LRUsize);
-      
+
     // Enter the cache
     ICacheHandle ch = cacheManager.enterCache(new ICacheDescription[]{objectDescription},null,null);
     try
@@ -371,7 +371,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       cacheManager.leaveCache(ch);
     }
   }
-  
+
   /** Uncached method to get access tokens for a user name. */
   protected AuthorizationResponse getAuthorizationResponseUncached(String userName)
     throws ManifoldCFException
@@ -414,18 +414,18 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
         // Since the user cannot become undeleted, then this should be treated as 'user does not exist'.
         return RESPONSE_USERNOTFOUND;
       }
-      
+
       final MemberPrivileges memberPrivileges = user.getPrivileges();
       if (memberPrivileges.isPublicAccessEnabled()) {
         // if ((privs & LAPI_USERS.PRIV_PERM_WORLD) == LAPI_USERS.PRIV_PERM_WORLD) ??
         list.add("GUEST");
       }
-      
+
       if (memberPrivileges. isCanAdministerSystem()) {
         // if ((privs & LAPI_USERS.PRIV_PERM_BYPASS) == LAPI_USERS.PRIV_PERM_BYPASS)
         list.add("SYSTEM");
       }
-      
+
       final Member member = cswsSession.getMemberByLoginName(domainAndUser);
       if (member == null) {
         if (Logging.authorityConnectors.isDebugEnabled())
@@ -455,7 +455,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       // These objects are returned by the corresponding GetObjectRights() call made during
       // the ingestion process.  We have to figure out how to map these to things that are
       // the equivalent of acls.
-        
+
       // Idea:
       // 1) RIGHT_WORLD is based on some property of the user.
       // 2) RIGHT_SYSTEM is based on some property of the user.
@@ -496,7 +496,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
   //
   // These support methods are involved in setting up authority connection configuration information. The configuration methods cannot assume that the
   // current authority object is connected.  That is why they receive a thread context argument.
-    
+
   /** Output the configuration header section.
   * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
   * javascript methods that might be needed by the configuration editing HTML.
@@ -513,9 +513,9 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     tabsArray.add(Messages.getString(locale,"CswsConnector.Server"));
     tabsArray.add(Messages.getString(locale,"CswsConnector.Cache"));
 
-    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_JS, null, true);  
+    Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_JS, null, true);
   }
-  
+
   /** Output the configuration body section.
   * This method is called in the body section of the authority connector's configuration page.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.  The name of the
@@ -529,7 +529,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
-  {        
+  {
     Map<String, Object> velocityContext = new HashMap<>();
     velocityContext.put("TabName",tabName);
 
@@ -561,14 +561,14 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       serverPassword = "";
     else
       serverPassword = out.mapPasswordToKey(serverPassword);
-    
+
     String authenticationServicePath = parameters.getParameter(CswsParameters.authenticationPath);
     if (authenticationServicePath == null)
       authenticationServicePath = CswsParameters.authenticationPathDefault;
     String memberServiceServicePath = parameters.getParameter(CswsParameters.memberServicePath);
     if (memberServiceServicePath == null)
       memberServiceServicePath = CswsParameters.memberServicePathDefault;
-    
+
     String serverHTTPNTLMDomain = parameters.getParameter(CswsParameters.serverHTTPNTLMDomain);
     if(serverHTTPNTLMDomain == null)
       serverHTTPNTLMDomain = "";
@@ -618,7 +618,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     velocityContext.put("SERVERPORT",serverPort);
     velocityContext.put("SERVERUSERNAME",serverUserName);
     velocityContext.put("SERVERPASSWORD",serverPassword);
-    
+
     velocityContext.put("AUTHENTICATIONSERVICEPATH", authenticationServicePath);
     velocityContext.put("MEMBERSERVICESERVICEPATH", memberServiceServicePath);
 
@@ -645,8 +645,8 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
 
     velocityContext.put("CACHELIFETIME",cacheLifetime);
     velocityContext.put("CACHELRUSIZE",cacheLRUsize);
-  }  
-  
+  }
+
   /** Process a configuration post.
   * This method is called at the start of the authority connector's configuration page, whenever there is a possibility that form data for a connection has been
   * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
@@ -677,7 +677,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     String serverPassword = variableContext.getParameter("serverpassword");
     if (serverPassword != null)
       parameters.setObfuscatedParameter(CswsParameters.serverPassword,variableContext.mapKeyToPassword(serverPassword));
-    
+
     String authenticationServicePath = variableContext.getParameter("authenticationservicepath");
     if (authenticationServicePath != null)
       parameters.setParameter(CswsParameters.authenticationPath, authenticationServicePath);
@@ -739,7 +739,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       }
     }
     parameters.setParameter(CswsParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
-    
+
     // Cache parameters
     String cacheLifetime = variableContext.getParameter("cachelifetime");
     if (cacheLifetime != null)
@@ -750,7 +750,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
 
     return null;
   }
-  
+
   /** View configuration.
   * This method is called in the body section of the authority connector's view configuration page.  Its purpose is to present the connection information to the user.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt; and &lt;body&gt; tags.
@@ -788,11 +788,11 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     }
 
     paramMap.put("CONFIGMAP",configMap);
-    Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIGURATION_HTML, paramMap);    
+    Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIGURATION_HTML, paramMap);
   }
 
   protected static StringSet emptyStringSet = new StringSet();
-  
+
   /** This is the cache object descriptor for cached access tokens from
   * this connector.
   */
@@ -800,7 +800,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
   {
     /** The user name associated with the access tokens */
     protected final String userName;
-    
+
     // The server connection parameters
     protected final String serverProtocol;
     protected final String serverName;
@@ -812,10 +812,10 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     protected final String serverHTTPSKeystore;
 
     protected long responseLifetime;
-    
+
     /** The expiration time */
     protected long expirationTime = -1;
-    
+
     /** Constructor. */
     public AuthorizationResponseDescription(String userName,
       String serverProtocol,
@@ -828,7 +828,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
     {
       super("CswsAuthority",LRUsize);
       this.userName = userName;
-      
+
       this.serverProtocol = serverProtocol;
       this.serverName = serverName;
       this.serverPort = serverPort;
@@ -874,7 +874,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
         authenticationServicePath.hashCode() + memberServicePath.hashCode() +
         ((serverHTTPSKeystore==null)?0:serverHTTPSKeystore.hashCode());
     }
-    
+
     public boolean equals(Object o)
     {
       if (!(o instanceof AuthorizationResponseDescription))
@@ -888,7 +888,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
         ((ard.serverHTTPSKeystore != null && serverHTTPSKeystore != null && ard.serverHTTPSKeystore.equals(serverHTTPSKeystore)) ||
           ((ard.serverHTTPSKeystore == null || serverHTTPSKeystore == null) && ard.serverHTTPSKeystore == serverHTTPSKeystore));
     }
-    
+
   }
 
 }
