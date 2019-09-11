@@ -88,6 +88,7 @@ import com.opentext.livelink.service.memberservice.SearchFilter;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.connectorcommon.interfaces.*;
+import org.apache.manifoldcf.connectorcommon.interfaces.IKeystoreManager;
 
 /** This class describes a livelink csws session.  It manages OAuth authentication
 * and provides logged-in access to csws services via methods provided within.
@@ -546,8 +547,8 @@ public class CswsSession
       }
 
       // TODO: Don't ignore the searchSpec. This is part of the NodeRights issue.
-      singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+")");
-      //singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+")");
+      //singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+"))");
+      singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+")");
       for (final String returnColumn : returnColumns) {
         singleSrchReq.getResultTransformationSpec().add(returnColumn);
       }
@@ -564,7 +565,7 @@ public class CswsSession
       // Get the list of actual result rows (?)
       return srp.getItem();
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      //processSOAPFault(e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
       processWSException(e);
