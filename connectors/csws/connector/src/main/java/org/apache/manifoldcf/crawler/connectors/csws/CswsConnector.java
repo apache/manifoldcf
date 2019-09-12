@@ -2600,17 +2600,6 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     throws ManifoldCFException, ServiceInterruption
   {
     return new String[]{categoryWSName, enterpriseWSName};
-    /*
-    getSession();
-    final Set<String> workspaceNames = workspaceNodes.keySet();
-    final String[] rval = new String[workspaceNames.size()];
-    int i = 0;
-    for (final String name : workspaceNames) {
-      rval[i++] = name;
-    }
-    java.util.Arrays.sort(rval);
-    return rval;
-    */
   }
 
   /** Given a path string, get a list of folders and projects under that node.
@@ -4952,13 +4941,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           identifierPart = identifierPart.substring(1);
         }
         // See if there's a volume label; if not, use the default.
-        int colonPosition = identifierPart.indexOf(":");
-        long volumeID;
         long objectID;
         try
         {
-          volumeID = Integer.parseInt(identifierPart.substring(0,colonPosition));
-          objectID = Integer.parseInt(identifierPart.substring(colonPosition+1));
+          objectID = Integer.parseInt(identifierPart);
         }
         catch (NumberFormatException e)
         {
@@ -4981,7 +4967,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           path = name;
         } else {
           long parentID = objInfo.getParentId().longValue();
-          String parentIdentifier = "F"+volumeID+":"+parentID;
+          String parentIdentifier = "F"+parentID;
           String parentPath = getNodePathString(parentIdentifier);
           if (parentPath == null)
             return null;
