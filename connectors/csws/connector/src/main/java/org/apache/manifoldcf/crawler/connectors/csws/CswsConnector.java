@@ -158,7 +158,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected final static String GENERAL_PARENTID = "general_parentid";
 
   private static final String enterpriseWSName = "EnterpriseWS";
-  private static final String categoryWSName = "CategoryWS";
+  private static final String categoryWSName = "CategoriesWS";
 
   // Signal that we have set up connection parameters properly
   private boolean hasSessionParameters = false;
@@ -175,7 +175,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   // Workspace Nodes (computed once and cached); should contain both enterprise and category workspaces
   private Map<String, Node> workspaceNodes = new HashMap<>();
   private Long enterpriseWSID = null;
-  
+  private Long categoryWSID = null;
+    
   // Parameter values we need
   private String serverProtocol = null;
   private String serverName = null;
@@ -274,27 +275,16 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         final List<? extends String> workspaceNames = cswsSession.getRootNodeTypes();
         // Loop over these and get the nodes (which we'll save for later)
         workspaceNodes.clear();
-        /*
-        enterpriseWSName = null;
-        categoryWSName = null;
-        */
         for (final String workspaceName : workspaceNames) {
           workspaceNodes.put(workspaceName, cswsSession.getRootNode(workspaceName));
-          /* Hard-wired now
-          // I don't know the actual names so...
-          if (workspaceName.toLowerCase(Locale.ROOT).indexOf("enterprise") != -1) {
-            enterpriseWSName = workspaceName;
-          } else if (workspaceName.toLowerCase(Locale.ROOT).indexOf("category") != -1) {
-            categoryWSName = workspaceName;
-          }
-          */
         }
         
         if (enterpriseWSName == null || categoryWSName == null) {
           throw new ManifoldCFException("Could not locate either enterprise or category workspaces");
         }
         
-        enterpriseWSID = cswsSession.getRootNode(enterpriseWSName).getID();
+        enterpriseWSID = workspaceNodes.get(enterpriseWSName).getID();
+        categoryWSID = workspaceNodes.get(categoryWSName).getID();
 
       }
       catch (Throwable e)
@@ -667,7 +657,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     workspaceNodes.clear();
     enterpriseWSID = null;
-
+    categoryWSID = null;
+    
     if (connectionManager != null)
     {
       connectionManager.shutdown();
