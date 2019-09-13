@@ -146,11 +146,11 @@ public class CswsSession
     final ClassLoader savedCl = Thread.currentThread().getContextClassLoader();
     try {
       Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
-      this.authService = (authenticationServiceURL != null)?new Authentication_Service(new URL(authenticationServiceURL), conduitFeature):null;
-      this.documentManagementService = (documentManagementServiceURL != null)?new DocumentManagement_Service(new URL(documentManagementServiceURL), conduitFeature):null;
-      this.contentServiceService = (contentServiceServiceURL != null)?new ContentService_Service(new URL(contentServiceServiceURL), conduitFeature):null;
-      this.memberServiceService = (memberServiceServiceURL != null)?new MemberService_Service(new URL(memberServiceServiceURL), conduitFeature):null;
-      this.searchServiceService = (searchServiceServiceURL != null)?new SearchService_Service(new URL(searchServiceServiceURL), conduitFeature):null;
+      this.authService = (authenticationServiceURL != null)?new Authentication_Service(new URL(authenticationServiceURL + "?wsdl"), conduitFeature):null;
+      this.documentManagementService = (documentManagementServiceURL != null)?new DocumentManagement_Service(new URL(documentManagementServiceURL + "?wsdl"), conduitFeature):null;
+      this.contentServiceService = (contentServiceServiceURL != null)?new ContentService_Service(new URL(contentServiceServiceURL + "?wsdl"), conduitFeature):null;
+      this.memberServiceService = (memberServiceServiceURL != null)?new MemberService_Service(new URL(memberServiceServiceURL + "?wsdl"), conduitFeature):null;
+      this.searchServiceService = (searchServiceServiceURL != null)?new SearchService_Service(new URL(searchServiceServiceURL + "?wsdl"), conduitFeature):null;
     } catch (javax.xml.ws.WebServiceException e) {
       throw new ManifoldCFException("Error initializing web services: "+e.getMessage(), e);
     } catch (MalformedURLException e) {
