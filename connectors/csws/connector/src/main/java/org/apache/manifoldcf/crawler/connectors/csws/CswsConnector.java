@@ -3896,8 +3896,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         } else {
           filterString = "\"OTSubType\":131";
         }
-
-        filterString += " AND \"OTName:\"" + subFolder + "\"";
+        
+        filterString += " AND \"OTName\":\"" + subFolder + "\"";
 
         final ListObjectsThread t = new ListObjectsThread(obj, new String[]{"OTDataID", "OTSubTypeName"}, dataCollection, filterString, "OTDataID");
         try
