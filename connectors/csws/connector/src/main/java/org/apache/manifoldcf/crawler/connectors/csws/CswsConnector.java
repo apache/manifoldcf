@@ -171,12 +171,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   // Data required for maintaining csws connection
   private CswsSession cswsSession = null;
-  
+
   // Workspace Nodes (computed once and cached); should contain both enterprise and category workspaces
   private Map<String, Node> workspaceNodes = new HashMap<>();
   private Long enterpriseWSID = null;
   private Long categoryWSID = null;
-    
+
   // Parameter values we need
   private String serverProtocol = null;
   private String serverName = null;
@@ -188,6 +188,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   private String contentServiceServicePath = null;
   private String memberServiceServicePath = null;
   private String searchServiceServicePath = null;
+  private String dataCollection = null;
   private String serverHTTPNTLMDomain = null;
   private String serverHTTPNTLMUsername = null;
   private String serverHTTPNTLMPassword = null;
@@ -202,7 +203,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   // Connection management
   private HttpClientConnectionManager connectionManager = null;
   private HttpClient httpClient = null;
-  
+
   // Base path for viewing
   private String viewBasePath = null;
 
@@ -278,11 +279,11 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         for (final String workspaceName : workspaceNames) {
           workspaceNodes.put(workspaceName, cswsSession.getRootNode(workspaceName));
         }
-        
+
         if (enterpriseWSName == null || categoryWSName == null) {
           throw new ManifoldCFException("Could not locate either enterprise or category workspaces");
         }
-        
+
         enterpriseWSID = workspaceNodes.get(enterpriseWSName).getID();
         categoryWSID = workspaceNodes.get(categoryWSName).getID();
 
@@ -312,7 +313,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 	  throw new RuntimeException("Unrecognized exception type: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
       }
     }
-    
+
   }
 
   /** Get the bin name string for a document identifier.  The bin name describes the queue to which the
@@ -353,6 +354,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       contentServiceServicePath = params.getParameter(CswsParameters.contentServicePath);
       memberServiceServicePath = params.getParameter(CswsParameters.memberServicePath);
       searchServiceServicePath = params.getParameter(CswsParameters.searchServicePath);
+      dataCollection = params.getParameter(CswsParameters.dataCollection);
       serverHTTPNTLMDomain = params.getParameter(CswsParameters.serverHTTPNTLMDomain);
       serverHTTPNTLMUsername = params.getParameter(CswsParameters.serverHTTPNTLMUsername);
       serverHTTPNTLMPassword = params.getObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword);
@@ -362,12 +364,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       if (serverProtocol == null || serverProtocol.length() == 0)
         serverProtocol = "http";
-      
+
       if (serverPortString == null)
         serverPort = 2099;
       else
         serverPort = new Integer(serverPortString).intValue();
-      
+
       if (serverHTTPNTLMDomain != null && serverHTTPNTLMDomain.length() == 0)
         serverHTTPNTLMDomain = null;
       if (serverHTTPNTLMUsername == null || serverHTTPNTLMUsername.length() == 0)
@@ -375,7 +377,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         serverHTTPNTLMUsername = null;
         serverHTTPNTLMPassword = null;
       }
-      
+
       // Set up server ssl if indicated
       String serverHTTPSKeystoreData = params.getParameter(CswsParameters.serverHTTPSKeystore);
       if (serverHTTPSKeystoreData != null)
@@ -383,7 +385,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       // View parameters
       // View parameter processing
-      
+
       if (viewProtocol == null || viewProtocol.length() == 0)
       {
         if (serverProtocol == null)
@@ -428,7 +430,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       if (viewCgiPath == null || viewCgiPath.length() == 0)
         viewCgiPath = "";
-      
+
       if (viewServerName == null || viewServerName.length() == 0)
         viewServerName = serverName;
 
@@ -437,7 +439,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       hasSessionParameters = true;
     }
   }
-  
+
   protected void getSession()
     throws ManifoldCFException, ServiceInterruption
   {
@@ -473,7 +475,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         .setSoTimeout(socketTimeout)
         .build());
       connectionManager = poolingConnectionManager;
-      
+
       CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
       // Set up authentication to use
@@ -515,7 +517,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
 
       // Construct a new csws session object for setting up this session
-      cswsSession = new CswsSession(serverUsername, serverPassword, serverHTTPSKeystore, 1000L * 60L * 15L, 
+      cswsSession = new CswsSession(serverUsername, serverPassword, serverHTTPSKeystore, 1000L * 60L * 15L,
         authenticationServiceURL, documentManagementServiceURL, contentServiceServiceURL, memberServiceServiceURL, searchServiceServiceURL);
 
       final GetSessionThread t = new GetSessionThread();
@@ -610,7 +612,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
   }
-  
+
   /** This method is called to assess whether to count this connector instance should
   * actually be counted as being connected.
   *@return true if the connector instance is actually connected.
@@ -642,7 +644,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     contentServiceServicePath = null;
     memberServiceServicePath = null;
     searchServiceServicePath = null;
-    
+
     serverHTTPNTLMDomain = null;
     serverHTTPNTLMUsername = null;
     serverHTTPNTLMPassword = null;
@@ -658,7 +660,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     workspaceNodes.clear();
     enterpriseWSID = null;
     categoryWSID = null;
-    
+
     if (connectionManager != null)
     {
       connectionManager.shutdown();
@@ -744,7 +746,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     else if (command.startsWith("folders/"))
     {
       String path = command.substring("folders/".length());
-      
+
       try
       {
         String[] folders = getChildFolderNames(path);
@@ -821,7 +823,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       return super.requestInfo(output,command);
     return true;
   }
-  
+
   /** Queue "seed" documents.  Seed documents are the starting places for crawling activity.  Documents
   * are seeded when this method calls appropriate methods in the passed in ISeedingActivity object.
   *
@@ -857,7 +859,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     Logging.connectors.debug("Csws: addSeedDocuments");
     getSession();
     CswsContext llc = new CswsContext();
-    
+
     // First, grab the root object
     ObjectInformation rootValue = llc.getObjectInformation(enterpriseWSID);
     if (!rootValue.exists())
@@ -867,9 +869,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       throw new ServiceInterruption("Service interruption during seeding",new ManifoldCFException("Could not looking root workspace object during seeding"),System.currentTimeMillis()+60000L,
         System.currentTimeMillis()+600000L,-1,true);
     }
-    
+
     Logging.connectors.debug("Csws: Picking up starting paths");
-    
+
     // Walk the specification for the "startpoint" types.  Amalgamate these into a list of strings.
     // Presume that all roots are startpoint nodes
     boolean doUserWorkspaces = false;
@@ -907,7 +909,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         else if (value != null && value.equals("false"))
           doUserWorkspaces = false;
       }
-      
+
       if (doUserWorkspaces)
       {
         // Do ListUsers and enumerate the values.
@@ -916,7 +918,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           Logging.connectors.debug("Csws: Going through user workspaces");
           t.start();
           final PageHandle resultPageHandle = t.finishUp();
-        
+
           // Now walk through the results and add them
           while (true) {
             final GetUserResultsThread t2 = new GetUserResultsThread(resultPageHandle);
@@ -927,15 +929,15 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 // We're done
                 break;
               }
-            
+
               for (final Member m : childrenDocs)
               {
                 final long childID = m.getID();
-            
+
                 // Skip admin user
                 if (childID == 1000L || childID == 1001L)
                   continue;
-                
+
                 if (Logging.connectors.isDebugEnabled())
                   Logging.connectors.debug("Csws: Found a user: ID="+childID);
 
@@ -958,7 +960,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       Logging.connectors.debug("Csws: Done user workspaces");
     }
-    
+
     return "";
   }
 
@@ -980,13 +982,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     IProcessActivity activities, int jobMode, boolean usesDefaultAuthority)
     throws ManifoldCFException, ServiceInterruption
   {
-    
+
     // Initialize a "livelink context", to minimize the number of objects we have to fetch
     CswsContext llc = new CswsContext();
     // Initialize the table of catid's.
     // Keeping this around will allow us to benefit from batching of documents.
     MetadataDescription desc = new MetadataDescription(llc);
-    
+
     // First, process the spec to get the string we tack on
     SystemMetadataDescription sDesc = new SystemMetadataDescription(llc,spec);
 
@@ -1035,12 +1037,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       // Read the document or folder metadata, which includes the ModifyDate
       String docID = documentIdentifier;
-      
+
       boolean isFolder = docID.startsWith("F");
       long objID = new Long(docID.substring(1)).longValue();
 
       getSession();
-      
+
       final ObjectInformation value = llc.getObjectInformation(objID);
       if (!value.exists())
       {
@@ -1049,7 +1051,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         activities.deleteDocument(documentIdentifier);
         continue;
       }
-        
+
       // Make sure we have permission to see the object's contents
       final NodePermissions permissions = value.getPermissions();
       if (!permissions.isSeeContentsPermission())
@@ -1071,9 +1073,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         activities.deleteDocument(documentIdentifier);
         continue;
       }
-        
+
       // We were able to get rights, so object still exists.
-          
+
       if (isFolder)
       {
         // === Csws folder ===
@@ -1082,8 +1084,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         if (Logging.connectors.isDebugEnabled()) {
           Logging.connectors.debug("Csws: Processing folder "+objID);
         }
-        
-        final ListObjectsThread t = new ListObjectsThread(objID, new String[]{"OTDataID", "OTSubTypeName", "OTName"}, filterString, "OTDataID");
+
+        final ListObjectsThread t = new ListObjectsThread(objID, new String[]{"OTDataID", "OTSubTypeName", "OTName"}, dataCollection, filterString, "OTDataID");
         t.start();
         final List<? extends SGraph> childrenDocs;
         try {
@@ -1098,15 +1100,15 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           final long childID = getID(childDoc, 0);
           final String subType = getString(childDoc, 2);
           final String name = getString(childDoc, 1);
-          
+
           if (Logging.connectors.isDebugEnabled())
           {
             Logging.connectors.debug("Csws: Found a child of folder "+objID+" : ID="+childID);
           }
-          
+
           // All we need to know is whether the child is a container or not, and there is a way to do that directly from the node
           final boolean childIsFolder = subType.equals("Folder") || subType.equals("Project") || subType.equals("CompoundDocument");
-          
+
           // If it's a folder, we just let it through for now
           if (!childIsFolder)
           {
@@ -1151,14 +1153,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       else
       {
         // === Csws document ===
-              
+
         // The version string includes the following:
         // 1) The modify date for the document
         // 2) The rights for the document, ordered (which can change without changing the ModifyDate field)
         // 3) The requested metadata fields (category and attribute, ordered) for the document
         //
         // The document identifiers are object id's.
-  
+
         StringBuilder sb = new StringBuilder();
 
         String[] categoryPaths;
@@ -1179,10 +1181,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           categoryPaths = specifiedMetadataAttributes;
           sb.append(metadataString);
         }
-              
+
         String[] actualAcls;
         String[] denyAcls;
-              
+
         String denyAcl;
         if (acls != null && acls.length == 0)
         {
@@ -1208,7 +1210,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           // If security is on, no deny acl is needed for the local authority, since the repository does not support "deny".  But this was added
           // to be really really really sure.
           denyAcl = defaultAuthorityDenyToken;
-              
+
         }
         else if (acls != null && acls.length > 0)
         {
@@ -1245,17 +1247,17 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // have to worry about it changing.  No need, therefore, to parse it during
         // processDocuments.
         sb.append("=").append(pathNameAttributeVersion);
-          
-        // Tack on ingestCgiPath, to insulate us against changes to the repository connection setup. 
+
+        // Tack on ingestCgiPath, to insulate us against changes to the repository connection setup.
         sb.append("_").append(viewBasePath);
 
         String versionString = sb.toString();
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Csws: Successfully calculated version string for document "+objID+" : '"+versionString+"'");
-              
+
         if (!activities.checkDocumentNeedsReindexing(documentIdentifier, versionString))
           continue;
-        
+
         // Index the document
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Csws: Processing document "+objID);
@@ -1272,7 +1274,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
         // Index it
         ingestFromCsws(llc, documentIdentifier, versionString, actualAcls, denyAcls, rights.getOwnerRight().getRightID(), categoryPaths, activities, desc, sDesc);
-          
+
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Csws: Done processing document "+objID);
       }
@@ -1283,7 +1285,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     final String value = getString(sg, nodeIndex);
     return new Long(value).longValue();
   }
-  
+
   private static String getString(final SGraph sg, final int nodeIndex) {
     final List<? extends SNode> nodes = sg.getN();
     if (nodes == null || nodes.size() < 1) {
@@ -1296,7 +1298,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
     return stringValues.get(nodeIndex);
   }
-  
+
   /**
    * Thread that reads child objects that have a specified filter criteria, given an object ID.
    */
@@ -1306,15 +1308,17 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected final String[] outputColumns;
     protected final String filterString;
     protected final String orderingColumn;
+    protected final String dataCollection;
     protected Throwable exception = null;
     protected List<? extends SGraph> rval = null;
 
-    public ListObjectsThread(final long objID, final String[] outputColumns, final String filterString, final String orderingColumn)
+    public ListObjectsThread(final long objID, final String[] outputColumns, final String dataCollection, final String filterString, final String orderingColumn)
     {
       super();
       setDaemon(true);
       this.objID = objID;
       this.outputColumns = outputColumns;
+      this.dataCollection = dataCollection;
       this.filterString = filterString;
       this.orderingColumn = orderingColumn;
     }
@@ -1325,7 +1329,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         // Worry about paging later.  Since these are all children of a specific node, we are unlikely to have a problem in any case.
         // TBD
-        rval = cswsSession.searchFor(objID, outputColumns, filterString, orderingColumn, 0, 100000); 
+        rval = cswsSession.searchFor(objID, outputColumns, dataCollection, filterString, orderingColumn, 0, 100000);
       }
       catch (Throwable e)
       {
@@ -1376,7 +1380,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   // in that the first bunch cannot assume that the current connector object is connected, while the second bunch can.  That is why the first bunch
   // receives a thread context argument for all UI methods, while the second bunch does not need one (since it has already been applied via the connect()
   // method, above).
-    
+
   /** Output the configuration header section.
   * This method is called in the head section of the connector's configuration page.  Its purpose is to add the required tabs to the list, and to output any
   * javascript methods that might be needed by the configuration editing HTML.
@@ -1392,10 +1396,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     tabsArray.add(Messages.getString(locale,"CswsConnector.Server"));
     tabsArray.add(Messages.getString(locale,"CswsConnector.DocumentView"));
-    
+
     Messages.outputResourceWithVelocity(out, locale, EDIT_CONFIGURATION_JS, null, true);
   }
-  
+
   /** Output the configuration body section.
   * This method is called in the body section of the connector's configuration page.  Its purpose is to present the required form elements for editing.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags.  The name of the
@@ -1409,7 +1413,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   public void outputConfigurationBody(IThreadContext threadContext, IHTTPOutput out,
     Locale locale, ConfigParams parameters, String tabName)
     throws ManifoldCFException, IOException
-  {    
+  {
     Map<String, Object> velocityContext = new HashMap<>();
     velocityContext.put(TAB_NAME_PARAM,tabName);
 
@@ -1441,7 +1445,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       serverPassword = "";
     else
       serverPassword = out.mapPasswordToKey(serverPassword);
-    
+
     String authenticationServicePath = parameters.getParameter(CswsParameters.authenticationPath);
     if (authenticationServicePath == null)
       authenticationServicePath = CswsParameters.authenticationPathDefault;
@@ -1457,7 +1461,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String searchServiceServicePath = parameters.getParameter(CswsParameters.searchServicePath);
     if (searchServiceServicePath == null)
       searchServiceServicePath = CswsParameters.searchServicePathDefault;
-    
+    String dataCollection = parameters.getParameter(CswsParameters.dataCollection);
+    if (dataCollection == null)
+      dataCollection = CswsParameters.dataCollectionDefault;
+
     String serverHTTPNTLMDomain = parameters.getParameter(CswsParameters.serverHTTPNTLMDomain);
     if(serverHTTPNTLMDomain == null)
       serverHTTPNTLMDomain = "";
@@ -1507,12 +1514,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     velocityContext.put("SERVERPORT",serverPort);
     velocityContext.put("SERVERUSERNAME",serverUserName);
     velocityContext.put("SERVERPASSWORD",serverPassword);
-    
+
     velocityContext.put("AUTHENTICATIONSERVICEPATH", authenticationServicePath);
     velocityContext.put("CONTENTSERVICESERVICEPATH", contentServiceServicePath);
     velocityContext.put("DOCUMENTMANAGEMENTSERVICEPATH", documentManagementServicePath);
     velocityContext.put("MEMBERSERVICESERVICEPATH", memberServiceServicePath);
     velocityContext.put("SEARCHSERVICESERVICEPATH", searchServiceServicePath);
+    velocityContext.put("DATACOLLECTION", dataCollection);
 
     velocityContext.put("SERVERHTTPNTLMDOMAIN",serverHTTPNTLMDomain);
     velocityContext.put("SERVERHTTPNTLMUSERNAME",serverHTTPNTLMUserName);
@@ -1551,8 +1559,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     velocityContext.put("VIEWPORT",viewPort);
     velocityContext.put("VIEWCGIPATH",viewCgiPath);
     velocityContext.put("VIEWACTION",viewAction);
-  }  
-  
+  }
+
   /** Process a configuration post.
   * This method is called at the start of the connector's configuration page, whenever there is a possibility that form data for a connection has been
   * posted.  Its purpose is to gather form information and modify the configuration parameters accordingly.
@@ -1583,7 +1591,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String viewAction = variableContext.getParameter("viewaction");
     if (viewAction != null)
       parameters.setParameter(CswsParameters.viewAction,viewAction);
-    
+
     // Server parameters
     String serverProtocol = variableContext.getParameter("serverprotocol");
     if (serverProtocol != null)
@@ -1600,7 +1608,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String serverPassword = variableContext.getParameter("serverpassword");
     if (serverPassword != null)
       parameters.setObfuscatedParameter(CswsParameters.serverPassword,variableContext.mapKeyToPassword(serverPassword));
-    
+
     String authenticationServicePath = variableContext.getParameter("authenticationservicepath");
     if (authenticationServicePath != null)
       parameters.setParameter(CswsParameters.authenticationPath, authenticationServicePath);
@@ -1616,6 +1624,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String searchServiceServicePath = variableContext.getParameter("searchserviceservicepath");
     if (searchServiceServicePath != null)
       parameters.setParameter(CswsParameters.searchServicePath, searchServiceServicePath);
+    String dataCollection = variableContext.getParameter("datacollection");
+    if (dataCollection != null)
+      parameters.setParameter(CswsParameters.dataCollection, dataCollection);
 
     String serverHTTPNTLMDomain = variableContext.getParameter("serverhttpntlmdomain");
     if (serverHTTPNTLMDomain != null)
@@ -1626,7 +1637,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     String serverHTTPNTLMPassword = variableContext.getParameter("serverhttpntlmpassword");
     if (serverHTTPNTLMPassword != null)
       parameters.setObfuscatedParameter(CswsParameters.serverHTTPNTLMPassword,variableContext.mapKeyToPassword(serverHTTPNTLMPassword));
-    
+
     String serverHTTPSKeystoreValue = variableContext.getParameter("serverhttpskeystoredata");
     final String serverConfigOp = variableContext.getParameter("serverconfigop");
     if (serverConfigOp != null)
@@ -1681,10 +1692,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
     }
     parameters.setParameter(CswsParameters.serverHTTPSKeystore,serverHTTPSKeystoreValue);
-    
+
     return null;
   }
-  
+
   /** View configuration.
   * This method is called in the body section of the connector's view configuration page.  Its purpose is to present the connection information to the user.
   * The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt; and &lt;body&gt; tags.
@@ -1724,7 +1735,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     paramMap.put("CONFIGMAP",configMap);
     Messages.outputResourceWithVelocity(out, locale, VIEW_CONFIGURATION_HTML, paramMap);
   }
-  
+
   /** Output the specification header section.
   * This method is called in the head section of a job page which has selected a repository connection of the
   * current type.  Its purpose is to add the required tabs to the list, and to output any javascript methods
@@ -1745,15 +1756,15 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     tabsArray.add(Messages.getString(locale,"CswsConnector.Filters"));
     tabsArray.add(Messages.getString(locale,"CswsConnector.Security"));
     tabsArray.add(Messages.getString(locale,"CswsConnector.Metadata"));
-    
+
     String seqPrefixParam = "s" + connectionSequenceNumber + "_";
 
-    Map<String, String> paramMap = new HashMap<String, String>();  
+    Map<String, String> paramMap = new HashMap<String, String>();
     paramMap.put("seqPrefix", seqPrefixParam);
 
     Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_JS, paramMap, true);
   }
-  
+
   /** Output the specification body section.
   * This method is called in the body section of a job page which has selected a repository connection of the
   * current type.  Its purpose is to present the required form elements for editing.
@@ -2049,8 +2060,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public String toString() {
       return left + "=" + right;
     }
-  }  
-  
+  }
+
   /** Process a specification post.
   * This method is called at the start of job's edit or view page, whenever there is a possibility that form
   * data for a connection has been posted.  Its purpose is to gather form information and modify the
@@ -2087,7 +2098,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       sn.setAttribute("value",value);
       ds.addChild(ds.getChildCount(),sn);
     }
-    
+
     String xc = variableContext.getParameter(seqPrefix+"pathcount");
     if (xc != null)
     {
@@ -2393,7 +2404,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // Strip off end
         String category = variableContext.getParameter(seqPrefix+"speccategory");
         int lastSlash = -1;
-        int firstColon = -1;      
+        int firstColon = -1;
         int k = 0;
         while (k < category.length())
         {
@@ -2567,7 +2578,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
     return null;
   }
-  
+
   /** View specification.
   * This method is called in the body section of a job's view page.  Its purpose is to present the document
   * specification information to the user.  The coder can presume that the HTML that is output from
@@ -2634,7 +2645,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     getSession();
     return getCategoryAttributes(new CswsContext(), pathString);
   }
-  
+
   protected String[] getCategoryAttributes(CswsContext llc, String pathString)
     throws ManifoldCFException, ServiceInterruption
   {
@@ -2679,7 +2690,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     Long readSize = null;
 
     long objID = new Integer(documentIdentifier.substring(1)).intValue();
-    
+
     // Try/finally for fetch logging
     try
     {
@@ -2693,7 +2704,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         activities.noDocument(documentIdentifier,version);
         return;
       }
-      
+
       // Check URL first
       if (!activities.checkURLIndexable(viewHttpAddress))
       {
@@ -2705,7 +2716,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         activities.noDocument(documentIdentifier,version);
         return;
       }
-      
+
       // Add general metadata
       final ObjectInformation objInfo = llc.getObjectInformation(objID);
       final VersionInformation versInfo = llc.getVersionInformation(objID, 0);
@@ -2737,7 +2748,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         activities.noDocument(documentIdentifier,version);
         return;
       }
-        
+
       final Long dataSize = versInfo.getDataSize();
       if (dataSize == null)
       {
@@ -2749,7 +2760,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         activities.noDocument(documentIdentifier,version);
         return;
       }
-      
+
       if (!activities.checkLengthIndexable(dataSize.longValue()))
       {
         // Document not indexable because of its length
@@ -2772,12 +2783,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         activities.noDocument(documentIdentifier,version);
         return;
       }
-      
+
       final String fileName = versInfo.getFileName();
       final Date creationDate = objInfo.getCreationDate();
       final Long parentID = objInfo.getParentId();
-      
-      
+
+
       RepositoryDocument rd = new RepositoryDocument();
 
       // Add general data we need for the output connector
@@ -2789,7 +2800,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         rd.setCreatedDate(creationDate);
       if (modifyDate != null)
         rd.setModifiedDate(modifyDate);
-            
+
       rd.addField(GENERAL_NAME_FIELD,objInfo.getName());
       rd.addField(GENERAL_DESCRIPTION_FIELD,objInfo.getComments());
       if (creationDate != null)
@@ -2822,7 +2833,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           objInfo.getSpecifiedCategoryAttribute(rd, catID, pathItem.getCatName());
         }
       }
-      
+
       if (actualAcls != null && denyAcls != null)
         rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT,actualAcls,denyAcls);
 
@@ -2841,17 +2852,17 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
       // Use FetchVersion instead
       long currentTime;
-              
+
       // Fire up the document reading thread
       final DocumentReadingThread t = new DocumentReadingThread(objID, 0);
       boolean wasInterrupted = false;
       t.start();
-      try 
+      try
       {
         try
         {
           InputStream is = t.getSafeInputStream();
-          try 
+          try
           {
             // Can only index while background thread is running!
             rd.setBinary(is, dataSize);
@@ -2881,7 +2892,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
         // No errors.  Record the fact that we made it.
       }
-      catch (InterruptedException e) 
+      catch (InterruptedException e)
       {
         t.interrupt();
         throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
@@ -2937,7 +2948,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     Logging.connectors.warn("Csws: IO exception ingesting "+contextMsg+": "+e.getMessage(),e);
     throw new ServiceInterruption("IO exception ingesting "+contextMsg+": "+e.getMessage(),e,currentTime+300000L,currentTime+6*3600000L,-1,false);
   }
-  
+
   /** Pack category and attribute */
   protected static String packCategoryAttribute(String category, String attribute)
   {
@@ -2955,7 +2966,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     startPos = unpack(attribute,value,startPos,':');
   }
 
- 
+
   /** Given a path string, get a list of folders and projects under that node.
   *@param pathString is the current path (folder names and project names, separated by dots (.)).
   *@return a list of folder and project names, in sorted order, or null if the path was invalid.
@@ -2972,7 +2983,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     final String filterString = "\"OTSubType\":0 OR \"OTSubType\":202 OR \"OTSubType\":136";
 
-    final ListObjectsThread t = new ListObjectsThread(vid, new String[]{"OTName"}, filterString, "OTName");
+    final ListObjectsThread t = new ListObjectsThread(vid, new String[]{"OTName"}, dataCollection, filterString, "OTName");
     try
     {
       t.start();
@@ -3012,7 +3023,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     // We want only folders that are children of the current object and which match the specified subfolder
     String filterString = "\"OTSubType\":131";
 
-    final ListObjectsThread t = new ListObjectsThread(vid, new String[]{"OTName"}, filterString, "OTName");
+    final ListObjectsThread t = new ListObjectsThread(vid, new String[]{"OTName"}, dataCollection, filterString, "OTName");
     try
     {
       t.start();
@@ -3191,7 +3202,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   }
   */
-  
+
   /** Get a category version for document.
   */
   /* Unused -- done a different way
@@ -3247,7 +3258,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         {
           throw new ManifoldCFException("Error retrieving attribute value: "+Integer.toString(status)+": "+llServer.getErrors());
         }
-        
+
         if (children != null)
         {
           rval = new String[children.size()];
@@ -3291,7 +3302,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   }
   */
-  
+
   /** Get an attribute value from a category version.
   */
   /* Unused -- done a different way
@@ -3311,7 +3322,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
   }
   */
-  
+
   protected class GetObjectRightsThread extends Thread
   {
     protected final long objID;
@@ -3391,11 +3402,11 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected final Map<VersionInformation,VersionInformation> versionInfoMap = new HashMap<>();
     /** Cache of UserInformation objects */
     protected final Map<UserInformation,UserInformation> userInfoMap = new HashMap<>();
-    
+
     public CswsContext()
     {
     }
-    
+
     public ObjectInformation getObjectInformation(final String workspaceName)
     {
       ObjectInformation oi = new ObjectInformation(workspaceName);
@@ -3419,7 +3430,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       return lookupValue;
     }
-    
+
     public VersionInformation getVersionInformation(long objectID, int revisionNumber)
     {
       VersionInformation vi = new VersionInformation(objectID, revisionNumber);
@@ -3431,7 +3442,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       return lookupValue;
     }
-    
+
     public UserInformation getUserInformation(long userID)
     {
       UserInformation ui = new UserInformation(userID);
@@ -3451,21 +3462,21 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected class UserInformation
   {
     protected final long userID;
-    
+
     protected boolean fetched = false;
     protected Member userValue = null;
-    
+
     public UserInformation(long userID)
     {
       this.userID = userID;
     }
-    
+
     public boolean exists()
       throws ServiceInterruption, ManifoldCFException
     {
       return getUserValue() != null;
     }
-    
+
     public String getName()
       throws ServiceInterruption, ManifoldCFException
     {
@@ -3474,7 +3485,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         return null;
       return userValue.getName();
     }
-      
+
     protected Member getUserValue()
       throws ServiceInterruption, ManifoldCFException
     {
@@ -3501,13 +3512,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       return "("+userID+")";
     }
-    
+
     @Override
     public int hashCode()
     {
       return Long.hashCode(userID);
     }
-    
+
     @Override
     public boolean equals(Object o)
     {
@@ -3518,7 +3529,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
   }
-  
+
   /** This object represents a cache of version information.
   * Initialize it with the volume ID and object ID and revision number (usually zero).
   * Then, request the desired fields from it.
@@ -3527,16 +3538,16 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     protected final long objectID;
     protected final long revisionNumber;
-    
+
     protected boolean fetched = false;
     protected Version versionValue = null;
-    
+
     public VersionInformation(long objectID, long revisionNumber)
     {
       this.objectID = objectID;
       this.revisionNumber = revisionNumber;
     }
-    
+
     public boolean exists()
       throws ServiceInterruption, ManifoldCFException
     {
@@ -3595,7 +3606,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       final Version elem = getVersionValue();
       if (elem == null)
         return null;
-      return elem.getOwner(); 
+      return elem.getOwner();
     }
 
     /** Get version LLValue */
@@ -3619,13 +3630,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       return versionValue;
     }
-    
+
     @Override
     public int hashCode()
     {
       return Long.hashCode(objectID) + Long.hashCode(revisionNumber);
     }
-    
+
     @Override
     public boolean equals(Object o)
     {
@@ -3636,7 +3647,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
   }
-  
+
   /** This object represents an object information cache.
   * Initialize it with the volume ID and object ID, and then request
   * the appropriate fields from it.  Keep it around as long as needed; it functions as a cache
@@ -3646,10 +3657,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     protected final long objectID;
     protected final String workspaceName;
-    
+
     protected Node objectValue = null;
     protected boolean fetched = false;
-    
+
     public ObjectInformation(final long objectID)
     {
       this.objectID = objectID;
@@ -3660,14 +3671,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       this.workspaceName = workspaceName;
       this.objectID = -1L;
     }
-    
+
     /**
      * Get workspace name
      */
     public String getWorkspaceName() {
       return workspaceName;
     }
-    
+
     /**
     * Check whether object seems to exist or not.
     */
@@ -3683,7 +3694,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       return "(Object: "+objectID+")";
     }
-    
+
     /**
     * Fetch attribute value for a specified categoryID for a given object.
     */
@@ -3716,7 +3727,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (objInfo == null) {
         return false;
       }
-      final List<? extends AttributeGroup> attributeGroups = objInfo.getMetadata().getAttributeGroups();           
+      final List<? extends AttributeGroup> attributeGroups = objInfo.getMetadata().getAttributeGroups();
       for (final AttributeGroup attribute : attributeGroups) {
         final int index = attribute.getKey().indexOf(".");
         final String categoryAttributeName = attribute.getDisplayName();
@@ -3775,7 +3786,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         // We want only folders that are children of the current object and which match the specified subfolder
         final String filterString = "(\"OTSubType\":0 OR \"OTSubType\":202 OR \"OTSubType\":136) AND \"OTName\":\""+subFolder+"\"";
 
-        final ListObjectsThread t = new ListObjectsThread(obj, new String[]{"OTDataID", "OTSubTypeName"}, filterString, "OTDataID");
+        final ListObjectsThread t = new ListObjectsThread(obj, new String[]{"OTDataID", "OTSubTypeName"}, dataCollection, filterString, "OTDataID");
         try
         {
           t.start();
@@ -3830,7 +3841,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       return m.getAttributeGroups();
     }
-    
+
     /**
     * Get category IDs available to the object with a specified object ID
     */
@@ -3839,7 +3850,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       return getSuperObjectCategoryIDs(objectID);
     }
-    
+
     /**
     * Returns the category ID specified by the path name.
     * @param startPath is the folder name, ending in a category name (a string with slashes as separators)
@@ -3885,10 +3896,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         } else {
           filterString = "\"OTSubType\":131";
         }
-        
+
         filterString += " AND \"OTName:\"" + subFolder + "\"";
 
-        final ListObjectsThread t = new ListObjectsThread(obj, new String[]{"OTDataID", "OTSubTypeName"}, filterString, "OTDataID");
+        final ListObjectsThread t = new ListObjectsThread(obj, new String[]{"OTDataID", "OTSubTypeName"}, dataCollection, filterString, "OTDataID");
         try
         {
           t.start();
@@ -3936,7 +3947,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         return null;
       return elem.getPermissions();
     }
-    
+
     /** Get OpenText document name.
     */
     public String getName()
@@ -3945,7 +3956,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       final Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return elem.getName(); 
+      return elem.getName();
     }
 
     /** Get OpenText comments/description.
@@ -3956,7 +3967,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       final Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return elem.getComment(); 
+      return elem.getComment();
     }
 
     /** Get parent ID.
@@ -3967,7 +3978,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       final Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return elem.getParentID(); 
+      return elem.getParentID();
     }
 
     /** Get creation date.
@@ -3980,7 +3991,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         return null;
       return new Date(elem.getCreateDate().toGregorianCalendar().getTimeInMillis());
     }
-    
+
     /** Get creator ID.
     */
     public Long getCreatorId()
@@ -3989,7 +4000,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       final Node elem = getObjectValue();
       if (elem == null)
         return null;
-      return elem.getCreatedBy(); 
+      return elem.getCreatedBy();
     }
 
     /* Get modify date.
@@ -4040,7 +4051,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       return objectValue;
     }
-    
+
     @Override
     public int hashCode()
     {
@@ -4049,7 +4060,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       return Long.hashCode(objectID);
     }
-    
+
     @Override
     public boolean equals(Object o)
     {
@@ -4119,7 +4130,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected class GetUserResultsThread extends Thread
   {
     protected final PageHandle pageHandle;
-    
+
     protected List<? extends Member> rval = null;
     protected Throwable exception = null;
 
@@ -4369,9 +4380,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     if (!objInfo.exists())
       return null;
-    
+
     final List<String> tokenAccumulator = new ArrayList<>();
-    
+
     if (evaluateRight(rights.getOwnerRight())) {
       tokenAccumulator.add(rights.getOwnerRight().toString());
     }
@@ -4383,7 +4394,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
     // What happened to Guest/World right??
     // MHL -TBD - for "GUEST" token
-    
+
     for (final NodeRight nr : rights.getACLRights()) {
       if (evaluateRight(nr)) {
         tokenAccumulator.add(new Long(nr.getRightID()).toString());
@@ -4392,7 +4403,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
     return tokenAccumulator.toArray(new String[tokenAccumulator.size()]);
   }
-  
+
   /** Check if NodeRight conveys the permissions we need */
   protected static boolean evaluateRight(final NodeRight nr) {
     final NodePermissions np = nr.getPermissions();
@@ -4421,14 +4432,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         if (categories == null) {
           return;
         }
-        
+
         int catCount = 0;
         for (final Node category : categories) {
           if (category.getType().equals("Category")) {
             catCount++;
           }
         }
-        
+
         rval = new long[catCount];
         for (final Node category : categories) {
           if (category.getType().equals("Category")) {
@@ -4714,13 +4725,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     // The livelink context
     protected final CswsContext llc;
-    
+
     // The path attribute name
     protected final String pathAttributeName;
 
     // The path separator
     protected final String pathSeparator;
-    
+
     // The node ID to path name mapping (which acts like a cache)
     protected final Map<String,String> pathMap = new HashMap<String,String>();
 
@@ -4730,10 +4741,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     // Acls
     protected final Set<String> aclMap = new HashSet<String>();
     protected final boolean securityOn;
-    
+
     // Filter string
     protected final String filterString;
-    
+
     protected final Set<String> holder = new HashSet<String>();
     protected final boolean includeAllMetadata;
 
@@ -4748,7 +4759,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       StringBuilder fsb = new StringBuilder();
       boolean first = true;
       boolean includeAllMetadata = false;
-      
+
       for (int i = 0; i < spec.getChildCount(); i++)
       {
         SpecificationNode n = spec.getChild(i);
@@ -4832,7 +4843,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
         }
       }
-      
+
       this.includeAllMetadata = includeAllMetadata;
       this.pathAttributeName = pathAttributeName;
       this.pathSeparator = pathSeparator;
@@ -4856,7 +4867,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       return includeAllMetadata;
     }
-    
+
     public String[] getMetadataAttributes()
     {
       // Put into an array
@@ -4868,12 +4879,12 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       return specifiedMetadataAttributes;
     }
-    
+
     public String getFilterString()
     {
       return filterString;
     }
-    
+
     public String[] getAcls()
     {
       if (!securityOn)
@@ -4887,7 +4898,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       }
       return rval;
     }
-  
+
     /** Get the path attribute name.
     *@return the path attribute name, or null if none specified.
     */
@@ -4902,7 +4913,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       return pathSeparator;
     }
-    
+
     /** Given an identifier, get the translated string that goes into the metadata.
     */
     public String getPathAttributeValue(String documentIdentifier)
@@ -4920,7 +4931,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     {
       return matchMap.toString();
     }
-    
+
     /** For a given node, get its path.
     */
     public String getNodePathString(String documentIdentifier)
@@ -4990,7 +5001,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected class MetadataDescription
   {
     protected final CswsContext llc;
-    
+
     // This is a map of category name to category ID and attributes
     protected final Map<String,MetadataPathItem> categoryMap = new HashMap<String,MetadataPathItem>();
 
@@ -5069,7 +5080,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   {
     // Csws context
     protected final CswsContext llc;
-    
+
     // This is the map from category ID to category path name.
     // It's keyed by a Long formed from the id, and has String values.
     protected final Map<Long,String> categoryPathMap = new HashMap<>();
@@ -5232,7 +5243,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       {
         rootValue = llc.getObjectInformation(workspaceName);
       }
-      
+
       if (!rootValue.exists())
       {
         Logging.connectors.warn("Csws: Could not get workspace/volume ID!  Retrying...");
@@ -5248,14 +5259,14 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   /** This thread performs a LAPI FetchVersion command, streaming the resulting
   * document back through a XThreadInputStream to the invoking thread.
   */
-  protected class DocumentReadingThread extends Thread 
+  protected class DocumentReadingThread extends Thread
   {
 
     protected Throwable exception = null;
     protected final long docID;
     protected final long versionNumber;
     protected final XThreadInputStream stream;
-    
+
     public DocumentReadingThread(final long docID, final long versionNumber)
     {
       super();
@@ -5271,7 +5282,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       try
       {
         final XThreadOutputStream outputStream = new XThreadOutputStream(stream);
-        try 
+        try
         {
           cswsSession.getVersionContents(docID, versionNumber, outputStream);
         }
@@ -5287,7 +5298,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     public InputStream getSafeInputStream() {
       return stream;
     }
-    
+
     public void finishUp()
       throws InterruptedException, ManifoldCFException, ServiceInterruption
     {
@@ -5335,7 +5346,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     /** Client and method, all preconfigured */
     protected final HttpClient httpClient;
     protected final HttpRequestBase executeMethod;
-    
+
     protected HttpResponse response = null;
     protected Throwable responseException = null;
     protected XThreadInputStream threadStream = null;
@@ -5347,7 +5358,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     protected Throwable shutdownException = null;
 
     protected Throwable generalException = null;
-    
+
     public ExecuteMethodThread(HttpClient httpClient, HttpRequestBase executeMethod)
     {
       super();
@@ -5390,7 +5401,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
               this.notifyAll();
             }
           }
-          
+
           // Start the transfer of the content
           if (responseException == null)
           {
@@ -5427,7 +5438,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
               }
             }
           }
-          
+
           if (responseException == null && streamException == null)
           {
             if (threadStream != null)
@@ -5436,7 +5447,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
               threadStream.stuffQueue();
             }
           }
-          
+
         }
         finally
         {
@@ -5496,7 +5507,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         return -1L;
       return new Long(contentLength.trim()).longValue();
     }
-    
+
     public String getFirstHeader(String headerName)
       throws InterruptedException, IOException, HttpException
     {
@@ -5535,7 +5546,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
       }
     }
-    
+
     public void abort()
     {
       // This will be called during the finally
@@ -5552,13 +5563,13 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         abortThread = true;
       }
     }
-    
+
     public void finishUp()
       throws InterruptedException
     {
       join();
     }
-    
+
     protected synchronized void checkException(Throwable exception)
       throws IOException, HttpException
     {
@@ -5580,5 +5591,5 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     }
 
   }
-  
+
 }

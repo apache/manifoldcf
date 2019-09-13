@@ -103,6 +103,14 @@
       <input type="text" size="32" name="searchserviceservicepath" value="$Encoder.attributeEscape($SEARCHSERVICESERVICEPATH)"/>
     </td>
   </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CswsConnector.DataCollection'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" size="32" name="datacollection" value="$Encoder.attributeEscape($DATACOLLECTION)"/>
+    </td>
+  </tr>
 
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
@@ -177,5 +185,6 @@
 <input type="hidden" name="contentserviceservicepath" value="$Encoder.attributeEscape($CONTENTSERVICESERVICEPATH)"/>
 <input type="hidden" name="memberserviceservicepath" value="$Encoder.attributeEscape($MEMBERSERVICESERVICEPATH)"/>
 <input type="hidden" name="searchserviceservicepath" value="$Encoder.attributeEscape($SEARCHSERVICESERVICEPATH)"/>
+<input type="hidden" name="datacollection" value="$Encoder.attributeEscape($DATACOLLECTION)"/>
 
 #end

@@ -33,16 +33,6 @@ import org.apache.cxf.transport.http.HttpConduitConfig;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
 
 import javax.activation.DataHandler;
-import javax.xml.namespace.QName;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPHeader;
-import javax.xml.soap.SOAPHeaderElement;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.SOAPPart;
-import javax.xml.ws.soap.MTOMFeature;
 import javax.xml.ws.soap.SOAPFaultException;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Holder;
@@ -64,20 +54,16 @@ import com.opentext.livelink.service.memberservice.SearchColumn;
 
 import com.opentext.livelink.service.memberservice.MemberSearchOptions;
 import com.opentext.livelink.service.memberservice.MemberSearchResults;
-import com.opentext.livelink.service.docman.AttributeGroup;
 import com.opentext.livelink.service.docman.CategoryInheritance;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
-import com.opentext.livelink.service.docman.NodePermissions;
 import com.opentext.livelink.service.docman.Version;
 import com.opentext.livelink.service.docman.NodeRights;
 import com.opentext.livelink.service.docman.AttributeGroupDefinition;
-import com.opentext.livelink.service.docman.Attribute;
 import com.opentext.livelink.service.memberservice.User;
 import com.opentext.livelink.service.memberservice.Member;
 import com.opentext.livelink.service.memberservice.Group;
 import com.opentext.livelink.service.searchservices.SResultPage;
-import com.opentext.livelink.service.searchservices.SNode;
 import com.opentext.livelink.service.searchservices.SGraph;
 import com.opentext.livelink.service.searchservices.SingleSearchRequest;
 import com.opentext.livelink.service.searchservices.SingleSearchResponse;
@@ -113,21 +99,21 @@ public class CswsSession
   private final ContentService contentServiceHandle;
   private final MemberService memberServiceHandle;
   private final SearchService searchServiceHandle;
-  
+
   // Transient data
-  
+
   // Cached root node types
   private List<? extends String> rootNodeTypes = null;
-  
+
   // Cached workspace root nodes
   private Map<String, Node> workspaceTypeNodes = new HashMap<>();
-  
+
   private final static String sslSocketFactoryProperty = "com.sun.xml.internal.ws.transport.https.client.SSLSocketFactory";
-  
+
   // Transient data that will need to be periodically rebuilt
   private long currentSessionExpiration = -1L;
   private String currentAuthToken = null;
-  
+
   public CswsSession(final String userName,
     final String password,
     final IKeystoreManager keystore,
@@ -137,7 +123,7 @@ public class CswsSession
     final String contentServiceServiceURL,
     final String memberServiceServiceURL,
     final String searchServiceServiceURL) throws ManifoldCFException {
-      
+
     // Save username/password
     this.userName = userName;
     this.password = password;
@@ -153,11 +139,11 @@ public class CswsSession
     config.setTlsClientParameters(tlsConfig);
     final HttpConduitFeature conduitFeature = new HttpConduitFeature();
     conduitFeature.setConduitConfig(config);
-    
+
     // Construct service references from the URLs
     // EVERYTHING depends on the right classloader being used to help us locate appropriate resources etc, so swap to the classloader for THIS
     // class.
-    final ClassLoader savedCl = Thread.currentThread().getContextClassLoader();    
+    final ClassLoader savedCl = Thread.currentThread().getContextClassLoader();
     try {
       Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
       this.authService = (authenticationServiceURL != null)?new Authentication_Service(new URL(authenticationServiceURL), conduitFeature):null;
@@ -171,7 +157,7 @@ public class CswsSession
       throw new ManifoldCFException("Malformed URL: "+e.getMessage(), e);
     } finally {
       Thread.currentThread().setContextClassLoader(savedCl);
-    } 
+    }
     // Initialize authclient etc.
     if (authService != null) {
       this.authClientHandle = authService.getBasicHttpBindingAuthentication();
@@ -203,7 +189,7 @@ public class CswsSession
     } else {
       this.searchServiceHandle = null;
     }
-    
+
   }
 
   /**
@@ -221,8 +207,8 @@ public class CswsSession
     // MHL to set up transport etc.
     return contentServiceHandle;
   }
-  
-  /** 
+
+  /**
    * Fetch initialized MemberService handle.
    */
   public MemberService getMemberServiceHandle() {
@@ -230,16 +216,16 @@ public class CswsSession
     return memberServiceHandle;
   }
 
-  /** 
+  /**
    * Fetch initialized SearchService handle.
    */
   public SearchService getSearchServiceHandle() {
     // MHL
     return searchServiceHandle;
   }
-  
+
   // Accessors for information that only needs to be accessed once per session, which we will cache
-  
+
   /**
    * Fetch root node types.   These will be cached so we only need to do it once.
    */
@@ -257,11 +243,11 @@ public class CswsSession
     }
     return this.rootNodeTypes;
   }
-  
+
   /**
    * Fetch root node given type.
    */
-  public Node getRootNode(final String nodeType) 
+  public Node getRootNode(final String nodeType)
   throws ManifoldCFException, ServiceInterruption {
     Node thisWorkspaceNode = workspaceTypeNodes.get(nodeType);
     if (thisWorkspaceNode == null) {
@@ -276,7 +262,7 @@ public class CswsSession
     }
     return thisWorkspaceNode;
   }
-  
+
   public List<? extends Node> listNodes(final long nodeId)
     throws ManifoldCFException, ServiceInterruption {
     try {
@@ -313,7 +299,7 @@ public class CswsSession
       return null;
     }
   }
-  
+
   public List<? extends CategoryInheritance> getCategoryInheritance(final long parentId)
     throws ManifoldCFException, ServiceInterruption {
     try {
@@ -339,8 +325,8 @@ public class CswsSession
       return null;
     }
   }
-  
-  public Node getNode(final long nodeId) 
+
+  public Node getNode(final long nodeId)
     throws ManifoldCFException, ServiceInterruption {
     // Need to detect if object was deleted, and return null in this case!!!
     try {
@@ -367,7 +353,7 @@ public class CswsSession
     }
   }
 
-  public NodeRights getNodeRights(final long nodeId) 
+  public NodeRights getNodeRights(final long nodeId)
     throws ManifoldCFException, ServiceInterruption {
     // Need to detect if object was deleted, and return null in this case!!!
     try {
@@ -381,7 +367,7 @@ public class CswsSession
     }
   }
 
-  public Version getVersion(final long nodeId, final long version) 
+  public Version getVersion(final long nodeId, final long version)
     throws ManifoldCFException, ServiceInterruption {
     try {
       return getDocumentManagementHandle().getVersion(nodeId, version, getOTAuthentication());
@@ -404,7 +390,7 @@ public class CswsSession
     } catch (javax.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
-    }      
+    }
   }
 
   public User getUserByLoginName(final String userName)
@@ -445,8 +431,8 @@ public class CswsSession
       return null;
     }
   }
-  
-  public Member getMember(final long memberId) 
+
+  public Member getMember(final long memberId)
     throws ManifoldCFException, ServiceInterruption {
     try {
       return getMemberServiceHandle().getMemberById(memberId, getOTAuthentication());
@@ -458,7 +444,7 @@ public class CswsSession
       return null;
     }
   }
-  
+
   public void getVersionContents(final long nodeId, final long version, final OutputStream os)
     throws ManifoldCFException, ServiceInterruption {
     try {
@@ -474,8 +460,8 @@ public class CswsSession
       processWSException(e);
     }
   }
-  
-  public PageHandle getAllUsers() 
+
+  public PageHandle getAllUsers()
     throws ManifoldCFException, ServiceInterruption {
     final MemberSearchOptions srchMemOptions  = new MemberSearchOptions();
     srchMemOptions.setFilter(SearchFilter.USER);
@@ -514,9 +500,9 @@ public class CswsSession
       return null;
     }
   }
-  
+
   // Node searching
-  
+
   /**
   * Return a set of IDs matching the specification.
   * @param parentID is the parent ID.
@@ -525,19 +511,20 @@ public class CswsSession
   * OTDataID
   * OTSubTypeName
   * OTName
+  * @param dataCollection the data collection (i.e. the slice) to be queried
   * @param searchSpec is the search specification, e.g. "\"OTSubType\":0 OR \"OTSubType\":1 OR \"OTSubType\":144) AND \"OTModifyDate\":&lt;20190312"
   *  For reference:
-  * OTSubType Details 
-  * 0 - Folder 
-  * 1 - Alias [Shortcut] 
-  * 131 - Category 
-  * 136 - Compound Document 
-  * 140 - URL 
-  * 144 - Document 
-  * 202 - Project 
+  * OTSubType Details
+  * 0 - Folder
+  * 1 - Alias [Shortcut]
+  * 131 - Category
+  * 136 - Compound Document
+  * 140 - URL
+  * 144 - Document
+  * 202 - Project
   * 204 - Task List
-  * 207 - Channel 
-  * 215 - Discussion 
+  * 207 - Channel
+  * 215 - Discussion
   * 299 - LiveReport
   * @param orderingColumn is the column name to order the result by
   * @param start is the ID of the result to return (0-based)
@@ -545,11 +532,11 @@ public class CswsSession
   * @return an array of IDs corresponding to documents or categories requested
   */
   public List<? extends SGraph> searchFor(final long parentID,
-    final String[] returnColumns, final String searchSpec, final String orderingColumn, final int start, final int count)
+    final String[] returnColumns, final String dataCollection, final String searchSpec, final String orderingColumn, final int start, final int count)
     throws ManifoldCFException, ServiceInterruption {
     try {
       final SingleSearchRequest singleSrchReq = new SingleSearchRequest();
-      singleSrchReq.setDataCollectionSpec("'LES Enterprise'");//Livelink Enterprise Server
+      singleSrchReq.setDataCollectionSpec(dataCollection);//Livelink Enterprise Server
       singleSrchReq.setQueryLanguage("Livelink Search API V1"); //Search Query Language API
       singleSrchReq.setFirstResultToRetrieve(start + 1);
       singleSrchReq.setNumResultsToRetrieve(count);
@@ -580,13 +567,13 @@ public class CswsSession
       return null;
     }
   }
-                                                
+
   // Construct authentication token argument, which must be passed as last argument for every method
-  
+
   /**
    * Construct OTAuthentication structure (to be passed as an argument)
    */
-  public Holder<OTAuthentication> getOTAuthentication() 
+  public Holder<OTAuthentication> getOTAuthentication()
     throws ManifoldCFException, ServiceInterruption {
     final String authToken = getAuthToken();
     // Create the OTAuthentication object and set the authentication token
@@ -598,7 +585,7 @@ public class CswsSession
   }
 
   // Private methods
-  
+
   private String getAuthToken()
     throws ManifoldCFException, ServiceInterruption {
     final long currentTime = System.currentTimeMillis();
@@ -618,19 +605,19 @@ public class CswsSession
     }
     return currentAuthToken;
   }
-  
+
   private void processIOException(IOException e)
     throws ManifoldCFException, ServiceInterruption {
     throw new ManifoldCFException("IO exception: "+e.getMessage(), e);
     // MHL
   }
-  
+
   private void processSOAPFault(SOAPFaultException e)
     throws ManifoldCFException, ServiceInterruption {
     throw new ManifoldCFException("SOAP exception: "+e.getMessage(), e);
     // MHL
   }
-  
+
   private void processWSException(javax.xml.ws.WebServiceException e)
     throws ManifoldCFException, ServiceInterruption {
     throw new ManifoldCFException("Web service communication issue: "+e.getMessage(), e);

@@ -142,6 +142,13 @@
         editconnection.searchserviceservicepath.focus();
         return false;
       }
+      if (editconnection.datacollection.value == "")
+      {
+        alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.DataCollectionIsRequired'))");
+        SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('CswsConnector.Server'))");
+        editconnection.datacollection.focus();
+        return false;
+      }
 
       if (editconnection.viewprotocol.value == "")
       {

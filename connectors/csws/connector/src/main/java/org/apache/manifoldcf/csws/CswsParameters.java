@@ -35,7 +35,7 @@ public class CswsParameters
   public final static String viewCgiPath = "View CGI path";
   /** Document View Action**/
   public final static String viewAction = "View Action";
-  
+
   // These parameters are for Web Services
   /** Connection options; choices are "http", "https" */
   public final static String serverProtocol = "Server protocol";
@@ -62,6 +62,9 @@ public class CswsParameters
   /** MemberService service CGI path */
   public final static String memberServicePath = "Server MemberService Service path";
   public final static String memberServicePathDefault = "/cws/MemberService.svc";
+  /** Name of the Livelink Collection */
+  public final static String dataCollection = "Data Collection";
+  public final static String dataCollectionDefault = "'LES Enterprise'";
   /** Server domain, if NTLM */
   public final static String serverHTTPNTLMDomain = "Server HTTP NTLM domain";
   /** Server HTTP user */
@@ -70,12 +73,12 @@ public class CswsParameters
   public final static String serverHTTPNTLMPassword = "Server HTTP NTLM password";
   /** Keystore for LAPI */
   public final static String serverHTTPSKeystore = "Server HTTPS truststore";
-  
-  
+
+
   // These parameters are for the LiveLink Authority
   /** Cache time in seconds */
   public final static String cacheLifetime = "Cache lifetime minutes";
   /** Max LRU size */
   public final static String cacheLRUSize = "Max cache LRU size";
-  
+
 }
