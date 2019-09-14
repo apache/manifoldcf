@@ -19,7 +19,7 @@ git:
   depth: 1
 env:
   matrix:
-    - TEST_SCRIPT="mvn -q install"
+    - TEST_SCRIPT="mvn -q install -DskipITs"
     - TEST_SCRIPT="mvn -q javadoc:javadoc"
     - TEST_SCRIPT="ant make-core-deps make-deps test"
 script: $TEST_SCRIPT
