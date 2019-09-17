@@ -4803,7 +4803,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 first = false;
               else
                 fsb.append(" OR ");
-              fsb.append("(\"OTFileType\":").append(type).append(" & lookfor1=complexquery)");
+              fsb.append("(\"OTFileType\":").append(type);
             }
           }
         }
