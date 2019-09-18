@@ -4406,6 +4406,9 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
 
   /** Check if NodeRight conveys the permissions we need */
   protected static boolean evaluateRight(final NodeRight nr) {
+    if (nr == null) {
+      return false;
+    }
     final NodePermissions np = nr.getPermissions();
     return np.isSeePermission() && np.isSeeContentsPermission();
   }
