@@ -543,7 +543,7 @@ public class CswsSession
       if (orderingColumn != null) {
         singleSrchReq.setResultOrderSpec("sortByRegion="+orderingColumn+"&sortDirection=ascending");
       }
-      singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+")&lookfor1=complexquery");
+      singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+"))&lookfor1=complexquery");
       for (final String returnColumn : returnColumns) {
         singleSrchReq.getResultTransformationSpec().add(returnColumn);
       }
