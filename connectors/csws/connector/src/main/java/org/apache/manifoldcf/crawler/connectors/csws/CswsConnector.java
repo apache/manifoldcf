@@ -3896,7 +3896,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         } else {
           filterString = "\"OTSubType\":131";
         }
-        
+
         filterString += " AND \"OTName\":\"" + subFolder + "\"";
 
         final ListObjectsThread t = new ListObjectsThread(obj, new String[]{"OTDataID", "OTSubTypeName"}, dataCollection, filterString, "OTDataID");
@@ -4803,7 +4803,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
                 first = false;
               else
                 fsb.append(" OR ");
-              fsb.append("(\"OTFileType\":").append(type);
+              fsb.append("(\"OTFileType\":").append(type).append(")");
             }
           }
         }
