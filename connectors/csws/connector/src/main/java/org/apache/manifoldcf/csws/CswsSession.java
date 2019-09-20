@@ -372,7 +372,7 @@ public class CswsSession
     try {
       return getDocumentManagementHandle().getVersion(nodeId, version, getOTAuthentication());
     } catch (SOAPFaultException e) {
-      if (e.getFault().getFaultCode().equals("E681902084")) {
+      if (e.getFault().getFaultCode().equals("ns0:DocMan.VersionRetrievalError")) {
         return null; 
       }
       processSOAPFault(e);
