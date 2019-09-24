@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= 2.15-dev =====================
+
+
 ======================= Release 2.14 =====================
 
 CONNECTORS-1621: Fix broken ability to index Tika-extracted documents in Solr.
