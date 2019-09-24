@@ -3,6 +3,9 @@ $Id$
 
 ======================= Release 2.14 =====================
 
+CONNECTORS-1623: Harden HTML parser against stuff in SCRIPT tags that looks like tags.
+(Julien Massiera, Karl Wright)
+
 CONNECTORS-1566: Develop csws connector to replace deprecated LiveLink connector.
 (Markus Schuch, Karl Wright)
 
