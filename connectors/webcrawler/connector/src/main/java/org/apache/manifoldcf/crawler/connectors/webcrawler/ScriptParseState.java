@@ -63,6 +63,11 @@ public class ScriptParseState extends HTMLParseState
   }
 
   @Override
+  protected boolean acceptNewTag() {
+    return scriptParseState != SCRIPTPARSESTATE_INSCRIPT;
+  }
+    
+  @Override
   protected boolean noteTagEnd(String tagName)
     throws ManifoldCFException
   {

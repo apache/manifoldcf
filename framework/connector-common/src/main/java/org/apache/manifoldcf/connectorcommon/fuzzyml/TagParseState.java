@@ -285,7 +285,7 @@ public class TagParseState extends SingleCharacterReceiver
       }
       else if (bTagDepth == 0)
       {
-        if (isWhitespace(thisChar))
+        if (isWhitespace(thisChar) || !acceptNewTag())
         {
           // Not a tag.
           currentState = TAGPARSESTATE_NORMAL;
@@ -937,6 +937,12 @@ public class TagParseState extends SingleCharacterReceiver
     return false;
   }
 
+  /** Allow parsing within tag.
+   */
+  protected boolean acceptNewTag() {
+    return true;
+  }
+    
   /** Allocate the buffer.
   */
   protected StringBuilder newBuffer()
