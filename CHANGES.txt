@@ -6,6 +6,9 @@ $Id$
 
 ======================= Release 2.14 =====================
 
+CONNECTORS-1566: Develop csws connector to replace deprecated LiveLink connector.
+(Markus Schuch, Karl Wright)
+
 CONNECTORS-1621: Fix broken ability to index Tika-extracted documents in Solr.
 (Markus Schuch, Karl Wright)
 
