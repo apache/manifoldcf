@@ -36,14 +36,6 @@
         </fileset>
     </path>
 
-    <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
-        <mkdir dir="dist/lib"/>
-        <copy todir="dist/lib">
-            <fileset dir="${mcf-dist}/lib">
-            </fileset>
-        </copy>
-    </target>
-
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-repository-connector">
             <param name="connector-label" value="Generic"/>
