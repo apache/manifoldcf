@@ -469,7 +469,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       final String[] rval = new String[groups.size()];
       int j = 0;
       for (final Group g : groups) {
-        rval[j++] = g.getName();
+        rval[j++] = new Long(g.getID()).toString();
       }
 
       return new AuthorizationResponse(rval,AuthorizationResponse.RESPONSE_OK);
