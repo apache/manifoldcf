@@ -4384,10 +4384,10 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
     final List<String> tokenAccumulator = new ArrayList<>();
 
     if (evaluateRight(rights.getOwnerRight())) {
-      tokenAccumulator.add(rights.getOwnerRight().toString());
+      tokenAccumulator.add(new Long(rights.getOwnerRight().getRightID()).toString());
     }
     if (evaluateRight(rights.getOwnerGroupRight())) {
-      tokenAccumulator.add(rights.getOwnerGroupRight().toString());
+      tokenAccumulator.add(new Long(rights.getOwnerGroupRight().getRightID()).toString());
     }
     if (evaluateRight(rights.getPublicRight())) {
       tokenAccumulator.add("SYSTEM");
