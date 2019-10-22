@@ -3727,6 +3727,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (objInfo == null) {
         return false;
       }
+      
       final List<? extends AttributeGroup> attributeGroups = objInfo.getMetadata().getAttributeGroups();
       for (final AttributeGroup attribute : attributeGroups) {
         final int index = attribute.getKey().indexOf(".");
@@ -3737,12 +3738,34 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
         final long attrCatID = new Long(categoryId).longValue();
         if (attrCatID == catID) {
           final List<? extends DataValue> dataValues = attribute.getValues();
-          final String[] valuesToIndex = new String[dataValues.size()];
+
           int i = 0;
           for (final DataValue dataValue : dataValues) {
-            valuesToIndex[i++] = dataValue.getDescription();
+              int j = 0;
+              String[] valuesToIndex1 = null;
+              if (dataValue instanceof StringValue) {
+                  StringValue typedAttr = (StringValue)dataValue;
+                  List<String> valArray = typedAttr.getValues();
+                  if(valArray != null) {
+                      valuesToIndex1 = new String[valArray.size()];
+                      for (final String valueToIndex : valArray) {
+                          valuesToIndex1[j++] = valueToIndex;
+                      }
+                  }
+              } else if (dataValue instanceof DateValue) {
+                  DateValue typedAttr = (DateValue)dataValue;
+                  List<XMLGregorianCalendar> valArray = typedAttr.getValues();
+                  if (valArray != null) {
+                      valuesToIndex1 = new String[valArray.size()];
+                      for (final XMLGregorianCalendar valueToIndex : valArray) {
+                          valuesToIndex1[j++] = valueToIndex.toString();
+                      }
+                  }
+              }
+              if (valuesToIndex1 != null) {
+                  rd.addField(catName + "." + dataValue.getDescription(), valuesToIndex1);
+              }
           }
-          rd.addField(catName + "." + categoryAttributeName, valuesToIndex);
         }
       }
       return true;
