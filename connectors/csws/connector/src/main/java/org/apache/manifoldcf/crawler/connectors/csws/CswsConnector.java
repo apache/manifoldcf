@@ -1273,7 +1273,8 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
           Logging.connectors.debug("Csws: Decided to ingest document "+objID);
 
         // Index it
-        ingestFromCsws(llc, documentIdentifier, versionString, actualAcls, denyAcls, rights.getOwnerRight().getRightID(), categoryPaths, activities, desc, sDesc);
+        ingestFromCsws(llc, documentIdentifier, versionString, actualAcls, denyAcls,
+          (rights==null)?null:(rights.getOwnerRight()==null)?null:rights.getOwnerRight().getRightID(), categoryPaths, activities, desc, sDesc);
 
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("Csws: Done processing document "+objID);
@@ -2673,7 +2674,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
   protected void ingestFromCsws(CswsContext llc,
     String documentIdentifier, String version,
     String[] actualAcls, String[] denyAcls,
-    long ownerID,
+    Long ownerID,
     String[] categoryPaths,
     IProcessActivity activities,
     MetadataDescription desc, SystemMetadataDescription sDesc)
@@ -2810,7 +2811,7 @@ public class CswsConnector extends org.apache.manifoldcf.crawler.connectors.Base
       if (parentID != null)
         rd.addField(GENERAL_PARENTID,parentID.toString());
 
-      UserInformation owner = llc.getUserInformation(ownerID);  // from ObjectRights
+      UserInformation owner = ownerID == null?null:llc.getUserInformation(ownerID);  // from ObjectRights
       UserInformation creator = llc.getUserInformation(objInfo.getCreatorId());
       UserInformation modifier = llc.getUserInformation(versInfo.getOwnerId());
       if (owner != null)
