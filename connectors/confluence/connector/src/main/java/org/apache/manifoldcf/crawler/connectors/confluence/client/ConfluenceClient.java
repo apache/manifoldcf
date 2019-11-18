@@ -30,6 +30,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -320,9 +321,8 @@ public class ConfluenceClient {
   private ConfluenceResponse<? extends ConfluenceResource> getConfluenceResources(String url, ConfluenceResourceBuilder<? extends ConfluenceResource> builder) throws Exception {
     logger.debug("[Processing] Hitting url for get confluence resources: {}", sanitizeUrl(url));
 
-    try {
-      HttpGet httpGet = createGetRequest(url);
-      HttpResponse response = executeRequest(httpGet);
+    HttpGet httpGet = createGetRequest(url);
+    try(CloseableHttpResponse response = executeRequest(httpGet);) {
       ConfluenceResponse<? extends ConfluenceResource> confluenceResponse = responseFromHttpEntity(response
           .getEntity(), builder);
       EntityUtils.consume(response.getEntity());
@@ -398,9 +398,8 @@ public class ConfluenceClient {
     logger.debug(
         "[Processing] Hitting url for getting document content : {}",
         sanitizeUrl(url));
-    try {
-      HttpGet httpGet = createGetRequest(url);
-      HttpResponse response = executeRequest(httpGet);
+    HttpGet httpGet = createGetRequest(url);
+    try(CloseableHttpResponse response = executeRequest(httpGet);) {
       HttpEntity entity = response.getEntity();
       MutableAttachment attachment = attachmentFromHttpEntity(entity);
       EntityUtils.consume(entity);
@@ -434,9 +433,8 @@ public class ConfluenceClient {
     logger.debug(
         "[Processing] Hitting url for getting attachment content : {}",
         url);
-    try {
-      HttpGet httpGet = createGetRequest(url);
-      HttpResponse response = executeRequest(httpGet);
+    HttpGet httpGet = createGetRequest(url);
+    try(CloseableHttpResponse response = executeRequest(httpGet);) {
       attachment.setLength(response.getEntity().getContentLength());
       byte[] byteContent = IOUtils.toByteArray(response.getEntity()
           .getContent());
@@ -466,9 +464,8 @@ public class ConfluenceClient {
     logger.debug(
         "[Processing] Hitting url for getting document content : {}",
         url);
-    try {
-      HttpGet httpGet = createGetRequest(url);
-      HttpResponse response = executeRequest(httpGet);
+    HttpGet httpGet = createGetRequest(url);
+    try(CloseableHttpResponse response = executeRequest(httpGet);) {
       HttpEntity entity = response.getEntity();
       MutablePage page = pageFromHttpEntity(entity);
       EntityUtils.consume(entity);
@@ -558,22 +555,28 @@ public class ConfluenceClient {
    * @return the {@code HttpResponse} object returned from the server
    * @throws Exception
    */
-  private HttpResponse executeRequest(HttpUriRequest request)
+  private CloseableHttpResponse executeRequest(HttpUriRequest request)
       throws Exception {
     String url = request.getURI().toString();
     logger.debug(
         "[Processing] Hitting url for getting document content : {}",
         url);
 
+    CloseableHttpResponse response = null;
     try {
-      HttpResponse response = httpClient.execute(request, httpContext);
+      response = httpClient.execute(request, httpContext);
       if (response.getStatusLine().getStatusCode() != 200) {
+        String errorDesc = response.getStatusLine().getStatusCode() + " "
+            + response.getStatusLine().getReasonPhrase();
+        response.close();
         throw new Exception("Confluence error. "
-            + response.getStatusLine().getStatusCode() + " "
-            + response.getStatusLine().getReasonPhrase());
+            + errorDesc);
       }
       return response;
     } catch (Exception e) {
+      if(response != null) {
+        response.close();
+      }
       logger.error("[Processing] Failed to get page {}. Error: {}",
           url, e.getMessage());
       throw e;
