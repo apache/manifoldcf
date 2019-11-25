@@ -28,6 +28,7 @@ import java.net.MalformedURLException;
 import java.io.OutputStream;
 import java.io.IOException;
 
+import com.opentext.livelink.service.memberservice.*;
 import org.apache.cxf.transport.http.HttpConduitFeature;
 import org.apache.cxf.transport.http.HttpConduitConfig;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
@@ -43,32 +44,21 @@ import com.opentext.livelink.service.core.Authentication;
 import com.opentext.livelink.service.core.Authentication_Service;
 import com.opentext.livelink.service.core.ContentService;
 import com.opentext.livelink.service.core.ContentService_Service;
-import com.opentext.livelink.service.memberservice.MemberService;
-import com.opentext.livelink.service.memberservice.MemberService_Service;
 import com.opentext.livelink.service.docman.DocumentManagement;
 import com.opentext.livelink.service.docman.DocumentManagement_Service;
 import com.opentext.livelink.service.searchservices.SearchService;
 import com.opentext.livelink.service.searchservices.SearchService_Service;
-import com.opentext.livelink.service.memberservice.SearchMatching;
-import com.opentext.livelink.service.memberservice.SearchColumn;
 
-import com.opentext.livelink.service.memberservice.MemberSearchOptions;
-import com.opentext.livelink.service.memberservice.MemberSearchResults;
 import com.opentext.livelink.service.docman.CategoryInheritance;
 import com.opentext.livelink.service.docman.GetNodesInContainerOptions;
 import com.opentext.livelink.service.docman.Node;
 import com.opentext.livelink.service.docman.Version;
 import com.opentext.livelink.service.docman.NodeRights;
 import com.opentext.livelink.service.docman.AttributeGroupDefinition;
-import com.opentext.livelink.service.memberservice.User;
-import com.opentext.livelink.service.memberservice.Member;
-import com.opentext.livelink.service.memberservice.Group;
 import com.opentext.livelink.service.searchservices.SResultPage;
 import com.opentext.livelink.service.searchservices.SGraph;
 import com.opentext.livelink.service.searchservices.SingleSearchRequest;
 import com.opentext.livelink.service.searchservices.SingleSearchResponse;
-import com.opentext.livelink.service.memberservice.SearchScope;
-import com.opentext.livelink.service.memberservice.SearchFilter;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
@@ -373,7 +363,7 @@ public class CswsSession
       return getDocumentManagementHandle().getVersion(nodeId, version, getOTAuthentication());
     } catch (SOAPFaultException e) {
       if (e.getFault().getFaultCode().equals("ns0:DocMan.VersionRetrievalError")) {
-        return null; 
+        return null;
       }
       processSOAPFault(e);
       return null;
@@ -422,10 +412,10 @@ public class CswsSession
     }
   }
 
-  public List<? extends Group> listUserMemberOf(final long memberId)
+  public List<? extends MemberRight> listUserMemberOf(final long memberId)
     throws ManifoldCFException, ServiceInterruption {
     try {
-      return getMemberServiceHandle().listMemberOf(memberId, getOTAuthentication());
+      return getMemberServiceHandle().listRightsByID(memberId, getOTAuthentication());
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;

@@ -18,6 +18,7 @@
 */
 package org.apache.manifoldcf.authorities.authorities.csws;
 
+import com.opentext.livelink.service.memberservice.*;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
@@ -27,10 +28,6 @@ import org.apache.manifoldcf.authorities.system.ManifoldCF;
 import org.apache.manifoldcf.connectorcommon.interfaces.*;
 import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
 
-import com.opentext.livelink.service.memberservice.User;
-import com.opentext.livelink.service.memberservice.Member;
-import com.opentext.livelink.service.memberservice.Group;
-import com.opentext.livelink.service.memberservice.MemberPrivileges;
 import org.apache.manifoldcf.csws.*;
 
 import java.io.*;
@@ -433,7 +430,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
         return RESPONSE_USERNOTFOUND;
       }
 
-      final List<? extends Group> groups = cswsSession.listUserMemberOf(member.getID());
+      final List<? extends MemberRight> groups = cswsSession.listUserMemberOf(member.getID());
       if (groups == null)
       {
         if (Logging.authorityConnectors.isDebugEnabled())
@@ -468,7 +465,7 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
 
       final String[] rval = new String[groups.size()];
       int j = 0;
-      for (final Group g : groups) {
+      for (final MemberRight g : groups) {
         rval[j++] = new Long(g.getID()).toString();
       }
 
