@@ -359,6 +359,9 @@ public class CswsSession
     try {
       return getDocumentManagementHandle().getNodeRights(nodeId, getOTAuthentication());
     } catch (SOAPFaultException e) {
+      if (e.getFault().getFaultCode().equals("ns0:DocMan.ErrorGettingNodeRights")) {
+        return null;
+      }
       processSOAPFault(e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
