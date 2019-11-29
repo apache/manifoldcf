@@ -18,9 +18,7 @@
 */
 package org.apache.manifoldcf.csws;
 
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -63,6 +61,7 @@ import com.opentext.livelink.service.searchservices.SingleSearchResponse;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.connectorcommon.interfaces.*;
+import org.apache.manifoldcf.crawler.system.Logging;
 
 /** This class describes a livelink csws session.  It manages OAuth authentication
 * and provides logged-in access to csws services via methods provided within.
@@ -226,9 +225,9 @@ public class CswsSession
       try {
         this.rootNodeTypes = getDocumentManagementHandle().getRootNodeTypes(getOTAuthentication());
       } catch (SOAPFaultException e) {
-        processSOAPFault(e);
+        processSOAPFault("Failed to get root node types", e);
       } catch (javax.xml.ws.WebServiceException e) {
-        processWSException(e);
+        processWSException("Failed to get root node types", e);
       }
     }
     return this.rootNodeTypes;
@@ -244,9 +243,9 @@ public class CswsSession
       try {
         thisWorkspaceNode = getDocumentManagementHandle().getRootNode(nodeType, getOTAuthentication());
       } catch (SOAPFaultException e) {
-        processSOAPFault(e);
+        processSOAPFault("Failed to get root node of type " + nodeType, e);
       } catch (javax.xml.ws.WebServiceException e) {
-        processWSException(e);
+        processWSException("Failed to get root node of type " + nodeType, e);
       }
       workspaceTypeNodes.put(nodeType, thisWorkspaceNode);
     }
@@ -261,10 +260,10 @@ public class CswsSession
       if (e.getFault().getFaultCode().equals("ns0:DocMan.ErrorGettingParentNode")) {
         return null;
       }
-      processSOAPFault(e);
+      processSOAPFault("Failed to list nodes under id " + nodeId, e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to list nodes under id " + nodeId, e);
       return null;
     }
   }
@@ -280,12 +279,13 @@ public class CswsSession
       return getDocumentManagementHandle().getNodesInContainer(nodeId, gnico, getOTAuthentication());
     } catch (SOAPFaultException e) {
       if (e.getFault().getFaultCode().equals("ns0:DocMan.ErrorGettingParentNode")) {
+        Logging.connectors.warn("Ignoring children of node " + nodeId + " due to DocMan.ErrorGettingParentNode", e);
         return null;
       }
-      processSOAPFault(e);
+      processSOAPFault("Failed to get children of node " + nodeId, e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to get children of node " + nodeId, e);
       return null;
     }
   }
@@ -295,10 +295,10 @@ public class CswsSession
     try {
       return getDocumentManagementHandle().getCategoryInheritance(parentId, getOTAuthentication());
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      processSOAPFault("Failed to get category inheritance for id " + parentId, e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to get category inheritance for id " + parentId, e);
       return null;
     }
   }
@@ -308,10 +308,10 @@ public class CswsSession
     try {
       return getDocumentManagementHandle().getCategoryDefinitions(categoryIDs, getOTAuthentication());
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      processSOAPFault("Failed to get definitions inheritance for ids " + Arrays.toString(categoryIDs.toArray()), e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to get definitions inheritance for ids " + Arrays.toString(categoryIDs.toArray()), e);
       return null;
     }
   }
@@ -322,10 +322,10 @@ public class CswsSession
     try {
       return getDocumentManagementHandle().getNode(nodeId, getOTAuthentication());
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      processSOAPFault("Failed to get node " + nodeId, e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to get node " + nodeId, e);
       return null;
     }
   }
@@ -335,10 +335,10 @@ public class CswsSession
     try {
       return getDocumentManagementHandle().getNodeByPath(rootNode, colonSeparatedPath, getOTAuthentication());
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      processSOAPFault("Failed to get node by path " + rootNode + " with path " + Arrays.toString(colonSeparatedPath.toArray()), e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to get node by path " + rootNode + " with path " + Arrays.toString(colonSeparatedPath.toArray()), e);
       return null;
     }
   }
@@ -350,12 +350,13 @@ public class CswsSession
       return getDocumentManagementHandle().getNodeRights(nodeId, getOTAuthentication());
     } catch (SOAPFaultException e) {
       if (e.getFault().getFaultCode().equals("ns0:DocMan.ErrorGettingNodeRights")) {
+        Logging.connectors.warn("Ignoring node " + nodeId + " due to DocMan.ErrorGettingNodeRights", e);
         return null;
       }
-      processSOAPFault(e);
+      processSOAPFault("Failed to get node rights for " + nodeId, e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to get node rights for " + nodeId, e);
       return null;
     }
   }
@@ -366,12 +367,13 @@ public class CswsSession
       return getDocumentManagementHandle().getVersion(nodeId, version, getOTAuthentication());
     } catch (SOAPFaultException e) {
       if (e.getFault().getFaultCode().equals("ns0:DocMan.VersionRetrievalError")) {
+        Logging.connectors.warn("Ignoring node " + nodeId + " due to DocMan.VersionRetrievalError", e);
         return null;
       }
-      processSOAPFault(e);
+      processSOAPFault("Failed to get version " + version + " of node " + nodeId, e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to get version " + version + " of node " + nodeId, e);
       return null;
     }
   }
@@ -381,10 +383,10 @@ public class CswsSession
     try {
       return getDocumentManagementHandle().getCategoryDefinition(catId, getOTAuthentication());
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      processSOAPFault("Failed to get category definition " + catId, e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to get category definition " + catId, e);
       return null;
     }
   }
@@ -394,10 +396,10 @@ public class CswsSession
     try {
       return getMemberServiceHandle().getUserByLoginName(userName, getOTAuthentication());
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      processSOAPFault("Failed to get user by userName " + userName, e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to get user by userName " + userName, e);
       return null;
     }
   }
@@ -407,10 +409,10 @@ public class CswsSession
     try {
       return getMemberServiceHandle().getMemberByLoginName(memberName, getOTAuthentication());
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      processSOAPFault("Failed to get member by memberName " + memberName, e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to get member by memberName " + memberName, e);
       return null;
     }
   }
@@ -420,10 +422,10 @@ public class CswsSession
     try {
       return getMemberServiceHandle().listRightsByID(memberId, getOTAuthentication());
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      processSOAPFault("Failed to list user member of " + memberId, e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to list user member of " + memberId, e);
       return null;
     }
   }
@@ -433,10 +435,10 @@ public class CswsSession
     try {
       return getMemberServiceHandle().getMemberById(memberId, getOTAuthentication());
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      processSOAPFault("Failed to get member " + memberId, e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to get member " + memberId, e);
       return null;
     }
   }
@@ -449,11 +451,11 @@ public class CswsSession
       final DataHandler dataHandler = getContentServiceHandle().downloadContent(contextID, auth);
       dataHandler.writeTo(os);
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      processSOAPFault("Failed to get version contents of node " + nodeId + " in version " + version, e);
     } catch (IOException e) {
-      processIOException(e);
+      processIOException("Failed to get version contents of node " + nodeId + " in version " + version, e);
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to get version contents of node " + nodeId + " in version " + version, e);
     }
   }
 
@@ -468,10 +470,10 @@ public class CswsSession
     try {
       return getMemberServiceHandle().searchForMembers(srchMemOptions, getOTAuthentication());
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      processSOAPFault("Failed to search for members", e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to search for members", e);
       return null;
     }
   }
@@ -489,10 +491,10 @@ public class CswsSession
       }
       return rval;
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      processSOAPFault("Failed to get search results", e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to get search results", e);
       return null;
     }
   }
@@ -530,19 +532,22 @@ public class CswsSession
   public List<? extends SGraph> searchFor(final long parentID,
     final String[] returnColumns, final String dataCollection, final String searchSpec, final String orderingColumn, final int start, final int count)
     throws ManifoldCFException, ServiceInterruption {
+
+    final SingleSearchRequest singleSrchReq = new SingleSearchRequest();
+    singleSrchReq.setDataCollectionSpec(dataCollection);//Livelink Enterprise Server
+    singleSrchReq.setQueryLanguage("Livelink Search API V1"); //Search Query Language API
+    singleSrchReq.setFirstResultToRetrieve(start + 1);
+    singleSrchReq.setNumResultsToRetrieve(count);
+    if (orderingColumn != null) {
+      singleSrchReq.setResultOrderSpec("sortByRegion="+orderingColumn+"&sortDirection=ascending");
+    }
+    singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+"))&lookfor1=complexquery");
+    for (final String returnColumn : returnColumns) {
+      singleSrchReq.getResultTransformationSpec().add(returnColumn);
+    }
+
     try {
-      final SingleSearchRequest singleSrchReq = new SingleSearchRequest();
-      singleSrchReq.setDataCollectionSpec(dataCollection);//Livelink Enterprise Server
-      singleSrchReq.setQueryLanguage("Livelink Search API V1"); //Search Query Language API
-      singleSrchReq.setFirstResultToRetrieve(start + 1);
-      singleSrchReq.setNumResultsToRetrieve(count);
-      if (orderingColumn != null) {
-        singleSrchReq.setResultOrderSpec("sortByRegion="+orderingColumn+"&sortDirection=ascending");
-      }
-      singleSrchReq.setResultSetSpec("where1=(\"OTParentID\":"+parentID+" AND ("+searchSpec+"))&lookfor1=complexquery");
-      for (final String returnColumn : returnColumns) {
-        singleSrchReq.getResultTransformationSpec().add(returnColumn);
-      }
+
       // Fire off the query
       final SingleSearchResponse results = getSearchServiceHandle().search(singleSrchReq, "", getOTAuthentication());
       if (results == null) {
@@ -556,10 +561,10 @@ public class CswsSession
       // Get the list of actual result rows (?)
       return srp.getItem();
     } catch (SOAPFaultException e) {
-      processSOAPFault(e);
+      processSOAPFault("Failed to search for " + singleSrchReq.getResultSetSpec(), e);
       return null;
     } catch (javax.xml.ws.WebServiceException e) {
-      processWSException(e);
+      processWSException("Failed to search for " + singleSrchReq.getResultSetSpec(), e);
       return null;
     }
   }
@@ -593,29 +598,29 @@ public class CswsSession
       try {
         currentAuthToken = authClientHandle.authenticateUser(userName, password);
       } catch (SOAPFaultException e) {
-        processSOAPFault(e);
+        processSOAPFault("Failed to get auth token", e);
       } catch (javax.xml.ws.WebServiceException e) {
-        processWSException(e);
+        processWSException("Failed to get auth token", e);
       }
       currentSessionExpiration = currentTime + sessionExpirationInterval;
     }
     return currentAuthToken;
   }
 
-  private void processIOException(IOException e)
-    throws ManifoldCFException, ServiceInterruption {
-    throw new ManifoldCFException("IO exception: "+e.getMessage(), e);
+  private void processIOException(String message, IOException e)
+    throws ManifoldCFException {
+    throw new ManifoldCFException("IO exception: " + message, e);
     // MHL
   }
 
-  private void processSOAPFault(SOAPFaultException e)
-    throws ManifoldCFException, ServiceInterruption {
-    throw new ManifoldCFException("SOAP exception: "+e.getMessage(), e);
+  private void processSOAPFault(String message, SOAPFaultException e)
+    throws ManifoldCFException {
+    throw new ManifoldCFException("SOAP exception: " + message + " (Fault code: " + e.getFault().getFaultCode() +")", e);
     // MHL
   }
 
-  private void processWSException(javax.xml.ws.WebServiceException e)
-    throws ManifoldCFException, ServiceInterruption {
-    throw new ManifoldCFException("Web service communication issue: "+e.getMessage(), e);
+  private void processWSException(String message, javax.xml.ws.WebServiceException e)
+    throws ManifoldCFException {
+    throw new ManifoldCFException("Web service communication issue: " + message, e);
   }
 }
