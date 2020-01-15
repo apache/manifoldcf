@@ -401,7 +401,7 @@ public class KeystoreManager implements IKeystoreManager
       java.security.SecureRandom secureRandom = java.security.SecureRandom.getInstance("SHA1PRNG");
 
       // Create an SSL context
-      javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("SSL");
+      javax.net.ssl.SSLContext sslContext = javax.net.ssl.SSLContext.getInstance("TLS");
       sslContext.init(((keyManagerFactory==null)?null:keyManagerFactory.getKeyManagers()),getTrustManagers(),
         secureRandom);
 

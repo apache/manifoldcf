@@ -3,6 +3,8 @@ $Id$
 
 ======================= 2.16-dev =====================
 
+CONNECTORS-1632: Use TLS sockets and no longer support old SSL connections.
+(Jörn Franke)
 
 ======================= Release 2.15 =====================
 
