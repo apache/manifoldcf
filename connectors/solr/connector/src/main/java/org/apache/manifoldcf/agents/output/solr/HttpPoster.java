@@ -303,7 +303,8 @@ public class HttpPoster
   private static void initializeKerberos()
   {
 
-    if (System.getProperty("java.security.auth.login.config") != null) {
+    final String loginConfig = System.getProperty("java.security.auth.login.config");
+    if (loginConfig != null && loginConfig.trim().length() > 0) {
       if (Logging.ingest.isInfoEnabled()) {
         Logging.ingest.info("Using Kerberos for Solr Authentication");
       }
