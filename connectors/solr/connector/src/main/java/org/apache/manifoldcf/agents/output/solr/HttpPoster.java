@@ -67,6 +67,10 @@ import org.apache.solr.common.SolrInputDocument;
 
 import org.apache.commons.lang.StringUtils;
 
+import org.apache.solr.client.solrj.impl.HttpClientUtil;
+import org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder;
+import org.apache.solr.client.solrj.impl.SolrHttpClientBuilder;
+
 /**
 * Posts an input stream to SOLR
 *
@@ -167,6 +171,8 @@ public class HttpPoster
     
     this.maxDocumentLength = maxDocumentLength;
     
+    initializeKerberos();
+    
     try
     {
       CloudSolrClient cloudSolrServer = new CloudSolrClient.Builder()
@@ -223,6 +229,8 @@ public class HttpPoster
     
     this.maxDocumentLength = maxDocumentLength;
 
+    initializeKerberos();
+    
     String location = "";
     if (webapp != null)
       location = "/" + webapp;
@@ -292,6 +300,20 @@ public class HttpPoster
     solrServer = new ModifiedHttpSolrClient(httpSolrServerUrl, localClient, new XMLResponseParser(), allowCompression);
   }
 
+  private static void initializeKerberos()
+  {
+
+    if (System.getProperty("java.security.auth.login.config") != null) {
+      if (Logging.ingest.isInfoEnabled()) {
+        Logging.ingest.info("Using Kerberos for Solr Authentication");
+      }
+      Krb5HttpClientBuilder krbBuild = new Krb5HttpClientBuilder();
+      SolrHttpClientBuilder kb = krbBuild.getBuilder();
+      HttpClientUtil.setHttpClientBuilder(kb);
+    }
+
+  }
+  
   /** Shut down the poster.
   */
   public void shutdown()

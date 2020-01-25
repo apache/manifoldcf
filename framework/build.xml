@@ -1174,15 +1174,22 @@
             <fileset dir="scripts-common"/>
         </copy>
     </target>
-    
-    <target name="scripts" depends="scripts-common">
+
+    <target name="scripts-kerberos">
+        <mkdir dir="${processes-dir}"/>
+        <copy todir="${processes-dir}">
+            <fileset dir="scripts-kerberos"/>
+        </copy>
+    </target>
+
+    <target name="scripts" depends="scripts-common,scripts-kerberos">
         <mkdir dir="${processes-dir}"/>
         <copy todir="${processes-dir}">
             <fileset dir="scripts"/>
         </copy>
     </target>
 
-    <target name="scripts-jetty" depends="scripts-common">
+    <target name="scripts-jetty" depends="scripts-common,scripts-kerberos">
         <mkdir dir="${processes-dir}"/>
         <copy todir="${processes-dir}">
             <fileset dir="scripts-jetty"/>
@@ -1203,14 +1210,14 @@
         </copy>
     </target>
 
-    <target name="scripts-combined" depends="scripts-common">
+    <target name="scripts-combined" depends="scripts-common,scripts-kerberos">
         <mkdir dir="${processes-dir}"/>
         <copy todir="${processes-dir}">
             <fileset dir="scripts-combined"/>
         </copy>
     </target>
 
-    <target name="scripts-start" depends="scripts-common">
+    <target name="scripts-start" depends="scripts-common,scripts-kerberos">
         <mkdir dir="${processes-dir}"/>
         <copy todir="${processes-dir}">
             <fileset dir="scripts-start"/>
