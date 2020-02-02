@@ -551,7 +551,14 @@ mvn clean package
           <li>Simplified multi-process model</li>
           <li>Command-driven multi-process model</li>
         </ul>
-        <p>Each way has advantages and disadvantages.  For example, single-process models limit the flexibility of deploying ManifoldCF components.  Multi-process models require that
+        <p>All examples have similar script structure and construction.  For example, there are always options files you can modify to control the behavior of individual processes.  These
+          files have names of the form: <em>*-options.env.win</em> and <em>*-options.env.unix</em>.  They contain a list of switches to be used in starting up the JVM.  These
+          switches also include memory specification (the <em>-Xmx</em> switch), as well as a predefined <em>-D</em> switch that is meant to enable Kerberos (for the connectors
+          it is implemented for).  In general, for <em>-D</em> switches in options files, you will want to change them for all options files in the example deployment you are using, to
+          insure that all processes operate in the same environment.  For example, to enable Kerberos, you must change the options files in the following way: the <em>-Djava.security.auth.login.config=</em>
+          line should be changed to <em>-Djava.security.auth.login.config=jaas-client.conf</em>, and the <em>jaas-client.conf</em> file filled out properly for your installation.</p>
+        <p>
+        <p>Each example deployment has advantages and disadvantages.  For example, single-process models limit the flexibility of deploying ManifoldCF components.  Multi-process models require that
           inter-process synchronization be properly configured.  If you are just starting out with ManifoldCF, we suggest you try the quick-start single process model first, since that is
           the easiest.</p>
         <section>
