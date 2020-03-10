@@ -67,6 +67,7 @@
     <module>documentfilter</module>
     <module>searchblox</module>
     <module>confluence</module>
+    <module>confluence-v6</module>
     <module>amazons3</module>
     <module>kafka</module>
     <module>opennlp</module>

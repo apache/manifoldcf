@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.16-dev =====================
 
+CONNECTORS-1637: Add Confluence V6+ connector.  Thanks to Julien Massiera
+for the contribution!
+(Julien Massiera)
+
 CONNECTORS-1629: Add support for global Kerberos setup.
 (Jörn Franke, Karl Wright)
 
