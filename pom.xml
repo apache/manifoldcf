@@ -96,6 +96,7 @@
     <guava.version>21.0</guava.version>
     <jsoup.version>1.7.2</jsoup.version>
     <cxf.version>3.3.1</cxf.version>
+    <jaxws-ri.version>2.3.2</jaxws-ri.version>
   </properties>
 
   <modules>

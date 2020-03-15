@@ -188,5 +188,12 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- JAXWS for Java 11 -->
+    <dependency>
+      <groupId>com.sun.xml.ws</groupId>
+      <artifactId>jaxws-rt</artifactId>
+      <version>${jaxws-ri.version}</version>
+    </dependency>
+
   </dependencies>
 </project>
