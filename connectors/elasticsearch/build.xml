@@ -32,7 +32,14 @@
 
     <property name="elasticsearch.version" value="7.6.2"/>
     <property name="elasticsearch.mapper-attachments.version" value="3.1.2"/>
-    
+
+    <condition property="isWindows">
+        <os family="windows" />
+    </condition>
+    <condition property="isUnix">
+        <os family="unix" />
+    </condition>
+
     <target name="download-mapper-attachments">
         <property name="elasticsearch-package" value="org/elasticsearch"/>
         
@@ -47,18 +54,25 @@
             <param name="artifact-type" value="zip"/>
         </antcall>
 
-        <!--get src="https://github.com/elasticsearch/elasticsearch-mapper-attachments/archive/v2.0.0.RC1.zip" 
-            dest="test-materials/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments.zip"/-->
-        
         <unzip src="test-materials/elasticsearch-${elasticsearch.version}/plugins/elasticsearch-mapper-attachments-${elasticsearch.mapper-attachments.version}.zip" dest="test-materials/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments"/>
     </target>
 
-    <target name="download-elasticsearch">
+    <target name="download-elasticsearch-unix" if="isUnix">
         <mkdir dir="build/download"/>
         <get src="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${elasticsearch.version}-linux-x86_64.tar.gz" 
             dest="build/download/elasticsearch.tar.gz"/>
         <gunzip src="build/download/elasticsearch.tar.gz"/>
         <untar src="build/download/elasticsearch.tar" dest="test-materials"/>
+    </target>
+
+    <target name="download-elasticsearch-windows" if="isWindows">
+        <mkdir dir="build/download"/>
+        <get src="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${elasticsearch.version}-windows-x86_64.tar.gz" 
+            dest="build/download/elasticsearch.zip"/>
+        <unzip src="build/download/elasticsearch.zip" dest="test-materials"/>
+    </target>
+
+    <target name="download-elasticsearch" depends="download-elasticsearch-unix,download-elasticsearch-windows">
     </target>
     
     <target name="download-dependencies" depends="download-mapper-attachments,download-elasticsearch">
