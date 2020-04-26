@@ -49,12 +49,12 @@
         <antcall target="download-via-maven">
             <param name="project-path" value="${elasticsearch-package}"/>
             <param name="artifact-version" value="${elasticsearch.mapper-attachments.version}"/>
-            <param name="target" value="test-materials/elasticsearch-${elasticsearch.version}/plugins"/>
+            <param name="target" value="build/download"/>
             <param name="artifact-name" value="elasticsearch-mapper-attachments"/>
             <param name="artifact-type" value="zip"/>
         </antcall>
 
-        <unzip src="test-materials/elasticsearch-${elasticsearch.version}/plugins/elasticsearch-mapper-attachments-${elasticsearch.mapper-attachments.version}.zip" dest="test-materials/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments"/>
+        <unzip src="build/downloads/elasticsearch-${elasticsearch.mapper-attachments.version}/elasticsearch-mapper-attachments-${elasticsearch.mapper-attachments.version}.zip" dest="test-materials/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments"/>
     </target>
 
     <target name="download-elasticsearch-unix" if="isUnix">

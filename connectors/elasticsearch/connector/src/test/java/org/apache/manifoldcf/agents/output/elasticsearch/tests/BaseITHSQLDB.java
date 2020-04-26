@@ -18,15 +18,12 @@
 */
 package org.apache.manifoldcf.agents.output.elasticsearch.tests;
 
-import org.elasticsearch.node.Node;
 import org.junit.After;
 import org.junit.Before;
 
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
-
-import static org.elasticsearch.node.NodeBuilder.*;
 
 /**  
  *  Base integration tests class for Elastic Search tested against a CMIS repository
@@ -35,7 +32,16 @@ import static org.elasticsearch.node.NodeBuilder.*;
  * */
 public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB
 {
-  protected Node node = null;
+
+  final static boolean isUnix;
+  static {
+    final String os = System.getProperty("os.name").toLowerCase();
+    if (os.contains("win")) {
+      isUnix = false;
+    } else {
+      isUnix = true;
+    }
+  }
 
   protected String[] getConnectorNames()
   {
@@ -57,22 +63,39 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
     return new String[]{"org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnector"};
   }
 
+  Process esTestProcess = null;
+  
   @Before
   public void setupElasticSearch()
     throws Exception
   {
-    //Initialize ElasticSearch server
-    //the default port is 9200
     System.out.println("ElasticSearch is starting...");
-    node = nodeBuilder().local(true).node();
+    //the default port is 9200
+
+    // Call the test-materials script in the appropriate way
+    if (isUnix) {
+      esTestProcess = Runtime.exec(new String[]{
+        "bash", 
+        "test-materials/elasticsearch-7.6.2/bin/elasticsearch",
+        "-q"},
+        null);
+    } else {
+      esTestProcess = Runtime.exec(new String[]{
+        "cmd", 
+        "test-materials/elasticsearch-7.6.2/bin/elasticsearch.bat",
+        "-q"},
+        null);
+    }
+    
     System.out.println("ElasticSearch is started on port 9200");
   }
   
   
   @After
   public void cleanUpElasticSearch(){
-    if(node!=null)
-      node.close();
+    if (esTestProcess != null) {
+      esTestProcess.destroy();
+    }
   }
   
 }
