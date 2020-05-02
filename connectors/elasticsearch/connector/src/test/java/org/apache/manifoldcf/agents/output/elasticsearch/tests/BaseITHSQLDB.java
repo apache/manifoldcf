@@ -25,6 +25,15 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
 
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.HttpEntity;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.impl.client.HttpClients;
+import java.io.IOException;
+  
+
 /**  
  *  Base integration tests class for Elastic Search tested against a CMIS repository
  *  @author Piergiorgio Lucidi
@@ -74,22 +83,53 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
 
     // Call the test-materials script in the appropriate way
     if (isUnix) {
-      esTestProcess = Runtime.exec(new String[]{
+      esTestProcess = Runtime.getRuntime().exec(new String[]{
         "bash", 
         "test-materials/elasticsearch-7.6.2/bin/elasticsearch",
         "-q"},
         null);
     } else {
-      esTestProcess = Runtime.exec(new String[]{
+      esTestProcess = Runtime.getRuntime().exec(new String[]{
         "cmd", 
         "test-materials/elasticsearch-7.6.2/bin/elasticsearch.bat",
         "-q"},
         null);
     }
     
+    waitForElasticSearch();
+    
     System.out.println("ElasticSearch is started on port 9200");
   }
   
+  public void waitForElasticSearch() {
+    for (int i = 0 ; i < 10 ; i++) {
+      CloseableHttpClient httpclient = HttpClients.createDefault();
+      HttpGet httpGet = new HttpGet("http://127.0.0.1:9200/");
+      try {
+        CloseableHttpResponse response1 = httpclient.execute(httpGet);
+        try {
+          System.out.println("Response from ES: "+response1.getStatusLine());
+          HttpEntity entity1 = response1.getEntity();
+          // do something useful with the response body
+          // and ensure it is fully consumed
+          EntityUtils.consume(entity1);
+        } finally {
+          response1.close();
+        }
+        System.out.println("ES came up!");
+        return;
+      } catch (IOException e) {
+        // Wait 500ms and try again
+        System.out.println("Didn't reach ES; waiting...");
+        try {
+          Thread.sleep(500);
+        } catch (InterruptedException e1) {
+          break;
+        }
+      }
+    }
+    throw new IllegalStateException("ES didn't come up.");
+  }
   
   @After
   public void cleanUpElasticSearch(){
