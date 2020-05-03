@@ -645,10 +645,14 @@
           <exclude name="**/test-HSQLDB-output/"/>
           <exclude name="**/test-HSQLDBext-output/"/>
           <exclude name="**/test-mysql-output/"/>
+          <exclude name="**/test-materials/windows"/>
+          <exclude name="**/test-materials/unix"/>          
           <exclude name="**/test-materials/*.jar"/>
           <exclude name="**/test-materials/*.war"/>
           <exclude name="**/test-materials/*.wsdl"/>
           <exclude name="**/test-materials/*.xsd"/>
+          <exclude name="**/test-materials-proprietary/windows/"/>
+          <exclude name="**/test-materials-proprietary/unix/"/>          
           <exclude name="**/test-materials-proprietary/*.jar"/>
           <exclude name="**/test-materials-proprietary/*.war"/>
           <exclude name="**/test-materials-proprietary/*.wsdl"/>
