@@ -594,10 +594,14 @@
           <exclude name="connectors/*/dist/"/>
           <exclude name="framework/dist/"/>
           <exclude name="**/target/"/>
+          <exclude name="**/test-materials/windows"/>
+          <exclude name="**/test-materials/unix"/>          
           <exclude name="**/test-materials/*.jar"/>
           <exclude name="**/test-materials/*.war"/>
           <exclude name="**/test-materials/*.wsdl"/>
           <exclude name="**/test-materials/*.xsd"/>
+          <exclude name="**/test-materials-proprietary/windows/"/>
+          <exclude name="**/test-materials-proprietary/unix/"/>          
           <exclude name="**/test-materials-proprietary/*.jar"/>
           <exclude name="**/test-materials-proprietary/*.war"/>
           <exclude name="**/test-materials-proprietary/*.wsdl"/>
@@ -611,7 +615,6 @@
           <exclude name="**/lib-proprietary/*.war"/>
           <exclude name="**/lib-proprietary/*.wsdl"/>
           <exclude name="**/lib-proprietary/*.xsd"/>
-          <exclude name="connectors/elasticsearch/test-materials-proprietary/elasticsearch-1.0.1/"/>
           <exclude name="legacy-*/"/>
           <exclude name="apache-manifoldcf-*/"/>        
         </zipfileset>
