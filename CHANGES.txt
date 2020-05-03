@@ -15,10 +15,10 @@ for the contribution!
 (Julien Massiera)
 
 CONNECTORS-1629: Add support for global Kerberos setup.
-(J�rn Franke, Karl Wright)
+(Jörn Franke, Karl Wright)
 
 CONNECTORS-1632: Use TLS sockets and no longer support old SSL connections.
-(J�rn Franke)
+(Jörn Franke)
 
 ======================= Release 2.15 =====================
 
@@ -555,7 +555,7 @@ transformation connections.
 (Julien Massiera, Karl Wright)
 
 CONNECTORS-1344: Adds Slack Notification Connector
-(Odilo Oehmichen, Markus Schuch, Rüdiger Kurz)
+(Odilo Oehmichen, Markus Schuch, RÃ¼diger Kurz)
 
 CONNECTORS-1349: Fix the modified_date and original_size Solr
 attributes.
@@ -954,7 +954,7 @@ CONNECTORS-1173: Option to change View URL for Livelink Connector
 
 CONNECTORS-1179: Include the collection name as part of the Solr
 version string.
-(Kamil Żyta, Karl Wright)
+(Kamil Å»yta, Karl Wright)
 
 CONNECTORS-1178: Script example broken.
 (Karl Wright)
@@ -1074,7 +1074,7 @@ abort.
 
 CONNECTORS-1127: Fix boilerplate extraction to be compatible with
 current version of boilerplate.
-(Kamil Żyta, Karl Wright)
+(Kamil Å»yta, Karl Wright)
 
 CONNECTORS-1126: Fix LockGate release logic to not flush LockGate
 objects so aggressively.
@@ -1084,7 +1084,7 @@ CONNECTORS-1124: start.jar in example-proprietary not working.
 
 CONNECTORS-1125: Make sure xz jar is delivered to where Tika needs
 it.
-(Kamil Żyta, Karl Wright)
+(Kamil Å»yta, Karl Wright)
 
 CONNECTORS-1123: Reduce the maximum number of zookeeper lock
 nodes, by hashing the lock names that correspond to documents.
@@ -1092,11 +1092,11 @@ nodes, by hashing the lock names that correspond to documents.
 
 CONNECTORS-1121: Plugins have moved in the dist repository, so
 point at them properly.
-(Kamil Żyta, Karl Wright)
+(Kamil Å»yta, Karl Wright)
 
 CONNECTORS-1120: ElasticSearch: Handle case of deleting already
 deleted document.
-(Kamil Żyta, Karl Wright)
+(Kamil Å»yta, Karl Wright)
 
 CONNECTORS-1118: Change IIncrementalIngester interface to allow
 for cached connection instances.
@@ -1150,7 +1150,7 @@ overall usability at large scale.
 (Aeham Abushwashi, Karl Wright)
 
 CONNECTORS-1106: Missing state handling for abort case.
-(Kamil Żyta, Karl Wright)
+(Kamil Å»yta, Karl Wright)
 
 CONNECTORS-1104: Add proxy support to SharePoint connector.
 (Karl Wright)
@@ -1255,7 +1255,7 @@ utility in the distribution, for generating obfuscated passwords.
 CONNECTORS-1071: JCIFS connector should provide date metadata in
 standard ISO8601 format with names that don't conflict with what
 Tika extractor generates.
-(Antonio David Pérez Morales, Karl Wright)
+(Antonio David PÃ©rez Morales, Karl Wright)
 
 CONNECTORS-1061: More fixes for the Alfresco webscript connector
 UI, and create a UI test.
@@ -1272,7 +1272,7 @@ connector.
 
 CONNECTORS-1070: Exit immediately upon finding a misconfigured
 ManifoldCF.
-(Kamil Żyta, Karl Wright)
+(Kamil Å»yta, Karl Wright)
 
 CONNECTORS-1067: Allow document filtering on modification date,
 and also hook this up in all repository connectors where it makes sense.
@@ -1450,7 +1450,7 @@ where a new version is a new node.
 
 CONNECTORS-1010: Use uri hash instead of full URI as lock key
 to prevent "file name too long" errors on windows.
-(Erlend Garåsen, Shigeki Kobayashi, Karl Wright)
+(Erlend GarÃ¥sen, Shigeki Kobayashi, Karl Wright)
 
 CONNECTORS-1007: Fix CMIS connector so that tests pass.
 (Karl Wright)
@@ -1621,7 +1621,7 @@ ant build.
 CONNECTORS-943: .aspx files not indexed by Sharepoint connector due to missing mime type in core
 
 CONNECTORS-941: Solr connector not working properly with basic auth.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-942: Add output connector method to handle notification
 of removal of all connection-related records.
@@ -1757,7 +1757,7 @@ notification better.
 (Karl Wright)
 
 CONNECTORS-884: Log successful index/delete in Solr connector.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-882: Solr connector: Keep all metadata fixed.
 (Alessandro Benedetti, Karl Wright)
@@ -1771,7 +1771,7 @@ to pools when a connection bin is used by multiple pools.
 (Karl Wright)
 
 CONNECTORS-877: Missing Solr i18n key.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-876: Solr indexing exception reports now include the document URI.
 (David Morana, Karl Wright)
@@ -1801,7 +1801,7 @@ to zookeeper.
 
 CONNECTORS-872: Throttling hang for web connector, as well as web
 connector not obeying rate throttling.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-873: SolrCloud now depends on noggit; include this in the
 build and dependencies.
@@ -2050,7 +2050,7 @@ CONNECTORS-791: Broken WHERE clause in job status query.
 (Karl Wright)
 
 CONNECTORS-790: Fix NPE when reading job status via API.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-789: Fix broken metadata field display in SharePoint
 connector UI.
@@ -2116,7 +2116,7 @@ parameters are not parsed correctly.
 (Shinichiro Abe)
 
 CONNECTORS-765: Increase crawler-ui session timeout to 30 minutes.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-764: HOPCOUNTREMOVED records need to be reset when
 a job's hopcount limits change.  It also makes sense to reset them
@@ -2319,7 +2319,7 @@ GoogleDrive connector.
 
 CONNECTORS-693: Support for gzip and deflate encoding for web
 connector.
-(Maciej Li¿ewski, Karl Wright)
+(Maciej LiÂ¿ewski, Karl Wright)
 
 CONNECTORS-694: Add Google Drive connector.
 (Andrew Janowczyk, Karl Wright)
@@ -2343,7 +2343,7 @@ CONNECTORS-696: FileSystem Output Connector.
 
 CONNECTORS-682: Fix expect-continue issues with Solr when there is
 a Solr delay of more than 3 seconds.
-(Oleg Kalnichevski, Erlend Garåsen, Karl Wright)
+(Oleg Kalnichevski, Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-683: Add Dropbox connector end-user documentation.
 (Andrew Janowczyk)
@@ -2353,7 +2353,7 @@ CONNECTORS-586: Fix native2ascii incompatibility with Java 7.
 
 CONNECTORS-685: Handle the case when connector model is
 ADD_CHANGE_DELETE and you change configuration data.
-(Maciej Li¿ewski, Karl Wright)
+(Maciej LiÂ¿ewski, Karl Wright)
 
 CONNECTORS-676: Include DropBox connector.
 (Andrew Janowczyk, Karl Wright)
@@ -2373,7 +2373,7 @@ CONNECTORS-679: Web connector hangs during throttling.  Reason
 appears to be that it is possible to interrupt the beginRead() method
 after it goes into "obtain estimate" mode.  Added code to make it clean
 up in that case.  Also applied to RSS connector.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-677: Close body streams where required.
 (Karl Wright)
@@ -2428,19 +2428,19 @@ CONNECTORS-644: Add support for Livelink SSL connections via LAPI.
 (David Morana, Karl Wright)
 
 CONNECTORS-663: Add support for minimal crawling.
-(Maciej Li¿ewski, Karl Wright)
+(Maciej LiÂ¿ewski, Karl Wright)
 
 CONNECTORS-662: RSS connector now supports ISO8601 dates.
 (David Morana, Karl Wright)
 
 CONNECTORS-661: Turn on expect-continue for solr output.  Otherwise
 basic auth won't work.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-657: Add a standard way of handling created and modified dates
 throughout ManifoldCF, so that these can be dealt with consistently in
 an output connector.
-(Maciej Li¿ewski, Karl Wright)
+(Maciej LiÂ¿ewski, Karl Wright)
 
 CONNECTORS-660: CMIS connector created date and modified date support
 (Piergiorgio Lucidi)
@@ -2481,11 +2481,11 @@ and Meridio connectors.
 
 CONNECTORS-648: Revamp how tld's are used, for compatibility with
 Tomcat.
-(Jan Høydahl)
+(Jan HÃ¸ydahl)
 
 CONNECTORS-647: Add the resource.name hint to the Solr output
 connector.
-(Maciej Li¿ewski, Karl Wright)
+(Maciej LiÂ¿ewski, Karl Wright)
 
 CONNECTORS-623: A better fix, overriding the posting method for
 SolrJ and forcing multipart post.  Although still a hack, this should cause
@@ -2493,10 +2493,10 @@ the behavior to work like MCF 1.0.1 now.
 (Karl Wright)
 
 CONNECTORS-645: Handle null data properly in worker thread.
-(Maciej Li¿ewski, Karl Wright)
+(Maciej LiÂ¿ewski, Karl Wright)
 
 CONNECTORS-644: Restart button did not work.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-643: Fix spurious error report for Elastic Search deletions
 in Simple History.
@@ -2512,11 +2512,11 @@ core/fuzzyml for general use.
 (Karl Wright)
 
 CONNECTORS-639: Maven execute of jetty-runner fails.
-(Maciej Li¿ewski)
+(Maciej LiÂ¿ewski)
 
 CONNECTORS-638: Idle-time leak of database connection handles,
 so that allocation is lost forever from the pool.
-(Erlend Garåsen, Maciej Li¿ewski, Karl Wright)
+(Erlend GarÃ¥sen, Maciej LiÂ¿ewski, Karl Wright)
 
 CONNECTORS-615: Add ability to exclude content based on regexp
 to RSS connector.
@@ -2531,7 +2531,7 @@ CONNECTORS-631: Support Znode path by Solr Output Connection.
 
 CONNECTORS-632: Get mvn-bootstrap scripts working again as
 intended.
-(Maciej Li¿ewski, Karl Wright)
+(Maciej LiÂ¿ewski, Karl Wright)
 
 CONNECTORS-629: Revamp error handling in ElasticSearch connector.
 (Andrew Clegg, Karl Wright)
@@ -2541,7 +2541,7 @@ core crawler UI.
 (Karl Wright)
 
 CONNECTORS-552: Add support for forced metadata in all jobs.
-(Maciej Li¿ewski, Karl Wright)
+(Maciej LiÂ¿ewski, Karl Wright)
 
 CONNECTORS-624: Add indexing via subsidiary thread to OpenSearchServer
 connector.
@@ -2581,7 +2581,7 @@ JDBC connections under some error conditions.
 
 CONNECTORS-619: Include slf4j jars in multiprocess agents classpath.
 This was causing Solrj to not work on multiprocess deployments.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-618: MySQL orders indexes so that NULL values are first.
 This is a problem for the stuffer query, which then must go through
@@ -2678,7 +2678,7 @@ CONNECTORS-543: Add testing infrastructure for combined war.
 (Karl Wright)
 
 CONNECTORS-587: Manual startup did not properly set lastchecktime.
-(Maciej Li¿ewski, Karl Wright)
+(Maciej LiÂ¿ewski, Karl Wright)
 
 CONNECTORS-578: Refactor Livelink connector, and add support for
 general metadata.
@@ -2698,10 +2698,10 @@ connector to httpcomponents.
 (Karl Wright)
 
 CONNECTORS-566: Simple JDBC Authority connector.
-(Maciej Li¿ewski)
+(Maciej LiÂ¿ewski)
 
 CONNECTORS-563: Augment LDAP authority to include new features.
-(Maciej Li¿ewski)
+(Maciej LiÂ¿ewski)
 
 CONNECTORS-580: Remove build of commons-httpclient-mcf, and all
 ant and maven dependencies.
@@ -2720,7 +2720,7 @@ we have.
 
 CONNECTORS-577: Typo in language message properties which cause stack
 traces
-(Erlend Garåsen)
+(Erlend GarÃ¥sen)
 
 CONNECTORS-120: Port ManifoldCF to httpcomponents 4.2.2, from legacy
 commons-httpclient 3.1 (mcf edition).
@@ -2748,7 +2748,7 @@ CONNECTORS-568: Combined web.xml file contains wrong declarations.
 (Swami Rajamohan)
 
 CONNECTORS-562: Some web.xml files contain wrong declarations
-(Alex Ott, Erlend Garåsen)
+(Alex Ott, Erlend GarÃ¥sen)
 
 CONNECTORS-564: Configure velocity to use the ManifoldCF log
 configuration and the logger "velocity".
@@ -2800,11 +2800,11 @@ CONNECTORS-549: Wrong credentials not correctly managed by CMIS Connector
 
 CONNECTORS-548: Update maven build documentation to reflect limitations
 in how maven builds can be done.
-(Erlend Garåsen, Piergiorgio Lucidi, Karl Wright)
+(Erlend GarÃ¥sen, Piergiorgio Lucidi, Karl Wright)
 
 CONNECTORS-547: Web crawler, on encountering fatal error with no
 contents, would throw a StringIndexOutOfRange exception.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-545: web-proprietary wars need to be used by single-
 process proprietary example.
@@ -2828,7 +2828,7 @@ CONNECTORS-538: Maven build broken on SharePoint Connector
 
 CONNECTORS-537: NPE when trying to display a history report when
 the corresponding connector is unregistered.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-533: Do not forgo xxx-README files in connector-lib-proprietary.
 (Karl Wright)
@@ -2869,7 +2869,7 @@ Wiki Connector.  Thanks to Maciej Lizewski for this contribution.
 
 CONNECTORS-486: Optionally encrypt the file which the crawler configuration
 is exported to.
-(Erlend Garåsen)
+(Erlend GarÃ¥sen)
 
 CONNECTORS-523: Build a combined war that can be deployed alone
 on Tomcat and bring all of ManifoldCF's functionality with it.
@@ -3007,7 +3007,7 @@ the i18n work was done on it.
 
 CONNECTORS-461: Mime types and document length restrictions and
 commit option for Solr output connector need documentation
-(Erlend Garåsen)
+(Erlend GarÃ¥sen)
 
 CONNECTORS-483: Add NTLM proxy support for Web Connector.
 (Karl Wright)
@@ -3060,7 +3060,7 @@ Derby 10.8.1.1.
 (Karl Wright)
 
 CONNECTORS-467: Remove outdated taglib directives in web.xml
-(Erlend Garåsen)
+(Erlend GarÃ¥sen)
 
 CONNECTORS-468: Wrap ResourceBundle class so that missing keys
 in a resource bundle are dealt with in a friendlier way.
@@ -3079,7 +3079,7 @@ hopcounts, so that no references to deleted documents remain.
 
 CONNECTORS-462: Change "<" and ">" characters to HTML entities in
 connectors
-(Erlend Garåsen)
+(Erlend GarÃ¥sen)
 
 CONNECTORS-459: Upgrade to require JDK 1.6 across the board.  Get the
 (broken) maven build also working consistently with the ant build.
@@ -3087,7 +3087,7 @@ CONNECTORS-459: Upgrade to require JDK 1.6 across the board.  Get the
 
 CONNECTORS-435: Replace incorrect Messages.getString() calls in the main
 UI with correct ones.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-460: Add multi-domain-controller support to the
 Active Directory authority.
@@ -3107,7 +3107,7 @@ build if they have the wrong svn client (for instance).
 
 CONNECTORS-430: An error should be returned if invalid seeds are typed
 into the seeds list for the web connector
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-449: Fix browser simulator so that UI tests work again.
 (Karl Wright)
@@ -3122,7 +3122,7 @@ how to work with the binary distribution.
 
 CONNECTORS-432: Make sure quotations are in the javascript everywhere,
 not in the translation resources.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-431: Update pom.xml versions.
 (Karl Wright)
@@ -3209,7 +3209,7 @@ name as metadata.
 
 CONNECTORS-427: The default value for "include only host matching seeds"
 should be yes/checked
-(Erlend Garåsen)
+(Erlend GarÃ¥sen)
 
 CONNECTORS-288: Add Elastic Search connector.
 (Luca Stancapiano, Piergiorgio Lucidi, Karl Wright)
@@ -3579,7 +3579,7 @@ assistance!
 
 CONNECTORS-299: Handle Postgresql 9.1's newfound ability to throw
 deadlock conditions on transaction ends.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-298: Improve the SSL error message when no trusted
 certs are found.
@@ -3723,7 +3723,7 @@ RSS connector and Web connector.
 (Karl Wright)
 
 CONNECTORS-202: Add commit-within parameter to Solr output connector.
-(Jan Høydahl, Karl Wright)
+(Jan HÃ¸ydahl, Karl Wright)
 
 CONNECTORS-251: Add target "download-dependencies" to build.xml.
 (Shinichiro Abe)
@@ -3776,7 +3776,7 @@ CONNECTORS-244: Add a fix to recover for another Derby deadlock situation.
 
 CONNECTORS-243: Include most response headers in the metadata for
 each web connector document.
-(Jan Høydahl, Karl Wright)
+(Jan HÃ¸ydahl, Karl Wright)
 
 CONNECTORS-224: Add OpenSearchServer output connector.
 (Emmanuel Keller, Karl Wright)
@@ -3840,11 +3840,11 @@ rapidly.
 
 CONNECTORS-223: Move test classes to be compatible with maven
 conventions.
-(Tobias Rübner, Karl Wright)
+(Tobias RÃ¼bner, Karl Wright)
 
 CONNECTORS-219: Update maven pom.xml files to include proper
 dependencies and version numbers.
-(Tobias Rübner)
+(Tobias RÃ¼bner)
 
 CONNECTORS-220: Fix long-standing issue with database connection
 problems.  Reset logic was insufficiently robust.
@@ -3870,7 +3870,7 @@ CONNECTORS-214: Add output connector support for restricting documents based on
 mime type, URL, and document length.  Hook this up to the web and RSS
 connectors, and add mime type and maximum length fields to the Solr
 connector.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-212: Failure during notify should send job back to
 ReadyForNotify state, not ReadyForDelete state.
@@ -3905,14 +3905,14 @@ work for HSQLDB.
 (Karl Wright)
 
 CONNECTORS-203: Move to Java 1.5 compilation and conventions.
-(Erlend Garåsen, Tommaso Teofili, Karl Wright et al)
+(Erlend GarÃ¥sen, Tommaso Teofili, Karl Wright et al)
 
 CONNECTORS-201: Add activity interface ICarrydownActivity to allow
 sharing of functionality across IVersionActivity and IProcessActivity.
 (Karl Wright)
 
 CONNECTORS-200: Interpret TikaExceptions as being permanent failures.
-(Erlend Garåsen, Shinichiro Abe, Karl Wright)
+(Erlend GarÃ¥sen, Shinichiro Abe, Karl Wright)
 
 CONNECTORS-199: Modify site to point to new 0.2-incubating release.
 (Karl Wright)
@@ -3927,11 +3927,11 @@ test-output-postgresql folders.
 
 CONNECTORS-174: The standard logging.ini file for the Quick Start should
 set a log format that includes at least date and time.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-194: Forrest doc build always gets an error because of relative
 references to javadoc roots.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-196: Active directory authority did not work if login name
 and common name differed.
@@ -4006,7 +4006,7 @@ corrupt entity references.
 Release Date:  See http://incubator.apache.org/connectors for the official release date.
 
 CONNECTORS-188: Change the eol-style attribute to LF for all the .sh files.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 Web site updated to reflect proposed release.
 
@@ -4032,7 +4032,7 @@ to handle non-XML responses
 (Fuad Efendi, Karl Wright)
 
 CONNECTORS-159: Add support for external PostgreSQL server
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-165: Upgrade to jetty 6.1.26, plus patches, which is what
 Solr is using.
@@ -4074,7 +4074,7 @@ a parameter for the password when creating a user.
 (Nicolas Max, Karl Wright)
 
 CONNECTORS-153: Add support for robots meta tag to web connector.
-(Erlend Garåsen, Karl Wright)
+(Erlend GarÃ¥sen, Karl Wright)
 
 CONNECTORS-152: Refactor notification thread and states to make the framework
 more resilient.
