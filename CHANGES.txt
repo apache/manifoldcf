@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.16-dev =====================
 
+CONNECTORS-1624: Correct issues with Java 11.  Thanks to Cihad Guzel for driving
+this work!
+(Cihad Guzel)
+
 CONNECTORS-1639: Bring the version of the ES service used for testing up to date.
 (Karl Wright, Michael Cizmar)
 
