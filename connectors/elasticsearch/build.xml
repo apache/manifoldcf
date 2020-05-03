@@ -30,31 +30,42 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
-    <property name="elasticsearch.version" value="1.0.1"/>
+    <property name="elasticsearch.version" value="7.6.2"/>
+    <property name="elasticsearch.mapper-attachments.version" value="3.1.2"/>
 
-    <target name="download-dependencies">
-        
+    <condition property="isWindows">
+        <os family="windows" />
+    </condition>
+    <condition property="isUnix">
+        <os family="unix" />
+    </condition>
+
+    <target name="download-elasticsearch-unix" if="isUnix">
         <mkdir dir="build/download"/>
-        <get src="http://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-${elasticsearch.version}.tar.gz" 
+        <get src="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${elasticsearch.version}-linux-x86_64.tar.gz" 
             dest="build/download/elasticsearch.tar.gz"/>
         <gunzip src="build/download/elasticsearch.tar.gz"/>
-        <untar src="build/download/elasticsearch.tar" dest="test-materials"/>
-        
-        <!-- download and install the attachment plugin -->
-        <mkdir dir="test-materials/elasticsearch-${elasticsearch.version}/plugins"/>
-        
-        <get src="https://github.com/elasticsearch/elasticsearch-mapper-attachments/archive/v2.0.0.RC1.zip" 
-            dest="test-materials/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments.zip"/>
-        
-        <unzip src="test-materials/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments.zip" dest="test-materials/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments"/>
-
-        <chmod dir="test-materials/elasticsearch-${elasticsearch.version}" perm="ugo+rxw">
+        <mkdir dir="test-materials/unix"/>
+        <untar src="build/download/elasticsearch.tar" dest="test-materials/unix"/>
+        <chmod dir="test-materials/unix/elasticsearch-${elasticsearch.version}" perm="ugo+rxw">
             <fileset dir="**/*"/>
         </chmod>
-        <chmod file="test-materials/elasticsearch-${elasticsearch.version}/bin/plugin" perm="ugo+rx"/>
-        <chmod file="test-materials/elasticsearch-${elasticsearch.version}/bin/elasticsearch" perm="ugo+rx"/>
-        <chmod file="test-materials/elasticsearch-${elasticsearch.version}/bin/elasticsearch.in.sh" perm="ugo+rx"/>
-      
+        <chmod file="test-materials/unix/elasticsearch-${elasticsearch.version}/bin/elasticsearch" perm="ugo+rx"/>
+
+    </target>
+
+    <target name="download-elasticsearch-windows" if="isWindows">
+        <mkdir dir="build/download"/>
+        <get src="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${elasticsearch.version}-windows-x86_64.zip" 
+            dest="build/download/elasticsearch.zip"/>
+        <mkdir dir="test-materials/windows"/>
+        <unzip src="build/download/elasticsearch.zip" dest="test-materials/windows"/>
+    </target>
+
+    <target name="download-elasticsearch" depends="download-elasticsearch-unix,download-elasticsearch-windows">
+    </target>
+    
+    <target name="download-dependencies" depends="download-elasticsearch">
     </target>
 
     <target name="download-cleanup">
@@ -74,21 +85,20 @@
         </copy>
     </target>
 
-    <target name="calculate-testcode-condition">
-        <available file="test-materials/elasticsearch-${elasticsearch.version}" property="tests-present"/>
+    <target name="calculate-testcode-condition-unix" if="isUnix">
+        <available file="test-materials/unix/elasticsearch-${elasticsearch.version}" property="tests-present"/>
+    </target>
+    
+    <target name="calculate-testcode-condition-windows" if="isWindows">
+        <available file="test-materials/windows/elasticsearch-${elasticsearch.version}" property="tests-present"/>
+    </target>
+    
+    <target name="calculate-testcode-condition" depends="calculate-testcode-condition-unix,calculate-testcode-condition-windows">
     </target>
 
     <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
         <echo message="Need ElasticSearch download in order to compile tests - run ant make-deps"/>
     </target>
-
-    <path id="connector-test-classpath">
-        <path refid="mcf-connector-build.connector-test-classpath"/>
-        <fileset dir="test-materials/elasticsearch-${elasticsearch.version}">
-            <include name="lib/*.jar"/>
-        	  <include name="plugins/mapper-attachments/*.jar"/>
-        </fileset>
-    </path>
 
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-output-connector">

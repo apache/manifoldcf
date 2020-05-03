@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.16-dev =====================
 
+CONNECTORS-1639: Bring the version of the ES service used for testing up to date.
+(Karl Wright, Michael Cizmar)
+
 CONNECTORS-1637: Add Confluence V6+ connector.  Thanks to Julien Massiera
 for the contribution!
 (Julien Massiera)

@@ -18,7 +18,6 @@
 */
 package org.apache.manifoldcf.agents.output.elasticsearch.tests;
 
-import org.elasticsearch.node.Node;
 import org.junit.After;
 import org.junit.Before;
 
@@ -26,7 +25,15 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
 
-import static org.elasticsearch.node.NodeBuilder.*;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.HttpEntity;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.impl.client.HttpClients;
+import java.io.IOException;
+import java.io.File;
+  
 
 /**  
  *  Base integration tests class for Elastic Search tested against a CMIS repository
@@ -35,7 +42,16 @@ import static org.elasticsearch.node.NodeBuilder.*;
  * */
 public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB
 {
-  protected Node node = null;
+
+  final static boolean isUnix;
+  static {
+    final String os = System.getProperty("os.name").toLowerCase();
+    if (os.contains("win")) {
+      isUnix = false;
+    } else {
+      isUnix = true;
+    }
+  }
 
   protected String[] getConnectorNames()
   {
@@ -57,22 +73,73 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
     return new String[]{"org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnector"};
   }
 
+  Process esTestProcess = null;
+  
   @Before
   public void setupElasticSearch()
     throws Exception
   {
-    //Initialize ElasticSearch server
-    //the default port is 9200
+    final ProcessBuilder pb = new ProcessBuilder();
+    
+    final File absFile = new File(".").getAbsoluteFile();
+    System.out.println("ES working directory is '"+absFile+"'");
+    pb.directory(absFile);
+    
+    if (isUnix) {
+      pb.command("bash", "-c", "../test-materials/unix/elasticsearch-7.6.2/bin/elasticsearch -q");
+      System.out.println("Unix process");
+    } else {
+      pb.command("cmd.exe", "/c", "..\\test-materials\\windows\\elasticsearch-7.6.2\\bin\\elasticsearch.bat -q");
+      System.out.println("Windows process");
+    }
+
+    File log = new File("es.log");
+    pb.redirectErrorStream(true);
+    pb.redirectOutput(ProcessBuilder.Redirect.appendTo(log));
+    esTestProcess = pb.start();
     System.out.println("ElasticSearch is starting...");
-    node = nodeBuilder().local(true).node();
+    //the default port is 9200
+    
+    waitForElasticSearch();
+    
     System.out.println("ElasticSearch is started on port 9200");
   }
   
+  public void waitForElasticSearch() {
+    for (int i = 0 ; i < 10000 ; i++) {
+      CloseableHttpClient httpclient = HttpClients.createDefault();
+      HttpGet httpGet = new HttpGet("http://127.0.0.1:9200");
+      try {
+        CloseableHttpResponse response1 = httpclient.execute(httpGet);
+        try {
+          System.out.println("Response from ES: "+response1.getStatusLine());
+          HttpEntity entity1 = response1.getEntity();
+          // do something useful with the response body
+          // and ensure it is fully consumed
+          EntityUtils.consume(entity1);
+        } finally {
+          response1.close();
+        }
+        System.out.println("ES came up!");
+        return;
+      } catch (IOException e) {
+        // Wait 500ms and try again
+        System.out.println("Didn't reach ES; waiting...");
+        try {
+          Thread.sleep(500);
+        } catch (InterruptedException e1) {
+          break;
+        }
+      }
+    }
+    throw new IllegalStateException("ES didn't come up.");
+  }
   
   @After
   public void cleanUpElasticSearch(){
-    if(node!=null)
-      node.close();
+    if (esTestProcess != null) {
+      esTestProcess.destroy();
+    }
   }
   
 }
