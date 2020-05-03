@@ -32,6 +32,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.impl.client.HttpClients;
 import java.io.IOException;
+import java.io.File;
   
 
 /**  
@@ -78,23 +79,26 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
   public void setupElasticSearch()
     throws Exception
   {
+    final ProcessBuilder pb = new ProcessBuilder();
+    
+    final File absFile = new File(".").getAbsoluteFile();
+    System.out.println("ES working directory is '"+absFile+"'");
+    pb.directory(absFile);
+    
+    if (isUnix) {
+      pb.command("bash", "-c", "../test-materials/elasticsearch-7.6.2/bin/elasticsearch -q");
+      System.out.println("Unix process");
+    } else {
+      pb.command("cmd.exe", "..\\test-materials\\elasticsearch-7.6.2\\bin\\elasticsearch.bat -q");
+      System.out.println("Windows process");
+    }
+
+    File log = new File("log");
+    pb.redirectErrorStream(true);
+    pb.redirectOutput(ProcessBuilder.Redirect.appendTo(log));
+    esTestProcess = pb.start();
     System.out.println("ElasticSearch is starting...");
     //the default port is 9200
-
-    // Call the test-materials script in the appropriate way
-    if (isUnix) {
-      esTestProcess = Runtime.getRuntime().exec(new String[]{
-        "bash", 
-        "test-materials/elasticsearch-7.6.2/bin/elasticsearch",
-        "-q"},
-        null);
-    } else {
-      esTestProcess = Runtime.getRuntime().exec(new String[]{
-        "cmd", 
-        "test-materials/elasticsearch-7.6.2/bin/elasticsearch.bat",
-        "-q"},
-        null);
-    }
     
     waitForElasticSearch();
     
