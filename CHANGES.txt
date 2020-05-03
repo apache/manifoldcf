@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.16-dev =====================
+======================= Release 2.16 =====================
 
 CONNECTORS-1624: Correct issues with Java 11.  Thanks to Cihad Guzel for driving
 this work!
