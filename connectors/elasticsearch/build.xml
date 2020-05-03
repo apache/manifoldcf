@@ -40,23 +40,6 @@
         <os family="unix" />
     </condition>
 
-    <target name="download-mapper-attachments">
-        <property name="elasticsearch-package" value="org/elasticsearch"/>
-        
-        <!-- download and install the attachment plugin -->
-        <mkdir dir="test-materials/elasticsearch-${elasticsearch.version}/plugins"/>
-
-        <antcall target="download-via-maven">
-            <param name="project-path" value="${elasticsearch-package}"/>
-            <param name="artifact-version" value="${elasticsearch.mapper-attachments.version}"/>
-            <param name="target" value="build/download"/>
-            <param name="artifact-name" value="elasticsearch-mapper-attachments"/>
-            <param name="artifact-type" value="zip"/>
-        </antcall>
-
-        <unzip src="build/downloads/elasticsearch-${elasticsearch.mapper-attachments.version}/elasticsearch-mapper-attachments-${elasticsearch.mapper-attachments.version}.zip" dest="test-materials/elasticsearch-${elasticsearch.version}/plugins/mapper-attachments"/>
-    </target>
-
     <target name="download-elasticsearch-unix" if="isUnix">
         <mkdir dir="build/download"/>
         <get src="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${elasticsearch.version}-linux-x86_64.tar.gz" 
@@ -75,13 +58,11 @@
     <target name="download-elasticsearch" depends="download-elasticsearch-unix,download-elasticsearch-windows">
     </target>
     
-    <target name="download-dependencies" depends="download-mapper-attachments,download-elasticsearch">
+    <target name="download-dependencies" depends="download-elasticsearch">
         <chmod dir="test-materials/elasticsearch-${elasticsearch.version}" perm="ugo+rxw">
             <fileset dir="**/*"/>
         </chmod>
-        <chmod file="test-materials/elasticsearch-${elasticsearch.version}/bin/plugin" perm="ugo+rx"/>
         <chmod file="test-materials/elasticsearch-${elasticsearch.version}/bin/elasticsearch" perm="ugo+rx"/>
-        <chmod file="test-materials/elasticsearch-${elasticsearch.version}/bin/elasticsearch.in.sh" perm="ugo+rx"/>
     </target>
 
     <target name="download-cleanup">

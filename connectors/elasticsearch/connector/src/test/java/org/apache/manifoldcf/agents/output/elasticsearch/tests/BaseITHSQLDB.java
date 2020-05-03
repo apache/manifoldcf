@@ -93,7 +93,7 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
       System.out.println("Windows process");
     }
 
-    File log = new File("log");
+    File log = new File("es.log");
     pb.redirectErrorStream(true);
     pb.redirectOutput(ProcessBuilder.Redirect.appendTo(log));
     esTestProcess = pb.start();
@@ -106,9 +106,9 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
   }
   
   public void waitForElasticSearch() {
-    for (int i = 0 ; i < 10 ; i++) {
+    for (int i = 0 ; i < 10000 ; i++) {
       CloseableHttpClient httpclient = HttpClients.createDefault();
-      HttpGet httpGet = new HttpGet("http://127.0.0.1:9200/");
+      HttpGet httpGet = new HttpGet("http://127.0.0.1:9200");
       try {
         CloseableHttpResponse response1 = httpclient.execute(httpGet);
         try {
