@@ -45,24 +45,27 @@
         <get src="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${elasticsearch.version}-linux-x86_64.tar.gz" 
             dest="build/download/elasticsearch.tar.gz"/>
         <gunzip src="build/download/elasticsearch.tar.gz"/>
-        <untar src="build/download/elasticsearch.tar" dest="test-materials"/>
+        <mkdir dir="test-materials/unix"/>
+        <untar src="build/download/elasticsearch.tar" dest="test-materials/unix"/>
+        <chmod dir="test-materials/unix/elasticsearch-${elasticsearch.version}" perm="ugo+rxw">
+            <fileset dir="**/*"/>
+        </chmod>
+        <chmod file="test-materials/unix/elasticsearch-${elasticsearch.version}/bin/elasticsearch" perm="ugo+rx"/>
+
     </target>
 
     <target name="download-elasticsearch-windows" if="isWindows">
         <mkdir dir="build/download"/>
-        <get src="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${elasticsearch.version}-windows-x86_64.tar.gz" 
+        <get src="https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-${elasticsearch.version}-windows-x86_64.zip" 
             dest="build/download/elasticsearch.zip"/>
-        <unzip src="build/download/elasticsearch.zip" dest="test-materials"/>
+        <mkdir dir="test-materials/windows"/>
+        <unzip src="build/download/elasticsearch.zip" dest="test-materials/windows"/>
     </target>
 
     <target name="download-elasticsearch" depends="download-elasticsearch-unix,download-elasticsearch-windows">
     </target>
     
     <target name="download-dependencies" depends="download-elasticsearch">
-        <chmod dir="test-materials/elasticsearch-${elasticsearch.version}" perm="ugo+rxw">
-            <fileset dir="**/*"/>
-        </chmod>
-        <chmod file="test-materials/elasticsearch-${elasticsearch.version}/bin/elasticsearch" perm="ugo+rx"/>
     </target>
 
     <target name="download-cleanup">
@@ -82,21 +85,20 @@
         </copy>
     </target>
 
-    <target name="calculate-testcode-condition">
-        <available file="test-materials/elasticsearch-${elasticsearch.version}" property="tests-present"/>
+    <target name="calculate-testcode-condition-unix" if="isUnix">
+        <available file="test-materials/unix/elasticsearch-${elasticsearch.version}" property="tests-present"/>
+    </target>
+    
+    <target name="calculate-testcode-condition-windows" if="isWindows">
+        <available file="test-materials/windows/elasticsearch-${elasticsearch.version}" property="tests-present"/>
+    </target>
+    
+    <target name="calculate-testcode-condition" depends="calculate-testcode-condition-unix,calculate-testcode-condition-windows">
     </target>
 
     <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
         <echo message="Need ElasticSearch download in order to compile tests - run ant make-deps"/>
     </target>
-
-    <path id="connector-test-classpath">
-        <path refid="mcf-connector-build.connector-test-classpath"/>
-        <fileset dir="test-materials/elasticsearch-${elasticsearch.version}">
-            <include name="lib/*.jar"/>
-        	  <include name="plugins/mapper-attachments/*.jar"/>
-        </fileset>
-    </path>
 
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-output-connector">
