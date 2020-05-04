@@ -75,7 +75,7 @@ import com.google.common.collect.Maps;
  * ManifoldCF Repository connector to deal with Confluence documents
  * </p>
  *
- * @author Julien Massiera & Antonio David Perez Morales
+ * @author Julien Massiera &amp; Antonio David Perez Morales
  *
  */
 public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {

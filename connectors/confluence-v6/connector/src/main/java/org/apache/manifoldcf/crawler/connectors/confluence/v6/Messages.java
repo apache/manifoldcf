@@ -34,7 +34,7 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
  * Also used to get messages for specific Locales
  * </p>
  *
- * @author Julien Massiera & Antonio David Perez Morales
+ * @author Julien Massiera &amp; Antonio David Perez Morales
  *
  */
 public class Messages extends org.apache.manifoldcf.ui.i18n.Messages {

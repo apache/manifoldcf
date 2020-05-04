@@ -25,7 +25,7 @@ package org.apache.manifoldcf.crawler.connectors.confluence.v6;
  * Class used to keep configuration parameters for Confluence repository connection
  * </p>
  *
- * @author Julien Massiera & Antonio David Perez Morales
+ * @author Julien Massiera &amp; Antonio David Perez Morales
  *
  */
 public class ConfluenceConfiguration {
