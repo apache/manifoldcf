@@ -124,7 +124,7 @@ public class ConfluenceAuthorityConnector extends BaseAuthorityConnector {
   /**
    * Used Mainly for testing
    * 
-   * @param client Injected Confluence Client
+   * @param cm
    */
   public void setCacheManager(ICacheManager cm){
     this.cacheManager = cm;
