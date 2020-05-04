@@ -89,7 +89,7 @@ import com.google.common.collect.Lists;
  * will have to use them to leverage all the features provided by Confluence
  * </p>
  *
- * @author Julien Massiera & Antonio David Perez Morales;
+ * @author Julien Massiera &amp; Antonio David Perez Morales;
  *
  */
 public class ConfluenceClient {
