@@ -60,11 +60,10 @@
         </antcall>
     </target>
 	
-    <property name="embedded-mongodb.version.label" value="2.1.2"/>
-    <property name="embedded-mongodb.version.snapshot" value="20180621.063700-1" />
+    <property name="embedded-mongodb.version.label" value="2.2.0"/>
     <property name="embedded-mongodb.artifactId" value="de.flapdoodle.embed.mongo"/>
     <property name="embedded-mongodb-package" value="de/flapdoodle/embed"/>    
-    <property name="embedded-mongodb.snapshot-jar" value="${embedded-mongodb.artifactId}-${embedded-mongodb.version.label}-${embedded-mongodb.version.snapshot}.jar"/>
+    <property name="embedded-mongodb.snapshot-jar" value="${embedded-mongodb.artifactId}-${embedded-mongodb.version.label}.jar"/>
 
     <property name="embedded-mongodb.process.version.label" value="2.0.5"/>
     <property name="embedded-mongodb.process.artifactId" value="de.flapdoodle.embed.process"/>
@@ -87,9 +86,8 @@
     </target>
 	
     <target name="download-dependencies">
-      <property name="sonatype-maven-repo-snapshots" value="https://oss.sonatype.org/content/repositories/snapshots" />
       <property name="sonatype-maven-repo-releases" value="https://oss.sonatype.org/content/repositories/public" />
-      <get src="${sonatype-maven-repo-snapshots}/${embedded-mongodb-package}/${embedded-mongodb.artifactId}/${embedded-mongodb.version.label}-SNAPSHOT/${embedded-mongodb.snapshot-jar}" dest="test-materials/${embedded-mongodb.snapshot-jar}"/>
+      <get src="${sonatype-maven-repo-releases}/${embedded-mongodb-package}/${embedded-mongodb.artifactId}/${embedded-mongodb.version.label}/${embedded-mongodb.snapshot-jar}" dest="test-materials/${embedded-mongodb.snapshot-jar}"/>
       <get src="${sonatype-maven-repo-releases}/${embedded-mongodb.process-package}/${embedded-mongodb.process.artifactId}/${embedded-mongodb.process.version.label}/${embedded-mongodb.process.jar}" dest="test-materials/${embedded-mongodb.process.jar}"/>
     </target>
 
