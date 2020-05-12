@@ -686,7 +686,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     query.append(" WHEN 'bpchar' THEN 'char(' || pg_attribute.atttypmod-4 || ')'");
     query.append(" ELSE pg_type.typname END AS \"Type\",");
     query.append("CASE WHEN pg_attribute.attnotnull THEN '' ELSE 'YES' END AS \"Null\",");
-    query.append("CASE pg_type.typname WHEN 'varchar' THEN substring(pg_attrdef.adsrc from '^(.*).*$') ELSE pg_attrdef.adsrc END AS Default ");
+    query.append("CASE pg_type.typname WHEN 'varchar' THEN substring(pg_get_expr(pg_attrdef.adbin, pg_attrdef.adrelid) from '^(.*).*$') ELSE pg_get_expr(pg_attrdef.adbin, pg_attrdef.adrelid) END AS Default ");
     query.append("FROM pg_class INNER JOIN pg_attribute ON (pg_class.oid=pg_attribute.attrelid) INNER JOIN pg_type ON (pg_attribute.atttypid=pg_type.oid) ");
     query.append("LEFT JOIN pg_attrdef ON (pg_class.oid=pg_attrdef.adrelid AND pg_attribute.attnum=pg_attrdef.adnum) ");
     query.append("WHERE pg_class.relname=? AND pg_attribute.attnum>=1 AND NOT pg_attribute.attisdropped ");
