@@ -473,7 +473,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
 
       if (groupSearch != null && !groupSearch.isEmpty()) {
         //specify the LDAP search filter
-        String searchFilter = groupSearch.replaceAll("\\{0\\}", escapeLDAPSearchFilter(groupMemberDN ? usrRecord.getNameInNamespace() : usrName));
+        String searchFilter = groupSearch.replace("{0}", escapeLDAPSearchFilter(groupMemberDN ? usrRecord.getNameInNamespace() : usrName));
         SearchControls searchCtls = new SearchControls();
         searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
         String returnedAtts[] = {groupNameAttr};
