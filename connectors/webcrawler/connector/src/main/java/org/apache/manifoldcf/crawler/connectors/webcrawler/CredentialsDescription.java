@@ -129,21 +129,22 @@ public class CredentialsDescription
                 {
                   throw new ManifoldCFException("Match regular expression '"+matchRegexp+"' is illegal: "+e.getMessage(),e);
                 }
+                int authPageIndex = -1;
                 if (pageType.equals(WebcrawlerConfig.ATTRVALUE_FORM))
                 {
-                  sc.addAuthPage(authPageRegexp,authPattern,overrideTargetURL,null,null,matchRegexp,matchPattern,null,null,null,null);
+                  authPageIndex = sc.addAuthPage(authPageRegexp,authPattern,overrideTargetURL,null,null,matchRegexp,matchPattern,null,null,null,null);
                 }
                 else if (pageType.equals(WebcrawlerConfig.ATTRVALUE_LINK))
                 {
-                  sc.addAuthPage(authPageRegexp,authPattern,overrideTargetURL,matchRegexp,matchPattern,null,null,null,null,null,null);
+                  authPageIndex = sc.addAuthPage(authPageRegexp,authPattern,overrideTargetURL,matchRegexp,matchPattern,null,null,null,null,null,null);
                 }
                 else if (pageType.equals(WebcrawlerConfig.ATTRVALUE_REDIRECTION))
                 {
-                  sc.addAuthPage(authPageRegexp,authPattern,overrideTargetURL,null,null,null,null,matchRegexp,matchPattern,null,null);
+                  authPageIndex = sc.addAuthPage(authPageRegexp,authPattern,overrideTargetURL,null,null,null,null,matchRegexp,matchPattern,null,null);
                 }
                 else if (pageType.equals(WebcrawlerConfig.ATTRVALUE_CONTENT))
                 {
-                  sc.addAuthPage(authPageRegexp,authPattern,overrideTargetURL,null,null,null,null,null,null,matchRegexp,matchPattern);
+                  authPageIndex = sc.addAuthPage(authPageRegexp,authPattern,overrideTargetURL,null,null,null,null,null,null,matchRegexp,matchPattern);
                 }
                 else
                   throw new ManifoldCFException("Invalid page type: "+pageType);
@@ -169,7 +170,7 @@ public class CredentialsDescription
                     String paramValue = paramNode.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
                     if (passwordValue != null)
                       paramValue = ManifoldCF.deobfuscate(passwordValue);
-                    sc.addPageParameter(authPageRegexp,paramName,paramNamePattern,paramValue);
+                    sc.addPageParameter(authPageIndex,authPageRegexp,paramName,paramNamePattern,paramValue);
                   }
                 }
               }
@@ -514,17 +515,16 @@ public class CredentialsDescription
   /** LoginParameter iterator */
   protected static class LoginParameterIterator implements Iterator
   {
-    protected Map sessionPages;
-    protected Iterator sessionPageIterator;
-    protected String documentIdentifier;
+    protected final List<SessionCredentialItem> sessionPages;
+    protected final String documentIdentifier;
+    protected int sessionCredentialIndex = -1;
     protected LoginParameters currentOne = null;
 
     /** Constructor */
-    public LoginParameterIterator(Map sessionPages, String documentIdentifier)
+    public LoginParameterIterator(List<SessionCredentialItem> sessionPages, String documentIdentifier)
     {
       this.sessionPages = sessionPages;
       this.documentIdentifier = documentIdentifier;
-      this.sessionPageIterator = sessionPages.keySet().iterator();
     }
 
     /** Find next one */
@@ -532,20 +532,24 @@ public class CredentialsDescription
     {
       if (currentOne != null)
         return;
-      while (sessionPageIterator.hasNext())
+      if (sessionCredentialIndex == -1) {
+        sessionCredentialIndex = 0;
+      }
+      while (sessionCredentialIndex < sessionPages.size())
       {
-        String key = (String)sessionPageIterator.next();
-        SessionCredentialItem sci = (SessionCredentialItem)sessionPages.get(key);
+        SessionCredentialItem sci = sessionPages.get(sessionCredentialIndex);
         Matcher m = sci.getPattern().matcher(documentIdentifier);
         if (m.find())
         {
           currentOne = sci;
           return;
         }
+        sessionCredentialIndex++;
       }
     }
 
     /** Check for next */
+    @Override
     public boolean hasNext()
     {
       findNextOne();
@@ -553,6 +557,7 @@ public class CredentialsDescription
     }
 
     /** Get the next one */
+    @Override
     public Object next()
     {
       findNextOne();
@@ -561,6 +566,7 @@ public class CredentialsDescription
       return rval;
     }
 
+    @Override
     public void remove()
     {
       throw new Error("Unimplemented function");
@@ -570,8 +576,8 @@ public class CredentialsDescription
   /** Session credentials */
   protected static class SessionCredential implements SequenceCredentials
   {
-    protected String sequenceKey;
-    protected Map sessionPages = new HashMap();
+    protected final String sequenceKey;
+    protected final List<SessionCredentialItem> sessionPages = new ArrayList<>();
 
     /** Constructor */
     public SessionCredential(String sequenceKey)
@@ -580,7 +586,7 @@ public class CredentialsDescription
     }
 
     /** Add an auth page */
-    public void addAuthPage(String urlregexp, Pattern urlPattern,
+    public int addAuthPage(String urlregexp, Pattern urlPattern,
       String overrideTargetURL,
       String preferredLinkRegexp, Pattern preferredLinkPattern,
       String formNameRegexp, Pattern formNamePattern,
@@ -588,23 +594,26 @@ public class CredentialsDescription
       String contentRegexp, Pattern contentPattern)
       throws ManifoldCFException
     {
-      sessionPages.put(urlregexp,new SessionCredentialItem(urlregexp,urlPattern,
+      int rval = sessionPages.size();
+      sessionPages.add(new SessionCredentialItem(urlregexp,urlPattern,
 	overrideTargetURL,
         preferredLinkRegexp,preferredLinkPattern,
         formNameRegexp,formNamePattern,
         preferredRedirectionRegexp,preferredRedirectionPattern,
 	contentRegexp,contentPattern));
+      return rval;
     }
 
     /** Add a page parameter */
-    public void addPageParameter(String urlregexp, String paramNameRegexp, Pattern paramNamePattern, String paramValue)
+    public void addPageParameter(int authPageIndex, String urlregexp, String paramNameRegexp, Pattern paramNamePattern, String paramValue)
     {
-      SessionCredentialItem sci = (SessionCredentialItem)sessionPages.get(urlregexp);
+      SessionCredentialItem sci = sessionPages.get(authPageIndex);
       sci.addParameter(paramNameRegexp,paramNamePattern,paramValue);
     }
 
     /** Fetch the unique key value for this particular credential.  (This is used to enforce the proper page ordering).
     */
+    @Override
     public String getSequenceKey()
     {
       return sequenceKey;
@@ -614,6 +623,7 @@ public class CredentialsDescription
     * must be specified as part of the login sequence description information.
     * If null is returned, then this page has no specific login information.
     */
+    @Override
     public Iterator findLoginParameters(String documentIdentifier)
       throws ManifoldCFException
     {
@@ -628,12 +638,9 @@ public class CredentialsDescription
       SessionCredential b = (SessionCredential)o;
       if (b.sessionPages.size() != sessionPages.size())
         return false;
-      Iterator iter = sessionPages.keySet().iterator();
-      while (iter.hasNext())
-      {
-        String key = (String)iter.next();
-        SessionCredentialItem sci = (SessionCredentialItem)sessionPages.get(key);
-        SessionCredentialItem bsci = (SessionCredentialItem)b.sessionPages.get(key);
+      for (int i = 0; i < sessionPages.size(); i++) {
+        SessionCredentialItem sci = sessionPages.get(i);
+        SessionCredentialItem bsci = b.sessionPages.get(i);
         if (bsci == null)
           return false;
         if (!sci.equals(bsci))
@@ -646,11 +653,7 @@ public class CredentialsDescription
     public int hashCode()
     {
       int rval = 0;
-      Iterator iter = sessionPages.keySet().iterator();
-      while (iter.hasNext())
-      {
-        String key = (String)iter.next();
-        SessionCredentialItem sci = (SessionCredentialItem)sessionPages.get(key);
+      for (final SessionCredentialItem sci : sessionPages) {
         rval += sci.hashCode();
       }
       return rval;
