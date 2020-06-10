@@ -534,6 +534,8 @@ public class CredentialsDescription
         return;
       if (sessionCredentialIndex == -1) {
         sessionCredentialIndex = 0;
+      } else {
+        sessionCredentialIndex++;
       }
       while (sessionCredentialIndex < sessionPages.size())
       {
