@@ -28,7 +28,8 @@
     <defaultexcludes add="**/*.patch"/>   
     <defaultexcludes add="**/*.iml"/> 
     <defaultexcludes add="**/.idea/**"/> 
-    
+
+    <property name="javax-activation.version" value="1.2.0"/>
     <property name="hsqldb.version" value="2.3.2"/>
     <property name="jetty.version" value="9.2.3.v20140905"/>
     <property name="httpclient.version" value="4.5.8"/>
@@ -1021,6 +1022,24 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
+    <target name="download-jdk11-materials">
+        <mkdir dir="lib"/>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="javax/activation"/>
+            <param name="artifact-version" value="${javax-activation.version}"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="javax.activation-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="project-path" value="com/sun/activation"/>
+            <param name="artifact-version" value="${javax-activation.version}"/>
+            <param name="target" value="lib"/>
+            <param name="artifact-name" value="javax.activation"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+    
     <target name="download-hsqldb">
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
@@ -3032,7 +3051,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
     </target>
 
-    <target name="make-core-deps" depends="download-less-compiler,download-forbidden-checks,download-nuxeo-client,download-json-simple,download-selenium,download-kafka-client,download-joda-time,download-aws-sdk,download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
+    <target name="make-core-deps" depends="download-less-compiler,download-forbidden-checks,download-nuxeo-client,download-json-simple,download-selenium,download-kafka-client,download-joda-time,download-aws-sdk,download-resteasy,download-jsoup,download-mockito,download-alfresco-webscript-plugin,download-alfresco-indexer-client,download-mongo-java-driver,download-jira-client,download-google-api-client,download-dropbox-client,download-solrj,download-zookeeper,download-httpcomponents,download-jdk11-materials,download-hsqldb,download-xerces,download-commons,download-elasticsearch-plugin,download-solr-plugins,download-sharepoint-plugins,download-jstl,download-xmlgraphics-commons,download-woodstox,download-xmlsec,download-xml-apis,download-wss4j,download-velocity,download-streambuffer,download-stax,download-servlet-api,download-xml-resolver,download-osgi,download-opensaml,download-mimepull,download-mail,download-log4j,download-junit,download-jaxws,download-glassfish,download-jaxb,download-tomcat,download-h2,download-h2-support,download-geronimo-specs,download-fop,download-postgresql,download-axis,download-saaj,download-wsdl4j,download-castor,download-jetty,download-slf4j,download-xalan,download-activation,download-avalon-framework,download-poi,download-chemistry,download-ecj,download-hadoop,download-htrace,download-protobuf,download-tika,download-jackson">
         <copy todir="lib">
             <fileset dir="lib-license" includes="*.txt"/>
         </copy>

@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.17-dev =====================
 
+CONNECTORS-1646: Include javax.activation jars in root classpath.
+(Uwe Wolfinger, Karl Wright)
+
 CONNECTORS-1645: Web connector collision of page descriptions in login sequence.
 (Julien Massiera, Karl Wright)
 

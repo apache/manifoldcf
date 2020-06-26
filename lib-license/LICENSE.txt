@@ -203,6 +203,10 @@ including, but not limited to:
 This product includes a number of slf4j jars.
 License: MIT/X11 license
 
+This product includes a javax.activation-api.jar and a javax.activation.jar.
+License: DUAL Common Development and Distribution License (CDDL) v1.0 (https://glassfish.dev.java.net/public/CDDLv1.0.html), GPL 2.0.
+Distributed under terms of CDDL 1.0.
+
 This product includes a postgresql.jar: http://jdbc.postgresql.org
 License: BSD License (http://jdbc.postgresql.org/license.html)
 

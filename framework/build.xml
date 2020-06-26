@@ -77,6 +77,9 @@
             <include name="jna*.jar"/>
         </fileset>
         <fileset dir="../lib">
+            <include name="javax.activation*.jar"/>
+        </fileset>
+        <fileset dir="../lib">
             <include name="postgresql*.jar"/>
             <include name="hsqldb*.jar"/>
         </fileset>
@@ -527,6 +530,9 @@
                 <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
+                <include name="javax.activation*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
@@ -571,6 +577,9 @@
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
                 <include name="jna*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="javax.activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -625,6 +634,9 @@
                 <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
+                <include name="javax.activation*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
@@ -670,6 +682,9 @@
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
                 <include name="jna*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="javax.activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -725,6 +740,9 @@
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
                 <include name="jna*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="javax.activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -784,6 +802,9 @@
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
                 <include name="jna*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="javax.activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -853,6 +874,9 @@
                 <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
+                <include name="javax.activation*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
                 <include name="hsqldb*.jar"/>
             </fileset>
@@ -912,6 +936,9 @@
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
                 <include name="jna*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="javax.activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -1052,6 +1079,9 @@
                 <include name="jasper*.jar"/>
                 <include name="juli*.jar"/>
                 <include name="jsp-api*.jar"/>
+            </fileset>
+            <fileset dir="../lib">
+                <include name="javax.activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -1303,6 +1333,9 @@
             <include name="guava*.jar"/>
             <include name="jna*.jar"/>
             <include name="zookeeper*.jar"/>
+        </fileset>
+        <fileset dir="../lib">
+            <include name="javax.activation*.jar"/>
         </fileset>
     </path>
     
