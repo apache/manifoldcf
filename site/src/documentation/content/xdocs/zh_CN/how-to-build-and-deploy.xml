@@ -557,7 +557,7 @@ mvn clean package
           it is implemented for).  In general, for <em>-D</em> switches in options files, you will want to change them for all options files in the example deployment you are using, to
           insure that all processes operate in the same environment.  For example, to enable Kerberos, you must change the options files in the following way: the <em>-Djava.security.auth.login.config=</em>
           line should be changed to <em>-Djava.security.auth.login.config=jaas-client.conf</em>, and the <em>jaas-client.conf</em> file filled out properly for your installation.</p>
-        <p>
+        <p></p>
         <p>Each example deployment has advantages and disadvantages.  For example, single-process models limit the flexibility of deploying ManifoldCF components.  Multi-process models require that
           inter-process synchronization be properly configured.  If you are just starting out with ManifoldCF, we suggest you try the quick-start single process model first, since that is
           the easiest.</p>
