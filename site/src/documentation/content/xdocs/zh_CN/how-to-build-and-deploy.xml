@@ -764,8 +764,7 @@ start[.bat|.sh]
           <p>The basic steps required to set up and run ManifoldCF in command-driven file-based multi-process mode are as follows:</p>
           <p></p>
           <ul>
-            <li>Install PostgreSQL or MySQL.  The PostgreSQL JDBC driver included with ManifoldCF is known to work with version 9.1, so that version is the currently recommended
-              one.  If you want to use MySQL, the ant "download-dependencies" build target will fetch the appropriate MySQL JDBC driver.</li>
+            <li>Install PostgreSQL or MySQL.  The PostgreSQL JDBC driver included with ManifoldCF is 42.x and is thus current through Postgresql 12.  If you want to use MySQL, the ant "download-dependencies" build target will fetch the appropriate MySQL JDBC driver.</li>
             <li>Configure the database for your environment; the default configuration is acceptable for testing and experimentation.</li>
             <li>Create the database instance (see commands below)</li>
             <li>Initialize the database instance (see commands below)</li>
@@ -974,7 +973,7 @@ start[.bat|.sh]
              <li>PostgreSQL has a high degree of parallelism and lack of internal single-threadedness.</li>
           </ul>
           <p></p>
-          <p>ManifoldCF has been tested against version 8.3.7, 8.4.5, 9.1, 9.2, and 9.3 of PostgreSQL.  We recommend the following configuration parameter settings to work optimally with ManifoldCF:</p>
+          <p>ManifoldCF has been tested against version 8.3.7, 8.4.5, 9.1, 9.2, 9.3, 10, 11, and 12 of PostgreSQL.  We recommend the following configuration parameter settings to work optimally with ManifoldCF:</p>
           <p></p>
           <ul>
              <li>A default database encoding of UTF-8</li>
