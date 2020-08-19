@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.17-dev =====================
+======================= Release 2.17 =====================
 
 CONNECTORS-1646: Include javax.activation jars in root classpath.
 (Uwe Wolfinger, Karl Wright)
