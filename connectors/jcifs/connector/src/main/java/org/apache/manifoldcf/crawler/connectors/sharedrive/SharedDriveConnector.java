@@ -1349,7 +1349,7 @@ public class SharedDriveConnector extends org.apache.manifoldcf.crawler.connecto
       Logging.connectors.warn("JCIFS: 'File in Use' response when "+activity+" for "+documentIdentifier+": retrying...",se);
       // 'File in Use' skip the document and keep going
       throw new ServiceInterruption("Timeout or other service interruption: "+se.getMessage(),se,currentTime + 300000L,
-        currentTime + 3 * 60 * 60000L,-1,true);
+        currentTime + 3 * 60 * 60000L,-1,false);
     }
     else if (se.getMessage().indexOf("cannot find") != -1 || se.getMessage().indexOf("cannot be found") != -1)
     {
