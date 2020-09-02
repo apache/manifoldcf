@@ -86,10 +86,10 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
     pb.directory(absFile);
     
     if (isUnix) {
-      pb.command("bash", "-c", "../test-materials/unix/elasticsearch-7.6.2/bin/elasticsearch -q");
+      pb.command("bash", "-c", "../test-materials/unix/elasticsearch-7.6.2/bin/elasticsearch -q -Expack.ml.enabled=false");
       System.out.println("Unix process");
     } else {
-      pb.command("cmd.exe", "/c", "..\\test-materials\\windows\\elasticsearch-7.6.2\\bin\\elasticsearch.bat -q");
+      pb.command("cmd.exe", "/c", "..\\test-materials\\windows\\elasticsearch-7.6.2\\bin\\elasticsearch.bat -q -Expack.ml.enabled=false");
       System.out.println("Windows process");
     }
 
