@@ -171,6 +171,7 @@
             <crawlerWarPath>../dependency/mcf-crawler-ui.war</crawlerWarPath>
             <authorityserviceWarPath>../dependency/mcf-authority-service.war</authorityserviceWarPath>
             <apiWarPath>../dependency/mcf-api-service.war</apiWarPath>
+            <testMaterialsPath>../../test-materials/</testMaterialsPath>
           </systemPropertyVariables>
           <excludes>
             <exclude>**/*Postgresql*.java</exclude>
