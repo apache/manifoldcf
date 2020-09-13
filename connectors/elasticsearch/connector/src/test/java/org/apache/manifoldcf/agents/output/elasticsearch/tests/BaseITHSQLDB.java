@@ -81,15 +81,25 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
   {
     final ProcessBuilder pb = new ProcessBuilder();
     
+    if (System.getenv("JAVA_HOME")!= null) {
+      pb.environment().put("JAVA_HOME", System.getenv("JAVA_HOME"));
+    } else {
+      throw new Exception("JAVA_HOME is required to be set for this test");
+    }
+    
     final File absFile = new File(".").getAbsoluteFile();
     System.out.println("ES working directory is '"+absFile+"'");
     pb.directory(absFile);
     
+    final String testMaterialsPath = System.getProperty("testMaterialsPath");
+    if (testMaterialsPath == null) {
+      throw new Exception("Can't find testMaterialsPath argument; test cannot be run");
+    }
     if (isUnix) {
-      pb.command("bash", "-c", "../test-materials/unix/elasticsearch-7.6.2/bin/elasticsearch -q -Expack.ml.enabled=false");
+      pb.command("bash", "-c", testMaterialsPath + "unix/elasticsearch-7.6.2/bin/elasticsearch -q -Expack.ml.enabled=false");
       System.out.println("Unix process");
     } else {
-      pb.command("cmd.exe", "/c", "..\\test-materials\\windows\\elasticsearch-7.6.2\\bin\\elasticsearch.bat -q -Expack.ml.enabled=false");
+      pb.command("cmd.exe", "/c", testMaterialsPath.replace("/", "\\") + "windows\\elasticsearch-7.6.2\\bin\\elasticsearch.bat -q -Expack.ml.enabled=false");
       System.out.println("Windows process");
     }
 
