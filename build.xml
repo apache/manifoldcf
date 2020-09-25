@@ -31,7 +31,7 @@
 
     <property name="javax-activation.version" value="1.2.0"/>
     <property name="hsqldb.version" value="2.3.2"/>
-    <property name="jetty.version" value="9.2.3.v20140905"/>
+    <property name="jetty.version" value="9.4.25.v20191220"/>
     <property name="httpclient.version" value="4.5.8"/>
     <property name="httpmime.version" value="4.5.8"/>
     <property name="httpcore.version" value="4.4.10"/>
@@ -1393,6 +1393,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-jetty">
         <mkdir dir="lib"/>
         <property name="jetty-package" value="org/eclipse/jetty"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-jndi"/>
             <param name="artifact-type" value="jar"/>
