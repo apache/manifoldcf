@@ -1497,8 +1497,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       return null;
     String suffix = contentType.substring(semiIndex+1);
     suffix = suffix.trim();
-    if (suffix.startsWith("charset="))
-      return suffix.substring("charset=".length());
+    if (suffix.startsWith("charset=")) {
+      String trialSuffix = suffix.substring("charset=".length());
+      int semi = trialSuffix.indexOf(";");
+      if (semi == -1) {
+        return trialSuffix;
+      }
+      // Strip off additional crap some websites now add
+      return trialSuffix.substring(0, semi).trim();
+    }
     return null;
   }
   

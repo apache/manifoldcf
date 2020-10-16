@@ -3,6 +3,8 @@ $Id$
 
 ======================= 2.18-dev =====================
 
+CONNECTORS-1655: Handle some forms of illegal content type.
+(Karl Wright)
 
 ======================= Release 2.17 =====================
 
