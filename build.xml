@@ -1393,6 +1393,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-jetty">
         <mkdir dir="lib"/>
         <property name="jetty-package" value="org/eclipse/jetty"/>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="9.2.30.v20200428"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-jsp"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-client"/>
             <param name="artifact-type" value="jar"/>
