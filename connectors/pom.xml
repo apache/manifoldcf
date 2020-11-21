@@ -78,6 +78,7 @@
     <module>html-extractor</module>
     <module>mongodb</module>
     <module>csws</module>
+    <module>solringester</module>
   </modules>
 
 </project>
