@@ -15,7 +15,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.apache.manifoldcf.crawler.connectors.solringester;
+package org.apache.manifoldcf.crawler.connectors.solr;
 
 import java.util.Locale;
 import java.util.Map;
@@ -24,9 +24,9 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class Messages extends org.apache.manifoldcf.ui.i18n.Messages {
 
-  public static final String DEFAULT_BUNDLE_NAME = "org.apache.manifoldcf.crawler.connectors.solringester.common";
+  public static final String DEFAULT_BUNDLE_NAME = "org.apache.manifoldcf.crawler.connectors.solr.common";
 
-  public static final String DEFAULT_PATH_NAME = "org.apache.manifoldcf.crawler.connectors.solringester";
+  public static final String DEFAULT_PATH_NAME = "org.apache.manifoldcf.crawler.connectors.solr";
 
   /**
    * Constructor - do no instantiate

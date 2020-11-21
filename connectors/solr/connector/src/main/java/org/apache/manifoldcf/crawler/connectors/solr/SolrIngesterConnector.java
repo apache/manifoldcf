@@ -15,7 +15,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.apache.manifoldcf.crawler.connectors.solringester;
+package org.apache.manifoldcf.crawler.connectors.solr;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

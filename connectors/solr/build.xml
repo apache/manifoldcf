@@ -90,6 +90,10 @@
             <param name="connector-label" value="Solr"/>
             <param name="connector-class" value="org.apache.manifoldcf.agents.output.solr.SolrConnector"/>
         </antcall>
+        <antcall target="general-add-repository-connector">
+            <param name="connector-label" value="Solr"/>
+            <param name="connector-class" value="org.apache.manifoldcf.crawler.connectors.solr.SolrIngesterConnector"/>
+        </antcall>
     </target>
 
 </project>

@@ -1,1 +1,0 @@
-# mcf-solringester-connector
