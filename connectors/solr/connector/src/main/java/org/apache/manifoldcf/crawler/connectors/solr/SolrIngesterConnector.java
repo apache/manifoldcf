@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
@@ -100,11 +101,6 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 public class SolrIngesterConnector extends BaseRepositoryConnector {
 
   public static final String _rcsid = "@(#)$Id: solringesterConnector.java 994959 2010-09-08 10:04:42Z redguy $";
-
-  /**
-   * Deny access token for default authority
-   */
-  private final static String defaultAuthorityDenyToken = "__nosecurity__";
 
   private final static String ACTION_PARAM_NAME = "action";
 
@@ -178,7 +174,7 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
 
   @Override
   public int getMaxDocumentRequest() {
-    return 100;
+    return 1;
   }
 
   @Override
@@ -358,7 +354,7 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
 
     String idFieldName = null;
     String collection = null;
-    final String dateField = null;
+    String dateField = null;
     final String contentField = null;
     String rowsNumberString = null;
     String filter = null;
@@ -380,6 +376,9 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
       if (sn.getType() == SolrIngesterConfig.ROWS_NUMBER) {
         rowsNumberString = sn.getAttributeValue(SolrIngesterConfig.ATTRIBUTE_VALUE);
       }
+      if (sn.getType() == SolrIngesterConfig.DATE_FIELD) {
+        dateField = sn.getAttributeValue(SolrIngesterConfig.ATTRIBUTE_VALUE);
+      }
 
       if (sn.getType() == SolrIngesterConfig.FILTER_CONDITION) {
         filter = sn.getAttributeValue(SolrIngesterConfig.ATTRIBUTE_VALUE);
@@ -392,10 +391,9 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
       // Unpack seed time from seed version string
       startTime = new Long(lastSeedVersion).longValue();
     }
-
     getSession();
-
-    final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ROOT);
+    final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    sdf.setTimeZone(TimeZone.getDefault());
 
     final StringBuilder url = new StringBuilder(solringesterEntryPoint);
     url.append("?").append(ACTION_PARAM_NAME).append("=").append(ACTION_SEED);
@@ -407,13 +405,19 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
     // ExecuteSeedingThread t = new ExecuteSeedingThread(client, url.toString());
 
     long dateSolr;
-    if (lastSeedVersion != null) {
+    String filterDate = null;
+
+    
+    if (lastSeedVersion != null && !lastSeedVersion.isEmpty() && !lastSeedVersion.contentEquals("0")) {
       dateSolr = new Long(lastSeedVersion).longValue();
-    } else {
+      String dateSolrString = sdf.format(dateSolr);
+      filterDate = dateField+":["+dateSolrString+ " TO NOW]";
+    }
+    else {
       dateSolr = 0L;
     }
 
-    // String dateSolr = sdf.format(dateSolr);
+  
 
     final int rowsNumber = Integer.valueOf(rowsNumberString);
     try {
@@ -423,16 +427,19 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
       } else {
         query = new SolrQuery("*:*").addFilterQuery(filter).setRows(rowsNumber).setSort(idFieldName, SolrQuery.ORDER.asc);
       }
+      if (filterDate != null && !filterDate.isEmpty() && !filterDate.contentEquals("0")) {
+        query.addFilterQuery(filterDate);
+      }
       query.setFields(idFieldName);
       String cursorMark = CursorMarkParams.CURSOR_MARK_START;
       boolean done = false;
       while (!done) {
         query.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
         QueryResponse response;
-
         response = httpSolrClient.query(collection, query);
         final String nextCursorMark = response.getNextCursorMark();
         final SolrDocumentList documents = response.getResults();
+        
         for (final SolrDocument document : documents) {
           activities.addSeedDocument((String) document.getFieldValue(idFieldName));
         }
@@ -453,8 +460,8 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
   @Override
   public void processDocuments(final String[] documentIdentifiers, final IExistingVersions statuses, final Specification spec, final IProcessActivity activities, final int jobMode,
       final boolean usesDefaultAuthority) throws ManifoldCFException, ServiceInterruption {
-
-    getSession();
+    
+        getSession();
 
     if (Logging.connectors.isDebugEnabled()) {
       Logging.connectors.debug("SolrIngester: ProcessDocuments method");
@@ -656,10 +663,8 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
               is = new ByteArrayInputStream(contentFieldValuesString.getBytes());
 
               // security part
-
-              if (securityActivated = true) {
+              if (securityActivated == true) {
                 
-
                 if (Logging.connectors.isDebugEnabled()) {
                   Logging.connectors.debug("Security part");
                 }
@@ -685,25 +690,23 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
                   all.clear();
                   all.addAll(hs);
                   securityValues = all.toArray(new String[0]);
-                  doc.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT, securityValues, new String[] { defaultAuthorityDenyToken });
+                  doc.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT, securityValues, new String[] { GLOBAL_DENY_TOKEN });
                   securityFieldValues = null;
                   securityFieldValues2 = null;
                 } else if (document.getFieldValues(securityField) != null) {
                   ArrayList<Object> securityFieldValues = null;
                   securityFieldValues = (ArrayList<Object>) document.getFieldValues(securityField);
                   String[] tabsecurityFieldValues = securityFieldValues.toArray(new String[0]);
-                  doc.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT, tabsecurityFieldValues, new String[] { defaultAuthorityDenyToken });
+                  doc.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT, tabsecurityFieldValues, new String[] { GLOBAL_DENY_TOKEN });
                   securityFieldValues = null;
                   tabsecurityFieldValues = null;
                 } else if (document.getFieldValues(securityField2) != null) {
                   ArrayList<Object> securityFieldValues2 = null;
                   securityFieldValues2 = (ArrayList<Object>) document.getFieldValues(securityField2);
                   String[] tabsecurityFieldValues2 = securityFieldValues2.toArray(new String[0]);
-                  doc.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT, tabsecurityFieldValues2, new String[] { defaultAuthorityDenyToken });
+                  doc.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT, tabsecurityFieldValues2, new String[] { GLOBAL_DENY_TOKEN });
                   securityFieldValues2 = null;
                   tabsecurityFieldValues2 = null;
-                } else {
-                  doc.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT, new String[] { "__nosecurity__" }, new String[] { "__nosecurity__" });
                 }
 
               }
