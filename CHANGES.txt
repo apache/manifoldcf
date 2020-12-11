@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.18-dev =====================
 
+CONNECTORS-1660: Better handling of non-correctly-formatted HTML.
+(Olivier Tavard)
+
 NOTICKET: Add missing Jetty JSP jar so crawler UI works in the examples.
 (Karl Wright)
 
