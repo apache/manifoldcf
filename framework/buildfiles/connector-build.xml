@@ -225,6 +225,7 @@
 	    <include name="javax.ws.rs-api*.jar"/>
 	    <include name="jaxws-api*.jar"/>
             <include name="javax.jws-api*.jar"/>
+            <include name="jaxb-api*.jar"/>
 	</fileset>
 	<fileset dir="${mcf-dist}/connector-common-lib">
 	    <include name="axis*.jar"/>
