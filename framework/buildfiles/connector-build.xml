@@ -155,12 +155,12 @@
             <include name="xml-apis*.jar"/>
             <include name="velocity*.jar"/>
         </fileset>
-          <!-- JDK 11 requirements -->
-          <fileset dir="${mcf-dist}/connector-common-lib">
-                    <include name="jaxws-api*.jar"/>
-              <include name="javax.jws-api*.jar"/>
-              <include name="jaxb*.jar"/>
-          </fileset>
+        <!-- JDK 11 requirements -->
+        <fileset dir="${mcf-dist}/connector-common-lib">
+            <include name="jaxws-api*.jar"/>
+            <include name="javax.jws-api*.jar"/>
+            <include name="jaxb-api*.jar"/>
+        </fileset>
         <fileset dir="${mcf-dist}/connector-common-lib">
             <include name="tika-core*.jar"/>
             <include name="jackson-core*.jar"/>
@@ -419,6 +419,12 @@
           <mkdir dir="build/wsdljava"/>
           <java classname="org.apache.cxf.tools.wsdlto.WSDLToJava" fork="true">
               <classpath>
+                  <!-- JDK 11 requirements -->
+                  <fileset dir="${mcf-dist}/connector-common-lib">
+                      <include name="jaxws-api*.jar"/>
+                      <include name="javax.annotation-api*.jar"/>
+                      <include name="javax.jws-api*.jar"/>
+                  </fileset>
                   <fileset dir="${mcf-dist}/connector-common-lib">
                       <include name="cxf*.jar"/>
                       <include name="jaxb*.jar"/>
@@ -428,9 +434,6 @@
                       <include name="xmlschema*.jar"/>
                       <include name="neethi*.jar"/>
                       <include name="xml-resolver*.jar"/>
-                      <include name="jaxws-api*.jar"/>
-                      <include name="javax.annotation-api*.jar"/>
-                      <include name="javax.jws-api*.jar"/>
                   </fileset>
                   <fileset dir="${mcf-dist}/lib">
                       <include name="velocity*.jar"/>
@@ -540,6 +543,12 @@
         <mkdir dir="build/wsdlclasses"/>
         <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" deprecation="true" target="1.8" source="1.8" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
+                <!-- JDK 11 requirements -->
+                <fileset dir="${mcf-dist}/connector-common-lib">
+                    <include name="jaxws-api*.jar"/>
+                    <include name="javax.jws-api*.jar"/>
+                    <include name="jaxb-api*.jar"/>
+                </fileset>
                 <fileset dir="${mcf-dist}/connector-common-lib">
                     <include name="axis*.jar"/>
                     <include name="saaj*.jar"/>
