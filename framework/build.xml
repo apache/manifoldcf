@@ -1692,6 +1692,10 @@
                 <include name="opensaml*.jar"/>
                 <include name="activation*.jar"/>
             </fileset>
+            <fileset dir="../lib">
+              <include name="jaxws-api*.jar"/>
+              <include name="javax.jws-api*.jar"/>
+            </fileset>
         </copy>
     </target>
     

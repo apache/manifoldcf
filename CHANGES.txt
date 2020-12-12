@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.18-dev =====================
 
+NOTICKET: Get the CXF wsdl-2-java utility working on JDK 11.
+(Karl Wright)
+
 CONNECTORS-1660: Better handling of non-correctly-formatted HTML.
 (Olivier Tavard)
 

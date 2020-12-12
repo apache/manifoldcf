@@ -136,6 +136,7 @@
 	    <include name="jasper*.jar"/>
 	    <include name="jetty*.jar"/>
 	    <include name="slf4j*.jar"/>
+             <include name="javax.activation*.jar"/>
 	    <include name="jsp-2.1*.jar"/>
 	    <include name="jsp-api*.jar"/>
 	    <include name="junit*.jar"/>
@@ -222,6 +223,8 @@
 	    <include name="xmlschema-core*.jar"/>
 	    <include name="javax.annotation-api*.jar"/>
 	    <include name="javax.ws.rs-api*.jar"/>
+	    <include name="jaxws-api*.jar"/>
+            <include name="javax.jws-api*.jar"/>
 	</fileset>
 	<fileset dir="${mcf-dist}/connector-common-lib">
 	    <include name="axis*.jar"/>
@@ -421,11 +424,15 @@
                       <include name="xmlschema*.jar"/>
                       <include name="neethi*.jar"/>
                       <include name="xml-resolver*.jar"/>
+		      <include name="jaxws-api*.jar"/>
+                      <include name="javax.annotation-api*.jar"/>
+                      <include name="javax.jws-api*.jar"/>
                   </fileset>
                   <fileset dir="${mcf-dist}/lib">
                       <include name="velocity*.jar"/>
                       <include name="commons-collections*.jar"/>
                       <include name="commons-lang*.jar"/>
+                      <include name="javax.activation*.jar"/>
                   </fileset>
               </classpath>
               <jvmarg value="-Dorg.apache.cxf.stax.allowInsecureParser=1"/>

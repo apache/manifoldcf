@@ -60,12 +60,11 @@
             <include name="chemistry*.jar"/>
             <include name="stax*.jar"/>
             <include name="streambuffer*.jar"/>
-            <include name="jaxws-api*.jar"/>
             <include name="woodstox-core-asl*.jar"/>
             <include name="mimepull*.jar"/>
             <include name="resolver*.jar"/>
             <include name="org.osgi.core*.jar"/>
-        	  <include name="joda*.jar"/>
+            <include name="joda*.jar"/>
         </fileset>
     </path>
 
@@ -76,7 +75,6 @@
                 <include name="chemistry*.jar"/>
                 <include name="stax*.jar"/>
                 <include name="streambuffer*.jar"/>
-                <include name="jaxws-api*.jar"/>
                 <include name="woodstox-core-asl*.jar"/>
                 <include name="mimepull*.jar"/>
                 <include name="resolver*.jar"/>

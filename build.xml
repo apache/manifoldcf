@@ -1038,6 +1038,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="javax.activation"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+        <antcall target="download-via-maven">
+          <param name="project-path" value="javax/jws"/>
+          <param name="artifact-version" value="1.1"/>
+          <param name="target" value="lib"/>
+          <param name="artifact-name" value="javax.jws-api"/>
+          <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
     
     <target name="download-hsqldb">
