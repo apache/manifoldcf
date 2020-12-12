@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.18-dev =====================
+======================= Release 2.18 =====================
 
 NOTICKET: Get the CXF wsdl-2-java utility working on JDK 11.
 (Karl Wright)
