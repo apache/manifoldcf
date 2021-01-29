@@ -34,6 +34,7 @@ import org.apache.manifoldcf.core.util.URLEncoder;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
@@ -244,16 +245,14 @@ public class JiraSession {
   private static Charset getCharSet(HttpEntity entity)
   {
     Charset charSet;
-    try
-    {
-      ContentType ct = ContentType.get(entity);
-      if (ct == null)
+    try {
+      final ContentType ct = ContentType.get(entity);
+      if (ct == null || ct.getCharset() == null) {
         charSet = StandardCharsets.UTF_8;
-      else
+      } else {
         charSet = ct.getCharset();
-    }
-    catch (ParseException e)
-    {
+      }
+    } catch (final ParseException | UnsupportedCharsetException e) {
       charSet = StandardCharsets.UTF_8;
     }
     return charSet;

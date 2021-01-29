@@ -3,6 +3,8 @@ $Id$
 
 ======================= 2.19-dev =====================
 
+CONNECTORS-1662: Apparently sometimes JIRA doesn't form the encoding properly.
+(Julien Massiera)
 
 ======================= Release 2.18 =====================
 
