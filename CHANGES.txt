@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.19-dev =====================
 
+CONNECTORS-1661: Encoding for multipart requests is sometimes not set by the new
+UI, so assume UTF-8 if that happens.
+(Julien Massiera)
+
 CONNECTORS-1662: Apparently sometimes JIRA doesn't form the encoding properly.
 (Julien Massiera)
 

@@ -49,6 +49,15 @@ public class MultipartWrapper implements IPostParameters
   public MultipartWrapper(HttpServletRequest request, AdminProfile adminProfile)
     throws ManifoldCFException
   {
+    // First of all make sure to have a correct charset
+    if(request.getCharacterEncoding() == null) {
+      try {
+        request.setCharacterEncoding("UTF-8");
+      } catch (UnsupportedEncodingException e) {
+        throw new ManifoldCFException(e.getMessage(), e);
+      }
+    }
+    
     this.adminProfile = adminProfile;
 
     // Check that we have a file upload request
