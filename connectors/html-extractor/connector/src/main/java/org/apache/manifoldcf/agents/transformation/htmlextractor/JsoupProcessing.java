@@ -33,6 +33,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.jsoup.nodes.Document.OutputSettings;
+import org.jsoup.nodes.Entities.EscapeMode;
 import org.jsoup.safety.Whitelist;
 
 public class JsoupProcessing {
@@ -42,6 +43,7 @@ public class JsoupProcessing {
 
   public static Hashtable<String,String> extractTextAndMetadataHtmlDocument(InputStream streamDoc,String whitelist,List<String> blacklist, boolean stripHtml) throws IOException{
     Document doc = Jsoup.parse(streamDoc, "UTF-8", "");
+    doc.outputSettings().escapeMode(EscapeMode.xhtml);
     Hashtable<String,String> metadata = new Hashtable<String,String>();
     for(Element meta : doc.select("meta")) {
       Logging.connectors.debug("Name: " + meta.attr("name") + " - Content: " + meta.attr("content"));

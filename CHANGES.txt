@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.19-dev =====================
 
+CONNECTORS-1656: Ensure legit XML is produced for Tika by the html extractor.
+(Julien Massiera)
+
 CONNECTORS-1661: Encoding for multipart requests is sometimes not set by the new
 UI, so assume UTF-8 if that happens.
 (Julien Massiera)
