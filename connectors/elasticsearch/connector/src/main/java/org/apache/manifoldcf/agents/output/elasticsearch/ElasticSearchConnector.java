@@ -62,12 +62,11 @@ import org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchAction.Com
 import org.apache.manifoldcf.agents.output.elasticsearch.ElasticSearchConnection.Result;
 import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
-//import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-//import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
 import org.apache.manifoldcf.connectorcommon.interfaces.IKeystoreManager;
 import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
@@ -102,6 +101,9 @@ public class ElasticSearchConnector extends BaseOutputConnector
 
   /** Connection expiration interval */
   private static final long EXPIRATION_INTERVAL = 60000L;
+
+  /** ID length is limited, or you get the HTTP 400 error */
+  private static final int maxIdLength = 512;
 
   private HttpClientConnectionManager connectionManager = null;
   private HttpClient client = null;
@@ -200,7 +202,21 @@ public class ElasticSearchConnector extends BaseOutputConnector
     client = null;
     expirationTime = -1L;
   }
-  
+
+  /** Create a hashed URI string for ID according to ElasticSearch parameters.
+  * @param domumentURI is the URI of the document.
+  * @return hashed URI.
+  */
+  protected static String compressDocumentURI(String documentURI)
+    throws ManifoldCFException
+  {
+    // If the ID is too long, we must do things to reduce its size.  This involves hashing, but
+    // for backwards compatibility we only do it if it is too long.
+    if (documentURI.length() <= maxIdLength)
+      return documentURI;
+    return ManifoldCF.hash(documentURI);
+  }
+
   /** This method is called to assess whether to count this connector instance should
   * actually be counted as being connected.
   *@return true if the connector instance is actually connected.
@@ -375,6 +391,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
       IOutputAddActivity activities) throws ManifoldCFException,
       ServiceInterruption, IOException
   {
+    String compressedDocumentURI = compressDocumentURI(documentURI);
     HttpClient client = getSession();
     ElasticSearchConfig config = getConfigParameters(null);
 
@@ -411,7 +428,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
       else
       {
         // Don't know how to deal with it
-        activities.recordActivity(null,ELASTICSEARCH_INDEXATION_ACTIVITY,document.getBinaryLength(),documentURI,activities.UNKNOWN_SECURITY,"Rejected document that has security info which ElasticSearch does not recognize: '"+ securityType + "'");
+        activities.recordActivity(null, ELASTICSEARCH_INDEXATION_ACTIVITY, document.getBinaryLength(), documentURI, activities.UNKNOWN_SECURITY, "Rejected document that has security info which ElasticSearch does not recognize: '"+ securityType + "'");
         return DOCUMENTSTATUS_REJECTED;
       }
     }
@@ -420,7 +437,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
     ElasticSearchIndex oi = new ElasticSearchIndex(client, config);
     try
     {
-      oi.execute(documentURI, document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls);
+      oi.execute(compressedDocumentURI, document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls);
       if (oi.getResult() != Result.OK)
         return DOCUMENTSTATUS_REJECTED;
       return DOCUMENTSTATUS_ACCEPTED;
@@ -437,12 +454,13 @@ public class ElasticSearchConnector extends BaseOutputConnector
       IOutputRemoveActivity activities) throws ManifoldCFException,
       ServiceInterruption
   {
+    String compressedDocumentURI = compressDocumentURI(documentURI);
     HttpClient client = getSession();
     long startTime = System.currentTimeMillis();
     ElasticSearchDelete od = new ElasticSearchDelete(client, getConfigParameters(null));
     try
     {
-      od.execute(documentURI);
+      od.execute(compressedDocumentURI);
     }
     finally
     {

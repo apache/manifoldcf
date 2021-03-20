@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.19-dev =====================
 
+CONNECTORS-1666: Elastic Search connector now limits size of URI according to
+ES rules.  Standard MCF hashing is done to insure this, but only if the documentURI
+is large enough to warrant it.
+(Shirai Takashi, Karl Wright)
+
 CONNECTORS-1656: Ensure legit XML is produced for Tika by the html extractor.
 (Julien Massiera)
 
