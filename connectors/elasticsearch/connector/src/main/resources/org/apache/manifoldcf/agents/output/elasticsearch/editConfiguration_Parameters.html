@@ -27,6 +27,18 @@
     <td class="value"><input name="indextype" type="text" value="$Encoder.attributeEscape($INDEXTYPE)" size="24" /></td>
   </tr>
   <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.UseIngestAttachmentColon'))</nobr></td>
+    <td class="value">
+       <input type="hidden" name="useingestattachment_checkbox" value="true"/>
+       <input type="hidden" name="useingestattachment_present" value="true"/>
+  #if($USEINGESTATTACHMENT == 'true')
+       <input type="checkbox" checked="true" name="useingestattachment" value="true"/>
+  #else
+       <input type="checkbox" name="useingestattachment" value="true"/>
+  #end
+    </td>
+  </tr>
+  <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.UseMapperAttachmentsColon'))</nobr></td>
     <td class="value">
        <input type="hidden" name="usemapperattachments_checkbox" value="true"/>
@@ -46,6 +58,11 @@
   <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.ContentAttributeNameColon'))</nobr></td>
     <td class="value"><input name="contentattributename" type="text" value="$Encoder.attributeEscape($CONTENTATTRIBUTENAME)"
+      size="24" /></td>
+  </tr>
+   <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.UriAttributeNameColon'))</nobr></td>
+    <td class="value"><input name="uriattributename" type="text" value="$Encoder.attributeEscape($URIATTRIBUTENAME)"
       size="24" /></td>
   </tr>
   <tr>
@@ -74,6 +91,9 @@
 #else
 <input type="hidden" name="indexname" value="$Encoder.attributeEscape($INDEXNAME)" />
 <input type="hidden" name="indextype" value="$Encoder.attributeEscape($INDEXTYPE)" />
+<input type="hidden" name="useingestattachment_checkbox" value="false"/>
+<input type="hidden" name="useingestattachment_present" value="true"/>
+<input type="hidden" name="useingestattachment" value="$Encoder.bodyEscape($USEINGESTATTACHMENT)" />
 <input type="hidden" name="usemapperattachments_checkbox" value="false"/>
 <input type="hidden" name="usemapperattachments_present" value="true"/>
 <input type="hidden" name="usemapperattachments" value="$Encoder.bodyEscape($USEMAPPERATTACHMENTS)" />

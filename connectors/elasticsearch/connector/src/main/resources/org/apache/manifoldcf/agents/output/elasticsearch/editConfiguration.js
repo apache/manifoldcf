@@ -39,10 +39,24 @@ function checkConfig() {
       return false;
     }
   }
+  if (editconnection.pipelinename) {
+    if (editconnection.pipelinename.value == "" && !((editconnection.useingestattachment_checkbox.value == "true" && editconnection.useingestattachment.checked == false) || (editconnection.useingestattachment_checkbox.value != "true" && editconnection.useingestattachment.value != "true"))) {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.PipelineNameRequiredIfIngestAttachment'))");
+      editconnection.pipelinename.focus();
+      return false;
+    }
+  }
   if (editconnection.contentattributename) {
     if (editconnection.contentattributename.value == "" && ((editconnection.usemapperattachments_checkbox.value == "true" && editconnection. usemapperattachments.checked == false) || (editconnection.usemapperattachments_checkbox.value != "true" && editconnection.usemapperattachments.value != "true"))) {
       alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.ContentAttributeNameRequiredUnlessMapperAttachments'))");
       editconnection.contentattributename.focus();
+      return false;
+    }
+  }
+  if (editconnection.useingestattachment && editconnection.usemapperattachments) {
+    if (!((editconnection.useingestattachment_checkbox.value == "true" && editconnection.useingestattachment.checked == false) || (editconnection.useingestattachment_checkbox.value != "true" && editconnection.useingestattachment.value != "true")) && !((editconnection.usemapperattachments_checkbox.value == "true" && editconnection.usemapperattachments.checked == false) || (editconnection.usemapperattachments_checkbox.value != "true" && editconnection.usemapperattachments.value != "true"))) {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.CannotUseBothOfIngestAttachmentAndMapperAttachments'))");
+      editconnection.useingestattachment.focus();
       return false;
     }
   }
@@ -74,10 +88,24 @@ function checkConfigForSave() {
       return false;
     }
   }
+  if (editconnection.pipelinename) {
+    if (editconnection.pipelinename.value == "" && !((editconnection.useingestattachment_checkbox.value == "true" && editconnection.useingestattachment.checked == false) || (editconnection.useingestattachment_checkbox.value != "true" && editconnection.useingestattachment.value != "true"))) {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.PipelineNameRequiredIfIngestAttachment'))");
+      editconnection.pipelinename.focus();
+      return false;
+    }
+  }
   if (editconnection.contentattributename) {
     if (editconnection.contentattributename.value == "" && ((editconnection.usemapperattachments_checkbox.value == "true" && editconnection. usemapperattachments.checked == false) || (editconnection.usemapperattachments_checkbox.value != "true" && editconnection.usemapperattachments.value != "true"))) {
       alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.ContentAttributeNameRequiredUnlessMapperAttachments'))");
       editconnection.contentattributename.focus();
+      return false;
+    }
+  }
+  if (editconnection.useingestattachment && editconnection.usemapperattachments) {
+    if (!((editconnection.useingestattachment_checkbox.value == "true" && editconnection.useingestattachment.checked == false) || (editconnection.useingestattachment_checkbox.value != "true" && editconnection.useingestattachment.value != "true")) && !((editconnection.usemapperattachments_checkbox.value == "true" && editconnection.usemapperattachments.checked == false) || (editconnection.usemapperattachments_checkbox.value != "true" && editconnection.usemapperattachments.value != "true"))) {
+      alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.CannotUseBothOfIngestAttachmentAndMapperAttachments'))");
+      editconnection.useingestattachment.focus();
       return false;
     }
   }

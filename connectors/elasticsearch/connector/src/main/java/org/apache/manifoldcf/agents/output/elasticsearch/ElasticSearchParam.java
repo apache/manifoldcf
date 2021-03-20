@@ -41,31 +41,19 @@ public class ElasticSearchParam extends HashMap<ParameterEnum, String>
   public enum ParameterEnum
   {
     SERVERLOCATION("http://localhost:9200/"),
-
     INDEXNAME("index"),
-
     USERNAME(""),
-
     PASSWORD(""),
-
     SERVERKEYSTORE(""),
-    
     INDEXTYPE("generic"),
-
+    USEINGESTATTACHMENT("false"),
     USEMAPPERATTACHMENTS("false"),
-    
     PIPELINENAME(""),
-
     CONTENTATTRIBUTENAME("content"),
-
     URIATTRIBUTENAME("url"),
-
     CREATEDDATEATTRIBUTENAME("created"),
-    
     MODIFIEDDATEATTRIBUTENAME("last-modified"),
-    
     INDEXINGDATEATTRIBUTENAME("indexed"),
-    
     MIMETYPEATTRIBUTENAME("mime-type"),
     
     FIELDLIST("");

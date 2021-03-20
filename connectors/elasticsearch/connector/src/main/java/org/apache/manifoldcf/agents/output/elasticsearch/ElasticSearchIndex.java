@@ -77,21 +77,27 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     private final String[] shareDenyAcls;
     private final String[] parentAcls;
     private final String[] parentDenyAcls;
+    private final boolean useIngesterAttachment;
     private final boolean useMapperAttachments;
     private final String contentAttributeName;
     private final String createdDateAttributeName;
     private final String modifiedDateAttributeName;
     private final String indexingDateAttributeName;
     private final String mimeTypeAttributeName;
+    private final String fullUriAttributeName;
+    private final String fullDocumentURI;
     
     public IndexRequestEntity(RepositoryDocument document, InputStream inputStream,
       String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls, String[] parentAcls, String[] parentDenyAcls,
+      boolean useIngesterAttachment,
       boolean useMapperAttachments,
       String contentAttributeName,
       String createdDateAttributeName,
       String modifiedDateAttributeName,
       String indexingDateAttributeName,
-      String mimeTypeAttributeName)
+      String mimeTypeAttributeName,
+      String fullUriAttributeName,
+      String fullDocumentURI)
       throws ManifoldCFException
     {
       this.document = document;
@@ -102,12 +108,15 @@ public class ElasticSearchIndex extends ElasticSearchConnection
       this.shareDenyAcls = shareDenyAcls;
       this.parentAcls = parentAcls;
       this.parentDenyAcls = parentDenyAcls;
+      this.useIngesterAttachment = useIngesterAttachment;
       this.useMapperAttachments = useMapperAttachments;
       this.contentAttributeName = contentAttributeName;
       this.createdDateAttributeName = createdDateAttributeName;
       this.modifiedDateAttributeName = modifiedDateAttributeName;
       this.indexingDateAttributeName = indexingDateAttributeName;
       this.mimeTypeAttributeName = mimeTypeAttributeName;
+      this.fullUriAttributeName = fullUriAttributeName;
+      this.fullDocumentURI = fullDocumentURI;
     }
 
     @Override
@@ -161,6 +170,9 @@ public class ElasticSearchIndex extends ElasticSearchConnection
           }
         }
         // Standard document fields
+        if (fullDocumentURI != null && fullUriAttributeName != null && fullUriAttributeName.length() > 0) {
+          needComma = writeField(pw, needComma, fullUriAttributeName, new String[]{fullDocumentURI});
+        }
         final Date createdDate = document.getCreatedDate();
         if (createdDate != null && createdDateAttributeName != null && createdDateAttributeName.length() > 0)
         {
@@ -184,6 +196,26 @@ public class ElasticSearchIndex extends ElasticSearchConnection
         needComma = writeACLs(pw, needComma, "document", acls, denyAcls);
         needComma = writeACLs(pw, needComma, "share", shareAcls, shareDenyAcls);
         needComma = writeACLs(pw, needComma, "parent", parentAcls, parentDenyAcls);
+
+        if (useIngesterAttachment && inputStream != null) {
+          if (contentAttributeName != null)
+          {
+            if (needComma) {
+              pw.print(",");
+            }
+            String contentType = document.getMimeType();
+            if (contentType != null)
+              pw.print("\"_content_type\" : "+jsonStringEscape(contentType)+",");
+            String fileName = document.getFileName();
+            if (fileName != null)
+              pw.print("\"_name\" : "+jsonStringEscape(fileName)+",");
+            pw.append(jsonStringEscape(contentAttributeName)).append(" : \"");
+            Base64 base64 = new Base64();
+            base64.encodeStream(inputStream, pw);
+            pw.print("\"");
+            needComma = true;
+          }
+        }
 
         if (useMapperAttachments && inputStream != null) {
           if(needComma){
@@ -415,7 +447,8 @@ public class ElasticSearchIndex extends ElasticSearchConnection
   */
   public boolean execute(String documentURI, RepositoryDocument document, 
     InputStream inputStream,
-    String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls, String[] parentAcls, String[] parentDenyAcls)
+    String[] acls, String[] denyAcls, String[] shareAcls, String[] shareDenyAcls, String[] parentAcls, String[] parentDenyAcls,
+    String fullDocumentURI)
     throws ManifoldCFException, ServiceInterruption
   {
     final String idField = URLEncoder.encode(documentURI);
@@ -427,12 +460,15 @@ public class ElasticSearchIndex extends ElasticSearchConnection
     Logging.connectors.debug("HttPutUri: " + url.toString());
     put.setEntity(new IndexRequestEntity(document, inputStream,
       acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls,
+      config.getUseIngestAttachment(),
       config.getUseMapperAttachments(),
       config.getContentAttributeName(),
       config.getCreatedDateAttributeName(),
       config.getModifiedDateAttributeName(),
       config.getIndexingDateAttributeName(),
-      config.getMimeTypeAttributeName()));
+      config.getMimeTypeAttributeName(),
+      config.getUriAttributeName(),
+      fullDocumentURI));
     
     if (call(put) == false)
       return false;

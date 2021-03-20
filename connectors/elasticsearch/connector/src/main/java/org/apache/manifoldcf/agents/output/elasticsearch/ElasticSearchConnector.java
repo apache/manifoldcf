@@ -437,7 +437,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
     ElasticSearchIndex oi = new ElasticSearchIndex(client, config);
     try
     {
-      oi.execute(compressedDocumentURI, document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls);
+      oi.execute(compressedDocumentURI, document, inputStream, acls, denyAcls, shareAcls, shareDenyAcls, parentAcls, parentDenyAcls, documentURI);
       if (oi.getResult() != Result.OK)
         return DOCUMENTSTATUS_REJECTED;
       return DOCUMENTSTATUS_ACCEPTED;

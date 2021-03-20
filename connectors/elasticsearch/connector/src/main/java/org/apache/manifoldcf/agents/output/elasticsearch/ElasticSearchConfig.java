@@ -48,6 +48,7 @@ public class ElasticSearchConfig extends ElasticSearchParam
     ParameterEnum.SERVERKEYSTORE,
     ParameterEnum.INDEXNAME,
     ParameterEnum.INDEXTYPE,
+    ParameterEnum.USEINGESTATTACHMENT,
     ParameterEnum.USEMAPPERATTACHMENTS,
     ParameterEnum.PIPELINENAME,
     ParameterEnum.CONTENTATTRIBUTENAME,
@@ -187,6 +188,15 @@ public class ElasticSearchConfig extends ElasticSearchParam
       }
     }
 
+    String useIngestAttachmentPresent = variableContext.getParameter("useingestattachment_present");
+    if (useIngestAttachmentPresent != null)
+    {
+      String useIngestAttachment = variableContext.getParameter(ParameterEnum.USEINGESTATTACHMENT.name().toLowerCase(Locale.ROOT));
+      if (useIngestAttachment == null || useIngestAttachment.length() == 0)
+        useIngestAttachment = "false";
+      parameters.setParameter(ParameterEnum.USEINGESTATTACHMENT.name(), useIngestAttachment);
+    }
+
     String useMapperAttachmentsPresent = variableContext.getParameter("usemapperattachments_present");
     if (useMapperAttachmentsPresent != null)
     {
@@ -195,7 +205,7 @@ public class ElasticSearchConfig extends ElasticSearchParam
         useMapperAttachments = "false";
       parameters.setParameter(ParameterEnum.USEMAPPERATTACHMENTS.name(), useMapperAttachments);
     }
-    
+
     return rval;
   }
 
@@ -233,6 +243,11 @@ public class ElasticSearchConfig extends ElasticSearchParam
   final public String getIndexType()
   {
     return get(ParameterEnum.INDEXTYPE);
+  }
+
+  final public Boolean getUseIngestAttachment()
+  {
+    return Boolean.valueOf(get(ParameterEnum.USEINGESTATTACHMENT));
   }
 
   final public Boolean getUseMapperAttachments()
