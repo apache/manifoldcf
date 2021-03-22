@@ -271,8 +271,8 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
   {
 
     // Need to go into a transaction because we need to distinguish between update and insert.
-    HashMap duplicateRemoval = new HashMap();
-    HashMap presentMap = new HashMap();
+    Set<ValueRecord> duplicateRemoval = new HashSet<>();
+    Set<ValueRecord> presentSet = new HashSet<>();
 
     int maxClause = getMaxOrClause();
     StringBuilder sb = new StringBuilder();
@@ -311,13 +311,13 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
             // Build a hash record
             ValueRecord vr = new ValueRecord(childDocumentIDHash,
               documentDataName,documentDataValueHash,documentDataValue);
-            if (duplicateRemoval.get(vr) != null)
+            if (duplicateRemoval.contains(vr))
               continue;
-            duplicateRemoval.put(vr,vr);
+            duplicateRemoval.add(vr);
             if (i == maxClause)
             {
               // Do the query and record the results
-              performExistsCheck(presentMap,sb.toString(),list);
+              performExistsCheck(presentSet,sb.toString(),list);
               i = 0;
               sb.setLength(0);
               list.clear();
@@ -341,18 +341,18 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
       }
     }
     if (i > 0)
-      performExistsCheck(presentMap,sb.toString(),list);
+      performExistsCheck(presentSet,sb.toString(),list);
 
     // Go through the list again, and based on the results above, decide to do either an insert or
     // an update.  Keep track of this information also, so we can build the return array when done.
 
-    HashMap insertHappened = new HashMap();
+    Map<String, Boolean> insertHappened = new HashMap<>();
 
     int j = 0;
-    Iterator iter = duplicateRemoval.keySet().iterator();
+    Iterator<ValueRecord> iter = duplicateRemoval.iterator();
     while (iter.hasNext())
     {
-      ValueRecord childDocumentRecord = (ValueRecord)iter.next();
+      ValueRecord childDocumentRecord = iter.next();
 
       String childDocumentIDHash = childDocumentRecord.getDocumentIDHash();
 
@@ -361,7 +361,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
       String dataValueHash = childDocumentRecord.getDataValueHash();
       Object dataValue = childDocumentRecord.getDataValue();
 
-      if (presentMap.get(childDocumentRecord) == null)
+      if (!presentSet.contains(childDocumentRecord))
       {
         map.put(jobIDField,jobID);
         map.put(parentIDHashField,parentDocumentIDHash);
@@ -392,27 +392,6 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
             new NullCheckClause(dataValueHashField,true):
             new UnitaryClause(dataValueHashField,dataValueHash)}));
 
-        /*
-        sb.append(jobIDField).append("=? AND ")
-          .append(parentIDHashField).append("=? AND ")
-          .append(childIDHashField).append("=? AND ")
-          .append(dataNameField).append("=? AND ");
-
-        updateList.add(jobID);
-        updateList.add(parentDocumentIDHash);
-        updateList.add(childDocumentIDHash);
-        updateList.add(dataName);
-        if (dataValueHash != null)
-        {
-          sb.append(dataValueHashField).append("=?");
-          updateList.add(dataValueHash);
-        }
-        else
-        {
-          sb.append(dataValueHashField).append(" IS NULL");
-        }
-        */
-            
         map.put(newField,statusToString(ISNEW_EXISTING));
         map.put(processIDField,processID);
         performUpdate(map,sb.toString(),updateList,null);
@@ -432,7 +411,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
   }
 
   /** Do the exists check, in batch. */
-  protected void performExistsCheck(Map presentMap, String query, ArrayList list)
+  protected void performExistsCheck(Set<ValueRecord> presentSet, String query, ArrayList list)
     throws ManifoldCFException
   {
     // Note well: presentMap is only checked for the *existence* of a record, so we do not need to populate the datavalue field!
@@ -448,7 +427,7 @@ public class Carrydown extends org.apache.manifoldcf.core.database.BaseTable
       //String dataValue = (String)row.getValue(dataValueField);
       ValueRecord vr = new ValueRecord(documentIDHash,dataName,dataValueHash,null);
 
-      presentMap.put(vr,vr);
+      presentSet.add(vr);
     }
   }
   
