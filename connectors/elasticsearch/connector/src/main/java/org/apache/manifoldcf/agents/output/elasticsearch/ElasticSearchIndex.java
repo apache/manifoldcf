@@ -238,7 +238,7 @@ public class ElasticSearchIndex extends ElasticSearchConnection
           needComma = true;
         }
         
-        if (!useMapperAttachments && inputStream != null) {
+        if (!useIngesterAttachment && !useMapperAttachments && inputStream != null) {
           if (contentAttributeName != null)
           {
             Reader r = new InputStreamReader(inputStream, Consts.UTF_8);
