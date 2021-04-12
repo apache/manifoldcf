@@ -45,7 +45,7 @@ public class ElasticSearchParam extends HashMap<ParameterEnum, String>
     USERNAME(""),
     PASSWORD(""),
     SERVERKEYSTORE(""),
-    INDEXTYPE("generic"),
+    INDEXTYPE("_doc"),
     USEINGESTATTACHMENT("false"),
     USEMAPPERATTACHMENTS("false"),
     PIPELINENAME(""),
