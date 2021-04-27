@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= 2.20-dev =====================
+
+
 ======================= Release 2.19 =====================
 
 CONNECTORS-1666: Elastic Search connector now limits size of URI according to
