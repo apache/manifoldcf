@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.19-dev =====================
+======================= Release 2.19 =====================
 
 CONNECTORS-1666: Elastic Search connector now limits size of URI according to
 ES rules.  Standard MCF hashing is done to insure this, but only if the documentURI
