@@ -64,6 +64,7 @@
     <module>forcedmetadata</module>
     <module>tika</module>
     <module>tikaservice</module>
+    <module>tikaservice-rmeta</module>
     <module>documentfilter</module>
     <module>searchblox</module>
     <module>confluence</module>
