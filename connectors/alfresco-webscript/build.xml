@@ -121,6 +121,7 @@
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
             <jvmarg value="-DalfrescoServerWarPath=../test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco-indexer.version}.war"/>
+            <jvmarg value="-DconfigPath=../testConfiguration.properties"/>
             <jvmarg value="-Xms512m"/>
             <jvmarg value="-Xmx1024m"/>
             <jvmarg value="-Xss1024k"/>

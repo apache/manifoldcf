@@ -58,16 +58,19 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
     alfrescoServer.setStopAtShutdown(true);
 
     String alfrescoServerWarPath = "../../connectors/alfresco-webscript/test-materials-proprietary/alfresco.war";
-
+    String jettyConfigPath = "../../connectors/alfresco-webscript/testConfiguration.properties";
+    
     if (System.getProperty("alfrescoServerWarPath") != null)
       alfrescoServerWarPath = System.getProperty("alfrescoServerWarPath");
-
+    if (System.getProperty("configPath") != null)
+      jettyConfigPath = System.getProperty("configPath");
+    
     ContextHandlerCollection contexts = new ContextHandlerCollection();
     alfrescoServer.setHandler(contexts);
 
     WebAppContext alfrescoServerApi = new WebAppContext(alfrescoServerWarPath,"/alfresco");
     alfrescoServerApi.setParentLoaderPriority(false);
-    HashLoginService dummyLoginService = new HashLoginService("TEST-SECURITY-REALM");
+    HashLoginService dummyLoginService = new HashLoginService("TEST-SECURITY-REALM", jettyConfigPath);
     alfrescoServerApi.getSecurityHandler().setLoginService(dummyLoginService);
     contexts.addHandler(alfrescoServerApi);
 
