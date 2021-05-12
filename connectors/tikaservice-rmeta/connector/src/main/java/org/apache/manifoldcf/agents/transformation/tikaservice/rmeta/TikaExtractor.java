@@ -1173,9 +1173,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     // Prep for field mappings
     final List<Map<String, String>> fieldMappings = new ArrayList<>();
     String keepAllMetadataValue = "true";
-    String lowernamesValue = "false";
-    String writeLimitValue = "";
-    String extractArchives = "true";
+    String lowernamesValue = "true";
+    String writeLimitValue = "1000000";
+    String extractArchives = "false";
     String maxEmbeddedResources = "";
     for (int i = 0; i < os.getChildCount(); i++) {
       final SpecificationNode sn = os.getChild(i);
