@@ -30,12 +30,14 @@ public class TikaConfig {
   public static final String PARAM_CONNECTIONTIMEOUT = "connectionTimeout";
   public static final String PARAM_SOCKETTIMEOUT = "socketTimeout";
   public static final String PARAM_RETRYINTERVAL = "retryInterval";
+  public static final String PARAM_RETRYINTERVALTIKADOWN = "retryIntervalTikaDown";
   public static final String PARAM_RETRYNUMBER = "retryNumber";
   public static final String TIKAHOSTNAME_DEFAULT = "localhost";
   public static final String TIKAPORT_DEFAULT = "9998";
   public static final String CONNECTIONTIMEOUT_DEFAULT = "60000";
   public static final String SOCKETTIMEOUT_DEFAULT = "60000";
   public static final String RETRYINTERVAL_DEFAULT = "20000";
+  public static final String RETRYINTERVALTIKADOWN_DEFAULT = "120000";
   public static final String RETRYNUMBER_DEFAULT = "1";
 
   // Specification nodes and values

@@ -126,6 +126,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   /** Retry interval */
   private String retryIntervalString = null;
 
+  /** Retry interval when Tika seems down */
+  private String retryIntervalTikaDownString = null;
+
   /** Retry number */
   private String retryNumberString = null;
 
@@ -145,6 +148,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
   /** Retry interval */
   private long retryInterval = -1L;
+
+  /** Retry interval */
+  private long retryIntervalTikaDown = -1L;
 
   /** Retry number */
   private int retryNumber = -1;
@@ -221,6 +227,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     connectionTimeoutString = configParameters.getParameter(TikaConfig.PARAM_CONNECTIONTIMEOUT);
     socketTimeoutString = configParameters.getParameter(TikaConfig.PARAM_SOCKETTIMEOUT);
     retryIntervalString = configParameters.getParameter(TikaConfig.PARAM_RETRYINTERVAL);
+    retryIntervalTikaDownString = configParameters.getParameter(TikaConfig.PARAM_RETRYINTERVALTIKADOWN);
     retryNumberString = configParameters.getParameter(TikaConfig.PARAM_RETRYNUMBER);
   }
 
@@ -235,6 +242,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     connectionTimeoutString = null;
     socketTimeoutString = null;
     retryIntervalString = null;
+    retryIntervalTikaDownString = null;
     retryNumberString = null;
 
     super.disconnect();
@@ -291,6 +299,11 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         this.retryInterval = Long.parseLong(retryIntervalString);
       } catch (final NumberFormatException e) {
         throw new ManifoldCFException("Bad retry interval number: " + retryIntervalString);
+      }
+      try {
+        this.retryIntervalTikaDown = Long.parseLong(retryIntervalTikaDownString);
+      } catch (final NumberFormatException e) {
+        throw new ManifoldCFException("Bad retry interval when tika is down number: " + retryIntervalTikaDownString);
       }
       try {
         this.retryNumber = Integer.parseInt(retryNumberString);
@@ -448,6 +461,11 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       parameters.setParameter(TikaConfig.PARAM_RETRYINTERVAL, retryInterval);
     }
 
+    final String retryIntervalTikaDown = variableContext.getParameter(TikaConfig.PARAM_RETRYINTERVALTIKADOWN);
+    if (retryIntervalTikaDown != null) {
+      parameters.setParameter(TikaConfig.PARAM_RETRYINTERVALTIKADOWN, retryIntervalTikaDown);
+    }
+
     final String retryNumber = variableContext.getParameter(TikaConfig.PARAM_RETRYNUMBER);
     if (retryNumber != null) {
       parameters.setParameter(TikaConfig.PARAM_RETRYNUMBER, retryNumber);
@@ -497,6 +515,11 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       retryInterval = TikaConfig.RETRYINTERVAL_DEFAULT;
     }
 
+    String retryIntervalTikaDown = parameters.getParameter(TikaConfig.PARAM_RETRYINTERVALTIKADOWN);
+    if (retryIntervalTikaDown == null) {
+      retryIntervalTikaDown = TikaConfig.RETRYINTERVALTIKADOWN_DEFAULT;
+    }
+
     String retryNumber = parameters.getParameter(TikaConfig.PARAM_RETRYNUMBER);
     if (retryNumber == null) {
       retryNumber = TikaConfig.RETRYNUMBER_DEFAULT;
@@ -508,6 +531,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     velocityContext.put("CONNECTIONTIMEOUT", connectionTimeout);
     velocityContext.put("SOCKETTIMEOUT", socketTimeout);
     velocityContext.put("RETRYINTERVAL", retryInterval);
+    velocityContext.put("RETRYINTERVALTIKADOWN", retryIntervalTikaDown);
     velocityContext.put("RETRYNUMBER", retryNumber);
   }
 
@@ -584,7 +608,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     // work
     Logging.ingest.warn("Tika Server unreachable while trying to process " + documentURI + ", retrying...", e);
     final long currentTime = System.currentTimeMillis();
-    throw new ServiceInterruption("Tika Server connection down: " + e.getMessage(), e, currentTime + retryInterval, -1L, -1, false);
+    throw new ServiceInterruption("Tika Server connection down: " + e.getMessage(), e, currentTime + retryIntervalTikaDown, -1L, retryNumber, false);
   }
 
   private void retryWithoutAbort(final Exception e) throws ServiceInterruption {
@@ -723,6 +747,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
               } else { // The tika server seams to be down : retry {retryNumber} times and abort the
                 // job if it fails on
                 // each retry
+                resultCode = "TIKASERVEREXCEPTION";
+                description = "Tika seemed to be down when requested to process document " + documentURI + " : " + e.getMessage();
+                tikaServerResultCode = handleTikaServerError(description);
                 triggerServiceInterruption(documentURI, e);
               }
             } catch (final NoHttpResponseException e) {
@@ -733,6 +760,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             } catch (final IOException e) { // Unknown problem with the Tika Server. Retry {retryNumber} times and abort
               // the job if it fails on
               // each retry
+              resultCode = "TIKASERVEREXCEPTION";
+              description = "Unknown Tika problem when processing document " + documentURI + " : " + e.getMessage();
+              tikaServerResultCode = handleTikaServerError(description);
               triggerServiceInterruption(documentURI, e);
             }
             if (response != null) {
@@ -1174,7 +1204,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     final List<Map<String, String>> fieldMappings = new ArrayList<>();
     String keepAllMetadataValue = "true";
     String lowernamesValue = "true";
-    String writeLimitValue = "1000000";
+    String writeLimitValue = "1000000"; // 1Mo by default
     String extractArchives = "false";
     String maxEmbeddedResources = "";
     for (int i = 0; i < os.getChildCount(); i++) {

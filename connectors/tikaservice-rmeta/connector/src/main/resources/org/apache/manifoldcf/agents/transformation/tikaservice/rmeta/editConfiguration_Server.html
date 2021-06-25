@@ -50,6 +50,12 @@
     </td>
   </tr>
   <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.RetryIntervalTikaDown'))</nobr></td>
+    <td class="value"><input name="retryIntervalTikaDown" type="text"
+      value="$Encoder.attributeEscape($RETRYINTERVALTIKADOWN)" size="20" />
+    </td>
+  </tr>
+  <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.RetryNumber'))</nobr></td>
     <td class="value"><input name="retryNumber" type="text"
       value="$Encoder.attributeEscape($RETRYNUMBER)" size="5" />
@@ -63,6 +69,7 @@
 <input type="hidden" name="connectionTimeout" value="$Encoder.attributeEscape($CONNECTIONTIMEOUT)"/>
 <input type="hidden" name="socketTimeout" value="$Encoder.attributeEscape($SOCKETTIMEOUT)"/>
 <input type="hidden" name="retryInterval" value="$Encoder.attributeEscape($RETRYINTERVAL)"/>
+<input type="hidden" name="retryIntervalTikaDown" value="$Encoder.attributeEscape($RETRYINTERVALTIKADOWN)"/>
 <input type="hidden" name="retryNumber" value="$Encoder.attributeEscape($RETRYNUMBER)"/>
 
 #end
