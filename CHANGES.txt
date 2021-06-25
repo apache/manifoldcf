@@ -4,6 +4,10 @@ $Id$
 ======================= 2.20-dev =====================
 
 
+CONNECTORS-1667: Include better kind of remote tika service
+transformer.
+(Julien Massiera)
+
 ======================= Release 2.19 =====================
 
 CONNECTORS-1666: Elastic Search connector now limits size of URI according to
