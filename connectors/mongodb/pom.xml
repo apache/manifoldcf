@@ -388,7 +388,7 @@
       <repository>
       <id>sonatype-repo</id>
       <name>Sonatype Repo</name>
-      <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </repository>
     </repositories>
 
