@@ -399,13 +399,15 @@ public class HttpPoster
         currentTime + 2L * 60L * 60000L,
         -1,
         true);
-    }
-    throw e;
+    } 
+    // Solr was not able to parse the request because it is malformed: skip the document
+    Logging.ingest.warn("Solr was unable to parse request during "+context+": "+e.getMessage(),e);
+    return;
   }
   
   /** Handle a SolrServerException.
-  * These exceptions seem to be catch-all exceptions having to do either with misconfiguration or
-  * with underlying IO exceptions.
+  * These exceptions seem to be catch-all exceptions having to do with misconfiguration or
+  * underlying IO exceptions, or request parsing exceptions.
   * If this method doesn't throw an exception, it means that the exception should be interpreted
   * as meaning that the document or action is illegal and should not be repeated.
   */
@@ -417,8 +419,14 @@ public class HttpPoster
     {
       handleIOException((IOException)childException, context);
       return;
+    } else if (childException instanceof RuntimeException) {
+      handleRuntimeException((RuntimeException) childException, context);
+      return;
     }
-    throw new ManifoldCFException("Unhandled SolrServerException: "+e.getMessage(),e);
+    //  Unknown exception, but a "Solr down" related issue does not end up here: log the error and skip this document or action
+    String message = "SolrServerException exception during "+context+": "+e.getMessage();
+    Logging.ingest.warn(message,e);
+    return;
   }
 
   /** Handle a SolrException.
@@ -565,15 +573,15 @@ public class HttpPoster
         false);
     }
 
-    // Otherwise, no idea what the trouble is, so presume that retries might fix it.
+    // Otherwise, no idea what the trouble is, so presume that retries might fix it, skip the document/action otherwise
     String message3 = "IO exception during "+context+": "+e.getMessage();
     Logging.ingest.warn(message3,e);
     throw new ServiceInterruption(message3,
       e,
       currentTime + interruptionRetryTime,
-      currentTime + 2L * 60L * 60000L,
-      -1,
-      true);
+      -1L,
+      3,
+      false);
   }
   
   /**
