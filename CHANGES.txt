@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.20-dev =====================
+======================= Release 2.20 =====================
 
 
 CONNECTORS-1667: Include better kind of remote tika service
