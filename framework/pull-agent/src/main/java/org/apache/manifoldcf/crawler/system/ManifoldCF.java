@@ -4422,7 +4422,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     else if (path.startsWith("mappingconnections/"))
     {
       String connectionName = decodeAPIPathElement(path.substring("mappingconnections/".length()));
-      return apiDeleteAuthorityConnection(tc,output,connectionName,authorizer);
+      return apiDeleteMappingConnection(tc,output,connectionName,authorizer);
     }
     else if (path.startsWith("authorityconnections/"))
     {

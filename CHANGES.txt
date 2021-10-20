@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.21-dev =====================
 
+CONNECTORS-1675: Cut-and-paste error corrected so that mapping connection
+deletion via API now works.
+(Julien Massiera)
+
 
 ======================= Release 2.20 =====================
 
