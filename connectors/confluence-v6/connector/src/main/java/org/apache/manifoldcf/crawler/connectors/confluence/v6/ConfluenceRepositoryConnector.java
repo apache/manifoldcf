@@ -156,6 +156,14 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
   protected String password = null;
   protected String socketTimeout = null;
   protected String connectionTimeout = null;
+  protected String retryIntervalString = null;
+  protected String retryNumberString = null;
+
+  /** Retry interval */
+  protected long retryInterval = -1L;
+
+  /** Retry number */
+  protected int retryNumber = -1;
 
   protected ConfluenceClient confluenceClient = null;
 
@@ -204,6 +212,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     password = null;
     socketTimeout = null;
     connectionTimeout = null;
+    retryIntervalString = null;
+    retryNumberString = null;
 
   }
 
@@ -224,6 +234,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     password = params.getObfuscatedParameter(ConfluenceConfiguration.Server.PASSWORD);
     socketTimeout = params.getParameter(ConfluenceConfiguration.Server.SOCKET_TIMEOUT);
     connectionTimeout = params.getParameter(ConfluenceConfiguration.Server.CONNECTION_TIMEOUT);
+    retryIntervalString = configParams.getParameter(ConfluenceConfiguration.Server.RETRY_INTERVAL);
+    retryNumberString = configParams.getParameter(ConfluenceConfiguration.Server.RETRY_NUMBER);
 
     try {
       initConfluenceClient();
@@ -349,6 +361,18 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
         connectionTimeoutInt = 60000;
       }
 
+      try {
+        this.retryInterval = Long.parseLong(retryIntervalString);
+      } catch (final NumberFormatException e) {
+        throw new ManifoldCFException("Bad retry interval number: " + retryIntervalString);
+      }
+
+      try {
+        this.retryNumber = Integer.parseInt(retryNumberString);
+      } catch (final NumberFormatException e) {
+        throw new ManifoldCFException("Bad retry number: " + retryNumberString);
+      }
+
       /* Generating a client to perform Confluence requests */
       confluenceClient = new ConfluenceClient(protocol, host, portInt, path, username, password, socketTimeoutInt, connectionTimeoutInt);
       lastSessionFetch = System.currentTimeMillis();
@@ -404,6 +428,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     String confluencePassword = parameters.getObfuscatedParameter(ConfluenceConfiguration.Server.PASSWORD);
     String confluenceSocketTimeout = parameters.getParameter(ConfluenceConfiguration.Server.SOCKET_TIMEOUT);
     String confluenceConnectionTimeout = parameters.getParameter(ConfluenceConfiguration.Server.CONNECTION_TIMEOUT);
+    String confluenceRetryNumber = parameters.getParameter(ConfluenceConfiguration.Server.RETRY_NUMBER);
+    String confluenceRetryInterval = parameters.getParameter(ConfluenceConfiguration.Server.RETRY_INTERVAL);
 
     if (confluenceProtocol == null) {
       confluenceProtocol = ConfluenceConfiguration.Server.PROTOCOL_DEFAULT_VALUE;
@@ -434,6 +460,13 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       confluenceConnectionTimeout = ConfluenceConfiguration.Server.CONNECTION_TIMEOUT_DEFAULT_VALUE;
     }
 
+    if (confluenceRetryNumber == null) {
+      confluenceRetryNumber = ConfluenceConfiguration.Server.RETRY_NUMBER_DEFAULT_VALUE;
+    }
+    if (confluenceRetryInterval == null) {
+      confluenceRetryInterval = ConfluenceConfiguration.Server.RETRY_INTERVAL_DEFAULT_VALUE;
+    }
+
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.PROTOCOL, confluenceProtocol);
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.HOST, confluenceHost);
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.PORT, confluencePort);
@@ -442,6 +475,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.PASSWORD, confluencePassword);
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.SOCKET_TIMEOUT, confluenceSocketTimeout);
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.CONNECTION_TIMEOUT, confluenceConnectionTimeout);
+    serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.RETRY_NUMBER, confluenceRetryNumber);
+    serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.RETRY_INTERVAL, confluenceRetryInterval);
   }
 
   @Override
@@ -535,6 +570,16 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       parameters.setParameter(ConfluenceConfiguration.Server.CONNECTION_TIMEOUT, confluenceConnectionTimeout);
     }
 
+    final String confluenceRetryNumber = variableContext.getParameter(PARAMETER_PREFIX + ConfluenceConfiguration.Server.RETRY_NUMBER);
+    if (confluenceRetryNumber != null) {
+      parameters.setParameter(ConfluenceConfiguration.Server.RETRY_NUMBER, confluenceRetryNumber);
+    }
+
+    final String confluenceRetryInterval = variableContext.getParameter(PARAMETER_PREFIX + ConfluenceConfiguration.Server.RETRY_INTERVAL);
+    if (confluenceRetryInterval != null) {
+      parameters.setParameter(ConfluenceConfiguration.Server.RETRY_INTERVAL, confluenceRetryInterval);
+    }
+
     /* null means process configuration has been successful */
     return null;
   }
@@ -593,8 +638,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
   /*
    * Handle job specification post
    *
-   * @see org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector# processSpecificationPost
-   * (org.apache.manifoldcf.core.interfaces.IPostParameters, org.apache.manifoldcf.crawler.interfaces.DocumentSpecification)
+   * @see org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector# processSpecificationPost (org.apache.manifoldcf.core.interfaces.IPostParameters,
+   * org.apache.manifoldcf.crawler.interfaces.DocumentSpecification)
    */
 
   @Override
@@ -694,9 +739,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
   /*
    * (non-Javadoc)
    *
-   * @see org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector# outputSpecificationBody
-   * (org.apache.manifoldcf.core.interfaces.IHTTPOutput, java.util.Locale, org.apache.manifoldcf.crawler.interfaces.DocumentSpecification,
-   * java.lang.String)
+   * @see org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector# outputSpecificationBody (org.apache.manifoldcf.core.interfaces.IHTTPOutput, java.util.Locale,
+   * org.apache.manifoldcf.crawler.interfaces.DocumentSpecification, java.lang.String)
    */
   @Override
   public void outputSpecificationBody(final IHTTPOutput out, final Locale locale, final Specification ds, final int connectionSequenceNumber, final int actualSequenceNumber, final String tabName)
@@ -724,9 +768,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
   /*
    * Header for the specification
    *
-   * @see org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector# outputSpecificationHeader
-   * (org.apache.manifoldcf.core.interfaces.IHTTPOutput, java.util.Locale, org.apache.manifoldcf.crawler.interfaces.DocumentSpecification,
-   * java.util.List)
+   * @see org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector# outputSpecificationHeader (org.apache.manifoldcf.core.interfaces.IHTTPOutput, java.util.Locale,
+   * org.apache.manifoldcf.crawler.interfaces.DocumentSpecification, java.util.List)
    */
   @Override
   public void outputSpecificationHeader(final IHTTPOutput out, final Locale locale, final Specification ds, final int connectionSequenceNumber, final List<String> tabsArray)
@@ -745,9 +788,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
   /*
    * Adding seed documents
    *
-   * @see org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector# addSeedDocuments
-   * (org.apache.manifoldcf.crawler.interfaces.ISeedingActivity, org.apache.manifoldcf.crawler.interfaces.DocumentSpecification, long, long,
-   * int)
+   * @see org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector# addSeedDocuments (org.apache.manifoldcf.crawler.interfaces.ISeedingActivity,
+   * org.apache.manifoldcf.crawler.interfaces.DocumentSpecification, long, long, int)
    */
   @Override
   public String addSeedDocuments(final ISeedingActivity activities, final Specification spec, final String lastSeedVersion, final long seedTime, final int jobMode)
@@ -760,9 +802,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     try {
 
       /*
-       * Not uses delta seeding because Confluence can't be queried using dates or in a ordered way, only start and limit which can cause problems
-       * if an already indexed document is deleted, because we will miss some to-be indexed docs due to the last start parameter stored in the
-       * last execution
+       * Not uses delta seeding because Confluence can't be queried using dates or in a ordered way, only start and limit which can cause problems if an already indexed document is
+       * deleted, because we will miss some to-be indexed docs due to the last start parameter stored in the last execution
        */
       // if(lastSeedVersion != null && !lastSeedVersion.isEmpty()) {
       // StringTokenizer tokenizer = new
@@ -999,18 +1040,17 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
    * Handle page exception : retry 3rd times with a 5 minutes interval without aborting job in case of failure
    *
    * @param e
-   * @param context
-   *          The error context (ex: 'page processing')
+   * @param context The error context (ex: 'page processing')
    * @throws ManifoldCFException
    * @throws ServiceInterruption
    */
-  protected static void handlePageException(final Exception e, final String context) throws ManifoldCFException, ServiceInterruption {
+  protected void handlePageException(final Exception e, final String context) throws ManifoldCFException, ServiceInterruption {
     final long currentTime = System.currentTimeMillis();
 
     // Server doesn't appear to by up. Try for a brief time then give up.
     final String message = "Server appears down during " + context + ": " + e.getMessage();
     Logging.connectors.warn(message, e);
-    throw new ServiceInterruption(message, e, currentTime + interruptionRetryTime, -1L, 3, false);
+    throw new ServiceInterruption(message, e, currentTime + retryInterval, -1L, retryNumber, false);
   }
 
   /*
@@ -1098,16 +1138,11 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
    * Process the specific page
    * </p>
    *
-   * @param activeSecurity
-   *          Security enabled/disabled
-   * @param documentIdentifier
-   *          The original documentIdentifier
-   * @param parentRestrictions
-   *          The list of parent restrictions
-   * @param pageId
-   *          The pageId being an attachment
-   * @param version
-   *          The version of the page
+   * @param activeSecurity     Security enabled/disabled
+   * @param documentIdentifier The original documentIdentifier
+   * @param parentRestrictions The list of parent restrictions
+   * @param pageId             The pageId being an attachment
+   * @param version            The version of the page
    * @param activities
    * @param doLog
    *
@@ -1132,16 +1167,11 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
    * Process the specific attachment
    * </p>
    *
-   * @param activeSecurity
-   *          Security enabled/disabled
-   * @param documentIdentifier
-   *          The original documentIdentifier
-   * @param parentRestrictions
-   *          The list of parent restrictions
-   * @param pageId
-   *          The pageId being an attachment
-   * @param version
-   *          The version of the page
+   * @param activeSecurity     Security enabled/disabled
+   * @param documentIdentifier The original documentIdentifier
+   * @param parentRestrictions The list of parent restrictions
+   * @param pageId             The pageId being an attachment
+   * @param version            The version of the page
    * @param activities
    * @param doLog
    * @throws IOException
@@ -1168,15 +1198,11 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
    * Process the specific page
    * </p>
    *
-   * @param activeSecurity
-   *          Security enabled/disabled
-   * @param parentRestrictions
-   *          The list of parent restrictions
-   * @param page
-   *          The page to process
+   * @param activeSecurity             Security enabled/disabled
+   * @param parentRestrictions         The list of parent restrictions
+   * @param page                       The page to process
    * @param manifoldDocumentIdentifier
-   * @param version
-   *          The version of the page
+   * @param version                    The version of the page
    * @param activities
    * @param doLog
    *
@@ -1197,8 +1223,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     final DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, Locale.ROOT);
 
     /*
-     * Retain page in Manifold because it has not changed from last time This is needed to keep the identifier in Manifold data, because by
-     * default if a document is not retained nor ingested, it will be deleted by the framework
+     * Retain page in Manifold because it has not changed from last time This is needed to keep the identifier in Manifold data, because by default if a document is not retained nor
+     * ingested, it will be deleted by the framework
      */
     final StringBuilder versionBuilder = new StringBuilder();
     versionBuilder.append(df.format(lastModified));
@@ -1342,18 +1368,17 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
    * Handles IO Exception to manage whether the exception is an interruption so that the process needs to be executed again later on
    * </p>
    *
-   * @param e
-   *          The Exception
+   * @param e The Exception
    * @throws ManifoldCFException
    * @throws ServiceInterruption
    */
-  private static void handleIOException(final IOException e) throws ManifoldCFException, ServiceInterruption {
+  private void handleIOException(final IOException e) throws ManifoldCFException, ServiceInterruption {
     if (!(e instanceof java.net.SocketTimeoutException) && e instanceof InterruptedIOException) {
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
     }
     Logging.connectors.warn("IO exception: " + e.getMessage(), e);
     final long currentTime = System.currentTimeMillis();
-    throw new ServiceInterruption("IO exception: " + e.getMessage(), e, currentTime + 300000L, currentTime + 3 * 60 * 60000L, -1, false);
+    throw new ServiceInterruption("IO exception: " + e.getMessage(), e, currentTime + retryInterval, currentTime + 3 * 60 * 60000L, -1, false);
   }
 
   /**
@@ -1361,8 +1386,7 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
    * Handles general exceptions
    * </p>
    *
-   * @param e
-   *          The Exception
+   * @param e The Exception
    * @throws ServiceInterruption
    * @throws ManifoldCFException
    */

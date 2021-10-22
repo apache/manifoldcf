@@ -103,6 +103,22 @@
       <input size="16" type="password" id="confluence_password" name="confluence_password" value="$Encoder.attributeEscape($CONFLUENCE_PASSWORD)" />
     </td>
   </tr>
+  <tr>
+  <td class="description">
+    <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.RetryInterval'))</nobr>
+  </td>
+  <td class="value">
+    <input size="20" type="text" id="confluence_retryInterval" name="confluence_retryInterval" value="$Encoder.attributeEscape($CONFLUENCE_RETRYINTERVAL)"/>
+  </td>
+	</tr>
+	<tr>
+	  <td class="description">
+	    <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceRepositoryConnector.RetryNumber'))</nobr>
+	  </td>
+	  <td class="value">
+	    <input size="10" type="text" id="confluence_retryNumber" name="confluence_retryNumber" value="$Encoder.attributeEscape($CONFLUENCE_RETRYNUMBER)"/>
+	  </td>
+	</tr>
 </table>
 
 #else
@@ -115,5 +131,7 @@
 <input type="hidden" name="confluence_password" value="$Encoder.attributeEscape($CONFLUENCE_PASSWORD)" />
 <input type="hidden" name="confluence_socket_timeout" value="$Encoder.attributeEscape($CONFLUENCE_SOCKET_TIMEOUT)" />
 <input type="hidden" name="confluence_connection_timeout" value="$Encoder.attributeEscape($CONFLUENCE_CONNECTION_TIMEOUT)" />
+<input type="hidden" name="confluence_retryInterval" value="$Encoder.attributeEscape($CONFLUENCE_RETRYINTERVAL)"/>
+<input type="hidden" name="confluence_retryNumber" value="$Encoder.attributeEscape($CONFLUENCE_RETRYNUMBER)"/>
 
 #end

@@ -39,6 +39,8 @@ public class ConfluenceConfiguration {
     public static final String PATH = "path";
     public static final String SOCKET_TIMEOUT = "socket_timeout";
     public static final String CONNECTION_TIMEOUT = "connection_timeout";
+    public static final String RETRY_NUMBER = "retryNumber";
+    public static final String RETRY_INTERVAL = "retryInterval";
 
     public static final String PROTOCOL_DEFAULT_VALUE = "http";
     public static final String HOST_DEFAULT_VALUE = "";
@@ -48,6 +50,8 @@ public class ConfluenceConfiguration {
     public static final String PASSWORD_DEFAULT_VALUE = "";
     public static final String SOCKET_TIMEOUT_DEFAULT_VALUE = "900000";
     public static final String CONNECTION_TIMEOUT_DEFAULT_VALUE = "60000";
+    public static final String RETRY_NUMBER_DEFAULT_VALUE = "2";
+    public static final String RETRY_INTERVAL_DEFAULT_VALUE = "20000";
   }
 
   public static interface Authority {
