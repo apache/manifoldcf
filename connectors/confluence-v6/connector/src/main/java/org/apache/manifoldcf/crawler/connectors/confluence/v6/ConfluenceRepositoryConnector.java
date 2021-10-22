@@ -1187,14 +1187,6 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
   private ProcessResult processPageInternal(final boolean activeSecurity, final List<String> parentRestrictions, final Page page, final String manifoldDocumentIdentifier, final String version,
       final IProcessActivity activities, final boolean doLog, final Map<String, String> extraProperties) throws ManifoldCFException, ServiceInterruption, IOException {
 
-    /* Remove page if it has no content */
-    /*
-     * Page does not have content if there was an error trying to get the page
-     */
-    if (!page.hasContent()) {
-      activities.deleteDocument(manifoldDocumentIdentifier);
-      return new ProcessResult(page.getLength(), "DELETED", "");
-    }
     if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
       Logging.connectors.debug("Confluence: This content exists: " + page.getId());
     }
@@ -1337,6 +1329,7 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
 
     rd.setBinary(page.getContentStream(), page.getLength());
     rd.addField("size", String.valueOf(page.getLength()));
+    rd.addField("url", documentURI);
 
     /* Ingest document */
     activities.ingestDocumentWithException(manifoldDocumentIdentifier, lastVersion, documentURI, rd);

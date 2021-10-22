@@ -220,22 +220,5 @@ public class ConfluenceConnectorTest {
 		verify(client, times(1)).getPage(id);
 		verify(activities, times(1)).checkDocumentNeedsReindexing(id, version);
 	}
-	
-	@Test
-	public void mockDeleteDocument() throws Exception{
-		Page fakePage = mock(Page.class);
-		when(fakePage.hasContent()).thenReturn(false);
-		String id = "A";
-		when(fakePage.hasContent()).thenReturn(false);
-		when(client.getPage(Mockito.anyString())).
-    	thenReturn(fakePage);
-		
-		IExistingVersions statuses = mock(IExistingVersions.class);
-		IProcessActivity activities = mock(IProcessActivity.class);
-		connector.processDocuments(new String[]{id}, statuses, new Specification(), activities, 0, true);
-		verify(client, times(1)).getPage(id);
-		verify(activities, times(1)).deleteDocument(id);
-				
-	}
 		
 }
