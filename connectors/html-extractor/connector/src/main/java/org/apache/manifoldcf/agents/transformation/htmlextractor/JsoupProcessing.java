@@ -34,6 +34,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.jsoup.nodes.Document.OutputSettings;
 import org.jsoup.nodes.Entities.EscapeMode;
+import org.jsoup.parser.Parser;
 import org.jsoup.safety.Whitelist;
 
 public class JsoupProcessing {
@@ -179,6 +180,8 @@ public class JsoupProcessing {
     else {
       finalDoc = Jsoup.clean(docToKeep.html(),Whitelist.relaxed());
     }
+    // Jsoup escapes entities (eg '&' becomes '&amp;'), we don't want that as the extracted text must remain as it is, so unescape them 
+    finalDoc = Parser.unescapeEntities(finalDoc, true);
     metadata.put("extractedDoc",finalDoc);
 
     return metadata;
