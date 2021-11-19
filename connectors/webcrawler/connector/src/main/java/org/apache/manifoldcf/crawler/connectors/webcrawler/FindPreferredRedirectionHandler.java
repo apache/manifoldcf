@@ -44,7 +44,14 @@ public class FindPreferredRedirectionHandler extends FindHandler implements IRed
         super.noteDiscoveredLink(lp.getOverrideTargetURL());
     }
   }
-    
+
+  @Override
+  public void noteDiscoveredBase(String rawURL)
+    throws ManifoldCFException
+  {
+    super.noteDiscoveredBase(rawURL);
+  }
+  
   /** Override noteDiscoveredLink */
   @Override
   public void noteDiscoveredLink(String rawURL)

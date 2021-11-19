@@ -3876,6 +3876,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   protected class ProcessActivityLinkHandler implements IDiscoveredLinkHandler
   {
     protected String documentIdentifier;
+    protected String baseDocumentIdentifier;
     protected IProcessActivity activities;
     protected DocumentURLFilter filter;
     protected String contextDescription;
@@ -3885,12 +3886,22 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     public ProcessActivityLinkHandler(String documentIdentifier, IProcessActivity activities, DocumentURLFilter filter, String contextDescription, String linkType)
     {
       this.documentIdentifier = documentIdentifier;
+      this.baseDocumentIdentifier = baseDocumentIdentifier;
       this.activities = activities;
       this.filter = filter;
       this.contextDescription = contextDescription;
       this.linkType = linkType;
     }
 
+    @Override
+    public void noteDiscoveredBase(String rawURL)
+      throws ManifoldCFException
+    {
+      String newIdentifier = makeDocumentIdentifier(baseDocumentIdentifier,rawURL,filter);
+      if (newIdentifier != null)
+        baseDocumentIdentifier = newIdentifier;
+    }
+    
     /** Inform the world of a discovered link.
     *@param rawURL is the raw discovered url.  This may be relative, malformed, or otherwise unsuitable for use until final form is acheived.
     */
@@ -3898,7 +3909,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     public void noteDiscoveredLink(String rawURL)
       throws ManifoldCFException
     {
-      String newIdentifier = makeDocumentIdentifier(documentIdentifier,rawURL,filter);
+      String newIdentifier = makeDocumentIdentifier(baseDocumentIdentifier,rawURL,filter);
       if (newIdentifier != null)
       {
         if (Logging.connectors.isDebugEnabled())
@@ -4023,6 +4034,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     {
     }
 
+    /** Note discovered base */
+    @Override
+    public void noteBASEHREF(String rawURL)
+      throws ManifoldCFException
+    {
+      if (allowFollow)
+        noteDiscoveredBase(rawURL);
+    }
+    
     /** Note discovered href */
     @Override
     public void noteAHREF(String rawURL)

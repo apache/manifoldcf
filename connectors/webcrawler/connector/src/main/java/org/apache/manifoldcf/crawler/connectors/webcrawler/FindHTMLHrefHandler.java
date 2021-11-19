@@ -82,6 +82,13 @@ public class FindHTMLHrefHandler extends FindHandler implements IHTMLHandler
   {
   }
 
+  @Override
+  public void noteDiscoveredBase(String rawURL)
+    throws ManifoldCFException
+  {
+    super.noteDiscoveredBase(rawURL);
+  }
+  
   /** Override noteDiscoveredLink */
   @Override
   public void noteDiscoveredLink(String rawURL)
@@ -113,6 +120,14 @@ public class FindHTMLHrefHandler extends FindHandler implements IHTMLHandler
     }
   }
 
+  /** Note discovered base */
+  @Override
+  public void noteBASEHREF(String rawURL)
+    throws ManifoldCFException
+  {
+    noteDiscoveredBase(rawURL);
+  }
+  
   /** Note discovered href */
   @Override
   public void noteAHREF(String rawURL)

@@ -52,6 +52,12 @@ public class LinkParseState extends MetaParseState
       if (hrefValue != null && hrefValue.length() > 0)
         handler.noteLINKHREF(hrefValue);
     }
+    else if (tagName.equals("base"))
+    {
+      String hrefValue = (String)attributes.get("href");
+      if (hrefValue != null && hrefValue.length() > 0)
+        handler.noteBASEHREF(hrefValue);
+    }
     else if (tagName.equals("img"))
     {
       String srcValue = (String)attributes.get("src");

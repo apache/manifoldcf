@@ -31,6 +31,13 @@ public class FindHandler implements IDiscoveredLinkHandler
     this.parentURI = parentURI;
   }
 
+  @Override
+  public void noteDiscoveredBase(String rawURL)
+    throws ManifoldCFException
+  {
+    // MHL
+  }
+  
   /** Inform the world of a discovered link.
   *@param rawURL is the raw discovered url.  This may be relative, malformed, or otherwise unsuitable for use until final form is acheived.
   */

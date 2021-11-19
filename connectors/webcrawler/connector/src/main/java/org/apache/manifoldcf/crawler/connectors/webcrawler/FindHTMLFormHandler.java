@@ -160,6 +160,13 @@ public class FindHTMLFormHandler extends FindHandler implements IHTMLHandler
     }
   }
 
+  /** Note discovered base href */
+  @Override
+  public void noteBASEHREF(String rawURL)
+    throws ManifoldCFException
+  {
+  }
+  
   /** Note discovered href */
   @Override
   public void noteAHREF(String rawURL)

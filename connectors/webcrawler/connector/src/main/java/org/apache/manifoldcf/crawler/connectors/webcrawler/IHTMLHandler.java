@@ -45,6 +45,10 @@ public interface IHTMLHandler extends IDiscoveredLinkHandler, IMetaTagHandler
   public void noteLINKHREF(String rawURL)
     throws ManifoldCFException;
 
+  /** Note base href */
+  public void noteBASEHREF(String rawURL)
+    throws ManifoldCFException;
+    
   /** Note discovered IMG SRC */
   public void noteIMGSRC(String rawURL)
     throws ManifoldCFException;

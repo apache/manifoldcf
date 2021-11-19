@@ -24,6 +24,12 @@ import org.apache.manifoldcf.core.interfaces.*;
 */
 public interface IDiscoveredLinkHandler
 {
+  /** Inform the world of a new base HREF.
+  *@param rawURL is the new base HREF, in raw form.  This may be relative, malformed, etc.
+  */
+  public void noteDiscoveredBase(String rawURL)
+    throws ManifoldCFException;
+
   /** Inform the world of a discovered link.
   *@param rawURL is the raw discovered url.  This may be relative, malformed, or otherwise unsuitable for use until final form is acheived.
   */
