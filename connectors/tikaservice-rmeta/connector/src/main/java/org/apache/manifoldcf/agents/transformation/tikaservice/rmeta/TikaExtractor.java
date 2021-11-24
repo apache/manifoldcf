@@ -704,7 +704,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       // We only log the extraction
       final long startTime = System.currentTimeMillis();
       String resultCode = "OK";
-      String description = null;
+      String description = "";
       Long length = 0L;
       boolean truncated = false;
       boolean resources_limit = false;
@@ -837,7 +837,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
         } catch (final IOException e) {
           resultCode = "TIKASERVERRESPONSEISSUE";
-          description = e.getMessage();
+          if (e.getMessage() != null) {
+            description = e.getMessage();
+          }
           tikaServerResultCode = handleTikaServerException(e);
         } finally {
           if (response != null) {
@@ -853,6 +855,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         }
 
       } finally {
+        // Before injecting activity record, clean the description as it can contains non ascii chars that can cause errors during SQL insertion
+        description = description.replaceAll("[^\\x20-\\x7e]", "");
         // Log the extraction processing
         activities.recordActivity(startTime, ACTIVITY_EXTRACT, length, documentURI, resultCode, description);
       }
