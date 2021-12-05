@@ -180,6 +180,7 @@
           <fork>true</fork>
           <meminitial>128m</meminitial>
           <maxmem>512m</maxmem>
+        	<useIncrementalCompilation>true</useIncrementalCompilation>
         </configuration>
       </plugin>
 
