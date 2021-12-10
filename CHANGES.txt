@@ -3,8 +3,11 @@ $Id$
 
 ======================= 2.21-dev =====================
 
+CONNECTORS-1683: Update to use Log4j 2.15.0
+(Markus Schuch)
+
 CONNECTORS-1680: Add support for BASE HREF in web connector.
-(Karl Wright, Marcus Schuch)
+(Karl Wright, Markus Schuch)
 
 CONNECTORS-1675: Cut-and-paste error corrected so that mapping connection
 deletion via API now works.
