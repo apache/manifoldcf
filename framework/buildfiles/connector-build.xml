@@ -116,7 +116,7 @@
         </fileset>
         <fileset dir="${mcf-dist}/lib">
             <include name="zookeeper*.jar"/>
-            <include name="mail*.jar"/>
+            <include name="javax.mail*.jar"/>
             <include name="commons-exec*.jar"/>
             <include name="guava*.jar"/>
             <include name="gson*.jar"/>
@@ -463,7 +463,7 @@
                     <include name="axis*.jar"/>
                     <include name="saaj*.jar"/>
                     <include name="wsdl*.jar"/>
-                    <include name="mail*.jar"/>
+                    <include name="javax.mail*.jar"/>
                     <include name="activation*.jar"/>
                     <include name="commons-discovery*.jar"/>
                 </fileset>

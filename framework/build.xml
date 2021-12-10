@@ -70,7 +70,7 @@
             <include name="xercesImpl*.jar"/>
             <include name="xml-apis*.jar"/>
             <include name="velocity*.jar"/>
-            <include name="mail*.jar"/>
+            <include name="javax.mail*.jar"/>
             <include name="commons-exec*.jar"/>
             <include name="gson*.jar"/>
             <include name="guava*.jar"/>
@@ -523,7 +523,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="mail*.jar"/>
+                <include name="javax.mail*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
@@ -572,7 +572,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="mail*.jar"/>
+                <include name="javax.mail*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
@@ -627,7 +627,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="mail*.jar"/>
+                <include name="javax.mail*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
@@ -677,7 +677,7 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="mail*.jar"/>
+                <include name="javax.mail*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
@@ -735,7 +735,7 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="mail*.jar"/>
+                <include name="javax.mail*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
@@ -797,7 +797,7 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="mail*.jar"/>
+                <include name="javax.mail*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
@@ -867,7 +867,7 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="mail*.jar"/>
+                <include name="javax.mail*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
@@ -931,7 +931,7 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="mail*.jar"/>
+                <include name="javax.mail*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
@@ -1066,7 +1066,7 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="mail*.jar"/>
+                <include name="javax.mail*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
@@ -1327,7 +1327,7 @@
             <include name="slf4j-simple*.jar"/>
             <include name="httpcore*.jar"/>
             <include name="httpclient*.jar"/>
-            <include name="mail*.jar"/>
+            <include name="javax.mail*.jar"/>
             <include name="commons-exec*.jar"/>
             <include name="gson*.jar"/>
             <include name="guava*.jar"/>

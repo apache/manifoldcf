@@ -51,7 +51,7 @@
     <jetty.version>9.4.25.v20191220</jetty.version>
     <jetty-jsp-jdt.version>2.3.3</jetty-jsp-jdt.version>
     <jetty-schemas.version>3.1.M0</jetty-schemas.version>
-    <mail.version>1.4.5</mail.version>
+    <mail.version>1.6.2</mail.version>
     <activation.version>1.1.1</activation.version>
     <axis.version>1.4</axis.version>
     <wsdl4j.version>1.6.2</wsdl4j.version>
