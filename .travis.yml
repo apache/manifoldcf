@@ -19,16 +19,19 @@ git:
 env:
   matrix:
     - TEST_SCRIPT="mvn -q install -DskipITs"
-    - TEST_SCRIPT="mvn -q test-compile javadoc:javadoc"
+    - TEST_SCRIPT="mvn --no-transfer-progress package -DskipTests -DskipITs javadoc:javadoc"
     - TEST_SCRIPT="ant make-core-deps make-deps test"
 script: $TEST_SCRIPT
 language: java
 jdk:
-  - oraclejdk8
+  - openjdk8
+addons:
+  apt:
+    packages:
+      - ant
+      - ant-optional
 cache:
   directories:
     - $HOME/.m2
 notifications:
   email: false
-dist: trusty
-
