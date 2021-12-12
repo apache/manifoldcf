@@ -28,6 +28,7 @@ import java.net.MalformedURLException;
 import java.io.OutputStream;
 import java.io.IOException;
 
+import com.opentext.livelink.service.memberservice.MemberRight;
 import org.apache.cxf.transport.http.HttpConduitFeature;
 import org.apache.cxf.transport.http.HttpConduitConfig;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
@@ -62,7 +63,6 @@ import com.opentext.livelink.service.docman.NodeRights;
 import com.opentext.livelink.service.docman.AttributeGroupDefinition;
 import com.opentext.livelink.service.memberservice.User;
 import com.opentext.livelink.service.memberservice.Member;
-import com.opentext.livelink.service.memberservice.Group;
 import com.opentext.livelink.service.searchservices.SResultPage;
 import com.opentext.livelink.service.searchservices.SGraph;
 import com.opentext.livelink.service.searchservices.SingleSearchRequest;
@@ -373,7 +373,7 @@ public class CswsSession
       return getDocumentManagementHandle().getVersion(nodeId, version, getOTAuthentication());
     } catch (SOAPFaultException e) {
       if (e.getFault().getFaultCode().equals("ns0:DocMan.VersionRetrievalError")) {
-        return null; 
+        return null;
       }
       processSOAPFault(e);
       return null;
@@ -422,10 +422,10 @@ public class CswsSession
     }
   }
 
-  public List<? extends Group> listUserMemberOf(final long memberId)
+  public List<? extends MemberRight> listRightsByMemberId(final long memberId)
     throws ManifoldCFException, ServiceInterruption {
     try {
-      return getMemberServiceHandle().listMemberOf(memberId, getOTAuthentication());
+      return getMemberServiceHandle().listRightsByID(memberId, getOTAuthentication());
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;

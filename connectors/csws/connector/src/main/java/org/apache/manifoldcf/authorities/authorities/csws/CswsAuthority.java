@@ -18,25 +18,21 @@
 */
 package org.apache.manifoldcf.authorities.authorities.csws;
 
+import com.opentext.livelink.service.memberservice.MemberRight;
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.authorities.system.Logging;
-import org.apache.manifoldcf.authorities.system.ManifoldCF;
 
 import org.apache.manifoldcf.connectorcommon.interfaces.*;
-import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
 
 import com.opentext.livelink.service.memberservice.User;
 import com.opentext.livelink.service.memberservice.Member;
-import com.opentext.livelink.service.memberservice.Group;
 import com.opentext.livelink.service.memberservice.MemberPrivileges;
 import org.apache.manifoldcf.csws.*;
 
 import java.io.*;
 import java.util.*;
-import java.net.*;
-import java.util.regex.*;
 
 /** This is the Csws implementation of the IAuthorityConnector interface.
 *
@@ -433,8 +429,8 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
         return RESPONSE_USERNOTFOUND;
       }
 
-      final List<? extends Group> groups = cswsSession.listUserMemberOf(member.getID());
-      if (groups == null)
+      final List<? extends MemberRight> memberRights = cswsSession.listRightsByMemberId(member.getID());
+      if (memberRights == null)
       {
         if (Logging.authorityConnectors.isDebugEnabled())
           Logging.authorityConnectors.debug("Csws: Csws error looking up user rights for '"+domainAndUser+"' - user does not exist");
@@ -466,10 +462,10 @@ public class CswsAuthority extends org.apache.manifoldcf.authorities.authorities
       // code, so it *may* be reasonable to filter them from here.  It's not a real problem because
       // it's effectively just a duplicate of what we are doing.
 
-      final String[] rval = new String[groups.size()];
+      final String[] rval = new String[memberRights.size()];
       int j = 0;
-      for (final Group g : groups) {
-        rval[j++] = new Long(g.getID()).toString();
+      for (final MemberRight memberRight : memberRights) {
+        rval[j++] = Long.toString(memberRight.getID());
       }
 
       return new AuthorizationResponse(rval,AuthorizationResponse.RESPONSE_OK);
