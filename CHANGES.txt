@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.21-dev =====================
 
+CONNECTORS-1626: Make the CSWS authority connector respect
+transitive group and project memberships.
+(Markus Schuch)
+
 CONNECTORS-1682: Update to use JavaMail 1.6.2 to support TLS 1.2
 in email repository and notification connector.
 (Markus Schuch)
