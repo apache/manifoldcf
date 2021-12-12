@@ -25,7 +25,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>mcf-connector-common</artifactId>
-  <name>ManifoldCF - Connector-Common</name>
+  <name>ManifoldCF - Connector - Common</name>
 
   <build>
     <plugins>

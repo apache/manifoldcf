@@ -902,7 +902,7 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
   /**
    * Output the configuration body section. This method is called in the body section of the connector's configuration page. Its purpose is to
    * present the required form elements for editing. The coder can presume that the HTML that is output from this configuration will be within
-   * appropriate <html>, <body>, and <form> tags. The name of the form is "editconnection".
+   * appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags. The name of the form is "editconnection".
    *
    * @param threadContext
    *          is the local thread context.
@@ -969,7 +969,7 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
   /**
    * View configuration. This method is called in the body section of the connector's view configuration page. Its purpose is to present the
    * connection information to the user. The coder can presume that the HTML that is output from this configuration will be within appropriate
-   * <html> and <body> tags.
+   * &lt;html&gt; and &lt;body&gt; tags.
    *
    * @param threadContext
    *          is the local thread context.
@@ -1058,7 +1058,7 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
   /**
    * Output the specification body section. This method is called in the body section of a job page which has selected a pipeline connection
    * of the current type. Its purpose is to present the required form elements for editing. The coder can presume that the HTML that is output
-   * from this configuration will be within appropriate <html>, <body>, and <form> tags. The name of the form is "editjob".
+   * from this configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags. The name of the form is "editjob".
    *
    * @param out
    *          is the output to which any HTML should be sent.
@@ -1093,8 +1093,8 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
 
   /**
    * View specification. This method is called in the body section of a job's view page. Its purpose is to present the pipeline specification
-   * information to the user. The coder can presume that the HTML that is output from this configuration will be within appropriate <html> and
-   * <body> tags.
+   * information to the user. The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt; and
+   * &lt;body&gt; tags.
    *
    * @param out
    *          is the output to which any HTML should be sent.

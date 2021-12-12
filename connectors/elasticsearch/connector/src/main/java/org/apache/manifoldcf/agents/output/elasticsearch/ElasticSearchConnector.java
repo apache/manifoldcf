@@ -204,7 +204,7 @@ public class ElasticSearchConnector extends BaseOutputConnector
   }
 
   /** Create a hashed URI string for ID according to ElasticSearch parameters.
-  * @param domumentURI is the URI of the document.
+  * @param documentURI is the URI of the document.
   * @return hashed URI.
   */
   protected static String compressDocumentURI(String documentURI)

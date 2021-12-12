@@ -13,14 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-sudo: false
 install: true
 git:
   depth: 1
 env:
   matrix:
     - TEST_SCRIPT="mvn -q install -DskipITs"
-    - TEST_SCRIPT="mvn -q javadoc:javadoc"
+    - TEST_SCRIPT="mvn -q test-compile javadoc:javadoc"
     - TEST_SCRIPT="ant make-core-deps make-deps test"
 script: $TEST_SCRIPT
 language: java
