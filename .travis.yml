@@ -29,6 +29,7 @@ addons:
   apt:
     packages:
       - ant
+      - ant-optional
 cache:
   directories:
     - $HOME/.m2
