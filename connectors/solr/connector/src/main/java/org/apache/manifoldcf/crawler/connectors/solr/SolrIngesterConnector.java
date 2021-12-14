@@ -643,9 +643,36 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
                   if (listFieldValues != null) {
 
                     // TODO
-                    // For now only supports String fields (not int, long, date etc...)
-                    final String[] tablistFieldValues = listFieldValues.toArray(new String[0]);
-                    doc.addField(entry.getValue(), tablistFieldValues);
+                    // For now supports String, int, long, date fields 
+                    if (listFieldValues.get(0) instanceof String) {
+                      final String[] tablistFieldValues = listFieldValues.toArray(new String[0]);
+                      doc.addField(entry.getValue(), tablistFieldValues);
+                    }
+                    else if (listFieldValues.get(0) instanceof Long) {
+                      final Long[] tablistFieldValues = listFieldValues.toArray(new Long[0]);
+                      String[] string_list = new String[tablistFieldValues.length];
+
+                      for(int i = 0; i < tablistFieldValues.length; i++){
+                        string_list[i] = String.valueOf(tablistFieldValues[i]);
+                      }
+                      doc.addField(entry.getValue(), string_list);
+                    }
+                    else if (listFieldValues.get(0) instanceof Integer) {
+                      final Integer[] tablistFieldValues = listFieldValues.toArray(new Integer[0]);
+                      String[] string_list = new String[tablistFieldValues.length];
+
+                      for(int i = 0; i < tablistFieldValues.length; i++){
+                        string_list[i] = String.valueOf(tablistFieldValues[i]);
+                      }
+                      doc.addField(entry.getValue(), string_list);
+                    }
+                    else if (listFieldValues.get(0) instanceof Date) {
+                      final Date[] tablistFieldValues = listFieldValues.toArray(new Date[0]);
+                      doc.addField(entry.getValue(), tablistFieldValues);
+                    }
+                    else {
+                        Logging.connectors.warn("SolrIngester: the type of the field "+entry.getKey() + " is not recognized");
+                    }
 
                   }
                 }
