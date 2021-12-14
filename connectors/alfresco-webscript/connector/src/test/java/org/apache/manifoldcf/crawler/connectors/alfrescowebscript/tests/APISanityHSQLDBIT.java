@@ -84,10 +84,27 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
   {
   }
   
+  public static boolean wrongJavaVersion() throws Exception {
+    String version = System.getProperty("java.version");
+    int index = version.indexOf("_");
+    if (index == -1) {
+      return false;
+    }
+    String update = version.substring(index + 1);
+    if (Integer.parseInt(update) <= 255) {
+      return false;
+    }
+    System.err.println("Not running Alfresco integration test because your version of java is incompatible: "+version);
+    return true;
+  }
+  
   @Test
   public void sanityCheck()
     throws Exception
   {
+    if (wrongJavaVersion()) {
+      return;
+    }
     try
     {
       
