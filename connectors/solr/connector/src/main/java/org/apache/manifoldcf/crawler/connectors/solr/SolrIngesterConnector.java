@@ -437,7 +437,14 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
         query.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
         QueryResponse response;
         response = httpSolrClient.query(collection, query);
-        final String nextCursorMark = response.getNextCursorMark();
+        String nextCursorMark = cursorMark;
+        try {
+          nextCursorMark = response.getNextCursorMark();
+        } catch (Exception e) {
+          // Something wrong with the response, break
+          Logging.connectors.warn("SolrIngester: the type of the reponse getnextcursormark is not recognized as a String");
+          break;
+        }
         final SolrDocumentList documents = response.getResults();
         
         for (final SolrDocument document : documents) {
@@ -545,7 +552,14 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
         query.setFields(idFieldName, versionField);
         query.addFilterQuery(idFieldName + ":(" + documentIdentifiersString + ")");
 
-        String cursorMark = CursorMarkParams.CURSOR_MARK_START;
+        String nextCursorMark = cursorMark;
+        try {
+          nextCursorMark = response.getNextCursorMark();
+        } catch (Exception e) {
+          // Something wrong with the response, break
+          Logging.connectors.warn("SolrIngester: the type of the reponse getnextcursormark is not recognized as a String");
+          break;
+        }
         boolean done = false;
         while (!done) {
           query.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
@@ -610,10 +624,15 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
             QueryResponse response;
 
             SolrDocumentList documents = null;
-
             response = httpSolrClient.query(collection, query);
-
-            final String nextCursorMark = response.getNextCursorMark();
+            String nextCursorMark = cursorMark;
+            try {
+              nextCursorMark = response.getNextCursorMark();
+            } catch (Exception e) {
+              // Something wrong with the response, break
+              Logging.connectors.warn("SolrIngester: the type of the reponse getnextcursormark is not recognized as a String");
+              break;
+            }
             documents = response.getResults();
             InputStream is = null;
             for (final SolrDocument document : documents) {
