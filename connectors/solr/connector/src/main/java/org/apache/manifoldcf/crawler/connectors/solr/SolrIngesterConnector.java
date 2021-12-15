@@ -552,21 +552,21 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
         query.setFields(idFieldName, versionField);
         query.addFilterQuery(idFieldName + ":(" + documentIdentifiersString + ")");
 
-        String nextCursorMark = cursorMark;
-        try {
-          nextCursorMark = response.getNextCursorMark();
-        } catch (Exception e) {
-          // Something wrong with the response, break
-          Logging.connectors.warn("SolrIngester: the type of the reponse getnextcursormark is not recognized as a String");
-          break;
-        }
+        String cursorMark = CursorMarkParams.CURSOR_MARK_START;
         boolean done = false;
         while (!done) {
           query.set(CursorMarkParams.CURSOR_MARK_PARAM, cursorMark);
           QueryResponse response;
           response = httpSolrClient.query(collection, query);
 
-          final String nextCursorMark = response.getNextCursorMark();
+          String nextCursorMark = cursorMark;
+          try {
+            nextCursorMark = response.getNextCursorMark();
+          } catch (Exception e) {
+            // Something wrong with the response, break
+            Logging.connectors.warn("SolrIngester: the type of the reponse getnextcursormark is not recognized as a String");
+            break;
+          }
           final SolrDocumentList documents = response.getResults();
           for (final SolrDocument document : documents) {
             existingIds.put((String) document.getFieldValue(idFieldName), String.valueOf(document.getFieldValue(versionField)));
