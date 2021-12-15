@@ -14,7 +14,7 @@ CONNECTORS-1682: Update to use JavaMail 1.6.2 to support TLS 1.2
 in email repository and notification connector.
 (Markus Schuch)
 
-CONNECTORS-1683: Update to use Log4j 2.15.0.
+CONNECTORS-1683: Update to use Log4j 2.16.0.
 (Markus Schuch)
 
 CONNECTORS-1680: Add support for BASE HREF in web connector.
