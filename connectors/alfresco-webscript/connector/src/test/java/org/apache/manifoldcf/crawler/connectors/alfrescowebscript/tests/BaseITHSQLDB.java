@@ -54,6 +54,10 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
   public void setUpAlfresco()
     throws Exception
   {
+    if (wrongJavaVersion()) {
+      return;
+    }
+
     alfrescoServer = new Server(9090);
     alfrescoServer.setStopAtShutdown(true);
 
@@ -83,5 +87,20 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
       entered = true;
       Thread.sleep(5000);
     }
+  }
+
+  public static boolean wrongJavaVersion() throws Exception {
+    String version = System.getProperty("java.version");
+    System.out.println(version);
+    int index = version.indexOf("_");
+    if (index == -1) {
+      return false;
+    }
+    String update = version.substring(index + 1);
+    if (Integer.parseInt(update) <= 255) {
+      return false;
+    }
+    System.err.println("Not running Alfresco integration test because your version of java is incompatible: "+version);
+    return true;
   }
 }

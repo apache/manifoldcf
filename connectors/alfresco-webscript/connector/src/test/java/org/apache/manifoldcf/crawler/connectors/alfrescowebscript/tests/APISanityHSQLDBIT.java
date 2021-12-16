@@ -59,7 +59,9 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
     throws Exception
   {
     removeTestArea();
-    
+    if (wrongJavaVersion()) {
+      return;
+    }
     try
     {
       //Adding a document in Alfresco via CMIS
@@ -82,20 +84,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
   public void removeTestArea()
     throws Exception
   {
-  }
-  
-  public static boolean wrongJavaVersion() throws Exception {
-    String version = System.getProperty("java.version");
-    int index = version.indexOf("_");
-    if (index == -1) {
-      return false;
-    }
-    String update = version.substring(index + 1);
-    if (Integer.parseInt(update) <= 255) {
-      return false;
-    }
-    System.err.println("Not running Alfresco integration test because your version of java is incompatible: "+version);
-    return true;
   }
   
   @Test
