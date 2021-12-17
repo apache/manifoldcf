@@ -3886,7 +3886,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     public ProcessActivityLinkHandler(String documentIdentifier, IProcessActivity activities, DocumentURLFilter filter, String contextDescription, String linkType)
     {
       this.documentIdentifier = documentIdentifier;
-      this.baseDocumentIdentifier = baseDocumentIdentifier;
+      this.baseDocumentIdentifier = documentIdentifier;
       this.activities = activities;
       this.filter = filter;
       this.contextDescription = contextDescription;
