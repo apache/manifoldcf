@@ -21,6 +21,7 @@ jobs:
     - name: rat sources & forbidden apis
       stage: validate
       script: ant precommit
+      before_install: curl https://repo1.maven.org/maven2/org/apache/rat/apache-rat/0.13/apache-rat-0.13.jar --create-dirs -o $HOME/.ant/lib/apache-rat-0.13.jar
     - name: maven build
       stage: build_test
       script: mvn --batch-mode --no-transfer-progress verify javadoc:javadoc -DskipITs
