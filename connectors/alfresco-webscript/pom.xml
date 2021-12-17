@@ -47,6 +47,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <alfresco.indexer.version>0.8.1</alfresco.indexer.version>
+        <icu4j.version>68.2</icu4j.version>
     </properties>
 
     <repositories>
@@ -122,7 +123,6 @@
                     <workingDirectory>target/test-output</workingDirectory>
                 </configuration>
             </plugin>
-
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
@@ -167,12 +167,82 @@
                                     <overWrite>false</overWrite>
                                     <destFileName>alfresco.war</destFileName>
                                 </artifactItem>
+                                <artifactItem>
+                                    <artifactId>icu4j</artifactId>
+                                    <groupId>com.ibm.icu</groupId>
+                                    <version>${icu4j.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>false</overWrite>
+                                    <destFileName>icu4j-${icu4j.version}.jar</destFileName>
+                                </artifactItem>
                             </artifactItems>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack-filtered-alfresco-indexer-war</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                    <configuration>
+                    <outputDirectory>target/alfresco-indexer-webscripts-war-${alfresco.indexer.version}</outputDirectory>
+	                    <artifactItems>
+	                         <artifactItem>
+	                             <artifactId>alfresco-indexer-webscripts-war</artifactId>
+	                             <groupId>com.github.maoo.indexer</groupId>
+	                             <version>${alfresco.indexer.version}</version>
+	                             <type>war</type>
+	                             <overWrite>false</overWrite>
+	                             <destFileName>alfresco.war</destFileName>
+	                             <excludes>WEB-INF/lib/icu4j-3.6.1.jar</excludes>
+	                         </artifactItem>
+	                    </artifactItems>
+                    </configuration>
+                   </execution>
+                   <execution>
+                        <id>copy-icu-in-alfresco-indexer-war</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                    <configuration>
+                    <outputDirectory>target/alfresco-indexer-webscripts-war-${alfresco.indexer.version}/WEB-INF/lib</outputDirectory>
+                        <artifactItems>
+                             <artifactItem>
+                                 <artifactId>icu4j</artifactId>
+                                 <groupId>com.ibm.icu</groupId>
+                                 <version>${icu4j.version}</version>
+                                 <type>jar</type>
+                                 <overWrite>false</overWrite>
+                             </artifactItem>
+                        </artifactItems>
+                    </configuration>
+                   </execution>
+                </executions>
+            </plugin>
+            <plugin>
+		        <artifactId>maven-antrun-plugin</artifactId>
+		        <executions>
+	               <execution>
+	                   <id>Zip Alfresco WAR with ICU JAR</id>
+	                   <phase>generate-resources</phase>
+	                   <goals>
+	                       <goal>run</goal>
+	                   </goals>
+	                   <configuration>
+	                     <target>
+	                       <zip destfile="target/dependency/alfresco.war" basedir="target/alfresco-indexer-webscripts-war-${alfresco.indexer.version}" />
+	                     </target>
+	                  </configuration>
+                  </execution>
+	              </executions>
+	              </plugin>
+             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>2.22.2</version>

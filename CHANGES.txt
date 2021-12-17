@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.21-dev =====================
 
+CONNECTORS-1685: Fix to update the Icu4j dependencies in the Alfresco WARs
+(Piergiorgio Lucidi)
+
 CONNECTORS-1684: Fix javadoc syntax and javadoc build in travis ci.
 (Markus Schuch)
 

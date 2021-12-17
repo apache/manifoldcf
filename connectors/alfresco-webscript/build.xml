@@ -76,6 +76,26 @@
             <param name="artifact-name" value="alfresco-indexer-webscripts-war"/>
             <param name="artifact-type" value="war"/>
         </antcall>
+    	
+    	  <mkdir dir="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco-indexer.version}" />
+      	<unzip src="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco-indexer.version}.war"
+      	    dest="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco-indexer.version}"/>
+      	
+    	  <delete file="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco-indexer.version}.war" />
+    	  <delete file="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco-indexer.version}/WEB-INF/lib/icu4j-3.6.1.jar" />
+    	    
+      	<antcall target="download-via-maven">
+            <param name="project-path" value="com/ibm/icu"/>
+            <param name="artifact-version" value="68.2"/>
+            <param name="target" value="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco-indexer.version}/WEB-INF/lib"/>
+            <param name="artifact-name" value="icu4j"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    	
+      	<zip destfile="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco-indexer.version}.war"
+      	    basedir="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco-indexer.version}" />
+    	
+    	  <delete dir="test-materials-proprietary/alfresco-indexer-webscripts-war-${alfresco-indexer.version}" />
     </target>
 
     <target name="integration">
