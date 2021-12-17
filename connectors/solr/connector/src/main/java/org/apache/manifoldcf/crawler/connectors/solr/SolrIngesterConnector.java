@@ -392,7 +392,7 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
       startTime = new Long(lastSeedVersion).longValue();
     }
     getSession();
-    final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ROOT);
     sdf.setTimeZone(TimeZone.getDefault());
 
     final StringBuilder url = new StringBuilder(solringesterEntryPoint);
@@ -711,7 +711,7 @@ public class SolrIngesterConnector extends BaseRepositoryConnector {
                 contentFieldValuesString = "";
               }
 
-              is = new ByteArrayInputStream(contentFieldValuesString.getBytes());
+              is = new ByteArrayInputStream(contentFieldValuesString.getBytes(StandardCharsets.UTF_8));
 
               // security part
               if (securityActivated == true) {

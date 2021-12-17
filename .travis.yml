@@ -13,15 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-install: true
 git:
   depth: 1
-env:
-  matrix:
-    - TEST_SCRIPT="mvn -q install -DskipITs"
-    - TEST_SCRIPT="mvn --no-transfer-progress package -DskipTests -DskipITs javadoc:javadoc"
-    - TEST_SCRIPT="ant make-core-deps make-deps test"
-script: $TEST_SCRIPT
+install: ant make-core-deps make-deps
+jobs:
+  include:
+    - name: rat sources & forbidden apis
+      stage: validate
+      script: ant precommit
+    - name: maven build
+      stage: build_test
+      script: mvn --batch-mode --no-transfer-progress verify javadoc:javadoc -DskipITs
+      install: true
+      cache:
+        directories:
+          - $HOME/.m2
+    - name: ant build
+      stage: build_test
+      script: ant test
 language: java
 jdk:
   - openjdk8
@@ -30,8 +39,5 @@ addons:
     packages:
       - ant
       - ant-optional
-cache:
-  directories:
-    - $HOME/.m2
 notifications:
   email: false

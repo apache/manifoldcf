@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.List;
 
@@ -160,7 +161,7 @@ public class NuxeoConnectorTest {
         NuxeoDocumentHelper docMa = mock(NuxeoDocumentHelper.class);
         FileBlob blob = mock(FileBlob.class);
         Date date = new Date();
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT);
         final String lastModified = df.format(date);
         final String id = "7995ff6d-1eda-41db-b9de-3ea4037fdb81";
         final String path = "/workspaces/folder/001001-0001-000000010690";
@@ -221,7 +222,7 @@ public class NuxeoConnectorTest {
         Document doc = mock(Document.class);
         Repository repository = mock(Repository.class);
         Date date = new Date();
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT);
         final String lastModified = df.format(date);
         String uid = "297529bf-191a-4c87-8259-28b692394229";
         final String path = "/workspaces/folder/001001-0001-000000010690";

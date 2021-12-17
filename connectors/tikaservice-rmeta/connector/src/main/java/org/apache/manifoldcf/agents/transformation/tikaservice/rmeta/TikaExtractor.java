@@ -954,7 +954,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     final Iterator<String> fields = document.getFields();
     while (fields.hasNext()) {
       final String fieldname = fields.next();
-      if (fieldname.toLowerCase().equals(fieldName.toLowerCase())) {
+      if (fieldname.equalsIgnoreCase(fieldName)) {
         document.removeField(fieldname);
         break;
       }
@@ -972,7 +972,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     if (filename != null) {
       final int index = filename.lastIndexOf('.');
       if (index != -1) {
-        extension = filename.substring(index + 1).toLowerCase();
+        extension = filename.substring(index + 1).toLowerCase(Locale.ROOT);
       }
     }
     return extension;
@@ -986,7 +986,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
    */
   private boolean isArchive(final String filename, final String mimeType) {
     final boolean filenameCheck = archiveExtensions.contains(getExtension(filename));
-    final boolean mimeCheck = archiveMimes.contains(mimeType.toLowerCase());
+    final boolean mimeCheck = archiveMimes.contains(mimeType.toLowerCase(Locale.ROOT));
     if (filenameCheck || mimeCheck) {
       return true;
     } else {

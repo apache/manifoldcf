@@ -33,7 +33,8 @@ import org.apache.http.util.EntityUtils;
 import org.apache.http.impl.client.HttpClients;
 import java.io.IOException;
 import java.io.File;
-  
+import java.util.Locale;
+
 
 /**  
  *  Base integration tests class for Elastic Search tested against a CMIS repository
@@ -45,7 +46,7 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
 
   final static boolean isUnix;
   static {
-    final String os = System.getProperty("os.name").toLowerCase();
+    final String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
     if (os.contains("win")) {
       isUnix = false;
     } else {

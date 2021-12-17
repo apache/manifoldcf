@@ -1324,7 +1324,7 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
         final String key = entry.getKey();
         final String value = entry.getValue().toString();
         rd.addField(key, value);
-        if (key.toLowerCase().contentEquals("title")) {
+        if (key.toLowerCase(Locale.ROOT).contentEquals("title")) {
           rd.addField("stream_name", value);
         }
       }
