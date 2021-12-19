@@ -51,7 +51,7 @@
             <fileset dir="**/*"/>
         </chmod>
         <chmod file="test-materials/unix/elasticsearch-${elasticsearch.version}/bin/elasticsearch" perm="ugo+rx"/>
-
+        <chmod file="test-materials/unix/elasticsearch-${elasticsearch.version}/modules/x-pack-ml/platform/linux-x86_64/bin/controller" perm="ugo+rx"/>
     </target>
 
     <target name="download-elasticsearch-windows" if="isWindows">
