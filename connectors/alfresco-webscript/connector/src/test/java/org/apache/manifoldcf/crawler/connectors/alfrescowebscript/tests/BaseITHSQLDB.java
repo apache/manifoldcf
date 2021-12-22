@@ -54,9 +54,6 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
   public void setUpAlfresco()
     throws Exception
   {
-    if (wrongJavaVersion()) {
-      return;
-    }
 
     alfrescoServer = new Server(9090);
     alfrescoServer.setStopAtShutdown(true);

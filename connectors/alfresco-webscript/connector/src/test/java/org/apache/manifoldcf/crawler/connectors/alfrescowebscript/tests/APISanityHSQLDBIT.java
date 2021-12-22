@@ -59,9 +59,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
     throws Exception
   {
     removeTestArea();
-    if (wrongJavaVersion()) {
-      return;
-    }
     try
     {
       //Adding a document in Alfresco via CMIS
@@ -90,9 +87,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
   public void sanityCheck()
     throws Exception
   {
-    if (wrongJavaVersion()) {
-      return;
-    }
     try
     {
       
