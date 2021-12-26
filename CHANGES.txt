@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= 2.22-dev =====================
+
+
 ======================= Release 2.21 =====================
 
 CONNECTORS-1685: Fix to update the Icu4j dependencies in the Alfresco WARs
