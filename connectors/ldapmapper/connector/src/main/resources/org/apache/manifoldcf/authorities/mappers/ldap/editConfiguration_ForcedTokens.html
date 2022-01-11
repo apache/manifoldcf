@@ -1,0 +1,68 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TabName == $ResourceBundle.getString('LDAP.ForcedTokens'))
+
+<table class="displaytable">
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr><td class="value" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('LDAP.ForcedTokensDisclaimer'))</td></tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  #set($counter = 0)
+  #foreach($forcedtoken in $FORCEDTOKENS)
+  <tr>
+    <td class="description">
+      <input type="hidden" name="accessop_$counter" value=""/>
+      <input type="hidden" name="spectoken_$counter" value="$Encoder.attributeEscape($forcedtoken)"/>
+      <a name="token_$counter">
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('LDAP.Delete'))" onClick='Javascript:SpecOp("accessop_$counter","Delete","token_$counter")' alt="$Encoder.attributeEscape($ResourceBundle.getString('LDAP.DeleteToken'))$counter"/>
+      </a>
+    </td>
+    <td class="value">
+      $Encoder.bodyEscape($forcedtoken)
+    </td>
+  </tr>
+    #set($counter = $counter + 1)
+  #end
+  #if ($counter == 0)
+  <tr>
+    <td class="message" colspan="2">$Encoder.bodyEscape($ResourceBundle.getString('LDAP.NoTokensPresent'))</td>
+  </tr>
+  #end
+  <tr><td class="lightseparator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description">
+      <input type="hidden" name="tokencount" value="$counter"/>
+  #set($counterplusone = $counter + 1)
+      <input type="hidden" name="accessop" value=""/>
+      <a name="token_$counter">
+        <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('LDAP.Add'))" onClick='Javascript:SpecAddToken("token_$counterplusone")' alt="$Encoder.attributeEscape($ResourceBundle.getString('LDAP.AddToken'))"/>
+      </a>
+    </td>
+    <td class="value">
+      <input type="text" size="30" name="spectoken" value=""/>
+    </td>
+  </tr>
+</table>
+#else
+  #set($counter = 0)
+  #foreach($forcedtoken in $FORCEDTOKENS)
+<input type="hidden" name="spectoken_$counter" value="$Encoder.attributeEscape($forcedtoken)"/>
+    #set($counter = $counter + 1)
+  #end
+<input type="hidden" name="tokencount" value="$counter"/>
+#end
+
