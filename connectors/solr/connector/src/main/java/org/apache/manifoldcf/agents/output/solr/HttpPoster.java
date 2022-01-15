@@ -285,7 +285,7 @@ public class HttpPoster
     {
       CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
       Credentials credentials = new UsernamePasswordCredentials(userID, password);
-      if (realm != null)
+      if (realm != null && realm.trim().length() > 0)
         credentialsProvider.setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, realm), credentials);
       else
         credentialsProvider.setCredentials(AuthScope.ANY, credentials);
