@@ -94,12 +94,12 @@ public class HttpPoster
   // Solrj connection-associated objects
   protected PoolingHttpClientConnectionManager connectionManager = null;
   protected SolrClient solrServer = null;
-  
+
   // Action URI pieces
   private final String postUpdateAction;
   private final String postRemoveAction;
   private final String postStatusAction;
-  
+
   // Attribute names
   private final String allowAttributeName;
   private final String denyAttributeName;
@@ -111,17 +111,17 @@ public class HttpPoster
   private final String fileNameAttributeName;
   private final String mimeTypeAttributeName;
   private final String contentAttributeName;
-  
+
   // Whether we use extract/update handler or not
   private final boolean useExtractUpdateHandler;
-  
+
   // Document max length
   private final Long maxDocumentLength;
 
   // Included and excluded mime types
   private final Set<String> includedMimeTypes;
   private final Set<String>excludedMimeTypes;
-  
+
   // Commit-within flag
   private final String commitWithin;
 
@@ -130,7 +130,7 @@ public class HttpPoster
   private static final String NOTHING = "__NOTHING__";
   private static final String ID_METADATA = "lcf_metadata_id";
   private static final String COMMITWITHIN_METADATA = "commitWithin";
-  
+
   /** How long to wait before retrying a failed ingestion */
   private static final long interruptionRetryTime = 60000L;
 
@@ -152,9 +152,9 @@ public class HttpPoster
     this.postUpdateAction = updatePath;
     this.postRemoveAction = removePath;
     this.postStatusAction = statusPath;
-    
+
     this.commitWithin = commitWithin;
-    
+
     this.allowAttributeName = allowAttributeName;
     this.denyAttributeName = denyAttributeName;
     this.idAttributeName = idAttributeName;
@@ -168,11 +168,11 @@ public class HttpPoster
     this.useExtractUpdateHandler = useExtractUpdateHandler;
     this.includedMimeTypes = includedMimeTypes;
     this.excludedMimeTypes = excludedMimeTypes;
-    
+
     this.maxDocumentLength = maxDocumentLength;
-    
+
     initializeKerberos();
-    
+
     try
     {
       CloudSolrClient cloudSolrServer = new CloudSolrClient.Builder()
@@ -210,9 +210,9 @@ public class HttpPoster
     this.postUpdateAction = updatePath;
     this.postRemoveAction = removePath;
     this.postStatusAction = statusPath;
-    
+
     this.commitWithin = commitWithin;
-    
+
     this.allowAttributeName = allowAttributeName;
     this.denyAttributeName = denyAttributeName;
     this.idAttributeName = idAttributeName;
@@ -226,11 +226,11 @@ public class HttpPoster
     this.useExtractUpdateHandler = useExtractUpdateHandler;
     this.includedMimeTypes = includedMimeTypes;
     this.excludedMimeTypes = excludedMimeTypes;
-    
+
     this.maxDocumentLength = maxDocumentLength;
 
     initializeKerberos();
-    
+
     String location = "";
     if (webapp != null)
       location = "/" + webapp;
@@ -242,7 +242,7 @@ public class HttpPoster
     }
 
     // Initialize standard solr-j.
-    
+
     SSLConnectionSocketFactory myFactory;
     if (keystoreManager != null)
     {
@@ -265,7 +265,7 @@ public class HttpPoster
       .setTcpNoDelay(true)
       .setSoTimeout(socketTimeout)
       .build());
-    
+
     RequestConfig.Builder requestBuilder = RequestConfig.custom()
       .setCircularRedirectsAllowed(true)
       .setSocketTimeout(socketTimeout)
@@ -286,9 +286,16 @@ public class HttpPoster
       CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
       Credentials credentials = new UsernamePasswordCredentials(userID, password);
       if (realm != null && realm.trim().length() > 0)
-        credentialsProvider.setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, realm), credentials);
+      {
+        final AuthScope scope = new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, realm);
+        credentialsProvider.setCredentials(scope, credentials);
+        clientBuilder.addInterceptorFirst(new PreemptiveBasicAuthInterceptor(scope));
+      }
       else
+      {
         credentialsProvider.setCredentials(AuthScope.ANY, credentials);
+        clientBuilder.addInterceptorFirst(new PreemptiveBasicAuthInterceptor(AuthScope.ANY));
+      }
 
       clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
     }
@@ -314,7 +321,7 @@ public class HttpPoster
     }
 
   }
-  
+
   /** Shut down the poster.
   */
   public void shutdown()
@@ -335,7 +342,7 @@ public class HttpPoster
       connectionManager.shutdown();
     connectionManager = null;
   }
-  
+
   /** Cause a commit to happen.
   */
   public void commitPost()
@@ -381,7 +388,7 @@ public class HttpPoster
       return;
     }
   }
-  
+
   /** Handle a RuntimeException.
   * Unfortunately, SolrCloud 4.6.x throws RuntimeExceptions whenever ZooKeeper is not happy.
   * We have to catch these too.  I've logged a ticket: SOLR-5678.
@@ -399,12 +406,12 @@ public class HttpPoster
         currentTime + 2L * 60L * 60000L,
         -1,
         true);
-    } 
+    }
     // Solr was not able to parse the request because it is malformed: skip the document
     Logging.ingest.warn("Solr was unable to parse request during "+context+": "+e.getMessage(),e);
     return;
   }
-  
+
   /** Handle a SolrServerException.
   * These exceptions seem to be catch-all exceptions having to do with misconfiguration or
   * underlying IO exceptions, or request parsing exceptions.
@@ -457,7 +464,7 @@ public class HttpPoster
         throw new ManifoldCFException("Unexpected error: "+e2.getMessage());
       }
     }
-      
+
     // Use the exception text to determine the proper result.
     if (code == 500 && e.getMessage().indexOf("org.apache.tika.exception.TikaException") != -1)
       // Can't process the document, so don't keep trying.
@@ -470,17 +477,17 @@ public class HttpPoster
       Logging.ingest.error(message);
       throw new ManifoldCFException(message);
     }
-    
+
     // If the code is in the 400 range, the document will never be accepted, so indicate that.
     if (code >= 400 && code < 500)
       return;
-    
+
     // The only other kind of return code we know how to handle is 50x.
     // For these, we should retry for a while.
     if (code == 500)
     {
       long currentTime = System.currentTimeMillis();
-      
+
       // Log the error
       String message = "Solr exception during "+context+" ("+e.code()+"): "+e.getMessage();
       Logging.ingest.warn(message,e);
@@ -491,11 +498,11 @@ public class HttpPoster
         -1,
         true);
     }
-    
+
     // Unknown code: end the job.
     throw new ManifoldCFException("Unhandled Solr exception during "+context+" ("+e.code()+"): "+e.getMessage());
   }
-  
+
   /** Handle an IOException.
   * I'm not actually sure where these exceptions come from in SolrJ, but we handle them
   * as real I/O errors, meaning they should be retried.
@@ -507,7 +514,7 @@ public class HttpPoster
       throw new ManifoldCFException(e.getMessage(), ManifoldCFException.INTERRUPTED);
 
     long currentTime = System.currentTimeMillis();
-    
+
     if (e instanceof java.net.ConnectException)
     {
       // Server isn't up at all.  Try for a brief time then give up.
@@ -520,7 +527,7 @@ public class HttpPoster
         3,
         true);
     }
-    
+
     if (e instanceof java.net.SocketTimeoutException)
     {
       String message2 = "Socket timeout exception during "+context+": "+e.getMessage();
@@ -532,7 +539,7 @@ public class HttpPoster
         -1,
         false);
     }
-      
+
     if (e.getClass().getName().equals("java.net.SocketException"))
     {
       // In the past we would have treated this as a straight document rejection, and
@@ -559,8 +566,8 @@ public class HttpPoster
           3,
           false);
       }
-      
-      // Other socket exceptions are service interruptions - but if we keep getting them, it means 
+
+      // Other socket exceptions are service interruptions - but if we keep getting them, it means
       // that a socket timeout is probably set too low to accept this particular document.  So
       // we retry for a while, then skip the document.
       String message2 = "Socket exception during "+context+": "+e.getMessage();
@@ -583,7 +590,7 @@ public class HttpPoster
       3,
       false);
   }
-  
+
   /**
   * Post the input stream to ingest
   *
@@ -616,7 +623,7 @@ public class HttpPoster
       activities.recordActivity(null,SolrConnector.INGEST_ACTIVITY,null,documentURI,activities.EXCLUDED_MIMETYPE,"Solr connector rejected document due to mime type restrictions: ("+document.getMimeType()+")");
       return false;
     }
-    
+
     // Convert the incoming acls that we know about to qualified forms, and reject the document if
     // we don't know how to deal with its acls
     Map<String,String[]> aclsMap = new HashMap<String,String[]>();
@@ -628,7 +635,7 @@ public class HttpPoster
       String aclType = aclTypes.next();
       aclsMap.put(aclType,convertACL(document.getSecurityACL(aclType),authorityNameString,activities));
       denyAclsMap.put(aclType,convertACL(document.getSecurityDenyACL(aclType),authorityNameString,activities));
-      
+
       // Reject documents that have security we don't know how to deal with in the Solr plugin!!  Only safe thing to do.
       if (!aclType.equals(RepositoryDocument.SECURITY_TYPE_DOCUMENT) &&
         !aclType.equals(RepositoryDocument.SECURITY_TYPE_SHARE) &&
@@ -769,7 +776,7 @@ public class HttpPoster
       {
         t.start();
         t.finishUp();
-        
+
         if (t.getActivityCode() != null)
           activities.recordActivity(t.getActivityStart(),SolrConnector.REMOVE_ACTIVITY,null,documentURI,t.getActivityCode(),t.getActivityDetails());
 
@@ -891,7 +898,7 @@ public class HttpPoster
   {
     out.add(fieldName, fieldValues);
   }
-  
+
   /** Write a field */
   protected static void writeField(ModifiableSolrParams out, String fieldName, List<String> fieldValues)
   {
@@ -902,7 +909,7 @@ public class HttpPoster
     }
     writeField(out, fieldName, values);
   }
-  
+
   /** Write a field */
   protected static void writeField(ModifiableSolrParams out, String fieldName, String fieldValue)
   {
@@ -923,7 +930,7 @@ public class HttpPoster
       writeField(out,metadataDenyACLName,denyAcl[i]);
     }
   }
-  
+
   /**
     * Output an acl level in a SolrInputDocument
     */
@@ -949,7 +956,7 @@ public class HttpPoster
     protected final Map<String,List<String>> arguments;
     protected final Map<String,String[]> aclsMap;
     protected final Map<String,String[]> denyAclsMap;
-    
+
     protected Long activityStart = null;
     protected Long activityBytes = null;
     protected String activityCode = null;
@@ -1043,7 +1050,7 @@ public class HttpPoster
             activityBytes = new Long(length);
             activityDetails = e.getMessage() +
               ((e.getCause() != null)?": "+e.getCause().getMessage():"");
-            
+
             // Broken pipe exceptions we log specially because they usually mean
             // Solr has rejected the document, and the user will want to know that.
             if (e.getCause() != null && e.getCause().getClass().getName().equals("java.net.SocketException") &&
@@ -1065,7 +1072,7 @@ public class HttpPoster
             activityCode = Integer.toString(e.code());
             activityDetails = e.getMessage() +
               ((e.getCause() != null)?": "+e.getCause().getMessage():"");
-            
+
             // Rethrow; we'll interpret at the next level
             throw e;
           }
@@ -1074,7 +1081,7 @@ public class HttpPoster
         {
           if ((ioe instanceof InterruptedIOException) && (!(ioe instanceof java.net.SocketTimeoutException)))
             return;
-          
+
           activityStart = new Long(fullStartTime);
           activityCode = ioe.getClass().getSimpleName().toUpperCase(Locale.ROOT);
           activityDetails = ioe.getMessage();
@@ -1098,7 +1105,7 @@ public class HttpPoster
 
       // Write the id field
       outputDoc.addField( idAttributeName, documentURI );
-      
+
       if (contentAttributeName != null)
       {
         // Copy the content into a string.  This is a bad thing to do, but we have no choice given SolrJ architecture at this time.
@@ -1115,7 +1122,7 @@ public class HttpPoster
         }
         outputDoc.addField( contentAttributeName, sb.toString() );
       }
-      
+
       // Write the rest of the attributes
       if ( originalSizeAttributeName != null )
       {
@@ -1187,7 +1194,7 @@ public class HttpPoster
     {
       ModifiableSolrParams out = new ModifiableSolrParams();
       Logging.ingest.debug("Solr: Writing document '"+documentURI);
-      
+
       // Write the id field
       writeField(out,LITERAL+idAttributeName,documentURI);
       // Write the rest of the attributes
@@ -1231,7 +1238,7 @@ public class HttpPoster
         if (!StringUtils.isBlank(mimeType))
           writeField(out,LITERAL+mimeTypeAttributeName,mimeType);
       }
-          
+
       // Write the access token information
       // Both maps have the same keys.
       Iterator<String> typeIterator = aclsMap.keySet().iterator();
@@ -1250,23 +1257,23 @@ public class HttpPoster
 
       // Write the metadata, each in a field by itself
       buildSolrParamsFromMetadata(out);
-             
+
       // These are unnecessary now in the case of non-solrcloud setups, because we overrode the SolrJ posting method to use multipart.
       //writeField(out,LITERAL+"stream_size",String.valueOf(length));
       //writeField(out,LITERAL+"stream_name",document.getFileName());
-          
+
       // General hint for Tika
       if (!StringUtils.isBlank(document.getFileName()))
         writeField(out,"resource.name",document.getFileName());
-          
+
       // Write the commitWithin parameter
       if (commitWithin != null)
         writeField(out,COMMITWITHIN_METADATA,commitWithin);
 
       contentStreamUpdateRequest.setParams(out);
-          
+
       contentStreamUpdateRequest.addContentStream(new RepositoryDocumentStream(is,length,contentType,contentName));
-      
+
       Logging.ingest.debug("Solr: Done writing '"+documentURI+"'");
     }
 
@@ -1405,7 +1412,7 @@ public class HttpPoster
         try
         {
           UpdateResponse response = new UpdateRequest(postRemoveAction).deleteById(documentURI).process(solrServer);
-            
+
           // Success
           activityStart = new Long(fullStartTime);
           activityCode = "OK";
@@ -1487,7 +1494,7 @@ public class HttpPoster
       return activityDetails;
     }
   }
-  
+
   /** Killable thread that does a commit.
   * Java 1.5 stopped permitting thread interruptions to abort socket waits.  As a result, it is impossible to get threads to shutdown cleanly that are doing
   * such waits.  So, the places where this happens are segregated in their own threads so that they can be just abandoned.
@@ -1630,7 +1637,7 @@ public class HttpPoster
     protected final long length;
     protected final String contentType;
     protected final String contentName;
-    
+
     public RepositoryDocumentStream(InputStream is, long length, String contentType, String contentName)
     {
       this.is = is;
@@ -1638,19 +1645,19 @@ public class HttpPoster
       this.contentType = contentType;
       this.contentName = contentName;
     }
-    
+
     @Override
     public Long getSize()
     {
       return new Long(length);
     }
-    
+
     @Override
     public InputStream getStream() throws IOException
     {
       return is;
     }
-    
+
     @Override
     public Reader getReader() throws IOException
     {
@@ -1676,7 +1683,7 @@ public class HttpPoster
   {
     /** Request parameters. */
     private ModifiableSolrParams params;
-    
+
     /**
      * Create a new SolrPing object.
      */
@@ -1684,7 +1691,7 @@ public class HttpPoster
       super(METHOD.GET, "/admin/ping");
       params = new ModifiableSolrParams();
     }
-    
+
     public SolrPing(String url)
     {
       super( METHOD.GET, url );
@@ -1705,45 +1712,45 @@ public class HttpPoster
     public ModifiableSolrParams getParams() {
       return params;
     }
-    
+
     /**
      * Remove the action parameter from this request. This will result in the same
      * behavior as {@code SolrPing#setActionPing()}. For Solr server version 4.0
      * and later.
-     * 
+     *
      * @return this
      */
     public SolrPing removeAction() {
       params.remove(CommonParams.ACTION);
       return this;
     }
-    
+
     /**
      * Set the action parameter on this request to enable. This will delete the
      * health-check file for the Solr core. For Solr server version 4.0 and later.
-     * 
+     *
      * @return this
      */
     public SolrPing setActionDisable() {
       params.set(CommonParams.ACTION, CommonParams.DISABLE);
       return this;
     }
-    
+
     /**
      * Set the action parameter on this request to enable. This will create the
      * health-check file for the Solr core. For Solr server version 4.0 and later.
-     * 
+     *
      * @return this
      */
     public SolrPing setActionEnable() {
       params.set(CommonParams.ACTION, CommonParams.ENABLE);
       return this;
     }
-    
+
     /**
      * Set the action parameter on this request to ping. This is the same as not
      * including the action at all. For Solr server version 4.0 and later.
-     * 
+     *
      * @return this
      */
     public SolrPing setActionPing() {
@@ -1783,6 +1790,6 @@ public class HttpPoster
     }
     return sb.toString();
   }
-  
+
 }
 
