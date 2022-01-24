@@ -545,7 +545,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     while (index < list.size())
     {
       String urlCandidate = (String)list.get(index++);
-      String documentIdentifier = makeDocumentIdentifier(null,urlCandidate,filter);
+      String documentIdentifier = makeDocumentIdentifier(null,urlCandidate,filter, activities);
       if (documentIdentifier == null)
       {
         // Bad seed.  Log it, and continue!
@@ -616,7 +616,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     for (String documentIdentifier : documentIdentifiers)
     {
       // Verify that the url is legal
-      if (!filter.isDocumentAndHostLegal(documentIdentifier))
+      if (!filter.isDocumentAndHostLegal(documentIdentifier,activities))
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: Removing url '"+documentIdentifier+"' because it's not in the set of allowed ones");
@@ -1320,7 +1320,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         return;
       }
 
-      String ingestURL = filter.isDocumentIndexable(documentIdentifier);
+      String ingestURL = filter.isDocumentIndexable(documentIdentifier,activities);
       if (ingestURL == null)
       {
         if (Logging.connectors.isDebugEnabled())
@@ -3400,7 +3400,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
   *@param filter the filter object, used to remove unmatching URLs.
   *@return the canonical URL (the document identifier), or null if the url was illegal.
   */
-  protected String makeDocumentIdentifier(String parentIdentifier, String rawURL, DocumentURLFilter filter)
+  protected String makeDocumentIdentifier(String parentIdentifier, String rawURL, DocumentURLFilter filter, IHistoryActivity activities)
     throws ManifoldCFException
   {
     try
@@ -3462,7 +3462,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       }
 
       // Check to be sure the canonicalized URL is in fact one of the ones we want to include
-      if (!filter.isDocumentLegal(id))
+      if (!filter.isDocumentLegal(id, activities))
         return null;
 
       return id;
@@ -3897,7 +3897,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     public void noteDiscoveredBase(String rawURL)
       throws ManifoldCFException
     {
-      String newIdentifier = makeDocumentIdentifier(baseDocumentIdentifier,rawURL,filter);
+      String newIdentifier = makeDocumentIdentifier(baseDocumentIdentifier,rawURL,filter,activities);
       if (newIdentifier != null)
         baseDocumentIdentifier = newIdentifier;
     }
@@ -3909,7 +3909,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     public void noteDiscoveredLink(String rawURL)
       throws ManifoldCFException
     {
-      String newIdentifier = makeDocumentIdentifier(baseDocumentIdentifier,rawURL,filter);
+      String newIdentifier = makeDocumentIdentifier(baseDocumentIdentifier,rawURL,filter,activities);
       if (newIdentifier != null)
       {
         if (Logging.connectors.isDebugEnabled())
@@ -5908,10 +5908,11 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     
     /** Check if both a document and host are legal.
+     * @throws ManifoldCFException 
     */
-    public boolean isDocumentAndHostLegal(String url)
+    public boolean isDocumentAndHostLegal(String url, IHistoryActivity activities) throws ManifoldCFException
     {
-      if (!isDocumentLegal(url))
+      if (!isDocumentLegal(url, activities))
         return false;
       if (seedHosts == null)
         return true;
@@ -5944,8 +5945,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     }
     
     /** Check if the document identifier is legal.
+     * @throws ManifoldCFException 
     */
-    public boolean isDocumentLegal(String url)
+    public boolean isDocumentLegal(String url, IHistoryActivity activities) throws ManifoldCFException
     {
       // First, verify that the url matches one of the patterns in the include list.
       int i = 0;
@@ -5961,6 +5963,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: Url '"+url+"' is illegal because no include patterns match it");
+        activities.recordActivity(System.currentTimeMillis(), ACTIVITY_FETCH, null, url, "EXCLUDED", "URL has been excluded as it does not match any include filter", null);
         return false;
       }
 
@@ -5974,6 +5977,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         {
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("WEB: Url '"+url+"' is illegal because exclude pattern '"+p.toString()+"' matched it");
+          activities.recordActivity(System.currentTimeMillis(), ACTIVITY_FETCH, null, url, "EXCLUDED", "URL has been excluded as the exclude pattern " + p.toString() + " matched it", null);
           return false;
         }
         i++;
@@ -5985,7 +5989,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     /** Check if the document identifier is indexable, and return the indexing URL if found.
     * @return null if the url doesn't match or should not be ingested, or the new string if it does.
     */
-    public String isDocumentIndexable(String url)
+    public String isDocumentIndexable(String url, IProcessActivity activities)
       throws ManifoldCFException
     {
       // First, verify that the url matches one of the patterns in the include list.
@@ -6002,6 +6006,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: Url '"+url+"' is not indexable because no include patterns match it");
+        activities.recordActivity(System.currentTimeMillis(), ACTIVITY_FETCH, null, url, "EXCLUDED", "URL has been excluded as it does not match any include filter", null);
         return null;
       }
 
@@ -6015,6 +6020,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
         {
           if (Logging.connectors.isDebugEnabled())
             Logging.connectors.debug("WEB: Url '"+url+"' is not indexable because exclude pattern '"+p.toString()+"' matched it");
+          activities.recordActivity(System.currentTimeMillis(), ACTIVITY_FETCH, null, url, "EXCLUDED", "URL has been excluded as the exclude pattern " + p.toString() + " matched it", null);
           return null;
         }
         i++;
@@ -6025,6 +6031,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       {
         if (Logging.connectors.isDebugEnabled())
           Logging.connectors.debug("WEB: Url '"+url+"' is not indexable because it did not match a mapping rule");
+        activities.recordActivity(System.currentTimeMillis(), ACTIVITY_FETCH, null, url, "EXCLUDED", "URL has been excluded because it did not match a mapping rule", null);
       }
 
       return rval;
