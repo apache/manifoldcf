@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.22-dev =====================
 
+CONNECTORS-1694: Enforce preemptive basic auth for Solr output connector.
+(Markus Günther, Markus Schuch)
+
+
 CONNECTORS-1693: Fix for the solr output connector to support
 basic authentication without realm scope.
 (Markus Günther, Markus Schuch)
