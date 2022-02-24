@@ -227,8 +227,8 @@
             <include name="cxf-rt-transports-http*.jar"/>
             <include name="cxf-rt-rs-client*.jar"/>
             <include name="xmlschema-core*.jar"/>
-            <include name="javax.annotation-api*.jar"/>
-            <include name="javax.ws.rs-api*.jar"/>
+            <include name="jakarta.annotation-api*.jar"/>
+            <include name="jakarta.ws.rs-api*.jar"/>
         </fileset>
         <fileset dir="${mcf-dist}/connector-common-lib">
             <include name="axis*.jar"/>
@@ -427,6 +427,7 @@
                   </fileset>
                   <fileset dir="${mcf-dist}/connector-common-lib">
                       <include name="cxf*.jar"/>
+                      <include name="pfl*.jar"/>
                       <include name="jaxb*.jar"/>
                       <include name="wsdl4j*.jar"/>
                       <include name="woodstox*.jar"/>
@@ -434,12 +435,20 @@
                       <include name="xmlschema*.jar"/>
                       <include name="neethi*.jar"/>
                       <include name="xml-resolver*.jar"/>
+                      <include name="codemodel*.jar"/>
+                      <include name="xsom*.jar"/>
+                      <include name="relaxng-datatype*.jar"/>
+                      <include name="rngom*.jar"/>
+                      <include name="dtd-parser*.jar"/>
+                      <include name="istack-commons-tools*.jar"/>
+                      <include name="velocity-engine-core*.jar"/>
                   </fileset>
                   <fileset dir="${mcf-dist}/lib">
                       <include name="velocity*.jar"/>
                       <include name="commons-collections*.jar"/>
                       <include name="commons-lang*.jar"/>
                       <include name="javax.activation*.jar"/>
+                      <include name="slf4j*.jar"/>
                   </fileset>
               </classpath>
               <jvmarg value="-Dorg.apache.cxf.stax.allowInsecureParser=1"/>

@@ -120,6 +120,7 @@
             <include name="sis-utility*.jar"/>
             <include name="sis-netcdf*.jar"/>
             <include name="sis-storage*.jar"/>
+            <include name="sis-feature*.jar"/>
             <include name="unit-api*.jar"/>
             <include name="opennlp-tools*.jar"/>
             <include name="openjson*.jar"/>
@@ -155,15 +156,21 @@
             <include name="pdfbox*.jar"/>
             <include name="fontbox*.jar"/>
             <include name="jempbox*.jar"/>
+            <include name="xmpbox*.jar"/>
+            <include name="preflight*.jar"/>
             <include name="bcmail-jdk15on*.jar"/>
+            <include name="bcutil-jdk15on*.jar"/>
             <include name="bcprov-jdk15on*.jar"/>
             <include name="bcpkix-jdk15on*.jar"/>
+            <include name="SparseBitSet*.jar"/>
+            <include name="HikariCP-java7*.jar"/>
             <include name="geronimo-stax-api_1.0_spec*.jar"/>
             <include name="asm*.jar"/>
             <include name="isoparser*.jar"/>
             <include name="aspectjrt*.jar"/>
-            <include name="metadata-extractor*.jar"/>
             <include name="xmpcore*.jar"/>
+            <include name="mchange-commons-java*.jar"/>
+            <include name="dd-plist*.jar"/>
             <include name="xml-apis*.jar"/>
             <include name="boilerpipe*.jar"/>
             <include name="rome*.jar"/>
@@ -173,16 +180,22 @@
             <include name="juniversalchardet*.jar"/>
             <include name="jhighlight*.jar"/>
             <include name="jmatio*.jar"/>
+            <include name="metadata-extractor*.jar"/>
             <include name="java-libpst*.jar"/>
             <include name="xz*.jar"/>
             <include name="parso*.jar"/>
             <include name="dec*.jar"/>
             <include name="cxf-*.jar"/>
+            <include name="policy*.jar"/>
+            <include name="gmbal*.jar"/>
+            <include name="pfl-*.jar"/>
+            <include name="management-api*.jar"/>
+            <include name="stax-ex*.jar"/>
+            <include name="ha-api*.jar"/>
             <include name="neethi*.jar"/>
             <include name="xml-resolver*.jar"/>
             <include name="xmlschema-core*.jar"/>
-            <include name="javax.annotation-api*.jar"/>
-            <include name="javax.ws.rs-api*.jar"/>
+            <include name="jakarta.*.jar"/>
             <include name="jaxb*.jar"/>
             <include name="xsom*.jar"/>
             <include name="codemodel*.jar"/>
@@ -193,7 +206,7 @@
             <include name="txw2*.jar"/>
             <include name="istack-commons*.jar"/>
             <include name="FastInfoset*.jar"/>
-            <include name="stax-ex*.jar"/>
+            <include name="velocity-engine-core*.jar"/>
         </fileset>
         <fileset dir="../lib">
             <include name="castor*.jar"/>
@@ -205,7 +218,7 @@
             <include name="wsdl4j*.jar"/>
             <include name="xmlsec*.jar"/>
             <include name="opensaml*.jar"/>
-            <include name="activation*.jar"/>
+            <!--include name="activation*.jar"/-->
         </fileset>
     </path>
 
@@ -1599,6 +1612,7 @@
                 <include name="sis-utility*.jar"/>
                 <include name="sis-netcdf*.jar"/>
                 <include name="sis-storage*.jar"/>
+                <include name="sis-feature*.jar"/>
                 <include name="unit-api*.jar"/>
                 <include name="opennlp-tools*.jar"/>
                 <include name="openjson*.jar"/>
@@ -1638,17 +1652,23 @@
                 <include name="pdfbox*.jar"/>
                 <include name="fontbox*.jar"/>
                 <include name="jempbox*.jar"/>
+                <include name="xmpbox*.jar"/>
+                <include name="preflight*.jar"/>
                 <include name="kafka*.jar"/>
                 <include name="zookeeper*.jar"/>
                 <include name="bcmail-jdk15*.jar"/>
+                <include name="bcutil-jdk15*.jar"/>
                 <include name="bcprov-jdk15*.jar"/>
                 <include name="bcpkix-jdk15*.jar"/>
+                <include name="SparseBitSet*.jar"/>
+                <include name="HikariCP-java7*.jar"/>
                 <include name="geronimo-stax-api_1.0_spec*.jar"/>
                 <include name="asm*.jar"/>
                 <include name="isoparser*.jar"/>
                 <include name="aspectjrt*.jar"/>
-                <include name="metadata-extractor*.jar"/>
                 <include name="xmpcore*.jar"/>
+                <include name="mchange-commons-java*.jar"/>
+                <include name="dd-plist*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="boilerpipe*.jar"/>
                 <include name="rome*.jar"/>
@@ -1658,16 +1678,22 @@
                 <include name="juniversalchardet*.jar"/>
                 <include name="jhighlight*.jar"/>
                 <include name="jmatio*.jar"/>
+                <include name="metadata-extractor*.jar"/>
                 <include name="java-libpst*.jar"/>
                 <include name="xz*.jar"/>
                 <include name="parso*.jar"/>
                 <include name="dec*.jar"/>
                 <include name="cxf-*.jar"/>
+                <include name="policy*.jar"/>
+                <include name="gmbal*.jar"/>
+                <include name="pfl-*.jar"/>
+                <include name="management-api*.jar"/>
+                <include name="stax-ex*.jar"/>
+                <include name="ha-api*.jar"/>
                 <include name="neethi*.jar"/>
                 <include name="xml-resolver*.jar"/>
                 <include name="xmlschema-core*.jar"/>
-                <include name="javax.annotation-api*.jar"/>
-                <include name="javax.ws.rs-api*.jar"/>
+                <include name="jakarta.*.jar"/>
                 <include name="jaxb*.jar"/>
 	      <include name="xsom*.jar"/>
 	      <include name="codemodel*.jar"/>
@@ -1678,7 +1704,7 @@
                 <include name="txw2*.jar"/>
                 <include name="istack-commons*.jar"/>
                 <include name="FastInfoset*.jar"/>
-                <include name="stax-ex*.jar"/>
+                <include name="velocity-engine-core*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="castor*.jar"/>
@@ -1690,11 +1716,7 @@
                 <include name="wsdl4j*.jar"/>
                 <include name="xmlsec*.jar"/>
                 <include name="opensaml*.jar"/>
-                <include name="activation*.jar"/>
-            </fileset>
-            <fileset dir="../lib">
-              <include name="jaxws-api*.jar"/>
-              <include name="javax.jws-api*.jar"/>
+                <!--include name="activation*.jar"/-->
             </fileset>
         </copy>
     </target>

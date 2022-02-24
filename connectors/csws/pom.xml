@@ -238,6 +238,11 @@
       <version>${cxf.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-tools-wsdlto-core</artifactId>
+      <version>${cxf.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>${httpcomponent.httpclient.version}</version>
