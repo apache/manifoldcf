@@ -566,6 +566,9 @@
                     <include name="commons-discovery*.jar"/>
                     <include name="commons-logging*.jar"/>
                 </fileset>
+                <fileset dir="${mcf-dist}/lib">
+                    <include name="javax.activation*.jar"/>
+                </fileset>
             </classpath>
         </javac>
     </target>

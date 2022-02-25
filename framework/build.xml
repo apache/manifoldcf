@@ -207,6 +207,9 @@
             <include name="istack-commons*.jar"/>
             <include name="FastInfoset*.jar"/>
             <include name="velocity-engine-core*.jar"/>
+            <include name="jaxws-api*.jar"/>
+            <include name="javax.annotation-api*.jar"/>
+            <include name="javax.jws-api*.jar"/>
         </fileset>
         <fileset dir="../lib">
             <include name="castor*.jar"/>
@@ -1705,6 +1708,9 @@
                 <include name="istack-commons*.jar"/>
                 <include name="FastInfoset*.jar"/>
                 <include name="velocity-engine-core*.jar"/>
+                <include name="jaxws-api*.jar"/>
+                <include name="javax.annotation-api*.jar"/>
+                <include name="javax.jws-api*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="castor*.jar"/>
