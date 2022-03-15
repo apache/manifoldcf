@@ -47,6 +47,10 @@ public class TikaConfig {
   public static final String NODE_WRITELIMIT = "writeLimit";
   public static final String NODE_EXTRACTARCHIVES = "extractArchives";
   public static final String NODE_MAXEMBEDDEDRESOURCES = "maxEmbeddedResources";
+  public static final String NODE_MAXMETADATAVALUELENGTH = "maxMetadataValueLength";
+  public static final String NODE_TOTALMETADATALIMIT = "totalMetadataLimit";
+  public static final String MAXMETADATAVALUELENGTH_DEFAULT = "250000";
+  public static final String TOTALMETADATALIMIT_DEFAULT = "500000";
   public static final int WRITELIMIT_DEFAULT = -1;
   public static final int MAXEMBEDDEDRESOURCES_DEFAULT = -1;
   public static final String NODE_IGNORETIKAEXCEPTION = "ignoreException";

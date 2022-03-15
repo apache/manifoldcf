@@ -109,6 +109,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   /** We handle up to 64K in memory; after that we go to disk. */
   protected static final long inMemoryMaximumFile = 65536;
 
+  // Metadata name exceeding 8k chars may trigger exceptions when the Solr output connector is used
+  private static final int maxMetadataNameLength = 8000;
+
   // Raw parameters
 
   /** Tika host name */
@@ -628,7 +631,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
    *
    * @param documentURI         is the URI of the document. The URI is presumed to be the unique identifier which the output data store will use to process and serve the document. This URI is
    *                            constructed by the repository connector which fetches the document, and is thus universal across all output connectors.
-   * @param pipelineDescription   is the description string that was constructed for this document by the getOutputDescription() method.
+   * @param pipelineDescription is the description string that was constructed for this document by the getOutputDescription() method.
    * @param document            is the document data to be processed (handed to the output data store).
    * @param authorityNameString is the name of the authority responsible for authorizing any access tokens passed in with the repository document. May be null.
    * @param activities          is the handle to an object that the implementer of a pipeline connector may use to perform operations, such as logging processing activity, or sending a modified
@@ -772,42 +775,114 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
                   final JsonFactory jfactory = new JsonFactory();
                   final JsonParser jParser = jfactory.createParser(is);
-                  JsonToken token;
-                  int cptObj = 0;
-                  while ((token = jParser.nextToken()) != null) {
+                  JsonToken token = null;
+
+                  // Go to beginning of metadata
+                  boolean inMetadata = false;
+                  while (!inMetadata && (token = jParser.nextToken()) != null) {
                     if (token == JsonToken.START_OBJECT) {
-                      cptObj++;
-                    }
-                    final String fieldName = jParser.getCurrentName();
-                    if (fieldName != null) {
-                      if (fieldName.contentEquals("X-TIKA:content")) {
-                        jParser.nextToken();
-                        length += jParser.getText(w);
-                      } else if (cptObj == 1 && !fieldName.startsWith("X-TIKA") && !fieldName.startsWith("X-Parsed-By")) {
-                        token = jParser.nextToken();
-                        if (!metadata.containsKey(fieldName)) {
-                          metadata.put(fieldName, new ArrayList<>());
-                        }
-                        if (token == JsonToken.START_ARRAY) {
-                          while (jParser.nextToken() != JsonToken.END_ARRAY) {
-                            metadata.get(fieldName).add(jParser.getText());
-                          }
-                        } else {
-                          metadata.get(fieldName).add(jParser.getText());
-                        }
-                      } else if (fieldName.contentEquals("X-TIKA:EXCEPTION:write_limit_reached")) {
-                        resultCode = "TRUNCATEDOK";
-                        truncated = true;
-                      } else if (fieldName.contentEquals("X-TIKA:EXCEPTION:embedded_resource_limit_reached")) {
-                        resources_limit = true;
-                      } else if (fieldName.startsWith("X-TIKA:EXCEPTION:")) {
-                        resultCode = "TIKAEXCEPTION";
-                        jParser.nextToken();
-                        description += fieldName + ": " + jParser.getText() + System.lineSeparator();
-                      }
+                      inMetadata = true;
                     }
                   }
-                  jParser.close();
+
+                  int totalMetadataLength = 0;
+                  boolean maxMetadataReached = false;
+                  boolean metadataSkipped = false;
+
+                  if (token != null) {
+                    while ((token = jParser.nextToken()) != null && token != JsonToken.END_OBJECT) {
+
+                      final int fieldNameLength = jParser.getTextLength();
+                      if (fieldNameLength <= maxMetadataNameLength) {
+                        final String fieldName = jParser.getCurrentName();
+                        if (fieldName != null) {
+                          if (fieldName.startsWith("X-Parsed-By")) {
+                            skipMetadata(jParser);
+                          } else if (fieldName.contentEquals("X-TIKA:content")) {
+                            // Consume content
+                            jParser.nextToken();
+                            length += jParser.getText(w);
+                          } else if (!fieldName.startsWith("X-TIKA")) {
+                            token = jParser.nextToken();
+                            if (!metadata.containsKey(fieldName)) {
+                              totalMetadataLength += fieldName.length();
+                              metadata.put(fieldName, new ArrayList<>());
+                            }
+                            if (token == JsonToken.START_ARRAY) {
+                              while (jParser.nextToken() != JsonToken.END_ARRAY) {
+                                if (jParser.getTextLength() <= sp.maxMetadataValueLength) {
+                                  final int totalMetadataLengthPreview = totalMetadataLength + jParser.getTextLength();
+                                  if (totalMetadataLengthPreview <= sp.totalMetadataLimit) {
+                                    metadata.get(fieldName).add(jParser.getText());
+                                    totalMetadataLength = totalMetadataLengthPreview;
+                                  } else {
+                                    maxMetadataReached = true;
+                                  }
+                                } else {
+                                  metadataSkipped = true;
+                                  if (Logging.ingest.isDebugEnabled()) {
+                                    Logging.ingest
+                                        .debug("Skip value of metadata " + fieldName + " of document " + documentURI + " because it exceeds the max value limit of " + sp.maxMetadataValueLength);
+                                  }
+                                }
+                              }
+                            } else {
+                              if (jParser.getTextLength() <= sp.maxMetadataValueLength) {
+                                final int totalMetadataLengthPreview = totalMetadataLength + jParser.getTextLength();
+                                if (totalMetadataLengthPreview <= sp.totalMetadataLimit) {
+                                  metadata.get(fieldName).add(jParser.getText());
+                                } else {
+                                  maxMetadataReached = true;
+                                }
+                              } else {
+                                metadataSkipped = true;
+                                if (Logging.ingest.isDebugEnabled()) {
+                                  Logging.ingest
+                                      .debug("Skip value of metadata " + fieldName + " of document " + documentURI + " because it exceeds the max value limit of " + sp.maxMetadataValueLength);
+                                }
+                              }
+                            }
+                            // Remove metadata if no data has been gathered
+                            if (metadata.get(fieldName).isEmpty()) {
+                              totalMetadataLength -= fieldName.length();
+                              metadata.remove(fieldName);
+                            }
+                          } else if (fieldName.startsWith("X-TIKA:EXCEPTION:")) {
+                            boolean unknownException = false;
+                            if (fieldName.contentEquals("X-TIKA:EXCEPTION:write_limit_reached")) {
+                              resultCode = "TRUNCATEDOK";
+                              truncated = true;
+                            } else if (fieldName.contentEquals("X-TIKA:EXCEPTION:embedded_resource_limit_reached")) {
+                              resources_limit = true;
+                            } else {
+                              unknownException = true;
+                              resultCode = "TIKAEXCEPTION";
+                              jParser.nextToken();
+                              description += fieldName + ": " + jParser.getText() + System.lineSeparator();
+                            }
+                            if (!unknownException) {
+                              skipMetadata(jParser);
+                            }
+                          } else {
+                            skipMetadata(jParser);
+                          }
+                        }
+                      } else {
+                        metadataSkipped = true;
+                        if (Logging.ingest.isDebugEnabled()) {
+                          Logging.ingest.debug("Skip a metadata of document " + documentURI + " because its name exceeds the max allowed length of " + maxMetadataNameLength);
+                        }
+                        skipMetadata(jParser);
+                      }
+                    }
+                    jParser.close();
+                  }
+
+                  if (maxMetadataReached) {
+                    description += "Some metadata have been skipped because the total metadata limit of " + sp.totalMetadataLimit + " has been reached" + System.lineSeparator();
+                  } else if (metadataSkipped) {
+                    description += "Some metadata have been skipped because their names or values exceeded the limits" + System.lineSeparator();
+                  }
                 }
               } else if (responseCode == 503) {
                 // Service interruption; Tika trying to come up.
@@ -880,7 +955,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
           String[] values = metadata.get(mName).toArray(new String[0]);
 
           // Only keep metadata if its name does not exceed 8k chars to avoid HTTP header error
-          if (mName.length() < 8000) {
+          if (mName.length() < maxMetadataNameLength) {
             if (sp.lowerNames()) {
               final StringBuilder sb = new StringBuilder();
               for (int i = 0; i < mName.length(); i++) {
@@ -948,6 +1023,20 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       }
     }
 
+  }
+
+  private void skipMetadata(final JsonParser jParser) throws IOException {
+    JsonToken token = jParser.nextToken();
+    if (token == JsonToken.START_OBJECT) {
+      while (token != JsonToken.END_OBJECT) {
+        token = jParser.nextToken();
+      }
+    }
+    if (token == JsonToken.START_ARRAY) {
+      while (token != JsonToken.END_ARRAY) {
+        token = jParser.nextToken();
+      }
+    }
   }
 
   private void removeField(final RepositoryDocument document, final String fieldName) {
@@ -1035,15 +1124,15 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     tabsArray.add(Messages.getString(locale, "TikaExtractor.TikaServerTabName"));
 
     // Fill in the specification header map, using data from all tabs.
-    fillInFieldMappingSpecificationMap(paramMap, os);
+    fillInTikaSpecificationMap(paramMap, os);
 
     Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_JS, paramMap);
   }
 
   /**
    * Output the specification body section. This method is called in the body section of a job page which has selected a pipeline connection of the current type. Its purpose is to present the required
-   * form elements for editing. The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags. The name of the form is
-   * "editjob".
+   * form elements for editing. The coder can presume that the HTML that is output from this configuration will be within appropriate &lt;html&gt;, &lt;body&gt;, and &lt;form&gt; tags. The name of the
+   * form is "editjob".
    *
    * @param out                      is the output to which any HTML should be sent.
    * @param locale                   is the preferred local of the output.
@@ -1063,7 +1152,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     paramMap.put("SELECTEDNUM", Integer.toString(actualSequenceNumber));
 
     // Fill in the field mapping tab data
-    fillInFieldMappingSpecificationMap(paramMap, os);
+    fillInTikaSpecificationMap(paramMap, os);
 
     Messages.outputResourceWithVelocity(out, locale, EDIT_SPECIFICATION_TIKASERVER_HTML, paramMap);
   }
@@ -1160,6 +1249,24 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       }
       os.addChild(os.getChildCount(), node3);
 
+      final SpecificationNode maxMetadataValueNode = new SpecificationNode(TikaConfig.NODE_MAXMETADATAVALUELENGTH);
+      final String maxMetadataValue = variableContext.getParameter(seqPrefix + "maxmetadatavaluelength");
+      if (maxMetadataValue != null) {
+        maxMetadataValueNode.setAttribute(TikaConfig.ATTRIBUTE_VALUE, maxMetadataValue);
+      } else {
+        maxMetadataValueNode.setAttribute(TikaConfig.ATTRIBUTE_VALUE, TikaConfig.MAXMETADATAVALUELENGTH_DEFAULT);
+      }
+      os.addChild(os.getChildCount(), maxMetadataValueNode);
+
+      final SpecificationNode metadataLimitNode = new SpecificationNode(TikaConfig.NODE_TOTALMETADATALIMIT);
+      final String metadataLimit = variableContext.getParameter(seqPrefix + "totalmetadatalimit");
+      if (metadataLimit != null) {
+        metadataLimitNode.setAttribute(TikaConfig.ATTRIBUTE_VALUE, metadataLimit);
+      } else {
+        metadataLimitNode.setAttribute(TikaConfig.ATTRIBUTE_VALUE, TikaConfig.TOTALMETADATALIMIT_DEFAULT);
+      }
+      os.addChild(os.getChildCount(), metadataLimitNode);
+
       final SpecificationNode node4 = new SpecificationNode(TikaConfig.NODE_EXTRACTARCHIVES);
       final String extractArch = variableContext.getParameter(seqPrefix + TikaConfig.NODE_EXTRACTARCHIVES);
       if (extractArch != null) {
@@ -1197,18 +1304,20 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     paramMap.put("SEQNUM", Integer.toString(connectionSequenceNumber));
 
     // Fill in the map with data from all tabs
-    fillInFieldMappingSpecificationMap(paramMap, os);
+    fillInTikaSpecificationMap(paramMap, os);
 
     Messages.outputResourceWithVelocity(out, locale, VIEW_SPECIFICATION_HTML, paramMap);
 
   }
 
-  protected static void fillInFieldMappingSpecificationMap(final Map<String, Object> paramMap, final Specification os) {
+  protected static void fillInTikaSpecificationMap(final Map<String, Object> paramMap, final Specification os) {
     // Prep for field mappings
     final List<Map<String, String>> fieldMappings = new ArrayList<>();
     String keepAllMetadataValue = "true";
     String lowernamesValue = "true";
     String writeLimitValue = "1000000"; // 1Mo by default
+    String maxMetadataValueLength = "250000"; // 250ko by default
+    String totalMetadataLimit = "500000"; // 500ko by default
     String extractArchives = "false";
     String maxEmbeddedResources = "";
     for (int i = 0; i < os.getChildCount(); i++) {
@@ -1238,12 +1347,18 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         extractArchives = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
       } else if (sn.getType().equals(TikaConfig.NODE_MAXEMBEDDEDRESOURCES)) {
         maxEmbeddedResources = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+      } else if (sn.getType().equals(TikaConfig.NODE_MAXMETADATAVALUELENGTH)) {
+        maxMetadataValueLength = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+      } else if (sn.getType().equals(TikaConfig.NODE_TOTALMETADATALIMIT)) {
+        totalMetadataLimit = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
       }
     }
     paramMap.put("FIELDMAPPINGS", fieldMappings);
     paramMap.put("KEEPALLMETADATA", keepAllMetadataValue);
     paramMap.put("LOWERNAMES", lowernamesValue);
     paramMap.put("WRITELIMIT", writeLimitValue);
+    paramMap.put("MAXMETADATAVALUELENGTH", maxMetadataValueLength);
+    paramMap.put("TOTALMETADATALIMIT", totalMetadataLimit);
     paramMap.put("EXTRACTARCHIVES", extractArchives);
     paramMap.put("MAXEMBEDDEDRESOURCES", maxEmbeddedResources);
   }
@@ -1402,6 +1517,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     private final int writeLimit;
     private final boolean extractArchives;
     private final int maxEmbeddedResources;
+    private final int maxMetadataValueLength;
+    private final int totalMetadataLimit;
 
     public SpecPacker(final Specification os) {
       boolean keepAllMetadata = true;
@@ -1409,6 +1526,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       boolean extractArchives = true;
       int writeLimit = TikaConfig.WRITELIMIT_DEFAULT;
       int maxEmbeddedResources = TikaConfig.MAXEMBEDDEDRESOURCES_DEFAULT;
+      int maxMetadataValueLength = Integer.parseInt(TikaConfig.MAXMETADATAVALUELENGTH_DEFAULT);
+      int totalMetadataLimit = Integer.parseInt(TikaConfig.TOTALMETADATALIMIT_DEFAULT);
+
       for (int i = 0; i < os.getChildCount(); i++) {
         final SpecificationNode sn = os.getChild(i);
 
@@ -1424,6 +1544,20 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             writeLimit = TikaConfig.WRITELIMIT_DEFAULT;
           } else {
             writeLimit = Integer.parseInt(value);
+          }
+        } else if (sn.getType().equals(TikaConfig.NODE_MAXMETADATAVALUELENGTH)) {
+          final String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+          if (value.length() == 0) {
+            maxMetadataValueLength = Integer.parseInt(TikaConfig.MAXMETADATAVALUELENGTH_DEFAULT);
+          } else {
+            maxMetadataValueLength = Integer.parseInt(value);
+          }
+        } else if (sn.getType().equals(TikaConfig.NODE_TOTALMETADATALIMIT)) {
+          final String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+          if (value.length() == 0) {
+            totalMetadataLimit = Integer.parseInt(TikaConfig.TOTALMETADATALIMIT_DEFAULT);
+          } else {
+            totalMetadataLimit = Integer.parseInt(value);
           }
         } else if (sn.getType().equals(TikaConfig.NODE_EXTRACTARCHIVES)) {
           final String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
@@ -1448,6 +1582,11 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       this.keepAllMetadata = keepAllMetadata;
       this.lowerNames = lowerNames;
       this.writeLimit = writeLimit;
+      if (maxMetadataValueLength > totalMetadataLimit) {
+        maxMetadataValueLength = totalMetadataLimit;
+      }
+      this.maxMetadataValueLength = maxMetadataValueLength;
+      this.totalMetadataLimit = totalMetadataLimit;
       this.extractArchives = extractArchives;
       this.maxEmbeddedResources = maxEmbeddedResources;
     }
@@ -1491,6 +1630,16 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       if (writeLimit != TikaConfig.WRITELIMIT_DEFAULT) {
         sb.append('+');
         sb.append(writeLimit);
+      }
+
+      if (maxMetadataValueLength != Integer.parseInt(TikaConfig.MAXMETADATAVALUELENGTH_DEFAULT)) {
+        sb.append('+');
+        sb.append(maxMetadataValueLength);
+      }
+
+      if (totalMetadataLimit != Integer.parseInt(TikaConfig.TOTALMETADATALIMIT_DEFAULT)) {
+        sb.append('+');
+        sb.append(totalMetadataLimit);
       }
 
       if (extractArchives) {

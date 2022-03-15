@@ -111,6 +111,20 @@
   </tr>
   
   <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.MaxMetadataValueLength'))</nobr></td>
+    <td class="value"><input name="s${SEQNUM}_maxmetadatavaluelength" type="text"
+      value="$Encoder.attributeEscape($MAXMETADATAVALUELENGTH)" size="16" />
+    </td>
+  </tr>
+  
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.TotalMetadataLimit'))</nobr></td>
+    <td class="value"><input name="s${SEQNUM}_totalmetadatalimit" type="text"
+      value="$Encoder.attributeEscape($TOTALMETADATALIMIT)" size="16" />
+    </td>
+  </tr>
+  
+  <tr>
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.ExtractArchives'))</nobr></td>
     <td class="value">
   #if($EXTRACTARCHIVES == 'true')
@@ -141,6 +155,8 @@
 <input type="hidden" name="s${SEQNUM}_keepallmetadata" value="$Encoder.bodyEscape($KEEPALLMETADATA)"/>
 <input type="hidden" name="s${SEQNUM}_lowernames" value="$Encoder.bodyEscape($LOWERNAMES)"/>
 <input type="hidden" name="s${SEQNUM}_writelimit" value="$Encoder.attributeEscape($WRITELIMIT)" />
+<input type="hidden" name="s${SEQNUM}_maxmetadatavaluelength" value="$Encoder.attributeEscape($MAXMETADATAVALUELENGTH)" />
+<input type="hidden" name="s${SEQNUM}_totalmetadatalimit" value="$Encoder.attributeEscape($TOTALMETADATALIMIT)" />
 <input type="hidden" name="s${SEQNUM}_extractArchives" value="$Encoder.bodyEscape($EXTRACTARCHIVES)" />
 <input type="hidden" name="s${SEQNUM}_maxEmbeddedResources" value="$Encoder.bodyEscape($MAXEMBEDDEDRESOURCES)" />
 
