@@ -25,6 +25,7 @@ import org.apache.manifoldcf.core.util.URLEncoder;
 import java.util.*;
 import java.io.*;
 import java.lang.reflect.*;
+import java.text.SimpleDateFormat;
 
 /** This class represents a worker thread.  Hundreds of these threads are instantiated in order to
 * perform crawling and extraction.
@@ -45,6 +46,8 @@ public class WorkerThread extends Thread
   protected final QueueTracker queueTracker;
   /** Process ID */
   protected final String processID;
+  
+  private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss,SSS");
 
   /** Constructor.
   *@param id is the worker thread id.
@@ -846,7 +849,7 @@ public class WorkerThread extends Thread
         }
         catch (OutOfMemoryError e)
         {
-          System.err.println("agents process ran out of memory - shutting down");
+          System.err.println(sdf.format(new Date()) +  " agents process ran out of memory - shutting down");
           e.printStackTrace(System.err);
           ManifoldCF.systemExit(-200);
         }
