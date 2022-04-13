@@ -788,6 +788,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                   int totalMetadataLength = 0;
                   boolean maxMetadataReached = false;
                   boolean metadataSkipped = false;
+                  boolean metadataTruncated = false;
 
                   if (token != null) {
                     while ((token = jParser.nextToken()) != null && token != JsonToken.END_OBJECT) {
@@ -863,6 +864,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                             if (!unknownException) {
                               skipMetadata(jParser);
                             }
+                          } else if (fieldName.startsWith("X-TIKA:WARN:truncated_metadata")) {
+                            metadataTruncated = true;
+                            skipMetadata(jParser);
                           } else {
                             skipMetadata(jParser);
                           }
@@ -882,6 +886,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                     description += "Some metadata have been skipped because the total metadata limit of " + sp.totalMetadataLimit + " has been reached" + System.lineSeparator();
                   } else if (metadataSkipped) {
                     description += "Some metadata have been skipped because their names or values exceeded the limits" + System.lineSeparator();
+                  }
+
+                  if (metadataTruncated) {
+                    description += "Some metadata have been truncated by Tika because they exceeded the limits specified in the Tika conf" + System.lineSeparator();
                   }
                 }
               } else if (responseCode == 503) {
