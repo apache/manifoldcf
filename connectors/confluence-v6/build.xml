@@ -15,7 +15,7 @@
  limitations under the License.
 -->
 
-<project name="confluence v6" default="all">
+<project name="confluence-v6" default="all">
 
   <property environment="env" />
   <condition property="mcf-dist" value="${env.MCFDISTPATH}">
