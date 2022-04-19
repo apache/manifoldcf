@@ -58,6 +58,7 @@
     <module>googledrive</module>
     <module>jira</module>
     <module>generic</module>
+    <module>ldapmapper</module>
     <module>regexpmapper</module>
     <module>email</module>
     <module>amazoncloudsearch</module>

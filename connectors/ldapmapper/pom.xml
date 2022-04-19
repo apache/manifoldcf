@@ -1,0 +1,97 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.apache.manifoldcf</groupId>
+    <artifactId>mcf-connectors</artifactId>
+    <version>2.22-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <artifactId>mcf-ldapmapper-connector</artifactId>
+  <packaging>jar</packaging>
+  <name>ManifoldCF - Connectors - LDAP Mapper</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-connector-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-agents</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-pull-agent</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>mcf-ui-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <defaultGoal>integration-test</defaultGoal>
+    <sourceDirectory>${basedir}/connector/src/main/java</sourceDirectory>
+    <testSourceDirectory>${basedir}/connector/src/test/java</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>${basedir}/connector/src/main/native2ascii</directory>
+        <includes>
+          <include>**/*.properties</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${basedir}/connector/src/main/resources</directory>
+        <includes>
+          <include>**/*.html</include>
+          <include>**/*.js</include>
+        </includes>
+      </resource>
+    </resources>
+    <testResources>
+      <testResource>
+        <directory>${basedir}/connector/src/test/resources</directory>
+      </testResource>
+    </testResources>
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>native2ascii-maven-plugin</artifactId>
+        <version>1.0-beta-1</version>
+        <configuration>
+          <workDir>target/classes</workDir>
+        </configuration>
+        <executions>
+          <execution>
+            <id>native2ascii-utf8</id>
+            <goals>
+              <goal>native2ascii</goal>
+            </goals>
+            <configuration>
+              <encoding>UTF8</encoding>
+              <includes>
+                <include>**/*.properties</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
