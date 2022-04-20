@@ -367,6 +367,9 @@
             <fileset dir="framework/dist">
                 <include name="connector-build.xml"/>
             </fileset>
+        	 <fileset dir="src/main/docker">
+                <include name="Dockerfile"/>
+            </fileset>
         </copy>
         <mkdir dir="dist/web"/>
         <copy todir="dist/web">
@@ -411,6 +414,10 @@
         <mkdir dir="dist/example"/>
         <copy todir="dist/example">
             <fileset dir="framework/dist/example"/>
+        </copy>
+    	<mkdir dir="dist/example-docker-compose"/>
+        <copy todir="dist/example-docker-compose">
+            <fileset dir="src/main/docker/compose"/>
         </copy>
         <mkdir dir="dist/example-proprietary"/>
         <copy todir="dist/example-proprietary">
