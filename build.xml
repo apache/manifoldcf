@@ -128,7 +128,7 @@
     <property name="mockito.version" value="1.9.5"/>
     <property name="wiremock.version" value="2.5.1"/>
     <property name="objenesis.version" value="2.1"/>
-    <property name="tika.version" value="1.21"/>
+    <property name="tika.version" value="1.28.1"/>
     <property name="tagsoup.version" value="1.2.1"/>
     <property name="james.version" value="0.8.4"/>
     <property name="vorbis.version" value="0.8"/>
