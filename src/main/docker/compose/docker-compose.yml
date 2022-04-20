@@ -1,0 +1,52 @@
+version: "3.9"
+services:
+  mcf-postgres:
+    hostname: mcf-postgres
+    container_name: mcf-postgres
+    image: postgres:13.1
+    deploy:
+     resources:
+       limits:
+         memory: 512M
+       reservations:
+         memory: 512M
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: manifoldcf
+      POSTGRES_USER: manifoldcf
+    ports:
+      - 5433:5432
+    volumes:
+      - mcf-postgres-volume:/var/lib/postgresql/data
+    command: -p 5433
+    networks:
+     - mcf-network
+
+  manifold-cf:
+    build: .
+    hostname: manifold-cf
+    container_name: manifold-cf
+    environment:
+     JAVA_OPTS: "-XX:MinRAMPercentage=80 -XX:MaxRAMPercentage=80"
+
+    image: manifoldcf:2.21
+    deploy:
+     resources:
+       limits:
+         memory: 1g
+       reservations:
+         memory: 1g
+    ports:
+      - 8345:8345
+    depends_on:
+      - postgres
+    restart: on-failure   
+    networks:
+     - mcf-network  
+
+volumes:
+    mcf-postgres-volume:
+
+networks:
+    mcf-network:
+     name: mcf-network
