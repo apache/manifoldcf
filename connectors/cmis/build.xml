@@ -31,6 +31,10 @@
     <import file="${mcf-dist}/connector-build.xml"/>
     
     <property name="chemistry.version" value="1.1.0"/>
+	<property name="chemistry.jaxws.version" value="2.3.1"/>
+	<property name="chemistry.activation.version" value="1.1.1"/>
+	<property name="chemistry.log4j.version" value="2.17.2"/>
+	<property name="chemistry.cxf.version" value="3.5.2"/>
     
     <target name="download-dependencies">
         <property name="chemistry-package" value="org/apache/chemistry/opencmis"/>
@@ -38,7 +42,93 @@
             <param name="artifact-name" value="chemistry-opencmis-server-inmemory"/>
             <param name="artifact-type" value="war"/>
         </antcall>
+    	<antcall target="patch-opencmis-server-war"/>
     </target>
+	
+	<target name="patch-opencmis-server-war">
+    	<copyfile src="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}.war" dest="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched.war"/>
+		<unzip src="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched.war" dest="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched"/>
+		
+		<!-- Removing the old dependencies -->
+		<delete file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib/cxf-core-3.0.12.jar" />
+		<delete file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib/cxf-rt-bindings-soap-3.0.12.jar" />
+		<delete file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib/cxf-rt-bindings-xml-3.0.12.jar" />
+		<delete file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib/cxf-rt-databinding-jaxb-3.0.12.jar" />
+		<delete file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib/cxf-rt-frontend-jaxws-3.0.12.jar" />
+		<delete file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib/cxf-rt-frontend-simple-3.0.12.jar" />
+		<delete file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib/cxf-rt-transports-http-3.0.12.jar" />
+		<delete file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib/cxf-rt-ws-addr-3.0.12.jar" />
+		<delete file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib/cxf-rt-ws-policy-3.0.12.jar" />
+		<delete file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib/cxf-rt-wsdl-3.0.12.jar" />
+		<delete file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib/log4j-slf4j-impl-2.6.1.jar" />
+		<delete file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib/log4j-core-2.6.1.jar" />
+		<delete file="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib/log4j-api-2.6.1.jar" />
+		
+		<!-- Downloading the new dependencies -->
+		<antcall target="download-via-maven"><param name="project-path" value="javax/xml/ws"/><param name="artifact-version" value="${chemistry.jaxws.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="jaxws-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="javax/activation"/><param name="artifact-version" value="${chemistry.activation.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="activation"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="org/apache/logging/log4j"/><param name="artifact-version" value="${chemistry.log4j.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="log4j-slf4j-impl"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="org/apache/logging/log4j"/><param name="artifact-version" value="${chemistry.log4j.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="log4j-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="org/apache/logging/log4j"/><param name="artifact-version" value="${chemistry.log4j.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="log4j-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="org/apache/cxf"/><param name="artifact-version" value="${chemistry.cxf.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="cxf-core"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="org/apache/cxf"/><param name="artifact-version" value="${chemistry.cxf.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="cxf-rt-bindings-soap"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="org/apache/cxf"/><param name="artifact-version" value="${chemistry.cxf.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="cxf-rt-bindings-xml"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="org/apache/cxf"/><param name="artifact-version" value="${chemistry.cxf.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="cxf-rt-databinding-jaxb"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="org/apache/cxf"/><param name="artifact-version" value="${chemistry.cxf.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="cxf-rt-frontend-jaxws"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="org/apache/cxf"/><param name="artifact-version" value="${chemistry.cxf.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="cxf-rt-frontend-simple"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="org/apache/cxf"/><param name="artifact-version" value="${chemistry.cxf.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="cxf-rt-transports-http"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="org/apache/cxf"/><param name="artifact-version" value="${chemistry.cxf.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="cxf-rt-ws-addr"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="org/apache/cxf"/><param name="artifact-version" value="${chemistry.cxf.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="cxf-rt-ws-policy"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		<antcall target="download-via-maven"><param name="project-path" value="org/apache/cxf"/><param name="artifact-version" value="${chemistry.cxf.version}"/><param name="target" value="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched/WEB-INF/lib"/>
+            <param name="artifact-name" value="cxf-rt-wsdl"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+		
+		<jar destfile="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched.war" basedir="test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched"/>
+		
+	</target>
 
     <target name="download-cleanup">
         <delete>
@@ -107,7 +197,7 @@
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
             <jvmarg value="-DcombinedWarPath=${mcf-dist}/web/war/mcf-combined-service.war"/>
-            <jvmarg value="-DopenCmisServerWarPath=../test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}.war"/>
+            <jvmarg value="-DopenCmisServerWarPath=../test-materials/chemistry-opencmis-server-inmemory-${chemistry.version}-patched.war"/>
             <jvmarg value="-Xms128m"/>
             <jvmarg value="-Xmx256m"/>
             <classpath>

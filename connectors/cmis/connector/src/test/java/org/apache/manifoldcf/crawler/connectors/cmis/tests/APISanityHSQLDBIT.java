@@ -386,7 +386,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       long count;
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 3)
-        throw new ManifoldCFException("Wrong number of documents processed - expected 3, saw "+new Long(count).toString());
+        throw new ManifoldCFException("Wrong number of documents processed - expected 3, saw "+Long.valueOf(count).toString());
       
       // Add a file and recrawl
       Folder testFolder = getTestFolder(cmisClientSession);
@@ -400,7 +400,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 5)
-        throw new ManifoldCFException("Wrong number of documents processed after add - expected 5, saw "+new Long(count).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after add - expected 5, saw "+Long.valueOf(count).toString());
 
       // Change a document, and recrawl
       changeDocument(cmisClientSession,"testdata1.txt","MODIFIED - CMIS Testdata - MODIFIED");
@@ -412,7 +412,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 5)
-        throw new ManifoldCFException("Wrong number of documents processed after change - expected 5, saw "+new Long(count).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after change - expected 5, saw "+Long.valueOf(count).toString());
       
       // We also need to make sure the new document was indexed.  Have to think about how to do this though.
       // MHL
@@ -428,7 +428,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 4)
-        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 4, saw "+new Long(count).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 4, saw "+Long.valueOf(count).toString());
 
       // Now, delete the job.
       deleteJob(jobIDString);
@@ -522,7 +522,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
     }
     if (documentsProcessed == null)
       throw new Exception("Expected a documents_processed field, didn't find it");
-    return new Long(documentsProcessed).longValue();
+    return Long.parseLong(documentsProcessed);
   }
 
   protected void waitJobInactive(String jobIDString, long maxTime)
@@ -543,7 +543,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
       ManifoldCF.sleep(1000L);
       continue;
     }
-    throw new ManifoldCFException("ManifoldCF did not terminate in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
+    throw new ManifoldCFException("ManifoldCF did not terminate in the allotted time of "+Long.valueOf(maxTime).toString()+" milliseconds");
   }
   
   protected void waitJobDeleted(String jobIDString, long maxTime)
@@ -557,7 +557,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB
         return;
       ManifoldCF.sleep(1000L);
     }
-    throw new ManifoldCFException("ManifoldCF did not delete in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
+    throw new ManifoldCFException("ManifoldCF did not delete in the allotted time of "+Long.valueOf(maxTime).toString()+" milliseconds");
   }
     
 

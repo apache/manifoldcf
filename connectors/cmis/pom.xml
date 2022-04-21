@@ -27,14 +27,19 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <chemistry.version>1.1.0</chemistry.version>
+    <chemistry.jaxws.version>2.3.1</chemistry.jaxws.version>
+	<chemistry.activation.version>1.1.1</chemistry.activation.version>
+	<chemistry.log4j.version>2.17.2</chemistry.log4j.version>
+	<chemistry.cxf.version>3.5.2</chemistry.cxf.version>
   </properties>
 
   <developers>
     <developer>
       <name>Piergiorgio Lucidi</name>
-      <organization>Sourcesense</organization>
-      <organizationUrl>http://www.sourcesense.com</organizationUrl>
-      <url>http://www.open4dev.com</url>
+      <organization>Zia Consulting</organization>
+      <organizationUrl>https://www.ziaconsulting.com</organizationUrl>
+      <url>https://www.open4dev.com</url>
     </developer>
   </developers>
   
@@ -131,7 +136,7 @@
                 <artifactItem>
                   <groupId>org.apache.chemistry.opencmis</groupId>
                   <artifactId>chemistry-opencmis-server-inmemory</artifactId>
-                  <version>1.1.0</version>
+                  <version>${chemistry.version}</version>
                   <type>war</type>
                   <overWrite>false</overWrite>
                   <destFileName>chemistry-opencmis-server-inmemory.war</destFileName>
@@ -139,8 +144,176 @@
               </artifactItems>
             </configuration>
           </execution>
+          <execution>
+          	<id>opencmis-server-download-dependencies</id>
+          	<phase>process-test-resources</phase>
+          	<goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+            <outputDirectory>target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib</outputDirectory>
+            <artifactItems>
+            	<artifactItem>
+                  <groupId>javax.xml.ws</groupId>
+                  <artifactId>jaxws-api</artifactId>
+                  <version>${chemistry.jaxws.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>javax.activation</groupId>
+                  <artifactId>activation</artifactId>
+                  <version>${chemistry.activation.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.logging.log4j</groupId>
+                  <artifactId>log4j-slf4j-impl</artifactId>
+                  <version>${chemistry.log4j.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.logging.log4j</groupId>
+                  <artifactId>log4j-core</artifactId>
+                  <version>${chemistry.log4j.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.logging.log4j</groupId>
+                  <artifactId>log4j-api</artifactId>
+                  <version>${chemistry.log4j.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                 <artifactItem>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-core</artifactId>
+                  <version>${chemistry.cxf.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-rt-bindings-soap</artifactId>
+                  <version>${chemistry.cxf.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-rt-bindings-xml</artifactId>
+                  <version>${chemistry.cxf.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-rt-databinding-jaxb</artifactId>
+                  <version>${chemistry.cxf.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-rt-frontend-jaxws</artifactId>
+                  <version>${chemistry.cxf.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-rt-frontend-simple</artifactId>
+                  <version>${chemistry.cxf.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-rt-transports-http</artifactId>
+                  <version>${chemistry.cxf.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-rt-ws-addr</artifactId>
+                  <version>${chemistry.cxf.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-rt-ws-policy</artifactId>
+                  <version>${chemistry.cxf.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.cxf</groupId>
+                  <artifactId>cxf-rt-wsdl</artifactId>
+                  <version>${chemistry.cxf.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                </artifactItem>   
+                </artifactItems>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
+      
+     <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-antrun-plugin</artifactId>
+      <version>3.0.0</version>
+      <executions>
+      	<execution>
+      		<id>opencmis-server-remove-old-dependencies</id>
+      		<phase>generate-test-resources</phase>
+      		<goals>
+              <goal>run</goal>
+            </goals>
+      		<configuration>
+      			<target>
+      				<copyfile src="target/dependency/chemistry-opencmis-server-inmemory.war" dest="target/dependency/chemistry-opencmis-server-inmemory-patched.war"/>
+		
+					<unzip src="target/dependency/chemistry-opencmis-server-inmemory-patched.war" dest="target/dependency/chemistry-opencmis-server-inmemory-patched"/>
+					
+					<!-- Removing the old dependencies -->
+					<delete file="target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib/cxf-core-3.0.12.jar" />
+					<delete file="target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib/cxf-rt-bindings-soap-3.0.12.jar" />
+					<delete file="target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib/cxf-rt-bindings-xml-3.0.12.jar" />
+					<delete file="target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib/cxf-rt-databinding-jaxb-3.0.12.jar" />
+					<delete file="target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib/cxf-rt-frontend-jaxws-3.0.12.jar" />
+					<delete file="target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib/cxf-rt-frontend-simple-3.0.12.jar" />
+					<delete file="target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib/cxf-rt-transports-http-3.0.12.jar" />
+					<delete file="target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib/cxf-rt-ws-addr-3.0.12.jar" />
+					<delete file="target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib/cxf-rt-ws-policy-3.0.12.jar" />
+					<delete file="target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib/cxf-rt-wsdl-3.0.12.jar" />
+					<delete file="target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib/log4j-slf4j-impl-2.6.1.jar" />
+					<delete file="target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib/log4j-core-2.6.1.jar" />
+					<delete file="target/dependency/chemistry-opencmis-server-inmemory-patched/WEB-INF/lib/log4j-api-2.6.1.jar" />
+		
+      			</target>
+      		</configuration>
+      	</execution>
+      	<execution>
+      		<id>opencmis-server-package-war</id>
+      		<phase>pre-integration-test</phase>
+      		<goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+            	<target>
+            		<delete file="target/dependency/chemistry-opencmis-server-inmemory.war"/>
+            		<jar destfile="target/dependency/chemistry-opencmis-server-inmemory.war" basedir="target/dependency/chemistry-opencmis-server-inmemory-patched"/>
+            	</target>
+            </configuration>
+      	</execution>
+      </executions>
+     </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

@@ -116,12 +116,6 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
     return testFolder;
   }
   
-  private long queryTestContents(Session session) {
-  	ItemIterable<QueryResult> results = session.query(BaseITSanityTestUtils.CMIS_TEST_QUERY_TARGET_REPO_ALL, false);
-    return results.getTotalNumItems();
-  }
-  
-  
   private void createNewDocument(Folder folder, String name) throws IOException{
     // properties 
     // (minimal set: name and object type id)
@@ -476,13 +470,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       count = getJobDocumentsProcessed(jobIDString);
       
       if (count != 3)
-        throw new ManifoldCFException("Wrong number of documents processed - expected 3, saw "+new Long(count).toString());
-      
-      //Tests if these two contents are stored in the target repo
-      long targetRepoNumberOfContents = queryTestContents(cmisTargetClientSession);
-      if(targetRepoNumberOfContents != 2)
-        throw new ManifoldCFException("Wrong number of documents stored in the CMIS Target repo - expected 2, saw "+new Long(targetRepoNumberOfContents).toString());
-
+        throw new ManifoldCFException("Wrong number of documents processed - expected 3, saw "+Long.valueOf(count).toString());
       
       // Add a file and recrawl
       Folder testFolder = getTestFolder(cmisSourceClientSession);
@@ -496,7 +484,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 5)
-        throw new ManifoldCFException("Wrong number of documents processed after add - expected 5, saw "+new Long(count).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after add - expected 5, saw "+Long.valueOf(count).toString());
       
       // Change a document, and recrawl
       changeDocument(cmisSourceClientSession,"testdata1.txt","MODIFIED - CMIS Testdata - MODIFIED");
@@ -508,7 +496,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       // The test data area has 4 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 5)
-        throw new ManifoldCFException("Wrong number of documents processed after change - expected 5, saw "+new Long(count).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after change - expected 5, saw "+Long.valueOf(count).toString());
       	
       //Tests if there are 4 documents in the target repo
 
@@ -523,7 +511,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       // The test data area has 3 documents and one directory, and we have to count the root directory too.
       count = getJobDocumentsProcessed(jobIDString);
       if (count != 4)
-        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 4, saw "+new Long(count).toString());
+        throw new ManifoldCFException("Wrong number of documents processed after delete - expected 4, saw "+Long.valueOf(count).toString());
       
       //Tests if there are 3 documents in the target repo
  
@@ -619,7 +607,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
     }
     if (documentsProcessed == null)
       throw new Exception("Expected a documents_processed field, didn't find it");
-    return new Long(documentsProcessed).longValue();
+    return Long.parseLong(documentsProcessed);
   }
   
   public void removeDocument(Session session, String name){
@@ -650,7 +638,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
       ManifoldCF.sleep(1000L);
       continue;
     }
-    throw new ManifoldCFException("ManifoldCF did not terminate in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
+    throw new ManifoldCFException("ManifoldCF did not terminate in the allotted time of "+Long.valueOf(maxTime).toString()+" milliseconds");
   }
   
   /**
@@ -686,7 +674,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
         return;
       ManifoldCF.sleep(1000L);
     }
-    throw new ManifoldCFException("ManifoldCF did not delete in the allotted time of "+new Long(maxTime).toString()+" milliseconds");
+    throw new ManifoldCFException("ManifoldCF did not delete in the allotted time of "+Long.valueOf(maxTime).toString()+" milliseconds");
   }
     
 
