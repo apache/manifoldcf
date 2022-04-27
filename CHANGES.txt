@@ -5,17 +5,33 @@ $Id$
 
 
 ======================= Release 2.22 =====================
-CONNECTORS-1705: CMIS Integration Test suite is broken
+
+CONNECTORS-1705: CMIS Integration Test suite is broken.
 (Piergiorgio Lucidi)
 
+CONNECTORS-1703: The Tika metadata service is now able to report
+X-TIKA:WARN:truncated_metadata warnings in the history.
+(Julien Massiera)
+
+CONNECTORS-1701: Add date info on OOM Error in WorkerThread.
+(Julien Massiera)
+
+CONNECTORS-1700: Add options to filter out metadata based on size
+in the Tika service connector.
+(Julien Massiera)
 
 CONNECTORS-1694: Enforce preemptive basic auth for Solr output connector.
 (Markus Günther, Markus Schuch)
 
-
 CONNECTORS-1693: Fix for the solr output connector to support
 basic authentication without realm scope.
 (Markus Günther, Markus Schuch)
+
+CONNECTORS-1665: Add activity records for URLs excluded by the web connector.
+(Julien Massiera)
+
+CONNECTORS-1622: Upgrade to Tika 1.28.1.
+(Karl Wright)
 
 ======================= Release 2.21 =====================
 
@@ -43,9 +59,7 @@ CONNECTORS-1675: Cut-and-paste error corrected so that mapping connection
 deletion via API now works.
 (Julien Massiera)
 
-
 ======================= Release 2.20 =====================
-
 
 CONNECTORS-1667: Include better kind of remote tika service
 transformer.
