@@ -47,7 +47,7 @@ public class WorkerThread extends Thread
   /** Process ID */
   protected final String processID;
   
-  private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss,SSS");
+  private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss,SSS", Locale.ROOT);
 
   /** Constructor.
   *@param id is the worker thread id.
