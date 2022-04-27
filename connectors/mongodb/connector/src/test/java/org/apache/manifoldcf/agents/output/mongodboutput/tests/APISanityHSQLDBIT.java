@@ -305,12 +305,12 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
             count = getJobDocumentsProcessed(jobIDString);
 
             if (count != 3)
-                throw new ManifoldCFException("Wrong number of documents processed - expected 3, saw " + new Long(count).toString());
+                throw new ManifoldCFException("Wrong number of documents processed - expected 3, saw " + Long.valueOf(count).toString());
 
             //Tests if these three documents are stored in the target repo
             long targetRepoNumberOfContents = queryTestContents(testCollection);
             if (targetRepoNumberOfContents != 3)
-                throw new ManifoldCFException("Wrong number of documents stored in the MongoDB Target repo - expected 3, saw " + new Long(targetRepoNumberOfContents).toString());
+                throw new ManifoldCFException("Wrong number of documents stored in the MongoDB Target repo - expected 3, saw " + Long.valueOf(targetRepoNumberOfContents).toString());
 
             // Now, delete the job.
             deleteJob(jobIDString);
@@ -390,7 +390,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
         }
         if (documentsProcessed == null)
             throw new Exception("Expected a documents_processed field, didn't find it");
-        return new Long(documentsProcessed).longValue();
+        return Long.valueOf(documentsProcessed).longValue();
     }
 
     protected void waitJobInactive(String jobIDString, long maxTime)
@@ -409,7 +409,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
             ManifoldCF.sleep(1000L);
             continue;
         }
-        throw new ManifoldCFException("ManifoldCF did not terminate in the allotted time of " + new Long(maxTime).toString() + " milliseconds");
+        throw new ManifoldCFException("ManifoldCF did not terminate in the allotted time of " + Long.valueOf(maxTime).toString() + " milliseconds");
     }
 
 
@@ -422,7 +422,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
                 return;
             ManifoldCF.sleep(1000L);
         }
-        throw new ManifoldCFException("ManifoldCF did not delete in the allotted time of " + new Long(maxTime).toString() + " milliseconds");
+        throw new ManifoldCFException("ManifoldCF did not delete in the allotted time of " + Long.valueOf(maxTime).toString() + " milliseconds");
     }
 
 

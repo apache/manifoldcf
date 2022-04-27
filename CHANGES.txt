@@ -2,6 +2,10 @@ ManifoldCF Change Log
 $Id$
 
 ======================= Release 2.22 =====================
+
+CONNECTORS-1708: Fix MongoDB download paths.
+(Piergiorgio Lucidi)
+
 CONNECTORS-1705: CMIS Integration Test suite is broken
 (Piergiorgio Lucidi)
 

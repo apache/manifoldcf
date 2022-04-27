@@ -29,7 +29,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <mongo.java.driver.version>2.11.3</mongo.java.driver.version>
+        <mongo.java.driver.version>2.14.3</mongo.java.driver.version>
     </properties>
 
     <developers>
@@ -38,8 +38,8 @@
         </developer>
         <developer>
             <name>Piergiorgio Lucidi</name>
-            <organization>TAI Solutions</organization>
-            <organizationUrl>https://www.taisolutions.com/</organizationUrl>
+            <organization>Zia Consulting</organization>
+            <organizationUrl>https://www.ziaconsulting.com</organizationUrl>
             <url>https://www.open4dev.com</url>
         </developer>
     </developers>
@@ -90,7 +90,7 @@
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
-            <version>2.2.0</version>
+            <version>3.4.5</version>
             <scope>test</scope>
         </dependency>
         <dependency>
