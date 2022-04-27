@@ -23,8 +23,7 @@ import org.junit.Before;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.IMongodConfig;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
+import de.flapdoodle.embed.mongo.config.MongodConfig;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
@@ -63,8 +62,11 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
 		MongodStarter starter = MongodStarter.getDefaultInstance();
 		String bindIp = "localhost";
 		int port = 27017;
-		IMongodConfig mongodConfig = new MongodConfigBuilder().version(Version.V2_6_8)
-		    .net(new Net(bindIp, port, Network.localhostIsIPv6())).build();
+		MongodConfig mongodConfig = MongodConfig.builder().version(Version.Main.PRODUCTION)
+				.net(new Net(bindIp, port, Network.localhostIsIPv6())).build();
+		
+//		IMongodConfig mongodConfig = new MongodConfigBuilder().version(Version.Main.PRODUCTION)
+//			    .net(new Net(bindIp, port, Network.localhostIsIPv6())).build();
 
 		mongodExecutable = starter.prepare(mongodConfig);
 		mongodExecutable.start();

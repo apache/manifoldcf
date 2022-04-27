@@ -60,23 +60,35 @@
         </antcall>
     </target>
 	
-    <property name="embedded-mongodb.version.label" value="2.2.0"/>
+    <property name="embedded-mongodb.version.label" value="3.4.5"/>
     <property name="embedded-mongodb.artifactId" value="de.flapdoodle.embed.mongo"/>
     <property name="embedded-mongodb-package" value="de/flapdoodle/embed"/>    
     <property name="embedded-mongodb.snapshot-jar" value="${embedded-mongodb.artifactId}-${embedded-mongodb.version.label}.jar"/>
 
-    <property name="embedded-mongodb.process.version.label" value="2.0.5"/>
+    <property name="embedded-mongodb.process.version.label" value="3.1.10"/>
     <property name="embedded-mongodb.process.artifactId" value="de.flapdoodle.embed.process"/>
     <property name="embedded-mongodb.process-package" value="de/flapdoodle/embed"/>    
     <property name="embedded-mongodb.process.jar" value="${embedded-mongodb.process.artifactId}-${embedded-mongodb.process.version.label}.jar"/>
 	
+	<property name="embedded-mongodb.packageresolver.version.label" value="1.0.3"/>
+    <property name="embedded-mongodb.packageresolver.artifactId" value="de.flapdoodle.embed.mongo.packageresolver"/>
+    <property name="embedded-mongodb-packageresolver-package" value="de/flapdoodle/embed"/>    
+    <property name="embedded-mongodb.packageresolver.jar" value="${embedded-mongodb.packageresolver.artifactId}-${embedded-mongodb.packageresolver.version.label}.jar"/>
+	
+	<property name="embedded-mongodb.os.version.label" value="1.1.8"/>
+    <property name="embedded-mongodb.os.artifactId" value="de.flapdoodle.os"/>
+    <property name="embedded-mongodb-os-package" value="de/flapdoodle"/>    
+    <property name="embedded-mongodb.os.jar" value="${embedded-mongodb.os.artifactId}-${embedded-mongodb.os.version.label}.jar"/>
+	
     <target name="calculate-testcode-condition">
         <available file="test-materials/${embedded-mongodb.snapshot-jar}" property="tests-present"/>
         <available file="test-materials/${embedded-mongodb.process.jar}" property="tests-present"/>
+    	<available file="test-materials/${embedded-mongodb.packageresolver.jar}" property="tests-present"/>
+    	<available file="test-materials/${embedded-mongodb.os.jar}" property="tests-present"/>
 	  	
         <copy todir="${mcf-dist}/test-lib">
           <fileset dir="test-materials">
-              <include name="de.flapdoodle.embed*.jar"/>
+              <include name="de.flapdoodle*.jar"/>
           </fileset>
         </copy>
     </target>
@@ -89,6 +101,9 @@
       <property name="sonatype-maven-repo-releases" value="https://oss.sonatype.org/content/repositories/public" />
       <get src="${sonatype-maven-repo-releases}/${embedded-mongodb-package}/${embedded-mongodb.artifactId}/${embedded-mongodb.version.label}/${embedded-mongodb.snapshot-jar}" dest="test-materials/${embedded-mongodb.snapshot-jar}"/>
       <get src="${sonatype-maven-repo-releases}/${embedded-mongodb.process-package}/${embedded-mongodb.process.artifactId}/${embedded-mongodb.process.version.label}/${embedded-mongodb.process.jar}" dest="test-materials/${embedded-mongodb.process.jar}"/>
+      <get src="${sonatype-maven-repo-releases}/${embedded-mongodb-packageresolver-package}/${embedded-mongodb.packageresolver.artifactId}/${embedded-mongodb.packageresolver.version.label}/${embedded-mongodb.packageresolver.jar}" dest="test-materials/${embedded-mongodb.packageresolver.jar}"/>
+      <get src="${sonatype-maven-repo-releases}/${embedded-mongodb-os-package}/${embedded-mongodb.os.artifactId}/${embedded-mongodb.os.version.label}/${embedded-mongodb.os.jar}" dest="test-materials/${embedded-mongodb.os.jar}"/>
+    	 
     </target>
 
 </project>
