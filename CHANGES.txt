@@ -3,6 +3,8 @@ $Id$
 
 ======================= Release 2.22.1 =====================
 
+CONNECTORS-1712: Remove incompatible version of Velocity and recode interface.
+(Karl Wright, Julien Massiera)
 
 ======================= Release 2.22 =====================
 
