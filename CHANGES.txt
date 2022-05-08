@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= Release 2.22.1 =====================
+
+
 ======================= Release 2.22 =====================
 
 CONNECTORS-1708: Fix MongoDB download paths.
