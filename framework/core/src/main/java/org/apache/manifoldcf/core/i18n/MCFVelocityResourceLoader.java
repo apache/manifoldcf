@@ -30,8 +30,9 @@ public class MCFVelocityResourceLoader extends org.apache.velocity.runtime.resou
   
   /** Constructor.
   */
-  public MCFVelocityResourceLoader()
+  public MCFVelocityResourceLoader(Class classInstance)
   {
+    this.classInstance = classInstance;
   }
 
   public long getLastModified(org.apache.velocity.runtime.resource.Resource resource)
@@ -63,16 +64,6 @@ public class MCFVelocityResourceLoader extends org.apache.velocity.runtime.resou
   @Override
   public void init(ExtProperties configurations)
   {
-    String className = (String)configurations.getProperty("classinstance");
-    if (className == null) {
-      className = (String)configurations.getProperty("mcf.resource.loader.classinstance");
-    }
-    // We should be able to load it; if not it's a fatal error and we'll fail to find the resource.
-    try {
-      classInstance = Class.forName(className);
-    } catch (Exception e) {
-      classInstance = null;
-    }
   }
 
   @Override

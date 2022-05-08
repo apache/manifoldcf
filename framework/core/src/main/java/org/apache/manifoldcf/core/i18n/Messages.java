@@ -57,12 +57,10 @@ public class Messages
     VelocityEngine engine = new VelocityEngine();
     Properties configuration = new Properties();
     // This is the property that describes the id's of the resource loaders.
-    configuration.setProperty(VelocityEngine.RESOURCE_LOADER,"mcf");
+    configuration.setProperty(VelocityEngine.RESOURCE_LOADERS,"mcf");
     // This is the property which describes the resource loader itself
-    // Used to be ".instance" and accept an instance.  No longer allowed.
-    configuration.setProperty("mcf."+VelocityEngine.RESOURCE_LOADER+".class",MCFVelocityResourceLoader.class.getName() /*new MCFVelocityResourceLoader(classInstance)*/);
-    configuration.setProperty("mcf."+VelocityEngine.RESOURCE_LOADER+".classinstance",classInstance.getName());
     engine.setProperties(configuration);
+    engine.addProperty(VelocityEngine.RESOURCE_LOADER+".mcf.instance",new MCFVelocityResourceLoader(classInstance));
     //engine.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
     //  "org.apache.velocity.runtime.log.Log4JLogChute" );
     //engine.setProperty("runtime.log.logsystem.log4j.logger",
