@@ -25,6 +25,7 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Vector;
+import java.util.Properties;
 
 import java.io.InputStream;
 
@@ -32,6 +33,7 @@ import org.apache.manifoldcf.core.system.Logging;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.util.ExtProperties;
 
 public class Messages
 {
@@ -53,17 +55,17 @@ public class Messages
     throws ManifoldCFException
   {
     VelocityEngine engine = new VelocityEngine();
-    // Now configure it
-    org.apache.commons.collections.ExtendedProperties configuration = new org.apache.commons.collections.ExtendedProperties();
+    Properties configuration = new Properties();
     // This is the property that describes the id's of the resource loaders.
-    configuration.setProperty(VelocityEngine.RESOURCE_LOADER,"mcf");
+    configuration.setProperty(VelocityEngine.RESOURCE_LOADERS,"mcf");
     // This is the property which describes the resource loader itself
-    configuration.setProperty("mcf."+VelocityEngine.RESOURCE_LOADER+".instance",new MCFVelocityResourceLoader(classInstance));
-    engine.setExtendedProperties(configuration);
-    engine.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
-      "org.apache.velocity.runtime.log.Log4JLogChute" );
-    engine.setProperty("runtime.log.logsystem.log4j.logger",
-      "velocity");
+    engine.setProperties(configuration);
+    engine.addProperty(VelocityEngine.RESOURCE_LOADER+".mcf.instance",new MCFVelocityResourceLoader(classInstance));
+    //engine.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
+    //  "org.apache.velocity.runtime.log.Log4JLogChute" );
+    //engine.setProperty("runtime.log.logsystem.log4j.logger",
+    //  "velocity");
+    //"runtime.log.instance"
     return engine;
   }
   
