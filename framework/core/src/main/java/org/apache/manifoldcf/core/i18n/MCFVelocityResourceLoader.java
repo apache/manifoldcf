@@ -19,25 +19,38 @@
 package org.apache.manifoldcf.core.i18n;
 
 import java.io.*;
+import org.apache.velocity.util.ExtProperties;
 
 /** Our own Velocity resource loader, which uses our class resolution to find Velocity template resources.
 */
 public class MCFVelocityResourceLoader extends org.apache.velocity.runtime.resource.loader.ResourceLoader
 {
+    
   protected Class classInstance;
   
   /** Constructor.
   */
-  public MCFVelocityResourceLoader(Class classInstance)
+  public MCFVelocityResourceLoader()
   {
-    this.classInstance = classInstance;
   }
 
   public long getLastModified(org.apache.velocity.runtime.resource.Resource resource)
   {
     return 0L;
   }
-  
+
+  @Override
+  public Reader getResourceReader(String source, String encoding)
+    throws org.apache.velocity.exception.ResourceNotFoundException
+  {
+    try
+    {
+      return new InputStreamReader(getResourceStream(source), encoding);
+    } catch (UnsupportedEncodingException e) {
+      throw new org.apache.velocity.exception.ResourceNotFoundException("Encoding '"+encoding+"' is illegal");
+    }
+  }
+    
   public InputStream getResourceStream(String source)
     throws org.apache.velocity.exception.ResourceNotFoundException
   {
@@ -47,11 +60,22 @@ public class MCFVelocityResourceLoader extends org.apache.velocity.runtime.resou
     return rval;
   }
 
-  public void init(org.apache.commons.collections.ExtendedProperties configuration)
+  @Override
+  public void init(ExtProperties configurations)
   {
-    // Does nothing
+    String className = (String)configurations.getProperty("classinstance");
+    if (className == null) {
+      className = (String)configurations.getProperty("mcf.resource.loader.classinstance");
+    }
+    // We should be able to load it; if not it's a fatal error and we'll fail to find the resource.
+    try {
+      classInstance = Class.forName(className);
+    } catch (Exception e) {
+      classInstance = null;
+    }
   }
 
+  @Override
   public boolean isSourceModified(org.apache.velocity.runtime.resource.Resource resource)
   {
     // This obviously supports caching, which we don't need and may mess us up if the caching is cross-instance
