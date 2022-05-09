@@ -83,8 +83,8 @@
     </dependency>
     <dependency>
       <groupId>org.apache.velocity</groupId>
-      <artifactId>velocity</artifactId>
-      <version>${velocity.version}</version>
+      <artifactId>velocity-engine-core</artifactId>
+      <version>${velocity-engine-core.version}</version>
       <exclusions>
         <exclusion>
           <groupId>oro</groupId>
