@@ -57,14 +57,14 @@
     <wsdl4j.version>1.6.2</wsdl4j.version>
     <castor.version>1.0.5</castor.version>
     <commons-codec.version>1.10</commons-codec.version>
-    <commons-io.version>2.4</commons-io.version>
+    <commons-io.version>2.11.0</commons-io.version>
     <commons-logging.version>1.2</commons-logging.version>
     <commons-collections.version>3.2.2</commons-collections.version>
     <commons-fileupload.version>1.3.3</commons-fileupload.version>
     <commons-discovery.version>0.5</commons-discovery.version>
-    <httpcomponent.httpclient.version>4.5.3</httpcomponent.httpclient.version>
-    <httpcomponent.httpcore.version>4.4.6</httpcomponent.httpcore.version>
-    <httpcomponent.httpmime.version>4.5.3</httpcomponent.httpmime.version>
+    <httpcomponent.httpclient.version>4.5.13</httpcomponent.httpclient.version>
+    <httpcomponent.httpcore.version>4.4.15</httpcomponent.httpcore.version>
+    <httpcomponent.httpmime.version>4.5.13</httpcomponent.httpmime.version>
     <solr.version>8.3.1</solr.version>
     <noggit.version>0.8</noggit.version>
     <commons-el.version>1.0</commons-el.version>
@@ -77,13 +77,13 @@
     <servlet-api.version>3.1.0</servlet-api.version>
     <jstl.version>1.2</jstl.version>
     <glassfish.version>2.1.v20091210</glassfish.version>
-    <log4j.version>2.17.0</log4j.version>
-    <velocity.version>1.7</velocity.version>
-    <slf4j.version>1.7.7</slf4j.version>
+    <log4j.version>2.17.2</log4j.version>
+    <velocity-engine-core.version>2.3</velocity-engine-core.version>
+    <slf4j.version>1.7.36</slf4j.version>
     <jaxb.version>2.2.6</jaxb.version>
     <zookeeper.version>3.4.10</zookeeper.version>
-    <xmlbeans.version>2.6.0</xmlbeans.version>
-    <poi.version>3.17</poi.version>
+    <xmlbeans.version>3.1.0</xmlbeans.version>
+    <poi.version>4.1.2</poi.version>
     <tika.version>1.28.1</tika.version>
     <boilerpipe.version>1.1.0</boilerpipe.version>
     <hadoop.version>2.6.0</hadoop.version>
