@@ -35,7 +35,7 @@
     <property name="httpclient.version" value="4.5.13"/>
     <property name="httpmime.version" value="4.5.13"/>
     <property name="httpcore.version" value="4.4.15"/>
-    <property name="xerces.version" value="2.10.0"/>
+    <property name="xerces.version" value="2.12.2"/>
     <property name="zookeeper.version" value="3.4.10"/>
     <property name="mongodb.version" value="2.14.3"/>
     <property name="postgresql.version" value="42.1.3"/>
