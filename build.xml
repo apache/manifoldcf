@@ -207,7 +207,7 @@
     <property name="rat.bootstrap.version" value="0.12"/>
     <property name="rat_checksum_sha1" value="16398550402b27f81cd0d508cef54b3e47a4a6da"/>
     <property name="rat_install_path" location="${user.home}/.ant/lib" />
-    <property name="rat_bootstrap_url1" value="http://repo1.maven.org/maven2"/>
+    <property name="rat_bootstrap_url1" value="https://repo1.maven.org/maven2"/>
     <!-- you might need to tweak this from china so it works -->
     <property name="rat_bootstrap_url2" value="http://uk.maven.org/maven2"/>
   
@@ -1574,7 +1574,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-h2-support">
         <mkdir dir="lib"/>
         <!-- Alfresco dependency, so download from there -->
-        <get src="http://clojars.org/repo/it/sk/alfresco/h2-support/1.1/h2-support-1.1.jar" dest="lib/h2-support-1.1.jar"/>
+        <get src="https://clojars.org/repo/it/sk/alfresco/h2-support/1.1/h2-support-1.1.jar" dest="lib/h2-support-1.1.jar"/>
     </target>
     
     <target name="download-tomcat">
