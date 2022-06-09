@@ -912,7 +912,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
     
     <target name="setup-nuxeo-url">
-        <property name="nuxeo-base-url" value="http://maven.nuxeo.com/nexus/content/repositories/public-releases"/>
+        <property name="nuxeo-base-url" value="https://maven-eu.nuxeo.org/nexus/content/repositories/public-releases"/>
     </target>
     
     <target name="download-via-nuxeo" depends="setup-nuxeo-url">
