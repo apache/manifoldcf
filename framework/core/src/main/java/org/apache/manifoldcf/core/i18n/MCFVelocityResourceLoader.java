@@ -19,11 +19,13 @@
 package org.apache.manifoldcf.core.i18n;
 
 import java.io.*;
+import org.apache.velocity.util.ExtProperties;
 
 /** Our own Velocity resource loader, which uses our class resolution to find Velocity template resources.
 */
 public class MCFVelocityResourceLoader extends org.apache.velocity.runtime.resource.loader.ResourceLoader
 {
+    
   protected Class classInstance;
   
   /** Constructor.
@@ -37,7 +39,19 @@ public class MCFVelocityResourceLoader extends org.apache.velocity.runtime.resou
   {
     return 0L;
   }
-  
+
+  @Override
+  public Reader getResourceReader(String source, String encoding)
+    throws org.apache.velocity.exception.ResourceNotFoundException
+  {
+    try
+    {
+      return new InputStreamReader(getResourceStream(source), encoding);
+    } catch (UnsupportedEncodingException e) {
+      throw new org.apache.velocity.exception.ResourceNotFoundException("Encoding '"+encoding+"' is illegal");
+    }
+  }
+    
   public InputStream getResourceStream(String source)
     throws org.apache.velocity.exception.ResourceNotFoundException
   {
@@ -47,11 +61,12 @@ public class MCFVelocityResourceLoader extends org.apache.velocity.runtime.resou
     return rval;
   }
 
-  public void init(org.apache.commons.collections.ExtendedProperties configuration)
+  @Override
+  public void init(ExtProperties configurations)
   {
-    // Does nothing
   }
 
+  @Override
   public boolean isSourceModified(org.apache.velocity.runtime.resource.Resource resource)
   {
     // This obviously supports caching, which we don't need and may mess us up if the caching is cross-instance

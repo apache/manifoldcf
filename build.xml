@@ -93,7 +93,7 @@
     <property name="selenium.version" value="3.13.0"/>
     <property name="hamcrest.version" value="1.3"/>
     <property name="log4j12.version" value="1.2.17"/>
-    <property name="log4j.version" value="2.15.0"/>
+    <property name="log4j.version" value="2.17.2"/>
     <property name="mail.version" value="1.6.2"/>
     <property name="mimepull.version" value="1.9.11"/>
     <property name="opensaml.version" value="1.1"/>
@@ -102,7 +102,6 @@
     <property name="servlet-api.version" value="3.1.0"/>
     <property name="stax-api.version" value="1.0.1"/>
     <property name="streambuffer.version" value="1.5.7"/>
-    <property name="velocity.version" value="1.7"/>
     <property name="velocity-engine-core.version" value="2.3"/>
     <property name="wss4j.version" value="1.5.12"/>
     <property name="xmlgraphics-commons.version" value="1.4"/>
@@ -208,7 +207,7 @@
     <property name="rat.bootstrap.version" value="0.12"/>
     <property name="rat_checksum_sha1" value="16398550402b27f81cd0d508cef54b3e47a4a6da"/>
     <property name="rat_install_path" location="${user.home}/.ant/lib" />
-    <property name="rat_bootstrap_url1" value="http://repo1.maven.org/maven2"/>
+    <property name="rat_bootstrap_url1" value="https://repo1.maven.org/maven2"/>
     <!-- you might need to tweak this from china so it works -->
     <property name="rat_bootstrap_url2" value="http://uk.maven.org/maven2"/>
   
@@ -905,7 +904,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven">
             <param name="project-path" value="commons-beanutils"/>
-            <param name="artifact-version" value="1.8.3"/>
+            <param name="artifact-version" value="1.9.4"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="commons-beanutils"/>
             <param name="artifact-type" value="jar"/>
@@ -913,7 +912,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
     
     <target name="setup-nuxeo-url">
-        <property name="nuxeo-base-url" value="http://maven.nuxeo.com/nexus/content/repositories/public-releases"/>
+        <property name="nuxeo-base-url" value="https://maven-eu.nuxeo.org/nexus/content/repositories/public-releases"/>
     </target>
     
     <target name="download-via-nuxeo" depends="setup-nuxeo-url">
@@ -1575,7 +1574,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-h2-support">
         <mkdir dir="lib"/>
         <!-- Alfresco dependency, so download from there -->
-        <get src="http://clojars.org/repo/it/sk/alfresco/h2-support/1.1/h2-support-1.1.jar" dest="lib/h2-support-1.1.jar"/>
+        <get src="https://clojars.org/repo/it/sk/alfresco/h2-support/1.1/h2-support-1.1.jar" dest="lib/h2-support-1.1.jar"/>
     </target>
     
     <target name="download-tomcat">
@@ -2065,12 +2064,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-velocity">
         <mkdir dir="lib"/>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/apache/velocity"/>
-            <param name="artifact-version" value="${velocity.version}"/>
-            <param name="artifact-name" value="velocity"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/velocity"/>
             <param name="artifact-version" value="${velocity-engine-core.version}"/>
