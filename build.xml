@@ -93,7 +93,7 @@
     <property name="selenium.version" value="3.13.0"/>
     <property name="hamcrest.version" value="1.3"/>
     <property name="log4j12.version" value="1.2.17"/>
-    <property name="log4j.version" value="2.15.0"/>
+    <property name="log4j.version" value="2.17.2"/>
     <property name="mail.version" value="1.6.2"/>
     <property name="mimepull.version" value="1.9.11"/>
     <property name="opensaml.version" value="1.1"/>
@@ -102,7 +102,6 @@
     <property name="servlet-api.version" value="3.1.0"/>
     <property name="stax-api.version" value="1.0.1"/>
     <property name="streambuffer.version" value="1.5.7"/>
-    <property name="velocity.version" value="1.7"/>
     <property name="velocity-engine-core.version" value="2.3"/>
     <property name="wss4j.version" value="1.5.12"/>
     <property name="xmlgraphics-commons.version" value="1.4"/>
@@ -905,7 +904,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven">
             <param name="project-path" value="commons-beanutils"/>
-            <param name="artifact-version" value="1.8.3"/>
+            <param name="artifact-version" value="1.9.4"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="commons-beanutils"/>
             <param name="artifact-type" value="jar"/>
@@ -2065,12 +2064,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     
     <target name="download-velocity">
         <mkdir dir="lib"/>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/apache/velocity"/>
-            <param name="artifact-version" value="${velocity.version}"/>
-            <param name="artifact-name" value="velocity"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/velocity"/>
             <param name="artifact-version" value="${velocity-engine-core.version}"/>
