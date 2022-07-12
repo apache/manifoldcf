@@ -457,7 +457,7 @@ public class ReprioritizationTracker implements IReprioritizationTracker
     }
     
     public int hashCode() {
-      return connectorClass.hashCode() + binName.hashCode();
+      return (connectorClass == null ? 0 : connectorClass.hashCode()) + (binName == null ? 0 : binName.hashCode());
     }
     
     public boolean equals(final Object o) {
