@@ -46,7 +46,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <project.http.version>1.14.1-beta</project.http.version>
     <project.oauth.version>1.14.1-beta</project.oauth.version>
-    <aws-java-sdk.version>1.9.0</aws-java-sdk.version>
+    <aws-java-sdk.version>1.12.261</aws-java-sdk.version>
     <json.simple.version>1.1</json.simple.version>
   </properties>
 
