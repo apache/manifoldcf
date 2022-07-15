@@ -1057,88 +1057,92 @@ public class CmisOutputConnector extends BaseOutputConnector {
     return leafParent;
   }
 
-  /**
-   * Create a new CMIS folder as a child node of leafParent
-   * @param leafParent
-   * @param folderName
-   * @return the current CMIS folder if exists otherwise it will return a new one 
-   */
-  private Folder createFolderIfNotExist(Folder leafParent, String folderName) {
-    Folder folder = null;
-    try {
-      folder = (Folder) session.getObjectByPath(leafParent.getPath() + CmisOutputConnectorUtils.SLASH + folderName);
-    } catch (CmisObjectNotFoundException onfe) {
-      Map<String, Object> props = new HashMap<String, Object>();
-      props.put(PropertyIds.OBJECT_TYPE_ID,  BaseTypeId.CMIS_FOLDER.value());
-      props.put(PropertyIds.NAME, folderName);
-      folder = leafParent.createFolder(props);
-      
-      String folderId = folder.getId();
-      String folderPath = folder.getPath();
-      Logging.connectors.info(
-          "CMIS: Created a new folder - id: " + folderId +
-          " | Path: " + folderPath);
-    }
-    return folder;
-  }
-  
-  
-  /**
-   * Encoding process to retrieve the contentPath parameter from the documentURI.
-   * The contentPath parameter can be passed from any repository connector that is currently supporting the content migration capability.
-   * @param documentURI
-   * @return contentPath
-   * @throws URISyntaxException
-   * @throws UnsupportedEncodingException
-   */
-  private String getContentPath(String documentURI) throws URISyntaxException, UnsupportedEncodingException {
-    String contentPath = StringUtils.EMPTY;
-    String documentURIWithFixedEncoding = StringUtils.replace(documentURI, " ", "%20");
-    List<NameValuePair> params = URLEncodedUtils.parse(new URI(documentURIWithFixedEncoding), StandardCharsets.UTF_8);
-    Iterator<NameValuePair> paramsIterator = params.iterator();
-    while (paramsIterator.hasNext()) {
-      NameValuePair param = (NameValuePair) paramsIterator.next();
-      if(StringUtils.equals(CONTENT_PATH_PARAM, param.getName())){
-        contentPath = param.getValue();
-      }
-    }
-    return contentPath;
-  }
-  
-  @Override
-  public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
-      throws ManifoldCFException, ServiceInterruption {
-    getSession();
-    long startTime = System.currentTimeMillis();
-    String result = StringUtils.EMPTY;
-    boolean isDropZoneFolder = isDropZoneFolder(cmisQuery);
+	/**
+	 * Create a new CMIS folder as a child node of leafParent
+	 * @param leafParent
+	 * @param folderName
+	 * @return the current CMIS folder if exists otherwise it will return a new one 
+	 */
+	private Folder createFolderIfNotExist(Folder leafParent, String folderName) {
+		Folder folder = null;
+		try {
+			folder = (Folder) session.getObjectByPath(leafParent.getPath() + CmisOutputConnectorUtils.SLASH + folderName);
+		} catch (CmisObjectNotFoundException onfe) {
+			Map<String, Object> props = new HashMap<String, Object>();
+		  props.put(PropertyIds.OBJECT_TYPE_ID,  BaseTypeId.CMIS_FOLDER.value());
+		  props.put(PropertyIds.NAME, folderName);
+		  folder = leafParent.createFolder(props);
+		  
+		  String folderId = folder.getId();
+		  String folderPath = folder.getPath();
+		  Logging.connectors.info(
+					"CMIS: Created a new folder - id: " + folderId +
+					" | Path: " + folderPath);
+		}
+		return folder;
+	}
+	
+	
+	/**
+	 * Encoding process to retrieve the contentPath parameter from the documentURI.
+	 * The contentPath parameter can be passed from any repository connector that is currently supporting the content migration capability.
+	 * @param documentURI
+	 * @return contentPath
+	 * @throws URISyntaxException
+	 * @throws UnsupportedEncodingException
+	 */
+	private String getContentPath(String documentURI) throws URISyntaxException, UnsupportedEncodingException {
+		String contentPath = StringUtils.EMPTY;
+		String documentURIWithFixedEncoding = StringUtils.replace(documentURI, "%", "_"); 
+		documentURIWithFixedEncoding = StringUtils.replace(documentURIWithFixedEncoding, " ", "%20");
+    documentURIWithFixedEncoding = StringUtils.replace(documentURIWithFixedEncoding, "`", "%60");
+    documentURIWithFixedEncoding = StringUtils.replace(documentURIWithFixedEncoding, "#", "%23");
     
-    //append the prefix for the relative path in the target repo
-    try {
-      if(isDropZoneFolder 
-          && parentDropZoneFolder != null 
-          && StringUtils.isNotEmpty(documentURI)) {
-        String parentDropZonePath = parentDropZoneFolder.getPath();
-        
-        String contentPath = getContentPath(documentURI);
-        String fullDocumentURIinTargetRepo = parentDropZonePath + contentPath;
-        
-          if(session.existsPath(fullDocumentURIinTargetRepo)) {
-            session.deleteByPath(fullDocumentURIinTargetRepo);
-            result = DOCUMENT_DELETION_STATUS_ACCEPTED;
-          } else {
-            result = DOCUMENT_DELETION_STATUS_REJECTED;
-          }
-      } else { 
-        result = DOCUMENT_DELETION_STATUS_REJECTED;
-      }
-    } catch (Exception e) {
-      result = DOCUMENT_DELETION_STATUS_REJECTED;
-      throw new ManifoldCFException(e.getMessage(), e);
-    } finally {
-      activities.recordActivity(startTime, ACTIVITY_DELETE, null, documentURI, null, result);
-    }
-  }
-  
-  
+		List<NameValuePair> params = URLEncodedUtils.parse(new URI(documentURIWithFixedEncoding), StandardCharsets.UTF_8);
+		Iterator<NameValuePair> paramsIterator = params.iterator();
+		while (paramsIterator.hasNext()) {
+			NameValuePair param = (NameValuePair) paramsIterator.next();
+			if(StringUtils.equals(CONTENT_PATH_PARAM, param.getName())){
+				contentPath = param.getValue();
+			}
+		}
+		return contentPath;
+	}
+	
+	@Override
+	public void removeDocument(String documentURI, String outputDescription, IOutputRemoveActivity activities)
+	    throws ManifoldCFException, ServiceInterruption {
+		getSession();
+		long startTime = System.currentTimeMillis();
+		String result = StringUtils.EMPTY;
+		boolean isDropZoneFolder = isDropZoneFolder(cmisQuery);
+		
+		//append the prefix for the relative path in the target repo
+		try {
+			if(isDropZoneFolder 
+					&& parentDropZoneFolder != null 
+					&& StringUtils.isNotEmpty(documentURI)) {
+				String parentDropZonePath = parentDropZoneFolder.getPath();
+				
+				String contentPath = getContentPath(documentURI);
+				String fullDocumentURIinTargetRepo = parentDropZonePath + contentPath;
+				
+					if(session.existsPath(fullDocumentURIinTargetRepo)) {
+						session.deleteByPath(fullDocumentURIinTargetRepo);
+						result = DOCUMENT_DELETION_STATUS_ACCEPTED;
+					} else {
+						result = DOCUMENT_DELETION_STATUS_REJECTED;
+					}
+			} else { 
+				result = DOCUMENT_DELETION_STATUS_REJECTED;
+			}
+		} catch (Exception e) {
+			result = DOCUMENT_DELETION_STATUS_REJECTED;
+			throw new ManifoldCFException(e.getMessage(), e);
+		} finally {
+			activities.recordActivity(startTime, ACTIVITY_DELETE, null, documentURI, null, result);
+		}
+	}
+	
+	
 }
