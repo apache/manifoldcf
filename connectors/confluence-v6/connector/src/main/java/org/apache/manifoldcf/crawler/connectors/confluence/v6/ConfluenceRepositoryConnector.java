@@ -524,8 +524,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
   /*
    * Repository specification post handle, (server and proxy & client secret etc)
    *
-   * @see org.apache.manifoldcf.core.connector.BaseConnector#processConfigurationPost (org.apache.manifoldcf.core.interfaces.IThreadContext,
-   * org.apache.manifoldcf.core.interfaces.IPostParameters, org.apache.manifoldcf.core.interfaces.ConfigParams)
+   * @see org.apache.manifoldcf.core.connector.BaseConnector#processConfigurationPost (org.apache.manifoldcf.core.interfaces.IThreadContext, org.apache.manifoldcf.core.interfaces.IPostParameters,
+   * org.apache.manifoldcf.core.interfaces.ConfigParams)
    */
   @Override
   public String processConfigurationPost(final IThreadContext threadContext, final IPostParameters variableContext, final ConfigParams parameters) throws ManifoldCFException {
@@ -802,8 +802,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     try {
 
       /*
-       * Not uses delta seeding because Confluence can't be queried using dates or in a ordered way, only start and limit which can cause problems if an already indexed document is
-       * deleted, because we will miss some to-be indexed docs due to the last start parameter stored in the last execution
+       * Not uses delta seeding because Confluence can't be queried using dates or in a ordered way, only start and limit which can cause problems if an already indexed document is deleted, because we
+       * will miss some to-be indexed docs due to the last start parameter stored in the last execution
        */
       // if(lastSeedVersion != null && !lastSeedVersion.isEmpty()) {
       // StringTokenizer tokenizer = new
@@ -847,16 +847,20 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       do {
         final ConfluenceResponse<Page> response = confluenceClient.getPageChilds((int) lastStart, (int) defaultSize, pageId);
 
-        int count = 0;
-        for (final Page page : response.getResults()) {
-          pageChilds.add(page);
-          count++;
-        }
+        if (response != null) {
+          int count = 0;
+          for (final Page page : response.getResults()) {
+            pageChilds.add(page);
+            count++;
+          }
 
-        lastStart += count;
-        isLast = response.isLast();
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getPageChilds" }));
+          lastStart += count;
+          isLast = response.isLast();
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getPageChilds" }));
+          }
+        } else {
+          break;
         }
       } while (!isLast);
 
@@ -881,16 +885,20 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       do {
         final ConfluenceRestrictionsResponse<Restrictions> response = confluenceClient.getPageReadRestrictions((int) lastStart, (int) defaultSize, pageId);
 
-        if (response.getResult() != null) {
-          restrictionsList.add(response.getResult());
-        }
+        if (response != null) {
+          if (response.getResult() != null) {
+            restrictionsList.add(response.getResult());
+          }
 
-        isLast = response.isLast();
-        if (!isLast) {
-          lastStart += defaultSize;
-        }
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getAllSpaceKeys" }));
+          isLast = response.isLast();
+          if (!isLast) {
+            lastStart += defaultSize;
+          }
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getAllSpaceKeys" }));
+          }
+        } else {
+          break;
         }
       } while (!isLast);
 
@@ -914,16 +922,20 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       do {
         final ConfluenceResponse<Space> response = confluenceClient.getSpaces((int) lastStart, (int) defaultSize, Optional.<String>absent(), Optional.<String>absent());
 
-        int count = 0;
-        for (final Space space : response.getResults()) {
-          spaceKeys.add(space.getKey());
-          count++;
-        }
+        if (response != null) {
+          int count = 0;
+          for (final Space space : response.getResults()) {
+            spaceKeys.add(space.getKey());
+            count++;
+          }
 
-        lastStart += count;
-        isLast = response.isLast();
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getAllSpaceKeys" }));
+          lastStart += count;
+          isLast = response.isLast();
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getAllSpaceKeys" }));
+          }
+        } else {
+          break;
         }
       } while (!isLast);
     } catch (final Exception e) {
@@ -958,23 +970,27 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
 //        final ConfluenceResponse<Page> response = confluenceClient.getPages(
 //            (int) lastStart, (int) defaultSize, space, pageType);
 
-        int count = 0;
-        for (final Page page : response.getResults()) {
+        if (response != null) {
+          int count = 0;
+          for (final Page page : response.getResults()) {
 
-          activities.addSeedDocument(page.getId());
-          if (confluenceSpec.isProcessAttachments()) {
-            processSeedAttachments(page, activities);
+            activities.addSeedDocument(page.getId());
+            if (confluenceSpec.isProcessAttachments()) {
+              processSeedAttachments(page, activities);
+            }
+            count++;
           }
-          count++;
-        }
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("Fetched and added {0} seed documents", Locale.ROOT).format(new Object[] { new Integer(count) }));
-        }
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("Fetched and added {0} seed documents", Locale.ROOT).format(new Object[] { new Integer(count) }));
+          }
 
-        lastStart += count;
-        isLast = response.isLast();
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("New start {0} and size {1}", Locale.ROOT).format(new Object[] { lastStart, defaultSize }));
+          lastStart += count;
+          isLast = response.isLast();
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("New start {0} and size {1}", Locale.ROOT).format(new Object[] { lastStart, defaultSize }));
+          }
+        } else {
+          break;
         }
       } while (!isLast);
 
@@ -1005,20 +1021,24 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       do {
         final ConfluenceResponse<Attachment> response = confluenceClient.getPageAttachments(page.getId(), (int) lastStart, (int) defaultSize);
 
-        int count = 0;
-        for (final Page resultPage : response.getResults()) {
-          activities.addSeedDocument(ConfluenceUtil.generateRepositoryDocumentIdentifier(resultPage.getId(), page.getId()));
-          count++;
-        }
+        if (response != null) {
+          int count = 0;
+          for (final Page resultPage : response.getResults()) {
+            activities.addSeedDocument(ConfluenceUtil.generateRepositoryDocumentIdentifier(resultPage.getId(), page.getId()));
+            count++;
+          }
 
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("Fetched and added {} seed document attachments for page {}", Locale.ROOT).format(new Object[] { new Integer(count), page.getId() }));
-        }
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("Fetched and added {} seed document attachments for page {}", Locale.ROOT).format(new Object[] { new Integer(count), page.getId() }));
+          }
 
-        lastStart += count;
-        isLast = response.isLast();
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("New start {0} and size {1}", Locale.ROOT).format(new Object[] { lastStart, defaultSize }));
+          lastStart += count;
+          isLast = response.isLast();
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("New start {0} and size {1}", Locale.ROOT).format(new Object[] { lastStart, defaultSize }));
+          }
+        } else {
+          break;
         }
       } while (!isLast);
 
@@ -1056,8 +1076,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
   /*
    * Process documents
    *
-   * @see org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector# processDocuments(java.lang.String[], java.lang.String[],
-   * org.apache.manifoldcf.crawler.interfaces.IProcessActivity, org.apache.manifoldcf.crawler.interfaces.DocumentSpecification, boolean[])
+   * @see org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector# processDocuments(java.lang.String[], java.lang.String[], org.apache.manifoldcf.crawler.interfaces.IProcessActivity,
+   * org.apache.manifoldcf.crawler.interfaces.DocumentSpecification, boolean[])
    */
   @Override
   public void processDocuments(final String[] documentIdentifiers, final IExistingVersions statuses, final Specification spec, final IProcessActivity activities, final int jobMode,
@@ -1158,7 +1178,11 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     } catch (final Exception e) {
       handlePageException(e, "page processing");
     }
-    return processPageInternal(activeSecurity, parentRestrictions, page, documentIdentifier, version, activities, doLog, extraProperties);
+    if (page != null) {
+      return processPageInternal(activeSecurity, parentRestrictions, page, documentIdentifier, version, activities, doLog, extraProperties);
+    } else {
+      return null;
+    }
 
   }
 
@@ -1223,8 +1247,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     final DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, Locale.ROOT);
 
     /*
-     * Retain page in Manifold because it has not changed from last time This is needed to keep the identifier in Manifold data, because by default if a document is not retained nor
-     * ingested, it will be deleted by the framework
+     * Retain page in Manifold because it has not changed from last time This is needed to keep the identifier in Manifold data, because by default if a document is not retained nor ingested, it will
+     * be deleted by the framework
      */
     final StringBuilder versionBuilder = new StringBuilder();
     versionBuilder.append(df.format(lastModified));

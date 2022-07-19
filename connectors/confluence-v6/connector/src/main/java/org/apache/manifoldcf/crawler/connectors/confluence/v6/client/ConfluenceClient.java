@@ -85,8 +85,8 @@ import com.google.common.collect.Lists;
  * This class is intended to be used to interact with Confluence REST API
  * </p>
  * <p>
- * There are some methods that make use of the Confluence JSON-RPC 2.0 API, but until all the methods are ported to the new REST API, we
- * will have to use them to leverage all the features provided by Confluence
+ * There are some methods that make use of the Confluence JSON-RPC 2.0 API, but until all the methods are ported to the new REST API, we will have to use them to leverage all the features provided by
+ * Confluence
  * </p>
  *
  * @author Julien Massiera &amp; Antonio David Perez Morales;
@@ -126,19 +126,13 @@ public class ConfluenceClient {
    * <p>
    * Creates a new client instance using the given parameters
    * </p>
-   * 
-   * @param protocol
-   *          the protocol
-   * @param host
-   *          the host
-   * @param port
-   *          the port
-   * @param path
-   *          the path to Confluence instance
-   * @param username
-   *          the username used to make the requests. Null or empty to use anonymous user
-   * @param password
-   *          the password
+   *
+   * @param protocol the protocol
+   * @param host     the host
+   * @param port     the port
+   * @param path     the path to Confluence instance
+   * @param username the username used to make the requests. Null or empty to use anonymous user
+   * @param password the password
    * @throws ManifoldCFException
    */
   public ConfluenceClient(final String protocol, final String host, final Integer port, final String path, final String username, final String password, final int socketTimeout,
@@ -159,7 +153,7 @@ public class ConfluenceClient {
    * <p>
    * Connect methods used to initialize the underlying client
    * </p>
-   * 
+   *
    * @throws ManifoldCFException
    */
   private void connect() throws ManifoldCFException {
@@ -258,8 +252,7 @@ public class ConfluenceClient {
    * Create a get request for the given url
    * </p>
    *
-   * @param url
-   *          the url
+   * @param url the url
    * @return the created {@code HttpGet} instance
    */
   private HttpGet createGetRequest(final String url) {
@@ -303,10 +296,8 @@ public class ConfluenceClient {
    * Get a list of Confluence pages using pagination
    * </p>
    *
-   * @param start
-   *          The start value to get pages from
-   * @param limit
-   *          The number of pages to get from start
+   * @param start The start value to get pages from
+   * @param limit The number of pages to get from start
    * @return a {@code ConfluenceResponse} containing the result pages and some pagination values
    * @throws Exception
    */
@@ -326,11 +317,9 @@ public class ConfluenceClient {
    * <p>
    * Get the {@code ConfluenceResources} from the given url
    * </p>
-   * 
-   * @param url
-   *          The url identifying the REST resource to get the documents
-   * @param builder
-   *          The builder used to build the resources contained in the response
+   *
+   * @param url     The url identifying the REST resource to get the documents
+   * @param builder The builder used to build the resources contained in the response
    * @return a {@code ConfluenceResponse} containing the page results
    * @throws Exception
    */
@@ -339,6 +328,15 @@ public class ConfluenceClient {
 
     final HttpGet httpGet = createGetRequest(url);
     try (CloseableHttpResponse response = executeRequest(httpGet);) {
+      if (response.getStatusLine().getStatusCode() != 200) {
+        final String errorDesc = response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase();
+        if (response.getStatusLine().getStatusCode() != 404) {
+          throw new Exception("Confluence error. " + errorDesc);
+        } else {
+          logger.error("[Processing] Failed to get page {}. Error: {}", url, errorDesc);
+          return null;
+        }
+      }
       final ConfluenceResponse<? extends ConfluenceResource> confluenceResponse = responseFromHttpEntity(response.getEntity(), builder);
       EntityUtils.consume(response.getEntity());
       return confluenceResponse;
@@ -352,11 +350,9 @@ public class ConfluenceClient {
    * <p>
    * Get the {@code ConfluenceResources} from the given url
    * </p>
-   * 
-   * @param url
-   *          The url identifying the REST resource to get the documents
-   * @param builder
-   *          The builder used to build the resources contained in the response
+   *
+   * @param url     The url identifying the REST resource to get the documents
+   * @param builder The builder used to build the resources contained in the response
    * @return a {@code ConfluenceRestrictionsResponse} containing the page results
    * @throws Exception
    */
@@ -366,6 +362,15 @@ public class ConfluenceClient {
 
     final HttpGet httpGet = createGetRequest(url);
     try (CloseableHttpResponse response = executeRequest(httpGet);) {
+      if (response.getStatusLine().getStatusCode() != 200) {
+        final String errorDesc = response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase();
+        if (response.getStatusLine().getStatusCode() != 404) {
+          throw new Exception("Confluence error. " + errorDesc);
+        } else {
+          logger.error("[Processing] Failed to get page {}. Error: {}", url, errorDesc);
+          return null;
+        }
+      }
       final ConfluenceRestrictionsResponse<? extends ConfluenceResource> confluenceResponse = restrictionsResponseFromHttpEntity(response.getEntity(), builder);
       EntityUtils.consume(response.getEntity());
       return confluenceResponse;
@@ -379,9 +384,8 @@ public class ConfluenceClient {
    * <p>
    * Creates a ConfluenceResponse from the entity returned in the HttpResponse
    * </p>
-   * 
-   * @param entity
-   *          the {@code HttpEntity} to extract the response from
+   *
+   * @param entity the {@code HttpEntity} to extract the response from
    * @return a {@code ConfluenceResponse} with the requested information
    * @throws Exception
    */
@@ -402,9 +406,8 @@ public class ConfluenceClient {
    * <p>
    * Creates a ConfluenceResponse from the entity returned in the HttpResponse
    * </p>
-   * 
-   * @param entity
-   *          the {@code HttpEntity} to extract the response from
+   *
+   * @param entity the {@code HttpEntity} to extract the response from
    * @return a {@code ConfluenceResponse} with the requested information
    * @throws Exception
    */
@@ -425,9 +428,8 @@ public class ConfluenceClient {
    * <p>
    * Get the attachments of the given page
    * </p>
-   * 
-   * @param pageId
-   *          the page id
+   *
+   * @param pageId the page id
    * @return a {@code ConfluenceResponse} instance containing the attachment results and some pagination values
    * @throws Exception
    */
@@ -439,13 +441,10 @@ public class ConfluenceClient {
    * <p>
    * Get the attachments of the given page using pagination
    * </p>
-   * 
-   * @param pageId
-   *          the page id
-   * @param start
-   *          The start value to get attachments from
-   * @param limit
-   *          The number of attachments to get from start
+   *
+   * @param pageId the page id
+   * @param start  The start value to get attachments from
+   * @param limit  The number of attachments to get from start
    * @return a {@code ConfluenceResponse} instance containing the attachment results and some pagination values
    * @throws Exception
    */
@@ -470,6 +469,11 @@ public class ConfluenceClient {
     logger.debug("[Processing] Hitting url for getting document content : {}", sanitizeUrl(url));
     final HttpGet httpGet = createGetRequest(url);
     try (CloseableHttpResponse response = executeRequest(httpGet);) {
+      if (response.getStatusLine().getStatusCode() != 200) {
+        final String errorDesc = response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase();
+        response.close();
+        throw new Exception("Confluence error. " + errorDesc);
+      }
       final HttpEntity entity = response.getEntity();
       final MutableAttachment attachment = attachmentFromHttpEntity(entity);
       EntityUtils.consume(entity);
@@ -486,8 +490,7 @@ public class ConfluenceClient {
    * Downloads and retrieves the attachment content, setting it in the given {@code Attachment} instance
    * </p>
    *
-   * @param attachment
-   *          the {@code Attachment} instance to download and set the content
+   * @param attachment the {@code Attachment} instance to download and set the content
    * @throws Exception
    */
   private void retrieveAndSetAttachmentContent(final MutableAttachment attachment) throws Exception {
@@ -497,10 +500,19 @@ public class ConfluenceClient {
     logger.debug("[Processing] Hitting url for getting attachment content : {}", url);
     final HttpGet httpGet = createGetRequest(url);
     try (CloseableHttpResponse response = executeRequest(httpGet);) {
-      attachment.setLength(response.getEntity().getContentLength());
-      final byte[] byteContent = IOUtils.toByteArray(response.getEntity().getContent());
-      EntityUtils.consumeQuietly(response.getEntity());
-      attachment.setContentStream(new ByteArrayInputStream(byteContent));
+      if (response.getStatusLine().getStatusCode() != 200) {
+        final String errorDesc = response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase();
+        if (response.getStatusLine().getStatusCode() != 404) {
+          throw new Exception("Confluence error. " + errorDesc);
+        } else {
+          logger.error("[Processing] Failed to get attachment content {}. Error: {}", url, errorDesc);
+        }
+      } else {
+        attachment.setLength(response.getEntity().getContentLength());
+        final byte[] byteContent = IOUtils.toByteArray(response.getEntity().getContent());
+        EntityUtils.consumeQuietly(response.getEntity());
+        attachment.setContentStream(new ByteArrayInputStream(byteContent));
+      }
     } catch (final Exception e) {
 
       logger.error("[Processing] Failed to get attachment content from {}. Error: {}", url, e.getMessage());
@@ -513,9 +525,8 @@ public class ConfluenceClient {
    * <p>
    * Get a Confluence page identified by its id
    * </p>
-   * 
-   * @param pageId
-   *          the page id
+   *
+   * @param pageId the page id
    * @return the Confluence page
    * @throws Exception
    */
@@ -525,6 +536,15 @@ public class ConfluenceClient {
     logger.debug("[Processing] Hitting url for getting document content : {}", url);
     final HttpGet httpGet = createGetRequest(url);
     try (CloseableHttpResponse response = executeRequest(httpGet);) {
+      if (response.getStatusLine().getStatusCode() != 200) {
+        final String errorDesc = response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase();
+        if (response.getStatusLine().getStatusCode() != 404) {
+          throw new Exception("Confluence error. " + errorDesc);
+        } else {
+          logger.error("[Processing] Failed to get page {}. Error: {}", url, errorDesc);
+          return null;
+        }
+      }
       final HttpEntity entity = response.getEntity();
       final MutablePage page = pageFromHttpEntity(entity);
       EntityUtils.consume(entity);
@@ -547,9 +567,8 @@ public class ConfluenceClient {
    * <p>
    * Get the labels of a specific page
    * </p>
-   * 
-   * @param pageId
-   *          The pageId to get the labels
+   *
+   * @param pageId The pageId to get the labels
    * @return a {@code List<Label>} of labels
    */
   public List<Label> getLabels(final String pageId) {
@@ -565,9 +584,13 @@ public class ConfluenceClient {
       try {
         @SuppressWarnings("unchecked")
         final ConfluenceResponse<Label> response = (ConfluenceResponse<Label>) getConfluenceResources(url, Label.builder());
-        labels.addAll(response.getResults());
-        lastStart += response.getResults().size();
-        isLast = response.isLast();
+        if (response != null) {
+          labels.addAll(response.getResults());
+          lastStart += response.getResults().size();
+          isLast = response.isLast();
+        } else {
+          break;
+        }
       } catch (final Exception e) {
         logger.debug("Error getting labels for page {}. Reason: {}", pageId, e.getMessage());
       }
@@ -589,7 +612,9 @@ public class ConfluenceClient {
       authorities.add("group-" + group.getName());
     });
     final User user = getConfluenceUser(username);
-    authorities.add("user-" + user.getUserKey());
+    if (user != null) {
+      authorities.add("user-" + user.getUserKey());
+    }
     final List<Space> spaces = getSpaces();
     for (final Space space : spaces) {
       final List<String> permissions = getSpacePermissionsForUser(space, username);
@@ -605,6 +630,15 @@ public class ConfluenceClient {
     final String url = String.format(Locale.ROOT, "%s://%s:%s%s%s?username=%s", protocol, host, port, path, USER_PATH, username);
     final HttpGet httpGet = createGetRequest(url);
     try (CloseableHttpResponse response = executeRequest(httpGet);) {
+      if (response.getStatusLine().getStatusCode() != 200) {
+        final String errorDesc = response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase();
+        if (response.getStatusLine().getStatusCode() != 404) {
+          throw new Exception("Confluence error. " + errorDesc);
+        } else {
+          logger.error("[Processing] Failed to get page {}. Error: {}", url, errorDesc);
+          return null;
+        }
+      }
       final HttpEntity entity = response.getEntity();
       final User user = userFromHttpEntity(entity);
       EntityUtils.consume(entity);
@@ -626,16 +660,20 @@ public class ConfluenceClient {
     do {
       final ConfluenceResponse<Group> response = getUserGroups((int) lastStart, (int) defaultSize, username);
 
-      int count = 0;
-      for (final Group group : response.getResults()) {
-        groups.add(group);
-        count++;
-      }
+      if (response != null) {
+        int count = 0;
+        for (final Group group : response.getResults()) {
+          groups.add(group);
+          count++;
+        }
 
-      lastStart += count;
-      isLast = response.isLast();
-      if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-        Logging.connectors.debug(new MessageFormat("New start {0} and size {1}", Locale.ROOT).format(new Object[] { lastStart, defaultSize }));
+        lastStart += count;
+        isLast = response.isLast();
+        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+          Logging.connectors.debug(new MessageFormat("New start {0} and size {1}", Locale.ROOT).format(new Object[] { lastStart, defaultSize }));
+        }
+      } else {
+        break;
       }
     } while (!isLast);
 
@@ -662,9 +700,8 @@ public class ConfluenceClient {
    * <p>
    * Execute the given {@code HttpUriRequest} using the configured client
    * </p>
-   * 
-   * @param request
-   *          the {@code HttpUriRequest} to be executed
+   *
+   * @param request the {@code HttpUriRequest} to be executed
    * @return the {@code HttpResponse} object returned from the server
    * @throws Exception
    */
@@ -675,11 +712,6 @@ public class ConfluenceClient {
     CloseableHttpResponse response = null;
     try {
       response = httpClient.execute(request, httpContext);
-      if (response.getStatusLine().getStatusCode() != 200) {
-        final String errorDesc = response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase();
-        response.close();
-        throw new Exception("Confluence error. " + errorDesc);
-      }
       return response;
     } catch (final Exception e) {
       if (response != null) {
@@ -694,9 +726,8 @@ public class ConfluenceClient {
    * <p>
    * Creates a Confluence user object from the given entity returned by the server
    * </p>
-   * 
-   * @param entity
-   *          the {@code HttpEntity} to create the {@code User}
+   *
+   * @param entity the {@code HttpEntity} to create the {@code User}
    * @return the Confluence user instance
    * @throws Exception
    */
@@ -713,9 +744,8 @@ public class ConfluenceClient {
    * <p>
    * Creates a Confluence page object from the given entity returned by the server
    * </p>
-   * 
-   * @param entity
-   *          the {@code HttpEntity} to create the {@code MutablePage} from
+   *
+   * @param entity the {@code HttpEntity} to create the {@code MutablePage} from
    * @return the Confluence page instance
    * @throws Exception
    */
@@ -733,9 +763,8 @@ public class ConfluenceClient {
    * <p>
    * Creates a {@code MutableAttachment} object from the given entity returned by the server
    * </p>
-   * 
-   * @param entity
-   *          the {@code HttpEntity} to create the {@code MutableAttachment} from
+   *
+   * @param entity the {@code HttpEntity} to create the {@code MutableAttachment} from
    * @return the Confluence MutableAttachment instance
    * @throws Exception
    */
@@ -752,7 +781,7 @@ public class ConfluenceClient {
    * <p>
    * Method to check if basic authentication must be used
    * </p>
-   * 
+   *
    * @return {@code Boolean} indicating whether basic authentication must be used or not
    */
   private boolean useBasicAuthentication() {
@@ -764,8 +793,7 @@ public class ConfluenceClient {
    * Sanitize the given url replacing the appearance of more than one slash by only one slash
    * </p>
    *
-   * @param url
-   *          The url to sanitize
+   * @param url The url to sanitize
    * @return the sanitized url
    */
   private String sanitizeUrl(final String url) {
@@ -801,12 +829,16 @@ public class ConfluenceClient {
     do {
       final ConfluenceResponse<Space> response = getSpaces((int) lastStart, (int) defaultSize, Optional.<String>absent(), Optional.<String>absent());
 
-      spaces.addAll(response.getResults());
+      if (response != null) {
+        spaces.addAll(response.getResults());
 
-      lastStart += response.getResults().size();
-      isLast = response.isLast();
-      if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-        Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getSpaces" }));
+        lastStart += response.getResults().size();
+        isLast = response.isLast();
+        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+          Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getSpaces" }));
+        }
+      } else {
+        break;
       }
     } while (!isLast);
     return spaces;
