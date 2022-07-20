@@ -1093,7 +1093,11 @@ public class CmisOutputConnector extends BaseOutputConnector {
    */
   private String getContentPath(String documentURI) throws URISyntaxException, UnsupportedEncodingException {
     String contentPath = StringUtils.EMPTY;
-    String documentURIWithFixedEncoding = StringUtils.replace(documentURI, " ", "%20");
+    String documentURIWithFixedEncoding = StringUtils.replace(documentURI, "%", "_"); 
+    documentURIWithFixedEncoding = StringUtils.replace(documentURIWithFixedEncoding, " ", "%20");
+    documentURIWithFixedEncoding = StringUtils.replace(documentURIWithFixedEncoding, "`", "%60");
+    documentURIWithFixedEncoding = StringUtils.replace(documentURIWithFixedEncoding, "#", "%23");
+    
     List<NameValuePair> params = URLEncodedUtils.parse(new URI(documentURIWithFixedEncoding), StandardCharsets.UTF_8);
     Iterator<NameValuePair> paramsIterator = params.iterator();
     while (paramsIterator.hasNext()) {
