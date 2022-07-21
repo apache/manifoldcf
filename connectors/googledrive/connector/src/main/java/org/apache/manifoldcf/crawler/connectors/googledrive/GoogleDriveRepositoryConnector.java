@@ -1149,6 +1149,14 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
                   break;
               }
 
+              // Google native format documents may exist, but have 0 byte in size.
+              // In cases like this, there is no way to export it, and because of that, it is going to be ignored
+              if (documentURI == null) {
+                  errorCode = "NOLENGTH";
+                  errorDesc = "Document "+nodeId+" had no length; skipping";
+                  continue;
+              }
+
               String fullContentPath = getDocumentContentPath(googleFile, documentURI);
               
               // Append the new parameters in the query string
@@ -1157,8 +1165,6 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
               } else {
                 documentURI = documentURI + "?" + CONTENT_PATH_PARAM + "=" + fullContentPath;
               }
-
-              System.out.println("documentURI: " + documentURI);
 
               if (!activities.checkLengthIndexable(fileLength)) {
                 errorCode = activities.EXCLUDED_LENGTH;
@@ -1215,13 +1221,24 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
                 if (StringUtils.endsWithIgnoreCase(title, "." + extension)) {
                   rd.setFileName(title);
                 } else {
-                  rd.setFileName(title + "." + extension);
+                  String name = title + "." + extension;
+                  
+                  if (StringUtils.endsWithIgnoreCase(name, ".")) {
+                    name = StringUtils.chomp(name, ".");
+                  }
+                  
+                  rd.setFileName(name);
                 }
               } else {
                 if (title == null)
                   title = "";
               
-                rd.setFileName(title + "." + getExtensionByMimeType(mimeType));
+                String name = title + "." + getExtensionByMimeType(mimeType);
+                
+                if (StringUtils.endsWithIgnoreCase(name, ".")) {
+                    name = StringUtils.chomp(name, ".");
+                }
+                rd.setFileName(name);
               }
 
               // Get general document metadata
@@ -1362,7 +1379,11 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
             name = title + "." + getExtensionByMimeType(googleFile.getMimeType());
           }
 
-          fullContentPath = path + SLASH + name;
+          if (StringUtils.endsWithIgnoreCase(name, ".")) {
+            name = StringUtils.chomp(name, ".");
+          }
+          
+          fullContentPath = path + SLASH + StringUtils.trim(name);
         }
       } else {
         String path = getFilePath(googleFile);
@@ -1472,7 +1493,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     if (googleFile.containsKey("fileSize")) {
       return googleFile.getDownloadUrl();
     } else {
-      return googleFile.getExportLinks().get(exportType);
+      return (googleFile.getExportLinks() != null) ? googleFile.getExportLinks().get(exportType) : null;
     }
   }
 
@@ -1568,7 +1589,10 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   
   private String cleanupFileFolderName(String name) {
 	  name = name.trim();
-	  name = name.replaceAll("[\\\\/:*?\"<>|]", "_");
+	  name = name.replaceAll("[\\\\/:*?\"<>%|]", "_");
+	  if (StringUtils.endsWithIgnoreCase(name, ".")) {
+	    name = StringUtils.chomp(name, ".");
+	  }
 	  return name;
   }
 }
