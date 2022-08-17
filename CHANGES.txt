@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= 2.24-dev =====================
+
+
 ======================= Release 2.23 =====================
 
 CONNECTORS-1712: Remove incompatible version of Velocity and recode interface.
