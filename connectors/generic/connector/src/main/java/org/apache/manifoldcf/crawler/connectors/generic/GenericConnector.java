@@ -1152,6 +1152,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         } finally {
           EntityUtils.consume(response.getEntity());
           method.releaseConnection();
+          seedBuffer.signalDone();
         }
       } catch (IOException ex) {
         exception = ex;

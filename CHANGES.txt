@@ -3,6 +3,8 @@ $Id$
 
 ======================= 2.24-dev =====================
 
+CONNECTORS-1724: Free up crossthread buffer when error returned in GenericConnector.
+(Nguyen Huu)
 
 ======================= Release 2.23 =====================
 
