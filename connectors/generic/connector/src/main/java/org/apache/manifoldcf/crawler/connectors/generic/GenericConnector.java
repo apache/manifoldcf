@@ -509,19 +509,19 @@ public class GenericConnector extends BaseRepositoryConnector {
         + " </tr>\n"
         + " <tr>\n"
         + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.ConnectionTimeoutColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericConTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/></td>\n"
+        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericConnectionTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/></td>\n"
         + " </tr>\n"
         + " <tr>\n"
         + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.SocketTimeoutColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericSoTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/></td>\n"
+        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericSocketTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/></td>\n"
         + " </tr>\n"
         + "</table>\n");
     } else {
       out.print("<input type=\"hidden\" name=\"genericEntryPoint\" value=\"" + Encoder.attributeEscape(server) + "\"/>\n");
       out.print("<input type=\"hidden\" name=\"genericLogin\" value=\"" + Encoder.attributeEscape(login) + "\"/>\n");
       out.print("<input type=\"hidden\" name=\"genericPassword\" value=\"" + Encoder.attributeEscape(password) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"genericConTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"genericSoTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\"genericConnectionTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\"genericSocketTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/>\n");
     }
   }
 
@@ -532,8 +532,8 @@ public class GenericConnector extends BaseRepositoryConnector {
 
     copyParam(variableContext, parameters, "genericLogin");
     copyParam(variableContext, parameters, "genericEntryPoint");
-    copyParam(variableContext, parameters, "genericConTimeout");
-    copyParam(variableContext, parameters, "genericSoTimeout");
+    copyParam(variableContext, parameters, "genericConnectionTimeout");
+    copyParam(variableContext, parameters, "genericSocketTimeout");
 
     String password = variableContext.getParameter("genericPassword");
     if (password == null) {
@@ -607,7 +607,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       + "function "+seqPrefix+"SpecAddParam(anchorvalue) {\n"
       + "  if (editjob."+seqPrefix+"specparamname.value == \"\")\n"
       + "  {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "generic.TypeInParamName") + "\");\n"
+      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "generic.TypeInParameterName") + "\");\n"
       + "    editjob."+seqPrefix+"specparamname.focus();\n"
       + "    return;\n"
       + "  }\n"
