@@ -1205,7 +1205,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         HttpResponse response = client.execute(method);
         try {
           if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            exception = new ManifoldCFException("addSeedDocuments error - interface returned incorrect return code for: " + url + " - " + response.getStatusLine().toString());
+            exception = new ManifoldCFException("getDocumentVersions error - interface returned incorrect return code for: " + url + " - " + response.getStatusLine().toString());
             return;
           }
           JAXBContext context;

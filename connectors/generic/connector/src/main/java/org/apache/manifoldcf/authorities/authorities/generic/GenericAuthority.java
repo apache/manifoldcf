@@ -397,11 +397,11 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
         + " </tr>\n"
         + " <tr>\n"
         + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.ConnectionTimeoutColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericConTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/></td>\n"
+        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericConnectorTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/></td>\n"
         + " </tr>\n"
         + " <tr>\n"
         + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.SocketTimeoutColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericSoTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/></td>\n"
+        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericSocketTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/></td>\n"
         + " </tr>\n"
         + " <tr>\n"
         + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.ResponseLifetimeColon") + "</nobr></td>\n"
@@ -412,8 +412,8 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
       out.print("<input type=\"hidden\" name=\"genericEntryPoint\" value=\"" + Encoder.attributeEscape(server) + "\"/>\n");
       out.print("<input type=\"hidden\" name=\"genericLogin\" value=\"" + Encoder.attributeEscape(login) + "\"/>\n");
       out.print("<input type=\"hidden\" name=\"genericPassword\" value=\"" + Encoder.attributeEscape(password) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"genericConTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"genericSoTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\"genericConnectorTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\"genericSocketTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/>\n");
       out.print("<input type=\"hidden\" name=\"genericResponseLifetime\" value=\"" + Encoder.attributeEscape(respLifetime) + "\"/>\n");
     }
   }
@@ -425,8 +425,8 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
 
     copyParam(variableContext, parameters, "genericLogin");
     copyParam(variableContext, parameters, "genericEntryPoint");
-    copyParam(variableContext, parameters, "genericConTimeout");
-    copyParam(variableContext, parameters, "genericSoTimeout");
+    copyParam(variableContext, parameters, "genericConnectorTimeout");
+    copyParam(variableContext, parameters, "genericSocketTimeout");
     copyParam(variableContext, parameters, "genericResponseLifetime");
 
     String password = variableContext.getParameter("genericPassword");
