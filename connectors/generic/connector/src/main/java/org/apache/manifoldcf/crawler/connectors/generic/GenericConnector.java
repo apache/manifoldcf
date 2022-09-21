@@ -253,6 +253,8 @@ public class GenericConnector extends BaseRepositoryConnector {
       t.interrupt();
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
         ManifoldCFException.INTERRUPTED);
+    } catch (ManifoldCFException e) {
+        handleManifoldCFException(e);
     }
     return new Long(seedTime).toString();
   }
@@ -301,6 +303,8 @@ public class GenericConnector extends BaseRepositoryConnector {
         versions = versioningThread.finishUp();
       } catch (IOException ex) {
         handleIOException((IOException)ex);
+      } catch (ManifoldCFException ex) {
+        handleManifoldCFException(ex);
       } catch (InterruptedException ex) {
         throw new ManifoldCFException(ex.getMessage(), ex, ManifoldCFException.INTERRUPTED);
       }
@@ -442,6 +446,8 @@ public class GenericConnector extends BaseRepositoryConnector {
               throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
             } catch (IOException e) {
               handleIOException(e);
+            } catch (ManifoldCFException e) {
+              handleManifoldCFException(e);
             }
           }
         }
@@ -1021,6 +1027,20 @@ public class GenericConnector extends BaseRepositoryConnector {
     }
     long currentTime = System.currentTimeMillis();
     throw new ServiceInterruption("IO exception: " + e.getMessage(), e, currentTime + 300000L,
+      currentTime + 3 * 60 * 60000L, -1, false);
+  }
+
+  /**
+   * Function for handling ManifoldCFException exception caused by connection error.
+   * In case of connection error, ServiceInterruption exception is thrown to perform retry.
+   * 
+   * @param e ManifoldCFException
+   * @throws ServiceInterruption
+   */
+  protected static void handleManifoldCFException(ManifoldCFException e)
+    throws ServiceInterruption {
+    long currentTime = System.currentTimeMillis();
+    throw new ServiceInterruption("Connection error: " + e.getMessage(), e, currentTime + 300000L,
       currentTime + 3 * 60 * 60000L, -1, false);
   }
 

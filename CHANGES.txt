@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.24-dev =====================
 
+CONNECTORS-1731: Better handling for ServiceInterruption exceptions.
+(Nguyen Huu)
+
 CONNECTORS-1726: Mismatch between form parameters in generic connector.
 (Nguyen Huu)
 
