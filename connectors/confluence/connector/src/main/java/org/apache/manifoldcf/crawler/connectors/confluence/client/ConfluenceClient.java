@@ -685,7 +685,7 @@ public class ConfluenceClient {
           + response.getStatusLine().getReasonPhrase());
     }
     HttpEntity entity = response.getEntity();
-    List<String> permissions = permissionsFromHttpEntity(entity);
+    List<String> permissions = permissionsFromHttpEntity(entity, space.getName(), username);
     EntityUtils.consume(entity);
     return permissions;
   }
@@ -699,7 +699,7 @@ public class ConfluenceClient {
     return response;
   }
   
-  private List<String> permissionsFromHttpEntity(HttpEntity entity) throws Exception {
+  private List<String> permissionsFromHttpEntity(final HttpEntity entity, final String space, final String username) throws Exception {
     String stringEntity = EntityUtils.toString(entity, "UTF-8");
     final JSONParser parser = new JSONParser();
     final Object parsedReponse = parser.parse(new StringReader(stringEntity));
@@ -715,7 +715,7 @@ public class ConfluenceClient {
         final JSONObject error = (JSONObject) responseObject.get("error");
         final String message = error.get("message").toString();
         // Probably has no permissions to get this space's permissions
-        logger.warn("Confluence authority: Can't get user permissions; "+message);
+        logger.warn("Confluence authority: Can't get permissions of user '" + username + "' for space '" + space + "'; " + message);
         return new ArrayList<>(0);
       } else {
         throw new Exception("Unexpected JSON format: " + responseObject);
