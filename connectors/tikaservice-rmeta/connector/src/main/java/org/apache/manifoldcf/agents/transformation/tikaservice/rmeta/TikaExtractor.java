@@ -695,7 +695,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
     try {
       final Map<String, List<String>> metadata = new HashMap<>();
-      final Map<String, List<String>> embeddedResourcesMetadata = new HashMap<>();
+      final List<String> embeddedResourcesNames = new ArrayList<>();
       if (document.getFileName() != null) {
         metadata.put(TikaMetadataKeys.RESOURCE_NAME_KEY, new ArrayList<>());
         metadata.put("stream_name", new ArrayList<>());
@@ -878,7 +878,46 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                         skipMetadata(jParser);
                       }
                     }
+
+                    // If token not null then there are embedded resources, process them if the extractArchives option is enabled
+                    if (token != null && token == JsonToken.END_OBJECT && sp.extractArchives) {
+                      // For embedded resource we only gather resourceNames and resources content, skip the rest
+                      while ((token = jParser.nextToken()) != null) {
+                        final String fieldName = jParser.getCurrentName();
+                        if (fieldName != null && fieldName.contentEquals("resourceName")) {
+                          token = jParser.nextToken();
+                          if (jParser.getTextLength() <= sp.maxMetadataValueLength) {
+                            embeddedResourcesNames.add(jParser.getText());
+                          } else {
+                            metadataSkipped = true;
+                          }
+                        } else if (fieldName != null && fieldName.contentEquals("X-TIKA:content")) {
+                          // Add embedded resource content to main document content
+                          jParser.nextToken();
+                          length += jParser.getText(w);
+                        }
+                      }
+                    }
+
                     jParser.close();
+                  }
+
+                  // If the are embedded resources, add their names, if possible, to the metadata
+                  for (final String embeddedResourceName : embeddedResourcesNames) {
+                    final int resourceNameBytesLength = embeddedResourceName.getBytes().length;
+
+                    final int totalMetadataLengthPreview = totalMetadataLength + resourceNameBytesLength;
+                    if (totalMetadataLengthPreview <= sp.totalMetadataLimit) {
+                      if (!metadata.containsKey("embeddedResourcesNames")) {
+                        totalMetadataLength += "embeddedResourcesNames".getBytes().length;
+                        metadata.put("embeddedResourcesNames", new ArrayList<>());
+                      }
+                      metadata.get("embeddedResourcesNames").add(embeddedResourceName);
+                      totalMetadataLength += resourceNameBytesLength;
+                    } else {
+                      maxMetadataReached = true;
+                    }
+
                   }
 
                   if (maxMetadataReached) {
