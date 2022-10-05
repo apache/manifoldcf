@@ -159,6 +159,12 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
   protected String retryIntervalString = null;
   protected String retryNumberString = null;
 
+  protected String proxyUsername = null;
+  protected String proxyPassword = null;
+  protected String proxyProtocol = null;
+  protected String proxyHost = null;
+  protected String proxyPort = null;
+
   /** Retry interval */
   protected long retryInterval = -1L;
 
@@ -214,6 +220,11 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     connectionTimeout = null;
     retryIntervalString = null;
     retryNumberString = null;
+    proxyUsername = null;
+    proxyPassword = null;
+    proxyProtocol = null;
+    proxyHost = null;
+    proxyPort = null;
 
   }
 
@@ -236,6 +247,12 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     connectionTimeout = params.getParameter(ConfluenceConfiguration.Server.CONNECTION_TIMEOUT);
     retryIntervalString = configParams.getParameter(ConfluenceConfiguration.Server.RETRY_INTERVAL);
     retryNumberString = configParams.getParameter(ConfluenceConfiguration.Server.RETRY_NUMBER);
+
+    proxyUsername = params.getParameter(ConfluenceConfiguration.Server.PROXY_USERNAME);
+    proxyPassword = params.getObfuscatedParameter(ConfluenceConfiguration.Server.PROXY_PASSWORD);
+    proxyProtocol = params.getParameter(ConfluenceConfiguration.Server.PROXY_PORT);
+    proxyHost = params.getParameter(ConfluenceConfiguration.Server.PROXY_HOST);
+    proxyPort = params.getParameter(ConfluenceConfiguration.Server.PROXY_PORT);
 
     try {
       initConfluenceClient();
@@ -373,8 +390,21 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
         throw new ManifoldCFException("Bad retry number: " + retryNumberString);
       }
 
+      int proxyPortInt;
+      if (proxyPort != null && proxyPort.length() > 0) {
+          try {
+              proxyPortInt = Integer.parseInt(proxyPort);
+          } catch (NumberFormatException e) {
+            throw new ManifoldCFException("Bad number: "
+                + e.getMessage(), e);
+          }
+      } else {
+          proxyPortInt = -1;
+      }
+
       /* Generating a client to perform Confluence requests */
-      confluenceClient = new ConfluenceClient(protocol, host, portInt, path, username, password, socketTimeoutInt, connectionTimeoutInt);
+      confluenceClient = new ConfluenceClient(protocol, host, portInt, path, username, password, socketTimeoutInt, connectionTimeoutInt,
+              proxyUsername, proxyPassword, proxyProtocol, proxyHost, proxyPortInt);
       lastSessionFetch = System.currentTimeMillis();
     }
 
@@ -431,6 +461,12 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     String confluenceRetryNumber = parameters.getParameter(ConfluenceConfiguration.Server.RETRY_NUMBER);
     String confluenceRetryInterval = parameters.getParameter(ConfluenceConfiguration.Server.RETRY_INTERVAL);
 
+    String confluenceProxyUsername = parameters.getParameter(ConfluenceConfiguration.Server.PROXY_USERNAME);
+    String confluenceProxyPassword = parameters.getObfuscatedParameter(ConfluenceConfiguration.Server.PROXY_PASSWORD);
+    String confluenceProxyProtocol = parameters.getParameter(ConfluenceConfiguration.Server.PROXY_PROTOCOL);
+    String confluenceProxyHost = parameters.getParameter(ConfluenceConfiguration.Server.PROXY_HOST);
+    String confluenceProxyPort = parameters.getParameter(ConfluenceConfiguration.Server.PROXY_PORT);
+
     if (confluenceProtocol == null) {
       confluenceProtocol = ConfluenceConfiguration.Server.PROTOCOL_DEFAULT_VALUE;
     }
@@ -467,6 +503,19 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       confluenceRetryInterval = ConfluenceConfiguration.Server.RETRY_INTERVAL_DEFAULT_VALUE;
     }
 
+    if (confluenceProxyUsername == null)
+        confluenceProxyUsername = ConfluenceConfiguration.Server.PROXY_USERNAME_DEFAULT_VALUE;
+    if (confluenceProxyPassword == null)
+        confluenceProxyPassword = ConfluenceConfiguration.Server.PROXY_PASSWORD_DEFAULT_VALUE;
+    else
+        confluenceProxyPassword = mapper.mapPasswordToKey(confluenceProxyPassword);
+    if (confluenceProxyProtocol == null)
+      confluenceProxyProtocol = ConfluenceConfiguration.Server.PROXY_PROTOCOL_DEFAULT_VALUE;
+    if (confluenceProxyHost == null)
+        confluenceProxyHost = ConfluenceConfiguration.Server.PROXY_HOST_DEFAULT_VALUE;
+    if (confluenceProxyPort == null)
+        confluenceProxyPort = ConfluenceConfiguration.Server.PROXY_PORT_DEFAULT_VALUE;
+
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.PROTOCOL, confluenceProtocol);
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.HOST, confluenceHost);
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.PORT, confluencePort);
@@ -477,6 +526,16 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.CONNECTION_TIMEOUT, confluenceConnectionTimeout);
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.RETRY_NUMBER, confluenceRetryNumber);
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.RETRY_INTERVAL, confluenceRetryInterval);
+    serverMap.put(PARAMETER_PREFIX
+            + ConfluenceConfiguration.Server.PROXY_USERNAME, confluenceProxyUsername);
+    serverMap.put(PARAMETER_PREFIX
+            + ConfluenceConfiguration.Server.PROXY_PASSWORD, confluenceProxyPassword);
+    serverMap.put(PARAMETER_PREFIX
+        + ConfluenceConfiguration.Server.PROXY_PROTOCOL, confluenceProxyProtocol);
+    serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.PROXY_HOST,
+            confluenceProxyHost);
+    serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.PROXY_PORT,
+            confluenceProxyPort);
   }
 
   @Override
@@ -579,6 +638,40 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     if (confluenceRetryInterval != null) {
       parameters.setParameter(ConfluenceConfiguration.Server.RETRY_INTERVAL, confluenceRetryInterval);
     }
+
+    String confluenceProxyProtocol = variableContext
+            .getParameter(PARAMETER_PREFIX
+                + ConfluenceConfiguration.Server.PROXY_PROTOCOL);
+    if (confluenceProxyProtocol != null)
+      parameters.setParameter(ConfluenceConfiguration.Server.PROXY_PROTOCOL,
+          confluenceProxyProtocol);
+
+    String confluenceProxyHost = variableContext.getParameter(PARAMETER_PREFIX
+        + ConfluenceConfiguration.Server.PROXY_HOST);
+    if (confluenceProxyHost != null)
+      parameters.setParameter(ConfluenceConfiguration.Server.PROXY_HOST,
+          confluenceProxyHost);
+
+    String confluenceProxyPort = variableContext.getParameter(PARAMETER_PREFIX
+        + ConfluenceConfiguration.Server.PROXY_PORT);
+    if (confluenceProxyPort != null)
+      parameters.setParameter(ConfluenceConfiguration.Server.PROXY_PORT,
+          confluenceProxyPort);
+
+    String confluenceProxyUsername = variableContext
+        .getParameter(PARAMETER_PREFIX
+            + ConfluenceConfiguration.Server.PROXY_USERNAME);
+    if (confluenceProxyUsername != null)
+      parameters.setParameter(ConfluenceConfiguration.Server.PROXY_USERNAME,
+          confluenceProxyUsername);
+
+    String confluenceProxyPassword = variableContext
+        .getParameter(PARAMETER_PREFIX
+            + ConfluenceConfiguration.Server.PROXY_PASSWORD);
+    if (confluenceProxyPassword != null)
+      parameters.setObfuscatedParameter(
+          ConfluenceConfiguration.Server.PROXY_PASSWORD,
+          variableContext.mapKeyToPassword(confluenceProxyPassword));
 
     /* null means process configuration has been successful */
     return null;

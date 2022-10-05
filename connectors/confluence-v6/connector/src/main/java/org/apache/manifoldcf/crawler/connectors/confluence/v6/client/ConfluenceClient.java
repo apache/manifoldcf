@@ -28,8 +28,14 @@ import java.util.Locale;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpHost;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -116,6 +122,12 @@ public class ConfluenceClient {
   private final String username;
   private final String password;
 
+  protected String proxyUsername = null;
+  protected String proxyPassword = null;
+  protected String proxyProtocol = null;
+  protected String proxyHost = null;
+  protected int proxyPort = -1;
+
   private int socketTimeout = 900000;
   private int connectionTimeout = 60000;
 
@@ -136,7 +148,7 @@ public class ConfluenceClient {
    * @throws ManifoldCFException
    */
   public ConfluenceClient(final String protocol, final String host, final Integer port, final String path, final String username, final String password, final int socketTimeout,
-      final int connectionTimeout) throws ManifoldCFException {
+      final int connectionTimeout, final String proxyUsername, final String proxyPassword, final String proxyProtocol, final String proxyHost, final int proxyPort) throws ManifoldCFException {
     this.protocol = protocol;
     this.host = host;
     this.port = port;
@@ -145,6 +157,11 @@ public class ConfluenceClient {
     this.password = password;
     this.socketTimeout = socketTimeout;
     this.connectionTimeout = connectionTimeout;
+    this.proxyUsername = proxyUsername;
+    this.proxyPassword = proxyPassword;
+    this.proxyProtocol = proxyProtocol;
+    this.proxyHost = proxyHost;
+    this.proxyPort = proxyPort;
 
     connect();
   }
@@ -157,7 +174,18 @@ public class ConfluenceClient {
    * @throws ManifoldCFException
    */
   private void connect() throws ManifoldCFException {
-
+    HttpHost proxy = null;
+    CredentialsProvider credentialsProvider = null;
+    if (this.proxyHost != null && this.proxyHost.length() > 0 && this.proxyPort != -1) {
+      proxy = new HttpHost(this.proxyHost, this.proxyPort);
+      if (this.proxyUsername != null && this.proxyUsername.length() > 0 && this.proxyPassword != null && this.proxyPassword.length() > 0) {
+          credentialsProvider = new BasicCredentialsProvider();
+          credentialsProvider.setCredentials(
+                  new AuthScope(this.proxyHost, this.proxyPort),
+                  new UsernamePasswordCredentials(this.proxyUsername, this.proxyPassword)
+          );
+      }
+    }
     final javax.net.ssl.SSLSocketFactory httpsSocketFactory = KeystoreManagerFactory.getTrustingSecureSocketFactory();
     final SSLConnectionSocketFactory myFactory = new SSLConnectionSocketFactory(new InterruptibleSocketFactory(httpsSocketFactory, connectionTimeout), NoopHostnameVerifier.INSTANCE);
 
@@ -170,7 +198,17 @@ public class ConfluenceClient {
     final RequestConfig.Builder requestBuilder = RequestConfig.custom().setCircularRedirectsAllowed(true).setSocketTimeout(socketTimeout).setExpectContinueEnabled(true)
         .setConnectTimeout(connectionTimeout).setConnectionRequestTimeout(socketTimeout);
 
-    httpClient = HttpClients.custom().setConnectionManager(poolingConnectionManager).disableAutomaticRetries().setDefaultRequestConfig(requestBuilder.build())
+    if (proxy != null) {
+        requestBuilder.setProxy(proxy);
+    }
+
+    HttpClientBuilder clientBuilder = HttpClients.custom();
+
+    if (credentialsProvider != null) {
+        clientBuilder = clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+    }
+
+    httpClient = clientBuilder.setConnectionManager(poolingConnectionManager).disableAutomaticRetries().setDefaultRequestConfig(requestBuilder.build())
         .setRequestExecutor(new HttpRequestExecutor(socketTimeout)).setRedirectStrategy(new LaxRedirectStrategy()).build();
 
   }

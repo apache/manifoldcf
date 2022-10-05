@@ -42,6 +42,12 @@ public class ConfluenceConfiguration {
     public static final String RETRY_NUMBER = "retryNumber";
     public static final String RETRY_INTERVAL = "retryInterval";
 
+    public static final String PROXY_USERNAME = "proxy_username";
+    public static final String PROXY_PASSWORD = "proxy_password";
+    public static final String PROXY_PROTOCOL = "proxy_protocol";
+    public static final String PROXY_HOST = "proxy_host";
+    public static final String PROXY_PORT = "proxy_port";
+
     public static final String PROTOCOL_DEFAULT_VALUE = "http";
     public static final String HOST_DEFAULT_VALUE = "";
     public static final String PORT_DEFAULT_VALUE = "8090";
@@ -52,6 +58,12 @@ public class ConfluenceConfiguration {
     public static final String CONNECTION_TIMEOUT_DEFAULT_VALUE = "60000";
     public static final String RETRY_NUMBER_DEFAULT_VALUE = "2";
     public static final String RETRY_INTERVAL_DEFAULT_VALUE = "20000";
+
+    public static final String PROXY_USERNAME_DEFAULT_VALUE = "";
+    public static final String PROXY_PASSWORD_DEFAULT_VALUE = "";
+    public static final String PROXY_PROTOCOL_DEFAULT_VALUE = "http";
+    public static final String PROXY_HOST_DEFAULT_VALUE = "";
+    public static final String PROXY_PORT_DEFAULT_VALUE = "";
   }
 
   public static interface Authority {

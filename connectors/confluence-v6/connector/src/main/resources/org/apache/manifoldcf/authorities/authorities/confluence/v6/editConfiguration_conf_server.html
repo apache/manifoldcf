@@ -103,6 +103,64 @@
       <input size="16" type="password" id="confluence_password" name="confluence_password" value="$Encoder.attributeEscape($CONFLUENCE_PASSWORD)" />
     </td>
   </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceAuthorityConnector.ProxyProtocolColon'))</nobr>
+    </td>
+    <td class="value">
+      <select size="2" name="confluence_proxy_protocol">
+#if($CONFLUENCE_PROXY_PROTOCOL == 'http')
+        <option value="http" selected="true">http</option>
+#else
+        <option value="http">http</option>
+#end
+#if($CONFLUENCE_PROXY_PROTOCOL == 'https')
+        <option value="https" selected="true">https</option>
+#else
+        <option value="https">https</option>
+#end
+      </select>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceAuthorityConnector.ProxyHostColon'))</nobr>
+    </td>
+    <td class="value">
+      <input size="32" type="text" id="confluence_proxy_host" name="confluence_proxy_host" value="$Encoder.attributeEscape($CONFLUENCE_PROXY_HOST)" />
+    </td>
+  </tr>
+
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceAuthorityConnector.ProxyPortColon'))</nobr>
+    </td>
+    <td class="value">
+      <input size="5" type="text" id="confluence_proxy_port" name="confluence_proxy_port" value="$Encoder.attributeEscape($CONFLUENCE_PROXY_PORT)" />
+    </td>
+  </tr>
+
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceAuthorityConnector.ProxyUsernameColon'))</nobr>
+    </td>
+    <td class="value">
+      <input size="16" type="text" id="confluence_proxy_username" name="confluence_proxy_username" value="$Encoder.attributeEscape($CONFLUENCE_PROXY_USERNAME)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ConfluenceAuthorityConnector.ProxyPasswordColon'))</nobr>
+    </td>
+    <td class="value">
+      <input size="16" type="password" id="confluence_proxy_password" name="confluence_proxy_password" value="$Encoder.attributeEscape($CONFLUENCE_PROXY_PASSWORD)" />
+    </td>
+  </tr>
 </table>
 
 #else
@@ -115,5 +173,10 @@
 <input type="hidden" name="confluence_password" value="$Encoder.attributeEscape($CONFLUENCE_PASSWORD)" />
 <input type="hidden" name="confluence_socket_timeout" value="$Encoder.attributeEscape($CONFLUENCE_SOCKET_TIMEOUT)" />
 <input type="hidden" name="confluence_connection_timeout" value="$Encoder.attributeEscape($CONFLUENCE_CONNECTION_TIMEOUT)" />
+<input type="hidden" name="confluence_proxy_protocol" value="$Encoder.attributeEscape($CONFLUENCE_PROXY_PROTOCOL)" />
+<input type="hidden" name="confluence_proxy_host" value="$Encoder.attributeEscape($CONFLUENCE_PROXY_HOST)" />
+<input type="hidden" name="confluence_proxy_port" value="$Encoder.attributeEscape($CONFLUENCE_PROXY_PORT)" />
+<input type="hidden" name="confluence_proxy_username" value="$Encoder.attributeEscape($CONFLUENCE_PROXY_USERNAME)" />
+<input type="hidden" name="confluence_proxy_password" value="$Encoder.attributeEscape($CONFLUENCE_PROXY_PASSWORD)" />
 
 #end
