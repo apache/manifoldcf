@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.24-dev =====================
 
+CONNECTORS-1738: Add connection-specific timeouts to ES connector.
+(Nguyen Huu)
+
 CONNECTORS-1737: Add support for proxies in Confluence V6 connector.
 (Nguyen Huu)
 
