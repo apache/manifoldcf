@@ -904,12 +904,12 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
                   // If the are embedded resources, add their names, if possible, to the metadata
                   for (final String embeddedResourceName : embeddedResourcesNames) {
-                    final int resourceNameBytesLength = embeddedResourceName.getBytes().length;
+                    final int resourceNameBytesLength = embeddedResourceName.getBytes(StandardCharsets.UTF_8).length;
 
                     final int totalMetadataLengthPreview = totalMetadataLength + resourceNameBytesLength;
                     if (totalMetadataLengthPreview <= sp.totalMetadataLimit) {
                       if (!metadata.containsKey("embeddedResourcesNames")) {
-                        totalMetadataLength += "embeddedResourcesNames".getBytes().length;
+                        totalMetadataLength += "embeddedResourcesNames".getBytes(StandardCharsets.UTF_8).length;
                         metadata.put("embeddedResourcesNames", new ArrayList<>());
                       }
                       metadata.get("embeddedResourcesNames").add(embeddedResourceName);
