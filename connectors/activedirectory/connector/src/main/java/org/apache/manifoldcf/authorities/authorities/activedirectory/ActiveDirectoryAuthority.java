@@ -29,6 +29,9 @@ import javax.naming.*;
 import javax.naming.ldap.*;
 import javax.naming.directory.*;
 
+import static org.apache.manifoldcf.connectorcommon.common.LdapEscaper.escapeDN;
+import static org.apache.manifoldcf.connectorcommon.common.LdapEscaper.escapeFilter;
+
 
 /** This is the Active Directory implementation of the IAuthorityConnector interface.
 * Access tokens for this connector are simple SIDs, except for the "global deny" token, which
@@ -358,10 +361,10 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       int k = domainPart.indexOf(".",j);
       if (k == -1)
       {
-        domainsb.append("DC=").append(ldapEscape(domainPart.substring(j)));
+        domainsb.append("DC=").append(escapeDN(domainPart.substring(j)));
         break;
       }
-      domainsb.append("DC=").append(ldapEscape(domainPart.substring(j,k)));
+      domainsb.append("DC=").append(escapeDN(domainPart.substring(j,k)));
       j = k+1;
     }
 
@@ -748,7 +751,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     throws ManifoldCFException
   {
     String returnedAtts[] = {"distinguishedName"};
-    String searchFilter = "(&(objectClass=user)(" + userACLsUsername + "=" + userName + "))";
+    String searchFilter = "(&(objectClass=user)(" + userACLsUsername + "=" + escapeFilter(userName) + "))";
     SearchControls searchCtls = new SearchControls();
     searchCtls.setReturningAttributes(returnedAtts);
     //Specify the search scope  
@@ -775,28 +778,6 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       Logging.authorityConnectors.error("Naming exception: " + e.getMessage(), e);
       throw new ManifoldCFException(e.getMessage(),e);
     }
-  }
-   
-  /** LDAP escape a string.
-  */
-  protected static String ldapEscape(String input)
-  {
-    //Add escape sequence to all commas
-    StringBuilder sb = new StringBuilder();
-    int index = 0;
-    while (true)
-    {
-      int oldIndex = index;
-      index = input.indexOf(",",oldIndex);
-      if (index == -1)
-      {
-        sb.append(input.substring(oldIndex));
-        break;
-      }
-      sb.append(input.substring(oldIndex,index)).append("\\,");
-      index++;
-    }
-    return sb.toString();
   }
     	
   /** Convert a binary SID to a string */

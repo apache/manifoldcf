@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.24-dev =====================
 
+CONNECTORS-1739: Reuse escaping facilities.
+(Markus Schuch)
+
 CONNECTORS-1738: Add connection-specific timeouts to ES connector.
 (Nguyen Huu)
 
