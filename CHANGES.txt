@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= 2.25-dev =====================
+
+
 ======================= Release 2.24 =====================
 
 CONNECTORS-1739: Reuse escaping facilities.
