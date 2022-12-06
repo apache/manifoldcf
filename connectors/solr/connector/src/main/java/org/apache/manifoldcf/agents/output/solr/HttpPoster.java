@@ -37,7 +37,6 @@ import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.system.*;
 
 import java.io.*;
-import java.net.MalformedURLException;
 import java.util.*;
 import java.util.regex.*;
 
@@ -49,10 +48,9 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.impl.Http2SolrClient;
 import org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
 import org.apache.solr.client.solrj.request.UpdateRequest;
-import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.common.util.ContentStreamBase;
 import org.apache.solr.client.solrj.SolrResponse;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
@@ -67,9 +65,9 @@ import org.apache.solr.common.SolrInputDocument;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder;
 import org.apache.solr.client.solrj.impl.SolrHttpClientBuilder;
+import org.apache.solr.client.solrj.impl.Http2SolrClient.Builder;
 
 /**
 * Posts an input stream to SOLR
@@ -136,8 +134,8 @@ public class HttpPoster
 
   /** Initialize the SolrCloud http poster.
   */
-  public HttpPoster(String zookeeperHosts, String collection,
-    int zkClientTimeout, int zkConnectTimeout,
+  public HttpPoster(List<String> zookeeperHosts, String znodePath, String collection,
+    int socketTimeout, int connectionTimeout,
     String updatePath, String removePath, String statusPath,
     String allowAttributeName, String denyAttributeName, String idAttributeName,
     String originalSizeAttributeName, String modifiedDateAttributeName, String createdDateAttributeName, String indexedDateAttributeName,
@@ -173,22 +171,24 @@ public class HttpPoster
 
     initializeKerberos();
 
-    try
-    {
-      CloudSolrClient cloudSolrServer = new CloudSolrClient.Builder()
-        .withZkHost(zookeeperHosts)
-        .withLBHttpSolrClient(new ModifiedLBHttpSolrClient(HttpClientUtil.createClient(null), allowCompression))
-        .build();
-      cloudSolrServer.setZkClientTimeout(zkClientTimeout);
-      cloudSolrServer.setZkConnectTimeout(zkConnectTimeout);
+    Optional<String> chroot = Optional.empty();
+    if(znodePath != null && !znodePath.isEmpty()) {
+      chroot = Optional.of(znodePath);
+    }
+    Builder http2SolrClientBuilder = new Http2SolrClient.Builder();
+    http2SolrClientBuilder.connectionTimeout(connectionTimeout);
+    http2SolrClientBuilder.idleTimeout(socketTimeout);
+    // CloudSolrClient does not have exceptions in its build method signature because it catches them and encapsulate them as runtime exceptions. 
+    // Thus, we need to set a try catch here to properly raise the exceptions that may happen
+    try {
+      CloudSolrClient cloudSolrServer = new CloudSolrClient.Builder(zookeeperHosts, chroot).withInternalClientBuilder(http2SolrClientBuilder).build();
       cloudSolrServer.setDefaultCollection(collection);
       // Set the solrj instance we want to use
       solrServer = cloudSolrServer;
+    } catch (Exception e) {
+      throw new ManifoldCFException(e);
     }
-    catch (MalformedURLException e)
-    {
-      throw new ManifoldCFException(e.getMessage(),e);
-    }
+    
   }
 
   /** Initialize the standard http poster.
@@ -242,69 +242,18 @@ public class HttpPoster
     }
 
     // Initialize standard solr-j.
-
-    SSLConnectionSocketFactory myFactory;
-    if (keystoreManager != null)
-    {
-      myFactory = new SSLConnectionSocketFactory(keystoreManager.getSecureSocketFactory(), NoopHostnameVerifier.INSTANCE);
-    }
-    else
-    {
-      // Use the "trust everything" one
-      myFactory = new SSLConnectionSocketFactory(KeystoreManagerFactory.getTrustingSecureSocketFactory(),NoopHostnameVerifier.INSTANCE);
-    }
-
-    // First, we need an HttpClient where basic auth is properly set up.
-    connectionManager = new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
-      .register("http", PlainConnectionSocketFactory.getSocketFactory())
-      .register("https", myFactory)
-      .build());
-    connectionManager.setDefaultMaxPerRoute(1);
-    connectionManager.setValidateAfterInactivity(2000);
-    connectionManager.setDefaultSocketConfig(SocketConfig.custom()
-      .setTcpNoDelay(true)
-      .setSoTimeout(socketTimeout)
-      .build());
-
-    RequestConfig.Builder requestBuilder = RequestConfig.custom()
-      .setCircularRedirectsAllowed(true)
-      .setSocketTimeout(socketTimeout)
-      .setExpectContinueEnabled(true)
-      .setConnectTimeout(connectionTimeout)
-      .setConnectionRequestTimeout(socketTimeout);
-
-    HttpClientBuilder clientBuilder = HttpClients.custom()
-      .setConnectionManager(connectionManager)
-      .disableAutomaticRetries()
-      .setDefaultRequestConfig(requestBuilder.build())
-      .setRedirectStrategy(new LaxRedirectStrategy())
-      .setRequestExecutor(new HttpRequestExecutor(socketTimeout));
-
-
+    String httpSolrServerUrl = protocol + "://" + server + ":" + port + location;
+    Http2SolrClient.Builder solrClientBuilder = new Http2SolrClient.Builder(httpSolrServerUrl);
+    solrClientBuilder.maxConnectionsPerHost(1);
+    // Set tiemouts
+    solrClientBuilder.connectionTimeout(connectionTimeout); 
+    solrClientBuilder.idleTimeout(socketTimeout);
+    // Set auth credentials if provided
     if (userID != null && userID.length() > 0 && password != null)
     {
-      CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-      Credentials credentials = new UsernamePasswordCredentials(userID, password);
-      if (realm != null && realm.trim().length() > 0)
-      {
-        final AuthScope scope = new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, realm);
-        credentialsProvider.setCredentials(scope, credentials);
-        clientBuilder.addInterceptorFirst(new PreemptiveBasicAuthInterceptor(scope));
-      }
-      else
-      {
-        credentialsProvider.setCredentials(AuthScope.ANY, credentials);
-        clientBuilder.addInterceptorFirst(new PreemptiveBasicAuthInterceptor(AuthScope.ANY));
-      }
-
-      clientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+     solrClientBuilder.withBasicAuthCredentials(userID, password);
     }
-
-    HttpClient localClient = clientBuilder.build();
-
-
-    String httpSolrServerUrl = protocol + "://" + server + ":" + port + location;
-    solrServer = new ModifiedHttpSolrClient(httpSolrServerUrl, localClient, new XMLResponseParser(), allowCompression);
+    solrServer = new Http2SolrClient.Builder(httpSolrServerUrl).build();
   }
 
   private static void initializeKerberos()
@@ -1688,7 +1637,7 @@ public class HttpPoster
      * Create a new SolrPing object.
      */
     public SolrPing() {
-      super(METHOD.GET, "/admin/ping");
+      super(METHOD.GET, CommonParams.PING_HANDLER);
       params = new ModifiableSolrParams();
     }
 
@@ -1756,6 +1705,11 @@ public class HttpPoster
     public SolrPing setActionPing() {
       params.set(CommonParams.ACTION, CommonParams.PING);
       return this;
+    }
+
+    @Override
+    public String getRequestType() {
+      return SolrRequestType.ADMIN.toString();
     }
 
   }

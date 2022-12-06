@@ -35,10 +35,6 @@
         <fileset dir="../../lib">
             <include name="solr-solrj*.jar"/>
             <include name="commons-math3*.jar"/>
-            <include name="noggit*.jar"/>
-            <include name="httpmime*.jar"/>
-            <include name="woodstox-core-asl*.jar"/>
-            <include name="stax2-api*.jar"/>
             <include name="jcl-over-slf4j*.jar"/>
         </fileset>
     </path>
@@ -49,10 +45,6 @@
             <fileset dir="../../lib">
                 <include name="solr-solrj*.jar"/>
                 <include name="commons-math3*.jar"/>
-                <include name="noggit*.jar"/>
-                <include name="httpmime*.jar"/>
-                <include name="woodstox-core-asl*.jar"/>
-                <include name="stax2-api*.jar"/>
                 <include name="jcl-over-slf4j*.jar"/>
             </fileset>
         </copy>
