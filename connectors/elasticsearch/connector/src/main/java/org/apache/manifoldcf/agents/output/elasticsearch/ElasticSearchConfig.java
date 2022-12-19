@@ -56,7 +56,9 @@ public class ElasticSearchConfig extends ElasticSearchParam
     ParameterEnum.CREATEDDATEATTRIBUTENAME,
     ParameterEnum.MODIFIEDDATEATTRIBUTENAME,
     ParameterEnum.INDEXINGDATEATTRIBUTENAME,
-    ParameterEnum.MIMETYPEATTRIBUTENAME
+    ParameterEnum.MIMETYPEATTRIBUTENAME,
+    ParameterEnum.ELASTICSEARCH_SOCKET_TIMEOUT,
+    ParameterEnum.ELASTICSEARCH_CONNECTION_TIMEOUT
   };
 
   /** Build a set of ElasticSearchParameters by reading ConfigParams. If the
@@ -235,6 +237,16 @@ public class ElasticSearchConfig extends ElasticSearchParam
     return KeystoreManagerFactory.make("", packedKeystore);
   }
   
+  final public String getElasticSearchSocketTimeout()
+  {
+    return get(ParameterEnum.ELASTICSEARCH_SOCKET_TIMEOUT);
+  }
+
+  final public String getElasticSearchConnectionTimeout()
+  {
+    return get(ParameterEnum.ELASTICSEARCH_CONNECTION_TIMEOUT);
+  }  
+
   final public String getIndexName()
   {
     return get(ParameterEnum.INDEXNAME);

@@ -28,7 +28,7 @@
 
   <groupId>org.apache.manifoldcf</groupId>
   <artifactId>mcf-parent</artifactId>
-  <version>2.23-SNAPSHOT</version>
+  <version>2.25-SNAPSHOT</version>
 
   <name>ManifoldCF</name>
   <packaging>pom</packaging>
@@ -70,7 +70,7 @@
     <commons-el.version>1.0</commons-el.version>
     <commons-lang.version>2.6</commons-lang.version>
     <xalan.version>2.7.1</xalan.version>
-    <xerces.version>2.10.0</xerces.version>
+    <xerces.version>2.12.2</xerces.version>
     <xml-apis.version>1.4.01</xml-apis.version>
     <jtds.version>1.2.4</jtds.version>
     <mariadb.version>1.1.7</mariadb.version>

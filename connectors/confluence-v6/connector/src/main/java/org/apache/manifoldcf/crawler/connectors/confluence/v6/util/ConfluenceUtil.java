@@ -25,7 +25,7 @@ package org.apache.manifoldcf.crawler.connectors.confluence.v6.util;
  */
 public class ConfluenceUtil {
 
-  private static final String ATTACHMENT_ID_PREFIX = "att";
+  private static final String ATTACHMENT_ID_CHARACTER = "-";
   
   /**
    * <p>Generates a repository document identifier for the specific attachment and page to be used for Repository Documents for attachment pages</p>
@@ -44,8 +44,8 @@ public class ConfluenceUtil {
    * @param id
    * @return a {@code Boolean} indicating if the id is related to an attachment or not 
    */
-  public static Boolean isAttachment(String id) {
-    return id.startsWith(ATTACHMENT_ID_PREFIX);
+  public static boolean isAttachment(String id) {
+    return id.contains(ATTACHMENT_ID_CHARACTER);
   }
   
   /**

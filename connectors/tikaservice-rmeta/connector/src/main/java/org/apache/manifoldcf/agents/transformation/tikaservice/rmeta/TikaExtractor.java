@@ -695,6 +695,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
     try {
       final Map<String, List<String>> metadata = new HashMap<>();
+      final List<String> embeddedResourcesNames = new ArrayList<>();
       if (document.getFileName() != null) {
         metadata.put(TikaMetadataKeys.RESOURCE_NAME_KEY, new ArrayList<>());
         metadata.put("stream_name", new ArrayList<>());
@@ -792,7 +793,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
                   if (token != null) {
                     while ((token = jParser.nextToken()) != null && token != JsonToken.END_OBJECT) {
-
                       final int fieldNameLength = jParser.getTextLength();
                       if (fieldNameLength <= maxMetadataNameLength) {
                         final String fieldName = jParser.getCurrentName();
@@ -848,18 +848,17 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                               totalMetadataLength -= fieldName.length();
                               metadata.remove(fieldName);
                             }
-                          } else if (fieldName.startsWith("X-TIKA:EXCEPTION:")) {
+                          } else if (fieldName.startsWith("X-TIKA:EXCEPTION:")) { // deal with Tika exceptions
                             boolean unknownException = false;
                             if (fieldName.contentEquals("X-TIKA:EXCEPTION:write_limit_reached")) {
                               resultCode = "TRUNCATEDOK";
                               truncated = true;
                             } else if (fieldName.contentEquals("X-TIKA:EXCEPTION:embedded_resource_limit_reached")) {
                               resources_limit = true;
-                            } else {
+                            } else if (!fieldName.contentEquals("X-TIKA:EXCEPTION:warn")) { // If the exception is other than a warning message
                               unknownException = true;
                               resultCode = "TIKAEXCEPTION";
-                              jParser.nextToken();
-                              description += fieldName + ": " + jParser.getText() + System.lineSeparator();
+                              description += getTikaExceptionDesc(jParser) + System.lineSeparator();
                             }
                             if (!unknownException) {
                               skipMetadata(jParser);
@@ -879,7 +878,46 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                         skipMetadata(jParser);
                       }
                     }
+
+                    // If token not null then there are embedded resources, process them if the extractArchives option is enabled
+                    if (token != null && token == JsonToken.END_OBJECT && sp.extractArchives) {
+                      // For embedded resource we only gather resourceNames and resources content, skip the rest
+                      while ((token = jParser.nextToken()) != null) {
+                        final String fieldName = jParser.getCurrentName();
+                        if (fieldName != null && fieldName.contentEquals("resourceName")) {
+                          token = jParser.nextToken();
+                          if (jParser.getTextLength() <= sp.maxMetadataValueLength) {
+                            embeddedResourcesNames.add(jParser.getText());
+                          } else {
+                            metadataSkipped = true;
+                          }
+                        } else if (fieldName != null && fieldName.contentEquals("X-TIKA:content")) {
+                          // Add embedded resource content to main document content
+                          jParser.nextToken();
+                          length += jParser.getText(w);
+                        }
+                      }
+                    }
+
                     jParser.close();
+                  }
+
+                  // If the are embedded resources, add their names, if possible, to the metadata
+                  for (final String embeddedResourceName : embeddedResourcesNames) {
+                    final int resourceNameBytesLength = embeddedResourceName.getBytes(StandardCharsets.UTF_8).length;
+
+                    final int totalMetadataLengthPreview = totalMetadataLength + resourceNameBytesLength;
+                    if (totalMetadataLengthPreview <= sp.totalMetadataLimit) {
+                      if (!metadata.containsKey("embeddedResourcesNames")) {
+                        totalMetadataLength += "embeddedResourcesNames".getBytes(StandardCharsets.UTF_8).length;
+                        metadata.put("embeddedResourcesNames", new ArrayList<>());
+                      }
+                      metadata.get("embeddedResourcesNames").add(embeddedResourceName);
+                      totalMetadataLength += resourceNameBytesLength;
+                    } else {
+                      maxMetadataReached = true;
+                    }
+
                   }
 
                   if (maxMetadataReached) {
@@ -1045,6 +1083,21 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         token = jParser.nextToken();
       }
     }
+  }
+
+  private String getTikaExceptionDesc(final JsonParser jParser) throws IOException {
+    final StringBuilder exceptionDescBuilder = new StringBuilder();
+    JsonToken token = jParser.nextToken();
+    if (token == JsonToken.START_ARRAY) {
+      token = jParser.nextToken();
+      while (token != JsonToken.END_ARRAY) {
+        exceptionDescBuilder.append(jParser.getText());
+        token = jParser.nextToken();
+      }
+    } else {
+      exceptionDescBuilder.append(jParser.getText());
+    }
+    return exceptionDescBuilder.toString();
   }
 
   private void removeField(final RepositoryDocument document, final String fieldName) {

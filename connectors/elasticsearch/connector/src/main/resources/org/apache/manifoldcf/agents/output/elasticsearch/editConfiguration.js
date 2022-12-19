@@ -60,6 +60,18 @@ function checkConfig() {
       return false;
     }
   }
+  if (editconnection.elasticsearch_socket_timeout.value == "" || !isInteger(editconnection.elasticsearch_socket_timeout.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.SocketTimeoutMustBeAnInteger'))");
+    editconnection.elasticsearch_socket_timeout.focus();
+    return false;
+  }
+  if (editconnection.elasticsearch_connection_timeout.value == "" || !isInteger(editconnection.elasticsearch_connection_timeout.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.ConnectionTimeoutMustBeAnInteger'))");
+    editconnection.elasticsearch_connection_timeout.focus();
+    return false;
+  }
   return true;
 }
 
@@ -108,6 +120,20 @@ function checkConfigForSave() {
       editconnection.useingestattachment.focus();
       return false;
     }
+  }
+  if (editconnection.elasticsearch_socket_timeout.value == "" || !isInteger(editconnection.elasticsearch_socket_timeout.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.SocketTimeoutMustBeAnInteger'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.Server'))");
+    editconnection.elasticsearch_socket_timeout.focus();
+    return false;
+  }
+  if (editconnection.elasticsearch_connection_timeout.value == "" || !isInteger(editconnection.elasticsearch_connection_timeout.value))
+  {
+    alert("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.ConnectionTimeoutMustBeAnInteger'))");
+    SelectTab("$Encoder.bodyJavascriptEscape($ResourceBundle.getString('ElasticSearchConnector.Server'))");
+    editconnection.elasticsearch_connection_timeout.focus();
+    return false;
   }
   return true;
 }

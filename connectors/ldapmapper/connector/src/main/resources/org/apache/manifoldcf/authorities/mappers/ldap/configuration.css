@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<!--
+Copyright 2014 The Apache Software Foundation.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<style type=text/css>
+
+.mainTable
+{
+	border-spacing: 0px;
+	padding: 0px;
+	}
+.main11
+{
+	height: 50px;
+}
+.mainwidth
+{
+	width: 80px;
+	/* must be policedermess width*sqare(2)*/
+	
+}
+
+.table_condition_right
+{
+	
+	//background: #DEDEDE;
+	width: 100%;
+	height: 100%;
+	border-spacing: 0px;
+}
+.condition_right_bottom
+{
+	border-bottom: 5px solid black;
+	//background-color: #AA0000;
+	//height: 145px;
+	//width:50px;
+}
+.condition_right_right
+{
+	border-right: 5px solid black;
+	width:130px;
+	text-align:right;
+	//background-color: #FF0000;
+	//height: 100px;
+}
+.condition_right_empty
+{
+	height: 150px;
+	//width: 50px;
+	//background-color: #00AA00;
+}
+
+.treatment div
+{
+display: block;
+position: relative;
+background: #ABABAB;
+border: 2px solid black;
+}
+.policeConditionTrue {
+height: 50px;
+width: 150px;
+//position: inline;
+vertical-align: middle; /* vertical-milieu de la div */
+display: table-cell; /* div et sa cellule */
+color: #000000; /* couleur sur texte - date */
+font: bold 14px Arial;  
+text-align: center;
+
+margin: 0 auto; /* centre le conteneur */
+}
+
+.policeConditionFalseOrDefault {
+height: 50px;
+width: 150px;
+position: inline;
+vertical-align: middle; /* vertical-milieu de la div */
+display: table-cell; /* div et sa cellule */
+color: #000000; /* couleur sur texte - date */
+font: bold 14px Arial;  
+text-align: center;
+
+margin: 0 auto; /* centre le conteneur */
+}
+.div_condition {
+height: 260px;
+width: 260px;	
+display: block;
+position: relative;
+background: #ABABAB;
+border: 2px solid black;
+transform: rotate(45deg);
+-ms-transform: rotate(45deg); /* Internet Explorer */
+-moz-transform: rotate(45deg); /* Firefox */
+-webkit-transform: rotate(45deg); /* Safari et Chrome */
+-o-transform: rotate(45deg); /* Opera */
+}
+/*Contenu du dernier message*/
+.policeCondition {
+height: 250px;
+width: 250px;
+position: inline;
+vertical-align: middle; /* vertical-milieu de la div */
+display: table-cell; /* div et sa cellule */
+color: #FF0000; /* couleur sur texte - date */
+font: bold 14px Arial;  
+text-align: center;
+transform: rotate(-45deg); /* remise du texte horizontal */
+-ms-transform: rotate(-45deg); /* Internet Explorer */
+-o-transform: rotate(-45deg); /* Opera */
+-webkit-transform: rotate(-45deg); /* Safari et Chrome */
+margin: 0 auto; /* centre le conteneur */
+}
+.policeCondition a {
+color: #312516; /* couleur sur url */
+font: bold 13px papyrus;
+text-align: center;
+}
+.policeCondition a:hover {
+color: green;
+}
+
+</style>

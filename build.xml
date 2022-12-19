@@ -35,7 +35,7 @@
     <property name="httpclient.version" value="4.5.13"/>
     <property name="httpmime.version" value="4.5.13"/>
     <property name="httpcore.version" value="4.4.15"/>
-    <property name="xerces.version" value="2.10.0"/>
+    <property name="xerces.version" value="2.12.2"/>
     <property name="zookeeper.version" value="3.4.10"/>
     <property name="mongodb.version" value="2.14.3"/>
     <property name="postgresql.version" value="42.1.3"/>
@@ -594,7 +594,7 @@
     <target name="doc" depends="deliver-site-doc"/>
     
     <target name="set-version">
-      <property name="release-version" value="2.23-dev"/>
+      <property name="release-version" value="2.25-dev"/>
     </target>
     
     <target name="create-source-zip" depends="set-version">
@@ -2353,6 +2353,11 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <copy todir="lib/solr-8.x">
             <fileset dir="build/download/apache-manifoldcf-solr-8.x-plugin-bin/apache-manifoldcf-solr-8.x-plugin-2.2"/>
         </copy>
+        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-9.x-plugin-2.2/apache-manifoldcf-solr-9.x-plugin-2.2-bin.zip" dest="build/download/apache-manifoldcf-solr-9.x-plugin-bin.zip"/>
+        <unzip src="build/download/apache-manifoldcf-solr-9.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-9.x-plugin-bin"/>
+        <copy todir="lib/solr-9.x">
+            <fileset dir="build/download/apache-manifoldcf-solr-9.x-plugin-bin/apache-manifoldcf-solr-9.x-plugin-2.2"/>
+        </copy>
     </target>
 
 
@@ -3250,7 +3255,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-maven">
             <param name="project-path" value="de/thetaphi"/>
-            <param name="artifact-version" value="2.2"/>
+            <param name="artifact-version" value="3.4"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="forbiddenapis"/>
             <param name="artifact-type" value="jar"/>
@@ -3314,7 +3319,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
 
     <target name="forbidden-taskdef">
-        <taskdef name="forbiddenapis" classname="de.thetaphi.forbiddenapis.ant.AntTask" classpath="lib/forbiddenapis-2.2.jar"/>
+        <taskdef name="forbiddenapis" classname="de.thetaphi.forbiddenapis.ant.AntTask" classpath="lib/forbiddenapis-3.4.jar"/>
     </target>
     
     <target name="forbidden-checks" depends="forbidden-taskdef,build">
@@ -3346,6 +3351,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             </fileset>
             <fileset dir="connectors">
                 <include name="**/*.class"/>
+                <exclude name="alfresco-webscript/target/alfresco-indexer-webscripts-war-*/**/*.class" />
             </fileset>
         </forbiddenapis>
     </target>

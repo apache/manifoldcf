@@ -119,7 +119,7 @@ public class PriorityCalculator implements IPriorityCalculator
   {
     for (int i = 0; i < binNames.length; i++)
     {
-      String binName = binNames[i];
+      String binName = binNames[i] == null ? "" : binNames[i];
       rt.addPreloadRequest(connection.getClassName(), binName, weightedMinimumDepths[i]);
     }
 

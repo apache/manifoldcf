@@ -67,6 +67,7 @@ import org.apache.manifoldcf.core.interfaces.IPostParameters;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.system.ManifoldCF;
+import org.apache.manifoldcf.crawler.system.Logging;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
 import org.apache.manifoldcf.connectorcommon.interfaces.IKeystoreManager;
 import org.apache.manifoldcf.connectorcommon.common.InterruptibleSocketFactory;
@@ -132,6 +133,17 @@ public class ElasticSearchConnector extends BaseOutputConnector
       final IKeystoreManager keystoreManager = config.getSSLKeystore();
       final String userName = config.getUserName();
       final String password = config.getPassword();
+
+      try {
+      	socketTimeout = Integer.parseInt(config.getElasticSearchSocketTimeout());
+      } catch (NumberFormatException e) {
+        Logging.connectors.warn("An error occurred when parser the value of ElasticSearch socket timeout. Setting to default: 900000 (millisecond).");
+      }
+      try {
+      	connectionTimeout = Integer.parseInt(config.getElasticSearchConnectionTimeout());
+      } catch (NumberFormatException e) {
+        Logging.connectors.warn("An error occurred when parser the value of ElasticSearch connection timeout. Setting to default: 60000 (millisecond).");
+      }
 
       final Credentials credentials;
       if (userName != null && userName.length() > 0)

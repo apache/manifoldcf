@@ -19,7 +19,6 @@
 package org.apache.manifoldcf.authorities.authorities.sharepoint;
 
 import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.authorities.interfaces.*;
 import org.apache.manifoldcf.authorities.system.Logging;
 import org.apache.manifoldcf.authorities.system.ManifoldCF;
@@ -27,11 +26,12 @@ import org.apache.manifoldcf.core.util.URLEncoder;
 
 import java.io.*;
 import java.util.*;
-import java.net.*;
-import java.util.concurrent.TimeUnit;
 import javax.naming.*;
 import javax.naming.ldap.*;
 import javax.naming.directory.*;
+
+import static org.apache.manifoldcf.connectorcommon.common.LdapEscaper.escapeDN;
+import static org.apache.manifoldcf.connectorcommon.common.LdapEscaper.escapeFilter;
 
 
 /** This is the Active Directory implementation of the IAuthorityConnector interface, as used
@@ -381,10 +381,10 @@ public class SharePointADAuthority extends org.apache.manifoldcf.authorities.aut
       int k = domainPart.indexOf(".",j);
       if (k == -1)
       {
-        domainsb.append("DC=").append(ldapEscape(domainPart.substring(j)));
+        domainsb.append("DC=").append(escapeDN(domainPart.substring(j)));
         break;
       }
-      domainsb.append("DC=").append(ldapEscape(domainPart.substring(j,k)));
+      domainsb.append("DC=").append(escapeDN(domainPart.substring(j,k)));
       j = k+1;
     }
 
@@ -733,7 +733,7 @@ public class SharePointADAuthority extends org.apache.manifoldcf.authorities.aut
     throws ManifoldCFException
   {
     String returnedAtts[] = {"distinguishedName"};
-    String searchFilter = "(&(objectClass=user)(" + userACLsUsername + "=" + userName + "))";
+    String searchFilter = "(&(objectClass=user)(" + userACLsUsername + "=" + escapeFilter(userName) + "))";
     SearchControls searchCtls = new SearchControls();
     searchCtls.setReturningAttributes(returnedAtts);
     //Specify the search scope  
@@ -759,28 +759,6 @@ public class SharePointADAuthority extends org.apache.manifoldcf.authorities.aut
     {
       throw new ManifoldCFException(e.getMessage(),e);
     }
-  }
-   
-  /** LDAP escape a string.
-  */
-  protected static String ldapEscape(String input)
-  {
-    //Add escape sequence to all commas
-    StringBuilder sb = new StringBuilder();
-    int index = 0;
-    while (true)
-    {
-      int oldIndex = index;
-      index = input.indexOf(",",oldIndex);
-      if (index == -1)
-      {
-        sb.append(input.substring(oldIndex));
-        break;
-      }
-      sb.append(input.substring(oldIndex,index)).append("\\,");
-      index++;
-    }
-    return sb.toString();
   }
     	
   /** Convert a binary SID to a string */

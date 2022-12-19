@@ -1077,6 +1077,8 @@ public class JDBCConnector extends org.apache.manifoldcf.crawler.connectors.Base
 "        <option value=\"jtds:sqlserver://\" "+(jdbcProvider.equals("jtds:sqlserver:")?"selected=\"selected\"":"")+">MS SQL Server (&gt; V6.5)</option>\n"+
 "        <option value=\"jtds:sybase://\" "+(jdbcProvider.equals("jtds:sybase:")?"selected=\"selected\"":"")+">Sybase (&gt;= V10)</option>\n"+
 "        <option value=\"mysql://\" "+(jdbcProvider.equals("mysql:")?"selected=\"selected\"":"")+">MySQL (&gt;= V5)</option>\n"+
+"        <option value=\"mariadb://\" "+(jdbcProvider.equals("mariadb:")?"selected=\"selected\"":"")+">MariaDB</option>\n"+
+"        <option value=\"xbib:csv:\" "+(jdbcProvider.equals("xbib:csv:")?"selected=\"selected\"":"")+">CSV</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+

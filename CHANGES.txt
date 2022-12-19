@@ -1,7 +1,33 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.23-dev =====================
+======================= 2.25-dev =====================
+
+
+======================= Release 2.24 =====================
+
+CONNECTORS-1739: Reuse escaping facilities.
+(Markus Schuch)
+
+CONNECTORS-1738: Add connection-specific timeouts to ES connector.
+(Nguyen Huu)
+
+CONNECTORS-1737: Add support for proxies in Confluence V6 connector.
+(Nguyen Huu)
+
+CONNECTORS-1731: Better handling for ServiceInterruption exceptions.
+(Nguyen Huu)
+
+CONNECTORS-1726: Mismatch between form parameters in generic connector.
+(Nguyen Huu)
+
+CONNECTORS-1725: Fix reference to translation string, generic connector.
+(Nguyen Huu)
+
+CONNECTORS-1724: Free up crossthread buffer when error returned in GenericConnector.
+(Nguyen Huu)
+
+======================= Release 2.23 =====================
 
 CONNECTORS-1712: Remove incompatible version of Velocity and recode interface.
 (Karl Wright, Julien Massiera)

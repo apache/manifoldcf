@@ -159,6 +159,12 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
   protected String retryIntervalString = null;
   protected String retryNumberString = null;
 
+  protected String proxyUsername = null;
+  protected String proxyPassword = null;
+  protected String proxyProtocol = null;
+  protected String proxyHost = null;
+  protected String proxyPort = null;
+
   /** Retry interval */
   protected long retryInterval = -1L;
 
@@ -214,6 +220,11 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     connectionTimeout = null;
     retryIntervalString = null;
     retryNumberString = null;
+    proxyUsername = null;
+    proxyPassword = null;
+    proxyProtocol = null;
+    proxyHost = null;
+    proxyPort = null;
 
   }
 
@@ -236,6 +247,12 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     connectionTimeout = params.getParameter(ConfluenceConfiguration.Server.CONNECTION_TIMEOUT);
     retryIntervalString = configParams.getParameter(ConfluenceConfiguration.Server.RETRY_INTERVAL);
     retryNumberString = configParams.getParameter(ConfluenceConfiguration.Server.RETRY_NUMBER);
+
+    proxyUsername = params.getParameter(ConfluenceConfiguration.Server.PROXY_USERNAME);
+    proxyPassword = params.getObfuscatedParameter(ConfluenceConfiguration.Server.PROXY_PASSWORD);
+    proxyProtocol = params.getParameter(ConfluenceConfiguration.Server.PROXY_PORT);
+    proxyHost = params.getParameter(ConfluenceConfiguration.Server.PROXY_HOST);
+    proxyPort = params.getParameter(ConfluenceConfiguration.Server.PROXY_PORT);
 
     try {
       initConfluenceClient();
@@ -373,8 +390,21 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
         throw new ManifoldCFException("Bad retry number: " + retryNumberString);
       }
 
+      int proxyPortInt;
+      if (proxyPort != null && proxyPort.length() > 0) {
+          try {
+              proxyPortInt = Integer.parseInt(proxyPort);
+          } catch (NumberFormatException e) {
+            throw new ManifoldCFException("Bad number: "
+                + e.getMessage(), e);
+          }
+      } else {
+          proxyPortInt = -1;
+      }
+
       /* Generating a client to perform Confluence requests */
-      confluenceClient = new ConfluenceClient(protocol, host, portInt, path, username, password, socketTimeoutInt, connectionTimeoutInt);
+      confluenceClient = new ConfluenceClient(protocol, host, portInt, path, username, password, socketTimeoutInt, connectionTimeoutInt,
+              proxyUsername, proxyPassword, proxyProtocol, proxyHost, proxyPortInt);
       lastSessionFetch = System.currentTimeMillis();
     }
 
@@ -431,6 +461,12 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     String confluenceRetryNumber = parameters.getParameter(ConfluenceConfiguration.Server.RETRY_NUMBER);
     String confluenceRetryInterval = parameters.getParameter(ConfluenceConfiguration.Server.RETRY_INTERVAL);
 
+    String confluenceProxyUsername = parameters.getParameter(ConfluenceConfiguration.Server.PROXY_USERNAME);
+    String confluenceProxyPassword = parameters.getObfuscatedParameter(ConfluenceConfiguration.Server.PROXY_PASSWORD);
+    String confluenceProxyProtocol = parameters.getParameter(ConfluenceConfiguration.Server.PROXY_PROTOCOL);
+    String confluenceProxyHost = parameters.getParameter(ConfluenceConfiguration.Server.PROXY_HOST);
+    String confluenceProxyPort = parameters.getParameter(ConfluenceConfiguration.Server.PROXY_PORT);
+
     if (confluenceProtocol == null) {
       confluenceProtocol = ConfluenceConfiguration.Server.PROTOCOL_DEFAULT_VALUE;
     }
@@ -467,6 +503,19 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       confluenceRetryInterval = ConfluenceConfiguration.Server.RETRY_INTERVAL_DEFAULT_VALUE;
     }
 
+    if (confluenceProxyUsername == null)
+        confluenceProxyUsername = ConfluenceConfiguration.Server.PROXY_USERNAME_DEFAULT_VALUE;
+    if (confluenceProxyPassword == null)
+        confluenceProxyPassword = ConfluenceConfiguration.Server.PROXY_PASSWORD_DEFAULT_VALUE;
+    else
+        confluenceProxyPassword = mapper.mapPasswordToKey(confluenceProxyPassword);
+    if (confluenceProxyProtocol == null)
+      confluenceProxyProtocol = ConfluenceConfiguration.Server.PROXY_PROTOCOL_DEFAULT_VALUE;
+    if (confluenceProxyHost == null)
+        confluenceProxyHost = ConfluenceConfiguration.Server.PROXY_HOST_DEFAULT_VALUE;
+    if (confluenceProxyPort == null)
+        confluenceProxyPort = ConfluenceConfiguration.Server.PROXY_PORT_DEFAULT_VALUE;
+
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.PROTOCOL, confluenceProtocol);
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.HOST, confluenceHost);
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.PORT, confluencePort);
@@ -477,6 +526,16 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.CONNECTION_TIMEOUT, confluenceConnectionTimeout);
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.RETRY_NUMBER, confluenceRetryNumber);
     serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.RETRY_INTERVAL, confluenceRetryInterval);
+    serverMap.put(PARAMETER_PREFIX
+            + ConfluenceConfiguration.Server.PROXY_USERNAME, confluenceProxyUsername);
+    serverMap.put(PARAMETER_PREFIX
+            + ConfluenceConfiguration.Server.PROXY_PASSWORD, confluenceProxyPassword);
+    serverMap.put(PARAMETER_PREFIX
+        + ConfluenceConfiguration.Server.PROXY_PROTOCOL, confluenceProxyProtocol);
+    serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.PROXY_HOST,
+            confluenceProxyHost);
+    serverMap.put(PARAMETER_PREFIX + ConfluenceConfiguration.Server.PROXY_PORT,
+            confluenceProxyPort);
   }
 
   @Override
@@ -524,8 +583,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
   /*
    * Repository specification post handle, (server and proxy & client secret etc)
    *
-   * @see org.apache.manifoldcf.core.connector.BaseConnector#processConfigurationPost (org.apache.manifoldcf.core.interfaces.IThreadContext,
-   * org.apache.manifoldcf.core.interfaces.IPostParameters, org.apache.manifoldcf.core.interfaces.ConfigParams)
+   * @see org.apache.manifoldcf.core.connector.BaseConnector#processConfigurationPost (org.apache.manifoldcf.core.interfaces.IThreadContext, org.apache.manifoldcf.core.interfaces.IPostParameters,
+   * org.apache.manifoldcf.core.interfaces.ConfigParams)
    */
   @Override
   public String processConfigurationPost(final IThreadContext threadContext, final IPostParameters variableContext, final ConfigParams parameters) throws ManifoldCFException {
@@ -579,6 +638,40 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     if (confluenceRetryInterval != null) {
       parameters.setParameter(ConfluenceConfiguration.Server.RETRY_INTERVAL, confluenceRetryInterval);
     }
+
+    String confluenceProxyProtocol = variableContext
+            .getParameter(PARAMETER_PREFIX
+                + ConfluenceConfiguration.Server.PROXY_PROTOCOL);
+    if (confluenceProxyProtocol != null)
+      parameters.setParameter(ConfluenceConfiguration.Server.PROXY_PROTOCOL,
+          confluenceProxyProtocol);
+
+    String confluenceProxyHost = variableContext.getParameter(PARAMETER_PREFIX
+        + ConfluenceConfiguration.Server.PROXY_HOST);
+    if (confluenceProxyHost != null)
+      parameters.setParameter(ConfluenceConfiguration.Server.PROXY_HOST,
+          confluenceProxyHost);
+
+    String confluenceProxyPort = variableContext.getParameter(PARAMETER_PREFIX
+        + ConfluenceConfiguration.Server.PROXY_PORT);
+    if (confluenceProxyPort != null)
+      parameters.setParameter(ConfluenceConfiguration.Server.PROXY_PORT,
+          confluenceProxyPort);
+
+    String confluenceProxyUsername = variableContext
+        .getParameter(PARAMETER_PREFIX
+            + ConfluenceConfiguration.Server.PROXY_USERNAME);
+    if (confluenceProxyUsername != null)
+      parameters.setParameter(ConfluenceConfiguration.Server.PROXY_USERNAME,
+          confluenceProxyUsername);
+
+    String confluenceProxyPassword = variableContext
+        .getParameter(PARAMETER_PREFIX
+            + ConfluenceConfiguration.Server.PROXY_PASSWORD);
+    if (confluenceProxyPassword != null)
+      parameters.setObfuscatedParameter(
+          ConfluenceConfiguration.Server.PROXY_PASSWORD,
+          variableContext.mapKeyToPassword(confluenceProxyPassword));
 
     /* null means process configuration has been successful */
     return null;
@@ -802,8 +895,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     try {
 
       /*
-       * Not uses delta seeding because Confluence can't be queried using dates or in a ordered way, only start and limit which can cause problems if an already indexed document is
-       * deleted, because we will miss some to-be indexed docs due to the last start parameter stored in the last execution
+       * Not uses delta seeding because Confluence can't be queried using dates or in a ordered way, only start and limit which can cause problems if an already indexed document is deleted, because we
+       * will miss some to-be indexed docs due to the last start parameter stored in the last execution
        */
       // if(lastSeedVersion != null && !lastSeedVersion.isEmpty()) {
       // StringTokenizer tokenizer = new
@@ -847,16 +940,20 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       do {
         final ConfluenceResponse<Page> response = confluenceClient.getPageChilds((int) lastStart, (int) defaultSize, pageId);
 
-        int count = 0;
-        for (final Page page : response.getResults()) {
-          pageChilds.add(page);
-          count++;
-        }
+        if (response != null) {
+          int count = 0;
+          for (final Page page : response.getResults()) {
+            pageChilds.add(page);
+            count++;
+          }
 
-        lastStart += count;
-        isLast = response.isLast();
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getPageChilds" }));
+          lastStart += count;
+          isLast = response.isLast();
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getPageChilds" }));
+          }
+        } else {
+          break;
         }
       } while (!isLast);
 
@@ -881,16 +978,20 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       do {
         final ConfluenceRestrictionsResponse<Restrictions> response = confluenceClient.getPageReadRestrictions((int) lastStart, (int) defaultSize, pageId);
 
-        if (response.getResult() != null) {
-          restrictionsList.add(response.getResult());
-        }
+        if (response != null) {
+          if (response.getResult() != null) {
+            restrictionsList.add(response.getResult());
+          }
 
-        isLast = response.isLast();
-        if (!isLast) {
-          lastStart += defaultSize;
-        }
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getAllSpaceKeys" }));
+          isLast = response.isLast();
+          if (!isLast) {
+            lastStart += defaultSize;
+          }
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getAllSpaceKeys" }));
+          }
+        } else {
+          break;
         }
       } while (!isLast);
 
@@ -914,16 +1015,20 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       do {
         final ConfluenceResponse<Space> response = confluenceClient.getSpaces((int) lastStart, (int) defaultSize, Optional.<String>absent(), Optional.<String>absent());
 
-        int count = 0;
-        for (final Space space : response.getResults()) {
-          spaceKeys.add(space.getKey());
-          count++;
-        }
+        if (response != null) {
+          int count = 0;
+          for (final Space space : response.getResults()) {
+            spaceKeys.add(space.getKey());
+            count++;
+          }
 
-        lastStart += count;
-        isLast = response.isLast();
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getAllSpaceKeys" }));
+          lastStart += count;
+          isLast = response.isLast();
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("New start {0} and size {1} for {2}", Locale.ROOT).format(new Object[] { lastStart, defaultSize, "getAllSpaceKeys" }));
+          }
+        } else {
+          break;
         }
       } while (!isLast);
     } catch (final Exception e) {
@@ -958,23 +1063,27 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
 //        final ConfluenceResponse<Page> response = confluenceClient.getPages(
 //            (int) lastStart, (int) defaultSize, space, pageType);
 
-        int count = 0;
-        for (final Page page : response.getResults()) {
+        if (response != null) {
+          int count = 0;
+          for (final Page page : response.getResults()) {
 
-          activities.addSeedDocument(page.getId());
-          if (confluenceSpec.isProcessAttachments()) {
-            processSeedAttachments(page, activities);
+            activities.addSeedDocument(page.getId());
+            if (confluenceSpec.isProcessAttachments()) {
+              processSeedAttachments(page, activities);
+            }
+            count++;
           }
-          count++;
-        }
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("Fetched and added {0} seed documents", Locale.ROOT).format(new Object[] { new Integer(count) }));
-        }
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("Fetched and added {0} seed documents", Locale.ROOT).format(new Object[] { new Integer(count) }));
+          }
 
-        lastStart += count;
-        isLast = response.isLast();
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("New start {0} and size {1}", Locale.ROOT).format(new Object[] { lastStart, defaultSize }));
+          lastStart += count;
+          isLast = response.isLast();
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("New start {0} and size {1}", Locale.ROOT).format(new Object[] { lastStart, defaultSize }));
+          }
+        } else {
+          break;
         }
       } while (!isLast);
 
@@ -1005,20 +1114,24 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
       do {
         final ConfluenceResponse<Attachment> response = confluenceClient.getPageAttachments(page.getId(), (int) lastStart, (int) defaultSize);
 
-        int count = 0;
-        for (final Page resultPage : response.getResults()) {
-          activities.addSeedDocument(ConfluenceUtil.generateRepositoryDocumentIdentifier(resultPage.getId(), page.getId()));
-          count++;
-        }
+        if (response != null) {
+          int count = 0;
+          for (final Page resultPage : response.getResults()) {
+            activities.addSeedDocument(ConfluenceUtil.generateRepositoryDocumentIdentifier(resultPage.getId(), page.getId()));
+            count++;
+          }
 
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("Fetched and added {} seed document attachments for page {}", Locale.ROOT).format(new Object[] { new Integer(count), page.getId() }));
-        }
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("Fetched and added {} seed document attachments for page {}", Locale.ROOT).format(new Object[] { new Integer(count), page.getId() }));
+          }
 
-        lastStart += count;
-        isLast = response.isLast();
-        if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
-          Logging.connectors.debug(new MessageFormat("New start {0} and size {1}", Locale.ROOT).format(new Object[] { lastStart, defaultSize }));
+          lastStart += count;
+          isLast = response.isLast();
+          if (Logging.connectors != null && Logging.connectors.isDebugEnabled()) {
+            Logging.connectors.debug(new MessageFormat("New start {0} and size {1}", Locale.ROOT).format(new Object[] { lastStart, defaultSize }));
+          }
+        } else {
+          break;
         }
       } while (!isLast);
 
@@ -1056,8 +1169,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
   /*
    * Process documents
    *
-   * @see org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector# processDocuments(java.lang.String[], java.lang.String[],
-   * org.apache.manifoldcf.crawler.interfaces.IProcessActivity, org.apache.manifoldcf.crawler.interfaces.DocumentSpecification, boolean[])
+   * @see org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector# processDocuments(java.lang.String[], java.lang.String[], org.apache.manifoldcf.crawler.interfaces.IProcessActivity,
+   * org.apache.manifoldcf.crawler.interfaces.DocumentSpecification, boolean[])
    */
   @Override
   public void processDocuments(final String[] documentIdentifiers, final IExistingVersions statuses, final Specification spec, final IProcessActivity activities, final int jobMode,
@@ -1158,7 +1271,11 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     } catch (final Exception e) {
       handlePageException(e, "page processing");
     }
-    return processPageInternal(activeSecurity, parentRestrictions, page, documentIdentifier, version, activities, doLog, extraProperties);
+    if (page != null) {
+      return processPageInternal(activeSecurity, parentRestrictions, page, documentIdentifier, version, activities, doLog, extraProperties);
+    } else {
+      return null;
+    }
 
   }
 
@@ -1223,8 +1340,8 @@ public class ConfluenceRepositoryConnector extends BaseRepositoryConnector {
     final DateFormat df = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM, Locale.ROOT);
 
     /*
-     * Retain page in Manifold because it has not changed from last time This is needed to keep the identifier in Manifold data, because by default if a document is not retained nor
-     * ingested, it will be deleted by the framework
+     * Retain page in Manifold because it has not changed from last time This is needed to keep the identifier in Manifold data, because by default if a document is not retained nor ingested, it will
+     * be deleted by the framework
      */
     final StringBuilder versionBuilder = new StringBuilder();
     versionBuilder.append(df.format(lastModified));

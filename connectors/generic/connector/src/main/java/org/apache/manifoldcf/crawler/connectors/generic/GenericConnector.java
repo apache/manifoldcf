@@ -253,6 +253,8 @@ public class GenericConnector extends BaseRepositoryConnector {
       t.interrupt();
       throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
         ManifoldCFException.INTERRUPTED);
+    } catch (ManifoldCFException e) {
+        handleManifoldCFException(e);
     }
     return new Long(seedTime).toString();
   }
@@ -301,6 +303,8 @@ public class GenericConnector extends BaseRepositoryConnector {
         versions = versioningThread.finishUp();
       } catch (IOException ex) {
         handleIOException((IOException)ex);
+      } catch (ManifoldCFException ex) {
+        handleManifoldCFException(ex);
       } catch (InterruptedException ex) {
         throw new ManifoldCFException(ex.getMessage(), ex, ManifoldCFException.INTERRUPTED);
       }
@@ -442,6 +446,8 @@ public class GenericConnector extends BaseRepositoryConnector {
               throw new ManifoldCFException("Interrupted: " + e.getMessage(), e, ManifoldCFException.INTERRUPTED);
             } catch (IOException e) {
               handleIOException(e);
+            } catch (ManifoldCFException e) {
+              handleManifoldCFException(e);
             }
           }
         }
@@ -509,19 +515,19 @@ public class GenericConnector extends BaseRepositoryConnector {
         + " </tr>\n"
         + " <tr>\n"
         + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.ConnectionTimeoutColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericConTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/></td>\n"
+        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericConnectionTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/></td>\n"
         + " </tr>\n"
         + " <tr>\n"
         + "  <td class=\"description\"><nobr>" + Messages.getBodyString(locale, "generic.SocketTimeoutColon") + "</nobr></td>\n"
-        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericSoTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/></td>\n"
+        + "  <td class=\"value\"><input type=\"text\" size=\"32\" name=\"genericSocketTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/></td>\n"
         + " </tr>\n"
         + "</table>\n");
     } else {
       out.print("<input type=\"hidden\" name=\"genericEntryPoint\" value=\"" + Encoder.attributeEscape(server) + "\"/>\n");
       out.print("<input type=\"hidden\" name=\"genericLogin\" value=\"" + Encoder.attributeEscape(login) + "\"/>\n");
       out.print("<input type=\"hidden\" name=\"genericPassword\" value=\"" + Encoder.attributeEscape(password) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"genericConTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/>\n");
-      out.print("<input type=\"hidden\" name=\"genericSoTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\"genericConnectionTimeout\" value=\"" + Encoder.attributeEscape(conTimeout) + "\"/>\n");
+      out.print("<input type=\"hidden\" name=\"genericSocketTimeout\" value=\"" + Encoder.attributeEscape(soTimeout) + "\"/>\n");
     }
   }
 
@@ -532,8 +538,8 @@ public class GenericConnector extends BaseRepositoryConnector {
 
     copyParam(variableContext, parameters, "genericLogin");
     copyParam(variableContext, parameters, "genericEntryPoint");
-    copyParam(variableContext, parameters, "genericConTimeout");
-    copyParam(variableContext, parameters, "genericSoTimeout");
+    copyParam(variableContext, parameters, "genericConnectionTimeout");
+    copyParam(variableContext, parameters, "genericSocketTimeout");
 
     String password = variableContext.getParameter("genericPassword");
     if (password == null) {
@@ -607,7 +613,7 @@ public class GenericConnector extends BaseRepositoryConnector {
       + "function "+seqPrefix+"SpecAddParam(anchorvalue) {\n"
       + "  if (editjob."+seqPrefix+"specparamname.value == \"\")\n"
       + "  {\n"
-      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "generic.TypeInParamName") + "\");\n"
+      + "    alert(\"" + Messages.getBodyJavascriptString(locale, "generic.TypeInParameterName") + "\");\n"
       + "    editjob."+seqPrefix+"specparamname.focus();\n"
       + "    return;\n"
       + "  }\n"
@@ -1024,6 +1030,20 @@ public class GenericConnector extends BaseRepositoryConnector {
       currentTime + 3 * 60 * 60000L, -1, false);
   }
 
+  /**
+   * Function for handling ManifoldCFException exception caused by connection error.
+   * In case of connection error, ServiceInterruption exception is thrown to perform retry.
+   * 
+   * @param e ManifoldCFException
+   * @throws ServiceInterruption
+   */
+  protected static void handleManifoldCFException(ManifoldCFException e)
+    throws ServiceInterruption {
+    long currentTime = System.currentTimeMillis();
+    throw new ServiceInterruption("Connection error: " + e.getMessage(), e, currentTime + 300000L,
+      currentTime + 3 * 60 * 60000L, -1, false);
+  }
+
   static class PreemptiveAuth implements HttpRequestInterceptor {
 
     private Credentials credentials;
@@ -1152,6 +1172,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         } finally {
           EntityUtils.consume(response.getEntity());
           method.releaseConnection();
+          seedBuffer.signalDone();
         }
       } catch (IOException ex) {
         exception = ex;
@@ -1204,7 +1225,7 @@ public class GenericConnector extends BaseRepositoryConnector {
         HttpResponse response = client.execute(method);
         try {
           if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            exception = new ManifoldCFException("addSeedDocuments error - interface returned incorrect return code for: " + url + " - " + response.getStatusLine().toString());
+            exception = new ManifoldCFException("getDocumentVersions error - interface returned incorrect return code for: " + url + " - " + response.getStatusLine().toString());
             return;
           }
           JAXBContext context;

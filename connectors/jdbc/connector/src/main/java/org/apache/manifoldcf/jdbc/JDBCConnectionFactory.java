@@ -48,6 +48,8 @@ public class JDBCConnectionFactory
     driverMap.put("jtds:sqlserver://", "net.sourceforge.jtds.jdbc.Driver");
     driverMap.put("jtds:sybase://", "net.sourceforge.jtds.jdbc.Driver");
     driverMap.put("mysql://", "com.mysql.jdbc.Driver");
+    driverMap.put("mariadb://", "org.mariadb.jdbc.Driver");
+    driverMap.put("xbib:csv:", "org.xbib.jdbc.csv.CsvDriver");
     try
     {
       _pool = new ConnectionPoolManager(120,false);

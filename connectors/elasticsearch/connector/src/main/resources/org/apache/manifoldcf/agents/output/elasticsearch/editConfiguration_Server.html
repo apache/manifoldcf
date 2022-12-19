@@ -71,11 +71,30 @@
     </td>
   </tr>
 
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.SocketTimeoutColon'))</nobr>
+    </td>
+    <td class="value">
+      <input size="32" type="text" id="elasticsearch_socket_timeout" name="elasticsearch_socket_timeout" value="$Encoder.attributeEscape($ELASTICSEARCH_SOCKET_TIMEOUT)" />
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('ElasticSearchConnector.ConnectionTimeoutColon'))</nobr>
+    </td>
+    <td class="value">
+      <input size="32" type="text" id="elasticsearch_connection_timeout" name="elasticsearch_connection_timeout" value="$Encoder.attributeEscape($ELASTICSEARCH_CONNECTION_TIMEOUT)" />
+    </td>
+  </tr>
+
 </table>
 
 #else
 <input type="hidden" name="serverlocation" value="$Encoder.attributeEscape($SERVERLOCATION)" />
 <input type="hidden" name="username" value="$Encoder.attributeEscape($USERNAME)" />
 <input type="hidden" name="password" value="$Encoder.attributeEscape($PASSWORD)" />
+<input type="hidden" name="elasticsearch_socket_timeout" value="$Encoder.attributeEscape($ELASTICSEARCH_SOCKET_TIMEOUT)" />
+<input type="hidden" name="elasticsearch_connection_timeout" value="$Encoder.attributeEscape($ELASTICSEARCH_CONNECTION_TIMEOUT)" />
 
 #end

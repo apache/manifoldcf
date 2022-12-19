@@ -84,10 +84,74 @@
     <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.UserNameAttrColon'))</nobr></td>
     <td class="value"><input type="text" size="64" name="ldapUserNameAttr" value="$Encoder.attributeEscape($FUSERNAMEATTR)"/></td>
   </tr>
+  <tr><td class="separator" colspan="2"><hr/></td></tr>
+  <!-- condition here-->
   <tr>
-    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.UserNameReplaceColon'))</nobr></td>
-    <td class="value"><input type="text" size="64" name="ldapUserNameReplace" value="$Encoder.attributeEscape($FUSERNAMEREPLACE)"/></td>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.AttributeConditionColon'))</nobr></td>
+    <td class="value">
+      <table class="mainTable">
+        <!-- line 1 -->
+        <tr>
+          <td class="main11" colspan="3">&nbsp;</td>
+        </tr>
+        <!-- line 2 -->
+        <tr>
+          <td class="mainwidth">&nbsp;</td>
+          <td>
+            <table class="table_condition_right">
+              <tr>
+                <td colspan="2" rowspan="2">
+                  <div class="div_condition">                   
+                    <div class="policeCondition">
+                      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.AttributeCondition'))</nobr><br>
+                      <input type="text" size="25" name="ldapAttributeCondition" value="$Encoder.attributeEscape($ATTRIBUTECONDITION)"/><br>
+                      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.AttributeRegexpCondition'))</nobr><br>
+                      <input type="text" size="25" name="ldapAttributeRegexpCondition" value="$Encoder.attributeEscape($ATTRIBUTEREGEXPCONDITION)"/>
+                    </div>                        
+                  </div>  
+                </td>
+                <td class="condition_right_bottom">&nbsp;</td>
+                <td class="condition_right_bottom">&nbsp;</td>
+                <td class="condition_right_empty">&nbsp;</td>
+              </tr>
+              <tr>
+                <td class="condition_right_empty">&nbsp;</td>
+                <td class="condition_right_right">&nbsp;</td>
+                <td class="condition_right_empty">&nbsp;</td>
+              </tr>
+                <td class="condition_right_right"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.TRUE'))</nobr></td>
+                <td class="condition_right_empty">&nbsp;</td>
+                <td class="condition_right_empty">&nbsp;</td>
+                <td class="condition_right_right"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.FALSE'))</nobr></td>
+                <td class="condition_right_empty">&nbsp;</td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <div class="treatment">                    
+                    <div class="policeConditionTrue">
+                      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.TRUE'))</nobr><br>
+                      <input type="text" name="ldapUserNameReplaceTrue" value="$Encoder.attributeEscape($FUSERNAMETRUEREPLACE)"/>
+                    </div>                       
+                  </div>
+                </td>
+                <td class="mainwidth">&nbsp;</td>
+                <td colspan="2">
+                  <div class="treatment">                    
+                    <div class="policeConditionFalseOrDefault">
+                      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('LDAP.DEFAULT'))</nobr><br>
+                      <input type="text" name="ldapUserNameReplace" value="$Encoder.attributeEscape($FUSERNAMEREPLACE)"/>
+                    </div>                        
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
   </tr>
+  
+
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
     <td class="description">
@@ -137,5 +201,7 @@
 
 <input type="hidden" name="ldapUserNameAttr" value="$Encoder.attributeEscape($FUSERNAMEATTR)"/>
 <input type="hidden" name="ldapUserNameReplace" value="$Encoder.attributeEscape($FUSERNAMEREPLACE)"/>
-
+<input type="hidden" name="ldapUserNameReplaceTrue" value="$Encoder.attributeEscape($FUSERNAMETRUEREPLACE)"/>
+<input type="hidden" name="ldapAttributeCondition" value="$Encoder.attributeEscape($ATTRIBUTECONDITION)"/>
+<input type="hidden" name="ldapAttributeRegexpCondition" value="$Encoder.attributeEscape($ATTRIBUTEREGEXPCONDITION)"/>
 #end
