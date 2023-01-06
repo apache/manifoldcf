@@ -40,8 +40,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <project.http.version>1.25.0</project.http.version>
-        <project.oauth.version>1.25.0</project.oauth.version>
+        <project.http.version>1.42.1</project.http.version>
+        <project.oauth.version>1.34.1</project.oauth.version>
     </properties>
 
     <artifactId>mcf-googledrive-connector</artifactId>
@@ -380,7 +380,7 @@
        <dependency>
             <groupId>com.google.apis</groupId>
             <artifactId>google-api-services-drive</artifactId>
-            <version>v2-rev326-1.25.0</version>
+            <version>v3-rev20220815-2.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.google.http-client</groupId>
