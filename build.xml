@@ -114,8 +114,12 @@
     <property name="dropbox-client.version" value="1.5.3"/>
     <property name="json-simple.version" value="1.1.1"/>
     <property name="json.version" value="1.8"/>
-    <property name="google-api-client.version" value="v2-rev326-1.25.0"/>
-    <property name="google-http-client.version" value="1.25.0"/>
+    <property name="google-drive-api-client.version" value="v3-rev20220815-2.0.0"/>
+    <property name="google-http-client.version" value="1.42.1"/>
+    <property name="google-oauth-client.version" value="1.34.1"/>
+    <property name="google-api-client.version" value="2.0.0"/>
+    <property name="opencensus.version" value="0.31.1"/>
+    <property name="grpc.version" value="1.27.2"/>
     <property name="findbugs.version" value="3.0.2"/>
     <property name="j2objc.version" value="1.1"/>
     <property name="jackson-core.version" value="2.13.1"/>
@@ -2228,7 +2232,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/apis"/>
-            <param name="artifact-version" value="${google-api-client.version}"/>
+            <param name="artifact-version" value="${google-drive-api-client.version}"/>
             <param name="artifact-name" value="google-api-services-drive"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -2263,7 +2267,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/oauth-client"/>
-            <param name="artifact-version" value="${google-http-client.version}"/>
+            <param name="artifact-version" value="${google-oauth-client.version}"/>
             <param name="artifact-name" value="google-oauth-client"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -2277,11 +2281,31 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="com/google/api-client"/>
-            <param name="artifact-version" value="${google-http-client.version}"/>
+            <param name="artifact-version" value="${google-api-client.version}"/>
             <param name="artifact-name" value="google-api-client"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="io/opencensus"/>
+            <param name="artifact-version" value="${opencensus.version}"/>
+            <param name="artifact-name" value="opencensus-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="io/opencensus"/>
+            <param name="artifact-version" value="${opencensus.version}"/>
+            <param name="artifact-name" value="opencensus-contrib-http-util"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
+            <param name="project-path" value="io/grpc"/>
+            <param name="artifact-version" value="${grpc.version}"/>
+            <param name="artifact-name" value="grpc-context"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     </target>
 
     <target name="download-sharepoint-plugins">
