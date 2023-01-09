@@ -477,7 +477,7 @@ public class HttpPoster
     
     // The only other kind of return code we know how to handle is 50x.
     // For these, we should retry for a while.
-    if (code == 500)
+    if (code == 500 || code == 502 || code == 503)
     {
       long currentTime = System.currentTimeMillis();
       
