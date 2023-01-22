@@ -17,6 +17,8 @@
  * limitations under the License.
  */
 
+/* Adding force build */
+
 package org.apache.manifoldcf.agents.output.elasticsearch;
 
 import org.apache.manifoldcf.core.interfaces.IDFactory;
