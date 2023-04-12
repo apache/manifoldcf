@@ -1442,6 +1442,10 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="http2-http-client-transport"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+    	 <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-alpn-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
     	  <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-alpn-java-client"/>
             <param name="artifact-type" value="jar"/>
