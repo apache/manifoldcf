@@ -1374,7 +1374,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       try
       {
         String eventDatum = statsAnalyzePrefix+tableName;
-        // Time to reindex this table!
+        // Time to analyze this table!
         analyzeTableInternal(tableName);
         // Now, clear out the data
         writeDatum(eventDatum,0);
@@ -1574,17 +1574,46 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
         {
           String eventDatum = statsAnalyzePrefix+tableName;
           int oldEventCount = readDatum(eventDatum);
-          oldEventCount += ts.getEventCount();
-          if (oldEventCount >= analyzeThreshold)
+          int tsEventCount = ts.getEventCount();
+          oldEventCount += tsEventCount;
+          long currentTime = System.currentTimeMillis();
+          // If property "analyzeatstart" is set, then analyze this table when the job starts
+          boolean analyzeAtStart = lockManager.getSharedConfiguration().getBooleanProperty("org.apache.manifoldcf.db.postgres.analyzeatstart", false);
+          if (analyzeAtStart && ts.isFirstAnalyze())
           {
-            // Time to reindex this table!
             analyzeTableInternal(tableName);
-            // Now, clear out the data
             writeDatum(eventDatum,0);
+            // Set the firstAnalyze flag to false
+            ts.setFirstAnalyze(false);
+          }
+          else if (oldEventCount >= analyzeThreshold)
+          {
+            // If property "analyzeratethreshold" is set, then analyze this table only when events per second drops below the threshold
+            int analyzeRateThreshold = lockManager.getSharedConfiguration().getIntProperty("org.apache.manifoldcf.db.postgres.analyzeratethreshold", 0);
+            boolean skipAnalyze = false;
+            long previousTime = ts.getPreviousTime();
+            if (analyzeRateThreshold > 0 && previousTime > 0L)
+            {
+              long elapsedTime = currentTime - previousTime;
+              if (elapsedTime > 0)
+              {
+                int eventRate = (int)(tsEventCount * 1000L / elapsedTime);
+                if (eventRate >= analyzeRateThreshold)
+                  skipAnalyze = true;
+              }
+            }
+            if (!skipAnalyze)
+            {
+              // Time to analyze this table!
+              analyzeTableInternal(tableName);
+              // Now, clear out the data
+              writeDatum(eventDatum,0);
+            }
           }
           else
             writeDatum(eventDatum,oldEventCount);
           ts.reset();
+          ts.setPreviousTime(currentTime);
         }
         finally
         {
@@ -1605,6 +1634,8 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
   protected static class TableStatistics
   {
     protected int eventCount = 0;
+    protected boolean firstAnalyze = true;
+    protected long timeMilliseconds = 0L;
     
     public TableStatistics()
     {
@@ -1623,6 +1654,26 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
     public int getEventCount()
     {
       return eventCount;
+    }
+
+    public boolean isFirstAnalyze()
+    {
+      return this.firstAnalyze;
+    }
+
+    public void setFirstAnalyze(boolean firstAnalyze)
+    {
+      this.firstAnalyze = firstAnalyze;
+    }
+
+    public long getPreviousTime()
+    {
+      return this.timeMilliseconds;
+    }
+
+    public void setPreviousTime(long timeMilliseconds)
+    {
+      this.timeMilliseconds = timeMilliseconds;
     }
   }
   
