@@ -54,6 +54,13 @@ try
   INotificationConnectorPool notificationConnectorPool = NotificationConnectorPoolFactory.make(threadContext);
   ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(threadContext);
 
+  ILockManager lockManager = LockManagerFactory.make(threadContext);
+
+  /** If the global cluster property "storehopcount" is set to false(defaults to true), disable support for hopcount handling completely,
+  * the "Hop Filters" tab should not appear in the UI for any job.
+  */
+  Boolean storeHopCount = lockManager.getSharedConfiguration().getBooleanProperty("org.apache.manifoldcf.crawler.jobs.storehopcount",true);
+
   // Figure out tab name and sequence number
   String tabName = variableContext.getParameter("tabname");
   String tabSequenceNumber = variableContext.getParameter("sequencenumber");
@@ -218,7 +225,7 @@ try
   {
     tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editjob.Scheduling"));
     sequenceArray.add(null);
-    if (relationshipTypes != null && relationshipTypes.length > 0)
+    if (storeHopCount && relationshipTypes != null && relationshipTypes.length > 0)
     {
       tabsArray.add(Messages.getString(pageContext.getRequest().getLocale(),"editjob.HopFilters"));
       sequenceArray.add(null);
@@ -902,7 +909,11 @@ function isRegularExpression(value)
   }
 
   // Hop Filters tab
-  if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.HopFilters")) && tabSequenceInt == -1)
+  if (!storeHopCount)
+  {
+    // Do nothing
+  }
+  else if (tabName.equals(Messages.getString(pageContext.getRequest().getLocale(),"editjob.HopFilters")) && tabSequenceInt == -1)
   {
     if (relationshipTypes != null)
     {

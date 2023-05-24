@@ -148,6 +148,14 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
   /** Thread context */
   protected IThreadContext threadContext;
   
+  /** Lock manager */
+  protected final ILockManager lockManager;
+
+  /** If the global cluster property "storehopcount" is set to false(defaults to true), disable support for hopcount handling completely,
+  * the hopcount will never be recorded in the "intrinsiclink" or "hopcount" tables for any job at all.
+  */
+  protected static Boolean storeHopCount = true;
+
   /** Constructor.
   *@param database is the database handle.
   */
@@ -158,6 +166,8 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     this.threadContext = tc;
     intrinsicLinkManager = new IntrinsicLink(database);
     deleteDepsManager = new HopDeleteDeps(database);
+    lockManager = LockManagerFactory.make(tc);
+    storeHopCount = lockManager.getSharedConfiguration().getBooleanProperty("org.apache.manifoldcf.crawler.jobs.storehopcount",true);
   }
 
   /** Install or upgrade.
@@ -389,6 +399,12 @@ public class HopCount extends org.apache.manifoldcf.core.database.BaseTable
     // this method would need to be revised to not process any additions until the finishParents() call
     // is made.  At the moment, revertParents() is not used by any thread.
     // TBD, MHL
+    if (!storeHopCount)
+    {
+      // Do nothing
+      return null;
+    }
+
     boolean[] rval = new boolean[targetDocumentIDHashes.length];
     for (int i = 0; i < rval.length; i++)
     {

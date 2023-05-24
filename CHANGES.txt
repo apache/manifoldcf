@@ -6,6 +6,9 @@ $Id$
 CONNECTORS-1743: Retry on 502 and 503 errors in Solr connector.
 (Markus Günther)
 
+CONNECTORS-1747: Add global property to disable hopcount for all connectors.
+(Mingchun Zhao)
+
 ======================= Release 2.24 =====================
 
 CONNECTORS-1739: Reuse escaping facilities.

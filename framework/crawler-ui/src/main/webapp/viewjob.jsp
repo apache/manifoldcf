@@ -46,6 +46,13 @@ try
   INotificationConnectorPool notificationConnectorPool = NotificationConnectorPoolFactory.make(threadContext);
   ITransformationConnectorPool transformationConnectorPool = TransformationConnectorPoolFactory.make(threadContext);
 
+  ILockManager lockManager = LockManagerFactory.make(threadContext);
+
+  /** If the global cluster property "storehopcount" is set to false(defaults to true), disable support for hopcount handling completely,
+  * the hopcount information should not appear in the UI for any job.
+  */
+  Boolean storeHopCount = lockManager.getSharedConfiguration().getBooleanProperty("org.apache.manifoldcf.crawler.jobs.storehopcount",true);
+
   String jobID = variableContext.getParameter("jobid");
   IJobDescription job = manager.load(new Long(jobID));
   if (job == null)
@@ -595,7 +602,7 @@ try
       }
     }
 
-    if (relationshipTypes != null && relationshipTypes.length > 0)
+    if (storeHopCount && relationshipTypes != null && relationshipTypes.length > 0)
     {
       int k = 0;
       while (k < relationshipTypes.length)
