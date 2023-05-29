@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= 2.26-dev =====================
+
+
 ======================= Release 2.25 =====================
 
 CONNECTORS-1743: Retry on 502 and 503 errors in Solr connector.
