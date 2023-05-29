@@ -4,7 +4,7 @@ $Id$
 ======================= 2.25-dev =====================
 
 CONNECTORS-1743: Retry on 502 and 503 errors in Solr connector.
-(Markus Günther)
+(Markus GÃ¼nther)
 
 CONNECTORS-1747: Add global property to disable hopcount for all connectors.
 (Mingchun Zhao)
