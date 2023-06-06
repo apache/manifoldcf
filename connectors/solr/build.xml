@@ -34,11 +34,12 @@
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
             <include name="solr-solrj*.jar"/>
+        	  <include name="http2*.jar"/>
+        	  <include name="httpmime*.jar"/>
+        	  <include name="jetty-client*.jar"/>
+            <include name="jetty-http*.jar"/>
+            <include name="jetty-util*.jar"/>
             <include name="commons-math3*.jar"/>
-            <include name="noggit*.jar"/>
-            <include name="httpmime*.jar"/>
-            <include name="woodstox-core-asl*.jar"/>
-            <include name="stax2-api*.jar"/>
             <include name="jcl-over-slf4j*.jar"/>
         </fileset>
     </path>
@@ -49,10 +50,6 @@
             <fileset dir="../../lib">
                 <include name="solr-solrj*.jar"/>
                 <include name="commons-math3*.jar"/>
-                <include name="noggit*.jar"/>
-                <include name="httpmime*.jar"/>
-                <include name="woodstox-core-asl*.jar"/>
-                <include name="stax2-api*.jar"/>
                 <include name="jcl-over-slf4j*.jar"/>
             </fileset>
         </copy>

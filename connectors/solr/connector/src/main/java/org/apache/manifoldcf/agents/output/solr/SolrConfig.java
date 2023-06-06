@@ -18,11 +18,10 @@
 */
 package org.apache.manifoldcf.agents.output.solr;
 
-
-/** Parameters and output data for SOLR output connector.
-*/
-public class SolrConfig
-{
+/**
+ * Parameters and output data for SOLR output connector.
+ */
+public class SolrConfig {
   public static final String _rcsid = "@(#)$Id: SolrConfig.java 991374 2010-08-31 22:32:08Z kwright $";
 
   // Configuration parameters
@@ -33,9 +32,9 @@ public class SolrConfig
   public static final String SOLR_TYPE_STANDARD = "standard";
   /** Type: Solr Cloud */
   public static final String SOLR_TYPE_SOLRCLOUD = "solrcloud";
-  
+
   // SolrCloud zookeeper parameters
-  
+
   // Zookeeper hosts, as nodes
   /** Zookeeper node */
   public static final String NODE_ZOOKEEPER = "zookeeper";
@@ -43,26 +42,26 @@ public class SolrConfig
   public static final String ATTR_HOST = "host";
   /** Zookeeper port */
   public static final String ATTR_PORT = "port";
-  
+
   /** Zookeeper znode path */
   public static final String PARAM_ZOOKEEPER_ZNODE_PATH = "ZooKeeper znode path";
-  
+
   /** ZooKeeper client timeout */
-  public static final String PARAM_ZOOKEEPER_CLIENT_TIMEOUT = "ZooKeeper client timeout";
+  public static final String PARAM_ZOOKEEPER_SOCKET_TIMEOUT = "ZooKeeper socket timeout";
   /** ZooKeeper connect timeout */
-  public static final String PARAM_ZOOKEEPER_CONNECT_TIMEOUT = "ZooKeeper connect timeout";
+  public static final String PARAM_ZOOKEEPER_CONNECTION_TIMEOUT = "ZooKeeper connection timeout";
   /** Collection name */
   public static final String PARAM_COLLECTION = "Collection";
-  
+
   // General indexing parameters
-  
+
   /** Protocol */
   public static final String PARAM_PROTOCOL = "Server protocol";
   /** Protocol: http */
   public static final String PROTOCOL_TYPE_HTTP = "http";
   /** Protocol: https */
   public static final String PROTOCOL_TYPE_HTTPS = "https";
-  
+
   /** Server name */
   public static final String PARAM_SERVER = "Server name";
   /** Port */
@@ -112,7 +111,7 @@ public class SolrConfig
   /** Included mime types */
   public static final String PARAM_INCLUDEDMIMETYPES = "Included mime types";
   /** Excluded mime types */
-  public static final String PARAM_EXCLUDEDMIMETYPES="Excluded mime types";
+  public static final String PARAM_EXCLUDEDMIMETYPES = "Excluded mime types";
   /** Parameter describing the use of Extract Update handler */
   public static final String PARAM_EXTRACTUPDATE = "Use extract update handler";
   /** Optional content field (if not using extract update handler) */
@@ -123,7 +122,7 @@ public class SolrConfig
   public static final String ATTRIBUTE_NAME = "name";
   /** Attribute with the argument value */
   public static final String ATTRIBUTE_VALUE = "value";
-  
+
   // Output specification
 
 }

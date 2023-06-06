@@ -31,12 +31,12 @@
 
     <property name="javax-activation.version" value="1.2.0"/>
     <property name="hsqldb.version" value="2.3.2"/>
-    <property name="jetty.version" value="9.4.25.v20191220"/>
+    <property name="jetty.version" value="9.4.48.v20220622"/>
     <property name="httpclient.version" value="4.5.13"/>
     <property name="httpmime.version" value="4.5.13"/>
     <property name="httpcore.version" value="4.4.15"/>
     <property name="xerces.version" value="2.12.2"/>
-    <property name="zookeeper.version" value="3.4.10"/>
+    <property name="zookeeper.version" value="3.5.6"/>
     <property name="mongodb.version" value="2.14.3"/>
     <property name="postgresql.version" value="42.1.3"/>
     <property name="axis.version" value="1.4"/>
@@ -84,7 +84,7 @@
     <property name="jakarta.annotation-api.version" value="1.3.4"/>
     <property name="jakarta.jws-api.version" value="1.1.1"/>
     <property name="ha-api.version" value="3.1.12"/>
-    <property name="solrj.version" value="8.3.1"/>
+    <property name="solrj.version" value="9.1.0"/>
     <property name="noggit.version" value="0.8"/>
     <property name="commons-math3.version" value="3.6.1"/>
     <property name="chemistry.version" value="1.1.0"/>
@@ -1421,8 +1421,33 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-jetty">
         <mkdir dir="lib"/>
         <property name="jetty-package" value="org/eclipse/jetty"/>
+        <property name="jetty-http2-package" value="org/eclipse/jetty/http2"/>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="9.2.30.v20200428"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-jsp"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-http2-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="http2-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    	  <antcall target="download-via-maven"><param name="project-path" value="${jetty-http2-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="http2-common"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    	  <antcall target="download-via-maven"><param name="project-path" value="${jetty-http2-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="http2-hpack"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    	  <antcall target="download-via-maven"><param name="project-path" value="${jetty-http2-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="http2-http-client-transport"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    	 <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-alpn-client"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    	  <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-alpn-java-client"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
@@ -2442,6 +2467,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/solr"/>
+            <param name="artifact-version" value="${solrj.version}"/>
+            <param name="artifact-name" value="solr-solrj-zookeeper"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="lib"/>
             <param name="project-path" value="org/noggit"/>
             <param name="artifact-version" value="${noggit.version}"/>
             <param name="artifact-name" value="noggit"/>
@@ -2463,6 +2495,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="org/apache/zookeeper"/>
             <param name="artifact-version" value="${zookeeper.version}"/>
             <param name="artifact-name" value="zookeeper"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+    	    <param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/zookeeper"/>
+            <param name="artifact-version" value="${zookeeper.version}"/>
+            <param name="artifact-name" value="zookeeper-jute"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>

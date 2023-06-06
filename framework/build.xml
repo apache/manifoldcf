@@ -49,6 +49,7 @@
             <include name="commons-collections4-*.jar"/>
             <include name="commons-el*.jar"/>
             <include name="commons-fileupload*.jar"/>
+        	<include name="http2*.jar"/>
             <include name="httpcore*.jar"/>
             <include name="httpclient*.jar"/>
             <include name="commons-io*.jar"/>
@@ -737,8 +738,10 @@
                 <include name="commons-collections4*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
+                <include name="http2*.jar"/>
                 <include name="httpcore*.jar"/>
                 <include name="httpclient*.jar"/>
+                <include name="jetty*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -799,8 +802,10 @@
                 <include name="commons-collections4*.jar"/>
                 <include name="commons-el*.jar"/>
                 <include name="commons-fileupload*.jar"/>
+                <include name="http2*.jar"/>
                 <include name="httpcore*.jar"/>
                 <include name="httpclient*.jar"/>
+                <include name="jetty*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -1089,6 +1094,7 @@
                 <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
+                <include name="http2*.jar"/>
                 <include name="jetty*.jar"/>
                 <include name="javax.servlet-api*.jar"/>
                 <include name="ecj*.jar"/>
@@ -1288,7 +1294,8 @@
     
     <path id="jetty-lib">
         <fileset dir="../lib">
-            <include name="jetty*.jar"/>
+          <include name="http2*.jar"/>
+          <include name="jetty*.jar"/>
         </fileset>
     </path>
     

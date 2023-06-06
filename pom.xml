@@ -48,7 +48,7 @@
     <postgresql.version>42.1.3</postgresql.version>
     <mysql.version>5.1.47</mysql.version>
     <hsqldb.version>2.3.2</hsqldb.version>
-    <jetty.version>9.4.25.v20191220</jetty.version>
+    <jetty.version>9.4.48.v20220622</jetty.version>
     <jetty-jsp-jdt.version>2.3.3</jetty-jsp-jdt.version>
     <jetty-schemas.version>3.1.M0</jetty-schemas.version>
     <mail.version>1.6.2</mail.version>
@@ -62,10 +62,10 @@
     <commons-collections.version>3.2.2</commons-collections.version>
     <commons-fileupload.version>1.3.3</commons-fileupload.version>
     <commons-discovery.version>0.5</commons-discovery.version>
-    <httpcomponent.httpclient.version>4.5.3</httpcomponent.httpclient.version>
-    <httpcomponent.httpcore.version>4.4.6</httpcomponent.httpcore.version>
-    <httpcomponent.httpmime.version>4.5.3</httpcomponent.httpmime.version>
-    <solr.version>8.3.1</solr.version>
+    <httpcomponent.httpclient.version>4.5.13</httpcomponent.httpclient.version>
+    <httpcomponent.httpcore.version>4.4.15</httpcomponent.httpcore.version>
+    <httpcomponent.httpmime.version>4.5.13</httpcomponent.httpmime.version>
+    <solr.version>9.1.0</solr.version>
     <noggit.version>0.8</noggit.version>
     <commons-el.version>1.0</commons-el.version>
     <commons-lang.version>2.6</commons-lang.version>
@@ -79,9 +79,9 @@
     <glassfish.version>2.1.v20091210</glassfish.version>
     <log4j.version>2.17.2</log4j.version>
     <velocity-engine-core.version>2.3</velocity-engine-core.version>
-    <slf4j.version>1.7.7</slf4j.version>
+    <slf4j.version>1.7.36</slf4j.version>
     <jaxb.version>2.2.6</jaxb.version>
-    <zookeeper.version>3.4.10</zookeeper.version>
+    <zookeeper.version>3.8.0</zookeeper.version>
     <xmlbeans.version>2.6.0</xmlbeans.version>
     <poi.version>3.17</poi.version>
     <tika.version>1.28.1</tika.version>
