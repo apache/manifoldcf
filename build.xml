@@ -36,7 +36,7 @@
     <property name="httpmime.version" value="4.5.13"/>
     <property name="httpcore.version" value="4.4.15"/>
     <property name="xerces.version" value="2.12.2"/>
-    <property name="zookeeper.version" value="3.8.0"/>
+    <property name="zookeeper.version" value="3.5.6"/>
     <property name="mongodb.version" value="2.14.3"/>
     <property name="postgresql.version" value="42.1.3"/>
     <property name="axis.version" value="1.4"/>
@@ -912,7 +912,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
     
     <target name="setup-nuxeo-url">
-        <property name="nuxeo-base-url" value="https://maven-eu.nuxeo.org/nexus/content/repositories/public-releases"/>
+        <property name="nuxeo-base-url" value="https://maven.nuxeo.org/nexus/content/repositories/public-releases"/>
     </target>
     
     <target name="download-via-nuxeo" depends="setup-nuxeo-url">
