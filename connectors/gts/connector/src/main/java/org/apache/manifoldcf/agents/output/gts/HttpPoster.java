@@ -635,7 +635,9 @@ public class HttpPoster
     return socket;
   }
 
-  /** Our own trust manager, which ignores certificate issues */
+  /** Our own trust manager, which ignores certificate issues 
+    * It is not secure
+    */
   protected static class LaxTrustManager implements X509TrustManager
   {
     /** Does nothing */
