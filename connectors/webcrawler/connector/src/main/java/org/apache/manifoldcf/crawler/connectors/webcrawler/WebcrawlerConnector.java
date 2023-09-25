@@ -2506,36 +2506,37 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String inclusions = ".*\n";
     String inclusionsIndex = ".*\n";
     boolean includeMatching = true;
+    boolean forceInclusion = true;
+
 
     i = 0;
-    while (i < ds.getChildCount())
-    {
+    while (i < ds.getChildCount()) {
       SpecificationNode sn = ds.getChild(i++);
-      if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES))
-      {
+      if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDES)) {
         inclusions = sn.getValue();
         if (inclusions == null)
           inclusions = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDESINDEX))
-      {
+      } else if (sn.getType().equals(WebcrawlerConfig.NODE_INCLUDESINDEX)) {
         inclusionsIndex = sn.getValue();
         if (inclusionsIndex == null)
           inclusionsIndex = "";
-      }
-      else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS))
-      {
+      } else if (sn.getType().equals(WebcrawlerConfig.NODE_LIMITTOSEEDS)) {
         String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
         if (value == null || value.equals("false"))
           includeMatching = false;
         else
           includeMatching = true;
+      } else if (sn.getType().equals(WebcrawlerConfig.NODE_FORCEINCLUSION)) {
+        final String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+        forceInclusion = value != null && !"false".equals(value);
       }
     }
 
     velocityContext.put("INCLUSIONS",inclusions);
     velocityContext.put("INCLUSIONSINDEX",inclusionsIndex);
     velocityContext.put("INCLUDEMATCHING",includeMatching);
+    velocityContext.put("FORCEINCLUSION", forceInclusion);
+
 
   }
 
@@ -2862,7 +2863,26 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       cn.setAttribute(WebcrawlerConfig.ATTR_VALUE,(matchingHosts==null||matchingHosts.equals("false"))?"false":"true");
       ds.addChild(ds.getChildCount(),cn);
     }
-    
+
+    // Handle the force-inclusion switch
+    final String forceInclusionPresent = variableContext.getParameter(seqPrefix + "forceinclusion_present");
+    if (forceInclusionPresent != null) {
+      // Delete existing switch record first
+      int i = 0;
+      while (i < ds.getChildCount()) {
+        final SpecificationNode sn = ds.getChild(i);
+        if (sn.getType().equals(WebcrawlerConfig.NODE_FORCEINCLUSION))
+          ds.removeChild(i);
+        else
+          i++;
+      }
+
+      final String forceInclusion = variableContext.getParameter(seqPrefix + "forceInclusion");
+      final SpecificationNode cn = new SpecificationNode(WebcrawlerConfig.NODE_FORCEINCLUSION);
+      cn.setAttribute(WebcrawlerConfig.ATTR_VALUE, (forceInclusion == null || forceInclusion.equals("false")) ? "false" : "true");
+      ds.addChild(ds.getChildCount(), cn);
+    }
+
     // Get the exclusions
     String exclusions = variableContext.getParameter(seqPrefix+"exclusions");
     if (exclusions != null)
@@ -5701,6 +5721,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       List<String> packList = new ArrayList<String>();
       String[] packStuff = new String[2];
       boolean limitToSeeds = false;
+      boolean forceInclusion = false;
       int i = 0;
       while (i < spec.getChildCount())
       {
@@ -5768,6 +5789,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
             limitToSeeds = false;
           else
             limitToSeeds = true;
+        } else if (sn.getType().equals(WebcrawlerConfig.NODE_FORCEINCLUSION)) {
+          final String value = sn.getAttributeValue(WebcrawlerConfig.ATTR_VALUE);
+          forceInclusion = value != null && !value.equals(WebcrawlerConfig.ATTRVALUE_FALSE);
         }
         else if (sn.getType().equals(WebcrawlerConfig.NODE_URLSPEC))
         {
@@ -5883,8 +5907,18 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
 
             String host = url.getHost();
 
-            if (host != null)
+            if (host != null) {
               seedHosts.add(host);
+              if (forceInclusion) {
+                // In case of redirection, if "Force the inclusion of redirects" is set to true, we add the redirected url to seedHosts
+                try {
+                  seedHosts.add(getFinalURL(urlCandidate));
+                } catch (IOException e) {
+                  // Skip the entry
+                }
+              }
+            }
+
           }
           catch (java.net.URISyntaxException e)
           {
@@ -6082,6 +6116,28 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     // The headers, which will be needed if resultSignal is RESULT_VERSION_NEEDED.
     public Map<String,List<String>> headerData = null;
 
+  }
+
+  /**
+   * If the initial url is permanently or temporarly redirected (code 301 or 302), the method returns the destination url
+   * @param url The initial url
+   * @return the url after redirection
+   */
+  public static String getFinalURL(String url) throws IOException, URISyntaxException {
+    URL formattedUrl = new URL(url);
+    URLConnection urlConnection = formattedUrl.openConnection();
+    HttpURLConnection con = (HttpURLConnection) urlConnection;
+    con.setInstanceFollowRedirects(false);
+    con.connect();
+    con.getInputStream();
+
+    if (con.getResponseCode() == HttpURLConnection.HTTP_MOVED_PERM || con.getResponseCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
+      String redirectUrl = con.getHeaderField("Location");
+      return getFinalURL(redirectUrl);
+    }
+
+    final java.net.URI uri = new URI(url);
+    return uri.getHost();
   }
   
 }
