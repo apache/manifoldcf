@@ -147,6 +147,10 @@ public class WebcrawlerConfig
 
   /** Limit to seeds.  When value attribute is true, only seed domains will be permitted. */
   public static final String NODE_LIMITTOSEEDS = "limittoseeds";
+
+  /** Force the inclusion of redirections.  When value attribute is true, redirected URL will be included. */
+  public static final String NODE_FORCEINCLUSION = "forceinclusionofredirects";
+
   /** Canonicalization rule.  Attributes are regexp, description, reorder, 
   *javasessionremoval, aspsessionremoval, phpsessionremoval, bvsessionremoval */
   public static final String NODE_URLSPEC = "urlspec";
