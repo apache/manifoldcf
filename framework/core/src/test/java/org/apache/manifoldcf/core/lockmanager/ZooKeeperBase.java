@@ -25,11 +25,11 @@ import static org.junit.Assert.*;
 
 public class ZooKeeperBase
 {
-  protected File tempDir;
-  protected ZooKeeperInstance instance;
+  static protected File tempDir;
+  static protected ZooKeeperInstance instance;
   
-  @Before
-  public void startZooKeeper()
+  @BeforeClass
+  public static void startZooKeeper()
     throws Exception
   {
     tempDir = new File("zookeeper");
@@ -38,8 +38,8 @@ public class ZooKeeperBase
     instance.start();
   }
   
-  @After
-  public void stopZookeeper()
+  @AfterClass
+  public static void stopZookeeper()
     throws Exception
   {
     instance.stop();

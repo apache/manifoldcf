@@ -43,6 +43,8 @@
     <path id="framework-classpath">
         <fileset dir="../lib">
             <include name="zookeeper*.jar"/>
+            <include name="metrics-core*.jar" />
+            <include name="snappy-java*.jar" />
             <include name="json-simple*.jar"/>
             <include name="commons-codec*.jar"/>
             <include name="commons-collections-*.jar"/>
@@ -237,7 +239,7 @@
     
     <target name="doc">
         <mkdir dir="dist/doc"/>
-        <javadoc destdir="dist/doc" maxmemory="256M" source="1.8" useexternalfile="true" use="true" locale="en_US">
+        <javadoc destdir="dist/doc" maxmemory="256M" source="11" useexternalfile="true" use="true" locale="en_US">
             <link href="http://docs.oracle.com/javase/8/docs/api/"/>
             <link href="http://manifoldcf.apache.org/release/trunk/api/framework/"/>
             <classpath>
@@ -256,7 +258,7 @@
 
     <target name="compile-less-compiler">
         <mkdir dir="build/less-compiler/classes"/>
-        <javac srcdir="less-compiler/src/main/java" destdir="build/less-compiler/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="less-compiler/src/main/java" destdir="build/less-compiler/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="less-classpath"/>
             </classpath>
@@ -265,7 +267,7 @@
 
     <target name="compile-core">
         <mkdir dir="build/core/classes"/>
-        <javac srcdir="core/src/main/java" destdir="build/core/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="core/src/main/java" destdir="build/core/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
             </classpath>
@@ -274,18 +276,17 @@
 
     <target name="compile-ui-core" depends="compile-core">
         <mkdir dir="build/ui-core/classes"/>
-        <javac srcdir="ui-core/src/main/java" destdir="build/ui-core/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="ui-core/src/main/java" destdir="build/ui-core/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
             </classpath>
         </javac>
-        <native2ascii encoding="UTF-8" src="ui-core/src/main/native2ascii" dest="build/ui-core/classes" includes="**/*.properties" />
     </target>
 
     <target name="compile-agents" depends="compile-core">
         <mkdir dir="build/agents/classes"/>
-        <javac srcdir="agents/src/main/java" destdir="build/agents/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="agents/src/main/java" destdir="build/agents/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -298,7 +299,7 @@
         <copy todir="build/connector-common/classes">
             <fileset dir="connector-common/src/main/resources"/>
         </copy>
-        <javac srcdir="connector-common/src/main/java" destdir="build/connector-common/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="connector-common/src/main/java" destdir="build/connector-common/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <path refid="connector-common-classpath"/>
@@ -311,7 +312,7 @@
 
     <target name="compile-pull-agent" depends="compile-core,compile-agents">
         <mkdir dir="build/pull-agent/classes"/>
-        <javac srcdir="pull-agent/src/main/java" destdir="build/pull-agent/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="pull-agent/src/main/java" destdir="build/pull-agent/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -322,7 +323,7 @@
 
     <target name="compile-jetty-runner" depends="compile-core,compile-agents">
         <mkdir dir="build/jetty-runner/classes"/>
-        <javac srcdir="jetty-runner/src/main/java" destdir="build/jetty-runner/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="jetty-runner/src/main/java" destdir="build/jetty-runner/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -334,7 +335,7 @@
 
     <target name="compile-script-engine" depends="compile-core">
         <mkdir dir="build/script-engine/classes"/>
-        <javac srcdir="script-engine/src/main/java" destdir="build/script-engine/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="script-engine/src/main/java" destdir="build/script-engine/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -344,7 +345,7 @@
 
     <target name="compile-authority-servlet" depends="compile-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/authority-servlet/classes"/>
-        <javac srcdir="authority-servlet/src/main/java" destdir="build/authority-servlet/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="authority-servlet/src/main/java" destdir="build/authority-servlet/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -356,7 +357,7 @@
 
     <target name="compile-authority-service" depends="compile-core,compile-agents,compile-pull-agent,compile-authority-servlet">
         <mkdir dir="build/authority-service/classes"/>
-        <javac srcdir="authority-service/src/main/java" destdir="build/authority-service/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="authority-service/src/main/java" destdir="build/authority-service/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -369,7 +370,7 @@
 
     <target name="compile-api-servlet" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/api-servlet/classes"/>
-        <javac srcdir="api-servlet/src/main/java" destdir="build/api-servlet/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="api-servlet/src/main/java" destdir="build/api-servlet/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -382,7 +383,7 @@
 
     <target name="compile-api-service" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent,compile-api-servlet">
         <mkdir dir="build/api-service/classes"/>
-        <javac srcdir="api-service/src/main/java" destdir="build/api-service/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="api-service/src/main/java" destdir="build/api-service/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -396,7 +397,7 @@
 
     <target name="compile-combined-service" depends="compile-core,compile-ui-core,compile-agents,compile-pull-agent,compile-api-servlet,compile-authority-servlet">
         <mkdir dir="build/combined-service/classes"/>
-        <javac srcdir="combined-service/src/main/java" destdir="build/combined-service/classes" deprecation="true" target="1.8" source="1.8" encoding="utf-8" debug="true" debuglevel="lines,vars,source">
+        <javac srcdir="combined-service/src/main/java" destdir="build/combined-service/classes" deprecation="true" target="11" source="11" encoding="utf-8" debug="true" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -425,7 +426,7 @@
 
     <target name="compile-crawler-ui" depends="less-compiler-invocation,compile-core,compile-ui-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/crawler-ui/classes"/>
-        <javac srcdir="crawler-ui/src/main/java" destdir="build/crawler-ui/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="crawler-ui/src/main/java" destdir="build/crawler-ui/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -451,7 +452,7 @@
         <jasper2 validateXml="false" uriroot="crawler-ui/src/main/webapp" webXmlFragment="build/crawler-ui/web-generated.xml" outputDir="build/crawler-ui/java" /> 
         <!-- Compile java classes -->
         <mkdir dir="build/crawler-ui/classes"/>
-        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath id="classpath">
                 <pathelement location="${java.home}/../lib/tools.jar"/>
                 <path refid="framework-classpath"/>
@@ -1976,7 +1977,7 @@
 
     <target name="compile-core-tests" depends="compile-core">
         <mkdir dir="build/core-tests/classes"/>
-        <javac srcdir="core/src/test/java" destdir="build/core-tests/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="core/src/test/java" destdir="build/core-tests/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -1986,7 +1987,7 @@
 
     <target name="compile-connector-common-tests" depends="compile-connector-common">
         <mkdir dir="build/connector-common-tests/classes"/>
-        <javac srcdir="connector-common/src/test/java" destdir="build/connector-common-tests/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="connector-common/src/test/java" destdir="build/connector-common-tests/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -1998,7 +1999,7 @@
 
     <target name="compile-agents-tests" depends="compile-core-tests,compile-agents">
         <mkdir dir="build/agents-tests/classes"/>
-        <javac srcdir="agents/src/test/java" destdir="build/agents-tests/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="agents/src/test/java" destdir="build/agents-tests/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -2010,7 +2011,7 @@
 
     <target name="compile-pull-agent-tests" depends="compile-agents-tests,compile-pull-agent">
         <mkdir dir="build/pull-agent-tests/classes"/>
-        <javac srcdir="pull-agent/src/test/java" destdir="build/pull-agent-tests/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="pull-agent/src/test/java" destdir="build/pull-agent-tests/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -2024,7 +2025,7 @@
 
     <target name="compile-script-engine-tests" depends="compile-core,compile-script-engine">
         <mkdir dir="build/script-engine-tests/classes"/>
-        <javac srcdir="script-engine/src/test/java" destdir="build/script-engine-tests/classes" deprecation="true" target="1.8" source="1.8" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+        <javac srcdir="script-engine/src/test/java" destdir="build/script-engine-tests/classes" deprecation="true" target="11" source="11" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
