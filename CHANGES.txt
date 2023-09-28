@@ -3,6 +3,16 @@ $Id$
 
 ======================= 2.26-dev =====================
 
+pr-149: Add Webconnector feature:
+The "Force the inclusion of redirection” options allows you to include hosts redirected from original seeds. You might want to use this option if the site you are crawling is subject to redirections. Note that it is not required if the previous option is not checked. Here are the possible behaviors:
+
+   - If the user checks the “Include only hosts”, but not the “Force the inclusion” option, then the redirected files will be filtered if their new URL doesn’t match the seed.
+   - If the user checks the Include only hosts, and checks the Force the inclusion option, then when the job finds a url that is not in the same domain, it is dropped EXCEPT if the url is originated by a 301 or 302 redirection in the document queue.
+   - If the user does NOT check the include only hosts, but checks the Force the inclusion option, then the job will crawl any url found, even if it is originated by a 301 or 302 redirection.
+   - If the user does not check anything, then the behavior is the same as the previous case.
+
+   If the admin checks the second option AND if the first option is checked, then the job will check any host added in the Set. If a host is subject to redirection, then we add the destination URL in the Set.
+(Emeric Bernet-Rollande)
 
 ======================= Release 2.25 =====================
 

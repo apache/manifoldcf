@@ -78,9 +78,12 @@
     <td>#if($INCLUDEMATCHING)$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.yes"))#{else}$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.no"))#{end}</td>
   </tr>
   <tr>
-    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.IncludeInCrawl"))</th>
-    <td><pre>$Encoder.bodyEscape($INCLUSIONS)</pre></td>
+    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.ForceInclusionOfRedirects"))</th>
+    <td>#if($FORCEINCLUSION)$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.yes"))#{else}$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.no"))#{end}</td>
   </tr>
+  <tr>
+    <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.IncludeInCrawl"))</th>
+    <td><pre>$Encoder.bodyEscape($INCLUSIONS)</pre></td>  </tr>
   <tr>
     <th>$Encoder.bodyEscape($ResourceBundle.getString("WebcrawlerConnector.IncludeInIndex"))</th>
     <td><pre>$Encoder.bodyEscape($INCLUSIONSINDEX)</pre></td>
