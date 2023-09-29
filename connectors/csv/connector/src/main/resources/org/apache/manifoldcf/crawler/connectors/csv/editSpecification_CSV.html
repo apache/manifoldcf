@@ -1,0 +1,113 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+#if($TABNAME == $ResourceBundle.getString('CSV.CSVTabName') && ${SEQNUM} == ${SELECTEDNUM})
+
+
+<table class="displaytable">
+
+  <tr>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('CSV.FilesPaths'))</nobr></td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"></td>
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('CSV.FilePath'))</nobr></td>
+        </tr>
+
+  #set($filepathcounter = 0)
+  #foreach($filepath in $FILEPATHS)
+    #set($filepathcounterdisplay = $filepathcounter + 1)
+    #if(($filepathcounter % 2) == 0)
+        <tr class="evenformrow">
+    #else
+        <tr class="oddformrow">
+    #end
+          <td class="formcolumncell">
+            <a name="s${SEQNUM}_filepath_$filepathcounter">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('CSV.Delete'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('CSV.DeleteFilePath'))$filepathcounterdisplay" onclick='javascript:s${SEQNUM}_deleteFilePath("$filepathcounter");'/>
+              <input type="hidden" name="s${SEQNUM}_filepath_op_$filepathcounter" value="Continue"/>
+              <input type="hidden" name="s${SEQNUM}_filepath_value_$filepathcounter" value="$Encoder.attributeEscape($filepath)"/>
+            </a>
+          </td>
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($filepath)</nobr>
+          </td>
+        </tr>
+    #set($filepathcounter = $filepathcounter + 1)
+  #end
+  
+  #if($filepathcounter == 0)
+        <tr class="formrow"><td class="formmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('CSV.NoFilePathSpecified'))</td></tr>
+  #end
+      
+        <tr class="formrow"><td class="formseparator" colspan="3"><hr/></td></tr>
+        <tr class="formrow">
+          <td class="formcolumncell">
+            <a name="filepath">
+              <input type="button" value="$Encoder.attributeEscape($ResourceBundle.getString('CSV.Add'))" alt="$Encoder.attributeEscape($ResourceBundle.getString('CSV.AddFilePath'))" onclick="javascript:s${SEQNUM}_addFilePath();"/>
+            </a>
+            <input type="hidden" name="s${SEQNUM}_filepath_count" value="$filepathcounter"/>
+            <input type="hidden" name="s${SEQNUM}_filepath_op" value="Continue"/>
+          </td>
+          <td class="formcolumncell">
+            <nobr><input type="text" size="35" name="s${SEQNUM}_filepath_value" value=""/></nobr>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CSV.Separator'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="s${SEQNUM}_separator" size="10" value="$Encoder.attributeEscape($SEPARATOR)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CSV.ContentColumn'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="s${SEQNUM}_contentcolumn" size="25" value="$Encoder.attributeEscape($CONTENTCOLUMN)"/>
+    </td>
+  </tr>
+  <tr>
+    <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CSV.IdColumn'))</nobr>
+    </td>
+    <td class="value">
+      <input type="text" name="s${SEQNUM}_idcolumn" size="25" value="$Encoder.attributeEscape($IDCOLUMN)"/>
+    </td>
+  </tr>
+  
+</table>
+#else
+
+  #set($filepathcounter = 0)
+  #foreach($filepath in $FILEPATHS)
+<input type="hidden" name="s${SEQNUM}_filepath_value_$filepathcounter" value="$Encoder.attributeEscape($filepath)"/>
+    #set($filepathcounter = $filepathcounter + 1)
+  #end
+<input type="hidden" name="s${SEQNUM}_filepath_count" value="$filepathcounter"/>
+<input type="hidden" name="s${SEQNUM}_contentcolumn" value="$CONTENTCOLUMN"/>
+<input type="hidden" name="s${SEQNUM}_contentcolumn" value="$IDCOLUMN"/>
+<input type="hidden" name="s${SEQNUM}_separator" value="$SEPARATOR"/>
+
+
+#end

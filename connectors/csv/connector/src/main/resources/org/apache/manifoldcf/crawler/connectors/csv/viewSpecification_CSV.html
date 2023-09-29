@@ -1,0 +1,77 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<table class="displaytable">
+
+ <tr>
+  <td class="description">
+      <nobr>$Encoder.bodyEscape($ResourceBundle.getString('CSV.FilesPaths'))</nobr>
+    </td>
+    <td class="boxcell">
+      <table class="formtable">
+        <tr class="formheaderrow">
+          <td class="formcolumnheader"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('CSV.FilePath'))</nobr></td>
+        </tr>
+
+  #set($filepathcounter = 0)
+  #foreach($filepath in $FILEPATHS)
+    #if(($filepathcounter % 2) == 0)
+        <tr class="evenformrow">
+    #else
+        <tr class="oddformrow">
+    #end
+          <td class="formcolumncell">
+            <nobr>$Encoder.bodyEscape($filepath)</nobr>
+          </td>
+        </tr>
+    #set($filepathcounter = $filepathcounter + 1)
+  #end
+  
+  #if($filepathcounter == 0)
+        <tr class="formrow"><td class="formmessage" colspan="3">$Encoder.bodyEscape($ResourceBundle.getString('CSV.NoFilePathSpecified'))</td></tr>
+  #end
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="description" style="max-width: 5em;">
+      $Encoder.bodyEscape($ResourceBundle.getString('CSV.Separator'))
+    </td>
+    <td class="message">
+      <nobr>$Encoder.bodyEscape($SEPARATOR)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description" style="max-width: 5em;">
+      $Encoder.bodyEscape($ResourceBundle.getString('CSV.ContentColumn'))
+    </td>
+    <td class="message">
+      <nobr>$Encoder.bodyEscape($CONTENTCOLUMN)</nobr>
+    </td>
+  </tr>
+  <tr>
+    <td class="description" style="max-width: 5em;">
+      $Encoder.bodyEscape($ResourceBundle.getString('CSV.IdColumn'))
+    </td>
+    <td class="message">
+      <nobr>$Encoder.bodyEscape($IDCOLUMN)</nobr>
+    </td>
+  </tr>
+  
+  
+
+</table>
