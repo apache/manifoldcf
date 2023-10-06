@@ -80,6 +80,7 @@
     <module>html-extractor</module>
     <module>mongodb</module>
     <module>csws</module>
+    <module>csv</module>
   </modules>
 
 </project>

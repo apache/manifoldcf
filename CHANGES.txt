@@ -3,6 +3,10 @@ $Id$
 
 ======================= 2.26-dev =====================
 
+pr-152: Add new CSV-only connector.  This is in addition to
+existing CSV support in the JDBC connector, which is now deprecated.
+(Guylaine Bassett)
+
 pr-149: Add Webconnector feature:
 The "Force the inclusion of redirection” options allows you to include hosts redirected from original seeds. You might want to use this option if the site you are crawling is subject to redirections. Note that it is not required if the previous option is not checked. Here are the possible behaviors:
 
