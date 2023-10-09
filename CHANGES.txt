@@ -1,7 +1,7 @@
 ManifoldCF Change Log
 $Id$
 
-======================= 2.26-dev =====================
+======================= Release 2.26 =====================
 
 pr-152: Add new CSV-only connector.  This is in addition to
 existing CSV support in the JDBC connector, which is now deprecated.
