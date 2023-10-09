@@ -1,6 +1,9 @@
 ManifoldCF Change Log
 $Id$
 
+======================= 2.27-dev =====================
+
+
 ======================= Release 2.26 =====================
 
 pr-152: Add new CSV-only connector.  This is in addition to
