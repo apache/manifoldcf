@@ -376,8 +376,17 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
       String emailAddress = params.getParameter(WebcrawlerConfig.PARAMETER_EMAIL);
       if (emailAddress == null)
         throw new ManifoldCFException("Missing email address");
-      userAgent = "Mozilla/5.0 (ApacheManifoldCFWebCrawler; "+emailAddress+")";
       from = emailAddress;
+
+      // Set User-Agent according to the User-Agent platform type.
+      final String userAgentPlatform = params.getParameter(WebcrawlerConfig.PARAMETER_USER_AGENT_PLATFORM);
+      if (userAgentPlatform == null || userAgentPlatform.equals("Desktop")) {
+        // Set desktop related User-Agent.
+        userAgent = "Mozilla/5.0 (ApacheManifoldCFWebCrawler; "+emailAddress+")";
+      } else {
+        // Set mobile related User-Agent.
+        userAgent = "Mozilla/5.0 (ApacheManifoldCFWebCrawler; "+emailAddress+"; iPhone) Mobile";
+      }
 
       String robotsTxt = params.getParameter(WebcrawlerConfig.PARAMETER_ROBOTSUSAGE);
       robotsUsage = ROBOTS_ALL;
@@ -1570,6 +1579,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.AccessCredentials"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Certificates"));
     tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.Proxy"));
+    tabsArray.add(Messages.getString(locale,"WebcrawlerConnector.RequestHeaders"));
 
     final Map<String,Object> velocityContext = new HashMap<String,Object>();
     Messages.outputResourceWithVelocity(out, locale, "editConfiguration.js.vm", velocityContext);
@@ -1678,6 +1688,15 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     velocityContext.put("PROXYAUTHDOMAIN",proxyAuthDomain);
     velocityContext.put("PROXYAUTHUSERNAME",proxyAuthUsername);
     velocityContext.put("PROXYAUTHPASSWORD",proxyAuthPassword);
+  }
+
+  private void fillInRequestHeadersTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters)
+  {
+    String userAgentPlatform = parameters.getParameter(WebcrawlerConfig.PARAMETER_USER_AGENT_PLATFORM);
+    if (userAgentPlatform == null)
+      userAgentPlatform = "Desktop";
+
+    velocityContext.put("USER_AGENT_PLATFORM",userAgentPlatform);
   }
 
   private void fillInCertificatesTab(Map<String,Object> velocityContext, IHTTPOutput out, ConfigParams parameters) throws ManifoldCFException
@@ -1878,6 +1897,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     fillInAccessTab(velocityContext,out,parameters);
     fillInCertificatesTab(velocityContext,out,parameters);
     fillInProxyTab(velocityContext,out,parameters);
+    fillInRequestHeadersTab(velocityContext,out,parameters);
 
     // Email tab
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Email.html.vm",velocityContext);
@@ -1891,6 +1911,8 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Certificates.html.vm",velocityContext);
     // Proxy tab
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Proxy.html.vm",velocityContext);
+    // Request Headers tab
+    Messages.outputResourceWithVelocity(out,locale,"editConfiguration_RequestHeaders.html.vm",velocityContext);
 
   }
   
@@ -1932,6 +1954,9 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     String proxyAuthPassword = variableContext.getParameter("proxyauthpassword");
     if (proxyAuthPassword != null)
       parameters.setObfuscatedParameter(WebcrawlerConfig.PARAMETER_PROXYAUTHPASSWORD,variableContext.mapKeyToPassword(proxyAuthPassword));
+    final String userAgentPlatform = variableContext.getParameter("user_agent_platform");
+    if (userAgentPlatform != null)
+      parameters.setParameter(WebcrawlerConfig.PARAMETER_USER_AGENT_PLATFORM,userAgentPlatform);
 
     String x = variableContext.getParameter("bandwidth_count");
     if (x != null && x.length() > 0)
@@ -2317,6 +2342,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
     fillInAccessTab(velocityContext,out,parameters);
     fillInCertificatesTab(velocityContext,out,parameters);
     fillInProxyTab(velocityContext,out,parameters);
+    fillInRequestHeadersTab(velocityContext,out,parameters);
 
     Messages.outputResourceWithVelocity(out,locale,"viewConfiguration.html.vm",velocityContext);
 
