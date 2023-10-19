@@ -8,3 +8,8 @@
 /dist/
 lib-proprietary/*.jar
 site/fonts/
+/.DS_Store
+*.class
+/connectors/*/target/classes
+/connectors/*/target/generated-sources
+/connectors/*/target/test-classes

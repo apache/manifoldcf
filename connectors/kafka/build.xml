@@ -30,7 +30,7 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
-    <property name="kafka.version" value="0.8.2.1"/>
+    <property name="kafka.version" value="3.6.0"/>
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
@@ -58,7 +58,56 @@
             <param name="target" value="test-materials"/>
             <param name="project-path" value="org/apache/kafka"/>
             <param name="artifact-version" value="${kafka.version}"/>
-            <param name="artifact-name" value="kafka_2.11"/>
+            <param name="artifact-name" value="kafka_2.13"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="org/apache/kafka"/>
+            <param name="artifact-version" value="${kafka.version}"/>
+            <param name="artifact-name" value="kafka-server-common"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="org/apache/kafka"/>
+            <param name="artifact-version" value="${kafka.version}"/>
+            <param name="artifact-name" value="kafka-group-coordinator"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="org/apache/kafka"/>
+            <param name="artifact-version" value="${kafka.version}"/>
+            <param name="artifact-name" value="kafka-raft"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="org/apache/kafka"/>
+            <param name="artifact-version" value="${kafka.version}"/>
+            <param name="artifact-name" value="kafka-storage"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="org/apache/kafka"/>
+            <param name="artifact-version" value="${kafka.version}"/>
+            <param name="artifact-name" value="kafka-metadata"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="com/typesafe/scala-logging"/>
+            <param name="artifact-version" value="3.9.5"/>
+            <param name="artifact-name" value="scala-logging_3"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="commons-validator"/>
+            <param name="artifact-version" value="1.7"/>
+            <param name="artifact-name" value="commons-validator"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
@@ -78,29 +127,29 @@
         <antcall target="download-via-maven">
             <param name="target" value="test-materials"/>
             <param name="project-path" value="org/scala-lang"/>
-            <param name="artifact-version" value="2.11.0"/>
+            <param name="artifact-version" value="2.13.11"/>
             <param name="artifact-name" value="scala-library"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="test-materials"/>
             <param name="project-path" value="net/sf/jopt-simple"/>
-            <param name="artifact-version" value="3.2"/>
+            <param name="artifact-version" value="5.0.4"/>
             <param name="artifact-name" value="jopt-simple"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="test-materials"/>
             <param name="project-path" value="org/scala-lang/modules"/>
-            <param name="artifact-version" value="1.0.4"/>
-            <param name="artifact-name" value="scala-xml_2.11"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="scala-xml_2.13"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="test-materials"/>
             <param name="project-path" value="org/scala-lang/modules"/>
-            <param name="artifact-version" value="1.0.4"/>
-            <param name="artifact-name" value="scala-parser-combinators_2.11"/>
+            <param name="artifact-version" value="2.2.0"/>
+            <param name="artifact-name" value="scala-parser-combinators_2.13"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
@@ -108,6 +157,20 @@
             <param name="project-path" value="com/101tec"/>
             <param name="artifact-version" value="0.6"/>
             <param name="artifact-name" value="zkclient"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="io/netty"/>
+            <param name="artifact-version" value="4.1.100.Final"/>
+            <param name="artifact-name" value="netty-handler"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="org/scala-lang/modules"/>
+            <param name="artifact-version" value="1.0.2"/>
+            <param name="artifact-name" value="scala-java8-compat_3"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -119,7 +182,7 @@
     </target>
 
     <target name="calculate-testcode-condition">
-        <available file="test-materials/kafka_2.11-${kafka.version}.jar" property="tests-present"/>
+        <available file="test-materials/kafka_2.13-${kafka.version}.jar" property="tests-present"/>
     </target>
 
     <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
@@ -133,6 +196,7 @@
             <include name="kafka-clients*.jar"/>
             <include name="lz4*.jar"/>
             <include name="snappy-java*.jar"/>
+            <include name="metrics-core*.jar"/>
         </fileset>
         <fileset dir="test-materials">
             <include name="zkclient*.jar"/>
@@ -140,9 +204,17 @@
             <include name="metrics-core*.jar"/>
             <include name="jopt-simple*.jar"/>
             <include name="scala-library*.jar"/>
-            <include name="kafka_2.11*.jar"/>
-            <include name="scala-xml_2.11*.jar"/>
-            <include name="scala-parser-combinators_2.11*.jar"/>
+            <include name="kafka_2.13*.jar"/>
+            <include name="kafka-server-common*.jar"/>
+            <include name="kafka-group-coordinator*.jar"/>
+            <include name="kafka-raft*.jar"/>
+            <include name="kafka-storage*.jar"/>
+            <include name="kafka-metadata*.jar"/>
+            <include name="scala-logging_3*.jar"/>
+            <include name="commons-validator*.jar"/>
+            <include name="scala-parser-combinators_2.13*.jar"/>
+            <include name="netty-handler*.jar"/>
+            <include name="scala-java8-compat_3*.jar"/>
         </fileset>
     </path>
 
