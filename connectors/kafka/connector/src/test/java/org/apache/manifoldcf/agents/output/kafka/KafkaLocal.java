@@ -18,12 +18,13 @@ package org.apache.manifoldcf.agents.output.kafka;
 
 import java.io.IOException;
 import java.util.Properties;
+import org.apache.kafka.common.utils.Time;
 import kafka.server.KafkaConfig;
-import kafka.server.KafkaServerStartable;
+import kafka.server.KafkaServer;
 
 public class KafkaLocal {
 
-  public KafkaServerStartable kafka;
+  public KafkaServer kafka;
   public ZooKeeperLocal zookeeper;
 
   public KafkaLocal(Properties kafkaProperties, Properties zkProperties) throws IOException, InterruptedException {
@@ -35,7 +36,7 @@ public class KafkaLocal {
     System.out.println("done");
 
     //start local kafka broker
-    kafka = new KafkaServerStartable(kafkaConfig);
+    kafka = new KafkaServer(kafkaConfig, Time.SYSTEM, scala.Option.empty(), false);
     System.out.println("starting local kafka broker...");
 
     kafka.startup();

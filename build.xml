@@ -36,8 +36,8 @@
     <property name="httpmime.version" value="4.5.13"/>
     <property name="httpcore.version" value="4.4.15"/>
     <property name="xerces.version" value="2.12.2"/>
-    <property name="zookeeper.version" value="3.8.0"/>
-    <property name="metrics-core.version" value="4.1.12.1"/>
+    <property name="zookeeper.version" value="3.9.1"/>
+    <property name="metrics-core.version" value="4.2.21"/>
     <property name="snappy-java.version" value="1.1.7.7"/>
     <property name="mongodb.version" value="2.14.3"/>
     <property name="postgresql.version" value="42.1.3"/>
@@ -2198,7 +2198,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven">
             <param name="target" value="lib"/>
             <param name="project-path" value="org/apache/kafka"/>
-            <param name="artifact-version" value="0.8.2.1"/>
+            <param name="artifact-version" value="3.6.0"/>
             <param name="artifact-name" value="kafka-clients"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
