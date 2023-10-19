@@ -133,7 +133,6 @@ public class KafkaOutputConnector extends org.apache.manifoldcf.agents.output.Ba
     props.put(ProducerConfig.ACKS_CONFIG, "all");
     props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "none");
     props.put(ProducerConfig.BATCH_SIZE_CONFIG, 200);
-    props.put(ProducerConfig.BLOCK_ON_BUFFER_FULL_CONFIG, true);
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
     producer = new KafkaProducer(props);
