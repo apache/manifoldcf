@@ -316,11 +316,6 @@
       <version>4.2.21</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.scala-lang.modules</groupId>
-      <artifactId>scala-java8-compat_3</artifactId>
-      <version>1.0.2</version>
-    </dependency>
     
     <dependency>
       <groupId>${project.groupId}</groupId>
@@ -514,12 +509,6 @@
           <artifactId>log4j</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-handler</artifactId>
-      <version>4.1.100.Final</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
