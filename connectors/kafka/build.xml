@@ -159,20 +159,6 @@
             <param name="artifact-name" value="zkclient"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven">
-            <param name="target" value="test-materials"/>
-            <param name="project-path" value="io/netty"/>
-            <param name="artifact-version" value="4.1.100.Final"/>
-            <param name="artifact-name" value="netty-handler"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven">
-            <param name="target" value="test-materials"/>
-            <param name="project-path" value="org/scala-lang/modules"/>
-            <param name="artifact-version" value="1.0.2"/>
-            <param name="artifact-name" value="scala-java8-compat_3"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
     </target>
 
     <target name="download-cleanup">

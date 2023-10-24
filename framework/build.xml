@@ -43,6 +43,8 @@
     <path id="framework-classpath">
         <fileset dir="../lib">
             <include name="zookeeper*.jar"/>
+            <include name="netty-handler*.jar"/>
+            <include name="scala-java8-compat_3*.jar"/>
             <include name="metrics-core*.jar" />
             <include name="snappy-java*.jar" />
             <include name="json-simple*.jar"/>
@@ -51,7 +53,7 @@
             <include name="commons-collections4-*.jar"/>
             <include name="commons-el*.jar"/>
             <include name="commons-fileupload*.jar"/>
-        	<include name="http2*.jar"/>
+            <include name="http2*.jar"/>
             <include name="httpcore*.jar"/>
             <include name="httpclient*.jar"/>
             <include name="commons-io*.jar"/>
@@ -523,6 +525,8 @@
         <copy todir="build/webapp/authority-service/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
+                <include name="netty-handler*.jar"/>
+                <include name="scala-java8-compat_3*.jar"/>
                 <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -572,6 +576,8 @@
         <copy todir="build/webapp/authority-service-proprietary/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
+                <include name="netty-handler*.jar"/>
+                <include name="scala-java8-compat_3*.jar"/>
                 <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -627,6 +633,8 @@
         <copy todir="build/webapp/api-service/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
+                <include name="netty-handler*.jar"/>
+                <include name="scala-java8-compat_3*.jar"/>
                 <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -677,6 +685,8 @@
         <copy todir="build/webapp/api-service-proprietary/WEB-INF/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
+                <include name="netty-handler*.jar"/>
+                <include name="scala-java8-compat_3*.jar"/>
                 <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -734,6 +744,8 @@
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
+                <include name="netty-handler*.jar"/>
+                <include name="scala-java8-compat_3*.jar"/>
                 <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -798,6 +810,8 @@
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
+                <include name="netty-handler*.jar"/>
+                <include name="scala-java8-compat_3*.jar"/>
                 <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -870,6 +884,8 @@
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
+                <include name="netty-handler*.jar"/>
+                <include name="scala-java8-compat_3*.jar"/>
                 <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -934,6 +950,8 @@
             <fileset dir="../lib">
                 <include name="jstl*.jar"/>
                 <include name="zookeeper*.jar"/>
+                <include name="netty-handler*.jar"/>
+                <include name="scala-java8-compat_3*.jar"/>
                 <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -1067,6 +1085,8 @@
         <copy todir="dist/lib">
             <fileset dir="../lib">
                 <include name="zookeeper*.jar"/>
+                <include name="netty-handler*.jar"/>
+                <include name="scala-java8-compat_3*.jar"/>
                 <include name="json-simple*.jar"/>
                 <include name="commons-codec*.jar"/>
                 <include name="commons-collections*.jar"/>
@@ -1317,6 +1337,8 @@
     <path id="zookeeper-lib">
         <fileset dir="../lib">
             <include name="zookeeper*.jar"/>
+            <include name="netty-handler*.jar"/>
+            <include name="scala-java8-compat_3*.jar"/>
             <include name="slf4j-api*.jar"/>
             <include name="slf4j-simple*.jar"/>
             <include name="log4j-1.2.*.jar"/>
@@ -1358,6 +1380,8 @@
             <include name="guava*.jar"/>
             <include name="jna*.jar"/>
             <include name="zookeeper*.jar"/>
+            <include name="netty-handler*.jar"/>
+            <include name="scala-java8-compat_3*.jar"/>
         </fileset>
         <fileset dir="../lib">
             <include name="javax.activation*.jar"/>
@@ -1668,6 +1692,8 @@
                 <include name="preflight*.jar"/>
                 <include name="kafka*.jar"/>
                 <include name="zookeeper*.jar"/>
+                <include name="netty-handler*.jar"/>
+                <include name="scala-java8-compat_3*.jar"/>
                 <include name="bcmail-jdk15*.jar"/>
                 <include name="bcutil-jdk15*.jar"/>
                 <include name="bcprov-jdk15*.jar"/>
