@@ -116,6 +116,8 @@
         </fileset>
         <fileset dir="${mcf-dist}/lib">
             <include name="zookeeper*.jar"/>
+            <include name="netty-handler*.jar"/>
+            <include name="scala-java8-compat_3*.jar"/>
             <include name="javax.mail*.jar"/>
             <include name="commons-exec*.jar"/>
             <include name="guava*.jar"/>
