@@ -321,7 +321,7 @@
       <artifactId>scala-java8-compat_3</artifactId>
       <version>1.0.2</version>
     </dependency>
-    
+
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>mcf-agents</artifactId>
