@@ -2520,13 +2520,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="netty-handler"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven">
-            <param name="target" value="lib"/>
-            <param name="project-path" value="org/scala-lang/modules"/>
-            <param name="artifact-version" value="1.0.2"/>
-            <param name="artifact-name" value="scala-java8-compat_3"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
     </target>
     
     <target name="download-commons-exec">

@@ -18,10 +18,14 @@
 */
 package org.apache.manifoldcf.agents.output.solr.tests;
 
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import javax.servlet.http.HttpServlet;
@@ -39,15 +43,27 @@ public class MockSolrService
     
   public MockSolrService()
   {
-    server = new Server(new QueuedThreadPool(35));
-    ServerConnector connector = new ServerConnector(server);
+    QueuedThreadPool qtp = new QueuedThreadPool();
+    qtp.setMaxThreads(35);
+    qtp.setIdleTimeout(60000);
+    qtp.setReservedThreads(0);
+    server = new Server(qtp);
+    server.manage(qtp);
+    server.setStopAtShutdown(true);
+
+    HttpConfiguration config = new HttpConfiguration();
+    ServerConnector connector = new ServerConnector(server, new HttpConnectionFactory(config), new HTTP2CServerConnectionFactory(config));
+    connector.setReuseAddress(true);
+    connector.setIdleTimeout(60000);
     connector.setPort(8188);
-    server.addConnector(connector);
-    servlet = new SolrServlet();
-    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    server.setConnectors(new Connector[] {connector});
+
+    // Initialize the servlets
+    final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     context.setInitParameter("org.eclipse.jetty.servlet.SessionIdPathParameterName","none");
-    context.setContextPath("/solr");
+    context.setContextPath("/solr/collection1");
     server.setHandler(context);
+    servlet = new SolrServlet();
     context.addServlet(new ServletHolder(servlet), "/*");
   }
     

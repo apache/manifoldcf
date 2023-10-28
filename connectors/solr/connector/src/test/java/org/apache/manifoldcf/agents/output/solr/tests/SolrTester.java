@@ -68,10 +68,12 @@ public class SolrTester
     configParams.setParameter(SolrConfig.PARAM_SERVER,"localhost");
     configParams.setParameter(SolrConfig.PARAM_PORT,"8188");
     configParams.setParameter(SolrConfig.PARAM_WEBAPPNAME,"solr");
+    configParams.setParameter(SolrConfig.PARAM_COLLECTION,"collection1");
     configParams.setParameter(SolrConfig.PARAM_UPDATEPATH,"/update/extract");
     configParams.setParameter(SolrConfig.PARAM_REMOVEPATH,"/update");
     configParams.setParameter(SolrConfig.PARAM_STATUSPATH,"/admin/ping");
     configParams.setParameter(SolrConfig.PARAM_IDFIELD,"id");
+    configParams.setParameter(SolrConfig.PARAM_COMMITS,"true");
     // Now, save
     outputMgr.save(outputConn);
 

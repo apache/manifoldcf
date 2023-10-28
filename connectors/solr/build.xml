@@ -86,6 +86,38 @@
         </copy>
     </target>
 
+    <target name="download-dependencies">
+        <mkdir dir="test-materials"/>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="org/eclipse/jetty/http2"/>
+            <param name="artifact-version" value="9.4.48.v20220622"/>
+            <param name="artifact-name" value="http2-server"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven">
+            <param name="target" value="test-materials"/>
+            <param name="project-path" value="org/eclipse/jetty/http2"/>
+            <param name="artifact-version" value="9.4.48.v20220622"/>
+            <param name="artifact-name" value="http2-common"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    </target>
+
+    <target name="download-cleanup">
+        <delete>
+            <fileset dir="test-materials" excludes="README*.txt"/>
+        </delete>
+    </target>
+
+    <path id="connector-test-classpath">
+        <path refid="mcf-connector-build.connector-test-classpath"/>
+        <fileset dir="test-materials">
+            <include name="http2-server*.jar"/>
+            <include name="http2-common*.jar"/>
+        </fileset>
+    </path>
+
     <target name="deliver-connector" depends="mcf-connector-build.deliver-connector">
         <antcall target="general-add-output-connector">
             <param name="connector-label" value="Solr"/>
