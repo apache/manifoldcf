@@ -52,11 +52,7 @@
   <repositories>
     <repository>
 	  <id>public-releases</id>
-	  <url>https://maven.nuxeo.org/nexus/content/repositories/public-releases/</url>
-    </repository>
-    <repository>
-	  <id>public-snapshots</id>
-	  <url>https://maven.nuxeo.org/nexus/content/repositories/public-snapshots/</url>
+	  <url>https://packages.nuxeo.com/repository/maven-public-archives</url>
     </repository>
   </repositories>
   <!-- Nuxeo repositories -->

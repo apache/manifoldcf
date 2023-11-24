@@ -106,7 +106,7 @@
 
     <target name="download-cleanup">
         <delete>
-            <fileset dir="test-materials" excludes="README*.txt"/>
+            <fileset dir="test-materials" erroronmissingdir="false" excludes="README*.txt"/>
         </delete>
     </target>
 
