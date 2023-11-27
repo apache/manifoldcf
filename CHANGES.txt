@@ -3,6 +3,11 @@ $Id$
 
 ======================= 2.27-dev =====================
 
+CONNECTORS-1751: HDFS Connector - Maven build issue
+(Piergiorgio Lucidi)
+
+CONNECTORS-1750: Build broken due to the Nuxeo Maven repo not available
+(Piergiorgio Lucidi)
 
 ======================= Release 2.26 =====================
 
