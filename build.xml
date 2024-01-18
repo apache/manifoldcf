@@ -2180,13 +2180,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <!-- Download and unpack binary artifact -->
         <mkdir dir="build/download"/>
         <mkdir dir="lib/elasticsearch"/>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.1/apache-manifoldcf-elasticsearch-plugin-2.1-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-plugin-bin.zip"/>
+    	<get src="https://downloads.apache.org/manifoldcf/apache-manifoldcf-elasticsearch-plugin-2.1/apache-manifoldcf-elasticsearch-plugin-2.1-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-elasticsearch-plugin-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-plugin-bin"/>
         <copy todir="lib/elasticsearch">
             <fileset dir="build/download/apache-manifoldcf-elasticsearch-plugin-bin/elasticsearch-plugin-mcf-2.1"/>
         </copy>
         <mkdir dir="lib/elasticsearch-1.5"/>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.2/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.2-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-1.5-plugin-bin.zip"/>
+    	<get src="https://downloads.apache.org/manifoldcf/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.2/apache-manifoldcf-elasticsearch-1.5-plugin-2.0.2-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-1.5-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-elasticsearch-1.5-plugin-bin.zip" dest="build/download/apache-manifoldcf-elasticsearch-1.5-plugin-bin"/>
         <copy todir="lib/elasticsearch-1.5">
             <fileset dir="build/download/apache-manifoldcf-elasticsearch-1.5-plugin-bin/elasticsearch-1.5-plugin-mcf-2.0.2"/>
@@ -2315,7 +2315,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib/sharepoint-2007"/>
         <!-- Download and unpack binary artifact -->
         <mkdir dir="build/download"/>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5/apache-manifoldcf-sharepoint-2007-plugin-0.5-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2007-plugin-bin.zip"/>
+    	<get src="https://downloads.apache.org/manifoldcf/apache-manifoldcf-sharepoint-2007-plugin-0.5/apache-manifoldcf-sharepoint-2007-plugin-0.5-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2007-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-sharepoint-2007-plugin-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2007-plugin-bin"/>
         <copy todir="lib/sharepoint-2007">
             <fileset dir="build/download/apache-manifoldcf-sharepoint-2007-plugin-bin/apache-manifoldcf-sharepoint-2007-plugin-0.5"/>
@@ -2323,7 +2323,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib/sharepoint-2010"/>
         <!-- Download and unpack binary artifact -->
         <mkdir dir="build/download"/>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2010-plugin-0.4/apache-manifoldcf-sharepoint-2010-plugin-0.4-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin.zip"/>
+    	<get src="https://downloads.apache.org/manifoldcf/apache-manifoldcf-sharepoint-2010-plugin-0.4/apache-manifoldcf-sharepoint-2010-plugin-0.4-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin"/>
         <copy todir="lib/sharepoint-2010">
             <fileset dir="build/download/apache-manifoldcf-sharepoint-2010-plugin-bin/apache-manifoldcf-sharepoint-2010-plugin-0.4"/>
@@ -2331,7 +2331,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib/sharepoint-2013"/>
         <!-- Download and unpack binary artifact -->
         <mkdir dir="build/download"/>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2013-plugin-0.1/apache-manifoldcf-sharepoint-2013-plugin-0.1-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2013-plugin-bin.zip"/>
+    	<get src="https://downloads.apache.org/manifoldcf/apache-manifoldcf-sharepoint-2013-plugin-0.1/apache-manifoldcf-sharepoint-2013-plugin-0.1-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2013-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-sharepoint-2013-plugin-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2013-plugin-bin"/>
         <copy todir="lib/sharepoint-2013">
             <fileset dir="build/download/apache-manifoldcf-sharepoint-2013-plugin-bin/apache-manifoldcf-sharepoint-2013-plugin-0.1"/>
@@ -2339,7 +2339,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib/sharepoint-2016"/>
         <!-- Download and unpack binary artifact -->
         <mkdir dir="build/download"/>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-sharepoint-2016-plugin-0.1/apache-manifoldcf-sharepoint-2016-plugin-0.1-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2016-plugin-bin.zip"/>
+    	<get src="https://downloads.apache.org/manifoldcf/apache-manifoldcf-sharepoint-2016-plugin-0.1/apache-manifoldcf-sharepoint-2016-plugin-0.1-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2016-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-sharepoint-2016-plugin-bin.zip" dest="build/download/apache-manifoldcf-sharepoint-2016-plugin-bin"/>
         <copy todir="lib/sharepoint-2016">
             <fileset dir="build/download/apache-manifoldcf-sharepoint-2016-plugin-bin/apache-manifoldcf-sharepoint-2016-plugin-0.1"/>
@@ -2349,38 +2349,38 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-solr-plugins">
         <mkdir dir="lib/solr-3.x"/>
         <mkdir dir="build/download"/>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.2/apache-manifoldcf-solr-3.x-plugin-2.2-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip"/>
+    	<get src="https://downloads.apache.org/manifoldcf/apache-manifoldcf-solr-3.x-plugin-2.2/apache-manifoldcf-solr-3.x-plugin-2.2-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-3.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-3.x-plugin-bin"/>
         <copy todir="lib/solr-3.x">
             <fileset dir="build/download/apache-manifoldcf-solr-3.x-plugin-bin/apache-manifoldcf-solr-3.x-plugin-2.2"/>
         </copy>
         <mkdir dir="lib/solr-4.x"/>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.2/apache-manifoldcf-solr-4.x-plugin-2.2-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip"/>
+    	<get src="https://downloads.apache.org/manifoldcf/apache-manifoldcf-solr-4.x-plugin-2.2/apache-manifoldcf-solr-4.x-plugin-2.2-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-4.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-4.x-plugin-bin"/>
         <copy todir="lib/solr-4.x">
             <fileset dir="build/download/apache-manifoldcf-solr-4.x-plugin-bin/apache-manifoldcf-solr-4.x-plugin-2.2"/>
         </copy>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-5.x-plugin-2.2/apache-manifoldcf-solr-5.x-plugin-2.2-bin.zip" dest="build/download/apache-manifoldcf-solr-5.x-plugin-bin.zip"/>
+    	<get src="https://downloads.apache.org/manifoldcf/apache-manifoldcf-solr-5.x-plugin-2.2/apache-manifoldcf-solr-5.x-plugin-2.2-bin.zip" dest="build/download/apache-manifoldcf-solr-5.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-5.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-5.x-plugin-bin"/>
         <copy todir="lib/solr-5.x">
             <fileset dir="build/download/apache-manifoldcf-solr-5.x-plugin-bin/apache-manifoldcf-solr-5.x-plugin-2.2"/>
         </copy>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-6.x-plugin-2.2/apache-manifoldcf-solr-6.x-plugin-2.2-bin.zip" dest="build/download/apache-manifoldcf-solr-6.x-plugin-bin.zip"/>
+    	<get src="https://downloads.apache.org/manifoldcf/apache-manifoldcf-solr-6.x-plugin-2.2/apache-manifoldcf-solr-6.x-plugin-2.2-bin.zip" dest="build/download/apache-manifoldcf-solr-6.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-6.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-6.x-plugin-bin"/>
         <copy todir="lib/solr-6.x">
             <fileset dir="build/download/apache-manifoldcf-solr-6.x-plugin-bin/apache-manifoldcf-solr-6.x-plugin-2.2"/>
         </copy>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-7.x-plugin-2.2.1/apache-manifoldcf-solr-7.x-plugin-2.2.1-bin.zip" dest="build/download/apache-manifoldcf-solr-7.x-plugin-bin.zip"/>
+    	<get src="https://downloads.apache.org/manifoldcf/apache-manifoldcf-solr-7.x-plugin-2.2.1/apache-manifoldcf-solr-7.x-plugin-2.2.1-bin.zip" dest="build/download/apache-manifoldcf-solr-7.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-7.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-7.x-plugin-bin"/>
         <copy todir="lib/solr-7.x">
             <fileset dir="build/download/apache-manifoldcf-solr-7.x-plugin-bin/apache-manifoldcf-solr-7.x-plugin-2.2.1"/>
         </copy>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-8.x-plugin-2.2/apache-manifoldcf-solr-8.x-plugin-2.2-bin.zip" dest="build/download/apache-manifoldcf-solr-8.x-plugin-bin.zip"/>
+    	<get src="https://downloads.apache.org/manifoldcf/apache-manifoldcf-solr-8.x-plugin-2.2/apache-manifoldcf-solr-8.x-plugin-2.2-bin.zip" dest="build/download/apache-manifoldcf-solr-8.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-8.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-8.x-plugin-bin"/>
         <copy todir="lib/solr-8.x">
             <fileset dir="build/download/apache-manifoldcf-solr-8.x-plugin-bin/apache-manifoldcf-solr-8.x-plugin-2.2"/>
         </copy>
-        <get src="https://www.apache.org/dist/manifoldcf/apache-manifoldcf-solr-9.x-plugin-2.2/apache-manifoldcf-solr-9.x-plugin-2.2-bin.zip" dest="build/download/apache-manifoldcf-solr-9.x-plugin-bin.zip"/>
+    	<get src="https://downloads.apache.org/manifoldcf/apache-manifoldcf-solr-9.x-plugin-2.2/apache-manifoldcf-solr-9.x-plugin-2.2-bin.zip" dest="build/download/apache-manifoldcf-solr-9.x-plugin-bin.zip"/>
         <unzip src="build/download/apache-manifoldcf-solr-9.x-plugin-bin.zip" dest="build/download/apache-manifoldcf-solr-9.x-plugin-bin"/>
         <copy todir="lib/solr-9.x">
             <fileset dir="build/download/apache-manifoldcf-solr-9.x-plugin-bin/apache-manifoldcf-solr-9.x-plugin-2.2"/>

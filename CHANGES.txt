@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.27-dev =====================
 
+CONNECTORS-1753: ant make-core-deps fails
+(Guylaine Bassett)
+
 CONNECTORS-1751: HDFS Connector - Maven build issue
 (Piergiorgio Lucidi)
 
@@ -16,7 +19,7 @@ existing CSV support in the JDBC connector, which is now deprecated.
 (Guylaine Bassett)
 
 pr-149: Add Webconnector feature:
-The "Force the inclusion of redirection” options allows you to include hosts redirected from original seeds. You might want to use this option if the site you are crawling is subject to redirections. Note that it is not required if the previous option is not checked. Here are the possible behaviors:
+The "Force the inclusion of redirection” options allows you to include hosts redirected from original seeds. You might want to use this option if the site yofmu are crawling is subject to redirections. Note that it is not required if the previous option is not checked. Here are the possible behaviors:
 
    - If the user checks the “Include only hosts”, but not the “Force the inclusion” option, then the redirected files will be filtered if their new URL doesn’t match the seed.
    - If the user checks the Include only hosts, and checks the Force the inclusion option, then when the job finds a url that is not in the same domain, it is dropped EXCEPT if the url is originated by a 301 or 302 redirection in the document queue.
