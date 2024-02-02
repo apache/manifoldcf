@@ -20,7 +20,7 @@ run-name: ${{ github.actor }} is executing the RAT license check🚀
 
 on:
   workflow_dispatch:
-
+  
 jobs:
   licenseCheck:
     runs-on: ubuntu-22.04
@@ -33,15 +33,6 @@ jobs:
           distribution: 'temurin'
           architecture: x64
           cache: maven
-      - name: Setup Ant
-        uses: cedx/setup-ant@v2
-        with:
-          optional-tasks: true
-          version: 1.10.14
-      - name: Setup Maven
-        uses: s4u/setup-maven-action@1.11.0
-        with:
-          maven-version: 3.9.6
       - name: Ant Build
         run: ant make-core-deps make-deps
       - name: Maven Build
