@@ -34,7 +34,7 @@ jobs:
           architecture: x64
           cache: maven
       - name: Setup Ant
-      - uses: cedx/setup-ant@v2
+        uses: cedx/setup-ant@v2
         with:
           optional-tasks: true
           version: 1.10.14
