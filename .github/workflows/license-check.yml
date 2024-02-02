@@ -36,7 +36,7 @@ jobs:
       - name: Ant Build
         run: ant make-core-deps make-deps
       - name: Maven Build
-        run: mvn clean install -Dmaven.test.skip=true
+        run: mvn clean install -DskipITs
       - name: RAT licence checks
         run: mvn -pl . org.apache.rat:apache-rat:check
       - name: RAT Report
