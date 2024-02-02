@@ -96,6 +96,12 @@
     <jsoup.version>1.7.2</jsoup.version>
     <cxf.version>3.5.0</cxf.version>
     <jaxws-ri.version>2.3.2</jaxws-ri.version>
+    <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
+    <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
+    <maven-rat-plugin.version>0.16.1</maven-rat-plugin.version>
+    <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
+    <maven-apache-source-release-assembly-descriptor.version>1.5</maven-apache-source-release-assembly-descriptor.version>
+    
   </properties>
 
   <modules>
@@ -111,13 +117,18 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>2.4</version>
+          <version>${maven-source-plugin.version}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>2.3.1</version>
+          <version>${maven-jar-plugin.version}</version>
         </plugin>
+        <plugin>
+		    <groupId>org.apache.rat</groupId>
+		    <artifactId>apache-rat-plugin</artifactId>
+		    <version>${maven-rat-plugin.version}</version>
+		  </plugin>
       </plugins>
     </pluginManagement>
 
@@ -172,7 +183,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.11.0</version>
+        <version>3.12.1</version>
         <configuration>
           <source>11</source>
           <target>11</target>
@@ -183,7 +194,7 @@
 
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>2.5</version>
+        <version>3.3.1</version>
         <configuration>
           <encoding>UTF-8</encoding>
         </configuration>
@@ -191,9 +202,23 @@
 
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
-        <version>2.4.1</version>
+        <version>3.3.2</version>
       </plugin>
-
+      
+      <plugin>
+	    <groupId>org.apache.rat</groupId>
+	    <artifactId>apache-rat-plugin</artifactId>
+	    <configuration>
+              <excludes>
+                   <exclude>CHANGES.txt</exclude>
+                   <exclude>DEPENDENCIES.txt</exclude>
+                   <exclude>site/src/documentation/skins/lucene/note.txt</exclude>
+                   <exclude>site/src/documentation/skins/common/xslt/html/split.xsl</exclude>
+                   <exclude>dist-license/DEPENDENCIES.txt</exclude>
+              </excludes>
+         </configuration>
+      </plugin>
+     
     </plugins>
   </build>
 
@@ -211,7 +236,7 @@
                         <dependency>
                             <groupId>org.apache.apache.resources</groupId>
                             <artifactId>apache-source-release-assembly-descriptor</artifactId>
-                            <version>1.0.4</version>
+                            <version>${maven-apache-source-release-assembly-descriptor.version}</version>
                         </dependency>
                     </dependencies>
                     <executions>

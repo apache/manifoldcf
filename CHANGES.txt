@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.27-dev =====================
 
+CONNECTORS-1754: Converting release scripts to GitHub workflows
+(Piergiorgio Lucidi)
+
 CONNECTORS-1753: ant make-core-deps fails
 (Guylaine Bassett)
 
