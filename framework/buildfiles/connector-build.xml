@@ -130,6 +130,7 @@
             <include name="commons-fileupload*.jar"/>
             <include name="httpcore*.jar"/>
             <include name="httpclient*.jar"/>
+            <include name="httpmime*.jar"/>
             <include name="commons-io*.jar"/>
             <include name="commons-lang*.jar"/>
             <include name="commons-logging*.jar"/>
