@@ -26,13 +26,26 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
-      - name: Set up OpenJDK 11 Temurin
+      - name: Set up OpenJDK 11 Temurin x64
         uses: actions/setup-java@v4.0.0
         with:
           java-version: '11'
           distribution: 'temurin'
           architecture: x64
           cache: maven
+      - name: Setup Ant
+      - uses: cedx/setup-ant@v2
+        with:
+          optional-tasks: true
+          version: 1.10.14
+      - name: Setup Maven
+        uses: s4u/setup-maven-action@1.11.0
+        with:
+          maven-version: 3.9.6
+      - name: Ant Build
+        run: ant make-core-deps make-deps
+      - name: Maven Build
+        run: mvn clean install -Dmaven.test.skip=true
       - name: RAT licence checks
         run: mvn -pl . org.apache.rat:apache-rat:check
       - name: RAT Report
