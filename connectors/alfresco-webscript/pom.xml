@@ -178,12 +178,7 @@
                             </artifactItems>
                         </configuration>
                     </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
+                     <execution>
                         <id>unpack-filtered-alfresco-indexer-war</id>
                         <phase>generate-resources</phase>
                         <goals>

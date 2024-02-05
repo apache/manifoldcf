@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>16</version>
+    <version>31</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -105,7 +105,7 @@
   </properties>
 
   <modules>
-      <module>framework</module>
+    <module>framework</module>
     <module>test-materials</module>
     <module>connectors</module>
     <module>framework/jetty-runner</module>
