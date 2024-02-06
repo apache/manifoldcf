@@ -43,29 +43,30 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   public static final String _rcsid = "@(#)$Id: ActiveDirectoryAuthority.java 988245 2010-08-23 18:39:35Z kwright $";
 
   // Data from the parameters
-  
+
   /** The list of suffixes and the associated domain controllers */
   private List<DCRule> dCRules = null;
   /** How to create a connection for a DC, keyed by DC name */
   private Map<String,DCConnectionParameters> dCConnectionParameters = null;
-  
+
   private boolean hasSessionParameters = false;
   private String cacheLifetime = null;
   private String cacheLRUsize = null;
   private long responseLifetime = 60000L;
   private int LRUsize = 1000;
   private String ldapConnectionTimeout = null;
+  private boolean returnGroupsName = false;
 
   /** Session information for all DC's we talk with. */
   private Map<String,DCSessionInfo> sessionInfo = null;
-  
+
   /** Cache manager. */
   private ICacheManager cacheManager = null;
-  
-  
+
+
   /** The length of time in milliseconds that the connection remains idle before expiring.  Currently 5 minutes. */
   private static final long expirationInterval = 300000L;
-  
+
   /** Constructor.
   */
   public ActiveDirectoryAuthority()
@@ -148,7 +149,11 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       cacheLifetime = "1";
     cacheLRUsize = params.getParameter(ActiveDirectoryConfig.PARAM_CACHELRUSIZE);
     if (cacheLRUsize == null)
-      cacheLRUsize = "1000";    
+      cacheLRUsize = "1000";
+
+    if (params.getParameter(ActiveDirectoryConfig.PARAM_ACLSGROUPSNAME) != null) {
+      returnGroupsName = params.getParameter(ActiveDirectoryConfig.PARAM_ACLSGROUPSNAME).equals("true");
+    }
   }
 
   protected static String deobfuscate(String input)
@@ -393,6 +398,10 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       String returnedAtts[]={"tokenGroups","objectSid"};
       searchCtls.setReturningAttributes(returnedAtts);
 
+      // placeholder for an LDAP filter that will store SIDs of the groups the user belongs to
+      final StringBuffer groupsSearchFilter = new StringBuffer();
+      groupsSearchFilter.append("(|");
+
       //Search for tokens.  Since every user *must* have a SID, the "no user" detection should be safe.
       NamingEnumeration answer = ctx.search(searchBase, searchFilter, searchCtls);
 
@@ -405,17 +414,25 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
  
         //the sr.GetName should be null, as it is relative to the base object
         
-        Attributes attrs = sr.getAttributes();
+        final Attributes attrs = sr.getAttributes();
         if (attrs != null)
         {
           try
           {
-            for (NamingEnumeration ae = attrs.getAll();ae.hasMore();) 
-            {
-              Attribute attr = (Attribute)ae.next();
-              for (NamingEnumeration e = attr.getAll();e.hasMore();)
-              {
-                theGroups.add(sid2String((byte[])e.next()));
+            if (attrs.get("tokenGroups") != null) {
+              for (final NamingEnumeration ae = attrs.get("tokenGroups").getAll(); ae.hasMore();) {
+                final byte[] sid = (byte[]) ae.next();
+                theGroups.add(sid2String(sid));
+                if (returnGroupsName) {
+                  groupsSearchFilter.append("(objectSid=" + sid2String(sid) + ")");
+                }
+              }
+              groupsSearchFilter.append(")");
+            }
+
+            if (attrs.get("objectSid") != null) {
+              for (final NamingEnumeration ae = attrs.get("objectSid").getAll(); ae.hasMore();) {
+                theGroups.add(sid2String((byte[]) ae.next()));
               }
             }
  
@@ -432,6 +449,32 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       if (theGroups.size() == 0) {
         Logging.authorityConnectors.info("User not found: " + userName);
         return RESPONSE_USERNOTFOUND;
+      }
+
+      if (returnGroupsName) {
+        // Search for groups the user belongs to in order to get their names
+        // Create the search controls
+        final SearchControls groupsSearchCtls = new SearchControls();
+
+        // Specify the search scope
+        groupsSearchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
+        // In principle, the attribute used to find the group name is the same as that used to find the user name
+        final String[] groupsReturnedAttrs = { "sAMAccountName" };
+        groupsSearchCtls.setReturningAttributes(groupsReturnedAttrs);
+
+        // Search for objects using the filter
+        final NamingEnumeration<SearchResult> groupsAnswer = ctx.search(domainsb.toString(), groupsSearchFilter.toString(), groupsSearchCtls);
+
+        // Loop through the search results
+        while (groupsAnswer.hasMoreElements()) {
+
+          final SearchResult sr = (SearchResult) groupsAnswer.next();
+          final Attributes attrs = sr.getAttributes();
+          if (attrs != null) {
+            theGroups.add(attrs.get("sAMAccountName").get());
+          }
+        }
       }
 
       // All users get certain well-known groups
@@ -492,6 +535,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
   {
     tabsArray.add(Messages.getString(locale,"ActiveDirectoryAuthority.DomainController"));
     tabsArray.add(Messages.getString(locale,"ActiveDirectoryAuthority.Cache"));
+    tabsArray.add(Messages.getString(locale, "ActiveDirectoryAuthority.ACLs"));
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration.js",null);
   }
   
@@ -512,8 +556,10 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     velocityContext.put("TabName",tabName);
     fillInDomainControllerTab(velocityContext,out,parameters);
     fillInCacheTab(velocityContext,out,parameters);
+    fillInACLsTab(velocityContext, out, parameters);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_DomainController.html",velocityContext);
     Messages.outputResourceWithVelocity(out,locale,"editConfiguration_Cache.html",velocityContext);
+    Messages.outputResourceWithVelocity(out, locale, "editConfiguration_ACLs.html", velocityContext);
   }
   
   protected static void fillInDomainControllerTab(Map<String,Object> velocityContext, IPasswordMapperActivity mapper, ConfigParams parameters)
@@ -586,6 +632,13 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     if (cacheLRUsize == null)
       cacheLRUsize = "1000";
     velocityContext.put("CACHELRUSIZE",cacheLRUsize);
+  }
+
+  protected static void fillInACLsTab(final Map<String, Object> velocityContext, final IPasswordMapperActivity mapper, final ConfigParams parameters) {
+    String aclsGroupsName = parameters.getParameter(ActiveDirectoryConfig.PARAM_ACLSGROUPSNAME);
+    if (aclsGroupsName == null)
+      aclsGroupsName = "false";
+    velocityContext.put("ACLSGROUPSNAME", aclsGroupsName);
   }
 
   /** Process a configuration post.
@@ -676,7 +729,13 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     String cacheLRUsize = variableContext.getParameter("cachelrusize");
     if (cacheLRUsize != null)
       parameters.setParameter(ActiveDirectoryConfig.PARAM_CACHELRUSIZE,cacheLRUsize);
-    
+
+    parameters.setParameter(ActiveDirectoryConfig.PARAM_ACLSGROUPSNAME, "false");
+    final String aclsGroupsName = variableContext.getParameter("aclsgroupsname");
+    if (aclsGroupsName != null) {
+      parameters.setParameter(ActiveDirectoryConfig.PARAM_ACLSGROUPSNAME, aclsGroupsName);
+    }
+
     return null;
   }
   
@@ -713,6 +772,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
     Map<String,Object> velocityContext = new HashMap<String,Object>();
     fillInDomainControllerTab(velocityContext,out,parameters);
     fillInCacheTab(velocityContext,out,parameters);
+    fillInACLsTab(velocityContext, out, parameters);
     Messages.outputResourceWithVelocity(out,locale,"viewConfiguration.html",velocityContext);
   }
 
@@ -779,7 +839,7 @@ public class ActiveDirectoryAuthority extends org.apache.manifoldcf.authorities.
       throw new ManifoldCFException(e.getMessage(),e);
     }
   }
-    	
+
   /** Convert a binary SID to a string */
   protected static String sid2String(byte[] SID)
   {

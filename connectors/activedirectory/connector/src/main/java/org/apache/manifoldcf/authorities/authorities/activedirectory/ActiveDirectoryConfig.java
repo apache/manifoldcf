@@ -27,6 +27,8 @@ public class ActiveDirectoryConfig
 
   // Configuration parameters
 
+  /** ACLs Groups Name */
+  public static final String PARAM_ACLSGROUPSNAME = "ACLs Groups name";
   /** Domain controller */
   public static final String PARAM_DOMAINCONTROLLER = "Domain controller";
   /** Administrative user name */
@@ -46,9 +48,9 @@ public class ActiveDirectoryConfig
 
   /** Domain controller node */
   public static final String NODE_DOMAINCONTROLLER = "domaincontroller";
-  
+
   // Attributes
-  
+
   /** Domain suffix */
   public static final String ATTR_SUFFIX = "suffix";
   /** DC server name */
