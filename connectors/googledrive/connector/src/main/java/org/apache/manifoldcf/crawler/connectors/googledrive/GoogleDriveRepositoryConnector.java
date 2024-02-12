@@ -54,10 +54,9 @@ import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
 
-import com.google.api.client.repackaged.com.google.common.base.Objects;
+import com.google.common.base.Objects;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.drive.model.File;
-import com.google.api.services.drive.model.ParentReference;
 
 /**
  *
@@ -981,33 +980,24 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 
     for (String documentIdentifier : documentIdentifiers) {
       File googleFile = getObject(documentIdentifier);
-
-      // StringBuilder log = new StringBuilder();
-      // log.append("File Original Name: " + googleFile.getOriginalFilename());
-      // log.append(System.getProperty("line.separator"));
-      // log.append("File Title: " + googleFile.getTitle());
-      // log.append(System.getProperty("line.separator"));
-      // log.append("File Description: " + googleFile.getDescription());
-      // log.append(System.getProperty("line.separator"));
-      // log.append("File Extension: " + googleFile.getFileExtension());
-      // log.append(System.getProperty("line.separator"));
-      // log.append("File MimeType: " + googleFile.getMimeType());
-      // log.append(System.getProperty("line.separator"));
-      // log.append("File Version: " + googleFile.getVersion());
-      // log.append(System.getProperty("line.separator"));
-      //
-      // System.out.println(log);
-
+      
+      if (Logging.connectors.isDebugEnabled()) {
+        Logging.connectors.debug("GOOGLEDRIVE: Processing document identifier '"
+            + documentIdentifier + "'");
+        Logging.connectors.debug("GOOGLEDRIVE: have this file:\t" + googleFile.getName());
+      }
+      
       String versionString;
       
-      if (googleFile == null || (googleFile.containsKey("explicitlyTrashed") && googleFile.getExplicitlyTrashed())) {
+      if (googleFile == null || (googleFile.containsKey("explicitlyTrashed") && googleFile.getExplicitlyTrashed()) || 
+          googleFile.getMimeType().equals("application/vnd.google-apps.shortcut")) {
         //its deleted, move on
         activities.deleteDocument(documentIdentifier);
         continue;
       }
 
       if (!isDir(googleFile)) {
-        String rev = googleFile.getModifiedDate().toStringRfc3339();
+        String rev = googleFile.getModifiedTime().toStringRfc3339();
         if (StringUtils.isNotEmpty(rev)) {
           StringBuilder sb = new StringBuilder();
 
@@ -1046,7 +1036,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
           if (Logging.connectors.isDebugEnabled()) {
             Logging.connectors.debug("GOOGLEDRIVE: Processing document identifier '"
                 + nodeId + "'");
-            Logging.connectors.debug("GOOGLEDRIVE: have this file:\t" + googleFile.getTitle());
+            Logging.connectors.debug("GOOGLEDRIVE: have this file:\t" + googleFile.getName());
           }
 
           if ("application/vnd.google-apps.folder".equals(googleFile.getMimeType())) {
@@ -1110,16 +1100,16 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
             }
 
             // Get the file length
-            Long fileLengthLong = Objects.firstNonNull(googleFile.getFileSize(), 0L);
+            Long fileLengthLong = googleFile.getSize() != null ? googleFile.getSize() : 0L;
             if (fileLengthLong != null) {
 
               // Now do standard stuff
               long fileLength = fileLengthLong.longValue();
               String mimeType = googleFile.getMimeType();
-              DateTime createdDateObject = googleFile.getCreatedDate();
-              DateTime modifiedDateObject = googleFile.getModifiedDate();
+              DateTime createdDateObject = googleFile.getCreatedTime();
+              DateTime modifiedDateObject = googleFile.getModifiedTime();
               String extension = googleFile.getFileExtension();
-              String title = cleanupFileFolderName(googleFile.getTitle());
+              String title = cleanupFileFolderName(googleFile.getName());
               Date createdDate = (createdDateObject==null)?null:new Date(createdDateObject.getValue());
               Date modifiedDate = (modifiedDateObject==null)?null:new Date(modifiedDateObject.getValue());
               // We always direct to the PDF except for Spreadsheets
@@ -1353,14 +1343,14 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
 	try {
       if (!isDir(googleFile)) {
         if (googleFile.getParents() != null && !googleFile.getParents().isEmpty()) {
-          ParentReference parentRef = googleFile.getParents().get(0);
+          String parentRef = googleFile.getParents().get(0);
           File parent;
 
-          parent = getObject(parentRef.getId());
+          parent = getObject(parentRef);
 
           String path = getFilePath(parent);
           String name;
-          String title = cleanupFileFolderName(googleFile.getTitle());
+          String title = cleanupFileFolderName(googleFile.getName());
 
           String extension = googleFile.getFileExtension();
 
@@ -1387,7 +1377,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
         }
       } else {
         String path = getFilePath(googleFile);
-        String name = cleanupFileFolderName(googleFile.getTitle());
+        String name = cleanupFileFolderName(googleFile.getName());
         fullContentPath = path + SLASH + name;
       }
     } catch (ManifoldCFException e) {
@@ -1407,7 +1397,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
     String folderPath = "";
     String fullFilePath = null;
 
-    List<ParentReference> parentReferencesList = file.getParents();
+    List<String> parentReferencesList = file.getParents();
     List<String> folderList = new ArrayList<String>();
 
     List<String> finalFolderList = getfoldersList(parentReferencesList, folderList);
@@ -1417,21 +1407,22 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
       folderPath += "/" + folder;
     }
 
-    fullFilePath = folderPath + "/" + cleanupFileFolderName(file.getTitle());
+    fullFilePath = folderPath + "/" + cleanupFileFolderName(file.getName());
 
     return fullFilePath;
   }
 
-  private List<String> getfoldersList(List<ParentReference> parentReferencesList, List<String> folderList)
+  private List<String> getfoldersList(List<String> parentReferencesList, List<String> folderList)
     throws IOException, ManifoldCFException, ServiceInterruption {
-    for (int i = 0; i < parentReferencesList.size(); i++) {
-      String id = parentReferencesList.get(i).getId();
+    
+    for (int i = 0; parentReferencesList != null && i < parentReferencesList.size(); i++) {
+      String id = parentReferencesList.get(i);
 
       File file = getObject(id);
-      folderList.add(cleanupFileFolderName(file.getTitle()));
+      folderList.add(cleanupFileFolderName(file.getName()));
 
-      if (!(file.getParents().isEmpty())) {
-        List<ParentReference> parentReferenceslist2 = file.getParents();
+      if (file.getParents() != null && !(file.getParents().isEmpty())) {
+        List<String> parentReferenceslist2 = file.getParents();
         getfoldersList(parentReferenceslist2, folderList);
       }
     }
@@ -1491,7 +1482,7 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
   */
   protected static String getUrl(File googleFile, String exportType) {
     if (googleFile.containsKey("fileSize")) {
-      return googleFile.getDownloadUrl();
+      return googleFile.getWebContentLink();
     } else {
       return (googleFile.getExportLinks() != null) ? googleFile.getExportLinks().get(exportType) : null;
     }

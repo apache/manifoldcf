@@ -48,6 +48,8 @@
                 <include name="jackson-core*.jar"/>
                 <include name="jsr305*.jar"/>
                 <include name="j2objc-annotations*.jar"/>
+                <include name="grpc-context*.jar"/>
+                <include name="opencensus*.jar"/>
             </fileset>
         </copy>
     </target>
