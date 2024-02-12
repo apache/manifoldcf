@@ -114,6 +114,8 @@ public class WebcrawlerConfig
   public static final String ATTR_TRUSTSTORE = "truststore";
   /** "Trust everything" attribute - replacing truststore if set to 'true' */
   public static final String ATTR_TRUSTEVERYTHING = "trusteverything";
+  /** Support mobile User-Agent for crawling mobile websites which restrict access based on User-Agent header. */
+  public static final String PARAMETER_USER_AGENT_PLATFORM = "User-Agent platform";
 
   // Constants used in the document specification part of the configuration structure.
   // This describes the "what" of the job.
