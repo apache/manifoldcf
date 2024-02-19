@@ -30,8 +30,15 @@ import org.apache.manifoldcf.connectorcommon.fuzzyml.*;
 
 import org.apache.http.conn.ConnectTimeoutException;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 import java.net.*;
 import java.util.regex.*;
@@ -5913,7 +5920,7 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
                 // In case of redirection, if "Force the inclusion of redirects" is set to true, we add the redirected url to seedHosts
                 try {
                   seedHosts.add(getFinalURL(urlCandidate));
-                } catch (IOException e) {
+                } catch (IOException|KeyManagementException e) {
                   // Skip the entry
                 }
               }
@@ -6123,23 +6130,42 @@ public class WebcrawlerConnector extends org.apache.manifoldcf.crawler.connector
    * @param url The initial url
    * @return the url after redirection
    */
-  public static String getFinalURL(String url) throws IOException, URISyntaxException {
-    URL formattedUrl = new URL(url);
-    URLConnection urlConnection = formattedUrl.openConnection();
-    HttpURLConnection con = (HttpURLConnection) urlConnection;
-    con.setInstanceFollowRedirects(false);
-    con.connect();
-    con.getInputStream();
+  public static String getFinalURL(String url) throws IOException, URISyntaxException, KeyManagementException {
+    try {
+      // Required to ignore SSL verification while retrieving final URL from redirections
+      TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+        @Override
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() { return null; }
+        public void checkClientTrusted(X509Certificate[] certs, String authType) { }
+        public void checkServerTrusted(X509Certificate[] certs, String authType) { }
 
-    if (con.getResponseCode() == HttpURLConnection.HTTP_MOVED_PERM || con.getResponseCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
-      String redirectUrl = con.getHeaderField("Location");
-      return getFinalURL(redirectUrl);
+      } };
+
+      SSLContext sc = SSLContext.getInstance("SSL");
+      sc.init(null, trustAllCerts, new java.security.SecureRandom());
+      HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+      URL formattedUrl = new URL(url);
+      URLConnection urlConnection = formattedUrl.openConnection();
+      HttpsURLConnection con = (HttpsURLConnection) urlConnection;
+      con.setInstanceFollowRedirects(false);
+      con.connect();
+      con.getInputStream();
+
+      if (con.getResponseCode() == HttpURLConnection.HTTP_MOVED_PERM || con.getResponseCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
+        String redirectUrl = con.getHeaderField("Location");
+        return getFinalURL(redirectUrl);
+      }
+
+      final java.net.URI uri = new URI(url);
+      return uri.getHost();
+    } catch (IOException | NoSuchAlgorithmException e) {
+      throw new IOException(e);
+    } catch (KeyManagementException e) {
+      throw new KeyManagementException(e);
     }
-
-    final java.net.URI uri = new URI(url);
-    return uri.getHost();
   }
-  
+
+
 }
 
 
