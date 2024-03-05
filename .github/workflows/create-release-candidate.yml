@@ -29,7 +29,7 @@ on:
         required: true
   
 jobs:
-  licenseCheck:
+  createReleaseCandidate:
     runs-on: ubuntu-22.04
     steps:
       - name: Init Release Candidate workflow
