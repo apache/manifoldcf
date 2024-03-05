@@ -20,6 +20,7 @@ run-name: ${{ github.actor }} is executing Create Release Branch
 permissions:
   contents: write
 on:
+  push:
   workflow_dispatch:
     inputs:
       releasecandidatetag:
@@ -28,7 +29,7 @@ on:
         required: true
   
 jobs:
-  licenseCheck:
+  createReleaseCandidate:
     runs-on: ubuntu-22.04
     steps:
       - name: Init Release Candidate workflow
