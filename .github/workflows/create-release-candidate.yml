@@ -1,0 +1,119 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+name: Create Release Candidate
+run-name: ${{ github.actor }} is executing Create Release Branch
+permissions:
+  contents: write
+on:
+  workflow_dispatch:
+    inputs:
+      releasecandidatetag:
+        description: 'Release Candidate Tag' 
+        default: 'RC0'
+        required: true
+  
+jobs:
+  licenseCheck:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Init Release Candidate workflow
+        run: echo "Starting Apache ManifoldCF workflow for building ${{ github.events.input.releasecandidatetag }}"
+      - uses: actions/checkout@v4.1.1
+      - name: Set up OpenJDK 11 Temurin x64
+        uses: actions/setup-java@v4.0.0
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          architecture: x64
+          cache: maven
+      
+      - name: Get Maven POM version
+        id: mavenProjectVersion
+        run: echo "version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_OUTPUT
+      
+      - name: Initialize mandatory git config
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "$(gh api /users/${GITHUB_ACTOR} | jq .name -r)"
+          git config user.email ${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com
+      
+      - name: Create new release candidate branch
+        run: git branch ${{ steps.mavenProjectVersion.outputs.version }}-${{ github.events.input.releasecandidatetag }}
+      
+      - name: Update all the Maven modules with the new version
+        run: mvn versions:set -DnewVersion=${{ steps.mavenProjectVersion.outputs.version }} -DremoveSnapshot -DgenerateBackupPoms=false
+      
+      - name: Update Ant script with the new RC version
+        run: sed -i 's/${{ steps.mavenProjectVersion.outputs.version }}-dev/${{ steps.mavenProjectVersion.outputs.version }}/g' build.xml;
+      
+      - name: Update CHANGES.txt
+        run: sed -i 's/${{ steps.mavenProjectVersion.outputs.version }}-dev/Release ${{ steps.mavenProjectVersion.outputs.version }}/g' CHANGES.txt;
+      
+      - name: Ant Build
+        run: ant make-core-deps make-deps image
+      
+      - name: Maven Build
+        run: mvn clean install -DskipTests -DskipITs
+      
+      - name: RAT licence checks
+        run: mvn -pl . apache-rat:check
+      
+      - name: Generate RAT License Report
+        if: always()
+        run: |
+          echo -e "Printing RAT report\n"
+          cat target/rat.txt || true
+      
+      - name: Commit and Push
+        run: |
+          find . -name 'pom.xml' -exec git add {} \;
+          git add CHANGES.txt build.xml
+          git commit -am "${{ steps.mavenProjectVersion.outputs.version }}-${{ github.events.input.releasecandidatetag }} created"
+          git push
+            
+      - name: Upload artifacts - Binary - zip format
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-${{ github.events.input.releasecandidatetag }}-bin.zip
+          path: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-bin.zip
+      
+      - name: Upload artifacts - Lib - tar.gz format
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-${{ github.events.input.releasecandidatetag }}-lib.tar.gz
+          path: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-lib.tar.gz
+      
+      - name: Upload artifacts - Lib - zip format
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-${{ github.events.input.releasecandidatetag }}-lib.zip
+          path: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-lib.zip
+      
+      - name: Upload artifacts - Source code - tar.gz format
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-${{ github.events.input.releasecandidatetag }}-src.tar.gz
+          path: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-src-tar.gz
+      
+      - name: Upload artifacts - Source code - zip format
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-${{ github.events.input.releasecandidatetag }}-src.zip
+          path: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-src-zip
+      
