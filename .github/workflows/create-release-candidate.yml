@@ -20,6 +20,7 @@ run-name: ${{ github.actor }} is executing Create Release Branch
 permissions:
   contents: write
 on:
+  push:
   workflow_dispatch:
     inputs:
       releasecandidatetag:
