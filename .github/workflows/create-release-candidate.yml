@@ -54,8 +54,16 @@ jobs:
           git config user.name "$(gh api /users/${GITHUB_ACTOR} | jq .name -r)"
           git config user.email ${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com
       
+      - name: Create Branch Version
+        id: branchVersion
+        run: |
+          currentMavenVersion="${{ steps.mavenProjectVersion.outputs.version }}"
+          suffixToRemove="SNAPSHOT"
+          branchVersion=${currentMavenVersion%"$suffixToRemove"}
+          echo "${branchVersion}" >> $GITHUB_OUTPUT
+      
       - name: Create new release candidate branch
-        run: git branch ${{ steps.mavenProjectVersion.outputs.version }}-${{ github.events.input.releasecandidatetag }}
+        run: git branch ${{ steps.branchVersion.outputs.version }}${{ github.events.input.releasecandidatetag }}
       
       - name: Update all the Maven modules with the new version
         run: mvn versions:set -DnewVersion=${{ steps.mavenProjectVersion.outputs.version }} -DremoveSnapshot -DgenerateBackupPoms=false

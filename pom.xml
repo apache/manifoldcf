@@ -215,6 +215,7 @@
                    <exclude>site/src/documentation/skins/lucene/note.txt</exclude>
                    <exclude>site/src/documentation/skins/common/xslt/html/split.xsl</exclude>
                    <exclude>dist-license/DEPENDENCIES.txt</exclude>
+                   <exclude>site/tmp/font/*</exclude>
               </excludes>
          </configuration>
       </plugin>
