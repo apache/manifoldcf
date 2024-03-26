@@ -132,7 +132,6 @@ jobs:
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip
       
       - name: Upload Release Candidate Asset - Binary - zip format
-        id: upload-release-candidate-assets 
         uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -149,7 +148,6 @@ jobs:
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.tar.gz
       
       - name: Upload Release Candidate Asset - Lib - tar.gz format
-        id: upload-release-candidate-assets 
         uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -166,7 +164,6 @@ jobs:
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.zip
       
       - name: Upload Release Candidate Asset - Lib - zip format
-        id: upload-release-candidate-assets 
         uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -183,7 +180,6 @@ jobs:
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.tar.gz
       
       - name: Upload Release Candidate Asset - Source code - tar.gz format
-        id: upload-release-candidate-assets 
         uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -200,7 +196,6 @@ jobs:
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip
       
       - name: Upload Release Candidate Asset - Source code - zip format
-        id: upload-release-candidate-assets 
         uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
