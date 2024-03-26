@@ -62,8 +62,20 @@ jobs:
           branchVersion=${currentMavenVersion%"$suffixToRemove"}
           echo "version=${branchVersion}" >> $GITHUB_OUTPUT
       
+      - name: Set Branch Tag output
+        id: branchTag
+        run: echo "tag=${{ steps.branchVersion.outputs.version }}${{ github.event.inputs.releasecandidatetag }}" >> $GITHUB_OUTPUT
+      
       - name: Create new release candidate branch
-        run: git branch ${{ steps.branchVersion.outputs.version }}${{ github.event.inputs.releasecandidatetag }}
+        run: |
+          git branch ${{ steps.branchTag.outputs.tag }}
+          git commit -am "New branch for release candidate ${{ steps.branchTag.outputs.tag }} created"
+          git push
+      
+      - name: Checkout the new branch ${{ steps.branchTag.outputs.tag }}
+        uses: actions/checkout@v4.1.1
+        with:
+          ref: ${{ steps.branchTag.outputs.tag }}
       
       - name: Update all the Maven modules with the new version
         run: mvn versions:set -DnewVersion=${{ steps.mavenProjectVersion.outputs.version }} -DremoveSnapshot -DgenerateBackupPoms=false
@@ -93,36 +105,40 @@ jobs:
         run: |
           find . -name 'pom.xml' -exec git add {} \;
           git add CHANGES.txt build.xml
-          git commit -am "${{ steps.mavenProjectVersion.outputs.version }}-${{ github.event.inputs.releasecandidatetag }} created"
+          git commit -am "New branch for release candidate ${{ steps.branchTag.outputs.tag }} created"
           git push
-            
+      
+      - name: Set Artifact version output
+        id: artifactVersion
+        run: echo "version=${{ steps.branchVersion.outputs.version }}dev" >> $GITHUB_OUTPUT
+      
       - name: Upload artifacts - Binary - zip format
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-${{ github.event.inputs.releasecandidatetag }}-bin.zip
-          path: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-bin.zip
+          name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip
+          path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip
       
       - name: Upload artifacts - Lib - tar.gz format
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-${{ github.event.inputs.releasecandidatetag }}-lib.tar.gz
-          path: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-lib.tar.gz
+          name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.tar.gz
+          path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.tar.gz
       
       - name: Upload artifacts - Lib - zip format
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-${{ github.event.inputs.releasecandidatetag }}-lib.zip
-          path: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-lib.zip
+          name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.zip
+          path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.zip
       
       - name: Upload artifacts - Source code - tar.gz format
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-${{ github.event.inputs.releasecandidatetag }}-src.tar.gz
-          path: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-src-tar.gz
+          name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.tar.gz
+          path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src-tar.gz
       
       - name: Upload artifacts - Source code - zip format
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-${{ github.event.inputs.releasecandidatetag }}-src.zip
-          path: apache-manifoldcf-${{ steps.mavenProjectVersion.outputs.version }}-src-zip
+          name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip
+          path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src-zip
       
