@@ -60,7 +60,7 @@ jobs:
           currentMavenVersion="${{ steps.mavenProjectVersion.outputs.version }}"
           suffixToRemove="SNAPSHOT"
           branchVersion=${currentMavenVersion%"$suffixToRemove"}
-          echo "${branchVersion}" >> $GITHUB_OUTPUT
+          echo "version=${branchVersion}" >> $GITHUB_OUTPUT
       
       - name: Create new release candidate branch
         run: git branch ${{ steps.branchVersion.outputs.version }}${{ github.events.input.releasecandidatetag }}
