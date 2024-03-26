@@ -69,7 +69,7 @@ jobs:
       - name: Create new release candidate branch
         run: |
           git branch ${{ steps.branchTag.outputs.tag }}
-          git push
+          git push --set-upstream origin ${{ steps.branchTag.outputs.tag }}
           git checkout ${{ steps.branchTag.outputs.tag }}
                 
       #- name: Checkout the new branch ${{ steps.branchTag.outputs.tag }}
