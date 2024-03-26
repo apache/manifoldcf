@@ -69,7 +69,6 @@ jobs:
       - name: Create new release candidate branch
         run: |
           git branch ${{ steps.branchTag.outputs.tag }}
-          git commit -am "New branch for release candidate ${{ steps.branchTag.outputs.tag }} created"
           git push
       
       - name: Checkout the new branch ${{ steps.branchTag.outputs.tag }}
