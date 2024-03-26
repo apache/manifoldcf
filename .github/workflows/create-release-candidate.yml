@@ -74,7 +74,7 @@ jobs:
       - name: Checkout the new branch ${{ steps.branchTag.outputs.tag }}
         uses: actions/checkout@v4.1.1
         with:
-          ref: ${{ steps.branchTag.outputs.tag }}
+          ref: '${{ steps.branchTag.outputs.tag }}'
       
       - name: Update all the Maven modules with the new version
         run: mvn versions:set -DnewVersion=${{ steps.mavenProjectVersion.outputs.version }} -DremoveSnapshot -DgenerateBackupPoms=false
