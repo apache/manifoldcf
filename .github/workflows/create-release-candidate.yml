@@ -19,6 +19,9 @@ name: Create Release Candidate
 run-name: ${{ github.actor }} is executing Create Release Branch
 permissions:
   contents: write
+env:
+  NEXUS_DEPLOY_USERNAME: ${{ secrets.NEXUS_USER }}
+  NEXUS_DEPLOY_PASSWORD: ${{ secrets.NEXUS_PW }}
 on:
   workflow_dispatch:
     inputs:
@@ -184,15 +187,15 @@ jobs:
           asset_name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip
           asset_content_type: application/zip
       
-      - name: Upload Release Candidate Asset - Binary - asc format
-        uses: actions/upload-release-asset@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release_candidate.outputs.upload_url }}
-          asset_path: ./apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip.asc
-          asset_name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip.asc
-          asset_content_type: application/pgp-signature
+      #- name: Upload Release Candidate Asset - Binary - asc format
+      #  uses: actions/upload-release-asset@v1.0.2
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #  with:
+      #    upload_url: ${{ steps.create_release_candidate.outputs.upload_url }}
+      #    asset_path: ./apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip.asc
+      #    asset_name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip.asc
+      #    asset_content_type: application/pgp-signature
       
       - name: Upload artifacts - Lib - tar.gz format
         uses: actions/upload-artifact@v4.3.3
@@ -257,6 +260,11 @@ jobs:
           asset_path: ./apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip
           asset_name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip
           asset_content_type: application/zip
+      
+      - name: Deploy Maven artifacts to the ASF Snapshots Repository
+        shell: bash
+        run: |
+          mvn deploy -DrepositoryId=apache.snapshots.https --settings ../asf-deploy-settings.xml -q
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
