@@ -115,7 +115,7 @@ jobs:
       - name: Deploy Maven artifacts to the ASF Snapshots Repository
         shell: bash
         run: |
-          mvn deploy -DrepositoryId=apache.snapshots.https --settings /home/runner/work/manifoldcf/manifoldcf/.github/asf-deploy-settings.xml -q
+          mvn deploy -DrepositoryId=apache.releases.https --settings /home/runner/work/manifoldcf/manifoldcf/.github/asf-deploy-settings.xml -q
       
       - name: Create Release Candidate
         id: create_release_candidate
