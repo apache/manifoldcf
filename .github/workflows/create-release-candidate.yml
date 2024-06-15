@@ -112,6 +112,11 @@ jobs:
           git commit -am "New branch for release candidate ${{ steps.branchTag.outputs.tag }} created"
           git push
       
+      - name: Deploy Maven artifacts to the ASF Snapshots Repository
+        shell: bash
+        run: |
+          mvn deploy -DrepositoryId=apache.snapshots.https --settings /home/runner/work/manifoldcf/.github/asf-deploy-settings.xml -q
+      
       - name: Create Release Candidate
         id: create_release_candidate
         uses: actions/create-release@v1.1.4
@@ -260,11 +265,6 @@ jobs:
           asset_path: ./apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip
           asset_name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip
           asset_content_type: application/zip
-      
-      - name: Deploy Maven artifacts to the ASF Snapshots Repository
-        shell: bash
-        run: |
-          mvn deploy -DrepositoryId=apache.snapshots.https --settings ../asf-deploy-settings.xml -q
       
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
