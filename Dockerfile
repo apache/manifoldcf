@@ -53,15 +53,17 @@ COPY dist/. ${MCF_HOME}/
 #COPY dist/test-lib ${MCF_HOME}/test-lib
 #COPY dist/web/war ${MCF_HOME}/web/war
 
-
+LABEL maintainer="Apache ManifoldCF Developers <dev@manifoldcf.apache.org>"
 LABEL org.opencontainers.image.title="Apache ManifoldCF"
+LABEL org.opencontainers.image.ref.name="manifoldcf"
 LABEL org.opencontainers.image.description="Apache ManifoldCF is a multi-repository crawler framework, with multiple connectors."
-LABEL org.opencontainers.image.authors="The Apache ManifoldCF Project"
-LABEL org.opencontainers.image.url="https://manifoldcf.apache.org"
+LABEL org.opencontainers.image.authors="Apache ManifoldCF Developers <dev@manifoldcf.apache.org>"
+LABEL org.opencontainers.image.url="https://hub.docker.com/r/apache/manifoldcf"
 LABEL org.opencontainers.image.source="https://github.com/apache/manifoldcf"
-LABEL org.opencontainers.image.documentation="https://manifoldcf.apache.org/release/release-2.25/en_US/index.html"
+LABEL org.opencontainers.image.documentation="https://hub.docker.com/r/apache/manifoldcf"
 LABEL org.opencontainers.image.version="${MCF_VERSION}"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.vendor="Apache Software Foundation"
 
 ENV MCF_USER="manifoldcf"
 ENV MCF_USER_ID="100001"
