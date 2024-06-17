@@ -20,6 +20,7 @@
 name: "Publish Apache ManifoldCF Snapshot to Maven Snapshot Repository"
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
