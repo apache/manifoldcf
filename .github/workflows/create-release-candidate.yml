@@ -19,9 +19,7 @@ name: Create Release Candidate
 run-name: ${{ github.actor }} is executing Create Release Branch
 permissions:
   contents: write
-env:
-  NEXUS_DEPLOY_USERNAME: ${{ secrets.NEXUS_USER }}
-  NEXUS_DEPLOY_PASSWORD: ${{ secrets.NEXUS_PW }}
+  
 on:
   workflow_dispatch:
     inputs:
@@ -94,7 +92,7 @@ jobs:
         run: ant make-core-deps make-deps image
       
       - name: Maven Build
-        run: mvn clean install -DskipTests -DskipITs -B
+        run: mvn clean install -B -DskipTests -DskipITs
       
       - name: RAT licence checks
         run: mvn -pl . apache-rat:check
@@ -111,11 +109,6 @@ jobs:
           git add CHANGES.txt build.xml
           git commit -am "New branch for release candidate ${{ steps.branchTag.outputs.tag }} created"
           git push
-      
-      - name: Deploy Maven artifacts to the ASF Snapshots Repository
-        shell: bash
-        run: |
-          mvn deploy -DrepositoryId=apache.releases.https --settings /home/runner/work/manifoldcf/manifoldcf/.github/asf-deploy-settings.xml -q
       
       - name: Create Release Candidate
         id: create_release_candidate
