@@ -17,7 +17,7 @@
 # under the License.
 #
 
-name: "Publish artifacts to Maven Snapshot Repo"
+name: "Publish Snapshot artifacts"
 run-name: ${{ github.actor }} is publishing snapshot artifacts
 
 on:
