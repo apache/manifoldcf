@@ -24,7 +24,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deployReleaseMavenArtifacts:
     if: github.repository == 'apache/manifoldcf'
     name: "Deploy Apache ManifoldCF Snapshot"
     runs-on: ubuntu-22.04
