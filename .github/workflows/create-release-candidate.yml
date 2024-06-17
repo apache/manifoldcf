@@ -272,12 +272,24 @@ jobs:
         uses: docker/metadata-action@v5.5.1
         with:
           images: apache/manifoldcf
-      
+          labels: |
+            maintainer=Apache ManifoldCF Developers <dev@manifoldcf.apache.org>
+            org.opencontainers.image.title=Apache ManifoldCF
+            org.opencontainers.image.description=Apache ManifoldCF is a multi-repository crawler framework, with multiple connectors.
+            org.opencontainers.image.vendor=Apache Software Foundation
+            org.opencontainers.image.ref.name=manifoldcf
+            org.opencontainers.image.authors=Apache ManifoldCF Developers <dev@manifoldcf.apache.org>
+            org.opencontainers.image.url=https://hub.docker.com/r/apache/manifoldcf
+            org.opencontainers.image.source=https://github.com/apache/manifoldcf/blob/trunk/Dockerfile
+            org.opencontainers.image.documentation=https://hub.docker.com/r/apache/manifoldcf
+            org.opencontainers.image.version=${{ steps.branchTag.outputs.tag }}
+            org.opencontainers.image.licenses=Apache-2.0
+           
       - name: Update Docker Image tag
         run: sed -i 's/SNAPSHOT/${{ github.event.inputs.releasecandidatetag }}/g' Dockerfile;
       
       - name: Build and push ManifoldCF Docker Image
-        uses: docker/build-push-action@v5.4.0
+        uses: docker/build-push-action@v6.0.0
         with:
           context: .
           file: Dockerfile
