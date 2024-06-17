@@ -277,6 +277,9 @@ jobs:
         with:
           images: apache/manifoldcf
       
+      - name: Update Docker Image tag
+        run: sed -i 's/SNAPSHOT/${{ github.event.inputs.releasecandidatetag }}/g' Dockerfile;
+      
       - name: Build and push ManifoldCF Docker Image
         uses: docker/build-push-action@v5.4.0
         with:
