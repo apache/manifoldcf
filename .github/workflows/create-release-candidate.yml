@@ -73,11 +73,6 @@ jobs:
           git branch release-${{ steps.branchTag.outputs.tag }}
           git push --set-upstream origin release-${{ steps.branchTag.outputs.tag }}
           git checkout release-${{ steps.branchTag.outputs.tag }}
-                
-      #- name: Checkout the new branch ${{ steps.branchTag.outputs.tag }}
-      #  uses: actions/checkout@v4.1.1
-      #  with:
-      #    ref: '${{ steps.branchTag.outputs.tag }}'
       
       - name: Update all the Maven modules with the new version
         run: mvn versions:set -DnewVersion=${{ steps.mavenProjectVersion.outputs.version }} -DremoveSnapshot -DgenerateBackupPoms=false
@@ -132,48 +127,43 @@ jobs:
           cp KEYS apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.KEYS
           cp CHANGES.txt apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.CHANGES.txt
       
-      #- name: Import GPG key
-      #  id: import_gpg
-      #  uses: crazy-max/ghaction-import-gpg@111c56156bcc6918c056dbef52164cfa583dc549
-      #  with:
-      #    gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-      #    passphrase: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Upload artifacts - KEYS - text format
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.KEYS
+          path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.KEYS
       
-      #- name: Generate file hashes
-      #  run: | 
-      #    echo "$GPG_PRIVATE_KEY" | gpg --batch --import --passphrase "$GPG_PASSPHRASE"
-      #    gpg --armor --output apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip.asc --detach-sig apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip
-      #    gpg --armor --output apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.tar.gz.asc --detach-sig apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.tar.gz
-      #    gpg --armor --output apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.zip.asc --detach-sig apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.zip
-      #    gpg --armor --output apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.tar.gz.asc --detach-sig apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.tar.gz
-      #    gpg --armor --output apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip.asc --detach-sig apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip
-      #    gpg --armor --output apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.tar.gz.asc --detach-sig apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.tar.gz
-
-      #    gpg --print-md MD5 apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip > apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip.md5
-      #    gpg --print-md MD5 apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.tar.gz > apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.tar.gz.md5
-      #    gpg --print-md MD5 apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.zip > apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.zip.md5
-      #    gpg --print-md MD5 apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.tar.gz > apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.tar.gz.md5
-      #    gpg --print-md MD5 apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip > apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip.md5
-      #    gpg --print-md MD5 apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.tar.gz > apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.tar.gz.md5
-
-      #   gpg --print-md SHA512 apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip > apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip.sha512
-      #    gpg --print-md SHA512 apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.tar.gz > apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.tar.gz.sha512
-      #    gpg --print-md SHA512 apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.zip > apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.zip.sha512
-      #    gpg --print-md SHA512 apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.tar.gz > apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.tar.gz.sha512
-      #    gpg --print-md SHA512 apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip > apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip.sha512
-      #    gpg --print-md SHA512 apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.tar.gz > apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.tar.gz.sha512
+      - name: Upload Release Candidate Asset - KEYS
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release_candidate.outputs.upload_url }}
+          asset_path: ./apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.KEYS
+          asset_name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.KEYS
+          asset_content_type: text/plain
+      
+      - name: Upload artifacts - CHANGES
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.CHANGES.txt
+          path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.CHANGES.txt
+      
+      - name: Upload Release Candidate Asset - CHANGES
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release_candidate.outputs.upload_url }}
+          asset_path: ./apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.CHANGES.txt
+          asset_name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.CHANGES.txt
+          asset_content_type: text/plain
       
       - name: Upload artifacts - Binary - zip format
         uses: actions/upload-artifact@v4.3.3
         with:
           name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip
-      
-      #- name: Upload artifacts - Binary - asc format
-      #  uses: actions/upload-artifact@v4.3.3
-      #  with:
-      #    name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip.asc
-      #    path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip.asc
       
       - name: Upload Release Candidate Asset - Binary - zip format
         uses: actions/upload-release-asset@v1.0.2
@@ -185,15 +175,21 @@ jobs:
           asset_name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip
           asset_content_type: application/zip
       
-      #- name: Upload Release Candidate Asset - Binary - asc format
-      #  uses: actions/upload-release-asset@v1.0.2
-      #  env:
-      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #  with:
-      #    upload_url: ${{ steps.create_release_candidate.outputs.upload_url }}
-      #    asset_path: ./apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip.asc
-      #    asset_name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip.asc
-      #    asset_content_type: application/pgp-signature
+      - name: Upload artifacts - Binary - tar.gz format
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.tar.gz
+          path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.tar.gz
+      
+      - name: Upload Release Candidate Asset - Binary - tar.gz format
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release_candidate.outputs.upload_url }}
+          asset_path: ./apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.tar.gz
+          asset_name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.tar.gz
+          asset_content_type: application/gzip
       
       - name: Upload artifacts - Lib - tar.gz format
         uses: actions/upload-artifact@v4.3.3

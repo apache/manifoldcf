@@ -27,7 +27,7 @@ on:
       - master
 
 jobs:
-  deploy:
+  deployReleaseCandidateArtifacts:
     if: github.repository == 'apache/manifoldcf'
     name: "Deploy Apache ManifoldCF Snapshot"
     runs-on: ubuntu-22.04
