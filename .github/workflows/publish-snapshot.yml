@@ -17,7 +17,8 @@
 # under the License.
 #
 
-name: "Publish Apache ManifoldCF Snapshot to Maven Snapshot Repository"
+name: "Publish artifacts to Maven Snapshot Repo"
+run-name: ${{ github.actor }} is publishing snapshot artifacts
 
 on:
   workflow_dispatch:
