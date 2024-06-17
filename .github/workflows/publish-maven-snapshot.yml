@@ -17,8 +17,8 @@
 # under the License.
 #
 
-name: "Publish Snapshot artifacts"
-run-name: ${{ github.actor }} is publishing snapshot artifacts
+name: Publish Snapshot Artifacts
+run-name: ${{ github.actor }} is publishing snapshots artifacts
 
 on:
   workflow_dispatch:
@@ -47,9 +47,9 @@ jobs:
       - name: Ant Build
         run: ant make-core-deps make-deps image
       - name: Maven Build
-        run: mvn clean install -DskipTests -DskipITs
+        run: mvn clean install -B -DskipTests -DskipITs
       - name: Deploy
-        run: mvn deploy -DskipTests -DskipITs -Dmaven.javadoc.skip=true -B -V
+        run: mvn deploy -B -DskipTests -DskipITs -Dmaven.javadoc.skip=true
         env:
           NEXUS_USER: ${{ secrets.NEXUS_USER }}
           NEXUS_PW: ${{ secrets.NEXUS_PW }}
