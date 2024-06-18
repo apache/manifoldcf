@@ -21,6 +21,9 @@ run-name: ${{ github.actor }} is publishing the Release Candidate on ASF SVN🚀
 on:
   workflow_dispatch:
     inputs:
+      RC_TAG:
+        description: Release Candidate Tag (release-x.xx-RCx)
+        required: true
       APACHE_ID:
         description: Your Apache id
         required: true
@@ -41,12 +44,12 @@ jobs:
       - name: Extract branch name
         id: branchExtracted
         shell: bash
-        run: echo "name=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        run: echo "name=${{ github.event.inputs.RC_TAG }}" >> $GITHUB_OUTPUT
         
       - name: Extract Release Candidate revision
         id: rcRevision
         run: |
-          branchExtracted="${{ steps.branchExtracted.outputs.name }}"
+          branchExtracted="${{ github.event.inputs.RC_TAG }}"
           set -- branchExtracted
           echo "version=${1##*-}" >> $GITHUB_OUTPUT
       
