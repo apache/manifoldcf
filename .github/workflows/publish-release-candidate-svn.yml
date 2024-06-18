@@ -52,15 +52,15 @@ jobs:
       - name: Extract Release Candidate revision
         id: rcRevision
         run: |
-          branchExtracted="${{ github.event.inputs.RC_TAG }}"
-          set -- branchExtracted
+          rcRevision="${{ github.event.inputs.RC_TAG }}"
+          set -- rcRevision
           echo "version=${1##*-}" >> $GITHUB_OUTPUT
       
       - name: Extract branch without release prefix
         id: branchWithoutPrefixExtracted
         run: |
-          branchExtracted="${{ github.event.inputs.RC_TAG }}"
-          set -- branchExtracted
+          branchWithoutPrefixExtracted="${{ github.event.inputs.RC_TAG }}"
+          set -- branchWithoutPrefixExtracted
           echo "version=${1#*-*}" >> $GITHUB_OUTPUT
       
       - name: Download artifacts from GitHub and Upload artifacts into ASF SVN
