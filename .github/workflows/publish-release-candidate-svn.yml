@@ -56,6 +56,13 @@ jobs:
           set -- branchExtracted
           echo "version=${1##*-}" >> $GITHUB_OUTPUT
       
+      - name: Extract branch without release prefix
+        id: branchWithoutPrefixExtracted
+        run: |
+          branchExtracted="${{ github.event.inputs.RC_TAG }}"
+          set -- branchExtracted
+          echo "version=${1#*-*}" >> $GITHUB_OUTPUT
+      
       - name: Download artifacts from GitHub and Upload artifacts into ASF SVN
         run: |
           svn co https://dist.apache.org/repos/dist/dev/manifoldcf
@@ -92,18 +99,18 @@ jobs:
             svn delete "apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-src.zip"
           fi
           
-          echo "Downloading: https://github.com/apache/manifoldcf/releases/download/${{ steps.branchExtracted.outputs.name }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-bin.zip"
-          wget https://github.com/apache/manifoldcf/releases/download/${{ steps.branchExtracted.outputs.name }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-bin.zip  -O "apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-bin.zip"
-          echo "Downloading: https://github.com/apache/manifoldcf/releases/download/${{ steps.branchExtracted.outputs.name }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-bin.tar.gz"
-          wget https://github.com/apache/manifoldcf/releases/download/${{ steps.branchExtracted.outputs.name }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-bin.tar.gz  -O "apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-bin.tar.gz"
-          echo "Downloading: https://github.com/apache/manifoldcf/releases/download/${{ steps.branchExtracted.outputs.name }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-lib.tar.gz"
-          wget https://github.com/apache/manifoldcf/releases/download/${{ steps.branchExtracted.outputs.name }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-lib.tar.gz  -O "apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-lib.tar.gz"
-          echo "Downloading: https://github.com/apache/manifoldcf/releases/download/${{ steps.branchExtracted.outputs.name }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-lib.zip"
-          wget https://github.com/apache/manifoldcf/releases/download/${{ steps.branchExtracted.outputs.name }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-lib.zip  -O "apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-lib.zip"
-          echo "Downloading: https://github.com/apache/manifoldcf/releases/download/${{ steps.branchExtracted.outputs.name }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-src.tar.gz"
-          wget https://github.com/apache/manifoldcf/releases/download/${{ steps.branchExtracted.outputs.name }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-src.tar.gz -O "apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-src.tar.gz"
-          echo "Downloading: https://github.com/apache/manifoldcf/releases/download/${{ steps.branchExtracted.outputs.name }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-src.zip"
-          wget https://github.com/apache/manifoldcf/releases/download/${{ steps.branchExtracted.outputs.name }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-src.zip -O "apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-src.zip"
+          echo "Downloading: https://github.com/apache/manifoldcf/releases/download/${{ steps.branchWithoutPrefixExtracted.outputs.version }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-bin.zip"
+          wget https://github.com/apache/manifoldcf/releases/download/${{ steps.branchWithoutPrefixExtracted.outputs.version }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-bin.zip  -O "apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-bin.zip"
+          echo "Downloading: https://github.com/apache/manifoldcf/releases/download/${{ steps.branchWithoutPrefixExtracted.outputs.version }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-bin.tar.gz"
+          wget https://github.com/apache/manifoldcf/releases/download/${{ steps.branchWithoutPrefixExtracted.outputs.version }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-bin.tar.gz  -O "apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-bin.tar.gz"
+          echo "Downloading: https://github.com/apache/manifoldcf/releases/download/${{ steps.branchWithoutPrefixExtracted.outputs.version }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-lib.tar.gz"
+          wget https://github.com/apache/manifoldcf/releases/download/${{ steps.branchWithoutPrefixExtracted.outputs.version }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-lib.tar.gz  -O "apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-lib.tar.gz"
+          echo "Downloading: https://github.com/apache/manifoldcf/releases/download/${{ steps.branchWithoutPrefixExtracted.outputs.version }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-lib.zip"
+          wget https://github.com/apache/manifoldcf/releases/download/${{ steps.branchWithoutPrefixExtracted.outputs.version }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-lib.zip  -O "apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-lib.zip"
+          echo "Downloading: https://github.com/apache/manifoldcf/releases/download/${{ steps.branchWithoutPrefixExtracted.outputs.version }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-src.tar.gz"
+          wget https://github.com/apache/manifoldcf/releases/download/${{ steps.branchWithoutPrefixExtracted.outputs.version }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-src.tar.gz -O "apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-src.tar.gz"
+          echo "Downloading: https://github.com/apache/manifoldcf/releases/download/${{ steps.branchWithoutPrefixExtracted.outputs.version }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-src.zip"
+          wget https://github.com/apache/manifoldcf/releases/download/${{ steps.branchWithoutPrefixExtracted.outputs.version }}/apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-src.zip -O "apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-dev-src.zip"
           
       - name: Import GPG key
         id: import_gpg
