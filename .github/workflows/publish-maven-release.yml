@@ -31,6 +31,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.7
+      
       - name: Set up Java
         uses: actions/setup-java@v4.2.1
         with:
@@ -41,10 +42,13 @@ jobs:
           server-id: apache.releases.https
           server-username: NEXUS_USER
           server-password: NEXUS_PW
+      
       - name: Ant Build
         run: ant make-core-deps make-deps image
+      
       - name: Maven Build
         run: mvn clean install -B -DskipTests -DskipITs
+      
       - name: Deploy
         run: mvn deploy -B -DskipTests -DskipITs -Dmaven.javadoc.skip=true
         env:
