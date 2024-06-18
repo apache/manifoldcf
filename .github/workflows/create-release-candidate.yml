@@ -16,7 +16,7 @@
 # under the License.
 
 name: Create Release Candidate
-run-name: ${{ github.actor }} is executing Create Release Branch
+run-name: ${{ github.actor }} is executing Create Release Candidate
 permissions:
   contents: write
   
@@ -34,7 +34,10 @@ jobs:
     steps:
       - name: Init Release Candidate workflow
         run: echo "Starting Apache ManifoldCF workflow for building ${{ github.event.inputs.releasecandidatetag }}"
-      - uses: actions/checkout@v4.1.7
+      
+      - name: Checkout
+        uses: actions/checkout@v4.1.7
+      
       - name: Set up OpenJDK 11 Temurin x64
         uses: actions/setup-java@v4.2.1
         with:
@@ -102,7 +105,7 @@ jobs:
         run: |
           find . -name 'pom.xml' -exec git add {} \;
           git add CHANGES.txt build.xml
-          git commit -am "New branch for release candidate ${{ steps.branchTag.outputs.tag }} created"
+          git commit -am "Create ${{ github.event.inputs.releasecandidatetag }} tag for MCF ${{ steps.mavenProjectVersion.outputs.version }}"
           git push
       
       - name: Create Release Candidate
@@ -272,12 +275,24 @@ jobs:
         uses: docker/metadata-action@v5.5.1
         with:
           images: apache/manifoldcf
-      
+          labels: |
+            maintainer=Apache ManifoldCF Developers <dev@manifoldcf.apache.org>
+            org.opencontainers.image.title=Apache ManifoldCF
+            org.opencontainers.image.description=Apache ManifoldCF is a multi-repository crawler framework, with multiple connectors.
+            org.opencontainers.image.vendor=Apache Software Foundation
+            org.opencontainers.image.ref.name=manifoldcf
+            org.opencontainers.image.authors=Apache ManifoldCF Developers <dev@manifoldcf.apache.org>
+            org.opencontainers.image.url=https://hub.docker.com/r/apache/manifoldcf
+            org.opencontainers.image.source=https://github.com/apache/manifoldcf/blob/trunk/Dockerfile
+            org.opencontainers.image.documentation=https://hub.docker.com/r/apache/manifoldcf
+            org.opencontainers.image.version=${{ steps.branchTag.outputs.tag }}
+            org.opencontainers.image.licenses=Apache-2.0
+           
       - name: Update Docker Image tag
         run: sed -i 's/SNAPSHOT/${{ github.event.inputs.releasecandidatetag }}/g' Dockerfile;
       
       - name: Build and push ManifoldCF Docker Image
-        uses: docker/build-push-action@v5.4.0
+        uses: docker/build-push-action@v6.0.0
         with:
           context: .
           file: Dockerfile
