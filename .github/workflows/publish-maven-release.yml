@@ -63,7 +63,7 @@ on:
 jobs:
   deployReleaseMavenArtifacts:
     if: github.repository == 'apache/manifoldcf'
-    name: "Deploy Apache ManifoldCF Snapshot"
+    name: "Deploy Apache ManifoldCF release artifacts"
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -101,5 +101,5 @@ jobs:
         env:
           NEXUS_USER: ${{ secrets.NEXUS_USER }}
           NEXUS_PW: ${{ secrets.NEXUS_PW }}
-        run: mvn deploy -B -DskipTests -DskipITs -Dmaven.javadoc.skip=true
+        run: mvn deploy -B -e -DskipTests -DskipITs
         
