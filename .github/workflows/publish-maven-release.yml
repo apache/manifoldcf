@@ -101,5 +101,5 @@ jobs:
         env:
           NEXUS_USER: ${{ secrets.NEXUS_USER }}
           NEXUS_PW: ${{ secrets.NEXUS_PW }}
-        run: mvn deploy -B -e -DskipTests -DskipITs
+        run: mvn deploy -B -e -DskipTests -DskipITs --settings .github/asf-deploy-settings.xml
         
