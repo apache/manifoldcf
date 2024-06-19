@@ -101,5 +101,6 @@ jobs:
         env:
           NEXUS_USER: ${{ secrets.NEXUS_USER }}
           NEXUS_PW: ${{ secrets.NEXUS_PW }}
-        run: mvn deploy -B -e -DskipTests -DskipITs --settings .github/asf-deploy-settings.xml
+          MAVEN_SETTINGS: ${{ github.workspace }}/.github/asf-deploy-settings.xml
+        run: mvn deploy -B -e -DskipTests -DskipITs -DrepositoryId=apache.releases.https -q
         
