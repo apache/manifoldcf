@@ -22,6 +22,43 @@ run-name: ${{ github.actor }} is publishing release artifacts
 
 on:
   workflow_dispatch:
+    inputs:
+      release:
+        type: choice
+        description: Select the ManifoldCF release
+        options:
+        - release-2.26 #Java 11
+        - release-2.25
+        - release-2.24
+        - release-2.23
+        - release-2.22
+        - release-2.21
+        - release-2.20
+        - release-2.19
+        - release-2.18
+        - release-2.17
+        - release-2.16
+        - release-2.15
+        - release-2.14
+        - release-2.13
+        - release-2.12
+        - release-2.11
+        - release-2.10
+        - release-2.9
+        - release-2.8
+        - release-2.7 #Java 1.8
+        - release-2.6
+        - release-2.5
+        - release-2.4
+        - release-2.3
+        - release-2.2
+        - release-2.1
+        - release-2.0 #Java 1.7
+        - release-1.9
+        - release-1.8
+        - release-1.2 #Java 1.6
+        - release-1.1 
+        - release-1.0 #Java 1.5
 
 jobs:
   deployReleaseMavenArtifacts:
@@ -42,15 +79,24 @@ jobs:
           server-id: apache.releases.https
           server-username: NEXUS_USER
           server-password: NEXUS_PW
-      
       - name: Ant Build
-        run: ant make-core-deps make-deps image
+        env:
+         RELEASE: ${{ inputs.release }}
+        run: |
+          if [[ $RELEASE == 'release-2.26' ]]; then
+            sed -i -e 's/<?xml version=\"1\.0\" encoding=\"UTF-8\"?>/ /g' connectors/csv/pom.xml
+            sed -i -e 's/https\:\/\/maven.nuxeo.org\/nexus\/content\/repositories\/public-releases/https\:\/\/packages.nuxeo.com\/repository\/maven-public-archives/g' build.xml
+            sed -i -e 's/https\:\/\/maven.nuxeo.org\/nexus\/content\/repositories\/public-releases\//https\:\/\/packages.nuxeo.com\/repository\/maven-public-archives/g' connectors/nuxeo/pom.xml
+            sed -i -e 's/<\/dependencies>/<dependency><groupId>org.apache.hadoop<\/groupId><artifactId>hadoop-annotations<\/artifactId><version>\${hadoop.version}<\/version><exclusions><exclusion><groupId>jdk.tools<\/groupId><artifactId>jdk.tools<\/artifactId><\/exclusion><\/exclusions><\/dependency><\/dependencies>/g' connectors/hdfs/pom.xml
+          fi
+          ant make-core-deps make-deps image
       
       - name: Maven Build
         run: mvn clean install -B -DskipTests -DskipITs
       
       - name: Deploy
-        run: mvn deploy -B -DskipTests -DskipITs -Dmaven.javadoc.skip=true
         env:
           NEXUS_USER: ${{ secrets.NEXUS_USER }}
           NEXUS_PW: ${{ secrets.NEXUS_PW }}
+        run: mvn deploy -B -DskipTests -DskipITs -Dmaven.javadoc.skip=true
+        
