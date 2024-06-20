@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>32</version>
+    <version>31</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -96,7 +96,7 @@
     <jsoup.version>1.7.2</jsoup.version>
     <cxf.version>3.5.0</cxf.version>
     <jaxws-ri.version>2.3.2</jaxws-ri.version>
-    <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
+    <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
     <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
     <maven-rat-plugin.version>0.16.1</maven-rat-plugin.version>
     <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
@@ -300,6 +300,12 @@
                             <goals>
                                 <goal>sign</goal>
                             </goals>
+                            <configuration>
+	                            <gpgArguments>
+	                                <arg>--pinentry-mode</arg>
+	                                <arg>loopback</arg>
+	                            </gpgArguments>
+                            </configuration>
                         </execution>
                     </executions>
                 </plugin>
