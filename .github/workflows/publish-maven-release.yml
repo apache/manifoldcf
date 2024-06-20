@@ -97,12 +97,6 @@ jobs:
       
       - name: Maven Build
         run: mvn clean install -B -DskipTests -DskipITs -Papache-release
-        
-      - name: Mask Apache Password
-        run: |
-          # Workaround for Actions bug - https://github.com/actions/runner/issues/643
-          APACHE_PASS=$(jq -r '.inputs.APACHE_PASSWORD' $GITHUB_EVENT_PATH)
-          echo "::add-mask::$APACHE_PASS"
       
       - name: Deploy
         env:
@@ -119,8 +113,6 @@ jobs:
             -DskipITs \
             -Dcargo-build.profile=release \
             -Dcargo-build.features=services-all \
-            -Dcargo-build.enableZigbuild=true \
-            -DskipRemoteStaging=true \
             -DserverId=apache.releases.https \
             -DnexusUrl=https://repository.apache.org
             
