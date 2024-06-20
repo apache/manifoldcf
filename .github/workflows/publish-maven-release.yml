@@ -81,6 +81,7 @@ jobs:
           server-id: apache.releases.https
           server-username: NEXUS_USER
           server-password: NEXUS_PW
+          settings-path: ${{ github.workspace }}/.github/asf-deploy-settings.xml
           
       - name: Ant Build
         env:
@@ -95,12 +96,46 @@ jobs:
           ant make-core-deps make-deps image
       
       - name: Maven Build
-        run: mvn clean install -B -DskipTests -DskipITs
+        run: mvn clean install -B -DskipTests -DskipITs -Papache-release
+        
+      - name: Mask Apache Password
+        run: |
+          # Workaround for Actions bug - https://github.com/actions/runner/issues/643
+          APACHE_PASS=$(jq -r '.inputs.APACHE_PASSWORD' $GITHUB_EVENT_PATH)
+          echo "::add-mask::$APACHE_PASS"
       
       - name: Deploy
         env:
-          NEXUS_USER: ${{ secrets.NEXUS_USER }}
-          NEXUS_PW: ${{ secrets.NEXUS_PW }}
+          NEXUS_USER: ${{ secrets.NEXUS_STAGE_DEPLOYER_USER }}
+          NEXUS_PW: ${{ secrets.NEXUS_STAGE_DEPLOYER_PW }}
           MAVEN_SETTINGS: ${{ github.workspace }}/.github/asf-deploy-settings.xml
-        run: mvn deploy -B -e -DskipTests -DskipITs -DrepositoryId=apache.releases.https -q
+          MAVEN_USERNAME: ${{ secrets.NEXUS_STAGE_DEPLOYER_USER }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.NEXUS_STAGE_DEPLOYER_PW }}
+          MAVEN_GPG_PASSPHRASE: ""
+        #run: mvn deploy -B -e -q -DskipTests -DskipITs -DrepositoryId=apache.releases.https -Papache-release
+        run: |
+          mvn -B -e -q org.sonatype.plugins:nexus-staging-maven-plugin:deploy \
+            -DskipTests \
+            -DskipITs \
+            -Dcargo-build.profile=release \
+            -Dcargo-build.features=services-all \
+            -Dcargo-build.enableZigbuild=true \
+            -DskipRemoteStaging=true \
+            -DserverId=apache.releases.https \
+            -DnexusUrl=https://repository.apache.org
+            
+      - name: Deploy local staged artifacts
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          ./mvn org.sonatype.plugins:nexus-staging-maven-plugin:deploy-staged \
+            -DskipStagingRepositoryClose=true \
+            -DserverId=apache.releases.https \
+            -DnexusUrl=https://repository.apache.org
+        env:
+          NEXUS_USER: ${{ secrets.NEXUS_STAGE_DEPLOYER_USER }}
+          NEXUS_PW: ${{ secrets.NEXUS_STAGE_DEPLOYER_PW }}
+          MAVEN_SETTINGS: ${{ github.workspace }}/.github/asf-deploy-settings.xml
+          MAVEN_USERNAME: ${{ secrets.NEXUS_STAGE_DEPLOYER_USER }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.NEXUS_STAGE_DEPLOYER_PW }}
+          MAVEN_GPG_PASSPHRASE: ""
         
