@@ -3,6 +3,9 @@ $Id$
 
 ======================= 2.27-dev =====================
 
+CONNECTORS-1756: Migrating the website on GitHub
+(Piergiorgio Lucidi)
+
 CONNECTORS-1754: Converting release scripts to GitHub workflows
 (Piergiorgio Lucidi)
 
@@ -13,6 +16,12 @@ CONNECTORS-1751: HDFS Connector - Maven build issue
 (Piergiorgio Lucidi)
 
 CONNECTORS-1750: Build broken due to the Nuxeo Maven repo not available
+(Piergiorgio Lucidi)
+
+CONNECTORS-1744: Migrate away from Travis-CI
+(Markus Schuch, Piergiorgio Lucidi)
+
+CONNECTORS-1492: Add support for Docker
 (Piergiorgio Lucidi)
 
 ======================= Release 2.26 =====================
@@ -33,6 +42,9 @@ The "Force the inclusion of redirection” options allows you to include hosts r
 (Emeric Bernet-Rollande)
 
 ======================= Release 2.25 =====================
+
+CONNECTORS-1742: Handle CSV in JDBC connector
+(Julien Massiera)
 
 CONNECTORS-1743: Retry on 502 and 503 errors in Solr connector.
 (Markus Günther)
