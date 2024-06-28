@@ -95,7 +95,7 @@ jobs:
       
       - name: Fix Nuxeo URL
         run: | 
-          sed -i 's/https\:\/\/maven.nuxeo.org\/nexus\/content\/repositories\/public-releases/https\:\/\/packages.nuxeo.com\/repository\/maven-public-archives/g' build.xml
+          sed -i 's/https\:\/\/maven.nuxeo.com\/nexus\/content\/repositories\/public-releases/https\:\/\/packages.nuxeo.com\/repository\/maven-public-archives/g' build.xml
       
       - name: Ant Build
         run: ant make-core-deps make-deps image
