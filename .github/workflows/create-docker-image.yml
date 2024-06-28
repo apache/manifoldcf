@@ -57,11 +57,11 @@ on:
 jobs:
   createDockerImageBuildingFromSourceCode:
     if: |
-          ${{ github.event.inputs.release  != '2.26-JDK-11' &&
-              github.event.inputs.release  != '2.25-JDK-8' &&
-              github.event.inputs.release  != '2.24-JDK-8' &&
-              github.event.inputs.release  != '2.23-JDK-8' &&
-              github.event.inputs.release  != '1.10-JDK-7' }}
+          (github.event.inputs.release  != '2.26-JDK-11') &&
+          (github.event.inputs.release  != '2.25-JDK-8') &&
+          (github.event.inputs.release  != '2.24-JDK-8') &&
+          (github.event.inputs.release  != '2.23-JDK-8') &&
+          (github.event.inputs.release  != '1.10-JDK-7')
     runs-on: ubuntu-22.04
     steps:
       - name: Extract MCF Release version
@@ -134,11 +134,11 @@ jobs:
       
   createDockerImageForAvailableDistributionPackage:
     if: |
-          ${{ github.event.inputs.release  == '2.26-JDK-11' ||
-              github.event.inputs.release  == '2.25-JDK-8' ||
-              github.event.inputs.release  == '2.24-JDK-8' ||
-              github.event.inputs.release  == '2.23-JDK-8' ||
-              github.event.inputs.release  == '1.10-JDK-7' }}
+          (github.event.inputs.release  == '2.26-JDK-11') ||
+          (github.event.inputs.release  == '2.25-JDK-8') ||
+          (github.event.inputs.release  == '2.24-JDK-8') ||
+          (github.event.inputs.release  == '2.23-JDK-8') ||
+          (github.event.inputs.release  == '1.10-JDK-7')
     runs-on: ubuntu-22.04
     steps:
       
