@@ -83,7 +83,7 @@ jobs:
         with:
           ref: release-${{ steps.mcf.outputs.release }}
       
-      - name: Set up OpenJDK 11 Temurin x64
+      - name: Set up OpenJDK ${{ steps.jdk.outputs.version }} Temurin x64
         uses: actions/setup-java@v4.2.1
         with:
           java-version: '${{ steps.jdk.outputs.version }}'
@@ -92,6 +92,10 @@ jobs:
           cache: maven
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: GPG_PASSPHRASE
+      
+      - name: Fix Nuxeo URL
+        run: | 
+          sed -i 's/https\:\/\/maven.nuxeo.org\/nexus\/content\/repositories\/public-releases/https\:\/\/packages.nuxeo.com\/repository\/maven-public-archives/g' build.xml
       
       - name: Ant Build
         run: ant make-core-deps make-deps image
