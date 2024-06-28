@@ -77,12 +77,12 @@ jobs:
         uses: actions/checkout@v4.1.7
         with:
           sparse-checkout: |
-            src/main/docker/${{ steps.jdk.outputs.version }}/Dockerfile
+            src/main/docker/JDK-${{ steps.jdk.outputs.version }}/Dockerfile
           sparse-checkout-cone-mode: false
       
       - name: Move the Dockerfile in the root folder
         run: |
-          mv src/main/docker/${{ steps.jdk.outputs.version }}/Dockerfile  ${{ github.workspace }}
+          mv src/main/docker/JDK-${{ steps.jdk.outputs.version }}/Dockerfile  ${{ github.workspace }}
           echo ls ${{ github.workspace }}
       
       - name: Download ManifoldCF ${{ steps.mcf.outputs.release }} distribution
