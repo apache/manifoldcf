@@ -183,7 +183,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.12.1</version>
         <configuration>
           <source>11</source>
           <target>11</target>
@@ -194,7 +193,6 @@
 
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>3.3.1</version>
         <configuration>
           <encoding>UTF-8</encoding>
         </configuration>
@@ -202,7 +200,6 @@
 
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
-        <version>3.3.2</version>
       </plugin>
       
       <plugin>
@@ -263,9 +260,6 @@
                     <inherited>true</inherited>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <configuration>
-                        <updateReleaseInfo>true</updateReleaseInfo>
-                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

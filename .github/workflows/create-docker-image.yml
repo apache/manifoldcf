@@ -1,0 +1,136 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+name: Create Docker Image
+run-name: ${{ github.actor }} is creating a new Docker Image
+permissions:
+  contents: write
+  
+on:
+  workflow_dispatch:
+    release:
+        type: choice
+        description: Select the ManifoldCF release
+        options:
+        - 2.26-JDK-11 #Java 11
+        - 2.25-JDK-8
+        - 2.24-JDK-8
+        - 2.23-JDK-8
+        - 2.22-JDK-8
+        - 2.21-JDK-8
+        - 2.20-JDK-8
+        - 2.19-JDK-8
+        - 2.18-JDK-8
+        - 2.17-JDK-8
+        - 2.16-JDK-8
+        - 2.15-JDK-8
+        - 2.14-JDK-8
+        - 2.13-JDK-8
+        - 2.12-JDK-8
+        - 2.11-JDK-8
+        - 2.10-JDK-8
+        - 2.9-JDK-8
+        - 2.8-JDK-8
+        - 2.7-JDK-8 #Java 1.8
+        - 2.6-JDK-7
+        - 2.5-JDK-7
+        - 2.4-JDK-7
+        - 2.3-JDK-7
+        - 2.2-JDK-7
+        - 2.1-JDK-7
+        - 2.0-JDK-7 
+        - 1.10-JDK-7 #Java 1.7
+  
+jobs:
+  createDockerImage:
+    runs-on: ubuntu-22.04
+    steps:
+      
+      - name: Extract MCF Release version
+        id: mcf
+        run: |
+          mcfrelease="${{ github.event.inputs.release }}"
+          set -- $mcfrelease
+          echo "release=${1%%-*}" >> $GITHUB_OUTPUT
+            
+      - name: Extract JDK version
+        id: jdk
+        run: |
+          mcfrelease="${{ github.event.inputs.release }}"
+          set -- $mcfrelease
+          echo "version=${1##*-}" >> $GITHUB_OUTPUT
+          
+      - name: Checkout the specific Dockerfile
+        uses: actions/checkout@v4.1.7
+        with:
+          sparse-checkout: |
+            src/main/docker/${{ steps.jdk.outputs.version }}/Dockerfile
+          sparse-checkout-cone-mode: false
+      
+      - name: Move the Dockerfile in the root folder
+        run: |
+          mv src/main/docker/${{ steps.jdk.outputs.version }}/Dockerfile  ${{ github.workspace }}
+          echo ls ${{ github.workspace }}
+      
+      - name: Download ManifoldCF ${{ steps.mcf.outputs.release }} distribution
+        run: |
+          wget https://dlcdn.apache.org/manifoldcf/apache-manifoldcf-${{ steps.mcf.outputs.release }}/apache-manifoldcf-${{ steps.mcf.outputs.release }}-bin.tar.gz && \
+          tar -xzvf apache-manifoldcf-${{ steps.mcf.outputs.release }}-bin.tar.gz && \
+          mv apache-manifoldcf-${{ steps.mcf.outputs.release }} dist && \
+          rm apache-manifoldcf-${{ steps.mcf.outputs.release }}-bin.tar.gz
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3.0.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.3.0
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3.2.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5.5.1
+        with:
+          images: apache/manifoldcf
+          labels: |
+            maintainer=Apache ManifoldCF Developers <dev@manifoldcf.apache.org>
+            org.opencontainers.image.title=Apache ManifoldCF
+            org.opencontainers.image.description=Apache ManifoldCF is a multi-repository crawler framework, with multiple connectors.
+            org.opencontainers.image.vendor=Apache Software Foundation
+            org.opencontainers.image.ref.name=manifoldcf
+            org.opencontainers.image.authors=Apache ManifoldCF Developers <dev@manifoldcf.apache.org>
+            org.opencontainers.image.url=https://hub.docker.com/r/apache/manifoldcf
+            org.opencontainers.image.source=https://github.com/apache/manifoldcf/blob/trunk/Dockerfile
+            org.opencontainers.image.documentation=https://hub.docker.com/r/apache/manifoldcf
+            org.opencontainers.image.version=${{ steps.mcf.outputs.release }}
+            org.opencontainers.image.licenses=Apache-2.0
+      
+      #- name: Build and push ManifoldCF Docker Image
+      #  uses: docker/build-push-action@v6.2.0
+      #  with:
+      #    context: .
+      #    file: Dockerfile
+      #    build-args: |
+      #      MCF_VERSION=${{ steps.mcf.outputs.release }}
+      #    platforms: linux/amd64,linux/arm64/v8
+      #    push: true
+      #    tags: apache/manifoldcf:latest,apache/manifoldcf:${{ steps.mcf.outputs.release }}
+      #    labels: ${{ steps.meta.outputs.labels }}
