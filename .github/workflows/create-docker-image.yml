@@ -17,12 +17,11 @@
 
 name: Create Docker Image
 run-name: ${{ github.actor }} is creating a new Docker Image
-permissions:
-  contents: write
   
 on:
   workflow_dispatch:
-    release:
+    inputs:
+      release:
         type: choice
         description: Select the ManifoldCF release
         options:
