@@ -123,14 +123,14 @@ jobs:
             org.opencontainers.image.version=${{ steps.mcf.outputs.release }}
             org.opencontainers.image.licenses=Apache-2.0
       
-      #- name: Build and push ManifoldCF Docker Image
-      #  uses: docker/build-push-action@v6.2.0
-      #  with:
-      #    context: .
-      #    file: Dockerfile
-      #    build-args: |
-      #      MCF_VERSION=${{ steps.mcf.outputs.release }}
-      #    platforms: linux/amd64,linux/arm64/v8
-      #    push: true
-      #    tags: apache/manifoldcf:latest,apache/manifoldcf:${{ steps.mcf.outputs.release }}
-      #    labels: ${{ steps.meta.outputs.labels }}
+      - name: Build and push ManifoldCF Docker Image
+        uses: docker/build-push-action@v6.2.0
+        with:
+          context: .
+          file: Dockerfile
+          build-args: |
+            MCF_VERSION=${{ steps.mcf.outputs.release }}
+          platforms: linux/amd64,linux/arm64/v8
+          push: true
+          tags: apache/manifoldcf:latest,apache/manifoldcf:${{ steps.mcf.outputs.release }}
+          labels: ${{ steps.meta.outputs.labels }}
