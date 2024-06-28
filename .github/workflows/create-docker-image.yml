@@ -79,7 +79,7 @@ jobs:
           echo "version=${1##*-}" >> $GITHUB_OUTPUT
           
       - name: Checkout for legacy versions of ManifoldCF
-        uses: actions/checkout@v.4.1.7
+        uses: actions/checkout@v4.1.7
         with:
           ref: release-${{ steps.mcf.outputs.release }}
       
