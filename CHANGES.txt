@@ -2,6 +2,9 @@ ManifoldCF Change Log
 
 ======================= 2.27-dev =====================
 
+CONNECTORS-1755: Copyright footer must be updated
+(Piergiorgio Lucidi)
+
 CONNECTORS-1757: GTS Connector - Add comment to warn it is not secure
 (YYTVicky)
 
