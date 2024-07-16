@@ -41,7 +41,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.http.version>1.25.0</project.http.version>
-        <project.oauth.version>1.25.0</project.oauth.version>
+        <project.oauth.version>1.33.3</project.oauth.version>
     </properties>
 
     <artifactId>mcf-googledrive-connector</artifactId>
