@@ -75,6 +75,8 @@ RUN set -ex; \
     groupadd -r --gid "$MCF_GROUP_ID" "$MCF_GROUP"; \
     useradd -r --uid "$MCF_USER_ID" --gid "$MCF_GROUP_ID" "$MCF_USER"
 
+COPY src/main/docker/logging/logging.xml ${MCF_HOME}/example
+
 RUN chown ${MCF_USER}:${MCF_USER} -R ${MCF_HOME}
 RUN chmod +x ${MCF_HOME}/example/start.sh
 
