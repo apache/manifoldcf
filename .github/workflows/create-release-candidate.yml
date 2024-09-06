@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v4.1.7
       
       - name: Set up OpenJDK 11 Temurin x64
-        uses: actions/setup-java@v4.2.1
+        uses: actions/setup-java@v4.2.2
         with:
           java-version: '11'
           distribution: 'temurin'
@@ -138,7 +138,7 @@ jobs:
           cp CHANGES.txt apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.CHANGES.txt
       
       - name: Upload artifacts - KEYS - text format
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.KEYS
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.KEYS
@@ -154,7 +154,7 @@ jobs:
           asset_content_type: text/plain
       
       - name: Upload artifacts - CHANGES
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.CHANGES.txt
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}.CHANGES.txt
@@ -170,7 +170,7 @@ jobs:
           asset_content_type: text/plain
       
       - name: Upload artifacts - Binary - zip format
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.zip
@@ -186,7 +186,7 @@ jobs:
           asset_content_type: application/zip
       
       - name: Upload artifacts - Binary - tar.gz format
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.tar.gz
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-bin.tar.gz
@@ -202,7 +202,7 @@ jobs:
           asset_content_type: application/gzip
       
       - name: Upload artifacts - Lib - tar.gz format
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.tar.gz
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.tar.gz
@@ -218,7 +218,7 @@ jobs:
           asset_content_type: application/gzip
       
       - name: Upload artifacts - Lib - zip format
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.zip
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-lib.zip
@@ -234,7 +234,7 @@ jobs:
           asset_content_type: application/zip
       
       - name: Upload artifacts - Source code - tar.gz format
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.tar.gz
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.tar.gz
@@ -250,7 +250,7 @@ jobs:
           asset_content_type: application/gzip
       
       - name: Upload artifacts - Source code - zip format
-        uses: actions/upload-artifact@v4.3.3
+        uses: actions/upload-artifact@v4.4.0
         with:
           name: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip
           path: apache-manifoldcf-${{ steps.artifactVersion.outputs.version }}-src.zip
@@ -266,13 +266,13 @@ jobs:
           asset_content_type: application/zip
       
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.0.0
+        uses: docker/setup-qemu-action@v3.2.0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.3.0
+        uses: docker/setup-buildx-action@v3.6.1
       
       - name: Login to Docker Hub
-        uses: docker/login-action@v3.2.0
+        uses: docker/login-action@v3.3.0
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -299,7 +299,7 @@ jobs:
         run: sed -i 's/SNAPSHOT/${{ github.event.inputs.releasecandidatetag }}/g' Dockerfile;
       
       - name: Build and push ManifoldCF Docker Image
-        uses: docker/build-push-action@v6.0.0
+        uses: docker/build-push-action@v6.7.0
         with:
           context: .
           file: Dockerfile
