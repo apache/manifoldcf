@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM ubuntu:22.04
+FROM eclipse-temurin:11-jre-jammy
 LABEL maintainer="The Apache ManifoldCF Project"
 
-ARG MCF_VERSION="1.1"
+ARG MCF_VERSION="2.27-SNAPSHOT"
 
 ARG MCF_USER=manifoldcf
 ARG MCF_USER_ID=100001
@@ -27,34 +27,8 @@ ARG MCF_GROUP_ID=100002
 ARG MCF_HOME=/usr/share/manifoldcf
 ARG MCF_PORT=8345
 
-SHELL ["/bin/bash", "-c"]
-
 RUN apt-get update && apt-get install -y iputils-ping && \
-	apt-get install -y dnsutils && \
-	apt-get install -y wget
-
-WORKDIR /tmp
-	
-#RUN \
-#    cd /tmp ;\
-#    /usr/bin/wget --no-cookies --no-check-certificate \
-#        --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie"  \
-#        https://download.oracle.com/otn/java/jdk/1.5.0_22/jdk-1_5_0_22-linux-amd64.bin
-
-COPY jre-1_5_0_22-linux-amd64.bin /tmp/jre-1_5_0_22-linux-amd64.bin
-RUN chmod a+x jre-1_5_0_22-linux-amd64.bin
-
-WORKDIR /
-
-RUN mkdir -p /opt/jre-8
-RUN mv /tmp/jre-1_5_0_22-linux-amd64.bin /opt/jre-8/jre-1_5_0_22-linux-amd64.bin
-RUN echo yes|sh ./opt/jre-8/jre-1_5_0_22-linux-amd64.bin
-
-ENV JAVA_HOME /jre1.5.0_22
-ENV PATH /jre1.5.0_22/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-RUN export JAVA_HOME=/jre1.5.0_22
-RUN export PATH=/jre1.5.0_22/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-RUN echo $JAVA_HOME
+	apt-get install -y dnsutils
 
 COPY dist/. ${MCF_HOME}/
 
@@ -100,6 +74,8 @@ ENV MCF_PORT="8345"
 RUN set -ex; \
     groupadd -r --gid "$MCF_GROUP_ID" "$MCF_GROUP"; \
     useradd -r --uid "$MCF_USER_ID" --gid "$MCF_GROUP_ID" "$MCF_USER"
+
+COPY src/main/docker/logging/logging.xml ${MCF_HOME}/example
 
 RUN chown ${MCF_USER}:${MCF_USER} -R ${MCF_HOME}
 RUN chmod +x ${MCF_HOME}/example/start.sh

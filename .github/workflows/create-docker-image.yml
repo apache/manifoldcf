@@ -16,13 +16,12 @@
 # under the License.
 
 name: Create Docker Image
-run-name: ${{ github.actor }} is creating a new Docker Image
-permissions:
-  contents: write
+run-name: ${{ github.actor }} is creating a new Docker Image of ManifoldCF ${{ github.event.inputs.release }}
   
 on:
   workflow_dispatch:
-    release:
+    inputs:
+      release:
         type: choice
         description: Select the ManifoldCF release
         options:
@@ -56,7 +55,104 @@ on:
         - 1.10-JDK-7 #Java 1.7
   
 jobs:
-  createDockerImage:
+  createDockerImageBuildingFromSourceCode:
+    if: |
+          (github.event.inputs.release  != '2.26-JDK-11') &&
+          (github.event.inputs.release  != '2.25-JDK-8') &&
+          (github.event.inputs.release  != '2.24-JDK-8') &&
+          (github.event.inputs.release  != '2.23-JDK-8') &&
+          (github.event.inputs.release  != '1.10-JDK-7')
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Extract MCF Release version
+        id: mcf
+        run: |
+          mcfrelease="${{ github.event.inputs.release }}"
+          set -- $mcfrelease
+          echo "release=${1%%-*}" >> $GITHUB_OUTPUT
+            
+      - name: Extract JDK version
+        id: jdk
+        run: |
+          mcfrelease="${{ github.event.inputs.release }}"
+          set -- $mcfrelease
+          echo "version=${1##*-}" >> $GITHUB_OUTPUT
+          
+      - name: Checkout for legacy versions of ManifoldCF
+        uses: actions/checkout@v4.1.7
+        with:
+          ref: release-${{ steps.mcf.outputs.release }}
+      
+      - name: Set up OpenJDK ${{ steps.jdk.outputs.version }} Temurin x64
+        uses: actions/setup-java@v4.2.1
+        with:
+          java-version: '${{ steps.jdk.outputs.version }}'
+          distribution: 'temurin'
+          architecture: x64
+          cache: maven
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: GPG_PASSPHRASE
+      
+      - name: Fix Nuxeo URL
+        run: | 
+          sed -i 's/http\:\/\/maven.nuxeo.com\/nexus\/content\/repositories\/public-releases/https\:\/\/packages.nuxeo.com\/repository\/maven-public-archives/g' build.xml
+      
+      - name: Ant Build
+        run: ant make-core-deps make-deps image
+        
+      - name: Download the specific Dockerfile from GitHub
+        run: |
+          wget https://raw.githubusercontent.com/apache/manifoldcf/trunk/src/main/docker/JDK-${{ steps.jdk.outputs.version }}/Dockerfile
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3.0.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.3.0
+      
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3.2.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5.5.1
+        with:
+          images: apache/manifoldcf
+          labels: |
+            maintainer=Apache ManifoldCF Developers <dev@manifoldcf.apache.org>
+            org.opencontainers.image.title=Apache ManifoldCF
+            org.opencontainers.image.description=Apache ManifoldCF is a multi-repository crawler framework, with multiple connectors.
+            org.opencontainers.image.vendor=Apache Software Foundation
+            org.opencontainers.image.ref.name=manifoldcf
+            org.opencontainers.image.authors=Apache ManifoldCF Developers <dev@manifoldcf.apache.org>
+            org.opencontainers.image.url=https://hub.docker.com/r/apache/manifoldcf
+            org.opencontainers.image.source=https://github.com/apache/manifoldcf/blob/trunk/Dockerfile
+            org.opencontainers.image.documentation=https://hub.docker.com/r/apache/manifoldcf
+            org.opencontainers.image.version=${{ steps.mcf.outputs.release }}
+            org.opencontainers.image.licenses=Apache-2.0
+      
+      - name: Build and push ManifoldCF Docker Image
+        uses: docker/build-push-action@v6.2.0
+        with:
+          context: .
+          file: Dockerfile
+          build-args: |
+            MCF_VERSION=${{ steps.mcf.outputs.release }}
+          platforms: linux/amd64,linux/arm64/v8
+          push: true
+          tags: apache/manifoldcf:latest,apache/manifoldcf:${{ steps.mcf.outputs.release }}
+          labels: ${{ steps.meta.outputs.labels }}
+      
+  createDockerImageForAvailableDistributionPackage:
+    if: |
+          (github.event.inputs.release  == '2.26-JDK-11') ||
+          (github.event.inputs.release  == '2.25-JDK-8') ||
+          (github.event.inputs.release  == '2.24-JDK-8') ||
+          (github.event.inputs.release  == '2.23-JDK-8') ||
+          (github.event.inputs.release  == '1.10-JDK-7')
     runs-on: ubuntu-22.04
     steps:
       
@@ -73,18 +169,17 @@ jobs:
           mcfrelease="${{ github.event.inputs.release }}"
           set -- $mcfrelease
           echo "version=${1##*-}" >> $GITHUB_OUTPUT
-          
+
       - name: Checkout the specific Dockerfile
         uses: actions/checkout@v4.1.7
         with:
           sparse-checkout: |
-            src/main/docker/${{ steps.jdk.outputs.version }}/Dockerfile
+            src/main/docker/JDK-${{ steps.jdk.outputs.version }}/Dockerfile
           sparse-checkout-cone-mode: false
       
       - name: Move the Dockerfile in the root folder
         run: |
-          mv src/main/docker/${{ steps.jdk.outputs.version }}/Dockerfile  ${{ github.workspace }}
-          echo ls ${{ github.workspace }}
+          mv src/main/docker/JDK-${{ steps.jdk.outputs.version }}/Dockerfile  ${{ github.workspace }}
       
       - name: Download ManifoldCF ${{ steps.mcf.outputs.release }} distribution
         run: |
@@ -92,7 +187,7 @@ jobs:
           tar -xzvf apache-manifoldcf-${{ steps.mcf.outputs.release }}-bin.tar.gz && \
           mv apache-manifoldcf-${{ steps.mcf.outputs.release }} dist && \
           rm apache-manifoldcf-${{ steps.mcf.outputs.release }}-bin.tar.gz
-      
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
 

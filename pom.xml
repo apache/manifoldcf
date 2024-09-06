@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>16</version>
+    <version>31</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -96,7 +96,7 @@
     <jsoup.version>1.7.2</jsoup.version>
     <cxf.version>3.5.0</cxf.version>
     <jaxws-ri.version>2.3.2</jaxws-ri.version>
-    <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
+    <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
     <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
     <maven-rat-plugin.version>0.16.1</maven-rat-plugin.version>
     <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
@@ -105,7 +105,7 @@
   </properties>
 
   <modules>
-      <module>framework</module>
+    <module>framework</module>
     <module>test-materials</module>
     <module>connectors</module>
     <module>framework/jetty-runner</module>
@@ -183,7 +183,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.12.1</version>
         <configuration>
           <source>11</source>
           <target>11</target>
@@ -194,7 +193,6 @@
 
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>3.3.1</version>
         <configuration>
           <encoding>UTF-8</encoding>
         </configuration>
@@ -202,7 +200,6 @@
 
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
-        <version>3.3.2</version>
       </plugin>
       
       <plugin>
@@ -215,6 +212,8 @@
                    <exclude>site/src/documentation/skins/lucene/note.txt</exclude>
                    <exclude>site/src/documentation/skins/common/xslt/html/split.xsl</exclude>
                    <exclude>dist-license/DEPENDENCIES.txt</exclude>
+                   <exclude>site/tmp/font/**</exclude>
+                   <exclude>apache-manifoldcf-*/**</exclude>
               </excludes>
          </configuration>
       </plugin>
@@ -261,9 +260,6 @@
                     <inherited>true</inherited>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <configuration>
-                        <updateReleaseInfo>true</updateReleaseInfo>
-                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -298,6 +294,12 @@
                             <goals>
                                 <goal>sign</goal>
                             </goals>
+                            <configuration>
+	                            <gpgArguments>
+	                                <arg>--pinentry-mode</arg>
+	                                <arg>loopback</arg>
+	                            </gpgArguments>
+                            </configuration>
                         </execution>
                     </executions>
                 </plugin>

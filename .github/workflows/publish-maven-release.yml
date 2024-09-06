@@ -82,6 +82,8 @@ jobs:
           server-username: NEXUS_USER
           server-password: NEXUS_PW
           settings-path: ${{ github.workspace }}/.github/asf-deploy-settings.xml
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: GPG_PASSPHRASE # Environment variable name for the GPG private key passphrase. Default is $GPG_PASSPHRASE
           
       - name: Ant Build
         env:
@@ -105,8 +107,8 @@ jobs:
           MAVEN_SETTINGS: ${{ github.workspace }}/.github/asf-deploy-settings.xml
           MAVEN_USERNAME: ${{ secrets.NEXUS_STAGE_DEPLOYER_USER }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.NEXUS_STAGE_DEPLOYER_PW }}
-          MAVEN_GPG_PASSPHRASE: ""
-        #run: mvn deploy -B -e -q -DskipTests -DskipITs -DrepositoryId=apache.releases.https -Papache-release
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           mvn -B -e -q org.sonatype.plugins:nexus-staging-maven-plugin:deploy \
             -DskipTests \
@@ -114,7 +116,8 @@ jobs:
             -Dcargo-build.profile=release \
             -Dcargo-build.features=services-all \
             -DserverId=apache.releases.https \
-            -DnexusUrl=https://repository.apache.org
+            -DnexusUrl=https://repository.apache.org \
+            -Papache-release
             
       - name: Deploy local staged artifacts
         if: ${{ github.event_name != 'pull_request' }}
@@ -122,12 +125,14 @@ jobs:
           ./mvn org.sonatype.plugins:nexus-staging-maven-plugin:deploy-staged \
             -DskipStagingRepositoryClose=true \
             -DserverId=apache.releases.https \
-            -DnexusUrl=https://repository.apache.org
+            -DnexusUrl=https://repository.apache.org \
+            -Papache-release
         env:
           NEXUS_USER: ${{ secrets.NEXUS_STAGE_DEPLOYER_USER }}
           NEXUS_PW: ${{ secrets.NEXUS_STAGE_DEPLOYER_PW }}
           MAVEN_SETTINGS: ${{ github.workspace }}/.github/asf-deploy-settings.xml
           MAVEN_USERNAME: ${{ secrets.NEXUS_STAGE_DEPLOYER_USER }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.NEXUS_STAGE_DEPLOYER_PW }}
-          MAVEN_GPG_PASSPHRASE: ""
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         

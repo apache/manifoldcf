@@ -92,6 +92,13 @@ jobs:
       - name: Maven Build
         run: mvn clean install -B -DskipTests -DskipITs
       
+      - name: Update MCF version in the properties.xml files
+        run: | 
+          sed -i 's/${{ steps.mavenProjectVersion.outputs.version }}-dev/${{ steps.mavenProjectVersion.outputs.version }}/g' dist/example/properties.xml;
+          sed -i 's/${{ steps.mavenProjectVersion.outputs.version }}-dev/${{ steps.mavenProjectVersion.outputs.version }}/g' dist/example-proprietary/properties.xml;
+          sed -i 's/${{ steps.mavenProjectVersion.outputs.version }}-dev/${{ steps.mavenProjectVersion.outputs.version }}/g' dist/multiprocess-file-example/properties.xml;
+          sed -i 's/${{ steps.mavenProjectVersion.outputs.version }}-dev/${{ steps.mavenProjectVersion.outputs.version }}/g' dist/multiprocess-file-example-proprietary/properties.xml;
+      
       - name: RAT licence checks
         run: mvn -pl . apache-rat:check
       

@@ -1,7 +1,15 @@
 ManifoldCF Change Log
-$Id$
 
 ======================= 2.27-dev =====================
+
+CONNECTORS-1755: Copyright footer must be updated
+(Piergiorgio Lucidi)
+
+CONNECTORS-1757: GTS Connector - Add comment to warn it is not secure
+(YYTVicky)
+
+CONNECTORS-1756: Migrating the website on GitHub
+(Piergiorgio Lucidi)
 
 CONNECTORS-1754: Converting release scripts to GitHub workflows
 (Piergiorgio Lucidi)
@@ -13,6 +21,12 @@ CONNECTORS-1751: HDFS Connector - Maven build issue
 (Piergiorgio Lucidi)
 
 CONNECTORS-1750: Build broken due to the Nuxeo Maven repo not available
+(Piergiorgio Lucidi)
+
+CONNECTORS-1744: Migrate away from Travis-CI
+(Markus Schuch, Piergiorgio Lucidi)
+
+CONNECTORS-1492: Add support for Docker
 (Piergiorgio Lucidi)
 
 ======================= Release 2.26 =====================
@@ -33,6 +47,9 @@ The "Force the inclusion of redirection” options allows you to include hosts r
 (Emeric Bernet-Rollande)
 
 ======================= Release 2.25 =====================
+
+CONNECTORS-1742: Handle CSV in JDBC connector
+(Julien Massiera)
 
 CONNECTORS-1743: Retry on 502 and 503 errors in Solr connector.
 (Markus Günther)
@@ -195,6 +212,14 @@ CONNECTORS-1632: Use TLS sockets and no longer support old SSL connections.
 
 ======================= Release 2.15 =====================
 
+CONNECTORS-1628: Confluence Connector hang on error
+(Julien Massiera)
+
+CONNECTORS-1627: Fix NPE for documents that have no owner
+(Karl Wright)
+
+CONNECTORS-1631: Sharepoint connction problem
+(Karl Wright)
 
 ======================= Release 2.14 =====================
 
@@ -1600,6 +1625,71 @@ CONNECTORS-1016: Recognize non-existent user.
 CONNECTORS-972: Remove Forced Metadata tab from all jobs.
 THIS IS A NON-BACKWARDS-COMPATIBLE CHANGE.
 (Karl Wright)
+
+CONNECTORS-949: Upgrade OpenCMIS to latest version to see if it
+fixes join queries.
+(Karl Wright)
+
+CONNECTORS-1013: Handle new kind of XML we see coming back from
+SharePoint on getLists metadata field list requests.
+(Lalit Jangra, Karl Wright)
+
+======================= Release 1.7.1 =====================
+
+CONNECTORS-1041: Livelink connector should force HTTPS off when
+HTTP is selected.
+(Karl Wright)
+
+CONNECTORS-1039: Use a URL-centric way of getting the extension
+for document filtering.
+(David Morana, Karl Wright)
+
+CONNECTORS-1038: Handle multiple pool closes properly.
+(Karl Wright)
+
+CONNECTORS-956: Change how Solr field name escaping is done.
+(Piergiorgio Lucidi, Shinichiro Abe, Edgardo Ambrosi, Karl Wright)
+
+CONNECTORS-1036: Zookeeper service handling also has
+ephemeral nodes which need to be tied to sessions.
+(Karl Wright)
+
+CONNECTORS-1031: Fix Zookeeper synchronization to be resilient
+against short tick time settings.
+(Karl Wright)
+
+CONNECTORS-1027: Improve some general and PostgreSQL queries
+for large crawling sets.
+(Paul Boichat, Karl Wright)
+
+CONNECTORS-1025: SharePoint connector should skip blocked files.
+(Radek Sklenicka, Karl Wright)
+
+CONNECTORS-1024: Non-null components always failed due to a
+null pointer exception.
+(Karl Wright)
+
+CONNECTORS-1023: Fix Alfresco tests.  They don't yet succeed, but
+at least they run, and the connector can communicate with Alfresco.
+(Karl Wright)
+
+CONNECTORS-1020: Email connector misuse of variable names.
+(Karl Wright, Paul Boichat)
+
+CONNECTORS-1014: Fix the fact that Solr Cloud no longer sets
+a content type in its responses.
+(Kamil Zyta, Karl Wright)
+
+CONNECTORS-1006: Extend GoogleDrive connector to capture
+Google native spreadsheets.
+(Shigeki Kabayashi)
+
+CONNECTORS-1015: Add minimum file size to Allowed Documents
+transformation filter.
+(David Morana, Karl Wright)
+
+CONNECTORS-1016: Recognize non-existent user.
+(David Morana, Karl Wright)
 
 CONNECTORS-949: Upgrade OpenCMIS to latest version to see if it
 fixes join queries.
