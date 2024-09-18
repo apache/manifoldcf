@@ -214,6 +214,11 @@
                    <exclude>dist-license/DEPENDENCIES.txt</exclude>
                    <exclude>site/tmp/font/**</exclude>
                    <exclude>apache-manifoldcf-*/**</exclude>
+                   <exclude>src/main/docker/JDK-11/*.md</exclude>
+                   <exclude>src/main/docker/JDK-8/*.md</exclude>
+                   <exclude>src/main/docker/JDK-7/*.md</exclude>
+                   <exclude>src/main/docker/JDK-6/*.md</exclude>
+                   <exclude>src/main/docker/JDK-5/*.md</exclude>
               </excludes>
          </configuration>
       </plugin>
