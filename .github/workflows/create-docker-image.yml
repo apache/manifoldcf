@@ -178,6 +178,7 @@ jobs:
         with:
           sparse-checkout: |
             src/main/docker/JDK-${{ steps.jdk.outputs.version }}/Dockerfile
+            src/main/docker/logging/logging.xml
           sparse-checkout-cone-mode: false
       
       - name: Move the Dockerfile in the root folder
