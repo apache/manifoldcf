@@ -27,6 +27,7 @@ on:
         type: choice
         description: Select the ManifoldCF release
         options:
+        - release-2.27
         - release-2.26 #Java 11
         - release-2.25
         - release-2.24
