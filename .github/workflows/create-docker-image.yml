@@ -181,7 +181,6 @@ jobs:
           sparse-checkout-cone-mode: false
       
       - name: Move the Dockerfile in the root folder
-        if: (github.event.inputs.release  != '2.27-JDK-11')
         run: |
           mv src/main/docker/JDK-${{ steps.jdk.outputs.version }}/Dockerfile  ${{ github.workspace }}
       
