@@ -191,6 +191,13 @@ jobs:
           tar -xzvf apache-manifoldcf-${{ steps.mcf.outputs.release }}-bin.tar.gz && \
           mv apache-manifoldcf-${{ steps.mcf.outputs.release }}-dev dist && \
           rm apache-manifoldcf-${{ steps.mcf.outputs.release }}-bin.tar.gz
+      
+      - name: Update MCF version in the properties.xml files
+        run: | 
+          sed -i 's/${{ steps.mcf.outputs.release }}-dev/${{ steps.mcf.outputs.release }}/g' dist/example/properties.xml;
+          sed -i 's/${{ steps.mcf.outputs.release }}-dev/${{ steps.mcf.outputs.release }}/g' dist/example-proprietary/properties.xml;
+          sed -i 's/${{ steps.mcf.outputs.release }}-dev/${{ steps.mcf.outputs.release }}/g' dist/multiprocess-file-example/properties.xml;
+          sed -i 's/${{ steps.mcf.outputs.release }}-dev/${{ steps.mcf.outputs.release }}/g' dist/multiprocess-file-example-proprietary/properties.xml;
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.2.0

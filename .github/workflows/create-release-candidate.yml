@@ -67,6 +67,12 @@ jobs:
           branchVersion=${currentMavenVersion%"$suffixToRemove"}
           echo "version=${branchVersion}" >> $GITHUB_OUTPUT
       
+      - name: Create Release Version
+        id: releaseVersion
+        run: |
+          releaseVersion=${branchVersion%"-"}
+          echo "version=${releaseVersion}" >> $GITHUB_OUTPUT
+      
       - name: Set Branch Tag output
         id: branchTag
         run: echo "tag=${{ steps.branchVersion.outputs.version }}${{ github.event.inputs.releasecandidatetag }}" >> $GITHUB_OUTPUT
@@ -81,10 +87,10 @@ jobs:
         run: mvn versions:set -DnewVersion=${{ steps.mavenProjectVersion.outputs.version }} -DremoveSnapshot -DgenerateBackupPoms=false
       
       - name: Update Ant script with the new RC version
-        run: sed -i 's/${{ steps.mavenProjectVersion.outputs.version }}-dev/${{ steps.mavenProjectVersion.outputs.version }}/g' build.xml;
+        run: sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' build.xml;
       
       - name: Update CHANGES.txt
-        run: sed -i 's/${{ steps.mavenProjectVersion.outputs.version }}-dev/Release ${{ steps.mavenProjectVersion.outputs.version }}/g' CHANGES.txt;
+        run: sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/Release ${{ steps.releaseVersion.outputs.version }}/g' CHANGES.txt;
       
       - name: Ant Build
         run: ant make-core-deps make-deps image
@@ -94,10 +100,10 @@ jobs:
       
       - name: Update MCF version in the properties.xml files
         run: | 
-          sed -i 's/${{ steps.mavenProjectVersion.outputs.version }}-dev/${{ steps.mavenProjectVersion.outputs.version }}/g' dist/example/properties.xml;
-          sed -i 's/${{ steps.mavenProjectVersion.outputs.version }}-dev/${{ steps.mavenProjectVersion.outputs.version }}/g' dist/example-proprietary/properties.xml;
-          sed -i 's/${{ steps.mavenProjectVersion.outputs.version }}-dev/${{ steps.mavenProjectVersion.outputs.version }}/g' dist/multiprocess-file-example/properties.xml;
-          sed -i 's/${{ steps.mavenProjectVersion.outputs.version }}-dev/${{ steps.mavenProjectVersion.outputs.version }}/g' dist/multiprocess-file-example-proprietary/properties.xml;
+          sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' dist/example/properties.xml;
+          sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' dist/example-proprietary/properties.xml;
+          sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' dist/multiprocess-file-example/properties.xml;
+          sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' dist/multiprocess-file-example-proprietary/properties.xml;
       
       - name: RAT licence checks
         run: mvn -pl . apache-rat:check
