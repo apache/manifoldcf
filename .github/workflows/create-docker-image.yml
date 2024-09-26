@@ -187,7 +187,7 @@ jobs:
       
       - name: Download ManifoldCF ${{ steps.mcf.outputs.release }} distribution
         run: |
-          wget https://dlcdn.apache.org/manifoldcf/apache-manifoldcf-${{ steps.mcf.outputs.release }}/apache-manifoldcf-${{ steps.mcf.outputs.release }}-bin.tar.gz && \
+          wget -qO- https://dlcdn.apache.org/manifoldcf/apache-manifoldcf-${{ steps.mcf.outputs.release }}/apache-manifoldcf-${{ steps.mcf.outputs.release }}-bin.tar.gz && \
           tar -xzvf apache-manifoldcf-${{ steps.mcf.outputs.release }}-bin.tar.gz && \
           mv apache-manifoldcf-${{ steps.mcf.outputs.release }}-dev dist && \
           rm apache-manifoldcf-${{ steps.mcf.outputs.release }}-bin.tar.gz
