@@ -197,7 +197,7 @@
     <property name="sentiment-analysis.version" value="0.1"/>
     <property name="uimafit.version" value="2.2.0"/>
     <property name="uimaj.version" value="2.9.0"/>
-    <property name="cxf.version" value="3.5.0"/>
+    <property name="cxf.version" value="3.5.9"/>
     <property name="policy.version" value="2.7.6"/>
     <property name="gmbal.version" value="4.0.0"/>
     <property name="management-api.version" value="3.2.1"/>
