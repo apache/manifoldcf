@@ -931,7 +931,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven">
             <param name="project-path" value="com/squareup/retrofit2"/>
-            <param name="artifact-version" value="2.3.0"/>
+            <param name="artifact-version" value="2.11.0"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="retrofit"/>
             <param name="artifact-type" value="jar"/>
