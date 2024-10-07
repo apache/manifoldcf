@@ -30,7 +30,7 @@
     <defaultexcludes add="**/.idea/**"/> 
 
     <property name="javax-activation.version" value="1.2.0"/>
-    <property name="hsqldb.version" value="2.3.2"/>
+    <property name="hsqldb.version" value="2.7.3"/>
     <property name="jetty.version" value="9.4.48.v20220622"/>
     <property name="httpclient.version" value="4.5.13"/>
     <property name="httpmime.version" value="4.5.13"/>
