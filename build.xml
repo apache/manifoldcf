@@ -30,7 +30,7 @@
     <defaultexcludes add="**/.idea/**"/> 
 
     <property name="javax-activation.version" value="1.2.0"/>
-    <property name="hsqldb.version" value="2.3.2"/>
+    <property name="hsqldb.version" value="2.7.3"/>
     <property name="jetty.version" value="9.4.48.v20220622"/>
     <property name="httpclient.version" value="4.5.13"/>
     <property name="httpmime.version" value="4.5.13"/>
@@ -40,7 +40,7 @@
     <property name="metrics-core.version" value="4.2.21"/>
     <property name="snappy-java.version" value="1.1.7.7"/>
     <property name="mongodb.version" value="2.14.3"/>
-    <property name="postgresql.version" value="42.1.3"/>
+    <property name="postgresql.version" value="42.7.4"/>
     <property name="axis.version" value="1.4"/>
     <property name="saaj-api.version" value="1.3"/>
     <property name="saaj-impl.version" value="1.5.1"/>
@@ -177,7 +177,7 @@
     <property name="resteasy.client.version" value="3.0.16.Final"/>
     <property name="jsoup.version" value="1.11.3"/>
     <property name="jj2000.version" value="5.2"/>
-    <property name="hadoop.version" value="2.6.0"/>
+    <property name="hadoop.version" value="3.3.6"/>
     <property name="aws-sdk.version" value="1.9.0"/>
     <property name="joda-time.version" value="2.9.7"/>
     <property name="junrar.version" value="7.4.1"/>
@@ -191,13 +191,12 @@
     <property name="jsr-275.version" value="0.9.3"/>
     <property name="commons-vfs2.version" value="2.0"/>
     <property name="maven-scm.version" value="1.4"/>
-    <property name="plexus-utils.version" value="1.5.6"/>
     <property name="regexp.version" value="1.3"/>
     <property name="c3p0.version" value="0.9.5.5"/>
     <property name="sentiment-analysis.version" value="0.1"/>
     <property name="uimafit.version" value="2.2.0"/>
     <property name="uimaj.version" value="2.9.0"/>
-    <property name="cxf.version" value="3.5.0"/>
+    <property name="cxf.version" value="3.5.9"/>
     <property name="policy.version" value="2.7.6"/>
     <property name="gmbal.version" value="4.0.0"/>
     <property name="management-api.version" value="3.2.1"/>
@@ -932,7 +931,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven">
             <param name="project-path" value="com/squareup/retrofit2"/>
-            <param name="artifact-version" value="2.3.0"/>
+            <param name="artifact-version" value="2.11.0"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="retrofit"/>
             <param name="artifact-type" value="jar"/>
@@ -2938,12 +2937,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="org/apache/maven/scm"/>
             <param name="artifact-version" value="${maven-scm.version}"/>
             <param name="artifact-name" value="maven-scm-provider-svn-commons"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/codehaus/plexus"/>
-            <param name="artifact-version" value="${plexus-utils.version}"/>
-            <param name="artifact-name" value="plexus-utils"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
