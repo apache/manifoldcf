@@ -450,7 +450,6 @@ public class JDBCAuthority extends BaseAuthorityConnector {
 "        <option value=\"jtds:sybase://\" " + (lJdbcProvider.equals("jtds:sybase:") ? "selected=\"selected\"" : "") + ">Sybase (&gt;= V10)</option>\n"+
 "        <option value=\"mysql://\" " + (lJdbcProvider.equals("mysql:") ? "selected=\"selected\"" : "") + ">MySQL (&gt;= V5)</option>\n"+
 "        <option value=\"mariadb://\" " + (lJdbcProvider.equals("mariadb:") ? "selected=\"selected\"" : "") + ">MariaDB</option>\n"+
-"        <option value=\"xbib:csv:\" "+(jdbcProvider.equals("xbib:csv:")?"selected=\"selected\"":"")+">CSV</option>\n"+
 "      </select>\n"+
 "    </td>\n"+
 "  </tr>\n"+
