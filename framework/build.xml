@@ -55,6 +55,7 @@
             <include name="http2*.jar"/>
             <include name="httpcore*.jar"/>
             <include name="httpclient*.jar"/>
+            <include name="httpmime*.jar"/>
             <include name="commons-io*.jar"/>
             <include name="commons-lang*.jar"/>
             <include name="commons-logging*.jar"/>
@@ -1085,6 +1086,7 @@
                 <include name="commons-fileupload*.jar"/>
                 <include name="httpcore*.jar"/>
                 <include name="httpclient*.jar"/>
+                <include name="httpmime*.jar"/>                
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -1363,6 +1365,7 @@
             <include name="slf4j-simple*.jar"/>
             <include name="httpcore*.jar"/>
             <include name="httpclient*.jar"/>
+            <include name="httpmime*.jar"/>            
             <include name="javax.mail*.jar"/>
             <include name="commons-exec*.jar"/>
             <include name="gson*.jar"/>
