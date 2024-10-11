@@ -81,6 +81,7 @@
     <module>mongodb</module>
     <module>csws</module>
     <module>csv</module>
+    <module>newgeneric</module>
   </modules>
 
 </project>
