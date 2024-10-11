@@ -240,4 +240,9 @@
       </table>
     </td>
   </tr>
+
+  <tr>
+    <th colspan="1">$ResourceBundle.getString('WebcrawlerConnector.UserAgentPlatformColon')</th>
+    <td colspan="1">$ResourceBundle.getString($USER_AGENT_PLATFORM)</td>
+  </tr>
 </table>
