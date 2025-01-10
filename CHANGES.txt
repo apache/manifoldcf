@@ -1,6 +1,6 @@
 ManifoldCF Change Log
 
-======================= 2.28-dev =========================
+======================= Release 2.28 =========================
 
 CONNECTORS-1765: Fixing vulnerabilities in MCF
 (Guylaine Bassett)
