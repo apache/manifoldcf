@@ -119,5 +119,5 @@ Contact
 -------
 
   o For general information visit the main project site at
-    http://manifoldcf.apache.org
+    https://manifoldcf.apache.org
 
