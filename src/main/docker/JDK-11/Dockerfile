@@ -16,7 +16,7 @@
 FROM eclipse-temurin:11-jre-jammy
 LABEL maintainer="The Apache ManifoldCF Project"
 
-ARG MCF_VERSION="2.27-SNAPSHOT"
+ARG MCF_VERSION="2.29-SNAPSHOT"
 
 ARG MCF_USER=manifoldcf
 ARG MCF_USER_ID=100001
