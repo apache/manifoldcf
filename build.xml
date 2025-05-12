@@ -140,7 +140,7 @@
     <property name="aspectjrt.version" value="1.8.6"/>
     <property name="jhighlight.version" value="1.0.3"/>
     <property name="xmlbeans.version" value="3.1.0"/>
-    <property name="bc.version" value="1.70"/>
+    <property name="bc18.version" value="1.79"/>
     <property name="SparseBitSet.version" value="1.2"/>
     <property name="HikariCP-java7.version" value="2.4.13"/>
     <property name="tukaani.version" value="1.9"/>
@@ -3060,28 +3060,28 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-version" value="${xmlbeans.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
+		<antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/bouncycastle"/>
-            <param name="artifact-name" value="bcmail-jdk15on"/>
-            <param name="artifact-version" value="${bc.version}"/>
+            <param name="artifact-name" value="bcmail-jdk18on"/>
+            <param name="artifact-version" value="${bc18.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
+		<antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/bouncycastle"/>
-            <param name="artifact-name" value="bcutil-jdk15on"/>
-            <param name="artifact-version" value="${bc.version}"/>
+            <param name="artifact-name" value="bcutil-jdk18on"/>
+            <param name="artifact-version" value="${bc18.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
+		<antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/bouncycastle"/>
-            <param name="artifact-name" value="bcprov-jdk15on"/>
-            <param name="artifact-version" value="${bc.version}"/>
+            <param name="artifact-name" value="bcprov-jdk18on"/>
+            <param name="artifact-version" value="${bc18.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
+		<antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/bouncycastle"/>
-            <param name="artifact-name" value="bcpkix-jdk15on"/>
-            <param name="artifact-version" value="${bc.version}"/>
+            <param name="artifact-name" value="bcpkix-jdk18on"/>
+            <param name="artifact-version" value="${bc18.version}"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>

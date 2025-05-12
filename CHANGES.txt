@@ -5,6 +5,9 @@ ManifoldCF Change Log
 CONNECTORS-1775: The 'exclude buckets' option in the Amazon S3 repository connector does not work
 (Mingchun Zhao)
 
+CONNECTORS-1772: Error with Windows repository
+(Mario Bisonti, Piergiorgio Lucidi)
+
 ======================= Release 2.28 =========================
 
 CONNECTORS-1765: Fixing vulnerabilities in MCF

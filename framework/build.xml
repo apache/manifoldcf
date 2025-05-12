@@ -162,10 +162,17 @@
             <include name="jempbox*.jar"/>
             <include name="xmpbox*.jar"/>
             <include name="preflight*.jar"/>
+            	<!--
             <include name="bcmail-jdk15on*.jar"/>
             <include name="bcutil-jdk15on*.jar"/>
             <include name="bcprov-jdk15on*.jar"/>
             <include name="bcpkix-jdk15on*.jar"/>
+            -->
+            <include name="bcmail-jdk18on*.jar"/>
+            <include name="bcutil-jdk18on*.jar"/>
+            <include name="bcprov-jdk18on*.jar"/>
+            <include name="bcpkix-jdk18on*.jar"/>
+            
             <include name="SparseBitSet*.jar"/>
             <include name="HikariCP-java7*.jar"/>
             <include name="geronimo-stax-api_1.0_spec*.jar"/>

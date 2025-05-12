@@ -30,11 +30,7 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
-    <property name="jcifs-ng.version" value="2.1.2"/>
-    
-    <!--groupId>eu.agno3.jcifs</groupId>
-    <artifactId>jcifs-ng</artifactId>
-    <version>2.1.2</version/-->
+    <property name="jcifs-ng.version" value="2.1.10"/>
     
     <target name="calculate-condition">
         <available file="lib-proprietary/jcifs-ng-${jcifs-ng.version}.jar" property="jcifsStatus"/>
