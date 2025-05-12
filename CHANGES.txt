@@ -2,6 +2,8 @@ ManifoldCF Change Log
 
 ======================= 2.29-dev =========================
 
+CONNECTORS-1775: The 'exclude buckets' option in the Amazon S3 repository connector does not work
+(Mingchun Zhao)
 
 ======================= Release 2.28 =========================
 

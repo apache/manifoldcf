@@ -783,9 +783,10 @@ public class AmazonS3Connector extends BaseRepositoryConnector {
         List<String> refinedBuckets = new ArrayList<String>();
         
         for (Bucket bucket : listBuckets) {
-          if (bucketsToBeRemoved != null && bucketsToBeRemoved.length > 0 &&  !Arrays.asList(bucketsToBeRemoved).contains(
-              bucket.getName())) {
-            refinedBuckets.add(bucket.getName());
+          if (bucketsToBeRemoved != null && bucketsToBeRemoved.length > 0) {
+            if (!Arrays.asList(bucketsToBeRemoved).contains(bucket.getName())) {
+              refinedBuckets.add(bucket.getName());
+            }
           }
           else{
             refinedBuckets.add(bucket.getName());
