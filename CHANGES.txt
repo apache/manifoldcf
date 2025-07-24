@@ -8,6 +8,15 @@ CONNECTORS-1775: The 'exclude buckets' option in the Amazon S3 repository connec
 CONNECTORS-1772: Error with Windows repository
 (Mario Bisonti, Piergiorgio Lucidi)
 
+CONNECTORS-1663: Use shared KEYS file
+(Sebb)
+
+CONNECTORS-1674: KEYS file must be called KEYS
+(Sebb)
+
+CONNECTORS-1718: match up deps versions in pom.xml with build.xml
+(PJ Fanning)
+
 ======================= Release 2.28 =========================
 
 CONNECTORS-1765: Fixing vulnerabilities in MCF
