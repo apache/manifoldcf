@@ -276,7 +276,8 @@
       <!-- get src="http://ossipedia.ipa.go.jp/ipafont/IPAGTTC00303.php" dest="fonts/IPAGTTC00303.zip"/ -->
       <!-- get src="http://info.openlab.ipa.go.jp/ipafont/fontdata/IPAGTTC00303.zip" dest="fonts"/ -->
       <!-- get src="http://ossipedia.ipa.go.jp/ipafont/ipafont/IPAGTTC00303.zip" dest="fonts"/ -->
-      <get src="http://jaist.dl.sourceforge.jp/ipafonts/51867/IPAGTTC00303.zip" dest="fonts"/>
+      <!-- get src="http://jaist.dl.sourceforge.jp/ipafonts/51867/IPAGTTC00303.zip" dest="fonts"/ -->
+	  <get src="https://ftp.iij.ad.jp/pub/osdn.jp/ipafonts/51867/IPAGTTC00303.zip" dest="fonts" />
     </target>
     
     <target name="download-dependencies" depends="download-dejavu-fonts,download-ipa-fonts">
