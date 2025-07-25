@@ -1,6 +1,6 @@
 ManifoldCF Change Log
 
-======================= 2.29-dev =========================
+======================= Release 2.29 =========================
 
 CONNECTORS-1776: Update Copyright footer to 2025
 (Piergiorgio Lucidi)
