@@ -25,6 +25,7 @@ on:
         type: choice
         description: Select the ManifoldCF release
         options:
+        - 2.29-JDK-11
         - 2.28-JDK-11
         - 2.27-JDK-11
         - 2.26-JDK-11 #Java 11
@@ -59,6 +60,7 @@ on:
 jobs:
   createDockerImageBuildingFromSourceCode:
     if: |
+          (github.event.inputs.release  != '2.29-JDK-11') &&
           (github.event.inputs.release  != '2.28-JDK-11') &&
           (github.event.inputs.release  != '2.27-JDK-11') &&
           (github.event.inputs.release  != '2.26-JDK-11') &&
@@ -152,6 +154,7 @@ jobs:
       
   createDockerImageForAvailableDistributionPackage:
     if: |
+          (github.event.inputs.release  == '2.29-JDK-11') ||
           (github.event.inputs.release  == '2.28-JDK-11') ||
           (github.event.inputs.release  == '2.27-JDK-11') ||
           (github.event.inputs.release  == '2.26-JDK-11') ||
