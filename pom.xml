@@ -185,11 +185,15 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>11</source>
-          <target>11</target>
+          <source>21</source>
+          <target>21</target>
           <fork>true</fork>
           <meminitial>128m</meminitial>
-          <maxmem>512m</maxmem>        </configuration>
+          <maxmem>512m</maxmem>
+          <compilerArgs>
+            <arg>-Xpkginfo:always</arg>
+          </compilerArgs>
+        </configuration>
       </plugin>
 
       <plugin>

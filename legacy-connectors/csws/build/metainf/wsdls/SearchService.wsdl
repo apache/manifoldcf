@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<!--
+ Published by JAX-WS RI (http://jax-ws.java.net). RI's version is JAX-WS RI 2.2.10 svn-revision#919b322c92f13ad085a933e8dd6dd35d4947364b. 
+-->
+<wsdl:definitions xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="urn:SearchServices.service.livelink.opentext.com" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" name="SearchService" targetNamespace="urn:SearchServices.service.livelink.opentext.com">
+<wsdl:types>
+<xsd:schema targetNamespace="urn:SearchServices.service.livelink.opentext.com/Imports">
+<xsd:import schemaLocation="SearchService1.xsd" namespace="urn:SearchServices.service.livelink.opentext.com"/>
+<xsd:import schemaLocation="SearchService2.xsd" namespace="urn:api.ecm.opentext.com"/>
+</xsd:schema>
+</wsdl:types>
+<wsdl:message name="GetDataCollectionsRequest">
+<wsdl:part name="parameters" element="tns:GetDataCollections"/>
+</wsdl:message>
+<wsdl:message name="GetDataCollectionsRequest_Headers">
+<wsdl:part xmlns:q1="urn:api.ecm.opentext.com" name="OTAuthentication" element="q1:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetDataCollectionsResponse">
+<wsdl:part name="parameters" element="tns:GetDataCollectionsResponse"/>
+</wsdl:message>
+<wsdl:message name="GetDataCollectionsResponse_Headers">
+<wsdl:part xmlns:q2="urn:api.ecm.opentext.com" name="OTAuthentication" element="q2:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetFieldInfoRequest">
+<wsdl:part name="parameters" element="tns:GetFieldInfo"/>
+</wsdl:message>
+<wsdl:message name="GetFieldInfoRequest_Headers">
+<wsdl:part xmlns:q3="urn:api.ecm.opentext.com" name="OTAuthentication" element="q3:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetFieldInfoResponse">
+<wsdl:part name="parameters" element="tns:GetFieldInfoResponse"/>
+</wsdl:message>
+<wsdl:message name="GetFieldInfoResponse_Headers">
+<wsdl:part xmlns:q4="urn:api.ecm.opentext.com" name="OTAuthentication" element="q4:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetQueryLanguageDescriptionRequest">
+<wsdl:part name="parameters" element="tns:GetQueryLanguageDescription"/>
+</wsdl:message>
+<wsdl:message name="GetQueryLanguageDescriptionRequest_Headers">
+<wsdl:part xmlns:q5="urn:api.ecm.opentext.com" name="OTAuthentication" element="q5:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetQueryLanguageDescriptionResponse">
+<wsdl:part name="parameters" element="tns:GetQueryLanguageDescriptionResponse"/>
+</wsdl:message>
+<wsdl:message name="GetQueryLanguageDescriptionResponse_Headers">
+<wsdl:part xmlns:q6="urn:api.ecm.opentext.com" name="OTAuthentication" element="q6:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetResultPageDescriptionRequest">
+<wsdl:part name="parameters" element="tns:GetResultPageDescription"/>
+</wsdl:message>
+<wsdl:message name="GetResultPageDescriptionRequest_Headers">
+<wsdl:part xmlns:q7="urn:api.ecm.opentext.com" name="OTAuthentication" element="q7:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetResultPageDescriptionResponse">
+<wsdl:part name="parameters" element="tns:GetResultPageDescriptionResponse"/>
+</wsdl:message>
+<wsdl:message name="GetResultPageDescriptionResponse_Headers">
+<wsdl:part xmlns:q8="urn:api.ecm.opentext.com" name="OTAuthentication" element="q8:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetSupportedQueryLanguagesRequest">
+<wsdl:part name="parameters" element="tns:GetSupportedQueryLanguages"/>
+</wsdl:message>
+<wsdl:message name="GetSupportedQueryLanguagesRequest_Headers">
+<wsdl:part xmlns:q9="urn:api.ecm.opentext.com" name="OTAuthentication" element="q9:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="GetSupportedQueryLanguagesResponse">
+<wsdl:part name="parameters" element="tns:GetSupportedQueryLanguagesResponse"/>
+</wsdl:message>
+<wsdl:message name="GetSupportedQueryLanguagesResponse_Headers">
+<wsdl:part xmlns:q10="urn:api.ecm.opentext.com" name="OTAuthentication" element="q10:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="SearchRequest">
+<wsdl:part name="parameters" element="tns:Search"/>
+</wsdl:message>
+<wsdl:message name="SearchRequest_Headers">
+<wsdl:part xmlns:q11="urn:api.ecm.opentext.com" name="OTAuthentication" element="q11:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="SearchResponse">
+<wsdl:part name="parameters" element="tns:SearchResponse"/>
+</wsdl:message>
+<wsdl:message name="SearchResponse_Headers">
+<wsdl:part xmlns:q12="urn:api.ecm.opentext.com" name="OTAuthentication" element="q12:OTAuthentication"/>
+</wsdl:message>
+<wsdl:portType name="SearchService">
+<wsdl:operation name="GetDataCollections">
+<wsdl:input wsaw:Action="urn:SearchServices.service.livelink.opentext.com/GetDataCollections" name="GetDataCollectionsRequest" message="tns:GetDataCollectionsRequest"/>
+<wsdl:output wsaw:Action="urn:SearchServices.service.livelink.opentext.com/SearchService/GetDataCollectionsResponse" name="GetDataCollectionsResponse" message="tns:GetDataCollectionsResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetFieldInfo">
+<wsdl:input wsaw:Action="urn:SearchServices.service.livelink.opentext.com/GetFieldInfo" name="GetFieldInfoRequest" message="tns:GetFieldInfoRequest"/>
+<wsdl:output wsaw:Action="urn:SearchServices.service.livelink.opentext.com/SearchService/GetFieldInfoResponse" name="GetFieldInfoResponse" message="tns:GetFieldInfoResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetQueryLanguageDescription">
+<wsdl:input wsaw:Action="urn:SearchServices.service.livelink.opentext.com/GetQueryLanguageDescription" name="GetQueryLanguageDescriptionRequest" message="tns:GetQueryLanguageDescriptionRequest"/>
+<wsdl:output wsaw:Action="urn:SearchServices.service.livelink.opentext.com/SearchService/GetQueryLanguageDescriptionResponse" name="GetQueryLanguageDescriptionResponse" message="tns:GetQueryLanguageDescriptionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetResultPageDescription">
+<wsdl:input wsaw:Action="urn:SearchServices.service.livelink.opentext.com/GetResultPageDescription" name="GetResultPageDescriptionRequest" message="tns:GetResultPageDescriptionRequest"/>
+<wsdl:output wsaw:Action="urn:SearchServices.service.livelink.opentext.com/SearchService/GetResultPageDescriptionResponse" name="GetResultPageDescriptionResponse" message="tns:GetResultPageDescriptionResponse"/>
+</wsdl:operation>
+<wsdl:operation name="GetSupportedQueryLanguages">
+<wsdl:input wsaw:Action="urn:SearchServices.service.livelink.opentext.com/GetSupportedQueryLanguages" name="GetSupportedQueryLanguagesRequest" message="tns:GetSupportedQueryLanguagesRequest"/>
+<wsdl:output wsaw:Action="urn:SearchServices.service.livelink.opentext.com/SearchService/GetSupportedQueryLanguagesResponse" name="GetSupportedQueryLanguagesResponse" message="tns:GetSupportedQueryLanguagesResponse"/>
+</wsdl:operation>
+<wsdl:operation name="Search">
+<wsdl:input wsaw:Action="urn:SearchServices.service.livelink.opentext.com/Search" name="SearchRequest" message="tns:SearchRequest"/>
+<wsdl:output wsaw:Action="urn:SearchServices.service.livelink.opentext.com/SearchService/SearchResponse" name="SearchResponse" message="tns:SearchResponse"/>
+</wsdl:operation>
+</wsdl:portType>
+<wsdl:binding name="BasicHttpBinding_SearchService" type="tns:SearchService">
+<soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+<wsdl:operation name="GetDataCollections">
+<soap:operation soapAction="urn:SearchServices.service.livelink.opentext.com/GetDataCollections" style="document"/>
+<wsdl:input name="GetDataCollectionsRequest">
+<soap:header message="tns:GetDataCollectionsRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetDataCollectionsResponse">
+<soap:header message="tns:GetDataCollectionsResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetFieldInfo">
+<soap:operation soapAction="urn:SearchServices.service.livelink.opentext.com/GetFieldInfo" style="document"/>
+<wsdl:input name="GetFieldInfoRequest">
+<soap:header message="tns:GetFieldInfoRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetFieldInfoResponse">
+<soap:header message="tns:GetFieldInfoResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetQueryLanguageDescription">
+<soap:operation soapAction="urn:SearchServices.service.livelink.opentext.com/GetQueryLanguageDescription" style="document"/>
+<wsdl:input name="GetQueryLanguageDescriptionRequest">
+<soap:header message="tns:GetQueryLanguageDescriptionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetQueryLanguageDescriptionResponse">
+<soap:header message="tns:GetQueryLanguageDescriptionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetResultPageDescription">
+<soap:operation soapAction="urn:SearchServices.service.livelink.opentext.com/GetResultPageDescription" style="document"/>
+<wsdl:input name="GetResultPageDescriptionRequest">
+<soap:header message="tns:GetResultPageDescriptionRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetResultPageDescriptionResponse">
+<soap:header message="tns:GetResultPageDescriptionResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="GetSupportedQueryLanguages">
+<soap:operation soapAction="urn:SearchServices.service.livelink.opentext.com/GetSupportedQueryLanguages" style="document"/>
+<wsdl:input name="GetSupportedQueryLanguagesRequest">
+<soap:header message="tns:GetSupportedQueryLanguagesRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="GetSupportedQueryLanguagesResponse">
+<soap:header message="tns:GetSupportedQueryLanguagesResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="Search">
+<soap:operation soapAction="urn:SearchServices.service.livelink.opentext.com/Search" style="document"/>
+<wsdl:input name="SearchRequest">
+<soap:header message="tns:SearchRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="SearchResponse">
+<soap:header message="tns:SearchResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:service name="SearchService">
+<wsdl:port name="BasicHttpBinding_SearchService" binding="tns:BasicHttpBinding_SearchService">
+<soap:address location="https://opentextdev3:443/cws/services/SearchService"/>
+</wsdl:port>
+</wsdl:service>
+</wsdl:definitions>

@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM eclipse-temurin:11-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 LABEL maintainer="The Apache ManifoldCF Project"
 
-ARG MCF_VERSION="2.29-SNAPSHOT"
+ARG MCF_VERSION="2.30-SNAPSHOT"
 
 ARG MCF_USER=manifoldcf
 ARG MCF_USER_ID=100001

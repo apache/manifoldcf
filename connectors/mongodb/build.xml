@@ -99,10 +99,11 @@
 	
     <target name="download-dependencies">
       <property name="sonatype-maven-repo-releases" value="https://oss.sonatype.org/content/repositories/public" />
-      <get src="${sonatype-maven-repo-releases}/${embedded-mongodb-package}/${embedded-mongodb.artifactId}/${embedded-mongodb.version.label}/${embedded-mongodb.snapshot-jar}" dest="test-materials/${embedded-mongodb.snapshot-jar}"/>
-      <get src="${sonatype-maven-repo-releases}/${embedded-mongodb.process-package}/${embedded-mongodb.process.artifactId}/${embedded-mongodb.process.version.label}/${embedded-mongodb.process.jar}" dest="test-materials/${embedded-mongodb.process.jar}"/>
-      <get src="${sonatype-maven-repo-releases}/${embedded-mongodb-packageresolver-package}/${embedded-mongodb.packageresolver.artifactId}/${embedded-mongodb.packageresolver.version.label}/${embedded-mongodb.packageresolver.jar}" dest="test-materials/${embedded-mongodb.packageresolver.jar}"/>
-      <get src="${sonatype-maven-repo-releases}/${embedded-mongodb-os-package}/${embedded-mongodb.os.artifactId}/${embedded-mongodb.os.version.label}/${embedded-mongodb.os.jar}" dest="test-materials/${embedded-mongodb.os.jar}"/>
+      <property name="apache-maven-repo-releases" value="https://repo1.maven.org/maven2" />
+      <get src="${apache-maven-repo-releases}/${embedded-mongodb-package}/${embedded-mongodb.artifactId}/${embedded-mongodb.version.label}/${embedded-mongodb.snapshot-jar}" dest="test-materials/${embedded-mongodb.snapshot-jar}"/>
+      <get src="${apache-maven-repo-releases}/${embedded-mongodb.process-package}/${embedded-mongodb.process.artifactId}/${embedded-mongodb.process.version.label}/${embedded-mongodb.process.jar}" dest="test-materials/${embedded-mongodb.process.jar}"/>
+      <get src="${apache-maven-repo-releases}/${embedded-mongodb-packageresolver-package}/${embedded-mongodb.packageresolver.artifactId}/${embedded-mongodb.packageresolver.version.label}/${embedded-mongodb.packageresolver.jar}" dest="test-materials/${embedded-mongodb.packageresolver.jar}"/>
+      <get src="${apache-maven-repo-releases}/${embedded-mongodb-os-package}/${embedded-mongodb.os.artifactId}/${embedded-mongodb.os.version.label}/${embedded-mongodb.os.jar}" dest="test-materials/${embedded-mongodb.os.jar}"/>
     	 
     </target>
 

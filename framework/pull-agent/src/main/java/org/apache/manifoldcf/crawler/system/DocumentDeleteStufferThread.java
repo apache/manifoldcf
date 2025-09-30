@@ -154,7 +154,7 @@ public class DocumentDeleteStufferThread extends Thread
           }
 
           // If we don't wait here, the other threads don't have a chance to queue anything else up.
-          yield();
+          Thread.yield();
         }
         catch (ManifoldCFException e)
         {

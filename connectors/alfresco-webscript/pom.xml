@@ -53,14 +53,14 @@
     <repositories>
         <repository>
             <id>alfresco-release</id>
-            <url>https://artifacts.alfresco.com/nexus/content/repositories/releases</url>
+            <url>https://maven.alfresco.com/nexus/repository/releases</url>
         </repository>
     </repositories>
 
     <pluginRepositories>
         <pluginRepository>
             <id>alfresco-release</id>
-            <url>https://artifacts.alfresco.com/nexus/content/repositories/releases</url>
+            <url>https://maven.alfresco.com/nexus/repository/releases</url>
         </pluginRepository>
     </pluginRepositories>
 
@@ -121,6 +121,7 @@
                     <forkCount>1</forkCount>
                     <reuseForks>false</reuseForks>
                     <workingDirectory>target/test-output</workingDirectory>
+                    <argLine>--add-opens java.base/java.lang=ALL-UNNAMED</argLine>
                 </configuration>
             </plugin>
             <plugin>
@@ -257,6 +258,7 @@
                     <reuseForks>false</reuseForks>
                     <workingDirectory>target/test-output</workingDirectory>
                     <argLine>-Xms512m -Xmx1024m -Xss1024k -XX:MaxPermSize=256m -XX:NewSize=256m</argLine>
+                    <argLine>--add-opens java.base/java.lang=ALL-UNNAMED</argLine>
                 </configuration>
                 <executions>
                     <execution>

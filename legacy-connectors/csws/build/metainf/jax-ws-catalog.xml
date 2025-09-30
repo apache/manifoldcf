@@ -1,0 +1,37 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="system">
+  <system systemId="http://localhost/wsdls/Authentication.wsdl" uri="wsdls/Authentication.wsdl"/>
+  <system systemId="http://localhost/wsdls/Authentication1.xsd" uri="wsdls/Authentication1.xsd"/>
+  <system systemId="http://localhost/wsdls/Authentication2.xsd" uri="wsdls/Authentication2.xsd"/>
+  <system systemId="http://localhost/wsdls/ContentService.wsdl" uri="wsdls/ContentService.wsdl"/>
+  <system systemId="http://localhost/wsdls/ContentService1.xsd" uri="wsdls/ContentService1.xsd"/>
+  <system systemId="http://localhost/wsdls/ContentService2.xsd" uri="wsdls/ContentService2.xsd"/>
+  <system systemId="http://localhost/wsdls/ContentService3.xsd" uri="wsdls/ContentService3.xsd"/>
+  <system systemId="http://localhost/wsdls/DocumentManagement.wsdl" uri="wsdls/DocumentManagement.wsdl"/>
+  <system systemId="http://localhost/wsdls/DocumentManagement1.xsd" uri="wsdls/DocumentManagement1.xsd"/>
+  <system systemId="http://localhost/wsdls/DocumentManagement2.xsd" uri="wsdls/DocumentManagement2.xsd"/>
+  <system systemId="http://localhost/wsdls/DocumentManagement3.xsd" uri="wsdls/DocumentManagement3.xsd"/>
+  <system systemId="http://localhost/wsdls/MemberService.wsdl" uri="wsdls/MemberService.wsdl"/>
+  <system systemId="http://localhost/wsdls/MemberService1.xsd" uri="wsdls/MemberService1.xsd"/>
+  <system systemId="http://localhost/wsdls/MemberService2.xsd" uri="wsdls/MemberService2.xsd"/>
+  <system systemId="http://localhost/wsdls/MemberService3.xsd" uri="wsdls/MemberService3.xsd"/>
+  <system systemId="http://localhost/wsdls/SearchService.wsdl" uri="wsdls/SearchService.wsdl"/>
+  <system systemId="http://localhost/wsdls/SearchService1.xsd" uri="wsdls/SearchService1.xsd"/>
+  <system systemId="http://localhost/wsdls/SearchService2.xsd" uri="wsdls/SearchService2.xsd"/>
+</catalog>

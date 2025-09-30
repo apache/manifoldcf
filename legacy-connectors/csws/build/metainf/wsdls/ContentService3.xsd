@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<!--
+ Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.7-b01  svn-revision#${svn.Last.Changed.Rev}. 
+-->
+<xs:schema xmlns:tns="urn:Core.service.livelink.opentext.com" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="urn:Core.service.livelink.opentext.com">
+<xs:import schemaLocation="ContentService1.xsd" namespace="http://schemas.microsoft.com/Message"/>
+<xs:element name="DownloadContent">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="contextID" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="DownloadContentResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element xmlns:q1="http://schemas.microsoft.com/Message" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmime:expectedContentTypes="*/*" name="DownloadContentResult" type="q1:StreamBody"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="UploadContent">
+<xs:complexType>
+<xs:sequence>
+<xs:element xmlns:q2="http://schemas.microsoft.com/Message" xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmime:expectedContentTypes="*/*" name="contents" type="q2:StreamBody"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+<xs:element name="contextID" type="xs:string"/>
+<xs:element name="fileAtts" type="tns:FileAtts"/>
+<xs:complexType name="FileAtts">
+<xs:complexContent mixed="false">
+<xs:extension base="tns:ServiceDataObject">
+<xs:sequence>
+<xs:element minOccurs="1" maxOccurs="1" name="CreatedDate" nillable="true" type="xs:dateTime"/>
+<xs:element minOccurs="0" maxOccurs="1" name="FileName" type="xs:string"/>
+<xs:element minOccurs="1" maxOccurs="1" name="FileSize" nillable="true" type="xs:long"/>
+<xs:element minOccurs="1" maxOccurs="1" name="ModifiedDate" nillable="true" type="xs:dateTime"/>
+</xs:sequence>
+</xs:extension>
+</xs:complexContent>
+</xs:complexType>
+<xs:complexType name="ServiceDataObject" abstract="true"/>
+<xs:element name="UploadContentResponse">
+<xs:complexType>
+<xs:sequence>
+<xs:element minOccurs="0" maxOccurs="1" name="UploadContentResult" type="xs:string"/>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+</xs:schema>

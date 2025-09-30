@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements. See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License. You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+
+<!--
+ Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.7-b01  svn-revision#${svn.Last.Changed.Rev}. 
+-->
+<wsdl:definitions xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="urn:Core.service.livelink.opentext.com" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" name="ContentService" targetNamespace="urn:Core.service.livelink.opentext.com">
+<wsp:Policy wsu:Id="BasicHttpBinding_ContentService_policy">
+<wsp:ExactlyOne>
+<wsp:All>
+<wsoma:OptimizedMimeSerialization xmlns:wsoma="http://schemas.xmlsoap.org/ws/2004/09/policy/optimizedmimeserialization"/>
+</wsp:All>
+</wsp:ExactlyOne>
+</wsp:Policy>
+<wsdl:types>
+<xsd:schema targetNamespace="urn:Core.service.livelink.opentext.com/Imports">
+<xsd:import schemaLocation="ContentService3.xsd" namespace="urn:Core.service.livelink.opentext.com"/>
+<xsd:import schemaLocation="ContentService2.xsd" namespace="urn:api.ecm.opentext.com"/>
+<xsd:import schemaLocation="ContentService1.xsd" namespace="http://schemas.microsoft.com/Message"/>
+</xsd:schema>
+</wsdl:types>
+<wsdl:message name="DownloadContentRequest">
+<wsdl:part name="parameters" element="tns:DownloadContent"/>
+</wsdl:message>
+<wsdl:message name="DownloadContentRequest_Headers">
+<wsdl:part xmlns:q1="urn:api.ecm.opentext.com" name="OTAuthentication" element="q1:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="DownloadContentResponse">
+<wsdl:part name="parameters" element="tns:DownloadContentResponse"/>
+</wsdl:message>
+<wsdl:message name="DownloadContentResponse_Headers">
+<wsdl:part xmlns:q2="urn:api.ecm.opentext.com" name="OTAuthentication" element="q2:OTAuthentication"/>
+</wsdl:message>
+<wsdl:message name="UploadContentRequest">
+<wsdl:part name="parameters" element="tns:UploadContent"/>
+</wsdl:message>
+<wsdl:message name="UploadContentRequest_Headers">
+<wsdl:part xmlns:q3="urn:api.ecm.opentext.com" name="OTAuthentication" element="q3:OTAuthentication"/>
+<wsdl:part name="contextID" element="tns:contextID"/>
+<wsdl:part name="fileAtts" element="tns:fileAtts"/>
+</wsdl:message>
+<wsdl:message name="UploadContentResponse">
+<wsdl:part name="parameters" element="tns:UploadContentResponse"/>
+</wsdl:message>
+<wsdl:message name="UploadContentResponse_Headers">
+<wsdl:part xmlns:q4="urn:api.ecm.opentext.com" name="OTAuthentication" element="q4:OTAuthentication"/>
+</wsdl:message>
+<wsdl:portType name="ContentService">
+<wsdl:operation name="DownloadContent">
+<wsdl:input wsaw:Action="urn:Core.service.livelink.opentext.com/DownloadContent" name="DownloadContentRequest" message="tns:DownloadContentRequest"/>
+<wsdl:output wsaw:Action="urn:Core.service.livelink.opentext.com/ContentService/DownloadContentResponse" name="DownloadContentResponse" message="tns:DownloadContentResponse"/>
+</wsdl:operation>
+<wsdl:operation name="UploadContent">
+<wsdl:input wsaw:Action="urn:Core.service.livelink.opentext.com/UploadContent" name="UploadContentRequest" message="tns:UploadContentRequest"/>
+<wsdl:output wsaw:Action="urn:Core.service.livelink.opentext.com/ContentService/UploadContentResponse" name="UploadContentResponse" message="tns:UploadContentResponse"/>
+</wsdl:operation>
+</wsdl:portType>
+<wsdl:binding name="BasicHttpBinding_ContentService" type="tns:ContentService">
+<wsp:PolicyReference URI="#BasicHttpBinding_ContentService_policy"/>
+<soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+<wsdl:operation name="DownloadContent">
+<soap:operation soapAction="urn:Core.service.livelink.opentext.com/DownloadContent" style="document"/>
+<wsdl:input name="DownloadContentRequest">
+<soap:header message="tns:DownloadContentRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="DownloadContentResponse">
+<soap:header message="tns:DownloadContentResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+<wsdl:operation name="UploadContent">
+<soap:operation soapAction="urn:Core.service.livelink.opentext.com/UploadContent" style="document"/>
+<wsdl:input name="UploadContentRequest">
+<soap:header message="tns:UploadContentRequest_Headers" part="OTAuthentication" use="literal"/>
+<soap:header message="tns:UploadContentRequest_Headers" part="contextID" use="literal"/>
+<soap:header message="tns:UploadContentRequest_Headers" part="fileAtts" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:input>
+<wsdl:output name="UploadContentResponse">
+<soap:header message="tns:UploadContentResponse_Headers" part="OTAuthentication" use="literal"/>
+<soap:body use="literal"/>
+</wsdl:output>
+</wsdl:operation>
+</wsdl:binding>
+<wsdl:service name="ContentService">
+<wsdl:port name="BasicHttpBinding_ContentService" binding="tns:BasicHttpBinding_ContentService">
+<soap:address location="https://llotadm2:443/cws/services/ContentService"/>
+</wsdl:port>
+</wsdl:service>
+</wsdl:definitions>

@@ -552,13 +552,14 @@
 
     <target name="compile-wsdls" depends="has-wsdls-check" if="hasWSDLs">
         <mkdir dir="build/wsdlclasses"/>
-        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" deprecation="true" target="11" source="11" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
+        <javac srcdir="build/wsdljava" destdir="build/wsdlclasses" deprecation="true" target="21" source="21" debug="true" debuglevel="lines,vars,source" encoding="UTF-8">
             <classpath>
                 <!-- JDK 11 requirements -->
                 <fileset dir="${mcf-dist}/connector-common-lib">
                     <include name="jaxws-api*.jar"/>
                     <include name="javax.jws-api*.jar"/>
                     <include name="jaxb-api*.jar"/>
+                	<include name="jaxb-runtime*.jar"/>
                 </fileset>
                 <fileset dir="${mcf-dist}/connector-common-lib">
                     <include name="axis*.jar"/>

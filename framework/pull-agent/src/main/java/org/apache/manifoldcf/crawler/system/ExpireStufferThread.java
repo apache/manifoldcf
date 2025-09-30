@@ -172,7 +172,7 @@ public class ExpireStufferThread extends Thread
             documentQueue.addDocuments(set);
           }
 
-          yield();
+          Thread.yield();
         }
         catch (ManifoldCFException e)
         {
