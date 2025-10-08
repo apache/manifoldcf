@@ -18,9 +18,11 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import java.util.*;
-import java.io.*;
-import org.apache.manifoldcf.core.interfaces.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.manifoldcf.core.interfaces.LockException;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 /** This class creates a first-come, first-serve local queue for locks.
 * The usage model is as follows:

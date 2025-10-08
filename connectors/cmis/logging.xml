@@ -1,0 +1,14 @@
+<Configuration status="warn" name="ManifoldCF" packages="">
+  <Appenders>
+    <File name="MyFile" fileName="/Users/piergiorgiolucidi/Documents/workspaces/manifoldNew/manifoldcf-github-trunk/connectors/cmis/manifoldcf.log">
+      <PatternLayout>
+        <Pattern>%5p %d{ISO8601} (%t) - %m%n</Pattern>
+      </PatternLayout>
+    </File>
+  </Appenders>
+  <Loggers>
+    <Root level="error">
+      <AppenderRef ref="MyFile"/>
+    </Root>
+  </Loggers>
+</Configuration>

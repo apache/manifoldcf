@@ -18,8 +18,8 @@
 */
 package org.apache.manifoldcf.core.interfaces;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
 
 /** An instance of this class is used to specify the result form of a column, if
 * more than one form is possible.  If no form is specified, then a default form

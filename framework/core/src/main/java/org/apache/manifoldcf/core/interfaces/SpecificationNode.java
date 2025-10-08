@@ -18,9 +18,6 @@
 */
 package org.apache.manifoldcf.core.interfaces;
 
-import java.io.*;
-import java.util.*;
-
 /** This class represents a node in a specification structure.  Its existence apart from
 * ConfigurationNode is largely a relic.
 */

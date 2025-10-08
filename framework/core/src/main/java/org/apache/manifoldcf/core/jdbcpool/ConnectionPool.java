@@ -18,10 +18,12 @@
 */
 package org.apache.manifoldcf.core.jdbcpool;
 
-import java.sql.*;
-import javax.naming.*;
-import javax.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.manifoldcf.core.system.Logging;
 
 /** The class that defines a connection pool.

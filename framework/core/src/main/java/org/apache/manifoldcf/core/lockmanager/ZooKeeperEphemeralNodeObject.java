@@ -16,9 +16,7 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.Logging;
-import org.apache.manifoldcf.core.system.ManifoldCF;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 /** This class keeps track of a zookeeper ephemeral node that is owned by the
 * current process. 

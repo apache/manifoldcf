@@ -18,21 +18,23 @@
 */
 package org.apache.manifoldcf.agents.common;
 
-import org.xml.sax.XMLReader;
-import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.helpers.XMLReaderFactory;
-import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-
-import java.io.InputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
 
 /** This object allows easier control of an XML parsing stream than does standard SAX.
 */
@@ -52,7 +54,9 @@ public class XMLStream
   {
     try
     {
-      xr = XMLReaderFactory.createXMLReader();
+      SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+      SAXParser parser = parserFactory.newSAXParser();
+      xr = parser.getXMLReader();
       xr.setContentHandler(new MyContentHandler());
       xr.setErrorHandler(new MyErrorHandler());
       xr.setEntityResolver(new MyEntityResolver());
@@ -72,7 +76,9 @@ public class XMLStream
       if (e2 != null && e2 instanceof ManifoldCFException)
         throw (ManifoldCFException)e2;
       throw new ManifoldCFException("Error setting up parser: "+e.getMessage(),e);
-    }
+    } catch (ParserConfigurationException e) {
+    	throw new ManifoldCFException("Error setting up parser: "+e.getMessage(),e);
+	}
   }
 
   /** Default constructor */

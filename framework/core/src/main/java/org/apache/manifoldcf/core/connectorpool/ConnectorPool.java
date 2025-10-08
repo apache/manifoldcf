@@ -18,12 +18,24 @@
 */
 package org.apache.manifoldcf.core.connectorpool;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.ManifoldCF;
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
-import java.util.*;
-import java.io.*;
-import java.lang.reflect.*;
+import org.apache.manifoldcf.core.interfaces.ConfigParams;
+import org.apache.manifoldcf.core.interfaces.IConnector;
+import org.apache.manifoldcf.core.interfaces.ILockManager;
+import org.apache.manifoldcf.core.interfaces.IServiceDataAcceptor;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.system.ManifoldCF;
 
 /** This is the base factory class for all ConnectorPool objects.
 */

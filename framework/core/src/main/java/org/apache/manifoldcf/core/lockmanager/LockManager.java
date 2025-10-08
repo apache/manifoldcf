@@ -18,11 +18,14 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.Logging;
-import org.apache.manifoldcf.core.system.ManifoldCF;
-import java.util.*;
-import java.io.*;
+import java.io.File;
+
+import org.apache.manifoldcf.core.interfaces.ILockManager;
+import org.apache.manifoldcf.core.interfaces.IServiceCleanup;
+import org.apache.manifoldcf.core.interfaces.IServiceDataAcceptor;
+import org.apache.manifoldcf.core.interfaces.LockException;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFConfiguration;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 /** The lock manager manages locks across all threads and JVMs and cluster members.  There should be no more than ONE
 * instance of this class per thread!!!  The factory should enforce this.

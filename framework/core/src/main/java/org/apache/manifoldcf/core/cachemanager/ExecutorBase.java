@@ -18,8 +18,7 @@
 */
 package org.apache.manifoldcf.core.cachemanager;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import java.util.*;
+import org.apache.manifoldcf.core.interfaces.ICacheExecutor;
 
 public abstract class ExecutorBase implements ICacheExecutor
 {

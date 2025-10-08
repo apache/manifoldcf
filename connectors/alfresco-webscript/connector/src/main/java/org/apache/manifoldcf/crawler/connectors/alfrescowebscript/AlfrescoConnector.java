@@ -16,28 +16,37 @@
  */
 package org.apache.manifoldcf.crawler.connectors.alfrescowebscript;
 
-import com.github.maoo.indexer.client.AlfrescoClient;
-import com.github.maoo.indexer.client.AlfrescoDownException;
-import com.github.maoo.indexer.client.AlfrescoResponse;
-import com.github.maoo.indexer.client.WebScriptsAlfrescoClient;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.text.MessageFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.StringTokenizer;
+
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
-import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.common.DateParser;
+import org.apache.manifoldcf.core.interfaces.ConfigParams;
+import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
+import org.apache.manifoldcf.core.interfaces.IPostParameters;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.crawler.connectors.BaseRepositoryConnector;
 import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
+import org.apache.manifoldcf.crawler.interfaces.IHistoryActivity;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.io.InputStream;
-import java.text.MessageFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import com.github.maoo.indexer.client.AlfrescoClient;
+import com.github.maoo.indexer.client.AlfrescoDownException;
+import com.github.maoo.indexer.client.AlfrescoResponse;
+import com.github.maoo.indexer.client.WebScriptsAlfrescoClient;
 
 
 public class AlfrescoConnector extends BaseRepositoryConnector {
@@ -56,7 +65,6 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
   private static final String CREATED_DATE_PROPERTY = "cm:created";
 
   // Static Fields
-  private static final String FIELD_UUID = "uuid";
   private static final String FIELD_NODEREF = "nodeRef";
   private static final String FIELD_TYPE = "type";
   private static final String FIELD_NAME = "name";
@@ -173,8 +181,8 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         StringTokenizer tokenizer = new StringTokenizer(lastSeedVersion,"|");
 
         if (tokenizer.countTokens() == 2) {
-          lastTransactionId = new Long(tokenizer.nextToken());
-          lastAclChangesetId = new Long(tokenizer.nextToken());
+          lastTransactionId = Long.parseLong(tokenizer.nextToken());
+          lastAclChangesetId = Long.parseLong(tokenizer.nextToken());
         }
       }
 
@@ -199,7 +207,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         }
         if (Logging.connectors != null && Logging.connectors.isDebugEnabled())
           Logging.connectors.debug(new MessageFormat("Fetched and added {0} seed documents", Locale.ROOT)
-              .format(new Object[]{new Integer(count)}));
+              .format(new Object[]{Integer.toString(count)}));
 
         transactionIdsProcessed = response.getLastTransactionId() - lastTransactionId;
         aclChangesetsProcessed = response.getLastAclChangesetId() - lastAclChangesetId;
@@ -237,8 +245,6 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
 
       try {
 
-        String nextVersion = statuses.getIndexedVersionString(doc);
-
         // Calling again Alfresco API because Document's actions are lost from seeding method
         AlfrescoResponse response = alfrescoClient.fetchNode(doc);
         if(response.getDocumentList().isEmpty()){ // Not found seeded document. Could reflect an error in Alfresco
@@ -271,7 +277,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         mdObject = properties.get(SIZE_PROPERTY);
         if (mdObject != null) {
           String size = mdObject.toString();
-          lSize = new Long(size);
+          lSize = Long.parseLong(size);
         }
 
         // Modified Date
@@ -298,7 +304,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         StringBuilder sb = new StringBuilder();
           
         sb.append((enableDocumentProcessing?"+":"-"));
-        sb.append(new Long(modifiedDate.getTime()).toString());
+        sb.append(Long.toString(modifiedDate.getTime()).toString());
           
         @SuppressWarnings("unchecked")
         List<String> permissions = (List<String>) properties.remove(AUTHORITIES_PROPERTY);
@@ -321,21 +327,21 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
 
         if (lSize != null && !activities.checkLengthIndexable(lSize.longValue())) {
           activities.noDocument(doc, documentVersion);
-          errorCode = activities.EXCLUDED_LENGTH;
+          errorCode = IHistoryActivity.EXCLUDED_LENGTH;
           errorDesc = "Excluding document because of length ("+lSize+")";
           continue;
         }
 
         if (!activities.checkMimeTypeIndexable(mimeType)) {
           activities.noDocument(doc, documentVersion);
-          errorCode = activities.EXCLUDED_MIMETYPE;
+          errorCode = IHistoryActivity.EXCLUDED_MIMETYPE;
           errorDesc = "Excluding document because of mime type ("+mimeType+")";
           continue;
         }
 
         if (!activities.checkDateIndexable(modifiedDate)) {
           activities.noDocument(doc, documentVersion);
-          errorCode = activities.EXCLUDED_DATE;
+          errorCode = IHistoryActivity.EXCLUDED_DATE;
           errorDesc = "Excluding document because of date ("+modifiedDate+")";
           continue;
         }
@@ -350,7 +356,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
 
         if (!activities.checkURLIndexable(contentUrlPath)) {
           activities.noDocument(doc, documentVersion);
-          errorCode = activities.EXCLUDED_URL;
+          errorCode = IHistoryActivity.EXCLUDED_URL;
           errorDesc = "Excluding document because of URL ('"+contentUrlPath+"')";
           continue;
         }
@@ -411,7 +417,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
                 .format(new Object[]{uuid, nodeRef, rd.getFileName()}));
           activities.ingestDocumentWithException(doc, documentVersion, contentUrlPath, rd);
           errorCode = "OK";
-          fileLengthLong = new Long(length);
+          fileLengthLong = Long.valueOf(length);
         } catch (IOException e) {
           handleIOException(e,"reading stream");
         } finally {
@@ -430,7 +436,7 @@ public class AlfrescoConnector extends BaseRepositoryConnector {
         throw e;
       } finally {
         if (errorCode != null)
-          activities.recordActivity(new Long(startTime), ACTIVITY_FETCH,
+          activities.recordActivity(Long.valueOf(startTime), ACTIVITY_FETCH,
             fileLengthLong, doc, errorCode, errorDesc, null);
       }
     }

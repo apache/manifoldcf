@@ -18,9 +18,11 @@
 */
 package org.apache.manifoldcf.core.interfaces;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import java.util.*;
-import java.io.*;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.apache.manifoldcf.core.system.ManifoldCF;
 
 /** This class represents a set of configuration parameters, with structure, which is a generalized hierarchy of nodes that

@@ -25,9 +25,6 @@
   <artifactId>mcf-test-materials</artifactId>
   <name>ManifoldCF - Test materials</name>
   <packaging>pom</packaging>
-  <modules>
-    <module>alfresco-4-war</module>
-  </modules>
   <build>
     <defaultGoal>package</defaultGoal>
   </build>

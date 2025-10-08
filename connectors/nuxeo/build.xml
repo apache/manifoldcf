@@ -39,6 +39,20 @@
             <include name="okio*.jar"/>
         </fileset>
     </path>
+	
+	 <path id="connector-test-classpath">
+        <path refid="mcf-connector-build.connector-test-classpath"/>
+        <fileset dir="../../lib">
+        	<include name="nuxeo-java-client*.jar"/>
+            <include name="retrofit*.jar"/>
+            <include name="okhttp*.jar"/>
+            <include name="okio*.jar"/>
+        	<include name="mockito*.jar"/>
+        	<include name="byte-buddy*.jar"/>
+        	<include name="junit-jupiter*.jar"/>
+        	<include name="apiguardian*.jar"/>
+        </fileset>
+    </path>
 
     <target name="lib" depends="mcf-connector-build.lib,precompile-check" if="canBuild">
         <mkdir dir="dist/lib"/>

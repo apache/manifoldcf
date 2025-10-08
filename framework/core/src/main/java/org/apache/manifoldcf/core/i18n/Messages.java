@@ -18,22 +18,18 @@
 */
 package org.apache.manifoldcf.core.i18n;
 
+import java.io.InputStream;
 import java.text.MessageFormat;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.HashSet;
-import java.util.Vector;
-import java.util.Properties;
 
-import java.io.InputStream;
-
-import org.apache.manifoldcf.core.system.Logging;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.system.Logging;
 import org.apache.velocity.app.VelocityEngine;
-import org.apache.velocity.runtime.RuntimeConstants;
-import org.apache.velocity.util.ExtProperties;
 
 public class Messages
 {

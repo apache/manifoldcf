@@ -18,11 +18,16 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.Logging;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.system.ManifoldCF;
-import java.util.*;
-import java.io.*;
 
 /** This is the file-based lock manager.
 */

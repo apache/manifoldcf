@@ -57,7 +57,7 @@ public class CMISUtils {
   public Document createDocument(String docName, String contentType) {
     Session session = getSession();
     Folder folder = (Folder) session.getObjectByPath("/" + getFolderName());
-    String timeStamp = new Long(System.currentTimeMillis()).toString();
+    String timeStamp = Long.valueOf(System.currentTimeMillis()).toString();
     String filename = docName + " (" + timeStamp + ")";
     Map<String, Object> properties = new HashMap<String, Object>();
     properties.put(PropertyIds.OBJECT_TYPE_ID, contentType);

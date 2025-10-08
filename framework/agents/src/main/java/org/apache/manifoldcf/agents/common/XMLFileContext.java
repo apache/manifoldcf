@@ -18,18 +18,12 @@
 */
 package org.apache.manifoldcf.agents.common;
 
-import org.xml.sax.XMLReader;
-import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.helpers.XMLReaderFactory;
-import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.SAXException;
-
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 
-import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.xml.sax.Attributes;
 
 /** An instance of this class represents a parsing context within a node.  Data is written to the supplied file in utf-8 format.
 */

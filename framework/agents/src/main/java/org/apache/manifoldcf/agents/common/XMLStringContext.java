@@ -18,18 +18,8 @@
 */
 package org.apache.manifoldcf.agents.common;
 
-import org.xml.sax.XMLReader;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.helpers.XMLReaderFactory;
-import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.SAXException;
-
-import java.io.InputStream;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-
-import org.apache.manifoldcf.core.interfaces.*;
 
 /** An instance of this class represents a parsing context within a node, where the data value is to be recorded as an in-memory string.  The data string is
 * available as a local StringBuilder object, which will be accessible to any class that extends this one.

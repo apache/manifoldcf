@@ -18,14 +18,14 @@
 */
 package org.apache.manifoldcf.core.common;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import javax.net.ssl.SSLSocketFactory;
-import java.security.*;
-import java.io.*;
-import java.net.Socket;
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Socket;
+
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.SSLContext;
+
+import org.apache.manifoldcf.core.interfaces.ISSLSocketFactoryProducer;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 /** This SSLSocketFactory is meant to be instantiated by Java's LDAP code.  It has
 * to be instantiated by name, using the default constructor, so its functionality is quite

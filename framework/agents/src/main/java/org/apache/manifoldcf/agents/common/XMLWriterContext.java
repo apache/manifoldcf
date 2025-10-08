@@ -18,19 +18,13 @@
 */
 package org.apache.manifoldcf.agents.common;
 
-import org.xml.sax.XMLReader;
-import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.helpers.XMLReaderFactory;
-import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.SAXException;
-
-import java.io.Writer;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.io.Writer;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.xml.sax.Attributes;
 
 /** An instance of this class represents a parsing context within a node.  Data is written to the supplied writer.
 */

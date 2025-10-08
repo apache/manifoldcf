@@ -1,6 +1,10 @@
 ManifoldCF Change Log
 
-======================= 2.29-dev =========================
+======================= 2.30-dev =========================
+CONNECTORS-1779: Upgrade to OpenJDK 21
+(Piergiorgio Lucidi)
+
+======================= Release 2.29 =========================
 
 CONNECTORS-1776: Update Copyright footer to 2025
 (Piergiorgio Lucidi)

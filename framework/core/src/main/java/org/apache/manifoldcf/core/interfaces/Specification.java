@@ -18,9 +18,6 @@
 */
 package org.apache.manifoldcf.core.interfaces;
 
-import java.util.*;
-import java.io.*;
-
 /** This class represents a specification, which is a generalized hierarchy of nodes that
 * can be interpreted by an appropriate connector in an appropriate way.
 */

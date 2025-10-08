@@ -18,8 +18,8 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import java.util.*;
-import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /** Lock pool class. This is a pool of LockGate objects.
 */

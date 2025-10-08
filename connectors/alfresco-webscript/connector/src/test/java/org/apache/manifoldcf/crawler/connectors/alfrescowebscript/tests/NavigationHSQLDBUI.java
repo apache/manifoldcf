@@ -18,8 +18,6 @@
 */
 package org.apache.manifoldcf.crawler.connectors.alfrescowebscript.tests;
 
-import java.util.Locale;
-
 import org.apache.manifoldcf.core.tests.SeleniumTester;
 import org.junit.Test;
 

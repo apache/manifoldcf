@@ -18,14 +18,16 @@
 */
 package org.apache.manifoldcf.core.system;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import java.util.*;
-import java.io.*;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
-import org.apache.log4j.*;
-import org.apache.logging.log4j.core.config.ConfigurationSource;
-import org.apache.logging.log4j.core.config.ConfigurationFactory;
-import org.apache.logging.log4j.core.config.properties.PropertiesConfigurationFactory;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 /** This class furnishes the logging environment for ManifoldCF.
 */

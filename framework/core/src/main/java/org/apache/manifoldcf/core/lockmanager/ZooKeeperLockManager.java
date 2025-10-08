@@ -18,14 +18,24 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.Logging;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.util.List;
+
+import org.apache.manifoldcf.core.interfaces.ILockManager;
+import org.apache.manifoldcf.core.interfaces.IServiceCleanup;
+import org.apache.manifoldcf.core.interfaces.IServiceDataAcceptor;
+import org.apache.manifoldcf.core.interfaces.IShutdownHook;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFConfiguration;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.ThreadContextFactory;
 import org.apache.manifoldcf.core.system.ManifoldCF;
-
-import org.apache.zookeeper.*;
-
-import java.util.*;
-import java.io.*;
 
 /** The lock manager manages locks across all threads and JVMs and cluster members, using Zookeeper.
 * There should be no more than ONE instance of this class per thread!!!  The factory should enforce this.

@@ -18,10 +18,24 @@
 */
 package org.apache.manifoldcf.agents.system;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import java.io.*;
-import java.util.*;
+import org.apache.manifoldcf.agents.interfaces.AgentManagerFactory;
+import org.apache.manifoldcf.agents.interfaces.IAgentManager;
+import org.apache.manifoldcf.agents.interfaces.IIncrementalIngester;
+import org.apache.manifoldcf.agents.interfaces.IOutputConnectionManager;
+import org.apache.manifoldcf.agents.interfaces.IOutputConnectorManager;
+import org.apache.manifoldcf.agents.interfaces.ITransformationConnectionManager;
+import org.apache.manifoldcf.agents.interfaces.ITransformationConnectorManager;
+import org.apache.manifoldcf.agents.interfaces.IncrementalIngesterFactory;
+import org.apache.manifoldcf.agents.interfaces.OutputConnectionManagerFactory;
+import org.apache.manifoldcf.agents.interfaces.OutputConnectorManagerFactory;
+import org.apache.manifoldcf.agents.interfaces.OutputConnectorPoolFactory;
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.agents.interfaces.TransformationConnectionManagerFactory;
+import org.apache.manifoldcf.agents.interfaces.TransformationConnectorManagerFactory;
+import org.apache.manifoldcf.core.interfaces.Configuration;
+import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class ManifoldCF extends org.apache.manifoldcf.core.system.ManifoldCF
 {

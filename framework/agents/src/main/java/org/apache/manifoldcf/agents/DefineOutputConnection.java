@@ -18,11 +18,14 @@
 */
 package org.apache.manifoldcf.agents;
 
-import java.io.*;
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
+import org.apache.manifoldcf.agents.interfaces.IOutputConnection;
+import org.apache.manifoldcf.agents.interfaces.IOutputConnectionManager;
+import org.apache.manifoldcf.agents.interfaces.OutputConnectionManagerFactory;
 import org.apache.manifoldcf.agents.system.ManifoldCF;
-import java.util.*;
+import org.apache.manifoldcf.core.interfaces.ConfigParams;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.ThreadContextFactory;
 
 /** This class is used to define an output connection.
 */
@@ -58,7 +61,7 @@ public class DefineOutputConnection
                         conn.setName(connectionName);
                         conn.setDescription(description);
                         conn.setClassName(connectorClass);
-                        conn.setMaxConnections(new Integer(poolMax).intValue());
+                        conn.setMaxConnections(Integer.valueOf(poolMax).intValue());
                         ConfigParams x = conn.getConfigParams();
                         int i = 4;
                         while (i < args.length)

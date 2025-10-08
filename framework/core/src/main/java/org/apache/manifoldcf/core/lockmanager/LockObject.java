@@ -18,10 +18,9 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import org.apache.manifoldcf.core.interfaces.*;
+import org.apache.manifoldcf.core.interfaces.LockException;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.system.ManifoldCF;
-import org.apache.manifoldcf.core.system.Logging;
-import java.io.*;
 
 /** Base class.  One instance of this object exists for each lock on each JVM!
 */

@@ -18,9 +18,9 @@
 */
 package org.apache.manifoldcf.core.database;
 
-import org.apache.manifoldcf.core.interfaces.*;
-
-import java.util.*;
+import org.apache.manifoldcf.core.interfaces.IDFactory;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 /** This class represents all the data that describes a transaction, including:
 * (2) the previous transaction handle,

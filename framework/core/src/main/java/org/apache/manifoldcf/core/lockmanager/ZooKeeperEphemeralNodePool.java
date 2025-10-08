@@ -16,11 +16,11 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.Logging;
-import org.apache.manifoldcf.core.system.ManifoldCF;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
-import java.util.*;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 /** This class represents a pool of ZooKeeperEphemeralNodeObject objects.
 * The key for this pool is the node path.

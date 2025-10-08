@@ -18,9 +18,8 @@
 */
 package org.apache.manifoldcf.agents.transformationconnection;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import java.util.*;
+import org.apache.manifoldcf.agents.interfaces.ITransformationConnection;
+import org.apache.manifoldcf.core.interfaces.ConfigParams;
 
 /** An instance of this class represents a persistently-stored transformation connection description.
 * This is the paper object meant for editing and manipulation.

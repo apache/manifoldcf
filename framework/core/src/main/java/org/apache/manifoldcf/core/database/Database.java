@@ -18,15 +18,45 @@
 */
 package org.apache.manifoldcf.core.database;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.jdbcpool.*;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+
+import org.apache.manifoldcf.core.interfaces.BinaryInput;
+import org.apache.manifoldcf.core.interfaces.CacheManagerFactory;
+import org.apache.manifoldcf.core.interfaces.CharacterInput;
+import org.apache.manifoldcf.core.interfaces.ClauseDescription;
+import org.apache.manifoldcf.core.interfaces.ICacheDescription;
+import org.apache.manifoldcf.core.interfaces.ICacheManager;
+import org.apache.manifoldcf.core.interfaces.IDBInterface;
+import org.apache.manifoldcf.core.interfaces.ILimitChecker;
+import org.apache.manifoldcf.core.interfaces.IResultRow;
+import org.apache.manifoldcf.core.interfaces.IResultSet;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.IndexDescription;
+import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.PersistentDatabaseObject;
+import org.apache.manifoldcf.core.interfaces.ResultSpecification;
+import org.apache.manifoldcf.core.interfaces.StringSet;
+import org.apache.manifoldcf.core.interfaces.TempFileCharacterInput;
+import org.apache.manifoldcf.core.interfaces.TempFileInput;
+import org.apache.manifoldcf.core.interfaces.TimeMarker;
+import org.apache.manifoldcf.core.jdbcpool.WrappedConnection;
 import org.apache.manifoldcf.core.system.Logging;
 import org.apache.manifoldcf.core.system.ManifoldCF;
-
-import java.util.*;
-import java.sql.*;
-import javax.naming.*;
-import javax.sql.*;
 
 /** This class implements jskw.interfaces.IDatabase, and provides basic cached database services.
 * The actual cache keys are determined by layers above this.

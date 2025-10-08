@@ -18,8 +18,7 @@
 */
 package org.apache.manifoldcf.core.jdbcpool;
 
-import java.sql.*;
-import org.apache.manifoldcf.core.system.Logging;
+import java.sql.Connection;
 
 /** The class that represents a connection from a pool.
 */

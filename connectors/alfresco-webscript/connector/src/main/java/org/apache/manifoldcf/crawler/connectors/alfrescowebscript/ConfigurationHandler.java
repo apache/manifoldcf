@@ -572,7 +572,7 @@ public class ConfigurationHandler {
     for(int i = 0; i < spec.getChildCount(); i++){
       SpecificationNode node = spec.getChild(i);
       if(node.getType().equals(NODE_ENABLEDOCUMENTPROCESSING))
-        rval = new Boolean(node.getAttributeValue(ATTRIBUTE_VALUE)).booleanValue();
+        rval = Boolean.valueOf(node.getAttributeValue(ATTRIBUTE_VALUE)).booleanValue();
     }
     return rval;
   }

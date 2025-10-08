@@ -18,10 +18,7 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.ManifoldCF;
-import org.apache.manifoldcf.core.system.Logging;
-import java.io.*;
+import java.io.File;
 
 /** Base factory for file lock objects.
 */

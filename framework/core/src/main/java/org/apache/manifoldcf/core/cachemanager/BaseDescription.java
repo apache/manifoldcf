@@ -18,8 +18,11 @@
 */
 package org.apache.manifoldcf.core.cachemanager;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import java.util.*;
+import org.apache.manifoldcf.core.interfaces.ICacheClass;
+import org.apache.manifoldcf.core.interfaces.ICacheDescription;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 /** This is the base class for cache object descriptions.
 * The base class sets up LRU behavior based on parameters
@@ -86,7 +89,7 @@ public abstract class BaseDescription implements ICacheDescription
     public LocalCacheClass(String objectClassName, IThreadContext threadContext)
       throws ManifoldCFException
     {
-      this(objectClassName, new Integer(LockManagerFactory.getIntProperty(threadContext, "cache."+objectClassName+".lrusize", MAX_VALUE)));
+      this(objectClassName, Integer.valueOf(LockManagerFactory.getIntProperty(threadContext, "cache."+objectClassName+".lrusize", MAX_VALUE)));
     }
     
     public LocalCacheClass(String objectClassName)

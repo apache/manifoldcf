@@ -18,13 +18,18 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import org.apache.manifoldcf.core.interfaces.*;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.manifoldcf.core.interfaces.ILockManager;
+import org.apache.manifoldcf.core.interfaces.IServiceCleanup;
+import org.apache.manifoldcf.core.interfaces.IServiceDataAcceptor;
+import org.apache.manifoldcf.core.interfaces.LockException;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFConfiguration;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.system.Logging;
 import org.apache.manifoldcf.core.system.ManifoldCF;
-
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.io.*;
 
 /** A lock manager manages locks and shared information across all threads and JVMs
 * and cluster members.  There should be no more than ONE instance of this class per thread!!!

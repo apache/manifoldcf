@@ -18,10 +18,6 @@
 */
 package org.apache.manifoldcf.agents.system;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import java.util.*;
-
 import org.apache.log4j.Logger;
 
 /** This class furnishes the logging environment for the crawler application.

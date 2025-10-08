@@ -18,13 +18,24 @@
 */
 package org.apache.manifoldcf.core.cachemanager;
 
-import org.apache.manifoldcf.core.interfaces.*;
-
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+
+import org.apache.manifoldcf.core.interfaces.ICacheClass;
+import org.apache.manifoldcf.core.interfaces.ICacheCreateHandle;
+import org.apache.manifoldcf.core.interfaces.ICacheDescription;
+import org.apache.manifoldcf.core.interfaces.ICacheExecutor;
+import org.apache.manifoldcf.core.interfaces.ICacheHandle;
+import org.apache.manifoldcf.core.interfaces.ICacheManager;
+import org.apache.manifoldcf.core.interfaces.ILockManager;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.StringSet;
+import org.apache.manifoldcf.core.interfaces.StringSetBuffer;
 import org.apache.manifoldcf.core.system.Logging;
-import org.apache.manifoldcf.core.system.ManifoldCF;
-import java.io.*;
 
 /** This class implements the cache manager interface, and provides generic cache management
 * services.  See the interface for a description of how the services work.  However, since this
@@ -483,7 +494,7 @@ public class CacheManager implements ICacheManager
     long createdDate = readSharedData(key);
     if (Logging.cache.isDebugEnabled())
     {
-      Logging.cache.debug(" Checking whether our cached copy of object with key = "+key+" has been invalidated.  It has create time "+new Long(createTime).toString()+", and the last change is "+new Long(createdDate).toString());
+      Logging.cache.debug(" Checking whether our cached copy of object with key = "+key+" has been invalidated.  It has create time "+Long.valueOf(createTime).toString()+", and the last change is "+Long.valueOf(createdDate).toString());
     }
     if (createdDate == 0L)
       return false;
@@ -646,7 +657,7 @@ public class CacheManager implements ICacheManager
       {
         String keyName = (String)iter.next();
         if (Logging.cache.isDebugEnabled())
-          Logging.cache.debug(" Invalidating key = "+keyName+" as of time = "+new Long(invalidationTime).toString());
+          Logging.cache.debug(" Invalidating key = "+keyName+" as of time = "+Long.valueOf(invalidationTime).toString());
         writeSharedData(keyName,invalidationTime);
       }
 
@@ -851,7 +862,7 @@ public class CacheManager implements ICacheManager
       return 0L;
 
     String expiration = new String(cacheResourceData, StandardCharsets.UTF_8);
-    return new Long(expiration).longValue();
+    return Long.valueOf(expiration).longValue();
 
 
   }

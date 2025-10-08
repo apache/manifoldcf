@@ -18,10 +18,29 @@
 */
 package org.apache.manifoldcf.core.database;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.ManifoldCF;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.manifoldcf.core.interfaces.CacheKeyFactory;
+import org.apache.manifoldcf.core.interfaces.ClauseDescription;
+import org.apache.manifoldcf.core.interfaces.ColumnDescription;
+import org.apache.manifoldcf.core.interfaces.IDBInterface;
+import org.apache.manifoldcf.core.interfaces.IDFactory;
+import org.apache.manifoldcf.core.interfaces.ILimitChecker;
+import org.apache.manifoldcf.core.interfaces.ILockManager;
+import org.apache.manifoldcf.core.interfaces.IResultRow;
+import org.apache.manifoldcf.core.interfaces.IResultSet;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.IndexDescription;
+import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.ResultSpecification;
+import org.apache.manifoldcf.core.interfaces.StringSet;
+import org.apache.manifoldcf.core.interfaces.StringSetBuffer;
 import org.apache.manifoldcf.core.system.Logging;
-import java.util.*;
 
 public class DBInterfacePostgreSQL extends Database implements IDBInterface
 {

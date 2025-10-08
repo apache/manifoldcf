@@ -51,6 +51,10 @@
             <include name="resolver*.jar"/>
             <include name="org.osgi.core*.jar"/>
             <include name="joda*.jar"/>
+        	<include name="mockito*.jar"/>
+        	<include name="byte-buddy*.jar"/>
+        	<include name="junit-jupiter*.jar"/>
+        	<include name="apiguardian*.jar"/>
         </fileset>
     </path>
 

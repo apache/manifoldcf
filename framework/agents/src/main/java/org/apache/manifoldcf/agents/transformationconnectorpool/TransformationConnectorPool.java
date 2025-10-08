@@ -18,11 +18,16 @@
 */
 package org.apache.manifoldcf.agents.transformationconnectorpool;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-
-import java.util.*;
-import java.io.*;
+import org.apache.manifoldcf.agents.interfaces.ITransformationConnection;
+import org.apache.manifoldcf.agents.interfaces.ITransformationConnectionManager;
+import org.apache.manifoldcf.agents.interfaces.ITransformationConnector;
+import org.apache.manifoldcf.agents.interfaces.ITransformationConnectorManager;
+import org.apache.manifoldcf.agents.interfaces.ITransformationConnectorPool;
+import org.apache.manifoldcf.agents.interfaces.TransformationConnectionManagerFactory;
+import org.apache.manifoldcf.agents.interfaces.TransformationConnectorManagerFactory;
+import org.apache.manifoldcf.core.interfaces.ConfigParams;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 /** An implementation of ITransformationConnectorPool.
 * Coordination and allocation among cluster members is managed within. 

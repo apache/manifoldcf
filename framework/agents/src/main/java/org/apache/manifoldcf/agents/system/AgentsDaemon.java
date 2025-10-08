@@ -18,10 +18,25 @@
 */
 package org.apache.manifoldcf.agents.system;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import java.io.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.manifoldcf.agents.interfaces.AgentFactory;
+import org.apache.manifoldcf.agents.interfaces.AgentManagerFactory;
+import org.apache.manifoldcf.agents.interfaces.IAgent;
+import org.apache.manifoldcf.agents.interfaces.IAgentManager;
+import org.apache.manifoldcf.agents.interfaces.OutputConnectorPoolFactory;
+import org.apache.manifoldcf.agents.interfaces.TransformationConnectorPoolFactory;
+import org.apache.manifoldcf.core.interfaces.ILockManager;
+import org.apache.manifoldcf.core.interfaces.IServiceCleanup;
+import org.apache.manifoldcf.core.interfaces.IShutdownHook;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.ThreadContextFactory;
 
 public class AgentsDaemon
 {

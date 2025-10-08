@@ -18,15 +18,18 @@
 */
 package org.apache.manifoldcf.core.interfaces;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import java.util.*;
-import java.io.*;
-import org.apache.manifoldcf.core.system.ManifoldCF;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.manifoldcf.core.common.XMLDoc;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 /** This class represents XML configuration information, in its most basic incarnation.
 */

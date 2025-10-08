@@ -64,10 +64,10 @@ public class AgentManager extends org.apache.manifoldcf.core.database.BaseTable 
     while (true)
     {
       // Check if table is already present
-      Map existing = getTableSchema(null,null);
+      Map<String, ColumnDescription> existing = getTableSchema(null,null);
       if (existing == null)
       {
-        HashMap map = new HashMap();
+        HashMap<String, ColumnDescription> map = new HashMap<String, ColumnDescription>();
         map.put(classNameField,new ColumnDescription("VARCHAR(255)",true,false,null,null,false));
         performCreate(map,null);
       }

@@ -52,7 +52,6 @@
     <module>cmis</module>
     <module>opensearchserver</module>
     <module>wiki</module>
-    <module>alfresco</module>
     <module>elasticsearch</module>
     <module>dropbox</module>
     <module>googledrive</module>
@@ -68,7 +67,6 @@
     <module>tikaservice-rmeta</module>
     <module>documentfilter</module>
     <module>searchblox</module>
-    <module>confluence</module>
     <module>confluence-v6</module>
     <module>amazons3</module>
     <module>kafka</module>
@@ -79,7 +77,6 @@
     <module>rocketchat</module>
     <module>html-extractor</module>
     <module>mongodb</module>
-    <!-- <module>csws</module> -->
     <module>csv</module>
     <module>newgeneric</module>
   </modules>

@@ -92,6 +92,9 @@
     <property name="chemistry.version" value="1.1.0"/>
     <property name="glassfish.version" value="2.1.v20091210"/>
     <property name="junit.version" value="4.12"/>
+	<property name="junit-jupiter.version" value="5.13.4"/>
+	<property name="junit-jupiter-platform-commons.version" value="1.13.4"/>
+	<property name="apiguardian.version" value="1.1.2"/>
     <property name="selenium.version" value="3.13.0"/>
     <property name="hamcrest.version" value="1.3"/>
     <property name="log4j12.version" value="1.2.17"/>
@@ -130,9 +133,10 @@
     <property name="alfresco-indexer.version" value="0.8.1"/>
     <property name="gson.version" value="2.8.0"/>
     <property name="guava.version" value="25.1-jre"/>
-    <property name="mockito.version" value="1.9.5"/>
-    <property name="wiremock.version" value="2.5.1"/>
-    <property name="objenesis.version" value="2.1"/>
+    <property name="mockito.version" value="5.20.0"/>
+	<property name="bytebuddy.version" value="1.17.7"/>
+    <property name="wiremock.version" value="3.13.1"/>
+    <property name="objenesis.version" value="3.4"/>
     <property name="tika.version" value="1.28.1"/>
     <property name="tagsoup.version" value="1.2.1"/>
     <property name="james.version" value="0.8.4"/>
@@ -811,7 +815,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
           <exclude name="elasticsearch/test-materials/elasticsearch-1.0.1/"/>
           <exclude name="kafka/test-materials/*.jar"/>
           <exclude name="cmis/test-materials/*.war"/>
-          <exclude name="alfresco/lib-proprietary/*.jar"/>
           <exclude name="alfresco-webscript/test-materials-proprietary/*.war"/>
           <exclude name="alfresco-webscript/connector/src/test/resources/*.json"/>
           <exclude name="**/build/"/>
@@ -1597,8 +1600,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="h2"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-        <!-- Alfresco dependency, so download from there -->
-        <!--get src="https://repo2.maven.org/maven2/com/h2database/h2/1.3.158/h2-1.3.158.jar" dest="lib/h2-1.3.158.jar"/-->
     </target>
     
     <target name="download-h2-support">
@@ -1849,6 +1850,25 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="hamcrest-core"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+    	<antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/junit/jupiter"/>
+            <param name="artifact-version" value="${junit-jupiter.version}"/>
+            <param name="artifact-name" value="junit-jupiter-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    	<antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/junit/platform"/>
+            <param name="artifact-version" value="${junit-jupiter-platform-commons.version}"/>
+            <param name="artifact-name" value="junit-platform-commons"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    	<antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apiguardian"/>
+            <param name="artifact-version" value="${apiguardian.version}"/>
+            <param name="artifact-name" value="apiguardian-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    	
     </target>
 
     <target name="download-okhttp">
@@ -1946,14 +1966,32 @@ Use Apache Forrest version forrest-0.9-dev or higher.
 
     <target name="download-mockito">
         <mkdir dir="lib"/>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
+    	<antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/mockito"/>
             <param name="artifact-version" value="${mockito.version}"/>
             <param name="artifact-name" value="mockito-core"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
+    	<antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="net/bytebuddy"/>
+            <param name="artifact-version" value="${bytebuddy.version}"/>
+            <param name="artifact-name" value="byte-buddy"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+    	<antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="net/bytebuddy"/>
+            <param name="artifact-version" value="${bytebuddy.version}"/>
+            <param name="artifact-name" value="byte-buddy-agent"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="com/github/tomakehurst"/>
+            <param name="project-path" value="org/mockito"/>
+            <param name="artifact-version" value="${mockito.version}"/>
+            <param name="artifact-name" value="mockito-junit-jupiter"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/wiremock"/>
             <param name="artifact-version" value="${wiremock.version}"/>
             <param name="artifact-name" value="wiremock"/>
             <param name="artifact-type" value="jar"/>

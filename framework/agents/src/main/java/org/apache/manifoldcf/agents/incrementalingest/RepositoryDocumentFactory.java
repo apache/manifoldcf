@@ -18,12 +18,19 @@
 */
 package org.apache.manifoldcf.agents.incrementalingest;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.agents.system.Logging;
-import org.apache.manifoldcf.agents.system.ManifoldCF;
-import java.util.*;
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
+import org.apache.manifoldcf.core.interfaces.BinaryInput;
+import org.apache.manifoldcf.core.interfaces.CharacterInput;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.TempFileCharacterInput;
+import org.apache.manifoldcf.core.interfaces.TempFileInput;
 
 /** This class accepts a RepositoryDocument in its constructor, and then
 * allows multiple copies to me made, as part of a split in the pipeline.

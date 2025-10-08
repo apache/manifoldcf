@@ -18,9 +18,13 @@
 */
 package org.apache.manifoldcf.agents.system;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
-import java.util.*;
+import org.apache.manifoldcf.agents.interfaces.IOutputConnectorPool;
+import org.apache.manifoldcf.agents.interfaces.ITransformationConnectorPool;
+import org.apache.manifoldcf.agents.interfaces.OutputConnectorPoolFactory;
+import org.apache.manifoldcf.agents.interfaces.TransformationConnectorPoolFactory;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.ThreadContextFactory;
 
 /** This thread periodically calls the cleanup method in all connected output connectors.  The ostensible purpose
 * is to allow the connectors to shutdown idle connections etc.

@@ -18,8 +18,9 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import java.util.*;
-import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /** Pool of local locks, designed to gate access within a single thread.
 * Since it is within a single thread, synchronization is not necessary.

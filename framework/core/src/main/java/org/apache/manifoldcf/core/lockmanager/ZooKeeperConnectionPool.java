@@ -18,9 +18,10 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import java.util.*;
-import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 /** Pool of ZooKeeper connections.
 * ZooKeeper connections are not trivial to set up and each one carries a cost.  Plus,

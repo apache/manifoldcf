@@ -18,14 +18,12 @@
 */
 package org.apache.manifoldcf.core.jdbcpool;
 
-import javax.naming.*;
-import javax.sql.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
-import org.apache.manifoldcf.core.system.ManifoldCF;
 
 /** An instance of this class manages a number of (independent) connection pools.
 */

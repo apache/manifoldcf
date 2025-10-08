@@ -179,7 +179,7 @@ public class BaseTable
   * or null if no LRU behavior desired.
   *@return a map of column names &amp; ColumnDescription's, or null.
   */
-  protected Map getTableSchema(StringSet invalidateKeys, String queryClass)
+  protected Map<String, ColumnDescription> getTableSchema(StringSet invalidateKeys, String queryClass)
     throws ManifoldCFException
   {
     return dbInterface.getTableSchema(tableName,invalidateKeys,queryClass);

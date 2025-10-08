@@ -906,7 +906,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       new MultiClause(idField,list)});
       
     HashMap map = new HashMap();
-    map.put(lastIngestField,new Long(checkTime));
+    map.put(lastIngestField,Long.valueOf(checkTime));
     performUpdate(map,"WHERE "+query,newList,null);
   }
 
@@ -936,7 +936,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         list = new ArrayList<Integer>();
         keyMap.put(spec,list);
       }
-      list.add(new Integer(i));
+      list.add(Integer.valueOf(i));
     }
 
     // Create the return array.
@@ -1679,7 +1679,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         list = new ArrayList<Integer>();
         keyMap.put(spec,list);
       }
-      list.add(new Integer(i));
+      list.add(Integer.valueOf(i));
     }
 
     // Create the return array.
@@ -1719,7 +1719,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     Map<String,Integer> indexMap = new HashMap<String,Integer>();
     for (int i = 0; i < identifierHashes.length; i++)
     {
-      indexMap.put(makeKey(identifierClasses[i],identifierHashes[i]),new Integer(i));
+      indexMap.put(makeKey(identifierClasses[i],identifierHashes[i]),Integer.valueOf(i));
     }
 
     beginTransaction();
@@ -1786,7 +1786,6 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
       Integer position = map.get(docHash);
       if (position != null)
       {
-        Long id = (Long)row.getValue(idField);
         String outputConnectionName = (String)row.getValue(outputConnNameField);
         String componentHash = (String)row.getValue(componentHashField);
         String lastVersion = (String)row.getValue(lastVersionField);
@@ -1852,7 +1851,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     {
       String key = makeKey(identifierClasses[j],identifierHashes[j]);
       rval[j] = Long.MAX_VALUE;
-      returnMap.put(key,new Integer(j));
+      returnMap.put(key,Integer.valueOf(j));
       idCodes.add(key);
     }
 
@@ -2104,7 +2103,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         catch (ManifoldCFException e)
         {
           signalRollback();
-          if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+          if (e.getErrorCode() == ManifoldCFException.DATABASE_TRANSACTION_ABORT)
           {
             if (Logging.perf.isDebugEnabled())
               Logging.perf.debug("Aborted transaction noting ingestion: "+e.getMessage());
@@ -2624,7 +2623,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         PipelineCheckEntryPoint outputStageEntryPoint = new PipelineCheckEntryPoint(
           outputConnectors[pipelineConnections.getOutputConnectionIndex(outputStage).intValue()],
           pipelineConnections.getStageDescriptionString(outputStage),finalActivity);
-        currentSet.put(new Integer(outputStage), outputStageEntryPoint);
+        currentSet.put(Integer.valueOf(outputStage), outputStageEntryPoint);
       }
       // Cycle through the "current set"
       while (true)
@@ -2640,7 +2639,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           boolean skipToNext = false;
           for (int sibling : siblings)
           {
-            if (currentSet.get(new Integer(sibling)) == null)
+            if (currentSet.get(Integer.valueOf(sibling)) == null)
             {
               skipToNext = true;
               break;
@@ -2662,7 +2661,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         PipelineCheckEntryPoint[] siblingEntryPoints = new PipelineCheckEntryPoint[siblings.length];
         for (int j = 0; j < siblings.length; j++)
         {
-          siblingEntryPoints[j] = currentSet.remove(new Integer(siblings[j]));
+          siblingEntryPoints[j] = currentSet.remove(Integer.valueOf(siblings[j]));
         }
         // Wrap the entry points in a fan-out class, which has pipe connector-like methods that fire across all the connectors.
         PipelineCheckFanout pcf = new PipelineCheckFanout(siblingEntryPoints);
@@ -2671,7 +2670,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         PipelineCheckEntryPoint newEntry = new PipelineCheckEntryPoint(
           transformationConnectors[pipelineConnections.getTransformationConnectionIndex(parent).intValue()],
           pipelineConnections.getStageDescriptionString(parent),pcf);
-        currentSet.put(new Integer(parent), newEntry);
+        currentSet.put(Integer.valueOf(parent), newEntry);
       }
     }
   }
@@ -2761,7 +2760,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           docKey,
           componentHash,
           newAuthorityNameString);
-        currentSet.put(new Integer(outputStage), outputStageEntryPoint);
+        currentSet.put(Integer.valueOf(outputStage), outputStageEntryPoint);
       }
       // Cycle through the "current set"
       while (true)
@@ -2777,7 +2776,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
           boolean skipToNext = false;
           for (int sibling : siblings)
           {
-            if (currentSet.get(new Integer(sibling)) == null)
+            if (currentSet.get(Integer.valueOf(sibling)) == null)
             {
               skipToNext = true;
               break;
@@ -2799,7 +2798,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         PipelineAddEntryPoint[] siblingEntryPoints = new PipelineAddEntryPoint[siblings.length];
         for (int j = 0; j < siblings.length; j++)
         {
-          siblingEntryPoints[j] = currentSet.remove(new Integer(siblings[j]));
+          siblingEntryPoints[j] = currentSet.remove(Integer.valueOf(siblings[j]));
         }
         // Wrap the entry points in a fan-out class, which has pipe connector-like methods that fire across all the connectors.
         PipelineAddFanout pcf = new PipelineAddFanout(siblingEntryPoints,
@@ -2811,7 +2810,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         PipelineAddEntryPoint newEntry = new PipelineAddEntryPoint(
           transformationConnectors[fullSpec.getTransformationConnectionIndex(parent).intValue()],
           fullSpec.getStageDescriptionString(parent),newAuthorityNameString,pcf,pcf.checkNeedToReindex());
-        currentSet.put(new Integer(parent), newEntry);
+        currentSet.put(Integer.valueOf(parent), newEntry);
       }
 
     }
@@ -3322,7 +3321,7 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
         catch (ManifoldCFException e)
         {
           // Look for deadlock and retry if so
-          if (e.getErrorCode() == e.DATABASE_TRANSACTION_ABORT)
+          if (e.getErrorCode() == ManifoldCFException.DATABASE_TRANSACTION_ABORT)
           {
             if (Logging.perf.isDebugEnabled())
               Logging.perf.debug("Aborted select looking for status: "+e.getMessage());

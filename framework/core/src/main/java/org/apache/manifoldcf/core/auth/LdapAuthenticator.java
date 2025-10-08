@@ -31,10 +31,9 @@ import javax.naming.directory.SearchResult;
 import org.apache.commons.lang.StringUtils;
 import org.apache.manifoldcf.core.interfaces.IAuth;
 import org.apache.manifoldcf.core.interfaces.IThreadContext;
-import org.apache.manifoldcf.core.system.Logging;
-import org.apache.manifoldcf.core.system.ManifoldCF;
-import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.system.Logging;
 
 public class LdapAuthenticator implements IAuth {
 

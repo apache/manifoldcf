@@ -18,15 +18,17 @@
 */
 package org.apache.manifoldcf.core.database;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.jdbcpool.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Iterator;
+
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.jdbcpool.ConnectionPool;
+import org.apache.manifoldcf.core.jdbcpool.ConnectionPoolManager;
+import org.apache.manifoldcf.core.jdbcpool.WrappedConnection;
 import org.apache.manifoldcf.core.system.Logging;
 import org.apache.manifoldcf.core.system.ManifoldCF;
-
-import java.util.*;
-import java.sql.*;
-import javax.naming.*;
-import javax.sql.*;
 
 /** This class creates a connection, and may at our discretion manage
 * a connection pool someday.

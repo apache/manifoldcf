@@ -18,11 +18,6 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.core.system.ManifoldCF;
-import org.apache.manifoldcf.core.system.Logging;
-import java.io.*;
-
 /** Base factory for lock objects.  This will be extended to
 * support different kinds of lock objects.
 */

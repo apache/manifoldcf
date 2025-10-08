@@ -18,9 +18,6 @@
 */
 package org.apache.manifoldcf.core.lockmanager;
 
-import java.util.*;
-import java.io.*;
-
 /** This class describes a local lock, which can have various nested levels
 * of depth.
 */

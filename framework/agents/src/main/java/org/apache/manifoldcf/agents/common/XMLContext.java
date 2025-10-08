@@ -18,19 +18,10 @@
 */
 package org.apache.manifoldcf.agents.common;
 
-import org.xml.sax.XMLReader;
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.helpers.XMLReaderFactory;
-import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.SAXException;
-
-import java.io.InputStream;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
 
 /** An instance of this class represents a parsing context within a node.  Parsing functionality is implemented
 * by extending this class to do the right thing for the context in which it is deployed.  The base functionality

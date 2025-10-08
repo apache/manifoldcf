@@ -18,11 +18,11 @@
 */
 package org.apache.manifoldcf.agents;
 
-import java.io.*;
-import org.apache.manifoldcf.core.interfaces.*;
-import org.apache.manifoldcf.agents.interfaces.*;
+import org.apache.manifoldcf.agents.interfaces.IOutputConnectionManager;
+import org.apache.manifoldcf.agents.interfaces.OutputConnectionManagerFactory;
 import org.apache.manifoldcf.agents.system.ManifoldCF;
-import java.util.*;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.ThreadContextFactory;
 
 /** This class is a command that is used to delete an output connection.
 */
