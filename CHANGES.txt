@@ -1,6 +1,11 @@
 ManifoldCF Change Log
 
-======================= 2.29-dev =========================
+======================= Release 2.30-dev ======================
+
+CONNECTORS-1780: Align JNA version defined in maven POM to the verison defined in build.xml
+(Markus Schuch)
+
+======================= Release 2.29 ==========================
 
 CONNECTORS-1776: Update Copyright footer to 2025
 (Piergiorgio Lucidi)
