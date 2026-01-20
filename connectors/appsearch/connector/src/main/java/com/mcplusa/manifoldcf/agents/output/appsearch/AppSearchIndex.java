@@ -80,7 +80,7 @@ public class AppSearchIndex extends AppSearchConnection {
         if (dateFieldValues.length > 1) {
           doc.addProperty(fieldNameClean, gson.toJson(dateFieldValues));
         } else if (dateFieldValues.length == 1) {
-          doc.addProperty(fieldNameClean, dateFieldValues[0].toString());
+          doc.addProperty(fieldNameClean, formatAsString(dateFieldValues[0]));
         }
       } else {
         String[] fieldValues;
@@ -183,9 +183,10 @@ public class AppSearchIndex extends AppSearchConnection {
         return false;
       }
 
-      setResult("JSONERROR", Result.ERROR, error);
+      // If result is not OK but no specific error, still fail
+      setResult("JSONERROR", Result.ERROR, "Unknown error: " + getResponse());
       Logging.connectors.warn("AppSearch: Index failed: " + getResponse());
-      return true;
+      return false;
 
     } catch (Exception ex) {
       setResult("JSONERROR", Result.ERROR, ex.getMessage());
@@ -236,12 +237,21 @@ public class AppSearchIndex extends AppSearchConnection {
     
     String[] contentChunk = Utils.chunkSplit(documentContent, bytesChunks);
 
+    if (contentChunk == null) {
+      Logging.connectors.warn("AppSearch: Failed to split document into chunks for URI: " + documentURI);
+      setResult("CHUNKSPLITERROR", Result.ERROR, "Failed to split document content into chunks");
+      return false;
+    }
+
     Logging.connectors.debug("Number of chunks generated: " + contentChunk.length);
     for (int i = 0; i < contentChunk.length; i++) {
       String documentChunk = generateDocJson(documentURI, document, contentChunk[i], config.getContentAttributeName(),
-          groupKey, i);
-      Logging.connectors.debug("Chunk " + i + " size: " + documentChunk.getBytes().length);
-      pushDocument(documentChunk);
+          groupKey, i + 1);
+      Logging.connectors.debug("Chunk " + (i + 1) + " size: " + documentChunk.getBytes().length);
+      if (!pushDocument(documentChunk)) {
+        Logging.connectors.warn("AppSearch: Failed to push chunk " + (i + 1) + " for URI: " + documentURI);
+        return false;
+      }
     }
 
     return true;
@@ -272,7 +282,7 @@ public class AppSearchIndex extends AppSearchConnection {
           }
         } catch (IOException ex) {
           Logger.getLogger(AppSearchIndex.class.getName()).log(Level.SEVERE, null, ex);
-          break;
+          break; // TODO: Revisit this with a better solution [This plus while = true]
         }
       }
     } catch (IOException ex) {

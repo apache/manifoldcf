@@ -28,21 +28,21 @@ public final class Utils {
     public static String[] chunkSplit(String original, int length) {
         List<String> chunks = new ArrayList<>();
 
-        ByteArrayInputStream bis = new ByteArrayInputStream(original.getBytes());
-        int n = 0;
-        byte[] buffer = new byte[length];
-
-        try {
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(original.getBytes())) {
+            byte[] buffer = new byte[length];
+            int n;
+            
             while ((n = bis.read(buffer)) > 0) {
-                String result = "";
-                for (byte b : buffer) {
-                    result += (char) b;
+                StringBuilder result = new StringBuilder(n);
+                // Only process the first n bytes that were actually read
+                for (int i = 0; i < n; i++) {
+                    result.append((char) buffer[i]);
                 }
-                Arrays.fill(buffer, (byte) 0);
-                chunks.add(result.trim());
+                chunks.add(result.toString().trim());
             }
         } catch (IOException e) {
-            return null;
+            // return empty array if error - TODO: Revisit this with a better solution
+            return new String[0];
         }
 
         return chunks.toArray(new String[0]);

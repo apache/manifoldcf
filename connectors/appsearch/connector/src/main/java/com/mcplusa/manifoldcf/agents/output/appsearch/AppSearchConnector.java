@@ -37,8 +37,6 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.AuthScope;
 
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
@@ -106,14 +104,13 @@ public class AppSearchConnector extends BaseOutputConnector {
   protected HttpClient getSession()
 	  throws ManifoldCFException {
     if (client == null) {
-      int socketTimeout = 900000;
-      int connectionTimeout = 60000;
+      int socketTimeout = 900000; // TODO: Make this configurable
+      int connectionTimeout = 60000; // TODO: Make this configurable
 
       // Load configuration from parameters
       final AppSearchConfig config = new AppSearchConfig(params);
       final IKeystoreManager keystoreManager = config.getSSLKeystore();
 
-      final Credentials credentials = null;
 
       // Set up ingest ssl if indicated
       SSLConnectionSocketFactory myFactory = SSLConnectionSocketFactory.getSocketFactory();
@@ -132,9 +129,6 @@ public class AppSearchConnector extends BaseOutputConnector {
       connectionManager = poolingConnectionManager;
 
       CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-      if (credentials != null) {
-	credentialsProvider.setCredentials(AuthScope.ANY, credentials);
-      }
 
       RequestConfig.Builder requestBuilder = RequestConfig.custom()
 	      .setCircularRedirectsAllowed(true)

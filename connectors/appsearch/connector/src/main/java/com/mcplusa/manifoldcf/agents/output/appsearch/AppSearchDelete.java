@@ -79,8 +79,21 @@ public class AppSearchDelete extends AppSearchConnection {
       HttpPost method = new HttpPost(url.toString());
 
       Gson gson = new Gson();
-      String searchQuery = "{\"query\":\"" + documentId + "\",\"result_fields\":{\"title\":{\"raw\": {}}},\"page\":{\"size\":100}}";
-      method.setEntity(new StringEntity(searchQuery, Consts.UTF_8));
+      JsonObject searchQuery = new JsonObject();
+      searchQuery.addProperty("query", documentId);
+      
+      JsonObject resultFields = new JsonObject();
+      JsonObject title = new JsonObject();
+      JsonObject raw = new JsonObject();
+      title.add("raw", raw);
+      resultFields.add("title", title);
+      searchQuery.add("result_fields", resultFields);
+      
+      JsonObject page = new JsonObject();
+      page.addProperty("size", 100);
+      searchQuery.add("page", page);
+      
+      method.setEntity(new StringEntity(gson.toJson(searchQuery), Consts.UTF_8));
 
       call(method);
 
