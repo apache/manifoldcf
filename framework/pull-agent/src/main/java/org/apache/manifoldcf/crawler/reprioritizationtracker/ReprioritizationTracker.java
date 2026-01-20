@@ -465,7 +465,7 @@ public class ReprioritizationTracker implements IReprioritizationTracker
         return false;
       final PreloadKey pk = (PreloadKey)o;
       return connectorClass.equals(pk.connectorClass) &&
-        binName.equals(pk.binName);
+        (binName == null ? "" : binName).equals(pk.binName);
     }
   }
   

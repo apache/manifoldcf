@@ -2,6 +2,9 @@ ManifoldCF Change Log
 
 ======================= Release 2.30-dev ======================
 
+CONNECTORS-1720: Armor equals method in RepriorizationTracker against null bin names
+(Markus Schuch)
+
 CONNECTORS-1780: Align JNA version defined in maven POM to the verison defined in build.xml
 (Markus Schuch)
 
