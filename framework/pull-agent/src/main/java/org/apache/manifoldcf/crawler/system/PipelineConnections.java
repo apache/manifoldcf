@@ -42,10 +42,12 @@ public class PipelineConnections implements IPipelineConnections
     throws ManifoldCFException
   {
     this.spec = spec;
-    // Now, load all the connections we'll ever need, being sure to only load one copy of each.
-    // We first segregate them into unique transformation and output connections.
+    // Now, load all the connections we'll ever need.
+    // We used to load only one copy of each connection.  However, for transformation connections, we need
+    // one per stage because the same transformation connection can be used in multiple stages, and
+    // if the connector is not re-entrant we need multiple connector instances.
     int count = spec.getStageCount();
-    Set<String> transformations = new HashSet<String>();
+    List<String> transformations = new ArrayList<String>();
     Set<String> outputs = new HashSet<String>();
     for (int i = 0; i < count; i++)
     {
@@ -55,17 +57,14 @@ public class PipelineConnections implements IPipelineConnections
         transformations.add(spec.getStageConnectionName(i));
     }
       
-    Map<String,Integer> transformationNameMap = new HashMap<String,Integer>();
     Map<String,Integer> outputNameMap = new HashMap<String,Integer>();
     transformationConnectionNames = new String[transformations.size()];
     outputConnectionNames = new String[outputs.size()];
-    int index = 0;
-    for (String connectionName : transformations)
+    for (int i = 0; i < transformationConnectionNames.length; i++)
     {
-      transformationConnectionNames[index] = connectionName;
-      transformationNameMap.put(connectionName,new Integer(index++));
+      transformationConnectionNames[i] = transformations.get(i);
     }
-    index = 0;
+    int index = 0;
     for (String connectionName : outputs)
     {
       outputConnectionNames[index] = connectionName;
@@ -75,16 +74,16 @@ public class PipelineConnections implements IPipelineConnections
     transformationConnections = transformationConnectionManager.loadMultiple(transformationConnectionNames);
     outputConnections = outputConnectionManager.loadMultiple(outputConnectionNames);
       
+    int transformationIndex = 0;
     for (int i = 0; i < count; i++)
     {
-      Integer k;
       if (spec.checkStageOutputConnection(i))
       {
         outputConnectionLookupMap.put(new Integer(i),outputNameMap.get(spec.getStageConnectionName(i)));
       }
       else
       {
-        transformationConnectionLookupMap.put(new Integer(i),transformationNameMap.get(spec.getStageConnectionName(i)));
+        transformationConnectionLookupMap.put(new Integer(i),new Integer(transformationIndex++));
       }
     }
   }

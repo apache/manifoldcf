@@ -369,7 +369,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     throws ManifoldCFException
   {
     // Pick up all needed transformation connectors
-    ITransformationConnector[] transformationConnectors = transformationConnectorPool.grabMultiple(pipelineConnections.getTransformationConnectionNames(),pipelineConnections.getTransformationConnections());
+    String[] transformationConnectionNames = pipelineConnections.getTransformationConnectionNames();
+    String[] transformationOrderingKeys = new String[transformationConnectionNames.length];
+    for (int i = 0; i < transformationOrderingKeys.length; i++)
+    {
+      transformationOrderingKeys[i] = transformationConnectionNames[i] + "-" + i;
+    }
+    ITransformationConnector[] transformationConnectors = transformationConnectorPool.grabMultiple(transformationOrderingKeys,pipelineConnections.getTransformationConnections());
     for (ITransformationConnector c : transformationConnectors)
     {
       if (c == null)
@@ -382,7 +388,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     // Pick up all needed output connectors.  If this fails we have to release the transformation connectors.
     try
     {
-      IOutputConnector[] outputConnectors = outputConnectorPool.grabMultiple(pipelineConnections.getOutputConnectionNames(),pipelineConnections.getOutputConnections());
+      String[] outputConnectionNames = pipelineConnections.getOutputConnectionNames();
+      String[] outputOrderingKeys = new String[outputConnectionNames.length];
+      for (int i = 0; i < outputOrderingKeys.length; i++)
+      {
+        outputOrderingKeys[i] = outputConnectionNames[i] + "-" + i;
+      }
+      IOutputConnector[] outputConnectors = outputConnectorPool.grabMultiple(outputOrderingKeys,pipelineConnections.getOutputConnections());
       for (IOutputConnector c : outputConnectors)
       {
         if (c == null)
@@ -416,7 +428,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     throws ManifoldCFException
   {
     // Pick up all needed transformation connectors
-    ITransformationConnector[] transformationConnectors = transformationConnectorPool.grabMultiple(pipelineConnections.getTransformationConnectionNames(),pipelineConnections.getTransformationConnections());
+    String[] transformationConnectionNames = pipelineConnections.getTransformationConnectionNames();
+    String[] transformationOrderingKeys = new String[transformationConnectionNames.length];
+    for (int i = 0; i < transformationOrderingKeys.length; i++)
+    {
+      transformationOrderingKeys[i] = transformationConnectionNames[i] + "-" + i;
+    }
+    ITransformationConnector[] transformationConnectors = transformationConnectorPool.grabMultiple(transformationOrderingKeys,pipelineConnections.getTransformationConnections());
     for (ITransformationConnector c : transformationConnectors)
     {
       if (c == null)
@@ -429,7 +447,13 @@ public class IncrementalIngester extends org.apache.manifoldcf.core.database.Bas
     // Pick up all needed output connectors.  If this fails we have to release the transformation connectors.
     try
     {
-      IOutputConnector[] outputConnectors = outputConnectorPool.grabMultiple(pipelineConnections.getOutputConnectionNames(),pipelineConnections.getOutputConnections());
+      String[] outputConnectionNames = pipelineConnections.getOutputConnectionNames();
+      String[] outputOrderingKeys = new String[outputConnectionNames.length];
+      for (int i = 0; i < outputOrderingKeys.length; i++)
+      {
+        outputOrderingKeys[i] = outputConnectionNames[i] + "-" + i;
+      }
+      IOutputConnector[] outputConnectors = outputConnectorPool.grabMultiple(outputOrderingKeys,pipelineConnections.getOutputConnections());
       for (IOutputConnector c : outputConnectors)
       {
         if (c == null)
