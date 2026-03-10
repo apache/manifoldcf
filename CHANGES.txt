@@ -1,8 +1,21 @@
 ManifoldCF Change Log
 
 ======================= 2.30-dev =========================
+
+CONNECTORS-1782: Upgrade Nuxeo Java Client to version 3.2.0
+(Piergiorgio Lucidi)
+
+CONNECTORS-1781: Possible NullPointerException on rollbackCurrentTransaction for MySQL/MariaDB
+(Markus Schuch, Piergiorgio Lucidi)
+
 CONNECTORS-1779: Upgrade to OpenJDK 21
 (Piergiorgio Lucidi)
+
+CONNECTORS-1778: Error: Repeated service interruptions - failure processing document: The target server failed to respond
+(Piergiorgio Lucidi)
+
+CONNECTORS-1720: Fatal Error due to NPE in RepriorizationTracker
+(Markus Schuch)
 
 ======================= Release 2.29 =========================
 
