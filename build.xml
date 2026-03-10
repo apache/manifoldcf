@@ -920,7 +920,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     </target>
     
     <target name="setup-nuxeo-url">
-        <property name="nuxeo-base-url" value="https://packages.nuxeo.com/repository/maven-public-archives"/>
+        <property name="nuxeo-base-url" value="https://packages.nuxeo.com/repository/maven-public-releases"/>
     </target>
     
     <target name="download-via-nuxeo" depends="setup-nuxeo-url">
@@ -931,7 +931,7 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <antcall target="download-via-nuxeo">
             <param name="project-path" value="org/nuxeo/client"/>
-            <param name="artifact-version" value="3.0.1"/>
+            <param name="artifact-version" value="3.2.0"/>
             <param name="target" value="lib"/>
             <param name="artifact-name" value="nuxeo-java-client"/>
             <param name="artifact-type" value="jar"/>

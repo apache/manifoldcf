@@ -46,7 +46,9 @@ public class KafkaLocal {
   public void stop() {
     //stop kafka broker
     System.out.println("stopping kafka...");
-    kafka.shutdown();
+    if (kafka != null) {
+      kafka.shutdown();
+    }
     System.out.println("done");
   }
 

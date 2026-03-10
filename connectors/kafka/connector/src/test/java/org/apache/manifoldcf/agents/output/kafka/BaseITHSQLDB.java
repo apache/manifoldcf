@@ -89,7 +89,9 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
 
   @After
   public void cleanUpKafka() {
-    kafka.stop();
+    if (kafka != null) {
+      kafka.stop();
+    }
   }
 
 }

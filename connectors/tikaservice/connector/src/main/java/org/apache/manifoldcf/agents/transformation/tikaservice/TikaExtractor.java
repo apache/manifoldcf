@@ -608,6 +608,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
               response = this.httpClient.execute(tikaHost, httpPut);
               //System.out.println("PUT successful");
             } catch (IOException e) {
+              if (sp.ignoreException()) {
+                return handleTikaServerException(e);
+              }
               // Retry for 10 minutes, 10000 ms between retries, and abort if doesn't work
               final long currentTime = System.currentTimeMillis();
               throw new ServiceInterruption("Tika down, retrying: "+e.getMessage(),e,currentTime + 10000L,
@@ -641,6 +644,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                 tikaServerIs.close();
               }
             } else if (responseCode == 503) {
+              if (sp.ignoreException()) {
+                return handleTikaServerRejects("Tika restarting, retrying");
+              }
               // Service interruption; Tika trying to come up.
               // Retry for 10 minutes, 10000 ms between retries, and abort if doesn't work
               final long currentTime = System.currentTimeMillis();
@@ -675,6 +681,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
               response = this.httpClient.execute(tikaHost, httpPut);
               //System.out.println("... content PUT succeeded");
             } catch (IOException e) {
+              if (sp.ignoreException()) {
+                return handleTikaServerException(e);
+              }
               // Retry for 10 minutes, 10000 ms between retries, and abort if doesn't work
               final long currentTime = System.currentTimeMillis();
               throw new ServiceInterruption("Tika down, retrying: "+e.getMessage(),e,currentTime + 10000L,
@@ -697,6 +706,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                 tikaServerIs.close();
               }
             } else if (responseCode == 503) {
+              if (sp.ignoreException()) {
+                return handleTikaServerRejects("Tika restarting, retrying");
+              }
               // Service interruption; Tika trying to come up.
               // Retry for 10 minutes, 10000 ms between retries, and abort if doesn't work
               final long currentTime = System.currentTimeMillis();
@@ -925,7 +937,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       while (i < os.getChildCount()) {
         SpecificationNode node = os.getChild(i);
         if (node.getType().equals(TikaConfig.NODE_FIELDMAP) || node.getType().equals(TikaConfig.NODE_KEEPMETADATA)
-            || node.getType().equals(TikaConfig.NODE_LOWERNAMES) || node.getType().equals(TikaConfig.NODE_WRITELIMIT))
+            || node.getType().equals(TikaConfig.NODE_LOWERNAMES) || node.getType().equals(TikaConfig.NODE_WRITELIMIT)
+            || node.getType().equals(TikaConfig.NODE_IGNORETIKAEXCEPTION))
           os.removeChild(i);
         else
           i++;
@@ -982,14 +995,23 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       }
       os.addChild(os.getChildCount(), node2);
 
-      SpecificationNode node3 = new SpecificationNode(TikaConfig.NODE_WRITELIMIT);
-      String writeLimit = variableContext.getParameter(seqPrefix + "writelimit");
-      if (writeLimit != null) {
-        node3.setAttribute(TikaConfig.ATTRIBUTE_VALUE, writeLimit);
+      SpecificationNode node3 = new SpecificationNode(TikaConfig.NODE_IGNORETIKAEXCEPTION);
+      String ignore = variableContext.getParameter(seqPrefix + "ignoretikaexceptions");
+      if (ignore != null) {
+        node3.setAttribute(TikaConfig.ATTRIBUTE_VALUE, ignore);
       } else {
-        node3.setAttribute(TikaConfig.ATTRIBUTE_VALUE, "");
+        node3.setAttribute(TikaConfig.ATTRIBUTE_VALUE, "false");
       }
       os.addChild(os.getChildCount(), node3);
+
+      SpecificationNode node4 = new SpecificationNode(TikaConfig.NODE_WRITELIMIT);
+      String writeLimit = variableContext.getParameter(seqPrefix + "writelimit");
+      if (writeLimit != null) {
+        node4.setAttribute(TikaConfig.ATTRIBUTE_VALUE, writeLimit);
+      } else {
+        node4.setAttribute(TikaConfig.ATTRIBUTE_VALUE, "");
+      }
+      os.addChild(os.getChildCount(), node4);
     }
 
     return null;
@@ -1028,6 +1050,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     List<Map<String, String>> fieldMappings = new ArrayList<Map<String, String>>();
     String keepAllMetadataValue = "true";
     String lowernamesValue = "false";
+    String ignoreExceptionValue = "true";
     String writeLimitValue = "";
     for (int i = 0; i < os.getChildCount(); i++) {
       SpecificationNode sn = os.getChild(i);
@@ -1049,6 +1072,8 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         keepAllMetadataValue = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
       } else if (sn.getType().equals(TikaConfig.NODE_LOWERNAMES)) {
         lowernamesValue = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+      } else if (sn.getType().equals(TikaConfig.NODE_IGNORETIKAEXCEPTION)) {
+        ignoreExceptionValue = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
       } else if (sn.getType().equals(TikaConfig.NODE_WRITELIMIT)) {
         writeLimitValue = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
       }
@@ -1056,6 +1081,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     paramMap.put("FIELDMAPPINGS", fieldMappings);
     paramMap.put("KEEPALLMETADATA", keepAllMetadataValue);
     paramMap.put("LOWERNAMES", lowernamesValue);
+    paramMap.put("IGNORETIKAEXCEPTIONS", ignoreExceptionValue);
     paramMap.put("WRITELIMIT", writeLimitValue);
   }
 
@@ -1219,13 +1245,14 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     private final Map<String, String> sourceTargets = new HashMap<String, String>();
     private final boolean keepAllMetadata;
     private final boolean lowerNames;
+    private final boolean ignoreException;
     private final int writeLimit;
 
     public SpecPacker(Specification os) {
       boolean keepAllMetadata = true;
       boolean lowerNames = false;
       int writeLimit = TikaConfig.WRITELIMIT_DEFAULT;
-      boolean ignoreTikaException = true;
+      boolean ignoreException = true;
       for (int i = 0; i < os.getChildCount(); i++) {
         SpecificationNode sn = os.getChild(i);
 
@@ -1235,6 +1262,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         } else if (sn.getType().equals(TikaConfig.NODE_LOWERNAMES)) {
           String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
           lowerNames = Boolean.parseBoolean(value);
+        } else if (sn.getType().equals(TikaConfig.NODE_IGNORETIKAEXCEPTION)) {
+          String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
+          ignoreException = Boolean.parseBoolean(value);
         } else if (sn.getType().equals(TikaConfig.NODE_WRITELIMIT)) {
           String value = sn.getAttributeValue(TikaConfig.ATTRIBUTE_VALUE);
           if (value.length() == 0) {
@@ -1254,6 +1284,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       }
       this.keepAllMetadata = keepAllMetadata;
       this.lowerNames = lowerNames;
+      this.ignoreException = ignoreException;
       this.writeLimit = writeLimit;
     }
 
@@ -1290,6 +1321,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         sb.append('+');
       else
         sb.append('-');
+      if (ignoreException)
+        sb.append('+');
+      else
+        sb.append('-');
 
       if (writeLimit != TikaConfig.WRITELIMIT_DEFAULT) {
         sb.append('+');
@@ -1309,6 +1344,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
     public boolean lowerNames() {
       return lowerNames;
+    }
+
+    public boolean ignoreException() {
+      return ignoreException;
     }
 
     public int writeLimit() {
