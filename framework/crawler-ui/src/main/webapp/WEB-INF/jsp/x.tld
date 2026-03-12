@@ -26,7 +26,7 @@
   <display-name>JSTL XML</display-name>
   <tlib-version>1.1</tlib-version>
   <short-name>x</short-name>
-  <uri>http://java.sun.com/jsp/jstl/xml</uri>
+  <uri>jakarta.tags.xml</uri>
 
   <validator>
     <description>
@@ -175,7 +175,7 @@ the collection, starting with the first one.
         <description>
 Name of the exported scoped variable for the
 status of the iteration. Object exported is of type
-javax.servlet.jsp.jstl.core.LoopTagStatus. This scoped variable has nested visibility.
+jakarta.servlet.jsp.jstl.core.LoopTagStatus. This scoped variable has nested visibility.
         </description>
 	<name>varStatus</name>
 	<required>false</required>

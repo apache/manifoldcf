@@ -29,9 +29,9 @@ import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
 
-import javax.mail.*;
-import javax.mail.internet.MimeMessage;
-import javax.mail.search.*;
+import jakarta.mail.*;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.search.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;

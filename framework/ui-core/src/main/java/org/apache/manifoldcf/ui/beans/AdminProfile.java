@@ -19,8 +19,8 @@
 package org.apache.manifoldcf.ui.beans;
 
 import java.util.*;
-import javax.servlet.*;
-import javax.servlet.http.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.core.system.*;

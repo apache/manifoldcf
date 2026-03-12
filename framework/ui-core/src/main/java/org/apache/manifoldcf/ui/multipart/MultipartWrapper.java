@@ -20,13 +20,16 @@ package org.apache.manifoldcf.ui.multipart;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.ui.beans.AdminProfile;
-import org.apache.commons.fileupload.*;
-import org.apache.commons.fileupload.disk.*;
-import org.apache.commons.fileupload.servlet.*;
-import javax.servlet.*;
-import javax.servlet.http.*;
+import org.apache.commons.fileupload2.core.FileUploadException;
+import org.apache.commons.fileupload2.core.DiskFileItem;
+import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletDiskFileUpload;
+import org.apache.commons.fileupload2.core.DiskFileItemFactory;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 import java.util.*;
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /** This class provides abstract parameter service, including support for uploaded files and
 * multipart forms.  It is styled much like HttpServletRequest, but wraps this interface so
@@ -61,7 +64,7 @@ public class MultipartWrapper implements IPostParameters
     this.adminProfile = adminProfile;
 
     // Check that we have a file upload request
-    boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+    boolean isMultipart = JakartaServletDiskFileUpload.isMultipartContent(request);
     if (!isMultipart)
     {
       this.request = request;
@@ -71,10 +74,10 @@ public class MultipartWrapper implements IPostParameters
     // It is multipart!
 
     // Create a factory for disk-based file items
-    DiskFileItemFactory factory = new DiskFileItemFactory();
+    DiskFileItemFactory factory = DiskFileItemFactory.builder().get();
 
     // Create a new file upload handler
-    ServletFileUpload upload = new ServletFileUpload(factory);
+    JakartaServletDiskFileUpload upload = new JakartaServletDiskFileUpload(factory);
 
     // Parse the request
     try
@@ -83,11 +86,9 @@ public class MultipartWrapper implements IPostParameters
       // Handle broken tomcat; characterEncoding always comes back null for tomcat4
       if (characterEncoding == null)
         characterEncoding = "utf8";
-      List items = upload.parseRequest(request);
-      Iterator iter = items.iterator();
-      while (iter.hasNext())
+      List<DiskFileItem> items = upload.parseRequest(request);
+      for (DiskFileItem item : items)
       {
-        FileItem item = (FileItem) iter.next();
         String name = item.getFieldName();
         ArrayList list = (ArrayList)variableMap.get(name);
         if (list == null)
@@ -97,15 +98,15 @@ public class MultipartWrapper implements IPostParameters
         }
         else
         {
-          if (((FileItem)list.get(0)).isFormField() != item.isFormField())
+          if (((DiskFileItem)list.get(0)).isFormField() != item.isFormField())
             throw new ManifoldCFException("Illegal form data; posted form has the same name for different data types ('"+name+"')!");
         }
         list.add(item);
       }
     }
-    catch (FileUploadException e)
+    catch (IOException e)
     {
-      throw new ManifoldCFException("Problem uploading file: "+e.getMessage(),e);
+      throw new ManifoldCFException("Problem reading multipart request: "+e.getMessage(),e);
     }
   }
 
@@ -125,7 +126,7 @@ public class MultipartWrapper implements IPostParameters
 
     Object x = list.get(0);
 
-    if ((x instanceof FileItem) && !((FileItem)x).isFormField())
+    if ((x instanceof DiskFileItem) && !((DiskFileItem)x).isFormField())
       return null;
 
     String[] rval = new String[list.size()];
@@ -139,11 +140,11 @@ public class MultipartWrapper implements IPostParameters
       {
         try
         {
-          rval[i] = ((FileItem)x).getString(characterEncoding);
+          rval[i] = ((DiskFileItem)x).getString(Charset.forName(characterEncoding));
         }
-        catch (UnsupportedEncodingException e)
+        catch (IOException e)
         {
-          rval[i] = ((FileItem)x).getString();
+          throw new RuntimeException("Error reading multipart parameter: "+e.getMessage(),e);
         }
       }
       i++;
@@ -169,17 +170,17 @@ public class MultipartWrapper implements IPostParameters
     if (x instanceof String)
       return (String)x;
 
-    FileItem item = (FileItem)x;
+    DiskFileItem item = (DiskFileItem)x;
     if (!item.isFormField())
       return null;
 
     try
     {
-      return item.getString(characterEncoding);
+      return item.getString(Charset.forName(characterEncoding));
     }
-    catch (UnsupportedEncodingException e)
+    catch (IOException e)
     {
-      return item.getString();
+      throw new RuntimeException("Error reading multipart parameter: "+e.getMessage(),e);
     }
   }
 
@@ -200,7 +201,7 @@ public class MultipartWrapper implements IPostParameters
     if (x instanceof String)
       return null;
 
-    FileItem item = (FileItem)x;
+    DiskFileItem item = (DiskFileItem)x;
     if (item.isFormField())
       return null;
 
@@ -238,7 +239,7 @@ public class MultipartWrapper implements IPostParameters
     if (x instanceof String)
       return null;
 
-    FileItem item = (FileItem)x;
+    DiskFileItem item = (DiskFileItem)x;
     if (item.isFormField())
       return null;
 

@@ -26,7 +26,7 @@ import org.apache.manifoldcf.crawler.system.Logging;
 
 import java.io.*;
 import java.util.*;
-import javax.mail.*;
+import jakarta.mail.*;
 
 /**
 */

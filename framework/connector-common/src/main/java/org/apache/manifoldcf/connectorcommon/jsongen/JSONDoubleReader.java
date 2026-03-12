@@ -25,7 +25,7 @@ public class JSONDoubleReader extends JSONValueReader
 {
   public JSONDoubleReader(double value)
   {
-    super(new StringReader(new Double(value).toString()));
+    super(new StringReader(Double.valueOf(value).toString()));
   }
   
 }

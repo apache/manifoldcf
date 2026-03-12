@@ -19,10 +19,10 @@ package org.apache.manifoldcf.crawler.notifications.email;
 
 import java.io.*;
 import java.util.*;
-import javax.mail.*;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.InternetAddress;
+import jakarta.mail.*;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.InternetAddress;
 
 /** This class represents a raw email session, without any protection
 * from threads waiting on sockets, etc.
@@ -73,7 +73,7 @@ public class EmailSession
     
     // Now, try to connect
     final Session thisSession = Session.getInstance(properties,
-      new javax.mail.Authenticator() {
+      new jakarta.mail.Authenticator() {
         protected PasswordAuthentication getPasswordAuthentication() {
           return new PasswordAuthentication(username, password);
         }

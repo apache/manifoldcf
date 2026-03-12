@@ -45,7 +45,6 @@ import org.apache.solr.client.solrj.impl.BinaryRequestWriter;
 import org.apache.solr.client.solrj.impl.BinaryResponseParser;
 import org.apache.solr.client.solrj.impl.Http2SolrClient;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
-import org.apache.solr.client.solrj.impl.HttpListenerFactory;
 import org.apache.solr.client.solrj.impl.InputStreamResponseParser;
 import org.apache.solr.client.solrj.request.RequestWriter;
 import org.apache.solr.client.solrj.request.UpdateRequest;
@@ -68,16 +67,16 @@ import org.apache.solr.common.util.Utils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.HttpClientTransport;
 import org.eclipse.jetty.client.ProtocolHandlers;
-import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.client.api.Response;
-import org.eclipse.jetty.client.http.HttpClientTransportOverHTTP;
-import org.eclipse.jetty.client.util.ByteBufferContentProvider;
-import org.eclipse.jetty.client.util.FormContentProvider;
-import org.eclipse.jetty.client.util.InputStreamContentProvider;
-import org.eclipse.jetty.client.util.InputStreamResponseListener;
-import org.eclipse.jetty.client.util.MultiPartContentProvider;
-import org.eclipse.jetty.client.util.OutputStreamContentProvider;
-import org.eclipse.jetty.client.util.StringContentProvider;
+import org.eclipse.jetty.client.Request;
+import org.eclipse.jetty.client.Response;
+import org.eclipse.jetty.client.transport.HttpClientTransportOverHTTP;
+import org.eclipse.jetty.client.ByteBufferRequestContent;
+import org.eclipse.jetty.client.FormRequestContent;
+import org.eclipse.jetty.client.InputStreamRequestContent;
+import org.eclipse.jetty.client.InputStreamResponseListener;
+import org.eclipse.jetty.client.MultiPartRequestContent;
+import org.eclipse.jetty.client.OutputStreamRequestContent;
+import org.eclipse.jetty.client.StringRequestContent;
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.http.HttpHeader;
@@ -85,7 +84,7 @@ import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.http2.client.HTTP2Client;
-import org.eclipse.jetty.http2.client.http.HttpClientTransportOverHTTP2;
+import org.eclipse.jetty.http2.client.transport.HttpClientTransportOverHTTP2;
 import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.eclipse.jetty.util.Fields;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -197,14 +196,20 @@ public class ModifiedHttp2SolrClient extends SolrClient {
         log.debug("Create Http2SolrClient with HTTP/1.1 transport");
       }
       transport = new HttpClientTransportOverHTTP(2);
-      httpClient = sslEnabled ? new HttpClient(transport, sslContextFactory) : new HttpClient(transport, null);
+      httpClient = new HttpClient(transport);
+      if (sslEnabled) {
+        httpClient.setSslContextFactory(sslContextFactory);
+      }
       if (builder.maxConnectionsPerHost != null)
         httpClient.setMaxConnectionsPerDestination(builder.maxConnectionsPerHost);
     } else {
       log.debug("Create Http2SolrClient with HTTP/2 transport");
       final HTTP2Client http2client = new HTTP2Client();
       transport = new HttpClientTransportOverHTTP2(http2client);
-      httpClient = new HttpClient(transport, sslContextFactory);
+      httpClient = new HttpClient(transport);
+      if (sslEnabled) {
+        httpClient.setSslContextFactory(sslContextFactory);
+      }
       httpClient.setMaxConnectionsPerDestination(4);
     }
 
@@ -234,7 +239,6 @@ public class ModifiedHttp2SolrClient extends SolrClient {
     asyncTracker.waitForComplete();
     try {
       if (closeClient) {
-        httpClient.setStopTimeout(1000);
         httpClient.stop();
         httpClient.destroy();
       }
@@ -260,11 +264,11 @@ public class ModifiedHttp2SolrClient extends SolrClient {
   public static class OutStream implements Closeable {
     private final String origCollection;
     private final ModifiableSolrParams origParams;
-    private final OutputStreamContentProvider outProvider;
+    private final OutputStreamRequestContent outProvider;
     private final InputStreamResponseListener responseListener;
     private final boolean isXml;
 
-    public OutStream(final String origCollection, final ModifiableSolrParams origParams, final OutputStreamContentProvider outProvider, final InputStreamResponseListener responseListener,
+    public OutStream(final String origCollection, final ModifiableSolrParams origParams, final OutputStreamRequestContent outProvider, final InputStreamResponseListener responseListener,
         final boolean isXml) {
       this.origCollection = origCollection;
       this.origParams = origParams;
@@ -319,8 +323,8 @@ public class ModifiedHttp2SolrClient extends SolrClient {
     if (!basePath.endsWith("/"))
       basePath += "/";
 
-    final OutputStreamContentProvider provider = new OutputStreamContentProvider();
-    final Request postRequest = httpClient.newRequest(basePath + "update" + requestParams.toQueryString()).method(HttpMethod.POST).header(HttpHeader.CONTENT_TYPE, contentType).content(provider);
+    final OutputStreamRequestContent provider = new OutputStreamRequestContent();
+    final Request postRequest = httpClient.newRequest(basePath + "update" + requestParams.toQueryString()).method(HttpMethod.POST).headers(h -> h.put(HttpHeader.CONTENT_TYPE, contentType)).body(provider);
     decorateRequest(postRequest, updateRequest);
     final InputStreamResponseListener responseListener = new InputStreamResponseListener();
     postRequest.send(responseListener);
@@ -457,9 +461,9 @@ public class ModifiedHttp2SolrClient extends SolrClient {
   private void setBasicAuthHeader(final SolrRequest<?> solrRequest, final Request req) {
     if (solrRequest.getBasicAuthUser() != null && solrRequest.getBasicAuthPassword() != null) {
       final String encoded = basicAuthCredentialsToAuthorizationString(solrRequest.getBasicAuthUser(), solrRequest.getBasicAuthPassword());
-      req.header("Authorization", encoded);
+      req.headers(h -> h.put("Authorization", encoded));
     } else if (basicAuthAuthorizationStr != null) {
-      req.header("Authorization", basicAuthAuthorizationStr);
+      req.headers(h -> h.put("Authorization", basicAuthAuthorizationStr));
     }
   }
 
@@ -475,7 +479,7 @@ public class ModifiedHttp2SolrClient extends SolrClient {
   }
 
   private void decorateRequest(final Request req, final SolrRequest<?> solrRequest) {
-    req.header(HttpHeader.ACCEPT_ENCODING, null);
+    req.headers(h -> h.put(HttpHeader.ACCEPT_ENCODING, (String)null));
     req.timeout(idleTimeout, TimeUnit.MILLISECONDS);
     if (solrRequest.getUserPrincipal() != null) {
       req.attribute(REQ_PRINCIPAL_KEY, solrRequest.getUserPrincipal());
@@ -484,7 +488,7 @@ public class ModifiedHttp2SolrClient extends SolrClient {
     setBasicAuthHeader(solrRequest, req);
     for (final HttpListenerFactory factory : listenerFactory) {
       final HttpListenerFactory.RequestResponseListener listener = factory.get();
-      listener.onQueued(req);
+      req.onRequestQueued(listener);
       req.onRequestBegin(listener);
       req.onComplete(listener);
     }
@@ -492,7 +496,7 @@ public class ModifiedHttp2SolrClient extends SolrClient {
     final Map<String, String> headers = solrRequest.getHeaders();
     if (headers != null) {
       for (final Map.Entry<String, String> entry : headers.entrySet()) {
-        req.header(entry.getKey(), entry.getValue());
+        req.headers(h -> h.put(entry.getKey(), entry.getValue()));
       }
     }
   }
@@ -598,9 +602,9 @@ public class ModifiedHttp2SolrClient extends SolrClient {
         contentWriter.write(baos);
 
         // SOLR-16265: TODO reduce memory usage
-        return req.content(
+        return req.body(
             // We're throwing this BAOS away, so no need to copy the byte[], just use the raw buf
-            new ByteBufferContentProvider(contentWriter.getContentType(), ByteBuffer.wrap(baos.getbuf(), 0, baos.size())));
+            new ByteBufferRequestContent(contentWriter.getContentType(), ByteBuffer.wrap(baos.getbuf(), 0, baos.size())));
       } else if (streams == null || isMultipart) {
         // send server list and request list as query string params
         final ModifiableSolrParams queryParams = calculateQueryParams(this.queryParams, wparams);
@@ -610,7 +614,7 @@ public class ModifiedHttp2SolrClient extends SolrClient {
       } else {
         // It is has one stream, it is the post body, put the params in the URL
         final ContentStream contentStream = streams.iterator().next();
-        return httpClient.newRequest(url + wparams.toQueryString()).method(method).content(new InputStreamContentProvider(contentStream.getStream()), contentStream.getContentType());
+        return httpClient.newRequest(url + wparams.toQueryString()).method(method).body(new InputStreamRequestContent(contentStream.getContentType(), contentStream.getStream()));
       }
     }
 
@@ -651,14 +655,14 @@ public class ModifiedHttp2SolrClient extends SolrClient {
   private Request fillContentStream(final Request req, final Collection<ContentStream> streams, final ModifiableSolrParams wparams, final boolean isMultipart) throws IOException {
     if (isMultipart) {
       // multipart/form-data
-      final MultiPartContentProvider content = new MultiPartContentProvider();
+      final MultiPartRequestContent content = new MultiPartRequestContent();
       final Iterator<String> iter = wparams.getParameterNamesIterator();
       while (iter.hasNext()) {
         final String key = iter.next();
         final String[] vals = wparams.getParams(key);
         if (vals != null) {
           for (final String val : vals) {
-            content.addFieldPart(key, new StringContentProvider(val), null);
+            content.addPart(new org.eclipse.jetty.http.MultiPart.ContentSourcePart(key, null, null, new StringRequestContent(val)));
           }
         }
       }
@@ -672,12 +676,12 @@ public class ModifiedHttp2SolrClient extends SolrClient {
           if (name == null) {
             name = "";
           }
-          final HttpFields fields = new HttpFields();
+          final org.eclipse.jetty.http.HttpFields.Mutable fields = org.eclipse.jetty.http.HttpFields.build();
           fields.add(HttpHeader.CONTENT_TYPE, contentType);
-          content.addFilePart(name, contentStream.getName(), new InputStreamContentProvider(contentStream.getStream()), fields);
+          content.addPart(new org.eclipse.jetty.http.MultiPart.ContentSourcePart(name, contentStream.getName(), fields, new InputStreamRequestContent(contentStream.getStream())));
         }
       }
-      req.content(content);
+      req.body(content);
     } else {
       // application/x-www-form-urlencoded
       final Fields fields = new Fields();
@@ -691,7 +695,7 @@ public class ModifiedHttp2SolrClient extends SolrClient {
           }
         }
       }
-      req.content(new FormContentProvider(fields, FALLBACK_CHARSET));
+      req.body(new FormRequestContent(fields, FALLBACK_CHARSET));
     }
 
     return req;

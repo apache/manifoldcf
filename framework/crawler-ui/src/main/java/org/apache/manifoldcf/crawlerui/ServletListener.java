@@ -20,7 +20,7 @@ package org.apache.manifoldcf.crawlerui;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
-import javax.servlet.*;
+import jakarta.servlet.*;
 
 /** This class furnishes a servlet shutdown hook for ManifoldCF.  It should be referenced in the
 * web.xml file for the application in order to do the right thing, however.

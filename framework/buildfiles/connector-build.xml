@@ -117,7 +117,7 @@
         <fileset dir="${mcf-dist}/lib">
             <include name="zookeeper*.jar"/>
             <include name="netty-handler*.jar"/>
-            <include name="javax.mail*.jar"/>
+            <include name="jakarta.mail-api*.jar"/>
             <include name="commons-exec*.jar"/>
             <include name="guava*.jar"/>
             <include name="gson*.jar"/>
@@ -135,12 +135,19 @@
             <include name="commons-lang*.jar"/>
             <include name="commons-logging*.jar"/>
             <include name="eclipse*.jar"/>
+            <include name="ecj*.jar"/>
+            <include name="tomcat-jasper*.jar"/>
+            <include name="tomcat-jasper-el*.jar"/>
             <include name="jasper*.jar"/>
-            <include name="jetty*.jar"/>
+            <include name="jasper-el*.jar"/>
+            <include name="jetty-*.jar"/>
             <include name="slf4j*.jar"/>
-             <include name="javax.activation*.jar"/>
-            <include name="jsp-2.1*.jar"/>
-            <include name="jsp-api*.jar"/>
+            <include name="jakarta.el*.jar"/>
+            <include name="expressly*.jar"/>
+             <include name="jakarta.activation-api*.jar"/>
+             <include name="angus-activation*.jar"/>
+            <include name="tomcat-jsp-api*.jar"/>
+            <include name="jakarta.servlet.jsp-api*.jar"/>
             <include name="junit*.jar"/>
             <include name="selenium*.jar"/>
             <include name="okhttp*.jar"/>
@@ -150,8 +157,18 @@
             <include name="hamcrest-core*.jar"/>
             <include name="log4j*.jar"/>
             <include name="serializer*.jar"/>
-            <include name="javax.servlet-api*.jar"/>
+            <include name="jakarta.servlet-api*.jar"/>
+            <include name="jakarta.xml.bind-api*.jar"/>
+            <include name="jakarta.xml.ws-api*.jar"/>
+            <include name="jakarta.xml.soap-api*.jar"/>
+            <include name="jakarta.annotation-api*.jar"/>
+            <include name="jakarta.ws.rs-api*.jar"/>
+            <include name="jakarta.jws-api*.jar"/>
+            <include name="jaxb-*.jar"/>
             <include name="tomcat-juli*.jar"/>
+            <include name="tomcat-util*.jar"/>
+            <include name="tomcat-api*.jar"/>
+            <include name="juli*.jar"/>
             <include name="xalan*.jar"/>
             <include name="xercesImpl*.jar"/>
             <include name="xml-apis*.jar"/>
@@ -160,7 +177,7 @@
         <!-- JDK 11 requirements -->
         <fileset dir="${mcf-dist}/connector-common-lib">
             <include name="jaxws-api*.jar"/>
-            <include name="javax.jws-api*.jar"/>
+            <include name="jakarta.jws-api*.jar"/>
             <include name="jaxb-api*.jar"/>
         </fileset>
         <fileset dir="${mcf-dist}/connector-common-lib">
@@ -240,7 +257,7 @@
             <include name="xmlsec*.jar"/>
             <include name="opensaml*.jar"/>
             <include name="commons-discovery*.jar"/>
-            <include name="activation*.jar"/>
+            <include name="jakarta.activation-api*.jar"/>
             <include name="castor*.jar"/>
             <include name="geronimo-javamail_1.4_spec*.jar"/>
         </fileset>
@@ -449,7 +466,7 @@
                       <include name="velocity*.jar"/>
                       <include name="commons-collections*.jar"/>
                       <include name="commons-lang*.jar"/>
-                      <include name="javax.activation*.jar"/>
+                      <include name="jakarta.activation-api*.jar"/>
                       <include name="slf4j*.jar"/>
                   </fileset>
               </classpath>
@@ -474,8 +491,8 @@
                     <include name="axis*.jar"/>
                     <include name="saaj*.jar"/>
                     <include name="wsdl*.jar"/>
-                    <include name="javax.mail*.jar"/>
-                    <include name="activation*.jar"/>
+                    <include name="jakarta.mail-api*.jar"/>
+                    <include name="jakarta.activation-api*.jar"/>
                     <include name="commons-discovery*.jar"/>
                 </fileset>
                 <fileset dir="${mcf-dist}/lib">
@@ -565,12 +582,12 @@
                     <include name="axis*.jar"/>
                     <include name="saaj*.jar"/>
                     <include name="wsdl*.jar"/>
-                    <include name="activation*.jar"/>
+                    <include name="jakarta.activation-api*.jar"/>
                     <include name="commons-discovery*.jar"/>
                     <include name="commons-logging*.jar"/>
                 </fileset>
                 <fileset dir="${mcf-dist}/lib">
-                    <include name="javax.activation*.jar"/>
+                    <include name="jakarta.activation-api*.jar"/>
                 </fileset>
             </classpath>
         </javac>
@@ -783,7 +800,7 @@
                 <include name="axis*.jar"/>
                 <include name="saaj*.jar"/>
                 <include name="wsdl*.jar"/>
-                <include name="activation*.jar"/>
+                <include name="jakarta.activation-api*.jar"/>
                 <include name="commons-discovery*.jar"/>
             </fileset>
         </copy -->

@@ -20,7 +20,7 @@ package org.apache.manifoldcf.ui.jsp;
 
 import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.ui.beans.AdminProfile;
-import javax.servlet.jsp.*;
+import jakarta.servlet.jsp.*;
 import java.io.*;
 
 /** This class provides an implementation of IHTTPOutput, which provides output

@@ -30,9 +30,9 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.impl.SolrHttpClientBuilder;
 import org.apache.solr.client.solrj.impl.SolrPortAwareCookieSpecFactory;
-import org.eclipse.jetty.client.HttpAuthenticationStore;
+import org.eclipse.jetty.client.AuthenticationStore;
 import org.eclipse.jetty.client.WWWAuthenticationProtocolHandler;
-import org.eclipse.jetty.client.util.SPNEGOAuthentication;
+import org.eclipse.jetty.client.SPNEGOAuthentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,7 +111,7 @@ public class ModifiedKrb5HttpClientBuilder implements ModifiedHttpClientBuilderF
 
   @Override
   public void setup(final ModifiedHttp2SolrClient http2Client) {
-    final HttpAuthenticationStore authenticationStore = new HttpAuthenticationStore();
+    final AuthenticationStore authenticationStore = new org.eclipse.jetty.client.internal.HttpAuthenticationStore();
     authenticationStore.addAuthentication(createSPNEGOAuthentication());
     http2Client.getHttpClient().setAuthenticationStore(authenticationStore);
     http2Client.getProtocolHandlers().put(new WWWAuthenticationProtocolHandler(http2Client.getHttpClient()));

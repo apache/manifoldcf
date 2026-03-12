@@ -26,7 +26,7 @@
   <display-name>JSTL fmt</display-name>
   <tlib-version>1.1</tlib-version>
   <short-name>fmt</short-name>
-  <uri>http://java.sun.com/jsp/jstl/fmt</uri>
+  <uri>jakarta.tags.fmt</uri>
 
   <validator>
     <description>
@@ -220,7 +220,7 @@ suffix.
         <description>
 Name of the exported scoped variable which stores
 the i18n localization context of type
-javax.servlet.jsp.jstl.fmt.LocalizationC
+jakarta.servlet.jsp.jstl.fmt.LocalizationC
 ontext.
         </description>
         <name>var</name>

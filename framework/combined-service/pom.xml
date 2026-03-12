@@ -70,16 +70,16 @@
 
     <!-- web dependencies -->
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
       <version>${servlet-api.version}</version>
       <scope>provided</scope>
     </dependency>
 
     <!-- runtime dependencies -->
     <dependency>
-      <groupId>jstl</groupId>
-      <artifactId>jstl</artifactId>
+      <groupId>jakarta.servlet.jsp.jstl</groupId>
+      <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
       <version>${jstl.version}</version>
       <scope>runtime</scope>
     </dependency>

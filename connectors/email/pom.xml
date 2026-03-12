@@ -357,8 +357,8 @@
     </dependency>
 
     <dependency>
-      <groupId>com.sun.mail</groupId>
-      <artifactId>javax.mail</artifactId>
+      <groupId>jakarta.mail</groupId>
+      <artifactId>jakarta.mail-api</artifactId>
       <version>${mail.version}</version>
     </dependency> 
 

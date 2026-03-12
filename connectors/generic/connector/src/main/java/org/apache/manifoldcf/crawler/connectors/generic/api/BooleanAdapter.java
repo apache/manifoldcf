@@ -15,7 +15,7 @@
  */
 package org.apache.manifoldcf.crawler.connectors.generic.api;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 import java.util.Locale;
 
 public class BooleanAdapter extends XmlAdapter<String, Boolean> {

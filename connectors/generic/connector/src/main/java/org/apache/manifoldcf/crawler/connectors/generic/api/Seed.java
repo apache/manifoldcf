@@ -15,8 +15,8 @@
  */
 package org.apache.manifoldcf.crawler.connectors.generic.api;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "seed")
 public class Seed {

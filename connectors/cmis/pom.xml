@@ -161,8 +161,8 @@
                   <overWrite>false</overWrite>
                 </artifactItem>
                 <artifactItem>
-                  <groupId>javax.activation</groupId>
-                  <artifactId>activation</artifactId>
+                  <groupId>jakarta.activation</groupId>
+                  <artifactId>jakarta.activation-api</artifactId>
                   <version>${chemistry.activation.version}</version>
                   <type>jar</type>
                   <overWrite>false</overWrite>

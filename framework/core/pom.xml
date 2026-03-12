@@ -154,8 +154,8 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>com.sun.mail</groupId>
-      <artifactId>javax.mail</artifactId>
+      <groupId>jakarta.mail</groupId>
+      <artifactId>jakarta.mail-api</artifactId>
       <version>${mail.version}</version>
       <scope>runtime</scope>
     </dependency>
@@ -197,8 +197,8 @@
     </dependency>
 
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
       <version>${servlet-api.version}</version>
     </dependency>
 

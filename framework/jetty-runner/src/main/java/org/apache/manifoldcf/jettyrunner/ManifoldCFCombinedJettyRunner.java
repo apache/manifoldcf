@@ -27,18 +27,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ShutdownHandler;
 import org.eclipse.jetty.server.Handler;
 
@@ -59,8 +59,8 @@ public class ManifoldCFCombinedJettyRunner
   public ManifoldCFCombinedJettyRunner( File configFile, String combinedWarPath )
     throws Exception
   {
-    Resource fileserverXml = Resource.newResource(configFile.getCanonicalFile());
-    XmlConfiguration configuration = new XmlConfiguration(fileserverXml.getInputStream());
+    Resource fileserverXml = ResourceFactory.root().newResource(configFile.toPath());
+    XmlConfiguration configuration = new XmlConfiguration(fileserverXml);
     server = (Server)configuration.configure();
     initializeServer( combinedWarPath );
   }
@@ -81,7 +81,7 @@ public class ManifoldCFCombinedJettyRunner
     mcfCombined.setParentLoaderPriority(false);
     contexts.addHandler(mcfCombined);
     
-    HandlerList handlers = new HandlerList();
+    Handler.Sequence handlers = new Handler.Sequence();
     handlers.addHandler(contexts);
     
     // Pick up shutdown token
@@ -143,11 +143,11 @@ public class ManifoldCFCombinedJettyRunner
   public int getLocalPort()
     throws ManifoldCFException
   {
-    ServerConnector[] conns = (ServerConnector[]) server.getConnectors();
+    Connector[] conns = server.getConnectors();
     if (0 == conns.length) {
       throw new ManifoldCFException("Jetty Server has no Connectors");
     }
-    return conns[0].getLocalPort();
+    return ((ServerConnector)conns[0]).getLocalPort();
   }
 
   /**

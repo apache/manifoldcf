@@ -26,7 +26,7 @@
   <display-name>JSTL core</display-name>
   <tlib-version>1.1</tlib-version>
   <short-name>c</short-name>
-  <uri>http://java.sun.com/jsp/jstl/core</uri>
+  <uri>jakarta.tags.core</uri>
 
   <validator>
     <description>
@@ -246,7 +246,7 @@ on the object of the underlying collection.
         <description>
 Name of the exported scoped variable for the
 status of the iteration. Object exported is of type
-javax.servlet.jsp.jstl.core.LoopTagStatus. This scoped variable has nested
+jakarta.servlet.jsp.jstl.core.LoopTagStatus. This scoped variable has nested
 visibility.
         </description>
 	<name>varStatus</name>
@@ -326,7 +326,7 @@ variable has nested visibility.
 Name of the exported scoped variable for the
 status of the iteration. Object exported is of
 type
-javax.servlet.jsp.jstl.core.LoopTag
+jakarta.servlet.jsp.jstl.core.LoopTag
 Status. This scoped variable has nested
 visibility.
         </description>

@@ -28,20 +28,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ShutdownHandler;
 import org.eclipse.jetty.server.Handler;
+
+import org.apache.tomcat.InstanceManager;
+import org.apache.tomcat.SimpleInstanceManager;
 
 /**
  * Run ManifoldCF with jetty.
@@ -63,15 +66,15 @@ public class ManifoldCFJettyRunner
   public ManifoldCFJettyRunner( File configFile, String crawlerWarPath, String authorityServiceWarPath, String apiWarPath, boolean useParentLoader )
     throws Exception
   {
-    Resource fileserverXml = Resource.newResource(configFile.getCanonicalFile());
-    XmlConfiguration configuration = new XmlConfiguration(fileserverXml.getInputStream());
+    Resource fileserverXml = ResourceFactory.root().newResource(configFile.toPath());
+    XmlConfiguration configuration = new XmlConfiguration(fileserverXml);
     server = (Server)configuration.configure();
     initializeServer(crawlerWarPath, authorityServiceWarPath, apiWarPath, useParentLoader);
   }
   
   public ManifoldCFJettyRunner( int port, String crawlerWarPath, String authorityServiceWarPath, String apiWarPath, boolean useParentLoader )
   {
-    Server server = new Server( port );
+    server = new Server( port );
     initializeServer(crawlerWarPath, authorityServiceWarPath, apiWarPath, useParentLoader);
   }
   
@@ -82,22 +85,25 @@ public class ManifoldCFJettyRunner
     // Initialize the servlets
     ContextHandlerCollection contexts = new ContextHandlerCollection();
     WebAppContext lcfCrawlerUI = new WebAppContext(crawlerWarPath,"/mcf-crawler-ui");
+    lcfCrawlerUI.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
     // This can cause jetty to ignore all of the framework and jdbc jars in the war, which is what we
     // want in the single-process case.
     lcfCrawlerUI.setParentLoaderPriority(useParentLoader);
     contexts.addHandler(lcfCrawlerUI);
     WebAppContext lcfAuthorityService = new WebAppContext(authorityServiceWarPath,"/mcf-authority-service");
+    lcfAuthorityService.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
     // This can cause jetty to ignore all of the framework and jdbc jars in the war, which is what we
     // want in the single-process case.
     lcfAuthorityService.setParentLoaderPriority(useParentLoader);
     contexts.addHandler(lcfAuthorityService);
     WebAppContext lcfApi = new WebAppContext(apiWarPath,"/mcf-api-service");
+    lcfApi.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
     // This can cause jetty to ignore all of the framework and jdbc jars in the war, which is what we
     // want in the single-process case.
     lcfApi.setParentLoaderPriority(useParentLoader);
     contexts.addHandler(lcfApi);
     
-    HandlerList handlers = new HandlerList();
+    Handler.Sequence handlers = new Handler.Sequence();
     handlers.addHandler(contexts);
     
     // Pick up shutdown token
@@ -160,11 +166,11 @@ public class ManifoldCFJettyRunner
   public int getLocalPort()
     throws ManifoldCFException
   {
-    ServerConnector[] conns = (ServerConnector[]) server.getConnectors();
+    Connector[] conns = server.getConnectors();
     if (0 == conns.length) {
       throw new ManifoldCFException("Jetty Server has no Connectors");
     }
-    return conns[0].getLocalPort();
+    return ((ServerConnector)conns[0]).getLocalPort();
   }
 
   /** Run the agents process.  This method will not return unless the agents process is shut down.

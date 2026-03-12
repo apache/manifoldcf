@@ -18,16 +18,16 @@
 */
 package org.apache.manifoldcf.crawler.connectors.webcrawler.tests;
 
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.*;
 import java.util.*;
@@ -46,7 +46,7 @@ public class MockSessionWebService
     server.addConnector(connector);
     servlet = new SessionWebServlet(numContentDocs,userName,password);
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-    context.setInitParameter("org.eclipse.jetty.servlet.SessionIdPathParameterName","none");
+    context.setInitParameter("org.eclipse.jetty.ee10.servlet.SessionIdPathParameterName","none");
     context.setContextPath("/web");
     server.setHandler(context);
     context.addServlet(new ServletHolder(servlet), "/*");

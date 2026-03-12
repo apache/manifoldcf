@@ -21,7 +21,7 @@ package org.apache.manifoldcf.crawler.connectors.alfrescowebscript.tests;
 import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.ee10.webapp.WebAppContext;
 
 import org.junit.Before;
 

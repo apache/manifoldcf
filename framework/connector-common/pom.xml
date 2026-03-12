@@ -74,8 +74,8 @@
       <version>${tika.version}</version>
     </dependency>
     <dependency>
-      <groupId>javax.activation</groupId>
-      <artifactId>activation</artifactId>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
       <version>${activation.version}</version>
     </dependency>
     <dependency>
@@ -139,7 +139,7 @@
           <artifactId>jakarta-regexp</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>javax.servlet</groupId>
+          <groupId>jakarta.servlet</groupId>
           <artifactId>servlet-api</artifactId>
         </exclusion>
       </exclusions>

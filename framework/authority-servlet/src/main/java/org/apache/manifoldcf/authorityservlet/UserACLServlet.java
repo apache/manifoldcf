@@ -32,8 +32,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 
-import javax.servlet.*;
-import javax.servlet.http.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 
 /** This servlet class is meant to receive a user name and return a list of access tokens.
 * The user name is expected to be sent as an argument on the url (the "username" argument), and the

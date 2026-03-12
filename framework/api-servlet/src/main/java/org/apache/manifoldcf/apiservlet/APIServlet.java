@@ -32,8 +32,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 
-import javax.servlet.*;
-import javax.servlet.http.*;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 
 /** This servlet class provides API services for ManifoldCF.
 */

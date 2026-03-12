@@ -51,7 +51,7 @@ public class PasswordMapper
     if (index == null)
     {
       // Need a new key.
-      index = new Integer(passwordList.size());
+      index = Integer.valueOf(passwordList.size());
       passwordList.add(password);
       passwordToKey.put(password,index);
     }

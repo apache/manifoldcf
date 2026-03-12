@@ -2,6 +2,7 @@ package org.apache.manifoldcf.agents.output.solr;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -19,12 +20,11 @@ import org.apache.solr.client.solrj.impl.HttpClientUtil;
 import org.apache.solr.client.solrj.impl.PreemptiveAuth;
 import org.apache.solr.client.solrj.impl.PreemptiveBasicAuthClientBuilderFactory;
 import org.apache.solr.client.solrj.impl.SolrHttpClientBuilder;
-import org.apache.solr.client.solrj.util.SolrBasicAuthentication;
 import org.apache.solr.common.StringUtils;
 import org.apache.solr.common.params.MapSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.StrUtils;
-import org.eclipse.jetty.client.HttpAuthenticationStore;
+import org.eclipse.jetty.client.AuthenticationStore;
 import org.eclipse.jetty.client.ProxyAuthenticationProtocolHandler;
 import org.eclipse.jetty.client.WWWAuthenticationProtocolHandler;
 
@@ -69,8 +69,13 @@ public class ModifiedPreemptiveBasicAuthClientBuilderFactory implements Modified
       throw new IllegalArgumentException("username & password must be specified with " + getClass().getName());
     }
 
-    final HttpAuthenticationStore authenticationStore = new HttpAuthenticationStore();
-    authenticationStore.addAuthentication(new SolrBasicAuthentication(basicAuthUser, basicAuthPass));
+    final AuthenticationStore authenticationStore = new org.eclipse.jetty.client.internal.HttpAuthenticationStore();
+    authenticationStore.addAuthentication(new org.eclipse.jetty.client.BasicAuthentication(null, org.eclipse.jetty.client.Authentication.ANY_REALM, basicAuthUser, basicAuthPass) {
+      @Override
+      public boolean matches(String type, URI uri, String realm) {
+        return "Basic".equalsIgnoreCase(type);
+      }
+    });
     client.getHttpClient().setAuthenticationStore(authenticationStore);
     client.getProtocolHandlers().put(new WWWAuthenticationProtocolHandler(client.getHttpClient()));
     client.getProtocolHandlers().put(new ProxyAuthenticationProtocolHandler(client.getHttpClient()));

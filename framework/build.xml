@@ -51,8 +51,8 @@
             <include name="commons-collections-*.jar"/>
             <include name="commons-collections4-*.jar"/>
             <include name="commons-el*.jar"/>
-            <include name="commons-fileupload*.jar"/>
-            <include name="http2*.jar"/>
+            <include name="commons-fileupload2-*.jar"/>
+            <include name="jetty-http2-*.jar"/>
             <include name="httpcore*.jar"/>
             <include name="httpclient*.jar"/>
             <include name="httpmime*.jar"/>
@@ -60,29 +60,34 @@
             <include name="commons-lang*.jar"/>
             <include name="commons-logging*.jar"/>
             <include name="ecj*.jar"/>
-            <include name="jasper*.jar"/>
-            <include name="jetty*.jar"/>
+            <include name="tomcat-*.jar"/>
+            <include name="jetty-*.jar"/>
             <include name="slf4j*.jar"/>
-            <include name="jsp-2.1*.jar"/>
-            <include name="jsp-api*.jar"/>
             <include name="log4j-api-*.jar"/>
             <include name="log4j-core-*.jar"/>
             <include name="log4j-1.2-api-*.jar"/>
             <include name="serializer*.jar"/>
-            <include name="javax.servlet-api*.jar"/>
-            <include name="juli*.jar"/>
-            <include name="xalan*.jar"/>
+            <include name="jakarta.servlet-api*.jar"/>
+            <include name="jakarta.el-api*.jar"/>
+            <include name="tomcat-*.jar"/>
             <include name="xercesImpl*.jar"/>
             <include name="xml-apis*.jar"/>
             <include name="velocity*.jar"/>
-            <include name="javax.mail*.jar"/>
+            <include name="jakarta.mail-api*.jar"/>
             <include name="commons-exec*.jar"/>
             <include name="gson*.jar"/>
             <include name="guava*.jar"/>
             <include name="jna*.jar"/>
         </fileset>
         <fileset dir="../lib">
-            <include name="javax.activation*.jar"/>
+            <include name="jakarta.activation-api*.jar"/>
+            <include name="jakarta.xml.bind-api*.jar"/>
+            <include name="jakarta.xml.ws-api*.jar"/>
+            <include name="jakarta.xml.soap-api*.jar"/>
+            <include name="jakarta.annotation-api*.jar"/>
+            <include name="jakarta.ws.rs-api*.jar"/>
+            <include name="jakarta.jws-api*.jar"/>
+            <include name="angus-activation*.jar"/>
         </fileset>
         <fileset dir="../lib">
             <include name="postgresql*.jar"/>
@@ -208,6 +213,7 @@
             <include name="xmlschema-core*.jar"/>
             <include name="jakarta.*.jar"/>
             <include name="jaxb*.jar"/>
+            <include name="jakarta.xml.bind-api*.jar"/>
             <include name="xsom*.jar"/>
             <include name="codemodel*.jar"/>
             <include name="rngom*.jar"/>
@@ -218,13 +224,13 @@
             <include name="istack-commons*.jar"/>
             <include name="FastInfoset*.jar"/>
             <include name="velocity-engine-core*.jar"/>
-            <include name="jaxws-api*.jar"/>
-            <include name="javax.annotation-api*.jar"/>
-            <include name="javax.jws-api*.jar"/>
+            <include name="jakarta.xml.ws-api*.jar"/>
+            <include name="jakarta.annotation-api*.jar"/>
+            <include name="jakarta.jws-api*.jar"/>
         </fileset>
         <fileset dir="../lib">
             <include name="castor*.jar"/>
-            <include name="geronimo-javamail_1.4_spec*.jar"/>
+            <include name="jakarta.mail-api*.jar"/>
             <include name="commons-discovery*.jar"/>
             <include name="axis*.jar"/>
             <include name="wss4j*.jar"/>
@@ -454,11 +460,16 @@
                 <pathelement location="build/ui-core/classes"/>
                 <pathelement location="build/agents/classes"/>
                 <pathelement location="build/pull-agent/classes"/>
+                <fileset dir="../lib">
+                    <include name="tomcat-jasper-el*.jar"/>
+                    <include name="jakarta.el-api*.jar"/>
+                    <include name="jakarta.servlet.jsp.jstl-*.jar"/>
+                </fileset>
             </classpath> 
         </taskdef > 
         <!-- Compile jsp's to java -->
         <mkdir dir="build/crawler-ui/java"/>
-        <jasper2 validateXml="false" uriroot="crawler-ui/src/main/webapp" webXmlFragment="build/crawler-ui/web-generated.xml" outputDir="build/crawler-ui/java" /> 
+        <jasper2 validateXml="false" uriroot="crawler-ui/src/main/webapp" webFragmentXml="build/crawler-ui/web-generated.xml" outputDir="build/crawler-ui/java" /> 
         <!-- Compile java classes -->
         <mkdir dir="build/crawler-ui/classes"/>
         <javac srcdir="build/crawler-ui/java" destdir="build/crawler-ui/classes" deprecation="true" target="21" source="21" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
@@ -537,7 +548,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-collections4*.jar"/>
                 <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
+                <include name="commons-fileupload2-*.jar"/>
                 <include name="httpcore*.jar"/>
                 <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
@@ -551,14 +562,21 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="javax.mail*.jar"/>
+                <include name="jakarta.mail-api*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
                 <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
-                <include name="javax.activation*.jar"/>
+                <include name="jakarta.activation-api*.jar"/>
+                <include name="jakarta.xml.bind-api*.jar"/>
+                <include name="jakarta.xml.ws-api*.jar"/>
+                <include name="jakarta.xml.soap-api*.jar"/>
+                <include name="jakarta.annotation-api*.jar"/>
+                <include name="jakarta.ws.rs-api*.jar"/>
+                <include name="jakarta.jws-api*.jar"/>
+                <include name="angus-activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -587,7 +605,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-collections4*.jar"/>
                 <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
+                <include name="commons-fileupload2-*.jar"/>
                 <include name="httpcore*.jar"/>
                 <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
@@ -601,14 +619,21 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="javax.mail*.jar"/>
+                <include name="jakarta.mail-api*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
                 <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
-                <include name="javax.activation*.jar"/>
+                <include name="jakarta.activation-api*.jar"/>
+                <include name="jakarta.xml.bind-api*.jar"/>
+                <include name="jakarta.xml.ws-api*.jar"/>
+                <include name="jakarta.xml.soap-api*.jar"/>
+                <include name="jakarta.annotation-api*.jar"/>
+                <include name="jakarta.ws.rs-api*.jar"/>
+                <include name="jakarta.jws-api*.jar"/>
+                <include name="angus-activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -643,7 +668,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-collections4*.jar"/>
                 <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
+                <include name="commons-fileupload2-*.jar"/>
                 <include name="httpcore*.jar"/>
                 <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
@@ -657,14 +682,21 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="javax.mail*.jar"/>
+                <include name="jakarta.mail-api*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
                 <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
-                <include name="javax.activation*.jar"/>
+                <include name="jakarta.activation-api*.jar"/>
+                <include name="jakarta.xml.bind-api*.jar"/>
+                <include name="jakarta.xml.ws-api*.jar"/>
+                <include name="jakarta.xml.soap-api*.jar"/>
+                <include name="jakarta.annotation-api*.jar"/>
+                <include name="jakarta.ws.rs-api*.jar"/>
+                <include name="jakarta.jws-api*.jar"/>
+                <include name="angus-activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -694,7 +726,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-collections4*.jar"/>
                 <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
+                <include name="commons-fileupload2-*.jar"/>
                 <include name="httpcore*.jar"/>
                 <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
@@ -708,14 +740,21 @@
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="javax.mail*.jar"/>
+                <include name="jakarta.mail-api*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
                 <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
-                <include name="javax.activation*.jar"/>
+                <include name="jakarta.activation-api*.jar"/>
+                <include name="jakarta.xml.bind-api*.jar"/>
+                <include name="jakarta.xml.ws-api*.jar"/>
+                <include name="jakarta.xml.soap-api*.jar"/>
+                <include name="jakarta.annotation-api*.jar"/>
+                <include name="jakarta.ws.rs-api*.jar"/>
+                <include name="jakarta.jws-api*.jar"/>
+                <include name="angus-activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -752,7 +791,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-collections4*.jar"/>
                 <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
+                <include name="commons-fileupload2-*.jar"/>
                 <include name="http2*.jar"/>
                 <include name="httpcore*.jar"/>
                 <include name="httpclient*.jar"/>
@@ -769,14 +808,21 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="javax.mail*.jar"/>
+                <include name="jakarta.mail-api*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
                 <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
-                <include name="javax.activation*.jar"/>
+                <include name="jakarta.activation-api*.jar"/>
+                <include name="jakarta.xml.bind-api*.jar"/>
+                <include name="jakarta.xml.ws-api*.jar"/>
+                <include name="jakarta.xml.soap-api*.jar"/>
+                <include name="jakarta.annotation-api*.jar"/>
+                <include name="jakarta.ws.rs-api*.jar"/>
+                <include name="jakarta.jws-api*.jar"/>
+                <include name="angus-activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -817,7 +863,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-collections4*.jar"/>
                 <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
+                <include name="commons-fileupload2-*.jar"/>
                 <include name="http2*.jar"/>
                 <include name="httpcore*.jar"/>
                 <include name="httpclient*.jar"/>
@@ -834,14 +880,21 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="javax.mail*.jar"/>
+                <include name="jakarta.mail-api*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
                 <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
-                <include name="javax.activation*.jar"/>
+                <include name="jakarta.activation-api*.jar"/>
+                <include name="jakarta.xml.bind-api*.jar"/>
+                <include name="jakarta.xml.ws-api*.jar"/>
+                <include name="jakarta.xml.soap-api*.jar"/>
+                <include name="jakarta.annotation-api*.jar"/>
+                <include name="jakarta.ws.rs-api*.jar"/>
+                <include name="jakarta.jws-api*.jar"/>
+                <include name="angus-activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -890,7 +943,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-collections4*.jar"/>
                 <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
+                <include name="commons-fileupload2-*.jar"/>
                 <include name="httpcore*.jar"/>
                 <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
@@ -905,14 +958,21 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="javax.mail*.jar"/>
+                <include name="jakarta.mail-api*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
                 <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
-                <include name="javax.activation*.jar"/>
+                <include name="jakarta.activation-api*.jar"/>
+                <include name="jakarta.xml.bind-api*.jar"/>
+                <include name="jakarta.xml.ws-api*.jar"/>
+                <include name="jakarta.xml.soap-api*.jar"/>
+                <include name="jakarta.annotation-api*.jar"/>
+                <include name="jakarta.ws.rs-api*.jar"/>
+                <include name="jakarta.jws-api*.jar"/>
+                <include name="angus-activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -955,7 +1015,7 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-collections4*.jar"/>
                 <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
+                <include name="commons-fileupload2-*.jar"/>
                 <include name="httpcore*.jar"/>
                 <include name="httpclient*.jar"/>
                 <include name="commons-io*.jar"/>
@@ -970,14 +1030,21 @@
                 <include name="xml-apis*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="javax.mail*.jar"/>
+                <include name="jakarta.mail-api*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
                 <include name="jna*.jar"/>
             </fileset>
             <fileset dir="../lib">
-                <include name="javax.activation*.jar"/>
+                <include name="jakarta.activation-api*.jar"/>
+                <include name="jakarta.xml.bind-api*.jar"/>
+                <include name="jakarta.xml.ws-api*.jar"/>
+                <include name="jakarta.xml.soap-api*.jar"/>
+                <include name="jakarta.annotation-api*.jar"/>
+                <include name="jakarta.ws.rs-api*.jar"/>
+                <include name="jakarta.jws-api*.jar"/>
+                <include name="angus-activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -1089,10 +1156,11 @@
                 <include name="commons-collections*.jar"/>
                 <include name="commons-collections4*.jar"/>
                 <include name="commons-el*.jar"/>
-                <include name="commons-fileupload*.jar"/>
+                <include name="commons-fileupload2-*.jar"/>
                 <include name="httpcore*.jar"/>
                 <include name="httpclient*.jar"/>
                 <include name="httpmime*.jar"/>                
+                <include name="commons-discovery*.jar"/>
                 <include name="commons-io*.jar"/>
                 <include name="commons-lang*.jar"/>
                 <include name="commons-logging*.jar"/>
@@ -1101,13 +1169,16 @@
                 <include name="log4j-core-*.jar"/>
                 <include name="log4j-1.2-api-*.jar"/>
                 <include name="serializer*.jar"/>
-                <include name="javax.servlet-api*.jar"/>
+                <include name="jakarta.servlet-api*.jar"/>
+                <include name="jakarta.el-api*.jar"/>
+                <include name="tomcat-*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
                 <include name="xml-apis*.jar"/>
+                <include name="ecj-*.jar"/>
                 <include name="velocity*.jar"/>
                 <include name="slf4j*.jar"/>
-                <include name="javax.mail*.jar"/>
+                <include name="jakarta.mail-api*.jar"/>
                 <include name="commons-exec*.jar"/>
                 <include name="gson*.jar"/>
                 <include name="guava*.jar"/>
@@ -1115,15 +1186,25 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="http2*.jar"/>
-                <include name="jetty*.jar"/>
-                <include name="javax.servlet-api*.jar"/>
-                <include name="ecj*.jar"/>
+                <include name="jetty-*.jar"/>
+                <include name="jakarta.servlet-api*.jar"/>
+                <include name="jakarta.el-api*.jar"/>
+                <include name="jakarta.servlet.jsp.jstl-*.jar"/>
+                <include name="tomcat-*.jar"/>
+                <include name="asm-*.jar"/>
                 <include name="jasper*.jar"/>
                 <include name="juli*.jar"/>
                 <include name="jsp-api*.jar"/>
             </fileset>
             <fileset dir="../lib">
-                <include name="javax.activation*.jar"/>
+                <include name="jakarta.activation-api*.jar"/>
+                <include name="jakarta.xml.bind-api*.jar"/>
+                <include name="jakarta.xml.ws-api*.jar"/>
+                <include name="jakarta.xml.soap-api*.jar"/>
+                <include name="jakarta.annotation-api*.jar"/>
+                <include name="jakarta.ws.rs-api*.jar"/>
+                <include name="jakarta.jws-api*.jar"/>
+                <include name="angus-activation*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="postgresql*.jar"/>
@@ -1136,6 +1217,21 @@
                 <include name="mcf-pull-agent.jar"/>
                 <include name="mcf-jetty-runner.jar"/>
                 <include name="mcf-script-engine.jar"/>
+            </fileset>
+        </copy>
+        <copy tofile="dist/lib/xercesImpl.jar">
+            <fileset dir="../lib">
+                <include name="xercesImpl-*.jar"/>
+            </fileset>
+        </copy>
+        <copy tofile="dist/lib/xml-apis.jar">
+            <fileset dir="../lib">
+                <include name="xml-apis-*.jar"/>
+            </fileset>
+        </copy>
+        <copy tofile="dist/lib/serializer.jar">
+            <fileset dir="../lib">
+                <include name="serializer-*.jar"/>
             </fileset>
         </copy>
     </target>
@@ -1314,8 +1410,14 @@
     
     <path id="jetty-lib">
         <fileset dir="../lib">
-          <include name="http2*.jar"/>
-          <include name="jetty*.jar"/>
+          <include name="jetty-http2-*.jar"/>
+          <include name="jetty-*.jar"/>
+          <include name="jakarta.servlet-api*.jar"/>
+          <include name="jakarta.annotation-api*.jar"/>
+          <include name="jakarta.el-api*.jar"/>
+          <include name="jakarta.servlet.jsp.jstl-*.jar"/>
+          <include name="tomcat-*.jar"/>
+          <include name="asm-*.jar"/>
         </fileset>
     </path>
     
@@ -1349,7 +1451,7 @@
             <include name="commons-collections*.jar"/>
             <include name="commons-collections4*.jar"/>
             <include name="commons-el*.jar"/>
-            <include name="commons-fileupload*.jar"/>
+            <include name="commons-fileupload2-*.jar"/>
             <include name="commons-io*.jar"/>
             <include name="commons-logging*.jar"/>
             <include name="commons-discovery*.jar"/>
@@ -1360,19 +1462,20 @@
             <include name="log4j-core-*.jar"/>
             <include name="log4j-1.2-api-*.jar"/>
             <include name="serializer*.jar"/>
-            <include name="javax.servlet-api*.jar"/>
-            <include name="juli*.jar"/>
+            <include name="jakarta.servlet-api*.jar"/>
+            <include name="jakarta.el-api*.jar"/>
+            <include name="tomcat-*.jar"/>
             <include name="xalan*.jar"/>
             <include name="xercesImpl*.jar"/>
             <include name="xml-apis*.jar"/>
-            <include name="ecj*.jar"/>
+            <include name="ecj-*.jar"/>            <include name="ecj*.jar"/>
             <include name="velocity*.jar"/>
             <include name="slf4j-api*.jar"/>
             <include name="slf4j-simple*.jar"/>
             <include name="httpcore*.jar"/>
             <include name="httpclient*.jar"/>
             <include name="httpmime*.jar"/>            
-            <include name="javax.mail*.jar"/>
+            <include name="jakarta.mail-api*.jar"/>
             <include name="commons-exec*.jar"/>
             <include name="gson*.jar"/>
             <include name="guava*.jar"/>
@@ -1381,7 +1484,8 @@
             <include name="netty-handler*.jar"/>
         </fileset>
         <fileset dir="../lib">
-            <include name="javax.activation*.jar"/>
+            <include name="jakarta.activation-api*.jar"/>
+                <include name="angus-activation*.jar"/>
         </fileset>
     </path>
     
@@ -1728,6 +1832,7 @@
                 <include name="xmlschema-core*.jar"/>
                 <include name="jakarta.*.jar"/>
                 <include name="jaxb*.jar"/>
+            <include name="jakarta.xml.bind-api*.jar"/>
 	      <include name="xsom*.jar"/>
 	      <include name="codemodel*.jar"/>
 	      <include name="rngom*.jar"/>
@@ -1738,9 +1843,9 @@
                 <include name="istack-commons*.jar"/>
                 <include name="FastInfoset*.jar"/>
                 <include name="velocity-engine-core*.jar"/>
-                <include name="jaxws-api*.jar"/>
-                <include name="javax.annotation-api*.jar"/>
-                <include name="javax.jws-api*.jar"/>
+                <include name="jakarta.xml.ws-api*.jar"/>
+                <include name="jakarta.annotation-api*.jar"/>
+                <include name="jakarta.jws-api*.jar"/>
             </fileset>
             <fileset dir="../lib">
                 <include name="castor*.jar"/>

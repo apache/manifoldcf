@@ -33,10 +33,10 @@ import org.apache.cxf.transport.http.HttpConduitFeature;
 import org.apache.cxf.transport.http.HttpConduitConfig;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
 
-import javax.activation.DataHandler;
-import javax.xml.ws.soap.SOAPFaultException;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Holder;
+import jakarta.activation.DataHandler;
+import jakarta.xml.ws.soap.SOAPFaultException;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Holder;
 
 import com.opentext.ecm.api.OTAuthentication;
 import com.opentext.livelink.service.core.PageHandle;
@@ -151,7 +151,7 @@ public class CswsSession
       this.contentServiceService = (contentServiceServiceURL != null)?new ContentService_Service(new URL(contentServiceServiceURL + "?wsdl"), conduitFeature):null;
       this.memberServiceService = (memberServiceServiceURL != null)?new MemberService_Service(new URL(memberServiceServiceURL + "?wsdl"), conduitFeature):null;
       this.searchServiceService = (searchServiceServiceURL != null)?new SearchService_Service(new URL(searchServiceServiceURL + "?wsdl"), conduitFeature):null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       throw new ManifoldCFException("Error initializing web services: "+e.getMessage(), e);
     } catch (MalformedURLException e) {
       throw new ManifoldCFException("Malformed URL: "+e.getMessage(), e);
@@ -237,7 +237,7 @@ public class CswsSession
         this.rootNodeTypes = getDocumentManagementHandle().getRootNodeTypes(getOTAuthentication());
       } catch (SOAPFaultException e) {
         processSOAPFault(e);
-      } catch (javax.xml.ws.WebServiceException e) {
+      } catch (jakarta.xml.ws.WebServiceException e) {
         processWSException(e);
       }
     }
@@ -255,7 +255,7 @@ public class CswsSession
         thisWorkspaceNode = getDocumentManagementHandle().getRootNode(nodeType, getOTAuthentication());
       } catch (SOAPFaultException e) {
         processSOAPFault(e);
-      } catch (javax.xml.ws.WebServiceException e) {
+      } catch (jakarta.xml.ws.WebServiceException e) {
         processWSException(e);
       }
       workspaceTypeNodes.put(nodeType, thisWorkspaceNode);
@@ -273,7 +273,7 @@ public class CswsSession
       }
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -294,7 +294,7 @@ public class CswsSession
       }
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -307,7 +307,7 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -320,7 +320,7 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -334,7 +334,7 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -347,7 +347,7 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -361,7 +361,7 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -377,7 +377,7 @@ public class CswsSession
       }
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -390,7 +390,7 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -403,7 +403,7 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -416,7 +416,7 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -429,7 +429,7 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -442,7 +442,7 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -459,7 +459,7 @@ public class CswsSession
       processSOAPFault(e);
     } catch (IOException e) {
       processIOException(e);
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
     }
   }
@@ -477,7 +477,7 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -498,7 +498,7 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -565,7 +565,7 @@ public class CswsSession
     } catch (SOAPFaultException e) {
       processSOAPFault(e);
       return null;
-    } catch (javax.xml.ws.WebServiceException e) {
+    } catch (jakarta.xml.ws.WebServiceException e) {
       processWSException(e);
       return null;
     }
@@ -601,7 +601,7 @@ public class CswsSession
         currentAuthToken = authClientHandle.authenticateUser(userName, password);
       } catch (SOAPFaultException e) {
         processSOAPFault(e);
-      } catch (javax.xml.ws.WebServiceException e) {
+      } catch (jakarta.xml.ws.WebServiceException e) {
         processWSException(e);
       }
       currentSessionExpiration = currentTime + sessionExpirationInterval;
@@ -621,7 +621,7 @@ public class CswsSession
     // MHL
   }
 
-  private void processWSException(javax.xml.ws.WebServiceException e)
+  private void processWSException(jakarta.xml.ws.WebServiceException e)
     throws ManifoldCFException, ServiceInterruption {
     throw new ManifoldCFException("Web service communication issue: "+e.getMessage(), e);
   }

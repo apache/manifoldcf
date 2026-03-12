@@ -26,7 +26,7 @@
   <display-name>JSTL sql</display-name>
   <tlib-version>1.1</tlib-version>
   <short-name>sql</short-name>
-  <uri>http://java.sun.com/jsp/jstl/sql</uri>
+  <uri>jakarta.tags.sql</uri>
 
   <validator>
     <description>
@@ -80,7 +80,7 @@ with.
         <description>
 Name of the exported scoped variable for the
 query result. The type of the scoped variable is
-javax.servlet.jsp.jstl.sql.
+jakarta.servlet.jsp.jstl.sql.
 Result (see Chapter 16 "Java APIs").
         </description>
         <name>var</name>

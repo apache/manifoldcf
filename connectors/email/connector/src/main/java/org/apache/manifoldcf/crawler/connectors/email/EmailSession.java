@@ -19,10 +19,10 @@ package org.apache.manifoldcf.crawler.connectors.email;
 
 import java.io.*;
 import java.util.*;
-import javax.mail.*;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.search.*;
+import jakarta.mail.*;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.search.*;
 
 /** This class represents a raw email session, without any protection
 * from threads waiting on sockets, etc.

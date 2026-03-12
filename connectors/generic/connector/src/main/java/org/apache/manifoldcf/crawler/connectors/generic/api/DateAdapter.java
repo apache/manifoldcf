@@ -16,7 +16,7 @@
 package org.apache.manifoldcf.crawler.connectors.generic.api;
 
 import java.util.Date;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 import org.apache.manifoldcf.core.common.DateParser;
 
 /**
