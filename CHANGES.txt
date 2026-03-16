@@ -17,7 +17,13 @@ CONNECTORS-1778: Error: Repeated service interruptions - failure processing docu
 CONNECTORS-1720: Fatal Error due to NPE in RepriorizationTracker
 (Markus Schuch)
 
-======================= Release 2.29 =========================
+CONNECTORS-1720: Armor equals method in RepriorizationTracker against null bin names
+(Markus Schuch)
+
+CONNECTORS-1780: Align JNA version defined in maven POM to the verison defined in build.xml
+(Markus Schuch)
+
+======================= Release 2.29 ==========================
 
 CONNECTORS-1776: Update Copyright footer to 2025
 (Piergiorgio Lucidi)
