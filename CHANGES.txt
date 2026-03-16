@@ -8,19 +8,16 @@ CONNECTORS-1782: Upgrade Nuxeo Java Client to version 3.2.0
 CONNECTORS-1781: Possible NullPointerException on rollbackCurrentTransaction for MySQL/MariaDB
 (Markus Schuch, Piergiorgio Lucidi)
 
+CONNECTORS-1780: Align JNA version defined in maven POM to the verison defined in build.xml
+(Markus Schuch)
+
 CONNECTORS-1779: Upgrade to OpenJDK 21
 (Piergiorgio Lucidi)
 
 CONNECTORS-1778: Error: Repeated service interruptions - failure processing document: The target server failed to respond
 (Piergiorgio Lucidi)
 
-CONNECTORS-1720: Fatal Error due to NPE in RepriorizationTracker
-(Markus Schuch)
-
 CONNECTORS-1720: Armor equals method in RepriorizationTracker against null bin names
-(Markus Schuch)
-
-CONNECTORS-1780: Align JNA version defined in maven POM to the verison defined in build.xml
 (Markus Schuch)
 
 ======================= Release 2.29 ==========================
