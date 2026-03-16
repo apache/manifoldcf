@@ -22,6 +22,8 @@ import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.ee10.webapp.WebAppContext;
+import org.eclipse.jetty.util.resource.ResourceFactory;
+import java.nio.file.Paths;
 
 import org.junit.Before;
 
@@ -71,7 +73,7 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
 
     WebAppContext alfrescoServerApi = new WebAppContext(alfrescoServerWarPath,"/alfresco");
     alfrescoServerApi.setParentLoaderPriority(false);
-    HashLoginService dummyLoginService = new HashLoginService("TEST-SECURITY-REALM", jettyConfigPath);
+    HashLoginService dummyLoginService = new HashLoginService("TEST-SECURITY-REALM", ResourceFactory.root().newResource(Paths.get(jettyConfigPath)));
     alfrescoServerApi.getSecurityHandler().setLoginService(dummyLoginService);
     contexts.addHandler(alfrescoServerApi);
 

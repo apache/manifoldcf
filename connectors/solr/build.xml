@@ -93,15 +93,15 @@
         <antcall target="download-via-maven">
             <param name="target" value="test-materials"/>
             <param name="project-path" value="org/eclipse/jetty/http2"/>
-            <param name="artifact-version" value="9.4.48.v20220622"/>
-            <param name="artifact-name" value="http2-server"/>
+            <param name="artifact-version" value="${jetty.version}"/>
+            <param name="artifact-name" value="jetty-http2-server"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven">
             <param name="target" value="test-materials"/>
             <param name="project-path" value="org/eclipse/jetty/http2"/>
-            <param name="artifact-version" value="9.4.48.v20220622"/>
-            <param name="artifact-name" value="http2-common"/>
+            <param name="artifact-version" value="${jetty.version}"/>
+            <param name="artifact-name" value="jetty-http2-common"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>
@@ -115,8 +115,8 @@
     <path id="connector-test-classpath">
         <path refid="mcf-connector-build.connector-test-classpath"/>
         <fileset dir="test-materials">
-            <include name="http2-server*.jar"/>
-            <include name="http2-common*.jar"/>
+            <include name="jetty-http2-server*.jar"/>
+            <include name="jetty-http2-common*.jar"/>
         </fileset>
     </path>
 
