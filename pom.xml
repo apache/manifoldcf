@@ -326,6 +326,7 @@
                    <inputExclude>/lib/elasticsearch-*/*</inputExclude>
                    <inputExclude>/lib/sharepoint-**/**</inputExclude>
                    <inputExclude>/lib/solr-*/**</inputExclude>
+                   <inputExclude>build/download/**</inputExclude>
               </inputExcludes>
          </configuration>
       </plugin>
