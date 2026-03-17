@@ -33,10 +33,10 @@ on:
   
 jobs:
   finalizeReleaseCandidateInSVN:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
+        uses: actions/checkout@v6.0.2
         with:
           ref: ${{ github.event.inputs.RC_TAG }}
           

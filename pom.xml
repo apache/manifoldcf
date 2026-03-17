@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>31</version>
+    <version>37</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -102,12 +102,15 @@
     <jsoup.version>1.7.2</jsoup.version>
     <cxf.version>3.5.9</cxf.version>
     <jaxws-ri.version>2.3.2</jaxws-ri.version>
-    <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
-    <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
-    <maven-rat-plugin.version>0.16.1</maven-rat-plugin.version>
-    <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
+    <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+    <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
+    <maven-rat-plugin.version>0.17</maven-rat-plugin.version>
+    <maven-war-plugin.version>3.5.1</maven-war-plugin.version>
     <maven-apache-source-release-assembly-descriptor.version>1.5</maven-apache-source-release-assembly-descriptor.version>
-    
+    <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+    <javaVersion>21</javaVersion>
   </properties>
 
   <modules>
@@ -136,27 +139,12 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-webapp</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-ee</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-plus</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-jndi</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-session</artifactId>
+        <groupId>org.eclipse.jetty.ee10</groupId>
+        <artifactId>jetty-ee10-webapp</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
@@ -171,12 +159,32 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty.ee10</groupId>
+        <artifactId>jetty-ee10-jndi</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.ee10</groupId>
         <artifactId>jetty-ee10-annotations</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty.ee10</groupId>
         <artifactId>jetty-ee10-servlets</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-session</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-security</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-io</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
@@ -269,14 +277,16 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler-plugin.version}</version>
         <configuration>
-          <source>21</source>
-          <target>21</target>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
           <fork>true</fork>
           <meminitial>128m</meminitial>
           <maxmem>512m</maxmem>
           <compilerArgs>
             <arg>-Xpkginfo:always</arg>
+            <arg>-Xlint:options</arg>
           </compilerArgs>
         </configuration>
       </plugin>
@@ -296,21 +306,27 @@
 	    <groupId>org.apache.rat</groupId>
 	    <artifactId>apache-rat-plugin</artifactId>
 	    <configuration>
-              <excludes>
-                   <exclude>CHANGES.txt</exclude>
-                   <exclude>DEPENDENCIES.txt</exclude>
-                   <exclude>site/src/documentation/skins/lucene/note.txt</exclude>
-                   <exclude>site/src/documentation/skins/common/xslt/html/split.xsl</exclude>
-                   <exclude>dist-license/DEPENDENCIES.txt</exclude>
-                   <exclude>site/tmp/font/**</exclude>
-                   <exclude>apache-manifoldcf-*/**</exclude>
-                   <exclude>src/main/docker/JDK-21/*.md</exclude>
-                   <exclude>src/main/docker/JDK-11/*.md</exclude>
-                   <exclude>src/main/docker/JDK-8/*.md</exclude>
-                   <exclude>src/main/docker/JDK-7/*.md</exclude>
-                   <exclude>src/main/docker/JDK-6/*.md</exclude>
-                   <exclude>src/main/docker/JDK-5/*.md</exclude>
-              </excludes>
+              <inputExcludes>
+              	   <inputExcludeFile>.geminiignore</inputExcludeFile>
+                   <inputExclude>CHANGES.txt</inputExclude>
+                   <inputExclude>DEPENDENCIES.txt</inputExclude>
+                   <inputExclude>site/src/documentation/skins/lucene/note.txt</inputExclude>
+                   <inputExclude>site/src/documentation/skins/common/xslt/html/split.xsl</inputExclude>
+                   <inputExclude>dist-license/DEPENDENCIES.txt</inputExclude>
+                   <inputExclude>site/tmp/font/**</inputExclude>
+                   <inputExclude>apache-manifoldcf-*/**</inputExclude>
+                   <inputExclude>src/main/docker/JDK-21/*.md</inputExclude>
+                   <inputExclude>src/main/docker/JDK-11/*.md</inputExclude>
+                   <inputExclude>src/main/docker/JDK-8/*.md</inputExclude>
+                   <inputExclude>src/main/docker/JDK-7/*.md</inputExclude>
+                   <inputExclude>src/main/docker/JDK-6/*.md</inputExclude>
+                   <inputExclude>src/main/docker/JDK-5/*.md</inputExclude>
+                   <inputExclude>dist/**</inputExclude>
+                   <inputExclude>/lib/elasticsearch/**</inputExclude>
+                   <inputExclude>/lib/elasticsearch-*/*</inputExclude>
+                   <inputExclude>/lib/sharepoint-**/**</inputExclude>
+                   <inputExclude>/lib/solr-*/**</inputExclude>
+              </inputExcludes>
          </configuration>
       </plugin>
      

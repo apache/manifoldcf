@@ -487,7 +487,7 @@ This product includes a sis-storage.jar: http://sis.apache.org/storage/sis-stora
 License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 This product includes a jetty-server.jar, jetty-servlet.jar, jetty-io.jar, jetty-jndi.jar, jetty-webapp.jar,
-jetty-plus.jar, jetty-util.jar, jetty-http.jar, jetty-security.jar, jetty-continuation.jar, jetty-xml.jar,
+jetty-plus.jar, jetty-util.jar, jetty-http.jar, jetty-security.jar, jetty-xml.jar,
 jetty-jsp-jdt.jar, and jetty-schemas.jar.
 License: Dual Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt) and EPL (http://www.eclipse.org/legal/epl-v10.html)
 Distributed under terms of Apache 2 license.

@@ -1,6 +1,5 @@
 /.settings/
 /.project
-/documentfilter/
 */build/
 */dist/
 test-HSQLDB-output/
