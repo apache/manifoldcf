@@ -135,13 +135,6 @@ jobs:
           gpg --local-user "${{steps.import_gpg.outputs.name}}" --armor --output apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-bin.zip.asc --detach-sig apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-bin.zip
           gpg --local-user "${{steps.import_gpg.outputs.name}}" --armor --output apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-bin.tar.gz.asc --detach-sig apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-bin.tar.gz
 
-          gpg --print-md MD5 apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-src.zip > apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-src.zip.md5
-          gpg --print-md MD5 apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-src.tar.gz > apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-src.tar.gz.md5
-          gpg --print-md MD5 apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-lib.zip > apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-lib.zip.md5
-          gpg --print-md MD5 apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-lib.tar.gz > apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-lib.tar.gz.md5
-          gpg --print-md MD5 apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-bin.zip > apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-bin.zip.md5
-          gpg --print-md MD5 apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-bin.tar.gz > apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-bin.tar.gz.md5
-
           gpg --print-md SHA512 apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-src.zip > apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-src.zip.sha512
           gpg --print-md SHA512 apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-src.tar.gz > apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-src.tar.gz.sha512
           gpg --print-md SHA512 apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-lib.zip > apache-manifoldcf-${{steps.standardMavenVersion.outputs.version}}-lib.zip.sha512

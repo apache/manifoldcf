@@ -88,7 +88,7 @@ jobs:
         run: mvn versions:set -DnewVersion=${{ steps.mavenProjectVersion.outputs.version }} -DremoveSnapshot -DgenerateBackupPoms=false
       
       - name: Update Ant script with the new RC version
-        run: sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' build.xml;
+        run: sed -i -e 's|${{ steps.releaseVersion.outputs.version }}-dev|${{ steps.releaseVersion.outputs.version }}|g' build.xml;
       
       - name: Update CHANGES.txt
         run: sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/Release ${{ steps.releaseVersion.outputs.version }}/g' CHANGES.txt;
@@ -101,11 +101,14 @@ jobs:
       
       - name: Update MCF version in the properties.xml files
         run: | 
-          sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' dist/example/properties.xml;
-          sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' dist/example-proprietary/properties.xml;
-          sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' dist/multiprocess-file-example/properties.xml;
-          sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' dist/multiprocess-file-example-proprietary/properties.xml;
+          sed -i -e 's|${{ steps.releaseVersion.outputs.version }}-dev|${{ steps.releaseVersion.outputs.version }}|g' dist/example/properties.xml;
+          sed -i -e 's|${{ steps.releaseVersion.outputs.version }}-dev|${{ steps.releaseVersion.outputs.version }}|g' dist/example-proprietary/properties.xml;
+          sed -i -e 's|${{ steps.releaseVersion.outputs.version }}-dev|${{ steps.releaseVersion.outputs.version }}|g' dist/multiprocess-file-example/properties.xml;
+          sed -i -e 's|${{ steps.releaseVersion.outputs.version }}-dev|${{ steps.releaseVersion.outputs.version }}|g' dist/multiprocess-file-example-proprietary/properties.xml;
       
+      - name: Update Docker Image tag
+        run: sed -i 's/SNAPSHOT/${{ github.event.inputs.releasecandidatetag }}/g' Dockerfile;
+
       - name: RAT licence checks
         run: mvn -pl . apache-rat:check
       
@@ -118,7 +121,8 @@ jobs:
       - name: Commit and Push
         run: |
           find . -name 'pom.xml' -exec git add {} \;
-          git add CHANGES.txt build.xml
+          git add CHANGES.txt build.xml Dockerfile
+          git add dist/example/properties.xml dist/example-proprietary/properties.xml dist/multiprocess-file-example/properties.xml dist/multiprocess-file-example-proprietary/properties.xml
           git commit -am "Create ${{ github.event.inputs.releasecandidatetag }} tag for MCF ${{ steps.mavenProjectVersion.outputs.version }}"
           git push
       
@@ -302,9 +306,6 @@ jobs:
             org.opencontainers.image.version=${{ steps.branchTag.outputs.tag }}
             org.opencontainers.image.licenses=Apache-2.0
            
-      - name: Update Docker Image tag
-        run: sed -i 's/SNAPSHOT/${{ github.event.inputs.releasecandidatetag }}/g' Dockerfile;
-      
       - name: Build and push ManifoldCF Docker Image
         uses: docker/build-push-action@v7.0.0
         with:

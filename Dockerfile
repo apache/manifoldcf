@@ -30,28 +30,24 @@ ARG MCF_PORT=8345
 RUN apt-get update && apt-get install -y iputils-ping && \
 	apt-get install -y dnsutils
 
-COPY dist/. ${MCF_HOME}/
+#Below the specific COPY instructions to configure a distribution without propprietary artifacts and plugins
 
-#Below the specific COPY instructions to configure a distribution without propprietary artifacts
-#COPY dist/connector-build.xml ${MCF_HOME}/connector-build.xml
-#COPY dist/connectors.xml ${MCF_HOME}/connectors.xml
-#COPY dist/DEPENDENCIES.txt ${MCF_HOME}/DEPENDENCIES.txt
-#COPY dist/LICENSE.txt ${MCF_HOME}/LICENSE.txt
-#COPY dist/README.txt ${MCF_HOME}/README.txt
-
-#COPY dist/connector-common-lib ${MCF_HOME}/connector-common-lib
-#COPY dist/connector-lib ${MCF_HOME}/connector-lib
-#COPY dist/doc ${MCF_HOME}/doc
-#COPY dist/example ${MCF_HOME}/example
-#COPY dist/file-resources ${MCF_HOME}/file-resources
-#COPY dist/lib ${MCF_HOME}/lib
-#COPY dist/multiprocess-file-example ${MCF_HOME}/multiprocess-file-example
-#COPY dist/multiprocess-zk-example ${MCF_HOME}/multiprocess-zk-example
-#COPY dist/obfuscation-utility ${MCF_HOME}/obfuscation-utility
-#COPY dist/plugins/solr ${MCF_HOME}/plugins/solr
-#COPY dist/script-engine ${MCF_HOME}/script-engine
-#COPY dist/test-lib ${MCF_HOME}/test-lib
-#COPY dist/web/war ${MCF_HOME}/web/war
+COPY dist/connector-common-lib/ ${MCF_HOME}/connector-common-lib/
+COPY dist/connector-lib/ ${MCF_HOME}/connector-lib/
+COPY dist/connector-lib-proprietary/ ${MCF_HOME}/connector-lib-proprietary/
+COPY dist/example/ ${MCF_HOME}/example/
+COPY dist/file-resources/ ${MCF_HOME}/file-resources/
+COPY dist/lib/ ${MCF_HOME}/lib/
+COPY dist/multiprocess-file-example/ ${MCF_HOME}/multiprocess-file-example/
+COPY dist/multiprocess-zk-example/ ${MCF_HOME}/multiprocess-zk-example/
+COPY dist/obfuscation-utility/ ${MCF_HOME}/obfuscation-utility/
+COPY dist/web/war/ ${MCF_HOME}/web/war/
+COPY dist/connector-build.xml ${MCF_HOME}/
+COPY dist/connectors.xml ${MCF_HOME}/
+COPY dist/DEPENDENCIES.txt ${MCF_HOME}/
+COPY dist/LICENSE.txt ${MCF_HOME}/
+COPY dist/NOTICE.txt ${MCF_HOME}/
+COPY dist/README.txt ${MCF_HOME}/
 
 LABEL maintainer="Apache ManifoldCF Developers <dev@manifoldcf.apache.org>"
 LABEL org.opencontainers.image.title="Apache ManifoldCF"
