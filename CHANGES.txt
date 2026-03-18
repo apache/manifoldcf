@@ -2,6 +2,9 @@ ManifoldCF Change Log
 
 ======================= 2.30-dev =========================
 
+CONNECTORS-1783: Lighten the Docker image by removing unnecessary files
+(Piergiorgio Lucidi)
+
 CONNECTORS-1782: Upgrade Nuxeo Java Client to version 3.2.0
 (Piergiorgio Lucidi)
 
