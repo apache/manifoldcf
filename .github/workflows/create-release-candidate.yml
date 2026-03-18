@@ -37,7 +37,7 @@ jobs:
       
       - name: Checkout
         uses: actions/checkout@v6.0.2
-
+      
       - name: Set up OpenJDK 21 Temurin x64
         uses: actions/setup-java@v5.2.0
         with:
@@ -46,7 +46,7 @@ jobs:
           architecture: x64
           cache: maven
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          gpg-passphrase: GPG_PASSPHRASE
       
       - name: Get Maven POM version
         id: mavenProjectVersion
@@ -77,7 +77,7 @@ jobs:
       - name: Set Branch Tag output
         id: branchTag
         run: echo "tag=${{ steps.branchVersion.outputs.version }}${{ github.event.inputs.releasecandidatetag }}" >> $GITHUB_OUTPUT
-      
+        
       - name: Create new release candidate branch
         run: |
           git branch release-${{ steps.branchTag.outputs.tag }}
@@ -88,31 +88,27 @@ jobs:
         run: mvn versions:set -DnewVersion=${{ steps.mavenProjectVersion.outputs.version }} -DremoveSnapshot -DgenerateBackupPoms=false
       
       - name: Update Ant script with the new RC version
-        run: sed -i -e 's|${{ steps.releaseVersion.outputs.version }}-dev|${{ steps.releaseVersion.outputs.version }}|g' build.xml;
+        run: sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' build.xml;
       
       - name: Update CHANGES.txt
         run: sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/Release ${{ steps.releaseVersion.outputs.version }}/g' CHANGES.txt;
       
       - name: Ant Build
         run: ant make-core-deps make-deps image
-        env:
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       
       - name: Maven Build
         run: mvn clean install -B -DskipTests -DskipITs
-        env:
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       
       - name: Update MCF version in the properties.xml files
         run: | 
-          sed -i -e 's|${{ steps.releaseVersion.outputs.version }}-dev|${{ steps.releaseVersion.outputs.version }}|g' dist/example/properties.xml;
-          sed -i -e 's|${{ steps.releaseVersion.outputs.version }}-dev|${{ steps.releaseVersion.outputs.version }}|g' dist/example-proprietary/properties.xml;
-          sed -i -e 's|${{ steps.releaseVersion.outputs.version }}-dev|${{ steps.releaseVersion.outputs.version }}|g' dist/multiprocess-file-example/properties.xml;
-          sed -i -e 's|${{ steps.releaseVersion.outputs.version }}-dev|${{ steps.releaseVersion.outputs.version }}|g' dist/multiprocess-file-example-proprietary/properties.xml;
-
+          sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' dist/example/properties.xml;
+          sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' dist/example-proprietary/properties.xml;
+          sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' dist/multiprocess-file-example/properties.xml;
+          sed -i 's/${{ steps.releaseVersion.outputs.version }}-dev/${{ steps.releaseVersion.outputs.version }}/g' dist/multiprocess-file-example-proprietary/properties.xml;
+      
       - name: Update Docker Image tag
-        run: sed -i -e 's/SNAPSHOT/${{ github.event.inputs.releasecandidatetag }}/g' Dockerfile;
-
+        run: sed -i 's/SNAPSHOT/${{ github.event.inputs.releasecandidatetag }}/g' Dockerfile;
+          
       - name: RAT licence checks
         run: mvn -pl . apache-rat:check
       
@@ -125,13 +121,7 @@ jobs:
       - name: Commit and Push
         run: |
           find . -name 'pom.xml' -exec git add {} \;
-          git add CHANGES.txt  \ 
-          git add build.xml \
-          git add Dockerfile
-          git add dist/example/properties.xml 
-          git add dist/example-proprietary/properties.xml
-          git add dist/multiprocess-file-example/properties.xml
-          git add dist/multiprocess-file-example-proprietary/properties.xml
+          git add CHANGES.txt build.xml Dockerfile
           git commit -am "Create ${{ github.event.inputs.releasecandidatetag }} tag for MCF ${{ steps.mavenProjectVersion.outputs.version }}"
           git push
       
@@ -299,7 +289,7 @@ jobs:
           
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v6.0.0
+        uses: docker/metadata-action@v5.6.1
         with:
           images: apache/manifoldcf
           labels: |
@@ -314,9 +304,9 @@ jobs:
             org.opencontainers.image.documentation=https://hub.docker.com/r/apache/manifoldcf
             org.opencontainers.image.version=${{ steps.branchTag.outputs.tag }}
             org.opencontainers.image.licenses=Apache-2.0
-           
+      
       - name: Build and push ManifoldCF Docker Image
-        uses: docker/build-push-action@v7.0.0
+        uses: docker/build-push-action@v6.10.0
         with:
           context: .
           file: Dockerfile
