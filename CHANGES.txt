@@ -1,6 +1,10 @@
 ManifoldCF Change Log
 
-======================= 2.30-dev =========================
+======================= 2.31-dev =========================
+
+
+
+======================= Release 2.30 =========================
 
 CONNECTORS-1783: Lighten the Docker image by removing unnecessary files
 (Piergiorgio Lucidi)
