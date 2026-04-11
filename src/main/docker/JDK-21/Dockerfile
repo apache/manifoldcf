@@ -34,6 +34,7 @@ RUN apt-get update && apt-get install -y iputils-ping && \
 
 COPY dist/connector-common-lib/ ${MCF_HOME}/connector-common-lib/
 COPY dist/connector-lib/ ${MCF_HOME}/connector-lib/
+COPY dist/connector-lib-proprietary/ ${MCF_HOME}/connector-lib-proprietary/
 COPY dist/example/ ${MCF_HOME}/example/
 COPY dist/file-resources/ ${MCF_HOME}/file-resources/
 COPY dist/lib/ ${MCF_HOME}/lib/
