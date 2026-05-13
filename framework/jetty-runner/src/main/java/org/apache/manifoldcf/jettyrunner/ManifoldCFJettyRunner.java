@@ -43,6 +43,12 @@ import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.handler.ShutdownHandler;
 import org.eclipse.jetty.server.Handler;
 
+import org.eclipse.jetty.ee10.apache.jsp.JettyJasperInitializer;
+import org.eclipse.jetty.ee10.jsp.JettyJspServlet;
+
+import org.apache.tomcat.JarScanner;
+import org.apache.tomcat.util.scan.StandardJarScanner;
+
 import org.apache.tomcat.InstanceManager;
 import org.apache.tomcat.SimpleInstanceManager;
 
@@ -84,23 +90,37 @@ public class ManifoldCFJettyRunner
     
     // Initialize the servlets
     ContextHandlerCollection contexts = new ContextHandlerCollection();
+    
+    // Create a shared JarScanner that doesn't scan manifests to avoid noisy NoSuchFileExceptions on versioned jars
+    StandardJarScanner jarScanner = new StandardJarScanner();
+    jarScanner.setScanManifest(false);
+
     WebAppContext lcfCrawlerUI = new WebAppContext(crawlerWarPath,"/mcf-crawler-ui");
     lcfCrawlerUI.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
+    lcfCrawlerUI.setAttribute(JarScanner.class.getName(), jarScanner);
     // This can cause jetty to ignore all of the framework and jdbc jars in the war, which is what we
     // want in the single-process case.
     lcfCrawlerUI.setParentLoaderPriority(useParentLoader);
+    lcfCrawlerUI.addServletContainerInitializer(new JettyJasperInitializer());
+    lcfCrawlerUI.addServlet(JettyJspServlet.class, "*.jsp");
     contexts.addHandler(lcfCrawlerUI);
     WebAppContext lcfAuthorityService = new WebAppContext(authorityServiceWarPath,"/mcf-authority-service");
     lcfAuthorityService.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
+    lcfAuthorityService.setAttribute(JarScanner.class.getName(), jarScanner);
     // This can cause jetty to ignore all of the framework and jdbc jars in the war, which is what we
     // want in the single-process case.
     lcfAuthorityService.setParentLoaderPriority(useParentLoader);
+    lcfAuthorityService.addServletContainerInitializer(new JettyJasperInitializer());
+    lcfAuthorityService.addServlet(JettyJspServlet.class, "*.jsp");
     contexts.addHandler(lcfAuthorityService);
     WebAppContext lcfApi = new WebAppContext(apiWarPath,"/mcf-api-service");
     lcfApi.setAttribute(InstanceManager.class.getName(), new SimpleInstanceManager());
+    lcfApi.setAttribute(JarScanner.class.getName(), jarScanner);
     // This can cause jetty to ignore all of the framework and jdbc jars in the war, which is what we
     // want in the single-process case.
     lcfApi.setParentLoaderPriority(useParentLoader);
+    lcfApi.addServletContainerInitializer(new JettyJasperInitializer());
+    lcfApi.addServlet(JettyJspServlet.class, "*.jsp");
     contexts.addHandler(lcfApi);
     
     Handler.Sequence handlers = new Handler.Sequence();

@@ -60,11 +60,11 @@ public class ZooKeeperLockManager extends BaseLockManager implements ILockManage
   protected final static String anonymousServiceNamePrefix = "_ANON_";
 
   // ZooKeeper connection pool
-  protected static Integer connectionPoolLock = new Integer(0);
+  protected static final Object connectionPoolLock = new Object();
   protected static ZooKeeperConnectionPool pool = null;
-  protected static Integer zookeeperPoolLocker = new Integer(0);
+  protected static final Object zookeeperPoolLocker = new Object();
   protected static LockPool myZooKeeperLocks = null;
-  protected static Integer ephemeralPoolLocker = new Integer(0);
+  protected static final Object ephemeralPoolLocker = new Object();
   protected static ZooKeeperEphemeralNodePool myEphemeralNodes = null;
 
   // Cached local values

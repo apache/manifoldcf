@@ -69,7 +69,7 @@ public class IDFactory
           if (idData == null)
             _id = 0L;
           else
-            _id = new Long(new String(idData, StandardCharsets.UTF_8)).longValue();
+            _id = Long.parseLong(new String(idData, StandardCharsets.UTF_8));
           
           int i = 0;
           while (i < poolSize)

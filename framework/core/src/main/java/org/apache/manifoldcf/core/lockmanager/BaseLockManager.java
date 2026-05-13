@@ -70,7 +70,7 @@ public class BaseLockManager implements ILockManager
   public BaseLockManager()
     throws ManifoldCFException
   {
-    threadID = new Long(Thread.currentThread().getId());
+    threadID = Long.valueOf(Thread.currentThread().getId());
   }
 
   // Node synchronization
@@ -624,7 +624,7 @@ public class BaseLockManager implements ILockManager
     // Keep local flag information in memory
     synchronized (globalFlags)
     {
-      globalFlags.put(flagName,new Boolean(true));
+      globalFlags.put(flagName, Boolean.TRUE);
     }
   }
 

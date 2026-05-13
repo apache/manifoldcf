@@ -20,6 +20,9 @@ package org.apache.manifoldcf.connectorcommon.common;
 
 import java.io.*;
 import java.net.*;
+import java.util.concurrent.StructuredTaskScope;
+import java.util.concurrent.TimeoutException;
+import java.time.Instant;
 
 import org.apache.http.conn.ConnectTimeoutException;
 
@@ -96,100 +99,54 @@ public class InterruptibleSocketFactory extends javax.net.ssl.SSLSocketFactory
   protected Socket fireOffThread(InetAddress address, int port, InetAddress localHost, int localPort)
     throws IOException
   {
-    SocketCreateThread thread = new SocketCreateThread(wrappedFactory,address,port,localHost,localPort);
-    thread.start();
-    try
+    try (var scope = new StructuredTaskScope.ShutdownOnFailure())
     {
-      // Wait for thread to complete for only a certain amount of time!
-      thread.join(connectTimeoutMilliseconds);
-      // If join() times out, then the thread is going to still be alive.
-      if (thread.isAlive())
-      {
-        // Kill the thread - not that this will necessarily work, but we need to try
-        thread.interrupt();
-        throw new ConnectTimeoutException("Secure connection timed out");
-      }
-      // The thread terminated.  Throw an error if there is one, otherwise return the result.
-      Throwable t = thread.getException();
-      if (t != null)
-      {
-        if (t instanceof java.net.SocketTimeoutException)
-          throw (java.net.SocketTimeoutException)t;
-        else if (t instanceof ConnectTimeoutException)
-          throw (ConnectTimeoutException)t;
-        else if (t instanceof InterruptedIOException)
-          throw (InterruptedIOException)t;
-        else if (t instanceof IOException)
-          throw (IOException)t;
-        else if (t instanceof Error)
-          throw (Error)t;
-        else if (t instanceof RuntimeException)
-          throw (RuntimeException)t;
-        throw new Error("Received an unexpected exception: "+t.getMessage(),t);
-      }
-      return thread.getResult();
-    }
-    catch (InterruptedException e)
-    {
-      throw new InterruptedIOException("Interrupted: "+e.getMessage());
-    }
+      StructuredTaskScope.Subtask<Socket> subtask = scope.fork(() -> {
+        if (localHost == null)
+          return wrappedFactory.createSocket(address, port);
+        else
+          return wrappedFactory.createSocket(address, port, localHost, localPort);
+      });
 
-  }
-
-  /** Create a secure socket in a thread, so that we can "give up" after a while if the socket fails to connect.
-  */
-  protected static class SocketCreateThread extends Thread
-  {
-    // Socket factory
-    protected javax.net.ssl.SSLSocketFactory socketFactory;
-    protected InetAddress host;
-    protected int port;
-    protected InetAddress clientHost;
-    protected int clientPort;
-
-    // The return socket
-    protected Socket rval = null;
-    // The return error
-    protected Throwable throwable = null;
-
-    /** Create the thread */
-    public SocketCreateThread(javax.net.ssl.SSLSocketFactory socketFactory,
-      InetAddress host,
-      int port,
-      InetAddress clientHost,
-      int clientPort)
-    {
-      this.socketFactory = socketFactory;
-      this.host = host;
-      this.port = port;
-      this.clientHost = clientHost;
-      this.clientPort = clientPort;
-      setDaemon(true);
-    }
-
-    public void run()
-    {
       try
       {
-        if (clientHost == null)
-          rval = socketFactory.createSocket(host,port);
+        scope.joinUntil(Instant.now().plusMillis(connectTimeoutMilliseconds));
+        
+        if (subtask.state() == StructuredTaskScope.Subtask.State.SUCCESS)
+        {
+          return subtask.get();
+        }
+        else if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED)
+        {
+          Throwable t = subtask.exception();
+          if (t instanceof java.net.SocketTimeoutException)
+            throw (java.net.SocketTimeoutException)t;
+          else if (t instanceof ConnectTimeoutException)
+            throw (ConnectTimeoutException)t;
+          else if (t instanceof InterruptedIOException)
+            throw (InterruptedIOException)t;
+          else if (t instanceof IOException)
+            throw (IOException)t;
+          else if (t instanceof Error)
+            throw (Error)t;
+          else if (t instanceof RuntimeException)
+            throw (RuntimeException)t;
+          throw new Error("Received an unexpected exception: "+t.getMessage(),t);
+        }
         else
-          rval = socketFactory.createSocket(host,port,clientHost,clientPort);
+        {
+           // Should not happen after join
+           throw new IOException("Socket creation failed with unexpected state: " + subtask.state());
+        }
       }
-      catch (Throwable e)
+      catch (TimeoutException e)
       {
-        throwable = e;
+        throw new ConnectTimeoutException("Secure connection timed out");
       }
-    }
-
-    public Throwable getException()
-    {
-      return throwable;
-    }
-
-    public Socket getResult()
-    {
-      return rval;
+      catch (InterruptedException e)
+      {
+        throw new InterruptedIOException("Interrupted: "+e.getMessage());
+      }
     }
   }
 

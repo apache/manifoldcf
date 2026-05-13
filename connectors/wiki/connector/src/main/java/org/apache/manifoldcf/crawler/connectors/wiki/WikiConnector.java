@@ -882,7 +882,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     else
     {
       // Unpack seed time from seed version string
-      startTime = new Long(lastSeedVersion).longValue();
+      startTime = Long.valueOf(lastSeedVersion).longValue();
     }
 
     // Scan specification nodes and extract prefixes and namespaces
@@ -901,7 +901,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
     if (!seenAny)
       listAllPages(activities,null,null,startTime,seedTime);
     
-    return new Long(seedTime).toString();
+    return Long.valueOf(seedTime).toString();
   }
 
   /** Process a set of documents.
@@ -1709,7 +1709,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
         }
       }
       out.print(
-"<input type=\"hidden\" name=\""+seqPrefix+"nscount\" value=\""+new Integer(k)+"\"/>\n"
+"<input type=\"hidden\" name=\""+seqPrefix+"nscount\" value=\""+Integer.valueOf(k)+"\"/>\n"
       );
     }
     
@@ -4024,7 +4024,7 @@ public class WikiConnector extends org.apache.manifoldcf.crawler.connectors.Base
       finally
       {
         if (statusCode != null)
-          activities.recordActivity(new Long(startTime),ACTIVITY_FETCH,new Long(dataSize),documentIdentifier,statusCode,errorMessage,null);
+          activities.recordActivity(Long.valueOf(startTime),ACTIVITY_FETCH,Long.valueOf(dataSize),documentIdentifier,statusCode,errorMessage,null);
       }
       
       if (!loginToAPI())

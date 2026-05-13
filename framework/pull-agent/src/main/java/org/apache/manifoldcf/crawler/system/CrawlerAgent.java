@@ -31,26 +31,26 @@ public class CrawlerAgent implements IAgent
 
   // Thread objects.
   // These get filled in as threads are created.
-  protected JobStartThread jobStartThread = null;
-  protected StufferThread stufferThread = null;
-  protected FinisherThread finisherThread = null;
-  protected JobNotificationThread notificationThread = null;
-  protected StartupThread startupThread = null;
-  protected StartDeleteThread startDeleteThread = null;
-  protected JobDeleteThread jobDeleteThread = null;
-  protected WorkerThread[] workerThreads = null;
-  protected ExpireStufferThread expireStufferThread = null;
-  protected ExpireThread[] expireThreads = null;
-  protected DocumentDeleteStufferThread deleteStufferThread = null;
-  protected DocumentDeleteThread[] deleteThreads = null;
-  protected DocumentCleanupStufferThread cleanupStufferThread = null;
-  protected DocumentCleanupThread[] cleanupThreads = null;
-  protected JobResetThread jobResetThread = null;
-  protected SeedingThread seedingThread = null;
-  protected IdleCleanupThread idleCleanupThread = null;
-  protected SetPriorityThread setPriorityThread = null;
-  protected HistoryCleanupThread historyCleanupThread = null;
-  protected AssessmentThread assessmentThread = null;
+  protected Thread jobStartThread = null;
+  protected Thread stufferThread = null;
+  protected Thread finisherThread = null;
+  protected Thread notificationThread = null;
+  protected Thread startupThread = null;
+  protected Thread startDeleteThread = null;
+  protected Thread jobDeleteThread = null;
+  protected Thread[] workerThreads = null;
+  protected Thread expireStufferThread = null;
+  protected Thread[] expireThreads = null;
+  protected Thread deleteStufferThread = null;
+  protected Thread[] deleteThreads = null;
+  protected Thread cleanupStufferThread = null;
+  protected Thread[] cleanupThreads = null;
+  protected Thread jobResetThread = null;
+  protected Thread seedingThread = null;
+  protected Thread idleCleanupThread = null;
+  protected Thread setPriorityThread = null;
+  protected Thread historyCleanupThread = null;
+  protected Thread assessmentThread = null;
   
   // Reset managers
   /** Worker thread pool reset manager */
@@ -354,16 +354,16 @@ public class CrawlerAgent implements IAgent
     Logging.root.info("Starting up pull-agent...");
     // Now, start all the threads
     numWorkerThreads = ManifoldCF.getMaxWorkerThreads(threadContext);
-    if (numWorkerThreads < 1 || numWorkerThreads > 300)
+    if (numWorkerThreads < 1 || numWorkerThreads > 5000)
       throw new ManifoldCFException("Illegal value for the number of worker threads", ManifoldCFException.SETUP_ERROR);
     numDeleteThreads = ManifoldCF.getMaxDeleteThreads(threadContext);
     numCleanupThreads = ManifoldCF.getMaxCleanupThreads(threadContext);
     numExpireThreads = ManifoldCF.getMaxExpireThreads(threadContext);
-    if (numDeleteThreads < 1 || numDeleteThreads > 300)
+    if (numDeleteThreads < 1 || numDeleteThreads > 5000)
       throw new ManifoldCFException("Illegal value for the number of delete threads", ManifoldCFException.SETUP_ERROR);
-    if (numCleanupThreads < 1 || numCleanupThreads > 300)
+    if (numCleanupThreads < 1 || numCleanupThreads > 5000)
       throw new ManifoldCFException("Illegal value for the number of cleanup threads", ManifoldCFException.SETUP_ERROR);
-    if (numExpireThreads < 1 || numExpireThreads > 300)
+    if (numExpireThreads < 1 || numExpireThreads > 5000)
       throw new ManifoldCFException("Illegal value for the number of expire threads", ManifoldCFException.SETUP_ERROR);
     lowWaterFactor = (float)LockManagerFactory.getDoubleProperty(threadContext,ManifoldCF.lowWaterFactorProperty,5.0);
     if (lowWaterFactor < 1.0 || lowWaterFactor > 1000.0)
@@ -389,55 +389,55 @@ public class CrawlerAgent implements IAgent
     docDeleteResetManager = new DocDeleteResetManager(documentDeleteQueue,processID);
     docCleanupResetManager = new DocCleanupResetManager(documentCleanupQueue,processID);
 
-    jobStartThread = new JobStartThread(processID);
-    startupThread = new StartupThread(new StartupResetManager(processID),processID);
-    startDeleteThread = new StartDeleteThread(new DeleteStartupResetManager(processID),processID);
-    finisherThread = new FinisherThread(processID);
-    notificationThread = new JobNotificationThread(new NotificationResetManager(processID),processID);
-    jobDeleteThread = new JobDeleteThread(processID);
-    stufferThread = new StufferThread(documentQueue,numWorkerThreads,workerResetManager,queueTracker,blockingDocuments,lowWaterFactor,stuffAmtFactor,processID);
-    expireStufferThread = new ExpireStufferThread(expireQueue,numExpireThreads,workerResetManager,processID);
-    setPriorityThread = new SetPriorityThread(numWorkerThreads,blockingDocuments,processID);
-    historyCleanupThread = new HistoryCleanupThread(processID);
+    jobStartThread = Thread.ofVirtual().name("Job start thread").unstarted(new JobStartThread(processID));
+    startupThread = Thread.ofVirtual().name("Startup thread").unstarted(new StartupThread(new StartupResetManager(processID),processID));
+    startDeleteThread = Thread.ofVirtual().name("Start delete thread").unstarted(new StartDeleteThread(new DeleteStartupResetManager(processID),processID));
+    finisherThread = Thread.ofVirtual().name("Finisher thread").unstarted(new FinisherThread(processID));
+    notificationThread = Thread.ofVirtual().name("Notification thread").unstarted(new JobNotificationThread(new NotificationResetManager(processID),processID));
+    jobDeleteThread = Thread.ofVirtual().name("Job delete thread").unstarted(new JobDeleteThread(processID));
+    stufferThread = Thread.ofVirtual().name("Stuffer thread").unstarted(new StufferThread(documentQueue,numWorkerThreads,workerResetManager,queueTracker,blockingDocuments,lowWaterFactor,stuffAmtFactor,processID));
+    expireStufferThread = Thread.ofVirtual().name("Expire stuffer thread").unstarted(new ExpireStufferThread(expireQueue,numExpireThreads,workerResetManager,processID));
+    setPriorityThread = Thread.ofVirtual().name("Set priority thread").unstarted(new SetPriorityThread(numWorkerThreads,blockingDocuments,processID));
+    historyCleanupThread = Thread.ofVirtual().name("History cleanup thread").unstarted(new HistoryCleanupThread(processID));
 
-    workerThreads = new WorkerThread[numWorkerThreads];
+    workerThreads = new Thread[numWorkerThreads];
     int i = 0;
     while (i < numWorkerThreads)
     {
-      workerThreads[i] = new WorkerThread(Integer.toString(i),documentQueue,workerResetManager,queueTracker,processID);
+      workerThreads[i] = Thread.ofVirtual().name("Worker thread '"+i+"'").unstarted(new WorkerThread(Integer.toString(i),documentQueue,workerResetManager,queueTracker,processID));
       i++;
     }
 
-    expireThreads = new ExpireThread[numExpireThreads];
+    expireThreads = new Thread[numExpireThreads];
     i = 0;
     while (i < numExpireThreads)
     {
-      expireThreads[i] = new ExpireThread(Integer.toString(i),expireQueue,workerResetManager,processID);
+      expireThreads[i] = Thread.ofVirtual().name("Expire thread '"+i+"'").unstarted(new ExpireThread(Integer.toString(i),expireQueue,workerResetManager,processID));
       i++;
     }
 
-    deleteStufferThread = new DocumentDeleteStufferThread(documentDeleteQueue,numDeleteThreads,docDeleteResetManager,processID);
-    deleteThreads = new DocumentDeleteThread[numDeleteThreads];
+    deleteStufferThread = Thread.ofVirtual().name("Delete stuffer thread").unstarted(new DocumentDeleteStufferThread(documentDeleteQueue,numDeleteThreads,docDeleteResetManager,processID));
+    deleteThreads = new Thread[numDeleteThreads];
     i = 0;
     while (i < numDeleteThreads)
     {
-      deleteThreads[i] = new DocumentDeleteThread(Integer.toString(i),documentDeleteQueue,docDeleteResetManager,processID);
+      deleteThreads[i] = Thread.ofVirtual().name("Delete thread '"+i+"'").unstarted(new DocumentDeleteThread(Integer.toString(i),documentDeleteQueue,docDeleteResetManager,processID));
       i++;
     }
       
-    cleanupStufferThread = new DocumentCleanupStufferThread(documentCleanupQueue,numCleanupThreads,docCleanupResetManager,processID);
-    cleanupThreads = new DocumentCleanupThread[numCleanupThreads];
+    cleanupStufferThread = Thread.ofVirtual().name("Cleanup stuffer thread").unstarted(new DocumentCleanupStufferThread(documentCleanupQueue,numCleanupThreads,docCleanupResetManager,processID));
+    cleanupThreads = new Thread[numCleanupThreads];
     i = 0;
     while (i < numCleanupThreads)
     {
-      cleanupThreads[i] = new DocumentCleanupThread(Integer.toString(i),documentCleanupQueue,docCleanupResetManager,processID);
+      cleanupThreads[i] = Thread.ofVirtual().name("Cleanup thread '"+i+"'").unstarted(new DocumentCleanupThread(Integer.toString(i),documentCleanupQueue,docCleanupResetManager,processID));
       i++;
     }
 
-    jobResetThread = new JobResetThread(processID);
-    seedingThread = new SeedingThread(new SeedingResetManager(processID),processID);
-    idleCleanupThread = new IdleCleanupThread(processID);
-    assessmentThread = new AssessmentThread(processID);
+    jobResetThread = Thread.ofVirtual().name("Job reset thread").unstarted(new JobResetThread(processID));
+    seedingThread = Thread.ofVirtual().name("Seeding thread").unstarted(new SeedingThread(new SeedingResetManager(processID),processID));
+    idleCleanupThread = Thread.ofVirtual().name("Idle cleanup thread").unstarted(new IdleCleanupThread(processID));
+    assessmentThread = Thread.ofVirtual().name("Assessment thread").unstarted(new AssessmentThread(processID));
 
     // Start all the threads
     jobStartThread.start();

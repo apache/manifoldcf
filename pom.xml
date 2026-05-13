@@ -106,22 +106,38 @@
     <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
     <maven-rat-plugin.version>0.17</maven-rat-plugin.version>
     <maven-war-plugin.version>3.5.1</maven-war-plugin.version>
+    <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
     <maven-apache-source-release-assembly-descriptor.version>1.5</maven-apache-source-release-assembly-descriptor.version>
     <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
+    <maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
     <javaVersion>21</javaVersion>
+    <spring-boot.version>3.3.0</spring-boot.version>
+    <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
+    <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
+    <skipTests>false</skipTests>
+    <skipITs>false</skipITs>
   </properties>
 
   <modules>
     <module>framework</module>
     <module>test-materials</module>
     <module>connectors</module>
+    <module>framework/spring-boot-app</module>
     <module>framework/jetty-runner</module>
+    <module>distribution</module>
   </modules>
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>jakarta.transaction</groupId>
         <artifactId>jakarta.transaction-api</artifactId>
@@ -173,6 +189,11 @@
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.eclipse.jetty.ee10</groupId>
+        <artifactId>jetty-ee10-apache-jsp</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-session</artifactId>
         <version>${jetty.version}</version>
@@ -215,6 +236,16 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>${maven-antrun-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>${maven-assembly-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <version>${maven-jar-plugin.version}</version>
         </plugin>
@@ -223,6 +254,25 @@
 		    <artifactId>apache-rat-plugin</artifactId>
 		    <version>${maven-rat-plugin.version}</version>
 		  </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven-surefire-plugin.version}</version>
+          <configuration>
+            <skipTests>${skipTests}</skipTests>
+            <argLine>--enable-preview</argLine>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven-failsafe-plugin.version}</version>
+          <configuration>
+            <skipTests>${skipTests}</skipTests>
+            <skipITs>${skipITs}</skipITs>
+            <argLine>--enable-preview</argLine>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
 
@@ -287,6 +337,7 @@
           <compilerArgs>
             <arg>-Xpkginfo:always</arg>
             <arg>-Xlint:options</arg>
+            <arg>--enable-preview</arg>
           </compilerArgs>
         </configuration>
       </plugin>
@@ -429,6 +480,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
+              <skipTests>${skipTests}</skipTests>
               <includes>
                 <include>**/*PostgresqlTest.java</include>
               </includes>

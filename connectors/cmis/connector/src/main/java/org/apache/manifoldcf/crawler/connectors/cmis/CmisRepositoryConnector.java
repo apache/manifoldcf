@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.StructuredTaskScope;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Document;
@@ -176,13 +177,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     return new String[] { server };
   }
 
-  protected class GetSessionThread extends Thread {
+  protected class GetSessionThread implements Runnable {
     protected Throwable exception = null;
-
-    public GetSessionThread() {
-      super();
-      setDaemon(true);
-    }
 
     public void run() {
       try {
@@ -256,13 +252,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     }
   }
 
-  protected class CheckConnectionThread extends Thread {
+  protected class CheckConnectionThread implements Runnable {
     protected Throwable exception = null;
-
-    public CheckConnectionThread() {
-      super();
-      setDaemon(true);
-    }
 
     public void run() {
       try {
@@ -279,13 +270,8 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
   }
 
-  protected class DestroySessionThread extends Thread {
+  protected class DestroySessionThread implements Runnable {
     protected Throwable exception = null;
-
-    public DestroySessionThread() {
-      super();
-      setDaemon(true);
-    }
 
     public void run() {
       try {
@@ -308,20 +294,32 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public void disconnect() throws ManifoldCFException {
     if (session != null) {
       DestroySessionThread t = new DestroySessionThread();
-      try {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null) {
-          if (thr instanceof RemoteException)
-            throw (RemoteException) thr;
-          else
-            throw (Error) thr;
+      try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+        StructuredTaskScope.Subtask<Void> subtask = scope.fork(() -> {
+          t.run();
+          return null;
+        });
+        scope.join();
+        if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED) {
+          Throwable thr = subtask.exception();
+          if (thr != null) {
+            if (thr instanceof RemoteException)
+              throw (RemoteException) thr;
+            else
+              throw (Error) thr;
+          }
+        } else {
+          Throwable thr = t.getException();
+          if (thr != null) {
+            if (thr instanceof RemoteException)
+              throw (RemoteException) thr;
+            else
+              throw (Error) thr;
+          }
         }
         session = null;
         lastSessionFetch = -1L;
       } catch (InterruptedException e) {
-        t.interrupt();
         throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
             ManifoldCFException.INTERRUPTED);
       } catch (RemoteException e) {
@@ -430,26 +428,46 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
       long currentTime;
       GetSessionThread t = new GetSessionThread();
-      try {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null) {
-          if (thr instanceof java.net.MalformedURLException)
-            throw (java.net.MalformedURLException) thr;
-          else if (thr instanceof NotBoundException)
-            throw (NotBoundException) thr;
-          else if (thr instanceof RemoteException)
-            throw (RemoteException) thr;
-          else if (thr instanceof CmisConnectionException)
-            throw new ManifoldCFException("CMIS: Error during getting a new session: " + thr.getMessage(), thr);
-          else if (thr instanceof CmisPermissionDeniedException)
-            throw new ManifoldCFException("CMIS: Wrong credentials during getting a new session: " + thr.getMessage(), thr);
-          else
-            throw (Error) thr;
+      try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+        StructuredTaskScope.Subtask<Void> subtask = scope.fork(() -> {
+          t.run();
+          return null;
+        });
+        scope.join();
+        if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED) {
+          Throwable thr = subtask.exception();
+          if (thr != null) {
+            if (thr instanceof java.net.MalformedURLException)
+              throw (java.net.MalformedURLException) thr;
+            else if (thr instanceof NotBoundException)
+              throw (NotBoundException) thr;
+            else if (thr instanceof RemoteException)
+              throw (RemoteException) thr;
+            else if (thr instanceof CmisConnectionException)
+              throw new ManifoldCFException("CMIS: Error during getting a new session: " + thr.getMessage(), thr);
+            else if (thr instanceof CmisPermissionDeniedException)
+              throw new ManifoldCFException("CMIS: Wrong credentials during getting a new session: " + thr.getMessage(), thr);
+            else
+              throw (Error) thr;
+          }
+        } else {
+          Throwable thr = t.getException();
+          if (thr != null) {
+            if (thr instanceof java.net.MalformedURLException)
+              throw (java.net.MalformedURLException) thr;
+            else if (thr instanceof NotBoundException)
+              throw (NotBoundException) thr;
+            else if (thr instanceof RemoteException)
+              throw (RemoteException) thr;
+            else if (thr instanceof CmisConnectionException)
+              throw new ManifoldCFException("CMIS: Error during getting a new session: " + thr.getMessage(), thr);
+            else if (thr instanceof CmisPermissionDeniedException)
+              throw new ManifoldCFException("CMIS: Wrong credentials during getting a new session: " + thr.getMessage(), thr);
+            else
+              throw (Error) thr;
+          }
         }
       } catch (InterruptedException e) {
-        t.interrupt();
         throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
             ManifoldCFException.INTERRUPTED);
       } catch (java.net.MalformedURLException e) {
@@ -489,20 +507,32 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     long currentTime = System.currentTimeMillis();
     if (currentTime >= lastSessionFetch + timeToRelease) {
       DestroySessionThread t = new DestroySessionThread();
-      try {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null) {
-          if (thr instanceof RemoteException)
-            throw (RemoteException) thr;
-          else
-            throw (Error) thr;
+      try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+        StructuredTaskScope.Subtask<Void> subtask = scope.fork(() -> {
+          t.run();
+          return null;
+        });
+        scope.join();
+        if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED) {
+          Throwable thr = subtask.exception();
+          if (thr != null) {
+            if (thr instanceof RemoteException)
+              throw (RemoteException) thr;
+            else
+              throw (Error) thr;
+          }
+        } else {
+          Throwable thr = t.getException();
+          if (thr != null) {
+            if (thr instanceof RemoteException)
+              throw (RemoteException) thr;
+            else
+              throw (Error) thr;
+          }
         }
         session = null;
         lastSessionFetch = -1L;
       } catch (InterruptedException e) {
-        t.interrupt();
         throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
             ManifoldCFException.INTERRUPTED);
       } catch (RemoteException e) {
@@ -529,21 +559,35 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       getSession();
       long currentTime;
       CheckConnectionThread t = new CheckConnectionThread();
-      try {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null) {
-          if (thr instanceof RemoteException)
-            throw (RemoteException) thr;
-          else if (thr instanceof CmisConnectionException)
-            throw new ManifoldCFException("CMIS: Error during checking connection: " + thr.getMessage(), thr);
-          else
-            throw (Error) thr;
+      try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+        StructuredTaskScope.Subtask<Void> subtask = scope.fork(() -> {
+          t.run();
+          return null;
+        });
+        scope.join();
+        if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED) {
+          Throwable thr = subtask.exception();
+          if (thr != null) {
+            if (thr instanceof RemoteException)
+              throw (RemoteException) thr;
+            else if (thr instanceof CmisConnectionException)
+              throw new ManifoldCFException("CMIS: Error during checking connection: " + thr.getMessage(), thr);
+            else
+              throw (Error) thr;
+          }
+        } else {
+          Throwable thr = t.getException();
+          if (thr != null) {
+            if (thr instanceof RemoteException)
+              throw (RemoteException) thr;
+            else if (thr instanceof CmisConnectionException)
+              throw new ManifoldCFException("CMIS: Error during checking connection: " + thr.getMessage(), thr);
+            else
+              throw (Error) thr;
+          }
         }
         return;
       } catch (InterruptedException e) {
-        t.interrupt();
         throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
             ManifoldCFException.INTERRUPTED);
       } catch (RemoteException e) {
@@ -577,20 +621,32 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     long currentTime = System.currentTimeMillis();
     if (currentTime >= lastSessionFetch + timeToRelease) {
       DestroySessionThread t = new DestroySessionThread();
-      try {
-        t.start();
-        t.join();
-        Throwable thr = t.getException();
-        if (thr != null) {
-          if (thr instanceof RemoteException)
-            throw (RemoteException) thr;
-          else
-            throw (Error) thr;
+      try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+        StructuredTaskScope.Subtask<Void> subtask = scope.fork(() -> {
+          t.run();
+          return null;
+        });
+        scope.join();
+        if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED) {
+          Throwable thr = subtask.exception();
+          if (thr != null) {
+            if (thr instanceof RemoteException)
+              throw (RemoteException) thr;
+            else
+              throw (Error) thr;
+          }
+        } else {
+          Throwable thr = t.getException();
+          if (thr != null) {
+            if (thr instanceof RemoteException)
+              throw (RemoteException) thr;
+            else
+              throw (Error) thr;
+          }
         }
         session = null;
         lastSessionFetch = -1L;
       } catch (InterruptedException e) {
-        t.interrupt();
         throw new ManifoldCFException("Interrupted: " + e.getMessage(), e,
             ManifoldCFException.INTERRUPTED);
       } catch (RemoteException e) {

@@ -126,7 +126,7 @@ public class ManifoldCF
   protected static int initializeLevel = 0;
   protected static boolean alreadyClosed = false;
   protected static boolean alreadyShutdown = false;
-  protected static Integer initializeFlagLock = new Integer(0);
+  protected static final Object initializeFlagLock = new Object();
 
   // Local member variables
   protected static String mcfVersion = null;
@@ -364,10 +364,10 @@ public class ManifoldCF
     catch (InvocationTargetException e)
     {
       Throwable z = e.getTargetException();
-      if (z instanceof Error)
-        throw (Error)z;
-      else if (z instanceof RuntimeException)
-        throw (RuntimeException)z;
+      if (z instanceof Error error)
+        throw error;
+      else if (z instanceof RuntimeException runtimeException)
+        throw runtimeException;
       else
         throw new RuntimeException("Unknown exception type: "+z.getClass().getName()+": "+z.getMessage(),z);
     }
@@ -1286,12 +1286,7 @@ public class ManifoldCF
   public static void sleep(long milliseconds)
     throws InterruptedException
   {
-    // Unfortunately we need to create an object for every time that we sleep
-    Integer x = new Integer(0);
-    synchronized (x)
-    {
-      x.wait(milliseconds);
-    }
+    Thread.sleep(milliseconds);
   }
 
   /** Write a bunch of bytes to the output stream */
@@ -1460,16 +1455,16 @@ public class ManifoldCF
       return null;
     byte[] inputArray = new byte[8];
     readBytes(is,inputArray);
-    return new Long((long)(((int)inputArray[0]) & 0xff) +
-      Long.rotateLeft(((int)inputArray[1]) & 0xff, 8) +
-      Long.rotateLeft(((int)inputArray[2]) & 0xff, 16) +
-      Long.rotateLeft(((int)inputArray[3]) & 0xff, 24) +
-      Long.rotateLeft(((int)inputArray[4]) & 0xff, 32) +
-      Long.rotateLeft(((int)inputArray[5]) & 0xff, 40) +
-      Long.rotateLeft(((int)inputArray[6]) & 0xff, 48) +
-      Long.rotateLeft(((int)inputArray[7]) & 0xff, 56));
-
+    return Long.valueOf((long)(((int)inputArray[0]) & 0xff) +
+      Long.rotateLeft(((long)inputArray[1]) & 0xff, 8) +
+      Long.rotateLeft(((long)inputArray[2]) & 0xff, 16) +
+      Long.rotateLeft(((long)inputArray[3]) & 0xff, 24) +
+      Long.rotateLeft(((long)inputArray[4]) & 0xff, 32) +
+      Long.rotateLeft(((long)inputArray[5]) & 0xff, 40) +
+      Long.rotateLeft(((long)inputArray[6]) & 0xff, 48) +
+      Long.rotateLeft(((long)inputArray[7]) & 0xff, 56));
   }
+
 
   /** Read a String from an input stream */
   public static String readString(InputStream is)

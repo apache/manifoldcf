@@ -20,6 +20,8 @@ package org.apache.manifoldcf.core.lockmanager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Condition;
 
 import org.apache.manifoldcf.core.interfaces.LockException;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
@@ -109,6 +111,9 @@ public class LockGate
   protected final Object lockKey;
   protected LockPool lockPool;
 
+  protected final ReentrantLock lock = new ReentrantLock();
+  protected final Condition condition = lock.newCondition();
+
   public LockGate(Object lockKey, LockObject lockObject, LockPool lockPool)
   {
     this.lockKey = lockKey;
@@ -118,26 +123,37 @@ public class LockGate
   
   public void makeInvalid()
   {
-    synchronized (this)
+    lock.lock();
+    try
     {
       this.lockPool = null;
       lockObject.makeInvalid();
+    }
+    finally
+    {
+      lock.unlock();
     }
   }
 
   protected void waitForPermission(Long threadID)
     throws InterruptedException, ExpiredObjectException
   {
-    synchronized (this)
+    lock.lock();
+    try
     {
       threadRequests.add(threadID);
+    }
+    finally
+    {
+      lock.unlock();
     }
     try
     {
       // Now, wait until we are #1
       while (true)
       {
-        synchronized (this)
+        lock.lock();
+        try
         {
           if (lockPool == null)
             throw new ExpiredObjectException("Invalid");
@@ -145,7 +161,11 @@ public class LockGate
           if (threadRequests.get(0).equals(threadID))
             return;
           
-          wait();
+          condition.await();
+        }
+        finally
+        {
+          lock.unlock();
         }
       }
     }
@@ -173,10 +193,15 @@ public class LockGate
   
   protected void freePermission(Long threadID)
   {
-    synchronized (this)
+    lock.lock();
+    try
     {
       threadRequests.remove(threadID);
-      notifyAll();
+      condition.signalAll();
+    }
+    finally
+    {
+      lock.unlock();
     }
   }
   
@@ -211,7 +236,8 @@ public class LockGate
   public void leaveWriteLock()
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
-    synchronized (this)
+    lock.lock();
+    try
     {
       // Leave, and if we succeed, flush from pool.
       if (lockObject.leaveWriteLock())
@@ -219,6 +245,10 @@ public class LockGate
         if (threadRequests.size() == 0 && lockPool != null)
           lockPool.releaseObject(lockKey, this);
       }
+    }
+    finally
+    {
+      lock.unlock();
     }
   }
   
@@ -253,7 +283,8 @@ public class LockGate
   public void leaveNonExWriteLock()
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
-    synchronized (this)
+    lock.lock();
+    try
     {
       // Leave, and if we succeed, flush from pool.
       if (lockObject.leaveNonExWriteLock())
@@ -261,6 +292,10 @@ public class LockGate
         if (threadRequests.size() == 0 && lockPool != null)
           lockPool.releaseObject(lockKey, this);
       }
+    }
+    finally
+    {
+      lock.unlock();
     }
   }
 
@@ -296,13 +331,18 @@ public class LockGate
     throws ManifoldCFException, InterruptedException, ExpiredObjectException
   {
     // Leave, and if we succeed (and the thread queue is empty), flush from pool.
-    synchronized (this)
+    lock.lock();
+    try
     {
       if (lockObject.leaveReadLock())
       {
         if (threadRequests.size() == 0 && lockPool != null)
           lockPool.releaseObject(lockKey, this);
       }
+    }
+    finally
+    {
+      lock.unlock();
     }
   }
 

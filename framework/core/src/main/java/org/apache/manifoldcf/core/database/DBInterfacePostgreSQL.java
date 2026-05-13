@@ -1515,7 +1515,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       {
         // Look for this parameter; if we don't find it, use a default value.
         reindexThreshold = lockManager.getSharedConfiguration().getIntProperty("org.apache.manifoldcf.db.postgres.reindex."+tableName,250000);
-        reindexThresholds.put(tableName,new Integer(reindexThreshold));
+        reindexThresholds.put(tableName,Integer.valueOf(reindexThreshold));
       }
       else
         reindexThreshold = threshold.intValue();
@@ -1572,7 +1572,7 @@ public class DBInterfacePostgreSQL extends Database implements IDBInterface
       {
         // Look for this parameter; if we don't find it, use a default value.
         analyzeThreshold = lockManager.getSharedConfiguration().getIntProperty("org.apache.manifoldcf.db.postgres.analyze."+tableName,2000);
-        analyzeThresholds.put(tableName,new Integer(analyzeThreshold));
+        analyzeThresholds.put(tableName,Integer.valueOf(analyzeThreshold));
       }
       else
         analyzeThreshold = threshold.intValue();

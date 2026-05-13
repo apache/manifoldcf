@@ -31,14 +31,14 @@ public class Converter
   public static double asDouble(Object o)
     throws ManifoldCFException
   {
-    if (o instanceof Double)
-      return ((Double)o).doubleValue();
-    if (o instanceof String)
-      return new Double((String)o).doubleValue();
-    if (o instanceof Float)
-      return (double)((Float)o).floatValue();
-    if (o instanceof Long)
-      return (double)((Long)o).longValue();
+    if (o instanceof Double d)
+      return d;
+    if (o instanceof String s)
+      return Double.parseDouble(s);
+    if (o instanceof Float f)
+      return f.doubleValue();
+    if (o instanceof Long l)
+      return l.doubleValue();
     throw new ManifoldCFException("Can't convert to double");
   }
 
@@ -47,14 +47,14 @@ public class Converter
   public static long asLong(Object o)
     throws ManifoldCFException
   {
-    if (o instanceof Long)
-      return ((Long)o).longValue();
-    if (o instanceof Double)
-      return (long)((Double)o).doubleValue();
-    if (o instanceof String)
-      return new Long((String)o).longValue();
-    if (o instanceof Float)
-      return (long)((Float)o).floatValue();
+    if (o instanceof Long l)
+      return l;
+    if (o instanceof Double d)
+      return d.longValue();
+    if (o instanceof String s)
+      return Long.parseLong(s);
+    if (o instanceof Float f)
+      return f.longValue();
     throw new ManifoldCFException("Can't convert to long");
   }
 

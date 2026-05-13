@@ -220,7 +220,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
           Cookie c = cookies.getCookie(i);
           HashMap map = new HashMap();
           map.put(keyField,sessionKey);
-          map.put(ordinalField,new Long(i));
+          map.put(ordinalField,Long.valueOf(i));
           String domain = c.getDomain();
           if (domain != null && domain.length() > 0)
             map.put(domainField,domain);
@@ -235,7 +235,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
           if (path != null && path.length() > 0)
             map.put(pathField,path);
           map.put(pathSpecifiedField,booleanToString(path != null && path.length() > 0));
-          map.put(versionField,new Long(c.getVersion()));
+          map.put(versionField,Long.valueOf(c.getVersion()));
           // Make something up.  It may not be correct, but there's really no choice.
           map.put(versionSpecifiedField,booleanToString(true));
           String comment = c.getComment();
@@ -244,7 +244,7 @@ public class CookieManager extends org.apache.manifoldcf.core.database.BaseTable
           map.put(secureField,booleanToString(c.isSecure()));
           Date expirationDate = c.getExpiryDate();
           if (expirationDate != null)
-            map.put(expirationDateField,new Long(expirationDate.getTime()));
+            map.put(expirationDateField,Long.valueOf(expirationDate.getTime()));
           //map.put(discardField,booleanToString(!c.isPersistent()));
           map.put(discardField,booleanToString(false));
           String commentURL = c.getCommentURL();

@@ -95,7 +95,7 @@
 	<property name="junit-jupiter.version" value="5.13.4"/>
 	<property name="junit-jupiter-platform-commons.version" value="1.13.4"/>
 	<property name="apiguardian.version" value="1.1.2"/>
-    <property name="selenium.version" value="3.13.0"/>
+    <property name="selenium.version" value="4.21.0"/>
     <property name="hamcrest.version" value="1.3"/>
     <property name="log4j12.version" value="1.2.17"/>
     <property name="log4j.version" value="2.17.2"/>
@@ -1991,12 +1991,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/seleniumhq/selenium"/>
             <param name="artifact-version" value="${selenium.version}"/>
-            <param name="artifact-name" value="selenium-opera-driver"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="target" value="lib"/>
-            <param name="project-path" value="org/seleniumhq/selenium"/>
-            <param name="artifact-version" value="${selenium.version}"/>
             <param name="artifact-name" value="selenium-safari-driver"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -2004,6 +1998,30 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="org/seleniumhq/selenium"/>
             <param name="artifact-version" value="${selenium.version}"/>
             <param name="artifact-name" value="selenium-support"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-chromium-driver"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-http"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-json"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/seleniumhq/selenium"/>
+            <param name="artifact-version" value="${selenium.version}"/>
+            <param name="artifact-name" value="selenium-manager"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>

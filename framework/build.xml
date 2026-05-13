@@ -286,6 +286,7 @@
             <classpath>
                 <path refid="framework-classpath"/>
             </classpath>
+            <compilerarg value="--enable-preview"/>
         </javac>
     </target>
 

@@ -31,6 +31,7 @@ import org.apache.manifoldcf.crawler.system.ManifoldCF;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.StructuredTaskScope;
 import java.io.*;
 import java.util.zip.GZIPInputStream;
 import java.util.concurrent.TimeUnit;
@@ -304,6 +305,8 @@ public class ThrottledFetcher
 
     /** The thread that is actually doing the work */
     protected ExecuteMethodThread methodThread = null;
+    /** The actual virtual thread reference */
+    protected Thread methodThreadRef = null;
     /** Set if thread has been started */
     protected boolean threadStarted = false;
     
@@ -697,7 +700,7 @@ public class ThrottledFetcher
       methodThread = new ExecuteMethodThread(this, fetchThrottler, httpClient, hostHost, fetchMethod, cookieStore);
       try
       {
-        methodThread.start();
+        methodThreadRef = Thread.ofVirtual().name("ExecuteMethod thread").start(methodThread);
         threadStarted = true;
         try
         {
@@ -728,8 +731,9 @@ public class ThrottledFetcher
         }
         catch (InterruptedException e)
         {
-          methodThread.interrupt();
+          if (methodThreadRef != null) methodThreadRef.interrupt();
           methodThread = null;
+          methodThreadRef = null;
           threadStarted = false;
           throw e;
         }
@@ -854,7 +858,7 @@ public class ThrottledFetcher
       }
       catch (InterruptedException e)
       {
-        methodThread.interrupt();
+        if (methodThreadRef != null) methodThreadRef.interrupt();
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (HttpException e)
@@ -886,7 +890,7 @@ public class ThrottledFetcher
       }
       catch (InterruptedException e)
       {
-        methodThread.interrupt();
+        if (methodThreadRef != null) methodThreadRef.interrupt();
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (HttpException e)
@@ -922,7 +926,7 @@ public class ThrottledFetcher
       }
       catch (InterruptedException e)
       {
-        methodThread.interrupt();
+        if (methodThreadRef != null) methodThreadRef.interrupt();
         throw new ManifoldCFException("Interrupted: "+e.getMessage(),e,ManifoldCFException.INTERRUPTED);
       }
       catch (IOException e)
@@ -1011,7 +1015,7 @@ public class ThrottledFetcher
           {
             try
             {
-              methodThread.finishUp();
+              if (methodThreadRef != null) methodThreadRef.join();
             }
             catch (InterruptedException e)
             {
@@ -1020,6 +1024,7 @@ public class ThrottledFetcher
             threadStarted = false;
           }
           methodThread = null;
+          methodThreadRef = null;
         }
         
         fetchMethod = null;
@@ -1067,7 +1072,7 @@ public class ThrottledFetcher
       }
       if (e instanceof InterruptedIOException)
       {
-        methodThread.interrupt();
+        if (methodThreadRef != null) methodThreadRef.interrupt();
         throw new ManifoldCFException("Interrupted",ManifoldCFException.INTERRUPTED);
       }
       if (e instanceof NoHttpResponseException)
@@ -1346,7 +1351,7 @@ public class ThrottledFetcher
   * thread, and tries to get a response code.  If instead an exception is seen,
   * the exception is thrown up the stack.
   */
-  protected static class ExecuteMethodThread extends Thread
+  protected static class ExecuteMethodThread implements Runnable
   {
     /** The connection */
     protected final ThrottledConnection theConnection;
@@ -1377,8 +1382,6 @@ public class ThrottledFetcher
     public ExecuteMethodThread(ThrottledConnection theConnection, IFetchThrottler fetchThrottler,
       HttpClient httpClient, HttpHost target, HttpRequestBase executeMethod, CookieStore cookieStore)
     {
-      super();
-      setDaemon(true);
       this.theConnection = theConnection;
       this.fetchThrottler = fetchThrottler;
       this.httpClient = httpClient;
@@ -1711,15 +1714,8 @@ public class ThrottledFetcher
         abortThread = true;
       }
     }
-    
-    public void finishUp()
-      throws InterruptedException
-    {
-      join();
-    }
-    
-    protected synchronized void checkException(Throwable exception)
-      throws IOException, HttpException
+
+    protected synchronized void checkException(Throwable exception)      throws IOException, HttpException
     {
       if (exception != null)
       {

@@ -27,6 +27,7 @@ import org.apache.manifoldcf.authorities.system.AuthRequest;
 import org.apache.manifoldcf.authorities.system.MappingRequest;
 import org.apache.manifoldcf.core.util.URLEncoder;
 
+import java.util.concurrent.StructuredTaskScope;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -200,9 +201,9 @@ public class UserACLServlet extends HttpServlet
       IMappingConnection[] mappingConnections = mappingConnManager.getAllConnections();
       
       // One thread per connection, which is responsible for starting the mapping process when it is ready.
-      List<MappingOrderThread> mappingThreads = new ArrayList<MappingOrderThread>();
+      List<MappingOrderThread> mappingThreads = new ArrayList<>();
       // One thread per authority, which is responsible for starting the auth request when it is ready.
-      List<AuthOrderThread> authThreads = new ArrayList<AuthOrderThread>();
+      List<AuthOrderThread> authThreads = new ArrayList<>();
 
       Map<MapperDescription,MappingRequest> mappingRequests = new HashMap<MapperDescription,MappingRequest>();
       Map<String,AuthRequest> authRequests = new HashMap<String,AuthRequest>();
@@ -247,10 +248,10 @@ public class UserACLServlet extends HttpServlet
           else
           {
             MapperDescription md = new MapperDescription(thisConnection.getPrerequisiteMapping(),authDomain);
-            AuthOrderThread thread = new AuthOrderThread(identifyingString,
+            AuthOrderThread aot = new AuthOrderThread(identifyingString,
               ar, md,
               queue, mappingRequests);
-            authThreads.add(thread);
+            authThreads.add(aot);
             // The same mapper can be used for multiple domains, although this is likely to be uncommon.  Nevertheless,
             // mapper invocations need to be segregated to prevent trouble
             activeConnections.add(md);
@@ -284,34 +285,38 @@ public class UserACLServlet extends HttpServlet
         {
           //System.out.println("Mapper: prerequisite found: '"+thisConnection.getPrerequisiteMapping()+"'");
           MapperDescription p = new MapperDescription(thisConnection.getPrerequisiteMapping(),authDomain);
-          MappingOrderThread thread = new MappingOrderThread(identifyingString,
+          MappingOrderThread mot = new MappingOrderThread(identifyingString,
             mr, p, mappingQueue, mappingRequests);
-          mappingThreads.add(thread);
+          mappingThreads.add(mot);
           if (mappingRequests.get(p) == null)
             activeConnections.add(p);
         }
         activeConnections.remove(mapperDesc);
       }
       
-      // Start threads.  We have to wait until all the requests have been
-      // at least created before we do this.
-      for (MappingOrderThread thread : mappingThreads)
+      // Use Structured Concurrency to run the tasks and ensure cleanup
+      try (var scope = new StructuredTaskScope.ShutdownOnFailure())
       {
-        thread.start();
+        for (MappingOrderThread mot : mappingThreads)
+        {
+          scope.fork(() -> {
+            mot.run();
+            return null;
+          });
+        }
+        for (AuthOrderThread aot : authThreads)
+        {
+          scope.fork(() -> {
+            aot.run();
+            return null;
+          });
+        }
+        scope.join();
+        scope.throwIfFailed();
       }
-      for (AuthOrderThread thread : authThreads)
+      catch (Exception e)
       {
-        thread.start();
-      }
-      
-      // Wait for the threads to finish up.  This will guarantee that all entities have run to completion.
-      for (MappingOrderThread thread : mappingThreads)
-      {
-        thread.finishUp();
-      }
-      for (AuthOrderThread thread : authThreads)
-      {
-        thread.finishUp();
+        Logging.authorityService.error("Structured Task Scope error: "+e.getMessage(), e);
       }
       
       // This is probably unnecessary, but we do it anyway just to adhere to the contract
@@ -488,7 +493,7 @@ public class UserACLServlet extends HttpServlet
   * {@literal<number_of_app_server_threads> * <number_of_mappers>}.  I will try later to see if I can find
   * a way of limiting this to sane numbers.
   */
-  protected static class MappingOrderThread extends Thread
+  protected static class MappingOrderThread implements Runnable
   {
     protected final MappingRequest request;
     protected final MapperDescription prerequisite;
@@ -496,7 +501,7 @@ public class UserACLServlet extends HttpServlet
     protected final RequestQueue<MappingRequest> mappingRequestQueue;
 
     protected Throwable exception = null;
-    
+
     public MappingOrderThread(
       String identifyingString,
       MappingRequest request,
@@ -504,15 +509,13 @@ public class UserACLServlet extends HttpServlet
       RequestQueue<MappingRequest> mappingRequestQueue,
       Map<MapperDescription, MappingRequest> requests)
     {
-      super();
       this.request = request;
       this.prerequisite = prerequisite;
       this.mappingRequestQueue = mappingRequestQueue;
       this.requests = requests;
-      setName("Constraint matcher for mapper '"+identifyingString+"'");
-      setDaemon(true);
     }
-    
+
+    @Override
     public void run()
     {
       try
@@ -529,19 +532,6 @@ public class UserACLServlet extends HttpServlet
       }
     }
 
-    public void finishUp()
-      throws InterruptedException
-    {
-      join();
-      if (exception != null)
-      {
-        if (exception instanceof Error)
-          throw (Error)exception;
-        else if (exception instanceof RuntimeException)
-          throw (RuntimeException)exception;
-      }
-    }
-    
   }
 
   /** This thread is responsible for making sure that the constraints for a given authority connection
@@ -551,15 +541,15 @@ public class UserACLServlet extends HttpServlet
   * {@literal<number_of_app_server_threads> * <number_of_authorities>}.  I will try later to see if I can find
   * a way of limiting this to sane numbers.
   */
-  protected static class AuthOrderThread extends Thread
+  protected static class AuthOrderThread implements Runnable
   {
     protected final AuthRequest request;
     protected final MapperDescription prerequisite;
     protected final Map<MapperDescription,MappingRequest> mappingRequests;
     protected final RequestQueue<AuthRequest> authRequestQueue;
-    
+
     protected Throwable exception = null;
-    
+
     public AuthOrderThread(
       String identifyingString,
       AuthRequest request,
@@ -567,15 +557,13 @@ public class UserACLServlet extends HttpServlet
       RequestQueue<AuthRequest> authRequestQueue,
       Map<MapperDescription, MappingRequest> mappingRequests)
     {
-      super();
       this.request = request;
       this.prerequisite = prerequisite;
       this.authRequestQueue = authRequestQueue;
       this.mappingRequests = mappingRequests;
-      setName("Constraint matcher for authority '"+identifyingString+"'");
-      setDaemon(true);
     }
-    
+
+    @Override
     public void run()
     {
       try
@@ -592,19 +580,6 @@ public class UserACLServlet extends HttpServlet
       }
     }
 
-    public void finishUp()
-      throws InterruptedException
-    {
-      join();
-      if (exception != null)
-      {
-        if (exception instanceof Error)
-          throw (Error)exception;
-        else if (exception instanceof RuntimeException)
-          throw (RuntimeException)exception;
-      }
-    }
-    
   }
   
 }

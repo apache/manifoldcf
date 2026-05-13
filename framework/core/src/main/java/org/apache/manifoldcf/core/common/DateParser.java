@@ -100,18 +100,18 @@ public class DateParser
   protected static HashMap monthMap = new HashMap();
   static
   {
-    monthMap.put("jan",new Integer(1));
-    monthMap.put("feb",new Integer(2));
-    monthMap.put("mar",new Integer(3));
-    monthMap.put("apr",new Integer(4));
-    monthMap.put("may",new Integer(5));
-    monthMap.put("jun",new Integer(6));
-    monthMap.put("jul",new Integer(7));
-    monthMap.put("aug",new Integer(8));
-    monthMap.put("sep",new Integer(9));
-    monthMap.put("oct",new Integer(10));
-    monthMap.put("nov",new Integer(11));
-    monthMap.put("dec",new Integer(12));
+    monthMap.put("jan",Integer.valueOf(1));
+    monthMap.put("feb",Integer.valueOf(2));
+    monthMap.put("mar",Integer.valueOf(3));
+    monthMap.put("apr",Integer.valueOf(4));
+    monthMap.put("may",Integer.valueOf(5));
+    monthMap.put("jun",Integer.valueOf(6));
+    monthMap.put("jul",Integer.valueOf(7));
+    monthMap.put("aug",Integer.valueOf(8));
+    monthMap.put("sep",Integer.valueOf(9));
+    monthMap.put("oct",Integer.valueOf(10));
+    monthMap.put("nov",Integer.valueOf(11));
+    monthMap.put("dec",Integer.valueOf(12));
   }
 
   protected static final HashMap milTzMap;

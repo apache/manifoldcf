@@ -13,7 +13,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
 
-  <artifactId>mcf-tika-service-rmeta-connector</artifactId>
+  <artifactId>mcf-tikaservice-rmeta-connector</artifactId>
   <name>ManifoldCF - Connectors - Tika Service (rmeta) Transformer</name>
 
   <build>
