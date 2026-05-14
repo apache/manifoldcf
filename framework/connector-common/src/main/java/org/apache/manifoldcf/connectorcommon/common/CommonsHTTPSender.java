@@ -174,7 +174,8 @@ public class CommonsHTTPSender extends BasicHandler {
       //  HttpProtocolParams.setVersion(method.getParams(),new ProtocolVersion("HTTP",1,0));
 
       BackgroundHTTPThread methodThread = new BackgroundHTTPThread(httpClient,method);
-      Thread vThread = Thread.ofVirtual().name("HTTP request").start(methodThread);
+      Thread vThread = new Thread(methodThread, "HTTP request");
+      vThread.start();
       try
       {
         int returnCode = methodThread.getResponseCode();

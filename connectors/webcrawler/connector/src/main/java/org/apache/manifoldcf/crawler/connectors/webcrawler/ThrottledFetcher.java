@@ -700,7 +700,8 @@ public class ThrottledFetcher
       methodThread = new ExecuteMethodThread(this, fetchThrottler, httpClient, hostHost, fetchMethod, cookieStore);
       try
       {
-        methodThreadRef = Thread.ofVirtual().name("ExecuteMethod thread").start(methodThread);
+        methodThreadRef = new Thread(methodThread, "ExecuteMethod thread");
+        methodThreadRef.start();
         threadStarted = true;
         try
         {
