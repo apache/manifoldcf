@@ -441,7 +441,7 @@ public abstract class ModifiedCloudSolrClient extends SolrClient {
     final long start = System.nanoTime();
 
     if (parallelUpdates) {
-      try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+      try (var scope = StructuredTaskScope.open()) {
         final Map<String, StructuredTaskScope.Subtask<NamedList<?>>> subtasks = new HashMap<>(routes.size());
         for (final Map.Entry<String, ? extends ModifiedLBSolrClient.Req> entry : routes.entrySet()) {
           final String url = entry.getKey();
@@ -456,14 +456,18 @@ public abstract class ModifiedCloudSolrClient extends SolrClient {
           }));
         }
 
-        scope.join();
+        try {
+          scope.join();
+        } catch (java.util.concurrent.StructuredTaskScope.FailedException e) {
+          // Exception caught, but we will iterate over subtasks to collect exceptions
+        }
         
         for (final Map.Entry<String, StructuredTaskScope.Subtask<NamedList<?>>> entry : subtasks.entrySet()) {
           final String url = entry.getKey();
           final StructuredTaskScope.Subtask<NamedList<?>> subtask = entry.getValue();
           if (subtask.state() == StructuredTaskScope.Subtask.State.SUCCESS) {
             shardResponses.add(url, subtask.get());
-          } else {
+          } else if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED) {
             exceptions.add(url, subtask.exception());
           }
         }

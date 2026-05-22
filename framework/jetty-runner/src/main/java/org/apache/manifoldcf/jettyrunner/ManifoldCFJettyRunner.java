@@ -42,6 +42,9 @@ import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.handler.ShutdownHandler;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+
+import java.util.concurrent.Executors;
 
 import org.eclipse.jetty.ee10.apache.jsp.JettyJasperInitializer;
 import org.eclipse.jetty.ee10.jsp.JettyJspServlet;
@@ -80,7 +83,12 @@ public class ManifoldCFJettyRunner
   
   public ManifoldCFJettyRunner( int port, String crawlerWarPath, String authorityServiceWarPath, String apiWarPath, boolean useParentLoader )
   {
-    server = new Server( port );
+    QueuedThreadPool threadPool = new QueuedThreadPool();
+    threadPool.setVirtualThreadsExecutor(Executors.newVirtualThreadPerTaskExecutor());
+    server = new Server( threadPool );
+    ServerConnector connector = new ServerConnector(server);
+    connector.setPort(port);
+    server.addConnector(connector);
     initializeServer(crawlerWarPath, authorityServiceWarPath, apiWarPath, useParentLoader);
   }
   

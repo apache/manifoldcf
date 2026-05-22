@@ -295,7 +295,7 @@ public class UserACLServlet extends HttpServlet
       }
       
       // Use Structured Concurrency to run the tasks and ensure cleanup
-      try (var scope = new StructuredTaskScope.ShutdownOnFailure())
+      try (var scope = StructuredTaskScope.open())
       {
         for (MappingOrderThread mot : mappingThreads)
         {
@@ -312,7 +312,6 @@ public class UserACLServlet extends HttpServlet
           });
         }
         scope.join();
-        scope.throwIfFailed();
       }
       catch (Exception e)
       {

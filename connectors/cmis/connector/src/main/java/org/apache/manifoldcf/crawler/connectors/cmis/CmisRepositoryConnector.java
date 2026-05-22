@@ -294,12 +294,12 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
   public void disconnect() throws ManifoldCFException {
     if (session != null) {
       DestroySessionThread t = new DestroySessionThread();
-      try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+      try (var scope = StructuredTaskScope.open()) {
         StructuredTaskScope.Subtask<Void> subtask = scope.fork(() -> {
           t.run();
           return null;
         });
-        scope.join();
+        try { scope.join(); } catch(java.util.concurrent.StructuredTaskScope.FailedException e) {}
         if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED) {
           Throwable thr = subtask.exception();
           if (thr != null) {
@@ -428,12 +428,12 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
 
       long currentTime;
       GetSessionThread t = new GetSessionThread();
-      try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+      try (var scope = StructuredTaskScope.open()) {
         StructuredTaskScope.Subtask<Void> subtask = scope.fork(() -> {
           t.run();
           return null;
         });
-        scope.join();
+        try { scope.join(); } catch(java.util.concurrent.StructuredTaskScope.FailedException e) {}
         if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED) {
           Throwable thr = subtask.exception();
           if (thr != null) {
@@ -507,12 +507,12 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     long currentTime = System.currentTimeMillis();
     if (currentTime >= lastSessionFetch + timeToRelease) {
       DestroySessionThread t = new DestroySessionThread();
-      try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+      try (var scope = StructuredTaskScope.open()) {
         StructuredTaskScope.Subtask<Void> subtask = scope.fork(() -> {
           t.run();
           return null;
         });
-        scope.join();
+        try { scope.join(); } catch(java.util.concurrent.StructuredTaskScope.FailedException e) {}
         if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED) {
           Throwable thr = subtask.exception();
           if (thr != null) {
@@ -559,12 +559,12 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
       getSession();
       long currentTime;
       CheckConnectionThread t = new CheckConnectionThread();
-      try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+      try (var scope = StructuredTaskScope.open()) {
         StructuredTaskScope.Subtask<Void> subtask = scope.fork(() -> {
           t.run();
           return null;
         });
-        scope.join();
+        try { scope.join(); } catch(java.util.concurrent.StructuredTaskScope.FailedException e) {}
         if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED) {
           Throwable thr = subtask.exception();
           if (thr != null) {
@@ -621,12 +621,12 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
     long currentTime = System.currentTimeMillis();
     if (currentTime >= lastSessionFetch + timeToRelease) {
       DestroySessionThread t = new DestroySessionThread();
-      try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+      try (var scope = StructuredTaskScope.open()) {
         StructuredTaskScope.Subtask<Void> subtask = scope.fork(() -> {
           t.run();
           return null;
         });
-        scope.join();
+        try { scope.join(); } catch(java.util.concurrent.StructuredTaskScope.FailedException e) {}
         if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED) {
           Throwable thr = subtask.exception();
           if (thr != null) {

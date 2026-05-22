@@ -99,7 +99,9 @@ public class InterruptibleSocketFactory extends javax.net.ssl.SSLSocketFactory
   protected Socket fireOffThread(InetAddress address, int port, InetAddress localHost, int localPort)
     throws IOException
   {
-    try (var scope = new StructuredTaskScope.ShutdownOnFailure())
+    try (var scope = StructuredTaskScope.open(
+            StructuredTaskScope.Joiner.<Socket>awaitAllSuccessfulOrThrow(),
+            config -> config.withTimeout(java.time.Duration.ofMillis(connectTimeoutMilliseconds))))
     {
       StructuredTaskScope.Subtask<Socket> subtask = scope.fork(() -> {
         if (localHost == null)
@@ -110,38 +112,29 @@ public class InterruptibleSocketFactory extends javax.net.ssl.SSLSocketFactory
 
       try
       {
-        scope.joinUntil(Instant.now().plusMillis(connectTimeoutMilliseconds));
-        
-        if (subtask.state() == StructuredTaskScope.Subtask.State.SUCCESS)
-        {
-          return subtask.get();
-        }
-        else if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED)
-        {
-          Throwable t = subtask.exception();
-          if (t instanceof java.net.SocketTimeoutException)
-            throw (java.net.SocketTimeoutException)t;
-          else if (t instanceof ConnectTimeoutException)
-            throw (ConnectTimeoutException)t;
-          else if (t instanceof InterruptedIOException)
-            throw (InterruptedIOException)t;
-          else if (t instanceof IOException)
-            throw (IOException)t;
-          else if (t instanceof Error)
-            throw (Error)t;
-          else if (t instanceof RuntimeException)
-            throw (RuntimeException)t;
-          throw new Error("Received an unexpected exception: "+t.getMessage(),t);
-        }
-        else
-        {
-           // Should not happen after join
-           throw new IOException("Socket creation failed with unexpected state: " + subtask.state());
-        }
+        scope.join();
+        return subtask.get();
       }
-      catch (TimeoutException e)
+      catch (java.util.concurrent.StructuredTaskScope.TimeoutException e)
       {
-        throw new ConnectTimeoutException("Secure connection timed out");
+        throw new ConnectTimeoutException("Secure connection timed out: " + e.getMessage());
+      }
+      catch (java.util.concurrent.StructuredTaskScope.FailedException e)
+      {
+        Throwable t = e.getCause();
+        if (t instanceof java.net.SocketTimeoutException)
+          throw (java.net.SocketTimeoutException)t;
+        else if (t instanceof ConnectTimeoutException)
+          throw (ConnectTimeoutException)t;
+        else if (t instanceof InterruptedIOException)
+          throw (InterruptedIOException)t;
+        else if (t instanceof IOException)
+          throw (IOException)t;
+        else if (t instanceof Error)
+          throw (Error)t;
+        else if (t instanceof RuntimeException)
+          throw (RuntimeException)t;
+        throw new Error("Received an unexpected exception: "+t.getMessage(),t);
       }
       catch (InterruptedException e)
       {

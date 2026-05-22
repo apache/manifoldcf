@@ -143,8 +143,8 @@ public class AgentsDaemon
     throws ManifoldCFException
   {
     // Create idle cleanup thread.
-    idleCleanupThread = new IdleCleanupThread(processID);
-    agentsThread = new AgentsThread();
+    idleCleanupThread = Thread.ofVirtual().name("Idle cleanup thread").unstarted(new IdleCleanupThread(processID));
+    agentsThread = Thread.ofVirtual().name("Agents thread").unstarted(new AgentsThread());
     // Create and start agents thread.
     idleCleanupThread.start();
     agentsThread.start();
