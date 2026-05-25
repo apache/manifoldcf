@@ -363,6 +363,7 @@
     <target name="compile-authority-servlet" depends="compile-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/authority-servlet/classes"/>
         <javac srcdir="authority-servlet/src/main/java" destdir="build/authority-servlet/classes" deprecation="true" target="25" source="25" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+            <compilerarg value="--enable-preview"/>
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>
@@ -444,6 +445,7 @@
     <target name="compile-crawler-ui" depends="less-compiler-invocation,compile-core,compile-ui-core,compile-agents,compile-pull-agent">
         <mkdir dir="build/crawler-ui/classes"/>
         <javac srcdir="crawler-ui/src/main/java" destdir="build/crawler-ui/classes" deprecation="true" target="25" source="25" debug="true" encoding="utf-8" debuglevel="lines,vars,source">
+            <compilerarg value="--enable-preview"/>
             <classpath>
                 <path refid="framework-classpath"/>
                 <pathelement location="build/core/classes"/>

@@ -171,7 +171,7 @@
     <property name="quartz.version" value="2.3.2"/>
     <property name="boilerpipe.version" value="1.1.0"/>
     <property name="dom4j.version" value="1.6.1"/>
-    <property name="asm.version" value="9.7"/>
+    <property name="asm.version" value="9.10"/>
     <property name="xmpcore.version" value="6.1.11"/>
     <property name="mchange-commons-java.version" value="0.2.19"/>
     <property name="dd-plist.version" value="1.23"/>
@@ -1437,9 +1437,18 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <mkdir dir="lib"/>
         <property name="jetty-package" value="org/eclipse/jetty"/>
         <property name="jetty-ee10-package" value="org/eclipse/jetty/ee10"/>
+        <property name="jetty-ee-package" value="org/eclipse/jetty/ee"/>
         <property name="jetty-http2-package" value="org/eclipse/jetty/http2"/>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-ee10-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-ee10-apache-jsp"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-ee-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-ee-webapp"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-ee-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-ee-core"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-ee10-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
@@ -1502,10 +1511,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-session"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="jetty-ee"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
