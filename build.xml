@@ -17,10 +17,6 @@
 
 <project name="manifoldcf" default="help">
 
-    <presetdef name="javac">
-      <javac includeantruntime="false" />
-    </presetdef>
-
     <import file="site-options.xml" optional="true"/>
 
     <import file="common-build.xml"/>
@@ -31,7 +27,7 @@
 
     <property name="javax-activation.version" value="1.2.0"/>
     <property name="hsqldb.version" value="2.6.1"/>
-    <property name="jetty.version" value="12.0.10"/>
+    <property name="jetty.version" value="12.1.8"/>
     <property name="httpclient.version" value="4.5.13"/>
     <property name="httpmime.version" value="4.5.13"/>
     <property name="httpcore.version" value="4.4.15"/>
@@ -58,7 +54,7 @@
     <property name="commons-logging.version" value="1.2"/>
     <property name="commons-configuration.version" value="1.6"/>
     <property name="commons-cli.version" value="1.2"/>
-    <property name="slf4j.version" value="1.7.36"/>
+    <property name="slf4j.version" value="2.0.13"/>
     <property name="xalan.version" value="2.7.1"/>
     <property name="poi.version" value="4.1.2"/>
     <property name="avalon.version" value="4.3.1"/>
@@ -98,7 +94,7 @@
     <property name="selenium.version" value="4.21.0"/>
     <property name="hamcrest.version" value="1.3"/>
     <property name="log4j12.version" value="1.2.17"/>
-    <property name="log4j.version" value="2.17.2"/>
+    <property name="log4j.version" value="2.25.4"/>
     <property name="mail.version" value="2.1.3"/>
     <property name="mimepull.version" value="1.9.11"/>
     <property name="opensaml.version" value="1.1"/>
@@ -133,7 +129,7 @@
     <property name="jetty-schemas.version" value="5.0"/>
     <property name="alfresco-indexer.version" value="0.8.1"/>
     <property name="gson.version" value="2.8.0"/>
-    <property name="guava.version" value="25.1-jre"/>
+    <property name="guava.version" value="21.0"/>
     <property name="mockito.version" value="5.20.0"/>
 	<property name="bytebuddy.version" value="1.17.7"/>
     <property name="wiremock.version" value="3.13.1"/>
@@ -1420,10 +1416,6 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j.version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="slf4j-simple"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${slf4j-package}"/><param name="artifact-version" value="${slf4j.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jcl-over-slf4j"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
@@ -1439,16 +1431,13 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <property name="jetty-ee10-package" value="org/eclipse/jetty/ee10"/>
         <property name="jetty-ee-package" value="org/eclipse/jetty/ee"/>
         <property name="jetty-http2-package" value="org/eclipse/jetty/http2"/>
+        <property name="jetty-compression-package" value="org/eclipse/jetty/compression"/>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-ee10-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-ee10-apache-jsp"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-ee-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-ee-webapp"/>
-            <param name="artifact-type" value="jar"/>
-        </antcall>
-        <antcall target="download-via-maven"><param name="project-path" value="${jetty-ee-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
-            <param name="artifact-name" value="jetty-ee-core"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-ee10-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
@@ -1521,7 +1510,11 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="artifact-name" value="jetty-jndi"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
-
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-annotations"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        
         <!-- EE10 support for Jetty 12 -->
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-ee10-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-ee10-webapp"/>
@@ -1545,6 +1538,15 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         </antcall>
         <antcall target="download-via-maven"><param name="project-path" value="${jetty-ee10-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
             <param name="artifact-name" value="jetty-ee10-servlets"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-compression-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-compression-gzip"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="project-path" value="${jetty-compression-package}"/><param name="artifact-version" value="${jetty.version}"/><param name="target" value="lib"/>
+            <param name="artifact-name" value="jetty-compression-common"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
 
@@ -2108,6 +2110,18 @@ Use Apache Forrest version forrest-0.9-dev or higher.
             <param name="project-path" value="org/apache/logging/log4j"/>
             <param name="artifact-version" value="${log4j.version}"/>
             <param name="artifact-name" value="log4j-1.2-api"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/logging/log4j"/>
+            <param name="artifact-version" value="${log4j.version}"/>
+            <param name="artifact-name" value="log4j-slf4j2-impl"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/logging/log4j"/>
+            <param name="artifact-version" value="${log4j.version}"/>
+            <param name="artifact-name" value="log4j-jcl"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
     </target>

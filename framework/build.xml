@@ -1443,7 +1443,6 @@
             <include name="zookeeper*.jar"/>
             <include name="netty-handler*.jar"/>
             <include name="slf4j-api*.jar"/>
-            <include name="slf4j-simple*.jar"/>
             <include name="log4j-1.2.*.jar"/>
         </fileset>
     </path>
@@ -1475,7 +1474,6 @@
             <include name="ecj-*.jar"/>            <include name="ecj*.jar"/>
             <include name="velocity*.jar"/>
             <include name="slf4j-api*.jar"/>
-            <include name="slf4j-simple*.jar"/>
             <include name="httpcore*.jar"/>
             <include name="httpclient*.jar"/>
             <include name="httpmime*.jar"/>            
