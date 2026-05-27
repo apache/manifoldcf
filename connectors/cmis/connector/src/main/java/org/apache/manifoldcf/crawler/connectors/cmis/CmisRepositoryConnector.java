@@ -305,16 +305,26 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           if (thr != null) {
             if (thr instanceof RemoteException)
               throw (RemoteException) thr;
-            else
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException) thr;
+            else if (thr instanceof Error)
               throw (Error) thr;
+            else
+              throw new ManifoldCFException("CMIS: Unexpected error during getting a new session: " + thr.getMessage(),
+                  thr);
           }
         } else {
           Throwable thr = t.getException();
           if (thr != null) {
             if (thr instanceof RemoteException)
               throw (RemoteException) thr;
-            else
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException) thr;
+            else if (thr instanceof Error)
               throw (Error) thr;
+            else
+              throw new ManifoldCFException("CMIS: Unexpected error during getting a new session: " + thr.getMessage(),
+                  thr);
           }
         }
         session = null;
@@ -447,8 +457,13 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
               throw new ManifoldCFException("CMIS: Error during getting a new session: " + thr.getMessage(), thr);
             else if (thr instanceof CmisPermissionDeniedException)
               throw new ManifoldCFException("CMIS: Wrong credentials during getting a new session: " + thr.getMessage(), thr);
-            else
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException) thr;
+            else if (thr instanceof Error)
               throw (Error) thr;
+            else
+              throw new ManifoldCFException("CMIS: Unexpected error during getting a new session: " + thr.getMessage(),
+                  thr);
           }
         } else {
           Throwable thr = t.getException();
@@ -463,8 +478,13 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
               throw new ManifoldCFException("CMIS: Error during getting a new session: " + thr.getMessage(), thr);
             else if (thr instanceof CmisPermissionDeniedException)
               throw new ManifoldCFException("CMIS: Wrong credentials during getting a new session: " + thr.getMessage(), thr);
-            else
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException) thr;
+            else if (thr instanceof Error)
               throw (Error) thr;
+            else
+              throw new ManifoldCFException("CMIS: Unexpected error during getting a new session: " + thr.getMessage(),
+                  thr);
           }
         }
       } catch (InterruptedException e) {
@@ -518,16 +538,26 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           if (thr != null) {
             if (thr instanceof RemoteException)
               throw (RemoteException) thr;
-            else
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException) thr;
+            else if (thr instanceof Error)
               throw (Error) thr;
+            else
+              throw new ManifoldCFException("CMIS: Unexpected error during getting a new session: " + thr.getMessage(),
+                  thr);
           }
         } else {
           Throwable thr = t.getException();
           if (thr != null) {
             if (thr instanceof RemoteException)
               throw (RemoteException) thr;
-            else
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException) thr;
+            else if (thr instanceof Error)
               throw (Error) thr;
+            else
+              throw new ManifoldCFException("CMIS: Unexpected error during getting a new session: " + thr.getMessage(),
+                  thr);
           }
         }
         session = null;
@@ -572,8 +602,13 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
               throw (RemoteException) thr;
             else if (thr instanceof CmisConnectionException)
               throw new ManifoldCFException("CMIS: Error during checking connection: " + thr.getMessage(), thr);
-            else
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException) thr;
+            else if (thr instanceof Error)
               throw (Error) thr;
+            else
+              throw new ManifoldCFException("CMIS: Unexpected error during getting a new session: " + thr.getMessage(),
+                  thr);
           }
         } else {
           Throwable thr = t.getException();
@@ -582,8 +617,13 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
               throw (RemoteException) thr;
             else if (thr instanceof CmisConnectionException)
               throw new ManifoldCFException("CMIS: Error during checking connection: " + thr.getMessage(), thr);
-            else
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException) thr;
+            else if (thr instanceof Error)
               throw (Error) thr;
+            else
+              throw new ManifoldCFException("CMIS: Unexpected error during getting a new session: " + thr.getMessage(),
+                  thr);
           }
         }
         return;
@@ -632,16 +672,26 @@ public class CmisRepositoryConnector extends BaseRepositoryConnector {
           if (thr != null) {
             if (thr instanceof RemoteException)
               throw (RemoteException) thr;
-            else
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException) thr;
+            else if (thr instanceof Error)
               throw (Error) thr;
+            else
+              throw new ManifoldCFException("CMIS: Unexpected error during getting a new session: " + thr.getMessage(),
+                  thr);
           }
         } else {
           Throwable thr = t.getException();
           if (thr != null) {
             if (thr instanceof RemoteException)
               throw (RemoteException) thr;
-            else
+            else if (thr instanceof RuntimeException)
+              throw (RuntimeException) thr;
+            else if (thr instanceof Error)
               throw (Error) thr;
+            else
+              throw new ManifoldCFException("CMIS: Unexpected error during getting a new session: " + thr.getMessage(),
+                  thr);
           }
         }
         session = null;

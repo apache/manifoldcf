@@ -229,8 +229,10 @@ public class DropboxRepositoryConnector extends BaseRepositoryConnector {
           throw (DropboxException) thr;
         } else if (thr instanceof RuntimeException) {
           throw (RuntimeException) thr;
-        } else {
+        } else if (thr instanceof Error) {
           throw (Error) thr;
+        } else {
+          throw new RuntimeException("Unexpected throwable: " + thr.getMessage(), thr);
         }
       }
       return;
