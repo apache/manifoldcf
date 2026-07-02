@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<connectors>
-  <outputconnector name="Null Output" class="org.apache.manifoldcf.agents.output.nullconnector.NullConnector"/>
-  <outputconnector name="CMIS" class="org.apache.manifoldcf.agents.output.cmisoutput.CmisOutputConnector"/>
-  <repositoryconnector name="File System" class="org.apache.manifoldcf.crawler.connectors.filesystem.FileConnector"/>
-  <repositoryconnector name="CMIS" class="org.apache.manifoldcf.crawler.connectors.cmis.CmisRepositoryConnector"/>
-</connectors>

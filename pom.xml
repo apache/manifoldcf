@@ -558,6 +558,8 @@
 	    <configuration>
               <inputExcludes>
               	   <inputExcludeFile>.geminiignore</inputExcludeFile>
+              	   <inputExcludeFile>GEMINI.md</inputExcludeFile>
+              	   <inputExcludeFile>.asf.yaml</inputExcludeFile>
                    <inputExclude>CHANGES.txt</inputExclude>
                    <inputExclude>DEPENDENCIES.txt</inputExclude>
                    <inputExclude>site/src/documentation/skins/lucene/note.txt</inputExclude>
@@ -565,6 +567,7 @@
                    <inputExclude>dist-license/DEPENDENCIES.txt</inputExclude>
                    <inputExclude>site/tmp/font/**</inputExclude>
                    <inputExclude>apache-manifoldcf-*/**</inputExclude>
+                   <inputExclude>src/main/docker/JDK-25/*.md</inputExclude>
                    <inputExclude>src/main/docker/JDK-21/*.md</inputExclude>
                    <inputExclude>src/main/docker/JDK-11/*.md</inputExclude>
                    <inputExclude>src/main/docker/JDK-8/*.md</inputExclude>
@@ -576,6 +579,7 @@
                    <inputExclude>/lib/elasticsearch-*/*</inputExclude>
                    <inputExclude>/lib/sharepoint-**/**</inputExclude>
                    <inputExclude>/lib/solr-*/**</inputExclude>
+                   <inputExclude>build/download/**</inputExclude>
                    <inputExclude>build/download/**</inputExclude>
               </inputExcludes>
          </configuration>

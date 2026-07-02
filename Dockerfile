@@ -27,7 +27,7 @@ ARG MCF_GROUP_ID=100002
 ARG MCF_HOME=/usr/share/manifoldcf
 ARG MCF_PORT=8345
 
-ARG MCF_DIST=distribution/target/apache-manifoldcf-${MCF_VERSION}/apache-manifoldcf-${MCF_VERSION}
+ARG MCF_DIST=dist
 
 RUN apt-get update && apt-get install -y iputils-ping && \
     apt-get install -y dnsutils

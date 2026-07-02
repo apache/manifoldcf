@@ -16,7 +16,7 @@
  limitations under the License.
 -->
 
-<Configuration status="warn" name="ManifoldCF" packages="">
+<Configuration status="warn" name="ManifoldCF">
   <Appenders>
     <Console name="STDOUT" target="SYSTEM_OUT">
       <PatternLayout>

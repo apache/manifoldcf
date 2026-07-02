@@ -16,7 +16,7 @@
  limitations under the License.
 -->
 
-<Configuration status="warn" name="ManifoldCF" packages="">
+<Configuration status="warn" name="ManifoldCF">
   <Appenders>
     <File name="MyFile" fileName="logs/manifoldcf.log">
       <PatternLayout>

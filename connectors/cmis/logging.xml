@@ -1,4 +1,4 @@
-<Configuration status="warn" name="ManifoldCF" packages="">
+<Configuration status="warn" name="ManifoldCF">
   <Appenders>
     <File name="MyFile" fileName="/Users/piergiorgiolucidi/Documents/workspaces/manifoldNew/manifoldcf-github-trunk/connectors/cmis/manifoldcf.log">
       <PatternLayout>

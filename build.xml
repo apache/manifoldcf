@@ -281,6 +281,8 @@
     </target>
     
     <target name="check-site-built" depends="build-site">
+      <echo message="Site generation is disabled (managed via GitHub Pages)."/>
+      <!--
       <available file="site/build/site" type="dir" property="site-found"/>
         <condition property="site-exists">
             <and>
@@ -288,6 +290,7 @@
                 <isset property="downloaded"/>
             </and>
         </condition>
+        -->
     </target>
 
     <target name="presite-check" depends="check-site-built" unless="site-exists" if="downloaded">
@@ -3523,7 +3526,8 @@ Use Apache Forrest version forrest-0.9-dev or higher.
     <target name="download-proprietary-dependencies" depends="download-mariadb,download-mysql,download-jtds"/>
     
     <target name="make-deps" depends="download-proprietary-dependencies,download-connectors-dependencies">
-        <ant dir="site" target="download-dependencies"/>
+    	<echo message="Site generation is disabled (managed via GitHub Pages)."/>
+    	<!-- <ant dir="site" target="download-dependencies"/> -->
     </target>
 
     <target name="download-proprietary-cleanup">

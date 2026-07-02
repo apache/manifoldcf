@@ -1,2 +1,0 @@
-This is a test file for ManifoldCF File System to CMIS integration.
-Created on: 2026-05-27

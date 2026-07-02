@@ -67,6 +67,7 @@
             <include name="log4j-api-*.jar"/>
             <include name="log4j-core-*.jar"/>
             <include name="log4j-1.2-api-*.jar"/>
+            <include name="log4j-slf4j2-impl-*.jar"/>
             <include name="serializer*.jar"/>
             <include name="jakarta.servlet-api*.jar"/>
             <include name="jakarta.el-api*.jar"/>
@@ -561,6 +562,7 @@
                 <include name="log4j-api-*.jar"/>
                 <include name="log4j-core-*.jar"/>
                 <include name="log4j-1.2-api-*.jar"/>
+                <include name="log4j-slf4j2-impl-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -618,6 +620,7 @@
                 <include name="log4j-api-*.jar"/>
                 <include name="log4j-core-*.jar"/>
                 <include name="log4j-1.2-api-*.jar"/>
+                <include name="log4j-slf4j2-impl-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -681,6 +684,7 @@
                 <include name="log4j-api-*.jar"/>
                 <include name="log4j-core-*.jar"/>
                 <include name="log4j-1.2-api-*.jar"/>
+                <include name="log4j-slf4j2-impl-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -739,6 +743,7 @@
                 <include name="log4j-api-*.jar"/>
                 <include name="log4j-core-*.jar"/>
                 <include name="log4j-1.2-api-*.jar"/>
+                <include name="log4j-slf4j2-impl-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -806,6 +811,7 @@
                 <include name="log4j-api-*.jar"/>
                 <include name="log4j-core-*.jar"/>
                 <include name="log4j-1.2-api-*.jar"/>
+                <include name="log4j-slf4j2-impl-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -878,6 +884,7 @@
                 <include name="log4j-api-*.jar"/>
                 <include name="log4j-core-*.jar"/>
                 <include name="log4j-1.2-api-*.jar"/>
+                <include name="log4j-slf4j2-impl-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -956,6 +963,7 @@
                 <include name="log4j-api-*.jar"/>
                 <include name="log4j-core-*.jar"/>
                 <include name="log4j-1.2-api-*.jar"/>
+                <include name="log4j-slf4j2-impl-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -1028,6 +1036,7 @@
                 <include name="log4j-api-*.jar"/>
                 <include name="log4j-core-*.jar"/>
                 <include name="log4j-1.2-api-*.jar"/>
+                <include name="log4j-slf4j2-impl-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="xalan*.jar"/>
                 <include name="xercesImpl*.jar"/>
@@ -1172,6 +1181,7 @@
                 <include name="log4j-api-*.jar"/>
                 <include name="log4j-core-*.jar"/>
                 <include name="log4j-1.2-api-*.jar"/>
+                <include name="log4j-slf4j2-impl-*.jar"/>
                 <include name="serializer*.jar"/>
                 <include name="jakarta.servlet-api*.jar"/>
                 <include name="jakarta.el-api*.jar"/>
@@ -1464,6 +1474,7 @@
             <include name="log4j-api-*.jar"/>
             <include name="log4j-core-*.jar"/>
             <include name="log4j-1.2-api-*.jar"/>
+            <include name="log4j-slf4j2-impl-*.jar"/>
             <include name="serializer*.jar"/>
             <include name="jakarta.servlet-api*.jar"/>
             <include name="jakarta.el-api*.jar"/>
