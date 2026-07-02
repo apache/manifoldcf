@@ -211,7 +211,7 @@
     <!-- repository connectors -->
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>mcf-web-connector</artifactId>
+      <artifactId>mcf-webcrawler-connector</artifactId>
       <version>${project.version}</version>
       <scope>runtime</scope>
     </dependency>
