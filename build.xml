@@ -277,7 +277,7 @@
 
     
     <target name="build-site" depends="downloaded-check" if="downloaded">
-      <ant dir="site" target="all"/>
+      <echo message="Site generation is disabled (managed via GitHub Pages)."/>
     </target>
     
     <target name="check-site-built" depends="build-site">
@@ -291,7 +291,7 @@
     </target>
 
     <target name="presite-check" depends="check-site-built" unless="site-exists" if="downloaded">
-      <echo message="Site did not build.  Was FORREST_HOME set properly?"/>
+      <!-- Site building is disabled; no warning needed -->
     </target>
     
     <target name="setup-framework" depends="set-version,downloaded-check" if="downloaded"/>
@@ -600,7 +600,7 @@
     <target name="doc" depends="deliver-site-doc"/>
     
     <target name="set-version">
-      <property name="release-version" value="2.30-dev"/>
+      <property name="release-version" value="2.31-dev"/>
     </target>
     
     <target name="create-source-zip" depends="set-version">
