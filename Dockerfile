@@ -16,7 +16,7 @@
 FROM eclipse-temurin:25-jre-resolute
 LABEL maintainer="The Apache ManifoldCF Project"
 
-ARG MCF_VERSION="2.31-SNAPSHOT"
+ARG MCF_VERSION="2.31-RC0"
 
 ARG MCF_USER=manifoldcf
 ARG MCF_USER_ID=100001
