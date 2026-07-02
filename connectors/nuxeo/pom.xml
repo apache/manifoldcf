@@ -52,7 +52,7 @@
   <repositories>
     <repository>
 	  <id>public-releases</id>
-	  <url>https://maven-eu.nuxeo.org/nexus/content/repositories/public-releases</url>
+	  <url>https://packages.nuxeo.com/repository/maven-public-releases</url>
 	  <releases>
             <enabled>true</enabled>
 	  </releases>
