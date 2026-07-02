@@ -212,12 +212,16 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
         if (n.getType().equals("startpoint"))
         {
           // The id returned MUST be in canonical form!!!
-          String seed = new File(n.getAttributeValue("path")).getCanonicalPath();
-          if (Logging.connectors.isDebugEnabled())
+          String path = n.getAttributeValue("path");
+          if (path != null && path.length() > 0)
           {
-            Logging.connectors.debug("Seed = '"+seed+"'");
+            String seed = new File(path).getCanonicalPath();
+            if (Logging.connectors.isDebugEnabled())
+            {
+              Logging.connectors.debug("Seed = '"+seed+"'");
+            }
+            activities.addSeedDocument(seed);
           }
-          activities.addSeedDocument(seed);
         }
       }
     }
@@ -257,9 +261,10 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
       SpecificationNode sn = spec.getChild(i);
       if (sn.getType().equals("startpoint"))
       {
-        String path = sn.getAttributeValue("path").replaceAll("\\\\","/");
-        if (path.length() > 0)
+        String path = sn.getAttributeValue("path");
+        if (path != null && path.length() > 0)
         {
+          path = path.replaceAll("\\\\","/");
           if (!path.endsWith("/")) path += "/";
           rootPaths.add(path);
         }
@@ -498,14 +503,18 @@ public class FileConnector extends org.apache.manifoldcf.crawler.connectors.Base
       SpecificationNode sn = spec.getChild(j);
       if (sn.getType().equals("startpoint"))
       {
-        String path = sn.getAttributeValue("path").replaceAll("\\\\","/");
-        String convertToURI = sn.getAttributeValue("converttouri");
-        if (path.length() > 0 && convertToURI != null && convertToURI.equals("true"))
+        String path = sn.getAttributeValue("path");
+        if (path != null)
         {
-          if (!path.endsWith("/"))
-            path += "/";
-          if (fullpath.startsWith(path))
-            return fullpath.substring(path.length());
+          path = path.replaceAll("\\\\","/");
+          String convertToURI = sn.getAttributeValue("converttouri");
+          if (path.length() > 0 && convertToURI != null && convertToURI.equals("true"))
+          {
+            if (!path.endsWith("/"))
+              path += "/";
+            if (fullpath.startsWith(path))
+              return fullpath.substring(path.length());
+          }
         }
       }
     }

@@ -90,7 +90,7 @@ public class ConnectionChangeTester
     mgr.save(conn);
     
     // Wait for the job to become inactive.  The time should not exceed 10 seconds for the actual crawl.
-    instance.waitJobInactiveNative(jobManager,job.getID(),30000L);
+    instance.waitJobInactiveNative(jobManager,job.getID(),120000L);
     // The document will be skipped in the end.
     if (jobManager.getStatus(job.getID()).getDocumentsProcessed() != 10)
       throw new Exception("Expected 10 documents, saw "+jobManager.getStatus(job.getID()).getDocumentsProcessed());

@@ -142,9 +142,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.22.2</version>
         <configuration>
-          <skipTests>${skipITs}</skipTests>
           <systemPropertyVariables>
             <crawlerWarPath>../dependency/mcf-crawler-ui.war</crawlerWarPath>
             <authorityserviceWarPath>../dependency/mcf-authority-service.war</authorityserviceWarPath>
@@ -345,22 +343,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     
 	<dependency>

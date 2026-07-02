@@ -52,7 +52,7 @@
   <repositories>
     <repository>
 	  <id>public-releases</id>
-	  <url>https://packages.nuxeo.com/repository/maven-public-releases</url>
+	  <url>https://maven-eu.nuxeo.org/nexus/content/repositories/public-releases</url>
 	  <releases>
             <enabled>true</enabled>
 	  </releases>
@@ -174,9 +174,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <version>2.22.2</version>
         <configuration>
-          <skipTests>${skipITs}</skipTests>
           <systemPropertyVariables>
             <crawlerWarPath>../dependency/mcf-crawler-ui.war</crawlerWarPath>
             <authorityserviceWarPath>../dependency/mcf-authority-service.war</authorityserviceWarPath>
@@ -362,12 +360,6 @@
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-
     <dependency>
       <groupId>com.googlecode.json-simple</groupId>
       <artifactId>json-simple</artifactId>

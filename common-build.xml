@@ -17,6 +17,12 @@
 
 <project name="mcf-common-build">
 
+    <presetdef name="javac">
+      <javac includeantruntime="false" target="25" source="25">
+        <compilerarg value="--enable-preview"/>
+      </javac>
+    </presetdef>
+
     <target name="setup-maven-url">
         <property name="maven-base-url" value="https://repo1.maven.org/maven2"/>
     </target>

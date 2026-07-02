@@ -193,8 +193,12 @@ public class MongodbOutputConnector extends BaseOutputConnector {
                 if (thr != null) {
                     if (thr instanceof RemoteException)
                         throw (RemoteException) thr;
-                    else
+                    else if (thr instanceof RuntimeException)
+                        throw (RuntimeException) thr;
+                    else if (thr instanceof Error)
                         throw (Error) thr;
+                    else
+                        throw new RuntimeException("Unexpected throwable: " + thr.getMessage(), thr);
                 }
                 client = null;
                 lastSessionFetch = -1L;
@@ -417,8 +421,12 @@ public class MongodbOutputConnector extends BaseOutputConnector {
                 if (thr != null) {
                     if (thr instanceof RemoteException)
                         throw (RemoteException) thr;
-                    else
+                    else if (thr instanceof RuntimeException)
+                        throw (RuntimeException) thr;
+                    else if (thr instanceof Error)
                         throw (Error) thr;
+                    else
+                        throw new RuntimeException("Unexpected throwable: " + thr.getMessage(), thr);
                 }
                 client = null;
                 mongoDatabase = null;
@@ -511,8 +519,12 @@ public class MongodbOutputConnector extends BaseOutputConnector {
                     throw new ManifoldCFException("MongoDB: Error during getting a new session: " + thr.getMessage(), thr);
                 else if (thr instanceof java.net.ConnectException)
                     throw new ManifoldCFException("MongoDB: Error Connecting to MongoDB is mongod running? : " + thr.getMessage(), thr);
-                else
+                else if (thr instanceof RuntimeException)
+                    throw (RuntimeException) thr;
+                else if (thr instanceof Error)
                     throw (Error) thr;
+                else
+                    throw new RuntimeException("Unexpected throwable: " + thr.getMessage(), thr);
             }
         } catch (InterruptedException e) {
             t.interrupt();
@@ -547,8 +559,12 @@ public class MongodbOutputConnector extends BaseOutputConnector {
                 if (thr != null) {
                     if (thr instanceof RemoteException)
                         throw (RemoteException) thr;
-                    else
+                    else if (thr instanceof RuntimeException)
+                        throw (RuntimeException) thr;
+                    else if (thr instanceof Error)
                         throw (Error) thr;
+                    else
+                        throw new RuntimeException("Unexpected throwable: " + thr.getMessage(), thr);
                 }
                 client = null;
                 lastSessionFetch = -1L;
@@ -587,8 +603,12 @@ public class MongodbOutputConnector extends BaseOutputConnector {
                         throw new ManifoldCFException("MongoDB: Error during checking connection: " + thr.getMessage(), thr);
                     else if (thr instanceof ManifoldCFException)
                         throw new ManifoldCFException(thr.getMessage(), thr);
-                    else
+                    else if (thr instanceof RuntimeException)
+                        throw (RuntimeException) thr;
+                    else if (thr instanceof Error)
                         throw (Error) thr;
+                    else
+                        throw new RuntimeException("Unexpected throwable: " + thr.getMessage(), thr);
                 }
                 return;
             } catch (InterruptedException e) {

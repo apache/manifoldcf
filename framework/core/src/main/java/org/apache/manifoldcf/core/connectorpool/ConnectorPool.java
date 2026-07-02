@@ -180,7 +180,7 @@ public abstract class ConnectorPool<T extends IConnector>
     {
       if (orderMap.get(orderingKeys[i]) != null)
         throw new ManifoldCFException("Found duplicate order key");
-      orderMap.put(orderingKeys[i],new Integer(i));
+      orderMap.put(orderingKeys[i],Integer.valueOf(i));
     }
     java.util.Arrays.sort(orderingKeys);
     for (int i = 0; i < orderingKeys.length; i++)

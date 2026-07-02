@@ -131,8 +131,6 @@ public class Messages
     }
     catch (MissingResourceException e)
     {
-      complainMissingBundle("Missing resource bundle '" + bundleName + "' for locale '"+locale.toString()+"': "+e.getMessage()+"; trying "+locale.getLanguage(),
-        e,bundleName,locale);
       // Try plain language next
       locale = new Locale(locale.getLanguage());
       try
@@ -142,8 +140,6 @@ public class Messages
       catch (MissingResourceException e2)
       {
         // Use English if we don't have a bundle for the current locale
-        complainMissingBundle("Missing resource bundle '" + bundleName + "' for locale '"+locale.toString()+"': "+e2.getMessage()+"; trying en_US",
-          e2,bundleName,locale);
         locale = Locale.US;
         try
         {
@@ -151,7 +147,7 @@ public class Messages
         }
         catch (MissingResourceException e3)
         {
-          complainMissingBundle("No backup en_US bundle found! "+e3.getMessage(),e3,bundleName,locale);
+          // Try plain language for English
           locale = new Locale(locale.getLanguage());
           try
           {
@@ -159,7 +155,6 @@ public class Messages
           }
           catch (MissingResourceException e4)
           {
-            complainMissingBundle("No backup en bundle found! "+e4.getMessage(),e4,bundleName,locale);
             return null;
           }
         }

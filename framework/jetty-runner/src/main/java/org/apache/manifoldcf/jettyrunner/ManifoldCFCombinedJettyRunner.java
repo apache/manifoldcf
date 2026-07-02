@@ -41,6 +41,9 @@ import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.handler.ShutdownHandler;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+
+import java.util.concurrent.Executors;
 
  /* Run ManifoldCF with jetty.
  * 
@@ -67,7 +70,12 @@ public class ManifoldCFCombinedJettyRunner
 
   public ManifoldCFCombinedJettyRunner( int port, String combinedWarPath )
   {
-    server = new Server( port );
+    QueuedThreadPool threadPool = new QueuedThreadPool();
+    threadPool.setVirtualThreadsExecutor(Executors.newVirtualThreadPerTaskExecutor());
+    server = new Server( threadPool );
+    ServerConnector connector = new ServerConnector(server);
+    connector.setPort(port);
+    server.addConnector(connector);
     initializeServer( combinedWarPath );
   }
 

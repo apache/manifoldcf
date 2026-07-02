@@ -688,73 +688,6 @@ public abstract class Database
     }
   }
   
-  /** Thread used to execute queries.  An instance of this thread is spun up every time a query is executed.  This is necessary because JDBC does not
-  * guarantee interruptability, and the Postgresql JDBC driver unfortunately eats all thread interrupts.  So, we fire up a thread to do each interaction with
-  * the database server, thus insuring that the owning thread remains interruptable and will therefore not block shutdown.
-  */
-  protected class ExecuteQueryThread extends Thread
-  {
-    protected Connection connection;
-    protected String query;
-    protected List params;
-    protected boolean bResults;
-    protected int maxResults;
-    protected ResultSpecification spec;
-    protected ILimitChecker returnLimit;
-    protected Throwable exception = null;
-    protected IResultSet rval = null;
-
-    public ExecuteQueryThread(Connection connection, String query, List params, boolean bResults, int maxResults,
-      ResultSpecification spec, ILimitChecker returnLimit)
-    {
-      super();
-      setDaemon(true);
-      this.connection = connection;
-      this.query = query;
-      this.params = params;
-      this.bResults = bResults;
-      this.maxResults = maxResults;
-      this.spec = spec;
-      this.returnLimit = returnLimit;
-    }
-
-    public void run()
-    {
-      try
-      {
-        // execute using the passed connection handle
-        rval = execute(connection,query,params,bResults,maxResults,spec,returnLimit);
-      }
-      catch (Throwable e)
-      {
-        this.exception = e;
-      }
-    }
-
-    public IResultSet finishUp()
-      throws ManifoldCFException, InterruptedException
-    {
-      join();
-      Throwable thr = exception;
-      if (thr != null)
-      {
-        if (thr instanceof ManifoldCFException)
-        {
-          // Nest the exceptions so there is a hope we actually see the context, while preserving the kind of error it is
-          ManifoldCFException me = (ManifoldCFException)thr;
-          throw new ManifoldCFException("Database exception: "+me.getMessage(),me.getCause(),me.getErrorCode());
-        }
-        else if (thr instanceof Error)
-          throw (Error)thr;
-        else if (thr instanceof RuntimeException)
-          throw (RuntimeException)thr;
-        else
-          throw new RuntimeException("Unknown exception: "+thr.getClass().getName()+": "+thr.getMessage(),thr);
-      }
-      return rval;
-    }
-  }
-
   /** Do query execution via a subthread, so the primary thread can be interrupted */
   protected IResultSet executeViaThread(Connection connection, String query, List params, boolean bResults, int maxResults,
     ResultSpecification spec, ILimitChecker returnLimit)
@@ -764,21 +697,18 @@ public abstract class Database
       // This probably means that the thread was interrupted and the connection was abandoned.  Just return null.
       return null;
 
-    ExecuteQueryThread t = new ExecuteQueryThread(connection,query,params,bResults,maxResults,spec,returnLimit);
     try
     {
-      t.start();
-      return t.finishUp();
+      return execute(connection, query, params, bResults, maxResults, spec, returnLimit);
     }
-    catch (InterruptedException e)
+    catch (ManifoldCFException e)
     {
-      // Try to kill the background thread - but we can't wait for it...
-      t.interrupt();
-      interruptCleanup(connection);
-      // We need the caller to abandon any connections left around, so rethrow in a way that forces them to process the event properly.
-      throw new ManifoldCFException(e.getMessage(),e,ManifoldCFException.INTERRUPTED);
+      if (e.getErrorCode() == ManifoldCFException.INTERRUPTED)
+      {
+        interruptCleanup(connection);
+      }
+      throw e;
     }
-
   }
 
   /** This method must clean up after a execute query thread has been forcibly interrupted.
@@ -953,7 +883,7 @@ public abstract class Database
           }
         }
         if (Logging.db.isDebugEnabled())
-          Logging.db.debug("Done actual query ("+new Long(System.currentTimeMillis()-queryStartTime).toString()+"ms): ["+query+"]");
+          Logging.db.debug("Done actual query ("+Long.toString(System.currentTimeMillis()-queryStartTime)+"ms): ["+query+"]");
       }
       catch (java.sql.SQLException e)
       {
@@ -1333,32 +1263,32 @@ public abstract class Database
           case java.sql.Types.BIGINT :
             long l = rs.getLong(col);
             if (!rs.wasNull())
-              result = new Long(l);
+              result = Long.valueOf(l);
             break;
 
           case java.sql.Types.INTEGER :
             int i = rs.getInt(col);
             if (!rs.wasNull())
-              result = new Integer(i);
+              result = Integer.valueOf(i);
             break;
 
           case java.sql.Types.SMALLINT:
             short s = rs.getShort(col);
             if (!rs.wasNull())
-              result = new Short(s);
+              result = Short.valueOf(s);
             break;
 
           case java.sql.Types.REAL :
           case java.sql.Types.FLOAT :
             float f = rs.getFloat(col);
             if (!rs.wasNull())
-              result = new Float(f);
+              result = Float.valueOf(f);
             break;
 
           case java.sql.Types.DOUBLE :
             double d = rs.getDouble(col);
             if (!rs.wasNull())
-              result = new Double(d);
+              result = Double.valueOf(d);
             break;
 
           case java.sql.Types.DATE :
@@ -1378,7 +1308,7 @@ public abstract class Database
           case java.sql.Types.BOOLEAN :
             boolean b = rs.getBoolean(col);
             if (!rs.wasNull())
-              result = new Boolean(b);
+              result = Boolean.valueOf(b);
             break;
 
           case java.sql.Types.BLOB:
@@ -1491,7 +1421,7 @@ public abstract class Database
         if (endTime-startTime > database.maxQueryTime && description.getQuery().length() >= 6 &&
           ("SELECT".equalsIgnoreCase(description.getQuery().substring(0,6)) || "UPDATE".equalsIgnoreCase(description.getQuery().substring(0,6))))
         {
-          Logging.db.warn("Found a long-running query ("+new Long(endTime-startTime).toString()+" ms): ["+description.getQuery()+"]");
+          Logging.db.warn("Found a long-running query ("+Long.toString(endTime-startTime)+" ms): ["+description.getQuery()+"]");
           if (description.getParameters() != null)
           {
             int j = 0;

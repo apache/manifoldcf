@@ -39,7 +39,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.StructuredTaskScope;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -100,7 +102,6 @@ public abstract class ModifiedCloudSolrClient extends SolrClient {
   private final boolean directUpdatesToLeadersOnly;
   private final RequestReplicaListTransformerGenerator requestRLTGenerator;
   boolean parallelUpdates; // TODO final
-  private ExecutorService threadPool = ExecutorUtil.newMDCAwareCachedThreadPool(new SolrNamedThreadFactory("CloudSolrClient ThreadPool"));
 
   public static final String STATE_VERSION = "_stateVer_";
   private long retryExpiryTime = TimeUnit.NANOSECONDS.convert(3, TimeUnit.SECONDS); // 3 seconds or 3 million nanos
@@ -302,10 +303,6 @@ public abstract class ModifiedCloudSolrClient extends SolrClient {
 
   @Override
   public void close() throws IOException {
-    if (this.threadPool != null && !this.threadPool.isShutdown()) {
-      ExecutorUtil.shutdownAndAwaitTermination(this.threadPool);
-      this.threadPool = null;
-    }
   }
 
   public ResponseParser getParser() {
@@ -444,31 +441,39 @@ public abstract class ModifiedCloudSolrClient extends SolrClient {
     final long start = System.nanoTime();
 
     if (parallelUpdates) {
-      final Map<String, Future<NamedList<?>>> responseFutures = new HashMap<>(routes.size());
-      for (final Map.Entry<String, ? extends ModifiedLBSolrClient.Req> entry : routes.entrySet()) {
-        final String url = entry.getKey();
-        final ModifiedLBSolrClient.Req lbRequest = entry.getValue();
-        try {
-          MDC.put("CloudSolrClient.url", url);
-          responseFutures.put(url, threadPool.submit(() -> {
-            return getLbClient().request(lbRequest).getResponse();
+      try (var scope = StructuredTaskScope.open()) {
+        final Map<String, StructuredTaskScope.Subtask<NamedList<?>>> subtasks = new HashMap<>(routes.size());
+        for (final Map.Entry<String, ? extends ModifiedLBSolrClient.Req> entry : routes.entrySet()) {
+          final String url = entry.getKey();
+          final ModifiedLBSolrClient.Req lbRequest = entry.getValue();
+          subtasks.put(url, scope.fork(() -> {
+            try {
+              MDC.put("CloudSolrClient.url", url);
+              return getLbClient().request(lbRequest).getResponse();
+            } finally {
+              MDC.remove("CloudSolrClient.url");
+            }
           }));
-        } finally {
-          MDC.remove("CloudSolrClient.url");
         }
-      }
 
-      for (final Map.Entry<String, Future<NamedList<?>>> entry : responseFutures.entrySet()) {
-        final String url = entry.getKey();
-        final Future<NamedList<?>> responseFuture = entry.getValue();
         try {
-          shardResponses.add(url, responseFuture.get());
-        } catch (final InterruptedException e) {
-          Thread.currentThread().interrupt();
-          throw new RuntimeException(e);
-        } catch (final ExecutionException e) {
-          exceptions.add(url, e.getCause());
+          scope.join();
+        } catch (java.util.concurrent.StructuredTaskScope.FailedException e) {
+          // Exception caught, but we will iterate over subtasks to collect exceptions
         }
+        
+        for (final Map.Entry<String, StructuredTaskScope.Subtask<NamedList<?>>> entry : subtasks.entrySet()) {
+          final String url = entry.getKey();
+          final StructuredTaskScope.Subtask<NamedList<?>> subtask = entry.getValue();
+          if (subtask.state() == StructuredTaskScope.Subtask.State.SUCCESS) {
+            shardResponses.add(url, subtask.get());
+          } else if (subtask.state() == StructuredTaskScope.Subtask.State.FAILED) {
+            exceptions.add(url, subtask.exception());
+          }
+        }
+      } catch (final InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(e);
       }
 
       if (exceptions.size() > 0) {

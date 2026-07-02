@@ -1349,7 +1349,7 @@ public class DBInterfaceMySQL extends Database implements IDBInterface
       {
         // Look for this parameter; if we don't find it, use a default value.
         analyzeThreshold = lockManager.getSharedConfiguration().getIntProperty("org.apache.manifoldcf.db.mysql.analyze."+tableName,10000);
-        analyzeThresholds.put(tableName,new Integer(analyzeThreshold));
+        analyzeThresholds.put(tableName,Integer.valueOf(analyzeThreshold));
       }
       else
         analyzeThreshold = threshold.intValue();

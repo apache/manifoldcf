@@ -163,7 +163,7 @@ public class ConnectionFactory
   */
   protected static class PoolManager
   {
-    private Integer poolExistenceLock = new Integer(0);
+    private final Object poolExistenceLock = new Object();
     private ConnectionPoolManager _pool = null;
     
     private PoolManager()

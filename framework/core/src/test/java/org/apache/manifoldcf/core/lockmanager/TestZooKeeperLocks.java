@@ -185,7 +185,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
       this.factory = factory;
       this.lockKey = lockKey;
       this.ai = ai;
-      this.threadID = Thread.currentThread().getId();
+      this.threadID = Thread.currentThread().threadId();
     }
     
     public void run()
@@ -275,7 +275,7 @@ public class TestZooKeeperLocks extends ZooKeeperBase
       this.factory = factory;
       this.lockKey = lockKey;
       this.ai = ai;
-      this.threadID = Thread.currentThread().getId();
+      this.threadID = Thread.currentThread().threadId();
     }
     
     public void run()

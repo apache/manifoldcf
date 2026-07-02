@@ -395,7 +395,7 @@ public class ZooKeeperConnection
         // Assert that we want a write lock
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,WRITE_PREFIX);
-        long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + WRITE_PREFIX.length())).longValue();
+        long lockSequenceNumber = Long.parseLong(lockNode.substring(lockPath.length() + 1 + WRITE_PREFIX.length()));
         //System.out.println("Trying to get write lock for '"+lockSequenceNumber+"'");
         while (true)
         {
@@ -416,7 +416,7 @@ public class ZooKeeperConnection
               otherLock = x.substring(READ_PREFIX.length());
             else
               continue;
-            long otherLockSequenceNumber = new Long(otherLock).longValue();
+            long otherLockSequenceNumber = Long.parseLong(otherLock);
             //System.out.println("Saw other child sequence number "+otherLockSequenceNumber);
             if (otherLockSequenceNumber < lockSequenceNumber)
             {
@@ -554,7 +554,7 @@ public class ZooKeeperConnection
         // Assert that we want a read lock
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,NONEXWRITE_PREFIX);
-        long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + NONEXWRITE_PREFIX.length())).longValue();
+        long lockSequenceNumber = Long.parseLong(lockNode.substring(lockPath.length() + 1 + NONEXWRITE_PREFIX.length()));
         while (true)
         {
           // See if we got it
@@ -591,7 +591,7 @@ public class ZooKeeperConnection
               otherLock = x.substring(READ_PREFIX.length());
             else
               continue;
-            long otherLockSequenceNumber = new Long(otherLock).longValue();
+            long otherLockSequenceNumber = Long.parseLong(otherLock);
             //System.out.println("Saw other child sequence number "+otherLockSequenceNumber);
             if (otherLockSequenceNumber < lockSequenceNumber)
             {
@@ -721,7 +721,7 @@ public class ZooKeeperConnection
         // Assert that we want a read lock
         if (lockNode == null)
           lockNode = createSequentialChild(lockPath,READ_PREFIX);
-        long lockSequenceNumber = new Long(lockNode.substring(lockPath.length() + 1 + READ_PREFIX.length())).longValue();
+        long lockSequenceNumber = Long.parseLong(lockNode.substring(lockPath.length() + 1 + READ_PREFIX.length()));
         //System.out.println("Trying to get read lock for '"+lockSequenceNumber+"'");
         while (true)
         {
@@ -760,7 +760,7 @@ public class ZooKeeperConnection
               otherLock = x.substring(NONEXWRITE_PREFIX.length());
             else
               continue;
-            long otherLockSequenceNumber = new Long(otherLock).longValue();
+            long otherLockSequenceNumber = Long.parseLong(otherLock);
             //System.out.println("Saw other child sequence number "+otherLockSequenceNumber);
             if (otherLockSequenceNumber < lockSequenceNumber)
             {

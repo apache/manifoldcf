@@ -36,6 +36,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
 import java.util.List;
 
 public class SeleniumTester
@@ -107,7 +108,7 @@ public class SeleniumTester
         throw new IllegalArgumentException("Unknown browser type");
     }
 
-    wait = new WebDriverWait(driver, defaultTimeOutInSeconds);
+    wait = new WebDriverWait(driver, Duration.ofSeconds(defaultTimeOutInSeconds));
     driver.get(startURL);
   }
 
@@ -382,7 +383,7 @@ public class SeleniumTester
   public boolean isAlertPresent()
   {
     boolean foundAlert = false;
-    WebDriverWait wait = new WebDriverWait(driver, 0 /*timeout in seconds*/);
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(0) /*timeout in seconds*/);
     try
     {
       wait.until(ExpectedConditions.alertIsPresent());
@@ -644,7 +645,7 @@ public class SeleniumTester
 
   public boolean waitForAjaxAndDocumentReady(long timeOutInSeconds)
   {
-    WebDriverWait wait = new WebDriverWait(driver, timeOutInSeconds);
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOutInSeconds));
 
     // wait for jQuery to load
     ExpectedCondition<Boolean> jQueryLoad =
@@ -691,7 +692,7 @@ public class SeleniumTester
 
   public void waitUntilAnimationIsDone(final String selector, final long timeOutInSeconds)
   {
-    WebDriverWait wait = new WebDriverWait(driver, timeOutInSeconds);
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOutInSeconds));
     ExpectedCondition<Boolean> expectation =
       new ExpectedCondition<Boolean>()
       {

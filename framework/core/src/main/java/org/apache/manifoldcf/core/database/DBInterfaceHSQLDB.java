@@ -864,7 +864,7 @@ public class DBInterfaceHSQLDB extends Database implements IDBInterface
 
   protected void addIndex(Map rval, String indexName, boolean isUnique, List<String> indexColumns)
   {
-    if (indexName.indexOf("sys_idx") != -1)
+    if (indexName.indexOf("sys_idx") != -1 || indexName.indexOf("sys_pk") != -1 || indexName.indexOf("sys_fk") != -1 || indexName.indexOf("sys_ct") != -1)
       return;
     String[] columnNames = new String[indexColumns.size()];
     int i = 0;

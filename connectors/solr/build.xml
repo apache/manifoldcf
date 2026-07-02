@@ -30,7 +30,7 @@
 
     <import file="${mcf-dist}/connector-build.xml"/>
 
-    <property name="jetty.version" value="12.0.10"/>
+    <property name="jetty.version" value="12.1.8"/>
 
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>

@@ -33,8 +33,12 @@ import org.junit.*;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.ee10.webapp.WebAppContext;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+
+import java.util.concurrent.Executors;
 
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.client.HttpClient;
@@ -567,7 +571,12 @@ public class ManifoldCFInstance
     if (webapps)
     {
       // Start jetty
-      server = new Server( testPort );    
+      QueuedThreadPool threadPool = new QueuedThreadPool();
+      threadPool.setVirtualThreadsExecutor(Executors.newVirtualThreadPerTaskExecutor());
+      server = new Server( threadPool );
+      ServerConnector connector = new ServerConnector(server);
+      connector.setPort(testPort);
+      server.addConnector(connector);
       server.setStopAtShutdown( true );
       // Initialize the servlets
       server.setHandler(contexts);

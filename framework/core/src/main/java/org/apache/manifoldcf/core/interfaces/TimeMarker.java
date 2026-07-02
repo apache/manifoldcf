@@ -41,7 +41,7 @@ public class TimeMarker
   
   public String toString()
   {
-    return new Long(timeValue).toString();
+    return Long.toString(timeValue);
   }
   
 }

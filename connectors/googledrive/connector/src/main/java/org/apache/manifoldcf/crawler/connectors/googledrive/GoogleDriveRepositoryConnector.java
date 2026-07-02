@@ -257,8 +257,10 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
           throw (IOException) thr;
         } else if (thr instanceof RuntimeException) {
           throw (RuntimeException) thr;
-        } else {
+        } else if (thr instanceof Error) {
           throw (Error) thr;
+        } else {
+          throw new RuntimeException("Unexpected throwable: " + thr.getMessage(), thr);
         }
       }
       return;
@@ -326,8 +328,12 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
             throw (IOException) thr;
           } else if (thr instanceof GeneralSecurityException) {
             throw (GeneralSecurityException) thr;
-          } else {
+          } else if (thr instanceof RuntimeException) {
+            throw (RuntimeException) thr;
+          } else if (thr instanceof Error) {
             throw (Error) thr;
+          } else {
+            throw new RuntimeException("Unexpected throwable: " + thr.getMessage(), thr);
           }
 
         }
@@ -905,8 +911,10 @@ public class GoogleDriveRepositoryConnector extends BaseRepositoryConnector {
           throw (IOException) thr;
         } else if (thr instanceof RuntimeException) {
           throw (RuntimeException) thr;
-        } else {
+        } else if (thr instanceof Error) {
           throw (Error) thr;
+        } else {
+          throw new RuntimeException("Unexpected throwable: " + thr.getMessage(), thr);
         }
       }
     } catch (InterruptedException e) {

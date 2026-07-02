@@ -39,7 +39,7 @@ public class FileLockManager extends BaseLockManager
   public static final String synchDirectoryProperty = "org.apache.manifoldcf.synchdirectory";
 
   // These are for file-based locks (which cross JVM boundaries)
-  protected final static Integer lockPoolInitialization = new Integer(0);
+  protected final static Object lockPoolInitialization = new Object();
   protected static LockPool myFileLocks = null;
 
   // This is the directory used for cross-JVM synchronization, or null if off

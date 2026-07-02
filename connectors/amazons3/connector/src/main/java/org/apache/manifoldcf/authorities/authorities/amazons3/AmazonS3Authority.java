@@ -511,7 +511,7 @@ public class AmazonS3Authority extends org.apache.manifoldcf.authorities.authori
     }
 
     public void finishUp() throws InterruptedException, IOException,
-        ResponseException {
+        ResponseException, ManifoldCFException {
       join();
       Throwable thr = exception;
       if (thr != null) {
@@ -524,8 +524,11 @@ public class AmazonS3Authority extends org.apache.manifoldcf.authorities.authori
         else if (thr instanceof RuntimeException) {
           throw (RuntimeException) thr;
         }
-        else {
+        else if (thr instanceof Error) {
           throw (Error) thr;
+        }
+        else {
+          throw new ManifoldCFException("Unexpected throwable: " + thr.getMessage(), thr);
         }
       }
     }

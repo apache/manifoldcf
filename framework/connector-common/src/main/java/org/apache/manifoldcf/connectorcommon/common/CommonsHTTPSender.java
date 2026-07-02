@@ -64,6 +64,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FilterInputStream;
 import java.io.InterruptedIOException;
 import java.io.IOException;
+import java.util.concurrent.StructuredTaskScope;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
@@ -173,7 +174,7 @@ public class CommonsHTTPSender extends BasicHandler {
       //  HttpProtocolParams.setVersion(method.getParams(),new ProtocolVersion("HTTP",1,0));
 
       BackgroundHTTPThread methodThread = new BackgroundHTTPThread(httpClient,method);
-      methodThread.start();
+      Thread vThread = Thread.ofVirtual().name("HTTP request").start(methodThread);
       try
       {
         int returnCode = methodThread.getResponseCode();
@@ -226,7 +227,7 @@ public class CommonsHTTPSender extends BasicHandler {
 
         InputStream dataStream = methodThread.getSafeInputStream();
 
-        Message outMsg = new Message(new BackgroundInputStream(methodThread,dataStream),
+        Message outMsg = new Message(new BackgroundInputStream(methodThread, vThread, dataStream),
           false, contentType, contentLocation);
           
         // Transfer HTTP headers of HTTP message to MIME headers of SOAP message
@@ -251,7 +252,14 @@ public class CommonsHTTPSender extends BasicHandler {
         if (methodThread != null)
         {
           methodThread.abort();
-          methodThread.finishUp();
+          try
+          {
+            vThread.join();
+          }
+          catch (InterruptedException e)
+          {
+            throw new InterruptedIOException(e.getMessage());
+          }
         }
       }
 
@@ -473,6 +481,7 @@ public class CommonsHTTPSender extends BasicHandler {
   private static class BackgroundInputStream extends InputStream {
     
     private BackgroundHTTPThread methodThread = null;
+    private Thread methodThreadRef = null;
     private InputStream xThreadInputStream = null;
     
     /** Construct an http transaction stream.  The stream is driven by a background
@@ -485,9 +494,10 @@ public class CommonsHTTPSender extends BasicHandler {
     * (4) Otherwise, terminate the background method thread in the standard manner,
     *    being sure NOT
     */
-    public BackgroundInputStream(BackgroundHTTPThread methodThread, InputStream xThreadInputStream)
+    public BackgroundInputStream(BackgroundHTTPThread methodThread, Thread methodThreadRef, InputStream xThreadInputStream)
     {
       this.methodThread = methodThread;
+      this.methodThreadRef = methodThreadRef;
       this.xThreadInputStream = xThreadInputStream;
     }
     
@@ -519,13 +529,17 @@ public class CommonsHTTPSender extends BasicHandler {
           methodThread.abort();
           try
           {
-            methodThread.finishUp();
+            if (methodThreadRef != null)
+            {
+              methodThreadRef.join();
+            }
           }
           catch (InterruptedException e)
           {
             throw new InterruptedIOException(e.getMessage());
           }
           methodThread = null;
+          methodThreadRef = null;
         }
       }
     }
@@ -611,7 +625,7 @@ public class CommonsHTTPSender extends BasicHandler {
   * thread, and tries to get a response code.  If instead an exception is seen,
   * the exception is thrown up the stack.
   */
-  protected static class BackgroundHTTPThread extends Thread
+  protected static class BackgroundHTTPThread implements Runnable
   {
     /** Client and method, all preconfigured */
     protected final HttpClient httpClient;
@@ -632,8 +646,6 @@ public class CommonsHTTPSender extends BasicHandler {
     
     public BackgroundHTTPThread(HttpClient httpClient, HttpRequestBase executeMethod)
     {
-      super();
-      setDaemon(true);
       this.httpClient = httpClient;
       this.executeMethod = executeMethod;
     }
@@ -905,12 +917,6 @@ public class CommonsHTTPSender extends BasicHandler {
         }
         abortThread = true;
       }
-    }
-    
-    public void finishUp()
-      throws InterruptedException
-    {
-      join();
     }
     
     protected synchronized void checkException(Throwable exception)

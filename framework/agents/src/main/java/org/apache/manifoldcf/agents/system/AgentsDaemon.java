@@ -49,10 +49,10 @@ public class AgentsDaemon
 
   /** The agents thread, which starts and stops agents daemons to keep them consistent with the database, and
   * also takes on process cleanup where necessary. */
-  protected AgentsThread agentsThread = null;
+  protected Thread agentsThread = null;
 
   /** The idle cleanup thread. */
-  protected IdleCleanupThread idleCleanupThread = null;
+  protected Thread idleCleanupThread = null;
   
   /** Process ID for this agents daemon. */
   protected final String processID;
@@ -143,8 +143,8 @@ public class AgentsDaemon
     throws ManifoldCFException
   {
     // Create idle cleanup thread.
-    idleCleanupThread = new IdleCleanupThread(processID);
-    agentsThread = new AgentsThread();
+    idleCleanupThread = Thread.ofVirtual().name("Idle cleanup thread").unstarted(new IdleCleanupThread(processID));
+    agentsThread = Thread.ofVirtual().name("Agents thread").unstarted(new AgentsThread());
     // Create and start agents thread.
     idleCleanupThread.start();
     agentsThread.start();

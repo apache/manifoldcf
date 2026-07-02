@@ -408,7 +408,7 @@ function _preLoadContent()
   //Temporary fix for Javascript bug, when loading connector javascript.
   //Get all the global methods
   var methods = Object.keys(window);
-  for(var i=0; i<=methods.length; i++){
+  for(var i=0; i<methods.length; i++){
     var method = methods[i];
       if (method && (_endsWith(method, 'checkConfig') ||
           _endsWith(method, 'checkConfigForSave') ||

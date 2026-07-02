@@ -1009,7 +1009,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   public static int getMaxWorkerThreads(IThreadContext threadContext)
     throws ManifoldCFException
   {
-    return LockManagerFactory.getIntProperty(threadContext,workerThreadCountProperty,100);
+    return LockManagerFactory.getIntProperty(threadContext,workerThreadCountProperty,500);
   }
 
   /** Get the maximum number of delete threads.
@@ -1017,7 +1017,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   public static int getMaxDeleteThreads(IThreadContext threadContext)
     throws ManifoldCFException
   {
-    return LockManagerFactory.getIntProperty(threadContext,deleteThreadCountProperty,10);
+    return LockManagerFactory.getIntProperty(threadContext,deleteThreadCountProperty,100);
   }
 
   /** Get the maximum number of expire threads.
@@ -1025,7 +1025,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   public static int getMaxExpireThreads(IThreadContext threadContext)
     throws ManifoldCFException
   {
-    return LockManagerFactory.getIntProperty(threadContext,expireThreadCountProperty,10);
+    return LockManagerFactory.getIntProperty(threadContext,expireThreadCountProperty,100);
   }
 
   /** Get the maximum number of cleanup threads.
@@ -1033,7 +1033,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
   public static int getMaxCleanupThreads(IThreadContext threadContext)
     throws ManifoldCFException
   {
-    return LockManagerFactory.getIntProperty(threadContext,cleanupThreadCountProperty,10);
+    return LockManagerFactory.getIntProperty(threadContext,cleanupThreadCountProperty,100);
   }
   
   /** Requeue documents due to carrydown.

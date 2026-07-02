@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -189,8 +190,7 @@ public class ModifiedHttp2SolrClient extends SolrClient {
 
     executor = builder.executor;
     if (executor == null) {
-      final BlockingArrayQueue<Runnable> queue = new BlockingArrayQueue<>(256, 256);
-      this.executor = new ExecutorUtil.MDCAwareThreadPoolExecutor(32, 256, 60, TimeUnit.SECONDS, queue, new SolrNamedThreadFactory("h2sc"));
+      this.executor = Executors.newVirtualThreadPerTaskExecutor();
       shutdownExecutor = true;
     } else {
       shutdownExecutor = false;
