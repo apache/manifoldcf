@@ -1102,6 +1102,7 @@
     <target name="run-IT-postgresql" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
@@ -1126,6 +1127,7 @@
     <target name="run-IT-HSQLDB" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-HSQLDB-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
@@ -1150,6 +1152,7 @@
     <target name="run-IT-HSQLDBext" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-HSQLDBext-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
@@ -1174,6 +1177,7 @@
     <target name="run-IT-mysql" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-mysql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web-proprietary/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web-proprietary/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web-proprietary/war/mcf-api-service.war"/>
@@ -1198,6 +1202,7 @@
     <target name="run-LT-postgresql" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="384m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
@@ -1222,6 +1227,7 @@
     <target name="run-LT-HSQLDB" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-HSQLDB-output"/>
         <junit fork="true" maxmemory="1024m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
@@ -1246,6 +1252,7 @@
     <target name="run-LT-HSQLDBext" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-HSQLDBext-output"/>
         <junit fork="true" maxmemory="384m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web/war/mcf-api-service.war"/>
@@ -1270,6 +1277,7 @@
     <target name="run-LT-mysql" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-mysql-output"/>
         <junit fork="true" maxmemory="384m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <jvmarg value="-DcrawlerWarPath=${mcf-dist}/web-proprietary/war/mcf-crawler-ui.war"/>
             <jvmarg value="-DauthorityserviceWarPath=${mcf-dist}/web-proprietary/war/mcf-authority-service.war"/>
             <jvmarg value="-DapiWarPath=${mcf-dist}/web-proprietary/war/mcf-api-service.war"/>
@@ -1294,6 +1302,7 @@
     <target name="run-UI-postgresql" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <jvmarg value="-Dwebdriver.chrome.driver=${env.SL_CHROME_DRIVER}"/>
             <jvmarg value="-Dwebdriver.safari.driver=${env.SL_SAFARI_DRIVER}"/>
             <jvmarg value="-Dwebdriver.gecko.driver=${env.SL_FIREFOX_DRIVER}"/>
@@ -1322,6 +1331,7 @@
     <target name="run-UI-HSQLDB" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-HSQLDB-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <jvmarg value="-Dwebdriver.chrome.driver=${env.SL_CHROME_DRIVER}"/>
             <jvmarg value="-Dwebdriver.safari.driver=${env.SL_SAFARI_DRIVER}"/>
             <jvmarg value="-Dwebdriver.gecko.driver=${env.SL_FIREFOX_DRIVER}"/>
@@ -1350,6 +1360,7 @@
     <target name="run-UI-HSQLDBext" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-HSQLDBext-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <jvmarg value="-Dwebdriver.chrome.driver=${env.SL_CHROME_DRIVER}"/>
             <jvmarg value="-Dwebdriver.safari.driver=${env.SL_SAFARI_DRIVER}"/>
             <jvmarg value="-Dwebdriver.gecko.driver=${env.SL_FIREFOX_DRIVER}"/>
@@ -1378,6 +1389,7 @@
     <target name="run-UI-mysql" depends="compile-tests,pretest-check" if="canTest">
         <mkdir dir="test-mysql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <jvmarg value="-Dwebdriver.chrome.driver=${env.SL_CHROME_DRIVER}"/>
             <jvmarg value="-Dwebdriver.safari.driver=${env.SL_SAFARI_DRIVER}"/>
             <jvmarg value="-Dwebdriver.gecko.driver=${env.SL_FIREFOX_DRIVER}"/>
@@ -1406,6 +1418,7 @@
     <target name="run-tests" depends="compile-tests,has-tests-check" if="hasTests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <classpath>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
@@ -1426,6 +1439,7 @@
     <target name="run-tests-postgresql" depends="compile-tests,has-tests-check" if="hasTests">
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <classpath>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
@@ -1441,6 +1455,7 @@
     <target name="run-tests-mysql" depends="compile-tests,has-tests-check" if="hasTests">
         <mkdir dir="test-mysql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-mysql-output" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <classpath>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
@@ -1456,6 +1471,7 @@
     <target name="run-tests-HSQLDB" depends="compile-tests,has-tests-check" if="hasTests">
         <mkdir dir="test-HSQLDB-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <classpath>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
@@ -1471,6 +1487,7 @@
     <target name="run-tests-HSQLDBext" depends="compile-tests,has-tests-check" if="hasTests">
         <mkdir dir="test-HSQLDBext-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
             <classpath>
                 <path refid="connector-test-classpath"/>
                 <pathelement location="build/connector-tests/classes"/>
