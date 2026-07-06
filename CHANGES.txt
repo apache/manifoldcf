@@ -1,6 +1,6 @@
 ManifoldCF Change Log
 
-======================= 2.31-dev =========================
+======================= Release 2.31 =========================
 CONNECTORS-1784: Core Performance & Modernization (The Java 25 Leap)
 (Piergiorgio Lucidi)
 
