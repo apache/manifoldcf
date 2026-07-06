@@ -2231,6 +2231,7 @@
     <target name="run-core-tests" depends="compile-core,compile-core-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
     <jvmarg value="-Djava.io.tmpdir=build/tmp"/>
             <classpath>
                 <path refid="framework-classpath"/>
@@ -2249,6 +2250,7 @@
     <target name="run-connector-common-tests" depends="compile-connector-common,compile-connector-common-tests,compile-core,compile-core-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
     <jvmarg value="-Djava.io.tmpdir=build/tmp"/>
             <classpath>
                 <path refid="framework-classpath"/>
@@ -2269,6 +2271,7 @@
     <target name="run-pull-agent-tests" depends="compile-pull-agent,compile-connector-common,compile-pull-agent-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
     <jvmarg value="-Djava.io.tmpdir=build/tmp"/>
             <classpath>
                 <path refid="framework-classpath"/>
@@ -2293,6 +2296,7 @@
     <target name="run-script-engine-tests" depends="compile-core,compile-script-engine,compile-script-engine-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
     <jvmarg value="-Djava.io.tmpdir=build/tmp"/>
             <classpath>
                 <path refid="framework-classpath"/>
@@ -2311,6 +2315,7 @@
     <target name="run-UI-tests" depends="jar-core-tests">
         <mkdir dir="test-output"/>
         <junit fork="true" maxmemory="128m" dir="test-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
     <jvmarg value="-Djava.io.tmpdir=build/tmp"/>
             <classpath>
                 <path refid="framework-classpath"/>
@@ -2330,6 +2335,7 @@
     <target name="run-tests-postgresql" depends="compile-tests">
         <mkdir dir="test-postgresql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-postgresql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
     <jvmarg value="-Djava.io.tmpdir=build/tmp"/>
             <classpath>
                 <path refid="framework-classpath"/>
@@ -2355,6 +2361,7 @@
     <target name="run-tests-mysql" depends="compile-tests">
         <mkdir dir="test-mysql-output"/>
         <junit fork="true" maxmemory="128m" dir="test-mysql-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
     <jvmarg value="-Djava.io.tmpdir=build/tmp"/>
             <classpath>
                 <path refid="framework-classpath"/>
@@ -2380,6 +2387,7 @@
     <target name="run-tests-HSQLDB" depends="compile-tests">
         <mkdir dir="test-HSQLDB-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDB-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
     <jvmarg value="-Djava.io.tmpdir=build/tmp"/>
             <classpath>
                 <path refid="framework-classpath"/>
@@ -2406,6 +2414,7 @@
     <target name="run-tests-HSQLDBext" depends="compile-tests">
         <mkdir dir="test-HSQLDBext-output"/>
         <junit fork="true" maxmemory="128m" dir="test-HSQLDBext-output" outputtoformatters="true" showoutput="true" haltonfailure="true">
+            <jvmarg value="--enable-preview"/>
     <jvmarg value="-Djava.io.tmpdir=build/tmp"/>
             <classpath>
                 <path refid="framework-classpath"/>
