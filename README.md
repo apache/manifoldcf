@@ -1,10 +1,10 @@
 # Apache ManifoldCF™
 
-[![Apache ManifoldCF Release](https://img.shields.io/badge/Release-2.31-blue.svg?logo=apache&logoColor=D22128)](https://manifoldcf.apache.org/)
+[![Apache ManifoldCF Release](https://img.shields.io/badge/Release-2.31-0052CC?logo=apache&logoColor=D22128)](https://manifoldcf.apache.org/)
 [![Java Baseline](https://img.shields.io/badge/Java-25%2B-ED8B00?logo=openjdk&logoColor=white)](https://jdk.java.net/25/)
-[![Concurrency](https://img.shields.io/badge/Concurrency-Virtual%20Threads%20%28Loom%29-43A047?logo=java&logoColor=white)](https://openjdk.org/projects/loom/)
-[![Web Stack](https://img.shields.io/badge/Embedded-Jetty%2012.1-005C8A)](https://eclipse.dev/jetty/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Concurrency](https://img.shields.io/badge/Concurrency-Virtual_Threads_(Loom)-43A047?logo=openjdk&logoColor=white)](https://openjdk.org/projects/loom/)
+[![Web Stack](https://img.shields.io/badge/Embedded-Jetty_12.1-005C8A)](https://eclipse.dev/jetty/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue?logo=apache&logoColor=white)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Docker Pulls](https://img.shields.io/docker/pulls/apache/manifoldcf?logo=docker&logoColor=white&color=099CEC)](https://hub.docker.com/r/apache/manifoldcf)
 [![Issue Tracker](https://img.shields.io/badge/JIRA-CONNECTORS-0052CC?logo=jira&logoColor=white)](https://issues.apache.org/jira/projects/CONNECTORS)
 [![DeepWiki](https://img.shields.io/badge/DeepWiki-manifoldcf-6B46C1?logo=wikipedia&logoColor=white)](https://deepwiki.com/apache/manifoldcf)
