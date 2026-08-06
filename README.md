@@ -7,6 +7,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Docker Pulls](https://img.shields.io/docker/pulls/apache/manifoldcf?logo=docker&logoColor=white&color=099CEC)](https://hub.docker.com/r/apache/manifoldcf)
 [![Issue Tracker](https://img.shields.io/badge/JIRA-CONNECTORS-0052CC?logo=jira&logoColor=white)](https://issues.apache.org/jira/projects/CONNECTORS)
+[![DeepWiki](https://img.shields.io/badge/DeepWiki-manifoldcf-6B46C1?logo=wikipedia&logoColor=white)](https://deepwiki.com/apache/manifoldcf)
 
 An open-source enterprise content integration framework designed to crawl, extract, and index documents from disparate content repositories into search engines, vector databases, and AI pipelines while preserving native document Access Control Lists (ACLs).
 
