@@ -8,7 +8,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/apache/manifoldcf?logo=docker&logoColor=white&color=099CEC)](https://hub.docker.com/r/apache/manifoldcf)
 [![Issue Tracker](https://img.shields.io/badge/JIRA-CONNECTORS-0052CC?logo=jira&logoColor=white)](https://issues.apache.org/jira/projects/CONNECTORS)
 
-An open-source enterprise content integration framework designed to crawl, extract, and index documents from disparate content repositories into search engines, vector databases, and AI pipelines while preserving native document Access Control Lists (ACLs).
+An open-source enterprise content integration framework designed to crawl, extract, and index documents from disparate content repositories into search engines while preserving native document Access Control Lists (ACLs).
 
 ---
 
@@ -16,7 +16,7 @@ An open-source enterprise content integration framework designed to crawl, extra
 
 * **Security-Aware Ingestion:** Preserves native document Access Control Lists (ACLs) and security trimming to ensure users only search content they are authorized to view.
 * **Extensive Repository Connectors:** Pre-built connectors for SharePoint, Google Drive, Amazon S3, CMIS, Web, File Systems, JDBC, Nuxeo, REST APIs, and more.
-* **Flexible Output Targets:** Native output support for Apache Solr, OpenSearch, Elasticsearch, Qdrant, and custom RAG / vector storage pipelines.
+* **Flexible Output Targets:** Native output support for Apache Solr, OpenSearch, Elasticsearch.
 * **High-Throughput Concurrency:** Powered by **Java 25 & Virtual Threads (Project Loom)** for ultra-scalable, non-blocking asynchronous document fetching.
 * **Modern Web Stack:** Embedded **Jetty 12.1** application container.
 * **Cloud Native:** Container-ready with official Docker images and Helm/Kubernetes integration support.
