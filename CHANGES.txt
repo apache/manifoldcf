@@ -1,6 +1,16 @@
 ManifoldCF Change Log
 
-======================= 2.31-dev =========================
+
+
+======================= Dev 2.32 =============================
+CONNECTORS-1786: Add sort column validation and canonical mapping for repository connection queue and history reports
+(Piergiorgio Lucidi)
+
+CONNECTORS-1785: Add Ant CI workflow and update GitHub Actions to latest ASF approved patterns
+(Piergiorgio Lucidi)
+
+
+======================= Release 2.31 =========================
 CONNECTORS-1784: Core Performance & Modernization (The Java 25 Leap)
 (Piergiorgio Lucidi)
 
