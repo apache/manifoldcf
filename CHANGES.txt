@@ -3,10 +3,10 @@ ManifoldCF Change Log
 
 
 ======================= Dev 2.32 =============================
-CONNECTORS-1786: Add sort column validation and canonical mapping for repository connection queue and history reports
+CONNECTORS-1789: Add sort column validation and canonical mapping for repository connection queue and history reports
 (Piergiorgio Lucidi)
 
-CONNECTORS-1785: Add Ant CI workflow and update GitHub Actions to latest ASF approved patterns
+CONNECTORS-1790: Add Ant CI workflow and update GitHub Actions to latest ASF approved patterns
 (Piergiorgio Lucidi)
 
 
