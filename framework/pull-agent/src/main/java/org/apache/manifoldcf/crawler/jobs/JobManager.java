@@ -9346,7 +9346,7 @@ public class JobManager implements IJobManager
     
     addCriteria(sb,list,"t0.",connectionName,filterCriteria,true);
     // The intrinsic ordering is provided by the "id" column, and nothing else.
-    addOrdering(sb,new String[]{"id"},sortOrder);
+    addOrdering(sb,validDocumentStatusColumns,new String[]{"id"},sortOrder);
     addLimits(sb,startRow,rowCount);
     return database.performQuery(sb.toString(),list,null,null,rowCount,null);
   }
@@ -9499,7 +9499,7 @@ public class JobManager implements IJobManager
 
     addCriteria(sb,list,"",connectionName,filterCriteria,false);
     sb.append(") t1 GROUP BY idbucket");
-    addOrdering(sb,new String[]{"idbucket","inactive","processing","expiring","deleting","processready","expireready","processwaiting","expirewaiting","waitingforever","hopcountexceeded"},sortOrder);
+    addOrdering(sb,validQueueStatusColumns,validQueueStatusColumns,sortOrder);
     addLimits(sb,startRow,rowCount);
     return database.performQuery(sb.toString(),list,null,null,rowCount,null);
   }
@@ -9702,12 +9702,26 @@ public class JobManager implements IJobManager
     return true;
   }
 
+  protected static final String[] validDocumentStatusColumns = new String[]{
+    "identifier","job","state","status","scheduled","action","retrycount","retrylimit","id","docid","checktime","failcount","failtime"
+  };
+  protected static final String[] validQueueStatusColumns = new String[]{
+    "idbucket","inactive","processing","expiring","deleting","processready","expireready","processwaiting","expirewaiting","waitingforever","hopcountexceeded"
+  };
+
   /** Add ordering.
   */
-  protected void addOrdering(StringBuilder sb, String[] completeFieldList, SortOrder sort)
+  protected void addOrdering(StringBuilder sb, String[] validFieldList, String[] completeFieldList, SortOrder sort)
+    throws ManifoldCFException
   {
+    Map<String,String> validMap = new HashMap<String,String>();
+    for (String validCol : validFieldList)
+    {
+      validMap.put(validCol.toLowerCase(Locale.ROOT), validCol);
+    }
+
     // Keep track of the fields we've seen
-    Map hash = new HashMap();
+    Map<String,String> hash = new HashMap<String,String>();
 
     // Emit the "Order by"
     sb.append(" ORDER BY ");
@@ -9717,11 +9731,16 @@ public class JobManager implements IJobManager
     int count = sort.getCount();
     while (i < count)
     {
+      String rawColumn = sort.getColumn(i);
+      String column = validMap.get(rawColumn.toLowerCase(Locale.ROOT));
+      if (column == null)
+      {
+        throw new ManifoldCFException("Unknown or invalid sort column: '" + rawColumn + "'");
+      }
       if (i > 0)
         sb.append(",");
-      String column = sort.getColumn(i);
       sb.append(column);
-      if (sort.getDirection(i) == sort.SORT_ASCENDING)
+      if (sort.getDirection(i) == SortOrder.SORT_ASCENDING)
         sb.append(" ASC");
       else
         sb.append(" DESC");
@@ -9742,14 +9761,17 @@ public class JobManager implements IJobManager
           sb.append(",");
         sb.append(field);
         sb.append(" DESC");
-        //if (j == 0)
-        //  sb.append(" DESC");
-        //else
-        //  sb.append(" ASC");
         i++;
       }
       j++;
     }
+  }
+
+  @Deprecated
+  protected void addOrdering(StringBuilder sb, String[] completeFieldList, SortOrder sort)
+    throws ManifoldCFException
+  {
+    addOrdering(sb, completeFieldList, completeFieldList, sort);
   }
 
   /** Add limit and offset.

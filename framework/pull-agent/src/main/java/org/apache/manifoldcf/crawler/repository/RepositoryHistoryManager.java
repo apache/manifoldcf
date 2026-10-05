@@ -295,7 +295,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     addCriteria(sb,list,"",connectionName,criteria,false);
     // Note well: We can't order by "identifier" in all databases, so in order to guarantee order we use "id".  This will force a specific internal
     // order for the OFFSET/LIMIT clause.  We include "starttime" because that's the default ordering.
-    addOrdering(sb,new String[]{"starttime","id"},sort);
+    addOrdering(sb,validSimpleReportColumns,new String[]{"starttime","id"},sort);
     addLimits(sb,startRow,maxRowCount);
     return performQuery(sb.toString(),list,null,null,maxRowCount);
   }
@@ -430,7 +430,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     ArrayList newList = new ArrayList();
     newsb.append(constructDistinctOnClause(newList,sb.toString(),list,new String[]{"idbucket"},
       new String[]{"activitycount"},new boolean[]{false},otherColumns)).append(") t4");
-    addOrdering(newsb,new String[]{"activitycount","starttime","endtime","idbucket"},sort);
+    addOrdering(newsb,validMaxActivityReportColumns,validMaxActivityReportColumns,sort);
     addLimits(newsb,startRow,maxRowCount);
     return performQuery(newsb.toString(),newList,null,null,maxRowCount);
   }
@@ -538,7 +538,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     ArrayList newList = new ArrayList();
     newsb.append(constructDistinctOnClause(newList,sb.toString(),list,new String[]{"idbucket"},
       new String[]{"bytecount"},new boolean[]{false},otherColumns)).append(") t4");
-    addOrdering(newsb,new String[]{"bytecount","starttime","endtime","idbucket"},sort);
+    addOrdering(newsb,validMaxBandwidthReportColumns,validMaxBandwidthReportColumns,sort);
     addLimits(newsb,startRow,maxRowCount);
     return performQuery(newsb.toString(),newList,null,null,maxRowCount);
   }
@@ -567,7 +567,7 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     sb.append(" AS idbucket FROM ").append(getTableName());
     addCriteria(sb,list,"",connectionName,filterCriteria,false);
     sb.append(") t1 GROUP BY resultcodebucket,idbucket");
-    addOrdering(sb,new String[]{"eventcount","resultcodebucket","idbucket"},sort);
+    addOrdering(sb,validResultCodesReportColumns,validResultCodesReportColumns,sort);
     addLimits(sb,startRow,maxRowCount);
     return performQuery(sb.toString(),list,null,null,maxRowCount);
   }
@@ -659,12 +659,32 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     return true;
   }
 
+  protected static final String[] validSimpleReportColumns = new String[]{
+    "starttime","resultcode","resultdesc","identifier","activity","bytes","elapsedtime","id","entityid","datasize","activitytype","endtime"
+  };
+  protected static final String[] validMaxActivityReportColumns = new String[]{
+    "activitycount","starttime","endtime","idbucket"
+  };
+  protected static final String[] validMaxBandwidthReportColumns = new String[]{
+    "bytecount","starttime","endtime","idbucket"
+  };
+  protected static final String[] validResultCodesReportColumns = new String[]{
+    "eventcount","resultcodebucket","idbucket"
+  };
+
   /** Add ordering.
   */
-  protected void addOrdering(StringBuilder sb, String[] completeFieldList, SortOrder sort)
+  protected void addOrdering(StringBuilder sb, String[] validFieldList, String[] completeFieldList, SortOrder sort)
+    throws ManifoldCFException
   {
+    Map<String,String> validMap = new HashMap<String,String>();
+    for (String validCol : validFieldList)
+    {
+      validMap.put(validCol.toLowerCase(Locale.ROOT), validCol);
+    }
+
     // Keep track of the fields we've seen
-    Map hash = new HashMap();
+    Map<String,String> hash = new HashMap<String,String>();
 
     // Emit the "Order by"
     sb.append(" ORDER BY ");
@@ -674,11 +694,16 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
     int count = sort.getCount();
     while (i < count)
     {
+      String rawColumn = sort.getColumn(i);
+      String column = validMap.get(rawColumn.toLowerCase(Locale.ROOT));
+      if (column == null)
+      {
+        throw new ManifoldCFException("Unknown or invalid sort column: '" + rawColumn + "'");
+      }
       if (i > 0)
         sb.append(",");
-      String column = sort.getColumn(i);
       sb.append(column);
-      if (sort.getDirection(i) == sort.SORT_ASCENDING)
+      if (sort.getDirection(i) == SortOrder.SORT_ASCENDING)
         sb.append(" ASC");
       else
         sb.append(" DESC");
@@ -704,6 +729,13 @@ public class RepositoryHistoryManager extends org.apache.manifoldcf.core.databas
       }
       j++;
     }
+  }
+
+  @Deprecated
+  protected void addOrdering(StringBuilder sb, String[] completeFieldList, SortOrder sort)
+    throws ManifoldCFException
+  {
+    addOrdering(sb, completeFieldList, completeFieldList, sort);
   }
 
   /** Add limit and offset.

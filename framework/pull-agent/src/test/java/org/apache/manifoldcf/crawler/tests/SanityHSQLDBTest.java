@@ -25,6 +25,8 @@ import org.apache.manifoldcf.agents.system.ManifoldCF;
 import java.io.*;
 import java.util.*;
 import org.junit.*;
+import org.apache.manifoldcf.crawler.interfaces.*;
+import static org.junit.Assert.*;
 
 /** This is a very basic sanity check */
 public class SanityHSQLDBTest extends BaseHSQLDB
@@ -36,6 +38,63 @@ public class SanityHSQLDBTest extends BaseHSQLDB
   {
     // If we get this far, it must mean that the setup was successful, which is all that I'm shooting for in this test.
   }
-  
+
+  @Test
+  public void testJobManagerDocumentStatusSortValidation()
+    throws Exception
+  {
+    IThreadContext tc = ThreadContextFactory.make();
+    IJobManager jobManager = JobManagerFactory.make(tc);
+    StatusFilterCriteria filterCriteria = new StatusFilterCriteria(new Long[0], System.currentTimeMillis(), null, new int[0], new int[0]);
+
+    // Valid sort columns
+    SortOrder validSort = new SortOrder();
+    validSort.addCriteria("job", SortOrder.SORT_ASCENDING);
+    validSort.addCriteria("status", SortOrder.SORT_DESCENDING);
+    IResultSet set = jobManager.genDocumentStatus("testconn", filterCriteria, validSort, 0, 20);
+    assertNotNull(set);
+
+    // Invalid sort column (valid identifier syntax, but not allowed for document status)
+    SortOrder invalidSort = new SortOrder();
+    invalidSort.addCriteria("nonexistent_column", SortOrder.SORT_ASCENDING);
+    try
+    {
+      jobManager.genDocumentStatus("testconn", filterCriteria, invalidSort, 0, 20);
+      fail("Expected ManifoldCFException for invalid sort column in genDocumentStatus");
+    }
+    catch (ManifoldCFException e)
+    {
+      assertTrue(e.getMessage().contains("Unknown or invalid sort column: 'nonexistent_column'"));
+    }
+  }
+
+  @Test
+  public void testHistoryManagerSortValidation()
+    throws Exception
+  {
+    IThreadContext tc = ThreadContextFactory.make();
+    IRepositoryConnectionManager connManager = RepositoryConnectionManagerFactory.make(tc);
+    FilterCriteria criteria = new FilterCriteria(new String[0], null, null, null, null);
+
+    // Valid sort columns (including entityid alias)
+    SortOrder validSort = new SortOrder();
+    validSort.addCriteria("activity", SortOrder.SORT_ASCENDING);
+    validSort.addCriteria("entityid", SortOrder.SORT_DESCENDING);
+    IResultSet set = connManager.genHistorySimple("testconn", criteria, validSort, 0, 20);
+    assertNotNull(set);
+
+    // Invalid sort column
+    SortOrder invalidSort = new SortOrder();
+    invalidSort.addCriteria("unknown_field", SortOrder.SORT_ASCENDING);
+    try
+    {
+      connManager.genHistorySimple("testconn", criteria, invalidSort, 0, 20);
+      fail("Expected ManifoldCFException for invalid sort column in genHistorySimple");
+    }
+    catch (ManifoldCFException e)
+    {
+      assertTrue(e.getMessage().contains("Unknown or invalid sort column: 'unknown_field'"));
+    }
+  }
 
 }

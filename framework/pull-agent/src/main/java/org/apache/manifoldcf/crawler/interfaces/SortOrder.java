@@ -96,6 +96,8 @@ public class SortOrder
   */
   public void clickColumn(String columnName)
   {
+    if (columnName == null || !columnName.matches("^[a-zA-Z_][a-zA-Z0-9_]*$"))
+      return;
     int findIndex = -1;
     int i = 0;
     while (i < sortList.size())
@@ -185,6 +187,8 @@ public class SortOrder
 
     public SortSpec(String column, int direction)
     {
+      if (column == null || !column.matches("^[a-zA-Z_][a-zA-Z0-9_]*$"))
+        throw new IllegalArgumentException("Invalid sort column name: " + column);
       this.column = column;
       this.direction = direction;
     }
@@ -216,6 +220,8 @@ public class SortOrder
         sb.append(y);
       }
       column = sb.toString();
+      if (!column.matches("^[a-zA-Z_][a-zA-Z0-9_]*$"))
+        throw new ManifoldCFException("Invalid sort column name: " + column);
     }
 
     public String getColumn()

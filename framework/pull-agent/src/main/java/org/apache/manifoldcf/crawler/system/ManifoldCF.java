@@ -2678,6 +2678,82 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     docStatus.put("hopcountexceeded",new Integer(IJobManager.DOCSTATUS_HOPCOUNTEXCEEDED));
   }
 
+  protected final static Set<String> queueDocumentSortColumns;
+  static
+  {
+    queueDocumentSortColumns = new HashSet<String>();
+    queueDocumentSortColumns.add("identifier");
+    queueDocumentSortColumns.add("job");
+    queueDocumentSortColumns.add("state");
+    queueDocumentSortColumns.add("status");
+    queueDocumentSortColumns.add("scheduled");
+    queueDocumentSortColumns.add("action");
+    queueDocumentSortColumns.add("retrycount");
+    queueDocumentSortColumns.add("retrylimit");
+    queueDocumentSortColumns.add("id");
+  }
+
+  protected final static Set<String> queueStatusSortColumns;
+  static
+  {
+    queueStatusSortColumns = new HashSet<String>();
+    queueStatusSortColumns.add("idbucket");
+    queueStatusSortColumns.add("inactive");
+    queueStatusSortColumns.add("processing");
+    queueStatusSortColumns.add("expiring");
+    queueStatusSortColumns.add("deleting");
+    queueStatusSortColumns.add("processready");
+    queueStatusSortColumns.add("expireready");
+    queueStatusSortColumns.add("processwaiting");
+    queueStatusSortColumns.add("expirewaiting");
+    queueStatusSortColumns.add("waitingforever");
+    queueStatusSortColumns.add("hopcountexceeded");
+  }
+
+  protected final static Set<String> historySimpleSortColumns;
+  static
+  {
+    historySimpleSortColumns = new HashSet<String>();
+    historySimpleSortColumns.add("starttime");
+    historySimpleSortColumns.add("resultcode");
+    historySimpleSortColumns.add("resultdesc");
+    historySimpleSortColumns.add("identifier");
+    historySimpleSortColumns.add("activity");
+    historySimpleSortColumns.add("bytes");
+    historySimpleSortColumns.add("elapsedtime");
+    historySimpleSortColumns.add("id");
+    historySimpleSortColumns.add("entityid");
+  }
+
+  protected final static Set<String> historyMaxActivitySortColumns;
+  static
+  {
+    historyMaxActivitySortColumns = new HashSet<String>();
+    historyMaxActivitySortColumns.add("starttime");
+    historyMaxActivitySortColumns.add("endtime");
+    historyMaxActivitySortColumns.add("activitycount");
+    historyMaxActivitySortColumns.add("idbucket");
+  }
+
+  protected final static Set<String> historyMaxBandwidthSortColumns;
+  static
+  {
+    historyMaxBandwidthSortColumns = new HashSet<String>();
+    historyMaxBandwidthSortColumns.add("starttime");
+    historyMaxBandwidthSortColumns.add("endtime");
+    historyMaxBandwidthSortColumns.add("bytecount");
+    historyMaxBandwidthSortColumns.add("idbucket");
+  }
+
+  protected final static Set<String> historyResultSortColumns;
+  static
+  {
+    historyResultSortColumns = new HashSet<String>();
+    historyResultSortColumns.add("idbucket");
+    historyResultSortColumns.add("resultcodebucket");
+    historyResultSortColumns.add("eventcount");
+  }
+
   /** Queue reports */
   protected static int apiReadRepositoryConnectionQueue(IThreadContext tc, Configuration output,
     String connectionName, Map<String,List<String>> queryParameters, IAuthorizer authorizer) throws ManifoldCFException
@@ -2768,6 +2844,23 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       
     StatusFilterCriteria filterCriteria = new StatusFilterCriteria(jobs,now,idMatch,matchStates,matchStatuses);
       
+    List<String> reportTypeList = queryParameters.get("report");
+    String reportType;
+    if (reportTypeList == null || reportTypeList.size() == 0)
+      reportType = "document";
+    else if (reportTypeList.size() > 1)
+      throw new ManifoldCFException("Multiple report types specified.");
+    else
+      reportType = reportTypeList.get(0);
+
+    Set<String> validColumns;
+    if (reportType.equals("document"))
+      validColumns = queueDocumentSortColumns;
+    else if (reportType.equals("status"))
+      validColumns = queueStatusSortColumns;
+    else
+      throw new ManifoldCFException("Unknown report type '"+reportType+"'.");
+
     // Look for sort order parameters...
     SortOrder sortOrder = new SortOrder();
     List<String> sortColumnsList = queryParameters.get("sortcolumn");
@@ -2779,6 +2872,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       for (int i = 0; i < sortColumnsList.size(); i++)
       {
         String column = sortColumnsList.get(i);
+        if (!validColumns.contains(column.toLowerCase(Locale.ROOT)))
+          throw new ManifoldCFException("Unknown sortcolumn '"+column+"' for report '"+reportType+"'.");
         String dir = sortColumnsDirList.get(i);
         int dirInt;
         if (dir.equals("ascending"))
@@ -2809,15 +2904,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       throw new ManifoldCFException("Multiple row counts specified.");
     else
       rowCount = new Integer(rowCountList.get(0)).intValue();
-
-    List<String> reportTypeList = queryParameters.get("report");
-    String reportType;
-    if (reportTypeList == null || reportTypeList.size() == 0)
-      reportType = "document";
-    else if (reportTypeList.size() > 1)
-      throw new ManifoldCFException("Multiple report types specified.");
-    else
-      reportType = reportTypeList.get(0);
 
     IJobManager jobManager = JobManagerFactory.make(tc);
       
@@ -2996,6 +3082,27 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     // Filter criteria
     FilterCriteria filterCriteria = new FilterCriteria(activities,startTime,endTime,entityMatch,resultCodeMatch);
       
+    List<String> reportTypeList = queryParameters.get("report");
+    String reportType;
+    if (reportTypeList == null || reportTypeList.size() == 0)
+      reportType = "simple";
+    else if (reportTypeList.size() > 1)
+      throw new ManifoldCFException("Multiple report types specified.");
+    else
+      reportType = reportTypeList.get(0);
+
+    Set<String> validColumns;
+    if (reportType.equals("simple"))
+      validColumns = historySimpleSortColumns;
+    else if (reportType.equals("maxactivity"))
+      validColumns = historyMaxActivitySortColumns;
+    else if (reportType.equals("maxbandwidth"))
+      validColumns = historyMaxBandwidthSortColumns;
+    else if (reportType.equals("result"))
+      validColumns = historyResultSortColumns;
+    else
+      throw new ManifoldCFException("Unknown report type '"+reportType+"'.");
+
     // Look for sort order parameters...
     SortOrder sortOrder = new SortOrder();
     List<String> sortColumnsList = queryParameters.get("sortcolumn");
@@ -3007,6 +3114,8 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       for (int i = 0; i < sortColumnsList.size(); i++)
       {
         String column = sortColumnsList.get(i);
+        if (!validColumns.contains(column.toLowerCase(Locale.ROOT)))
+          throw new ManifoldCFException("Unknown sortcolumn '"+column+"' for report '"+reportType+"'.");
         String dir = sortColumnsDirList.get(i);
         int dirInt;
         if (dir.equals("ascending"))
@@ -3037,15 +3146,6 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       throw new ManifoldCFException("Multiple row counts specified.");
     else
       rowCount = new Integer(rowCountList.get(0)).intValue();
-
-    List<String> reportTypeList = queryParameters.get("report");
-    String reportType;
-    if (reportTypeList == null || reportTypeList.size() == 0)
-      reportType = "simple";
-    else if (reportTypeList.size() > 1)
-      throw new ManifoldCFException("Multiple report types specified.");
-    else
-      reportType = reportTypeList.get(0);
 
     IRepositoryConnectionManager connectionManager = RepositoryConnectionManagerFactory.make(tc);
       
