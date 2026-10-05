@@ -13,3 +13,5 @@ site/fonts/
 /connectors/*/target/classes
 /connectors/*/target/generated-sources
 /connectors/*/target/test-classes
+junit*.properties
+junitvmwatcher*.properties

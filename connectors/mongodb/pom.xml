@@ -38,8 +38,7 @@
         </developer>
         <developer>
             <name>Piergiorgio Lucidi</name>
-            <organization>Zia Consulting</organization>
-            <organizationUrl>https://www.ziaconsulting.com</organizationUrl>
+            <email>piergiorgio@apache.org</email>
             <url>https://www.open4dev.com</url>
         </developer>
     </developers>
@@ -90,7 +89,7 @@
         <dependency>
             <groupId>de.flapdoodle.embed</groupId>
             <artifactId>de.flapdoodle.embed.mongo</artifactId>
-            <version>3.4.5</version>
+            <version>4.33.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -104,15 +104,19 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
     public void removeTestArea()
             throws Exception {
 
-        // deleting the dummyuser
-        final BasicDBObject deleteUserCommand = new BasicDBObject("dropUser", BaseITSanityTestUtils.TARGET_USERNAME_VALUE);
-        CommandResult result = mongoDatabase.command(deleteUserCommand);
+        if (mongoDatabase != null) {
+            // deleting the dummyuser
+            final BasicDBObject deleteUserCommand = new BasicDBObject("dropUser", BaseITSanityTestUtils.TARGET_USERNAME_VALUE);
+            CommandResult result = mongoDatabase.command(deleteUserCommand);
 
-        // dropping the test Collection
-        testCollection.drop();
+            // dropping the test Collection
+            if (testCollection != null) {
+                testCollection.drop();
+            }
 
-        // dropping the test Database
-        mongoDatabase.dropDatabase();
+            // dropping the test Database
+            mongoDatabase.dropDatabase();
+        }
     }
 
     @Test

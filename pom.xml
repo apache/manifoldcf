@@ -58,7 +58,7 @@
     <wsdl4j.version>1.6.2</wsdl4j.version>
     <castor.version>1.0.5</castor.version>
     <commons-codec.version>1.10</commons-codec.version>
-    <commons-io.version>2.16.1</commons-io.version>
+    <commons-io.version>2.22.0</commons-io.version>
     <commons-logging.version>1.2</commons-logging.version>
     <commons-collections.version>3.2.2</commons-collections.version>
     <commons-fileupload.version>2.0.0-M2</commons-fileupload.version>
@@ -103,21 +103,22 @@
     <cxf.version>3.5.9</cxf.version>
     <jaxws-ri.version>2.3.2</jaxws-ri.version>
     <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
-    <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
-    <maven-rat-plugin.version>0.17</maven-rat-plugin.version>
+    <maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
+    <maven-rat-plugin.version>0.18</maven-rat-plugin.version>
     <maven-war-plugin.version>3.5.1</maven-war-plugin.version>
     <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
     <maven-apache-source-release-assembly-descriptor.version>1.5</maven-apache-source-release-assembly-descriptor.version>
-    <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
     <maven.compiler.source>25</maven.compiler.source>
     <maven.compiler.target>25</maven.compiler.target>
     <maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
     <javaVersion>25</javaVersion>
     <spring-boot.version>4.0.6</spring-boot.version>
-    <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
-    <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
+    <maven-surefire-plugin.version>3.6.0</maven-surefire-plugin.version>
+    <maven-failsafe-plugin.version>3.6.0</maven-failsafe-plugin.version>
     <skipTests>false</skipTests>
     <skipITs>false</skipITs>
+    <build-helper-maven-plugin.version>3.6.2</build-helper-maven-plugin.version>
   </properties>
 
   <modules>
@@ -422,6 +423,28 @@
         <version>3.3.1</version>
         <scope>provided</scope>
       </dependency>
+      <dependency>
+        <groupId>xerces</groupId>
+        <artifactId>xercesImpl</artifactId>
+        <version>${xerces.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>xml-apis</groupId>
+            <artifactId>xml-apis</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>xalan</groupId>
+        <artifactId>serializer</artifactId>
+        <version>${xalan.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>xml-apis</groupId>
+            <artifactId>xml-apis</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -454,6 +477,11 @@
 		    <version>${maven-rat-plugin.version}</version>
 		  </plugin>
         <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>${build-helper-maven-plugin.version}</version>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${maven-surefire-plugin.version}</version>
@@ -470,6 +498,44 @@
             <skipTests>${skipTests}</skipTests>
             <skipITs>${skipITs}</skipITs>
             <argLine>--enable-preview</argLine>
+          </configuration>
+        </plugin>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <versionRange>[2.0,)</versionRange>
+                    <goals>
+                      <goal>copy</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>native2ascii-maven-plugin</artifactId>
+                    <versionRange>[1.0-beta-1,)</versionRange>
+                    <goals>
+                      <goal>native2ascii</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
           </configuration>
         </plugin>
       </plugins>
@@ -535,7 +601,7 @@
           <maxmem>512m</maxmem>
           <compilerArgs>
             <arg>-Xpkginfo:always</arg>
-            <arg>-Xlint:options</arg><arg>--enable-preview</arg>
+            <arg>-Xlint:options</arg>
             <arg>--enable-preview</arg>
           </compilerArgs>
         </configuration>
@@ -693,6 +759,28 @@
                 <phase>test</phase>
               </execution>
             </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>eclipse-m2e</id>
+      <activation>
+        <property>
+          <name>m2e.version</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <compilerArgs>
+                <arg>-Xpkginfo:always</arg>
+                <arg>-Xlint:options</arg>
+              </compilerArgs>
+            </configuration>
           </plugin>
         </plugins>
       </build>

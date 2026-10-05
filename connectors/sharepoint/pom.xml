@@ -172,23 +172,24 @@
         </executions>
       </plugin>
 
-      <!--
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <executions>
           <execution>
-           <phase>generate-sources</phase>
-           <goals><goal>add-source</goal></goals>
-           <configuration>
-             <sources>
-             <source>build/wsdljava</source>
-           </sources>
-          </configuration>
+            <id>add-wsdl-sources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>target/generated-sources/axistools/wsdl2java</source>
+              </sources>
+            </configuration>
           </execution>
         </executions>
       </plugin>
-      -->
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -231,6 +232,7 @@
 
         <executions>
           <execution>
+            <phase>generate-sources</phase>
             <goals>
               <goal>wsdl2java</goal>
             </goals>
