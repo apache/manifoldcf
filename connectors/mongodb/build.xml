@@ -79,16 +79,54 @@
     <property name="embedded-mongodb.os.artifactId" value="de.flapdoodle.os"/>
     <property name="embedded-mongodb-os-package" value="de/flapdoodle"/>    
     <property name="embedded-mongodb.os.jar" value="${embedded-mongodb.os.artifactId}-${embedded-mongodb.os.version.label}.jar"/>
+
+    <property name="embedded-mongodb.os-api.version.label" value="1.7.1"/>
+    <property name="embedded-mongodb.os-api.artifactId" value="de.flapdoodle.os-api"/>
+    <property name="embedded-mongodb-os-api-package" value="de/flapdoodle"/>    
+    <property name="embedded-mongodb.os-api.jar" value="${embedded-mongodb.os-api.artifactId}-${embedded-mongodb.os-api.version.label}.jar"/>
+
+    <property name="embedded-mongodb.reverse.version.label" value="1.9.1"/>
+    <property name="embedded-mongodb.reverse.artifactId" value="de.flapdoodle.reverse"/>
+    <property name="embedded-mongodb-reverse-package" value="de/flapdoodle/reverse"/>    
+    <property name="embedded-mongodb.reverse.jar" value="${embedded-mongodb.reverse.artifactId}-${embedded-mongodb.reverse.version.label}.jar"/>
+
+    <property name="embedded-mongodb.graph.version.label" value="1.3.4"/>
+    <property name="embedded-mongodb.graph.artifactId" value="de.flapdoodle.graph"/>
+    <property name="embedded-mongodb-graph-package" value="de/flapdoodle/graph"/>    
+    <property name="embedded-mongodb.graph.jar" value="${embedded-mongodb.graph.artifactId}-${embedded-mongodb.graph.version.label}.jar"/>
+
+    <property name="embedded-mongodb.java8.version.label" value="1.7.2"/>
+    <property name="embedded-mongodb.java8.artifactId" value="de.flapdoodle.java8"/>
+    <property name="embedded-mongodb-java8-package" value="de/flapdoodle/java8"/>    
+    <property name="embedded-mongodb.java8.jar" value="${embedded-mongodb.java8.artifactId}-${embedded-mongodb.java8.version.label}.jar"/>
+
+    <property name="jgrapht-core.version.label" value="1.4.0"/>
+    <property name="jgrapht-core.artifactId" value="jgrapht-core"/>
+    <property name="jgrapht-core-package" value="org/jgrapht"/>    
+    <property name="jgrapht-core.jar" value="${jgrapht-core.artifactId}-${jgrapht-core.version.label}.jar"/>
+
+    <property name="jheaps.version.label" value="0.11"/>
+    <property name="jheaps.artifactId" value="jheaps"/>
+    <property name="jheaps-package" value="org/jheaps"/>    
+    <property name="jheaps.jar" value="${jheaps.artifactId}-${jheaps.version.label}.jar"/>
 	
     <target name="calculate-testcode-condition">
         <available file="test-materials/${embedded-mongodb.snapshot-jar}" property="tests-present"/>
         <available file="test-materials/${embedded-mongodb.process.jar}" property="tests-present"/>
     	<available file="test-materials/${embedded-mongodb.packageresolver.jar}" property="tests-present"/>
     	<available file="test-materials/${embedded-mongodb.os.jar}" property="tests-present"/>
+    	<available file="test-materials/${embedded-mongodb.os-api.jar}" property="tests-present"/>
+    	<available file="test-materials/${embedded-mongodb.reverse.jar}" property="tests-present"/>
+    	<available file="test-materials/${embedded-mongodb.graph.jar}" property="tests-present"/>
+    	<available file="test-materials/${embedded-mongodb.java8.jar}" property="tests-present"/>
+    	<available file="test-materials/${jgrapht-core.jar}" property="tests-present"/>
+    	<available file="test-materials/${jheaps.jar}" property="tests-present"/>
 	  	
         <copy todir="${mcf-dist}/test-lib">
           <fileset dir="test-materials">
               <include name="de.flapdoodle*.jar"/>
+              <include name="jgrapht-core*.jar"/>
+              <include name="jheaps*.jar"/>
           </fileset>
         </copy>
     </target>
@@ -104,7 +142,12 @@
       <get src="${apache-maven-repo-releases}/${embedded-mongodb.process-package}/${embedded-mongodb.process.artifactId}/${embedded-mongodb.process.version.label}/${embedded-mongodb.process.jar}" dest="test-materials/${embedded-mongodb.process.jar}"/>
       <get src="${apache-maven-repo-releases}/${embedded-mongodb-packageresolver-package}/${embedded-mongodb.packageresolver.artifactId}/${embedded-mongodb.packageresolver.version.label}/${embedded-mongodb.packageresolver.jar}" dest="test-materials/${embedded-mongodb.packageresolver.jar}"/>
       <get src="${apache-maven-repo-releases}/${embedded-mongodb-os-package}/${embedded-mongodb.os.artifactId}/${embedded-mongodb.os.version.label}/${embedded-mongodb.os.jar}" dest="test-materials/${embedded-mongodb.os.jar}"/>
-    	 
+      <get src="${apache-maven-repo-releases}/${embedded-mongodb-os-api-package}/${embedded-mongodb.os-api.artifactId}/${embedded-mongodb.os-api.version.label}/${embedded-mongodb.os-api.jar}" dest="test-materials/${embedded-mongodb.os-api.jar}"/>
+      <get src="${apache-maven-repo-releases}/${embedded-mongodb-reverse-package}/${embedded-mongodb.reverse.artifactId}/${embedded-mongodb.reverse.version.label}/${embedded-mongodb.reverse.jar}" dest="test-materials/${embedded-mongodb.reverse.jar}"/>
+      <get src="${apache-maven-repo-releases}/${embedded-mongodb-graph-package}/${embedded-mongodb.graph.artifactId}/${embedded-mongodb.graph.version.label}/${embedded-mongodb.graph.jar}" dest="test-materials/${embedded-mongodb.graph.jar}"/>
+      <get src="${apache-maven-repo-releases}/${embedded-mongodb-java8-package}/${embedded-mongodb.java8.artifactId}/${embedded-mongodb.java8.version.label}/${embedded-mongodb.java8.jar}" dest="test-materials/${embedded-mongodb.java8.jar}"/>
+      <get src="${apache-maven-repo-releases}/${jgrapht-core-package}/${jgrapht-core.artifactId}/${jgrapht-core.version.label}/${jgrapht-core.jar}" dest="test-materials/${jgrapht-core.jar}"/>
+      <get src="${apache-maven-repo-releases}/${jheaps-package}/${jheaps.artifactId}/${jheaps.version.label}/${jheaps.jar}" dest="test-materials/${jheaps.jar}"/>
     </target>
 
 </project>
