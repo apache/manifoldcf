@@ -15,26 +15,31 @@
  */
 package org.apache.manifoldcf.crawler.connectors.gridfs;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.DBTCPConnector;
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
-import com.mongodb.gridfs.GridFS;
-import com.mongodb.gridfs.GridFSDBFile;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
+import com.mongodb.MongoException;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.gridfs.GridFSBucket;
+import com.mongodb.client.gridfs.GridFSBuckets;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.InputStream;
-import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.core.interfaces.ConfigParams;
@@ -49,6 +54,8 @@ import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.system.Logging;
+import org.bson.BsonValue;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 
 /**
@@ -106,9 +113,13 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
      */
     protected String denyAcl = null;
     /**
-     * MongoDB session.
+     * MongoDB client (owns the connection pool).
      */
-    protected DB session = null;
+    protected MongoClient client = null;
+    /**
+     * MongoDB session (database handle).
+     */
+    protected MongoDatabase session = null;
     /**
      * Last session fetch time.
      */
@@ -214,20 +225,18 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
         try {
             getSession();
             if (session != null) {
-                Mongo currentMongoSession = session.getMongo();
-                currentMongoSession.getConnector()
-                        .getDBPortPool(currentMongoSession.getAddress())
-                        .get()
-                        .ensureOpen();
-                session.getMongo().close();
-                session = null;
+                // The modern driver connects and authenticates lazily: a ping forces a round trip
+                session.runCommand(new Document("ping", 1));
+                closeSession();
                 return super.check();
             }
             return "Not connected.";
         } catch (ManifoldCFException e) {
+            closeSession();
             return e.getMessage();
-        } catch (IOException ex) {
-            return ex.getMessage();
+        } catch (MongoException ex) {
+            closeSession();
+            return "GridFS: Connection check failed: " + ex.getMessage();
         }
     }
 
@@ -241,13 +250,11 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
     public void disconnect() throws ManifoldCFException {
         if (session != null) {
             try {
-                session.getMongo().close();
+                closeSession();
             } catch (Exception e) {
                 Logging.connectors.error("GridFS: Error when trying to disconnect: " + e.getMessage());
                 throw new ManifoldCFException("GridFS: Error when trying to disconnect: " + e.getMessage(), e);
             }
-            session = null;
-            lastSessionFetch = -1L;
             username = null;
             password = null;
             host = null;
@@ -258,6 +265,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
             acl = null;
             denyAcl = null;
         }
+        super.disconnect();
     }
 
     /**
@@ -274,11 +282,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
 
         long currentTime = System.currentTimeMillis();
         if (currentTime >= lastSessionFetch + SESSION_EXPIRATION_MILLISECONDS) {
-            if (session != null) {
-                session.getMongo().close();
-                session = null;
-            }
-            lastSessionFetch = -1L;
+            closeSession();
         }
     }
 
@@ -290,12 +294,25 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
      */
     @Override
     public boolean isConnected() {
-        if (session == null) {
-            return false;
+        // The client manages its own connection pool (reconnecting as needed), so an open
+        // client is considered connected; no network round trip is done here.
+        return client != null && session != null;
+    }
+
+    /**
+     * Close the MongoDB client (and its connection pool), if any.
+     */
+    protected void closeSession() {
+        if (client != null) {
+            try {
+                client.close();
+            } catch (Exception e) {
+                Logging.connectors.warn("GridFS: Error closing MongoDB client: " + e.getMessage(), e);
+            }
         }
-        Mongo currentMongoSession = session.getMongo();
-        DBTCPConnector currentTCPConnection = currentMongoSession.getConnector();
-        return currentTCPConnection.isOpen();
+        client = null;
+        session = null;
+        lastSessionFetch = -1L;
     }
 
     /**
@@ -351,17 +368,20 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
             String lastSeedVersion, long seedTime, int jobMode)
             throws ManifoldCFException, ServiceInterruption {
         getSession();
-        DBCollection fsFiles = session.getCollection(
+        MongoCollection<Document> fsFiles = session.getCollection(
                 bucket + GridFSConstants.COLLECTION_SEPERATOR + GridFSConstants.FILES_COLLECTION_NAME
         );
-        DBCursor dnc = fsFiles.find();
-        while (dnc.hasNext()) {
-            DBObject dbo = dnc.next();
-            String _id = dbo.get("_id").toString();
-            activities.addSeedDocument(_id);
-            if (Logging.connectors.isDebugEnabled()) {
-                Logging.connectors.debug("GridFS: Document _id = " + _id + " added to queue");
+        try (MongoCursor<Document> dnc = fsFiles.find().projection(Projections.include("_id")).iterator()) {
+            while (dnc.hasNext()) {
+                Document dbo = dnc.next();
+                String _id = dbo.get("_id").toString();
+                activities.addSeedDocument(_id);
+                if (Logging.connectors.isDebugEnabled()) {
+                    Logging.connectors.debug("GridFS: Document _id = " + _id + " added to queue");
+                }
             }
+        } catch (MongoException e) {
+            handleMongoException(e);
         }
         return "";
     }
@@ -387,22 +407,34 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
         for (String documentIdentifier : documentIdentifiers) {
 
             String versionString;
-            GridFS gfs;
-            GridFSDBFile document;
+            Document document;
+            Document metadata;
 
             getSession();
             String _id = documentIdentifier;
-            gfs = new GridFS(session, bucket);
-            document = gfs.findOne(new ObjectId(_id));
+            // Identifiers are normally ObjectIds, but GridFS allows any _id type: fall back to the raw string
+            Object idValue = ObjectId.isValid(_id) ? new ObjectId(_id) : _id;
+            GridFSBucket gfs = GridFSBuckets.create(session, bucket);
+            MongoCollection<Document> fsFiles = session.getCollection(
+                    bucket + GridFSConstants.COLLECTION_SEPERATOR + GridFSConstants.FILES_COLLECTION_NAME
+            );
+            try {
+                // Read the raw files document so that legacy top-level fields (e.g. contentType) are preserved
+                document = fsFiles.find(Filters.eq("_id", idValue)).first();
+            } catch (MongoException e) {
+                handleMongoException(e);
+                return;
+            }
             if (document == null) {
                 activities.deleteDocument(documentIdentifier);
                 continue;
-            } else {
-                DBObject metadata = document.getMetaData();
-                versionString = document.getMD5() + "+" + metadata != null
-                        ? Integer.toString(metadata.hashCode())
-                        : StringUtils.EMPTY;
             }
+            metadata = document.get(GridFSConstants.METADATA_FIELD_NAME, Document.class);
+            long fileLenght = getFileLength(document);
+            Date createdDate = document.getDate("uploadDate");
+            versionString = fileLenght + "+"
+                    + (createdDate == null ? "" : Long.toString(createdDate.getTime())) + "+"
+                    + (metadata == null ? "" : Integer.toString(metadata.toJson().hashCode()));
 
             if (versionString.length() == 0 || activities.checkDocumentNeedsReindexing(documentIdentifier, versionString)) {
                 long startTime = System.currentTimeMillis();
@@ -415,7 +447,6 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                         Logging.connectors.debug("GridFS: Processing document _id = " + _id);
                     }
 
-                    DBObject metadata = document.getMetaData();
                     if (metadata == null) {
                         errorCode = "NULLMETADATA";
                         errorDesc = "Excluded because document had a null Metadata";
@@ -424,9 +455,9 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                         continue;
                     }
 
-                    String urlValue = document.getMetaData().get(this.url) == null
+                    String urlValue = metadata.get(this.url) == null
                             ? StringUtils.EMPTY
-                            : document.getMetaData().get(this.url).toString();
+                            : metadata.get(this.url).toString();
                     if (!StringUtils.isEmpty(urlValue)) {
                         boolean validURL;
                         try {
@@ -436,14 +467,12 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                             validURL = false;
                         }
                         if (validURL) {
-                            long fileLenght = document.getLength();
-                            Date createdDate = document.getUploadDate();
-                            String fileName = document.getFilename();
-                            String mimeType = document.getContentType();
+                            String fileName = document.getString("filename");
+                            String mimeType = getContentType(document, metadata);
 
                             if (!activities.checkURLIndexable(urlValue)) {
                                 Logging.connectors.warn("GridFS: Document " + _id + " has a URL excluded by the output connector ('" + urlValue + "') - skipping.");
-                                errorCode = activities.EXCLUDED_URL;
+                                errorCode = IProcessActivity.EXCLUDED_URL;
                                 errorDesc = "Excluded because of URL (" + urlValue + ")";
                                 activities.noDocument(_id, version);
                                 continue;
@@ -451,7 +480,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
 
                             if (!activities.checkLengthIndexable(fileLenght)) {
                                 Logging.connectors.warn("GridFS: Document " + _id + " has a length excluded by the output connector (" + fileLenght + ") - skipping.");
-                                errorCode = activities.EXCLUDED_LENGTH;
+                                errorCode = IProcessActivity.EXCLUDED_LENGTH;
                                 errorDesc = "Excluded because of length (" + fileLenght + ")";
                                 activities.noDocument(_id, version);
                                 continue;
@@ -459,7 +488,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
 
                             if (!activities.checkMimeTypeIndexable(mimeType)) {
                                 Logging.connectors.warn("GridFS: Document " + _id + " has a mime type excluded by the output connector ('" + mimeType + "') - skipping.");
-                                errorCode = activities.EXCLUDED_MIMETYPE;
+                                errorCode = IProcessActivity.EXCLUDED_MIMETYPE;
                                 errorDesc = "Excluded because of mime type (" + mimeType + ")";
                                 activities.noDocument(_id, version);
                                 continue;
@@ -467,7 +496,7 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
 
                             if (!activities.checkDateIndexable(createdDate)) {
                                 Logging.connectors.warn("GridFS: Document " + _id + " has a date excluded by the output connector (" + createdDate + ") - skipping.");
-                                errorCode = activities.EXCLUDED_DATE;
+                                errorCode = IProcessActivity.EXCLUDED_DATE;
                                 errorDesc = "Excluded because of date (" + createdDate + ")";
                                 activities.noDocument(_id, version);
                                 continue;
@@ -482,10 +511,10 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                             String[] denyAclsArray = null;
                             if (acl != null) {
                                 try {
-                                    Object aclObject = document.getMetaData().get(acl);
+                                    Object aclObject = metadata.get(acl);
                                     if (aclObject != null) {
-                                        List<String> acls = (List<String>) aclObject;
-                                        aclsArray = (String[]) acls.toArray();
+                                        List<String> acls = toStringList(aclObject);
+                                        aclsArray = acls.toArray(new String[0]);
                                     }
                                 } catch (ClassCastException e) {
                                     // This is bad because security will fail
@@ -497,11 +526,12 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                             }
                             if (denyAcl != null) {
                                 try {
-                                    Object denyAclObject = document.getMetaData().get(denyAcl);
+                                    Object denyAclObject = metadata.get(denyAcl);
                                     if (denyAclObject != null) {
-                                        List<String> denyAcls = (List<String>) denyAclObject;
+                                        // Copy, so that the document's metadata is not modified
+                                        List<String> denyAcls = new ArrayList<String>(toStringList(denyAclObject));
                                         denyAcls.add(GLOBAL_DENY_TOKEN);
-                                        denyAclsArray = (String[]) denyAcls.toArray();
+                                        denyAclsArray = denyAcls.toArray(new String[0]);
                                     }
                                 } catch (ClassCastException e) {
                                     // This is bad because security will fail
@@ -513,43 +543,80 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                             }
                             rd.setSecurity(RepositoryDocument.SECURITY_TYPE_DOCUMENT, aclsArray, denyAclsArray);
 
-                            InputStream is = document.getInputStream();
-                            try {
+                            try (InputStream is = gfs.openDownloadStream(toBsonValue(document.get("_id")))) {
                                 rd.setBinary(is, fileLenght);
-                                try {
-                                    activities.ingestDocumentWithException(_id, version, urlValue, rd);
-                                } catch (IOException e) {
-                                    handleIOException(e);
-                                }
-                            } finally {
-                                try {
-                                    is.close();
-                                } catch (IOException e) {
-                                    handleIOException(e);
-                                }
+                                activities.ingestDocumentWithException(_id, version, urlValue, rd);
+                            } catch (IOException e) {
+                                handleIOException(e);
+                            } catch (MongoException e) {
+                                errorCode = e.getClass().getSimpleName().toUpperCase(Locale.ROOT);
+                                errorDesc = "Error reading GridFS content: " + e.getMessage();
+                                handleMongoException(e);
                             }
-                            gfs.getDB().getMongo().close();
-                            session = null;
                             errorCode = "OK";
                         } else {
                             Logging.connectors.warn("GridFS: Document " + _id + " has a invalid URL: " + urlValue + " - skipping.");
-                            errorCode = activities.BAD_URL;
+                            errorCode = IProcessActivity.BAD_URL;
                             errorDesc = "Excluded because document had illegal URL ('" + urlValue + "')";
                             activities.noDocument(_id, version);
                         }
                     } else {
                         Logging.connectors.warn("GridFS: Document " + _id + " has a null URL - skipping.");
-                        errorCode = activities.NULL_URL;
+                        errorCode = IProcessActivity.NULL_URL;
                         errorDesc = "Excluded because document had a null URL.";
                         activities.noDocument(_id, version);
                     }
                 } finally {
                     if (errorCode != null) {
-                        activities.recordActivity(startTime, ACTIVITY_FETCH, document.getLength(), _id, errorCode, errorDesc, null);
+                        activities.recordActivity(startTime, ACTIVITY_FETCH, fileLenght, _id, errorCode, errorDesc, null);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Read the file length from a GridFS files document (stored as int32 or int64 depending on the writer).
+     */
+    protected static long getFileLength(Document fileDocument) {
+        Object length = fileDocument.get("length");
+        return (length instanceof Number) ? ((Number) length).longValue() : 0L;
+    }
+
+    /**
+     * Resolve the content type of a GridFS file. Legacy drivers stored it as a top-level
+     * <code>contentType</code> field (deprecated by the GridFS spec), modern drivers expect it
+     * inside the metadata document.
+     */
+    protected static String getContentType(Document fileDocument, Document metadata) {
+        Object contentType = fileDocument.get(GridFSConstants.CONTENT_TYPE_FIELD_NAME);
+        if (contentType == null && metadata != null) {
+            contentType = metadata.get(GridFSConstants.CONTENT_TYPE_FIELD_NAME);
+        }
+        return contentType == null ? null : contentType.toString();
+    }
+
+    /**
+     * Convert a metadata field value into a list of strings.
+     *
+     * @throws ClassCastException if the value is not a list of strings.
+     */
+    protected static List<String> toStringList(Object value) {
+        List<?> list = (List<?>) value;
+        List<String> result = new ArrayList<String>(list.size());
+        for (Object item : list) {
+            result.add((String) item);
+        }
+        return result;
+    }
+
+    /**
+     * Convert a Java _id value into the BsonValue expected by the GridFS download API.
+     */
+    protected static BsonValue toBsonValue(Object idValue) {
+        return new Document("_id", idValue)
+                .toBsonDocument(Document.class, MongoClientSettings.getDefaultCodecRegistry())
+                .get("_id");
     }
 
     protected static void handleIOException(IOException e) throws ManifoldCFException, ServiceInterruption {
@@ -558,6 +625,23 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
         } else {
             throw new ManifoldCFException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Map driver exceptions: network/timeout problems are transient and lead to a retry,
+     * anything else is reported as an error.
+     */
+    protected void handleMongoException(MongoException e) throws ManifoldCFException, ServiceInterruption {
+        if (e instanceof com.mongodb.MongoSocketException || e instanceof com.mongodb.MongoTimeoutException
+                || e instanceof com.mongodb.MongoExecutionTimeoutException) {
+            closeSession();
+            long currentTime = System.currentTimeMillis();
+            Logging.connectors.warn("GridFS: Transient MongoDB error, retrying later: " + e.getMessage(), e);
+            throw new ServiceInterruption("GridFS: Transient MongoDB error: " + e.getMessage(), e,
+                    currentTime + 300000L, currentTime + 3L * 60L * 60000L, -1, false);
+        }
+        Logging.connectors.error("GridFS: MongoDB error: " + e.getMessage(), e);
+        throw new ManifoldCFException("GridFS: MongoDB error: " + e.getMessage(), e);
     }
 
     /**
@@ -721,43 +805,31 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
                 throw new ManifoldCFException("GridFS: Metadata URL field cannot be empty.");
             }
 
-            if (StringUtils.isEmpty(host) && StringUtils.isEmpty(port)) {
+            String effectiveHost = StringUtils.isEmpty(host) ? ServerAddress.defaultHost() : host;
+            int effectivePort = ServerAddress.defaultPort();
+            if (!StringUtils.isEmpty(port)) {
                 try {
-                    session = new MongoClient().getDB(db);
-                } catch (UnknownHostException ex) {
-                    throw new ManifoldCFException("GridFS: Default host is not found. Does mongod process run?" + ex.getMessage(), ex);
-                }
-            } else if (!StringUtils.isEmpty(host) && StringUtils.isEmpty(port)) {
-                try {
-                    session = new MongoClient(host).getDB(db);
-                } catch (UnknownHostException ex) {
-                    throw new ManifoldCFException("GridFS: Given host information is not valid or mongod process doesn't run" + ex.getMessage(), ex);
-                }
-            } else if (!StringUtils.isEmpty(host) && !StringUtils.isEmpty(port)) {
-                try {
-                    int integerPort = Integer.parseInt(port);
-                    session = new MongoClient(host, integerPort).getDB(db);
-                } catch (UnknownHostException ex) {
-                    throw new ManifoldCFException("GridFS: Given information is not valid or mongod process doesn't run" + ex.getMessage(), ex);
-                } catch (NumberFormatException ex) {
-                    throw new ManifoldCFException("GridFS: Given port is not valid number. " + ex.getMessage(), ex);
-                }
-            } else if (StringUtils.isEmpty(host) && !StringUtils.isEmpty(port)) {
-                try {
-                    int integerPort = Integer.parseInt(port);
-                    session = new MongoClient(host, integerPort).getDB(db);
-                } catch (UnknownHostException ex) {
-                    throw new ManifoldCFException("GridFS: Given information is not valid or mongod process doesn't run" + ex.getMessage(), ex);
+                    effectivePort = Integer.parseInt(port);
                 } catch (NumberFormatException ex) {
                     throw new ManifoldCFException("GridFS: Given port is not valid number. " + ex.getMessage(), ex);
                 }
             }
 
+            final ServerAddress serverAddress = new ServerAddress(effectiveHost, effectivePort);
+            MongoClientSettings.Builder settingsBuilder = MongoClientSettings.builder()
+                    .applyToClusterSettings(builder -> builder.hosts(Collections.singletonList(serverAddress)));
+
             if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)) {
-                boolean auth = session.authenticate(username, password.toCharArray());
-                if (!auth) {
-                    throw new ManifoldCFException("GridFS: Given database username and password doesn't match.");
-                }
+                // Credentials are validated lazily by the driver, on the first operation (see check())
+                settingsBuilder.credential(MongoCredential.createCredential(username, db, password.toCharArray()));
+            }
+
+            try {
+                client = MongoClients.create(settingsBuilder.build());
+                session = client.getDatabase(db);
+            } catch (MongoException | IllegalArgumentException ex) {
+                closeSession();
+                throw new ManifoldCFException("GridFS: Given information is not valid or mongod process doesn't run: " + ex.getMessage(), ex);
             }
             lastSessionFetch = System.currentTimeMillis();
         }
@@ -807,12 +879,12 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
     /**
      * Special column names, as far as document queries are concerned
      */
-    protected static HashMap documentKnownColumns;
+    protected static HashMap<String, String> documentKnownColumns;
 
     static {
-        documentKnownColumns = new HashMap();
-        documentKnownColumns.put(GridFSConstants.DEFAULT_ID_FIELD_NAME, "");
-        documentKnownColumns.put(GridFSConstants.URL_RETURN_FIELD_NAME_PARAM, "");
+        documentKnownColumns = new HashMap<String, String>();
+        documentKnownColumns.put(GridFSConstants.DEFAULT_ID_FIELD_NAME, StringUtils.EMPTY);
+        documentKnownColumns.put(GridFSConstants.URL_RETURN_FIELD_NAME_PARAM, StringUtils.EMPTY);
     }
 
     /**
@@ -822,16 +894,15 @@ public class GridFSRepositoryConnector extends BaseRepositoryConnector {
      * @param metadataMap is the resultset row to use to get the metadata. All
      * non-special columns from this row will be considered to be metadata.
      */
-    protected void applyMetadata(RepositoryDocument rd, DBObject metadataMap)
+    protected void applyMetadata(RepositoryDocument rd, Document metadataMap)
             throws ManifoldCFException {
         // Cycle through the document's fields
-        Iterator iter = metadataMap.keySet().iterator();
-        while (iter.hasNext()) {
-            String fieldName = (String) iter.next();
+        for (Map.Entry<String, Object> entry : metadataMap.entrySet()) {
+            String fieldName = entry.getKey();
             if (documentKnownColumns.get(fieldName) == null) {
                 // Consider this field to contain metadata.
                 // We can only accept non-binary metadata at this time.
-                Object metadata = metadataMap.get(fieldName);
+                Object metadata = entry.getValue();
                 if (!(metadata instanceof String)) {
                     throw new ManifoldCFException("Metadata field '" + fieldName + "' must be convertible to a string.");
                 }

@@ -18,17 +18,22 @@
  */
 package org.apache.manifoldcf.agents.output.mongodboutput.tests;
 
-import com.mongodb.*;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.apache.manifoldcf.agents.output.mongodboutput.MongodbOutputConfig;
 import org.apache.manifoldcf.core.interfaces.Configuration;
 import org.apache.manifoldcf.core.interfaces.ConfigurationNode;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.crawler.system.ManifoldCF;
+import org.bson.Document;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.net.UnknownHostException;
 import java.util.Collections;
 
 /**
@@ -37,26 +42,20 @@ import java.util.Collections;
 public class APISanityHSQLDBIT extends BaseITHSQLDB {
 
     private MongoClient client = null;
-    private DB mongoDatabase = null;
-    private DBCollection testCollection = null;
+    private MongoDatabase mongoDatabase = null;
+    private MongoCollection<Document> testCollection = null;
 
     private MongoClient getMongodbClientSession() throws Exception {
-
-        MongoClient testClient = null;
-
-        try {
-            testClient = new MongoClient(BaseITSanityTestUtils.TARGET_HOST_VALUE, Integer.parseInt(BaseITSanityTestUtils.TARGET_PORT_VALUE));
-            mongoDatabase = testClient.getDB(BaseITSanityTestUtils.TARGET_DATABASE__VALUE);
-        } catch (UnknownHostException ex) {
-            throw new ManifoldCFException("Mongodb: Default host is not found. Is mongod process running?" + ex.getMessage(), ex);
-        }
-
-        return testClient;
+        String host = BaseITSanityTestUtils.TARGET_HOST_VALUE;
+        int port = Integer.parseInt(BaseITSanityTestUtils.TARGET_PORT_VALUE);
+        return MongoClients.create(MongoClientSettings.builder()
+            .applyToClusterSettings(b -> b.hosts(Collections.singletonList(new ServerAddress(host, port))))
+            .build());
     }
 
-    private long queryTestContents(DBCollection testCollection) {
+    private long queryTestContents(MongoCollection<Document> testCollection) {
         // deduct 1 for the document we created at the test area
-        return testCollection.count() - 1;
+        return testCollection.countDocuments() - 1;
     }
 
     @Before
@@ -67,20 +66,22 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
             client = getMongodbClientSession();
 
             //creating a test database named testDatabase
-            mongoDatabase = client.getDB(BaseITSanityTestUtils.TARGET_DATABASE__VALUE);
+            mongoDatabase = client.getDatabase(BaseITSanityTestUtils.TARGET_DATABASE__VALUE);
 
             //creating a test collection named testCollection
             testCollection = mongoDatabase.getCollection(BaseITSanityTestUtils.TARGET_COLLECTION_VALUE);
 
             //create credentials
-            final BasicDBObject createUserCommand = new BasicDBObject("createUser", BaseITSanityTestUtils.TARGET_USERNAME_VALUE).append("pwd", BaseITSanityTestUtils.TARGET_PASSWORD_VALUE).append("roles",
-                    Collections.singletonList(new BasicDBObject("role", "readWrite").append("db", BaseITSanityTestUtils.TARGET_DATABASE__VALUE)));
+            final Document createUserCommand = new Document("createUser", BaseITSanityTestUtils.TARGET_USERNAME_VALUE)
+                    .append("pwd", BaseITSanityTestUtils.TARGET_PASSWORD_VALUE)
+                    .append("roles",
+                    Collections.singletonList(new Document("role", "readWrite").append("db", BaseITSanityTestUtils.TARGET_DATABASE__VALUE)));
 
 
-            CommandResult result = mongoDatabase.command(createUserCommand);
+            mongoDatabase.runCommand(createUserCommand);
 
             //create a document to be inserted
-            BasicDBObject newDocument = new BasicDBObject();
+            Document newDocument = new Document();
             newDocument.append("fileName", "fileName")
                     .append("creationDate", "creationDate")
                     .append("lastModificationDate", "lastModificationDate")
@@ -92,7 +93,7 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
                     .append("sourcePath", "sourcePath");
 
             //insert the test document so that the test collection and test Database are created
-            testCollection.insert(newDocument);
+            testCollection.insertOne(newDocument);
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
@@ -105,9 +106,13 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
             throws Exception {
 
         if (mongoDatabase != null) {
-            // deleting the dummyuser
-            final BasicDBObject deleteUserCommand = new BasicDBObject("dropUser", BaseITSanityTestUtils.TARGET_USERNAME_VALUE);
-            CommandResult result = mongoDatabase.command(deleteUserCommand);
+            try {
+                // deleting the dummyuser
+                final Document deleteUserCommand = new Document("dropUser", BaseITSanityTestUtils.TARGET_USERNAME_VALUE);
+                mongoDatabase.runCommand(deleteUserCommand);
+            } catch (Exception e) {
+                // ignore
+            }
 
             // dropping the test Collection
             if (testCollection != null) {
@@ -115,7 +120,11 @@ public class APISanityHSQLDBIT extends BaseITHSQLDB {
             }
 
             // dropping the test Database
-            mongoDatabase.dropDatabase();
+            mongoDatabase.drop();
+        }
+        if (client != null) {
+            client.close();
+            client = null;
         }
     }
 

@@ -30,8 +30,8 @@ public class BaseITSanityTestUtils {
     //Test values for the source repository
     public static final String TARGET_USERNAME_VALUE = "dummyuser";
     public static final String TARGET_PASSWORD_VALUE = "dummysecrect";
-    public static final String TARGET_HOST_VALUE = "localhost";
-    public static final String TARGET_PORT_VALUE = "27017";
+    public static String TARGET_HOST_VALUE = "localhost";
+    public static String TARGET_PORT_VALUE = "27017";
     public static final String TARGET_DATABASE__VALUE = "testDatabase";
     public static final String TARGET_COLLECTION_VALUE = "testCollection";
 

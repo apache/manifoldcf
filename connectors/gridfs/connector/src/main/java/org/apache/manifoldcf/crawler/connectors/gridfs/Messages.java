@@ -17,15 +17,9 @@ package org.apache.manifoldcf.crawler.connectors.gridfs;
 
 import java.util.Locale;
 import java.util.Map;
-import static org.apache.manifoldcf.core.i18n.Messages.getString;
+
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
-import static org.apache.manifoldcf.ui.i18n.Messages.getAttributeJavascriptString;
-import static org.apache.manifoldcf.ui.i18n.Messages.getAttributeString;
-import static org.apache.manifoldcf.ui.i18n.Messages.getBodyJavascriptString;
-import static org.apache.manifoldcf.ui.i18n.Messages.getBodyString;
-import static org.apache.manifoldcf.ui.i18n.Messages.outputResource;
-import static org.apache.manifoldcf.ui.i18n.Messages.outputResourceWithVelocity;
 
 /**
  *

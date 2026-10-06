@@ -21,17 +21,8 @@ package org.apache.manifoldcf.agents.output.mongodboutput.tests;
 import org.junit.After;
 import org.junit.Before;
 
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.mongo.transitions.ImmutableMongod;
-import de.flapdoodle.embed.mongo.transitions.Mongod;
-import de.flapdoodle.embed.mongo.transitions.RunningMongodProcess;
-import de.flapdoodle.os.CommonArchitecture;
-import de.flapdoodle.os.CommonOS;
-import de.flapdoodle.os.ImmutablePlatform;
-import de.flapdoodle.os.Platform;
-import de.flapdoodle.reverse.TransitionWalker;
-import de.flapdoodle.reverse.transitions.Start;
+import org.testcontainers.mongodb.MongoDBContainer;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * Base integration tests class for MongoDB tested against a CMIS repository
@@ -40,7 +31,7 @@ import de.flapdoodle.reverse.transitions.Start;
  */
 public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQLDB {
 
-	private TransitionWalker.ReachedState<RunningMongodProcess> mongodProcess;
+	protected static MongoDBContainer mongoDBContainer;
 
 	protected String[] getConnectorNames() {
 		return new String[] { "CMIS" };
@@ -62,27 +53,19 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
 
 	@Before
 	public void setUpMongoDB() throws Exception {
-
-		String bindIp = "localhost";
-		int port = 27017;
-		ImmutableMongod.Builder mongodBuilder = Mongod.builder()
-				.net(Start.to(Net.class).initializedWith(Net.of(bindIp, port, false)));
-
-		Platform detected = Platform.detect(CommonOS.list());
-		if (detected.operatingSystem() == CommonOS.OS_X && detected.architecture() == CommonArchitecture.ARM_64) {
-			Platform x86Platform = ImmutablePlatform.builder().from(detected)
-					.architecture(CommonArchitecture.X86_64)
-					.build();
-			mongodBuilder.platform(Start.to(Platform.class).initializedWith(x86Platform));
+		if (mongoDBContainer == null) {
+			mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:9.0.2"));
+			mongoDBContainer.start();
 		}
-
-		mongodProcess = mongodBuilder.build().start(Version.Main.V4_0);
+		BaseITSanityTestUtils.TARGET_HOST_VALUE = mongoDBContainer.getHost();
+		BaseITSanityTestUtils.TARGET_PORT_VALUE = String.valueOf(mongoDBContainer.getFirstMappedPort());
 	}
 
 	@After
 	public void cleanUpMongoDB() throws Exception {
-		if (mongodProcess != null) {
-			mongodProcess.close();
+		if (mongoDBContainer != null) {
+			mongoDBContainer.stop();
+			mongoDBContainer = null;
 		}
 	}
 

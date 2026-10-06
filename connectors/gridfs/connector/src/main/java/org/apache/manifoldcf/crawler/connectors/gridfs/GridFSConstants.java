@@ -82,6 +82,14 @@ public class GridFSConstants {
      */
     protected static final String DEFAULT_ID_FIELD_NAME = "_id";
     /**
+     * GridFS files document metadata field name.
+     */
+    protected static final String METADATA_FIELD_NAME = "metadata";
+    /**
+     * GridFS content type field name (top-level for legacy drivers, inside metadata for modern ones).
+     */
+    protected static final String CONTENT_TYPE_FIELD_NAME = "contentType";
+    /**
      * Job start point node type.
      */
     protected static final String JOB_STARTPOINT_NODE_TYPE = "startpoint";

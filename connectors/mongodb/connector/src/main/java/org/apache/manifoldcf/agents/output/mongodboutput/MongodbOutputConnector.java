@@ -16,18 +16,19 @@
  */
 package org.apache.manifoldcf.agents.output.mongodboutput;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCursor;
-import com.mongodb.DBCollection;
-import com.mongodb.MongoClient;
-import com.mongodb.DBTCPConnector;
-import com.mongodb.DBPort;
-import com.mongodb.DBPortPool;
-import com.mongodb.WriteConcern;
-import com.mongodb.WriteResult;
-import com.mongodb.MongoException;
-import org.bson.types.Binary;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.net.ConnectException;
+import java.rmi.RemoteException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -36,27 +37,30 @@ import org.apache.manifoldcf.agents.interfaces.IOutputRemoveActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
 import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
 import org.apache.manifoldcf.agents.output.BaseOutputConnector;
-import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
 import org.apache.manifoldcf.core.interfaces.IPasswordMapperActivity;
 import org.apache.manifoldcf.core.interfaces.IPostParameters;
-import org.apache.manifoldcf.core.interfaces.ConfigParams;
-import org.apache.manifoldcf.core.interfaces.VersionContext;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.VersionContext;
 import org.apache.manifoldcf.crawler.system.Logging;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bson.types.Binary;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InterruptedIOException;
-import java.net.ConnectException;
-import java.net.UnknownHostException;
-import java.rmi.RemoteException;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Date;
-import java.util.Iterator;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
+import com.mongodb.MongoException;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 
 /**
  * This is the "output connector" for MongoDB.
@@ -152,7 +156,7 @@ public class MongodbOutputConnector extends BaseOutputConnector {
     /**
      * MongoDB database handle instance
      */
-    private DB mongoDatabase = null;
+    private MongoDatabase mongoDatabase = null;
 
 
     /**
@@ -226,11 +230,15 @@ public class MongodbOutputConnector extends BaseOutputConnector {
      */
     @Override
     public boolean isConnected() {
-        if (client == null) {
+        if (client == null || mongoDatabase == null) {
             return false;
         }
-        DBTCPConnector currentTCPConnection = client.getConnector();
-        return currentTCPConnection.isOpen();
+        try {
+            mongoDatabase.runCommand(new Document("ping", 1));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -642,55 +650,30 @@ public class MongodbOutputConnector extends BaseOutputConnector {
             try {
                 // Create a session
                 if (client == null) {
-                    if (StringUtils.isEmpty(host) && StringUtils.isEmpty(port)) {
+                    String effectiveHost = StringUtils.isEmpty(host) ? "localhost" : host;
+                    int effectivePort = 27017;
+                    if (!StringUtils.isEmpty(port)) {
                         try {
-                            client = new MongoClient();
-                            mongoDatabase = client.getDB(database);
-                        } catch (UnknownHostException ex) {
-                            throw new ManifoldCFException("MongoDB: Default host is not found. Is mongod process running?" + ex.getMessage(), ex);
-                        }
-                    } else if (!StringUtils.isEmpty(host) && StringUtils.isEmpty(port)) {
-                        try {
-                            client = new MongoClient(host);
-                            mongoDatabase = client.getDB(database);
-                        } catch (UnknownHostException ex) {
-                            throw new ManifoldCFException("MongoDB: Given host information is not valid or mongod process doesn't run" + ex.getMessage(), ex);
-                        }
-                    } else if (!StringUtils.isEmpty(host) && !StringUtils.isEmpty(port)) {
-                        try {
-                            int integerPort = Integer.parseInt(port);
-                            client = new MongoClient(host, integerPort);
-                            mongoDatabase = client.getDB(database);
-                        } catch (UnknownHostException ex) {
-                            throw new ManifoldCFException("MongoDB: Given information is not valid or mongod process doesn't run" + ex.getMessage(), ex);
+                            effectivePort = Integer.parseInt(port);
                         } catch (NumberFormatException ex) {
                             throw new ManifoldCFException("MongoDB: Given port is not a valid number. " + ex.getMessage(), ex);
                         }
-                    } else if (StringUtils.isEmpty(host) && !StringUtils.isEmpty(port)) {
-                        try {
-                            int integerPort = Integer.parseInt(port);
-                            client = new MongoClient("localhost", integerPort);
-                            mongoDatabase = client.getDB(database);
-                        } catch (UnknownHostException e) {
-                            Logging.connectors.warn("MongoDB: Given information is not valid or mongod process doesn't run" + e.getMessage(), e);
-                            throw new ManifoldCFException("MongoDB: Given information is not valid or mongod process doesn't run" + e.getMessage(), e);
-                        } catch (NumberFormatException e) {
-                            Logging.connectors.warn("MongoDB: Given port is not valid number. " + e.getMessage(), e);
-                            throw new ManifoldCFException("MongoDB: Given port is not valid number. " + e.getMessage(), e);
-                        }
                     }
+
+                    final String finalHost = effectiveHost;
+                    final int finalPort = effectivePort;
+                    MongoClientSettings.Builder settingsBuilder = MongoClientSettings.builder()
+                        .applyToClusterSettings(builder ->
+                            builder.hosts(Collections.singletonList(new ServerAddress(finalHost, finalPort)))
+                        );
+
                     if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)) {
-                        boolean auth = mongoDatabase.authenticate(username, password.toCharArray());
-                        if (!auth) {
-                            Logging.connectors.warn("MongoDB:Authentication Error! Given database username and password doesn't match for the database given.");
-                            throw new ManifoldCFException("MongoDB: Given database username and password doesn't match for the database given.");
-                        } else {
-                            if (Logging.connectors.isDebugEnabled()) {
-                                Logging.connectors.debug("MongoDB: Username = '" + username + "'");
-                                Logging.connectors.debug("MongoDB: Password exists");
-                            }
-                        }
+                        MongoCredential credential = MongoCredential.createCredential(username, database, password.toCharArray());
+                        settingsBuilder.credential(credential);
                     }
+
+                    client = MongoClients.create(settingsBuilder.build());
+                    mongoDatabase = client.getDatabase(database);
                 }
 
             } catch (Throwable e) {
@@ -713,12 +696,8 @@ public class MongodbOutputConnector extends BaseOutputConnector {
 
         public void run() {
             try {
-                if (client != null) {
-                    DBTCPConnector dbtcpConnector = client.getConnector();
-                    DBPortPool dbPortPool = dbtcpConnector.getDBPortPool(client.getAddress());
-                    DBPort dbPort = dbPortPool.get();
-                    dbPort.ensureOpen();
-                    client = null;
+                if (client != null && mongoDatabase != null) {
+                    mongoDatabase.runCommand(new Document("ping", 1));
                 }
 
             } catch (Throwable e) {
@@ -743,6 +722,9 @@ public class MongodbOutputConnector extends BaseOutputConnector {
 
         public void run() {
             try {
+                if (client != null) {
+                    client.close();
+                }
                 client = null;
                 mongoDatabase = null;
             } catch (Throwable e) {
@@ -762,9 +744,6 @@ public class MongodbOutputConnector extends BaseOutputConnector {
             throws ManifoldCFException, ServiceInterruption, IOException {
 
         getSession();
-
-        //to get an exception if write fails
-        client.setWriteConcern(WriteConcern.SAFE);
 
         long startTime = System.currentTimeMillis();
         String resultDescription = StringUtils.EMPTY;
@@ -792,9 +771,9 @@ public class MongodbOutputConnector extends BaseOutputConnector {
             byte[] bytes = IOUtils.toByteArray(inputStream);
             Binary content = new Binary(bytes);
 
-            DBCollection mongoCollection = mongoDatabase.getCollection(collection);
+            MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
 
-            BasicDBObject newDocument = new BasicDBObject();
+            Document newDocument = new Document();
             newDocument.append("fileName", fileName)
                     .append("creationDate", creationDate)
                     .append("lastModificationDate", lastModificationDate)
@@ -811,30 +790,21 @@ public class MongodbOutputConnector extends BaseOutputConnector {
                 String fieldName = i.next();
                 Date[] dateFieldValues = document.getFieldAsDates(fieldName);
                 if (dateFieldValues != null) {
-                    newDocument.append(fieldName, dateFieldValues);
+                    newDocument.append(fieldName, Arrays.asList(dateFieldValues));
                 } else {
                     String[] fieldValues = document.getFieldAsStrings(fieldName);
-                    newDocument.append(fieldName, fieldValues);
+                    newDocument.append(fieldName, Arrays.asList(fieldValues));
                 }
             }
 
-            BasicDBObject searchQuery = new BasicDBObject().append("documentURI", documentURI);
-            DBCursor cursor = mongoCollection.find(searchQuery);
-            Long numberOfDocumentsBeforeInsert = mongoCollection.count();
-            WriteResult result;
-            if (cursor.count() > 0) {
-                result = mongoCollection.update(searchQuery, newDocument);
-            } else {
-                result = mongoCollection.insert(newDocument);
-            }
-            //result.getLastError().get("err") == null
-            //To get the number of documents indexed i.e. tne number of documents inserted or updated
-            Long numberOfDocumentsAfterInsert = mongoCollection.count();
-            Long numberOfDocumentsInserted = numberOfDocumentsAfterInsert - numberOfDocumentsBeforeInsert;
-            Long numberOfDocumentsIndexed = (numberOfDocumentsInserted != 0) ? numberOfDocumentsInserted : result.getN();
+            Bson searchQuery = Filters.eq("documentURI", documentURI);
+            ReplaceOptions replaceOptions = new ReplaceOptions().upsert(true);
+            UpdateResult result = mongoCollection.replaceOne(searchQuery, newDocument, replaceOptions);
+
+            long numberOfDocumentsIndexed = (result.getUpsertedId() != null) ? 1L : (result.getMatchedCount() > 0 ? 1L : 0L);
             Logging.connectors.info("Number of documents indexed : " + numberOfDocumentsIndexed);
 
-            //check if a document is inserted or updated (numberOfDocumentsInserted > 0) || (result.getN() > 0)
+            //check if a document is inserted or updated
             if (numberOfDocumentsIndexed > 0) {
                 resultDescription = DOCUMENT_STATUS_ACCEPTED_DESC;
                 return DOCUMENT_STATUS_ACCEPTED;
@@ -874,15 +844,14 @@ public class MongodbOutputConnector extends BaseOutputConnector {
 
         try {
 
-            DBCollection mongoCollection = mongoDatabase.getCollection(collection);
+            MongoCollection<Document> mongoCollection = mongoDatabase.getCollection(collection);
 
-            BasicDBObject query = new BasicDBObject();
-            query.append("documentURI", documentURI);
+            Bson query = Filters.eq("documentURI", documentURI);
 
-            WriteResult result = mongoCollection.remove(query);
-            Logging.connectors.info("Number of documents deleted : " + result.getN());
+            DeleteResult result = mongoCollection.deleteOne(query);
+            Logging.connectors.info("Number of documents deleted : " + result.getDeletedCount());
 
-            if (result.getN() > 0) {
+            if (result.getDeletedCount() > 0) {
                 resultDescription = DOCUMENT_DELETION_STATUS_ACCEPTED;
             } else {
                 resultDescription = DOCUMENT_DELETION_STATUS_REJECTED;

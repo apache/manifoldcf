@@ -36,10 +36,17 @@
         </delete>
     </target>
 
+    <!-- MongoDB sync driver (MongoDB 9.x compliant) -->
+    <patternset id="mongodb-driver-jars">
+        <include name="mongodb-driver-sync-*.jar"/>
+        <include name="mongodb-driver-core-*.jar"/>
+        <include name="bson-*.jar"/>
+    </patternset>
+
     <path id="connector-classpath">
         <path refid="mcf-connector-build.connector-classpath"/>
         <fileset dir="../../lib">
-            <include name="mongo-java-driver*.jar"/>
+            <patternset refid="mongodb-driver-jars"/>
         </fileset>
     </path>
 
@@ -47,7 +54,7 @@
         <mkdir dir="dist/lib"/>
         <copy todir="dist/lib">
             <fileset dir="../../lib">
-                <include name="mongo-java-driver*.jar"/>
+                <patternset refid="mongodb-driver-jars"/>
             </fileset>
         </copy>
     </target>
@@ -59,95 +66,57 @@
                    value="org.apache.manifoldcf.agents.output.mongodboutput.MongodbOutputConnector"/>
         </antcall>
     </target>
-	
-    <property name="embedded-mongodb.version.label" value="4.33.0"/>
-    <property name="embedded-mongodb.artifactId" value="de.flapdoodle.embed.mongo"/>
-    <property name="embedded-mongodb-package" value="de/flapdoodle/embed"/>    
-    <property name="embedded-mongodb.snapshot-jar" value="${embedded-mongodb.artifactId}-${embedded-mongodb.version.label}.jar"/>
 
-    <property name="embedded-mongodb.process.version.label" value="4.18.0"/>
-    <property name="embedded-mongodb.process.artifactId" value="de.flapdoodle.embed.process"/>
-    <property name="embedded-mongodb.process-package" value="de/flapdoodle/embed"/>    
-    <property name="embedded-mongodb.process.jar" value="${embedded-mongodb.process.artifactId}-${embedded-mongodb.process.version.label}.jar"/>
-	
-	<property name="embedded-mongodb.packageresolver.version.label" value="4.33.0"/>
-    <property name="embedded-mongodb.packageresolver.artifactId" value="de.flapdoodle.embed.mongo.packageresolver"/>
-    <property name="embedded-mongodb-packageresolver-package" value="de/flapdoodle/embed"/>    
-    <property name="embedded-mongodb.packageresolver.jar" value="${embedded-mongodb.packageresolver.artifactId}-${embedded-mongodb.packageresolver.version.label}.jar"/>
-	
-	<property name="embedded-mongodb.os.version.label" value="1.11.0"/>
-    <property name="embedded-mongodb.os.artifactId" value="de.flapdoodle.os"/>
-    <property name="embedded-mongodb-os-package" value="de/flapdoodle"/>    
-    <property name="embedded-mongodb.os.jar" value="${embedded-mongodb.os.artifactId}-${embedded-mongodb.os.version.label}.jar"/>
+    <!-- Test materials: Testcontainers is used to run MongoDB 9.0.2 as a Docker container during the tests -->
+    <property name="testcontainers.version" value="2.0.5"/>
+    <property name="docker-java.version" value="3.7.1"/>
+    <property name="duct-tape.version" value="1.0.8"/>
+    <property name="jna.version" value="5.10.0"/>
+    <property name="commons-compress.version" value="1.28.0"/>
+    <property name="jetbrains-annotations.version" value="17.0.0"/>
+    <property name="jackson-annotations.version" value="2.21"/>
 
-    <property name="embedded-mongodb.os-api.version.label" value="1.7.1"/>
-    <property name="embedded-mongodb.os-api.artifactId" value="de.flapdoodle.os-api"/>
-    <property name="embedded-mongodb-os-api-package" value="de/flapdoodle"/>    
-    <property name="embedded-mongodb.os-api.jar" value="${embedded-mongodb.os-api.artifactId}-${embedded-mongodb.os-api.version.label}.jar"/>
+    <!-- Test materials come first so that the newer jars required by Testcontainers
+         (e.g. jackson-annotations, commons-compress) take precedence over the older shared ones -->
+    <path id="connector-test-classpath">
+        <fileset dir="test-materials" includes="*.jar" erroronmissingdir="false"/>
+        <path refid="mcf-connector-build.connector-test-classpath"/>
+    </path>
 
-    <property name="embedded-mongodb.reverse.version.label" value="1.9.1"/>
-    <property name="embedded-mongodb.reverse.artifactId" value="de.flapdoodle.reverse"/>
-    <property name="embedded-mongodb-reverse-package" value="de/flapdoodle/reverse"/>    
-    <property name="embedded-mongodb.reverse.jar" value="${embedded-mongodb.reverse.artifactId}-${embedded-mongodb.reverse.version.label}.jar"/>
-
-    <property name="embedded-mongodb.graph.version.label" value="1.3.4"/>
-    <property name="embedded-mongodb.graph.artifactId" value="de.flapdoodle.graph"/>
-    <property name="embedded-mongodb-graph-package" value="de/flapdoodle/graph"/>    
-    <property name="embedded-mongodb.graph.jar" value="${embedded-mongodb.graph.artifactId}-${embedded-mongodb.graph.version.label}.jar"/>
-
-    <property name="embedded-mongodb.java8.version.label" value="1.7.2"/>
-    <property name="embedded-mongodb.java8.artifactId" value="de.flapdoodle.java8"/>
-    <property name="embedded-mongodb-java8-package" value="de/flapdoodle/java8"/>    
-    <property name="embedded-mongodb.java8.jar" value="${embedded-mongodb.java8.artifactId}-${embedded-mongodb.java8.version.label}.jar"/>
-
-    <property name="jgrapht-core.version.label" value="1.4.0"/>
-    <property name="jgrapht-core.artifactId" value="jgrapht-core"/>
-    <property name="jgrapht-core-package" value="org/jgrapht"/>    
-    <property name="jgrapht-core.jar" value="${jgrapht-core.artifactId}-${jgrapht-core.version.label}.jar"/>
-
-    <property name="jheaps.version.label" value="0.11"/>
-    <property name="jheaps.artifactId" value="jheaps"/>
-    <property name="jheaps-package" value="org/jheaps"/>    
-    <property name="jheaps.jar" value="${jheaps.artifactId}-${jheaps.version.label}.jar"/>
-	
     <target name="calculate-testcode-condition">
-        <available file="test-materials/${embedded-mongodb.snapshot-jar}" property="tests-present"/>
-        <available file="test-materials/${embedded-mongodb.process.jar}" property="tests-present"/>
-    	<available file="test-materials/${embedded-mongodb.packageresolver.jar}" property="tests-present"/>
-    	<available file="test-materials/${embedded-mongodb.os.jar}" property="tests-present"/>
-    	<available file="test-materials/${embedded-mongodb.os-api.jar}" property="tests-present"/>
-    	<available file="test-materials/${embedded-mongodb.reverse.jar}" property="tests-present"/>
-    	<available file="test-materials/${embedded-mongodb.graph.jar}" property="tests-present"/>
-    	<available file="test-materials/${embedded-mongodb.java8.jar}" property="tests-present"/>
-    	<available file="test-materials/${jgrapht-core.jar}" property="tests-present"/>
-    	<available file="test-materials/${jheaps.jar}" property="tests-present"/>
-	  	
-        <copy todir="${mcf-dist}/test-lib">
-          <fileset dir="test-materials">
-              <include name="de.flapdoodle*.jar"/>
-              <include name="jgrapht-core*.jar"/>
-              <include name="jheaps*.jar"/>
-          </fileset>
-        </copy>
+        <condition property="tests-present">
+            <and>
+                <available file="test-materials/testcontainers-${testcontainers.version}.jar"/>
+                <available file="test-materials/testcontainers-mongodb-${testcontainers.version}.jar"/>
+                <available file="test-materials/docker-java-api-${docker-java.version}.jar"/>
+                <available file="test-materials/docker-java-transport-${docker-java.version}.jar"/>
+                <available file="test-materials/docker-java-transport-zerodep-${docker-java.version}.jar"/>
+                <available file="test-materials/duct-tape-${duct-tape.version}.jar"/>
+                <available file="test-materials/jna-${jna.version}.jar"/>
+                <available file="test-materials/commons-compress-${commons-compress.version}.jar"/>
+                <available file="test-materials/annotations-${jetbrains-annotations.version}.jar"/>
+                <available file="test-materials/jackson-annotations-${jackson-annotations.version}.jar"/>
+            </and>
+        </condition>
     </target>
 
     <target name="pretest-warn" depends="calculate-testcode-condition" unless="tests-present">
-        <echo message="Need Embedded MongoDB download in order to run tests - run ant make-deps"/>
+        <echo message="Need Testcontainers download in order to run tests - run ant make-deps (Docker is required to run MongoDB 9.0.2)"/>
     </target>
-	
+
     <target name="download-dependencies">
-      <property name="sonatype-maven-repo-releases" value="https://oss.sonatype.org/content/repositories/public" />
-      <property name="apache-maven-repo-releases" value="https://repo1.maven.org/maven2" />
-      <get src="${apache-maven-repo-releases}/${embedded-mongodb-package}/${embedded-mongodb.artifactId}/${embedded-mongodb.version.label}/${embedded-mongodb.snapshot-jar}" dest="test-materials/${embedded-mongodb.snapshot-jar}"/>
-      <get src="${apache-maven-repo-releases}/${embedded-mongodb.process-package}/${embedded-mongodb.process.artifactId}/${embedded-mongodb.process.version.label}/${embedded-mongodb.process.jar}" dest="test-materials/${embedded-mongodb.process.jar}"/>
-      <get src="${apache-maven-repo-releases}/${embedded-mongodb-packageresolver-package}/${embedded-mongodb.packageresolver.artifactId}/${embedded-mongodb.packageresolver.version.label}/${embedded-mongodb.packageresolver.jar}" dest="test-materials/${embedded-mongodb.packageresolver.jar}"/>
-      <get src="${apache-maven-repo-releases}/${embedded-mongodb-os-package}/${embedded-mongodb.os.artifactId}/${embedded-mongodb.os.version.label}/${embedded-mongodb.os.jar}" dest="test-materials/${embedded-mongodb.os.jar}"/>
-      <get src="${apache-maven-repo-releases}/${embedded-mongodb-os-api-package}/${embedded-mongodb.os-api.artifactId}/${embedded-mongodb.os-api.version.label}/${embedded-mongodb.os-api.jar}" dest="test-materials/${embedded-mongodb.os-api.jar}"/>
-      <get src="${apache-maven-repo-releases}/${embedded-mongodb-reverse-package}/${embedded-mongodb.reverse.artifactId}/${embedded-mongodb.reverse.version.label}/${embedded-mongodb.reverse.jar}" dest="test-materials/${embedded-mongodb.reverse.jar}"/>
-      <get src="${apache-maven-repo-releases}/${embedded-mongodb-graph-package}/${embedded-mongodb.graph.artifactId}/${embedded-mongodb.graph.version.label}/${embedded-mongodb.graph.jar}" dest="test-materials/${embedded-mongodb.graph.jar}"/>
-      <get src="${apache-maven-repo-releases}/${embedded-mongodb-java8-package}/${embedded-mongodb.java8.artifactId}/${embedded-mongodb.java8.version.label}/${embedded-mongodb.java8.jar}" dest="test-materials/${embedded-mongodb.java8.jar}"/>
-      <get src="${apache-maven-repo-releases}/${jgrapht-core-package}/${jgrapht-core.artifactId}/${jgrapht-core.version.label}/${jgrapht-core.jar}" dest="test-materials/${jgrapht-core.jar}"/>
-      <get src="${apache-maven-repo-releases}/${jheaps-package}/${jheaps.artifactId}/${jheaps.version.label}/${jheaps.jar}" dest="test-materials/${jheaps.jar}"/>
+        <property name="maven-repo" value="https://repo1.maven.org/maven2"/>
+        <mkdir dir="test-materials"/>
+        <get src="${maven-repo}/org/testcontainers/testcontainers/${testcontainers.version}/testcontainers-${testcontainers.version}.jar" dest="test-materials/testcontainers-${testcontainers.version}.jar"/>
+        <get src="${maven-repo}/org/testcontainers/testcontainers-mongodb/${testcontainers.version}/testcontainers-mongodb-${testcontainers.version}.jar" dest="test-materials/testcontainers-mongodb-${testcontainers.version}.jar"/>
+        <get src="${maven-repo}/com/github/docker-java/docker-java-api/${docker-java.version}/docker-java-api-${docker-java.version}.jar" dest="test-materials/docker-java-api-${docker-java.version}.jar"/>
+        <get src="${maven-repo}/com/github/docker-java/docker-java-transport/${docker-java.version}/docker-java-transport-${docker-java.version}.jar" dest="test-materials/docker-java-transport-${docker-java.version}.jar"/>
+        <get src="${maven-repo}/com/github/docker-java/docker-java-transport-zerodep/${docker-java.version}/docker-java-transport-zerodep-${docker-java.version}.jar" dest="test-materials/docker-java-transport-zerodep-${docker-java.version}.jar"/>
+        <get src="${maven-repo}/org/rnorth/duct-tape/duct-tape/${duct-tape.version}/duct-tape-${duct-tape.version}.jar" dest="test-materials/duct-tape-${duct-tape.version}.jar"/>
+        <get src="${maven-repo}/net/java/dev/jna/jna/${jna.version}/jna-${jna.version}.jar" dest="test-materials/jna-${jna.version}.jar"/>
+        <get src="${maven-repo}/org/apache/commons/commons-compress/${commons-compress.version}/commons-compress-${commons-compress.version}.jar" dest="test-materials/commons-compress-${commons-compress.version}.jar"/>
+        <get src="${maven-repo}/org/jetbrains/annotations/${jetbrains-annotations.version}/annotations-${jetbrains-annotations.version}.jar" dest="test-materials/annotations-${jetbrains-annotations.version}.jar"/>
+        <get src="${maven-repo}/com/fasterxml/jackson/core/jackson-annotations/${jackson-annotations.version}/jackson-annotations-${jackson-annotations.version}.jar" dest="test-materials/jackson-annotations-${jackson-annotations.version}.jar"/>
     </target>
 
 </project>
