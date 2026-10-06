@@ -43,6 +43,11 @@ jobs:
           distribution: 'temurin'
           architecture: x64
           cache: maven
+          
+      - name: Install OpenSSL 1.1 runtime for embedded legacy MongoDB
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl1.1
 
       - name: Ant Build and Test
         run: ant make-core-deps make-deps build test
