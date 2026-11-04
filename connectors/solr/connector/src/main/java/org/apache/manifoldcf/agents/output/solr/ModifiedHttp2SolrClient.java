@@ -440,7 +440,7 @@ public class ModifiedHttp2SolrClient extends SolrClient {
       abortCause = e;
       throw new RuntimeException(e);
     } catch (final TimeoutException e) {
-      throw new SolrServerException("Timeout occured while waiting response from server at: " + req.getURI(), e);
+      throw new SolrServerException("Timeout occurred while waiting response from server at: " + req.getURI(), e);
     } catch (final ExecutionException e) {
       final Throwable cause = e.getCause();
       abortCause = cause;
