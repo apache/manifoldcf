@@ -22,14 +22,15 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.util.Map;
 
-import org.apache.tika.config.TikaConfig;
+import org.apache.tika.config.loader.TikaJsonConfig;
+import org.apache.tika.config.loader.TikaLoader;
 import org.apache.tika.exception.TikaException;
+import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
-import org.apache.tika.parser.html.HtmlParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.WriteOutContentHandler;
 import org.xml.sax.ContentHandler;
@@ -48,9 +49,10 @@ public class TikaParser {
     } else {
       final InputStream is = new ByteArrayInputStream(tikaConfig.getBytes(java.nio.charset.StandardCharsets.UTF_8));
       try {
-        final TikaConfig conf = new TikaConfig(is);
-        parser = new AutoDetectParser(conf);
-      } catch (TikaException | IOException | SAXException e) {
+        final TikaJsonConfig conf = TikaJsonConfig.load(is);
+        final TikaLoader loader = TikaLoader.load(conf, getClass().getClassLoader());
+        parser = loader.loadAutoDetectParser();
+      } catch (Exception e) {
         throw new ManifoldCFException(e.getMessage(), e);
       }
     }
@@ -71,7 +73,9 @@ public class TikaParser {
     throws IOException, SAXException, TikaException {
     ParseContext context = new ParseContext();
     context.set(Parser.class, parser);
-    parser.parse(stream, handler, metadata, context);
+    try (TikaInputStream tis = TikaInputStream.get(stream, metadata)) {
+      parser.parse(tis, handler, metadata, context);
+    }
   }
 
 }

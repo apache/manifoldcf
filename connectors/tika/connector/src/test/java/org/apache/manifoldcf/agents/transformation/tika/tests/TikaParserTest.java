@@ -27,7 +27,7 @@ import org.apache.manifoldcf.agents.transformation.tika.TikaParser;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.TikaMetadataKeys;
+import org.apache.tika.metadata.TikaCoreProperties;
 import org.junit.Test;
 import org.junit.Ignore;
 import org.xml.sax.ContentHandler;
@@ -51,7 +51,7 @@ public class TikaParserTest {
       String path = doc;
       InputStream stream = getClass().getResourceAsStream(path);
       Metadata metadata = new Metadata();
-      metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, new File(getClass().getResource(path).getFile()).getName());
+      metadata.add(TikaCoreProperties.RESOURCE_NAME_KEY, new File(getClass().getResource(path).getFile()).getName());
       TikaParser tikaParser = new TikaParser(null);
       ContentHandler unlimitedHandler
         = tikaParser.newWriteOutBodyContentHandler(new StringWriter(), -1);
@@ -59,7 +59,7 @@ public class TikaParserTest {
  
       assertThat(unlimitedHandler.toString().length(), not(0));
       assertThat(metadata.get("Content-Type"), notNullValue());
-      assertThat(metadata.get("resourceName"), notNullValue());
+      assertThat(metadata.get(TikaCoreProperties.RESOURCE_NAME_KEY), notNullValue());
     }
   }
 
@@ -69,7 +69,7 @@ public class TikaParserTest {
       String path = doc;
       InputStream stream = getClass().getResourceAsStream(path);
       Metadata metadata = new Metadata();
-      metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, new File(getClass().getResource(path).getFile()).getName());
+      metadata.add(TikaCoreProperties.RESOURCE_NAME_KEY, new File(getClass().getResource(path).getFile()).getName());
       TikaParser tikaParser = new TikaParser(null);
       ContentHandler limitedHandler
         = tikaParser.newWriteOutBodyContentHandler(new StringWriter(), 100 * 1000);
@@ -77,7 +77,7 @@ public class TikaParserTest {
 
       assertThat(limitedHandler.toString().length(), not(0));
       assertThat(metadata.get("Content-Type"), notNullValue());
-      assertThat(metadata.get("resourceName"), notNullValue());
+      assertThat(metadata.get(TikaCoreProperties.RESOURCE_NAME_KEY), notNullValue());
     }
   }
 
@@ -88,7 +88,7 @@ public class TikaParserTest {
       String path = doc;
       InputStream stream = getClass().getResourceAsStream(path);
       Metadata metadata = new Metadata();
-      metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, new File(getClass().getResource(path).getFile()).getName());
+      metadata.add(TikaCoreProperties.RESOURCE_NAME_KEY, new File(getClass().getResource(path).getFile()).getName());
       TikaParser tikaParser = new TikaParser(null);
       ContentHandler limitedHandler
         = tikaParser.newWriteOutBodyContentHandler(new StringWriter(), 10);

@@ -27,8 +27,8 @@ import java.util.*;
 
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.TikaMetadataKeys;
-import org.apache.tika.parser.html.BoilerpipeContentHandler;
+import org.apache.tika.metadata.TikaCoreProperties;
+import org.apache.tika.sax.boilerpipe.BoilerpipeContentHandler;
 
 import de.l3s.boilerpipe.BoilerpipeExtractor;
 
@@ -206,7 +206,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       Metadata metadata = new Metadata();
       if (document.getFileName() != null)
       {
-        metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, document.getFileName());
+        metadata.add(TikaCoreProperties.RESOURCE_NAME_KEY, document.getFileName());
         metadata.add("stream_name", document.getFileName());
       }
       if (document.getMimeType() != null)

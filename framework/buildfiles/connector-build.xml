@@ -188,10 +188,14 @@
         </fileset>
         <fileset dir="${mcf-dist}/connector-common-lib">
             <include name="tika-core*.jar"/>
+            <include name="tika-parser*.jar"/>
+            <include name="tika-serialization*.jar"/>
+            <include name="tika-handler*.jar"/>
+            <include name="tika-encoding-detector*.jar"/>
+            <include name="tika-ml-*.jar"/>
             <include name="jackson-core*.jar"/>
             <include name="jackson-databind*.jar"/>
             <include name="jackson-annotations*.jar"/>
-            <include name="tika-parsers*.jar"/>
             <include name="poi*.jar"/>
             <include name="dom4j*.jar"/>
             <include name="xmlbeans*.jar"/>

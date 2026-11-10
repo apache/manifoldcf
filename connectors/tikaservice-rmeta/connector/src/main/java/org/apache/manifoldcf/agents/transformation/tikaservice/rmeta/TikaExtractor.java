@@ -80,7 +80,7 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.interfaces.Specification;
 import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
-import org.apache.tika.metadata.TikaMetadataKeys;
+import org.apache.tika.metadata.TikaCoreProperties;
 import org.json.simple.parser.ParseException;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -697,9 +697,9 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       final Map<String, List<String>> metadata = new HashMap<>();
       final List<String> embeddedResourcesNames = new ArrayList<>();
       if (document.getFileName() != null) {
-        metadata.put(TikaMetadataKeys.RESOURCE_NAME_KEY, new ArrayList<>());
+        metadata.put(TikaCoreProperties.RESOURCE_NAME_KEY.getName(), new ArrayList<>());
         metadata.put("stream_name", new ArrayList<>());
-        metadata.get(TikaMetadataKeys.RESOURCE_NAME_KEY).add(document.getFileName());
+        metadata.get(TikaCoreProperties.RESOURCE_NAME_KEY.getName()).add(document.getFileName());
         metadata.get("stream_name").add(document.getFileName());
       }
       metadata.put("stream_size", new ArrayList<>());

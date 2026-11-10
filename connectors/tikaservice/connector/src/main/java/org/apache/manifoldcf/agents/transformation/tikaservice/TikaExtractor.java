@@ -42,7 +42,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.TikaMetadataKeys;
+import org.apache.tika.metadata.TikaCoreProperties;
 
 import org.apache.manifoldcf.agents.interfaces.*;
 import org.apache.manifoldcf.agents.system.Logging;
@@ -567,7 +567,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       try {
         Metadata metadata = new Metadata();
         if (document.getFileName() != null) {
-          metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, document.getFileName());
+          metadata.add(TikaCoreProperties.RESOURCE_NAME_KEY, document.getFileName());
           metadata.add("stream_name", document.getFileName());
         }
         if (document.getMimeType() != null) {

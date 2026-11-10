@@ -134,7 +134,7 @@
 	<property name="bytebuddy.version" value="1.17.7"/>
     <property name="wiremock.version" value="3.13.1"/>
     <property name="objenesis.version" value="3.4"/>
-    <property name="tika.version" value="1.28.1"/>
+    <property name="tika.version" value="4.2.0"/>
     <property name="tagsoup.version" value="1.2.1"/>
     <property name="james.version" value="0.8.4"/>
     <property name="vorbis.version" value="0.8"/>
@@ -2949,7 +2949,163 @@ Use Apache Forrest version forrest-0.9-dev or higher.
         <antcall target="download-via-maven"><param name="target" value="lib"/>
             <param name="project-path" value="org/apache/tika"/>
             <param name="artifact-version" value="${tika.version}"/>
-            <param name="artifact-name" value="tika-parsers"/>
+            <param name="artifact-name" value="tika-serialization"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-handler-boilerpipe"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-apple-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-audiovideo-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-cad-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-code-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-crypto-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-digest-commons"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-encoding-detector-html"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-encoding-detector-mojibuster"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-ml-junkdetect"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-font-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-html-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-image-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-mail-commons"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-mail-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-microsoft-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-miscoffice-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-news-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-ocr-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-pdf-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-pkg-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-text-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-webarchive-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-xml-module"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-xmp-commons"/>
+            <param name="artifact-type" value="jar"/>
+        </antcall>
+        <antcall target="download-via-maven"><param name="target" value="lib"/>
+            <param name="project-path" value="org/apache/tika"/>
+            <param name="artifact-version" value="${tika.version}"/>
+            <param name="artifact-name" value="tika-parser-zip-commons"/>
             <param name="artifact-type" value="jar"/>
         </antcall>
         <antcall target="download-via-maven"><param name="target" value="lib"/>

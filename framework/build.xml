@@ -119,10 +119,14 @@
     <path id="connector-common-classpath">
         <fileset dir="../lib">
             <include name="tika-core*.jar"/>
+            <include name="tika-parser*.jar"/>
+            <include name="tika-serialization*.jar"/>
+            <include name="tika-handler*.jar"/>
+            <include name="tika-encoding-detector*.jar"/>
+            <include name="tika-ml-*.jar"/>
             <include name="jackson-core*.jar"/>
             <include name="jackson-databind*.jar"/>
             <include name="jackson-annotations*.jar"/>
-            <include name="tika-parsers*.jar"/>
             <include name="woodstox-core-5*.jar"/>
             <include name="stax2-api*.jar"/>
             <include name="json-1*.jar"/>
@@ -1745,10 +1749,14 @@
             </fileset>
             <fileset dir="../lib">
                 <include name="tika-core*.jar"/>
+                <include name="tika-parser*.jar"/>
+                <include name="tika-serialization*.jar"/>
+                <include name="tika-handler*.jar"/>
+                <include name="tika-encoding-detector*.jar"/>
+                <include name="tika-ml-*.jar"/>
                 <include name="jackson-core*.jar"/>
                 <include name="jackson-databind*.jar"/>
                 <include name="jackson-annotations*.jar"/>
-                <include name="tika-parsers*.jar"/>
                 <include name="woodstox-core-5*.jar"/>
                 <include name="stax2-api*.jar"/>
                 <include name="json-1*.jar"/>

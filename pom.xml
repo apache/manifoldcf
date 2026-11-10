@@ -88,7 +88,7 @@
     <zookeeper.version>3.9.1</zookeeper.version>
     <xmlbeans.version>3.1.0</xmlbeans.version>
     <poi.version>4.1.2</poi.version>
-    <tika.version>1.28.1</tika.version>
+    <tika.version>4.2.0</tika.version>
     <boilerpipe.version>1.1.0</boilerpipe.version>
     <hadoop.version>3.3.6</hadoop.version>
     <tomcat.version>10.1.25</tomcat.version>
