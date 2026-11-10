@@ -3,6 +3,9 @@ ManifoldCF Change Log
 
 
 ======================= Dev 2.32 =============================
+CONNECTORS-1792: Remove unused TrustingSSLSocketFactoryProducer class
+(Piergiorgio Lucidi)
+
 CONNECTORS-1789: Add sort column validation and canonical mapping for repository connection queue and history reports
 (Piergiorgio Lucidi)
 
