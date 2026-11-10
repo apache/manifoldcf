@@ -18,42 +18,60 @@
 */
 package org.apache.manifoldcf.agents.transformation.tikaservice;
 
-import org.apache.manifoldcf.core.interfaces.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.InterruptedIOException;
+import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.TeeInputStream;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.SocketConfig;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
+import org.apache.manifoldcf.agents.interfaces.IOutputCheckActivity;
+import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
+import org.apache.manifoldcf.agents.interfaces.ServiceInterruption;
+import org.apache.manifoldcf.agents.system.Logging;
+import org.apache.manifoldcf.core.interfaces.ConfigParams;
+import org.apache.manifoldcf.core.interfaces.IHTTPOutput;
+import org.apache.manifoldcf.core.interfaces.IPostParameters;
+import org.apache.manifoldcf.core.interfaces.IThreadContext;
+import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
+import org.apache.manifoldcf.core.interfaces.Specification;
+import org.apache.manifoldcf.core.interfaces.SpecificationNode;
+import org.apache.manifoldcf.core.interfaces.VersionContext;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
-
-import org.apache.manifoldcf.agents.interfaces.*;
-import org.apache.manifoldcf.agents.system.Logging;
-
-import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.nio.charset.StandardCharsets;
-
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -260,7 +278,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     } catch (IOException e) {
       return "Connection error: "+e.getMessage();
     }
-    final int responseCode = response.getStatusLine().getStatusCode();
     if (response.getStatusLine().getStatusCode() != 200) {
       return "Bad response: "+response.getStatusLine();
     }
@@ -514,7 +531,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     // text/plain;charset=utf-8
     if (!activities.checkMimeTypeIndexable("text/plain;charset=utf-8")) {
       activities.noDocument();
-      activities.recordActivity(null, ACTIVITY_EXTRACT, null, documentURI, activities.EXCLUDED_MIMETYPE,
+      activities.recordActivity(null, ACTIVITY_EXTRACT, null, documentURI, IOutputAddActivity.EXCLUDED_MIMETYPE,
           "Downstream pipeline rejected mime type 'text/plain;charset=utf-8'");
       return DOCUMENTSTATUS_REJECTED;
     }
@@ -527,7 +544,6 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     String mime = "";
     InputStream tikaServerIs = null;
     HttpResponse response = null;
-    IOException tikaServerDownException = null;
 
     // Tika's API reads from an input stream and writes to an output Writer.
     // Since a RepositoryDocument includes readers and inputstreams exclusively,
@@ -574,7 +590,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
           mime = document.getMimeType();
           metadata.add("Content-Type", mime);
         }
-        metadata.add("stream_size", new Long(document.getBinaryLength()).toString());
+        metadata.add("stream_size", Long.valueOf(document.getBinaryLength()).toString());
 
         // We only log the extraction
         long startTime = System.currentTimeMillis();
@@ -701,7 +717,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                 } finally {
                   os2.close();
                 }
-                length = new Long(responseDs.getBinaryLength());
+                length = Long.valueOf(responseDs.getBinaryLength());
               } finally {
                 tikaServerIs.close();
               }
@@ -746,14 +762,14 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
           if (!activities.checkLengthIndexable(responseDs.getBinaryLength())) {
             activities.noDocument();
-            resultCode = activities.EXCLUDED_LENGTH;
+            resultCode = IOutputAddActivity.EXCLUDED_LENGTH;
             description = "Downstream pipeline rejected document with length " + ds.getBinaryLength();
             return DOCUMENTSTATUS_REJECTED;
           }
 
         } finally {
           // Log the extraction processing
-          activities.recordActivity(new Long(startTime), ACTIVITY_EXTRACT, length, documentURI, resultCode, description);
+          activities.recordActivity(Long.valueOf(startTime), ACTIVITY_EXTRACT, length, documentURI, resultCode, description);
         }
 
         // Parsing complete!

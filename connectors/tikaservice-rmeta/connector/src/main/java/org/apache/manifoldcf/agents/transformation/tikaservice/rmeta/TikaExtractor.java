@@ -646,7 +646,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     // text/plain;charset=utf-8
     if (!activities.checkMimeTypeIndexable("text/plain;charset=utf-8")) {
       activities.noDocument();
-      activities.recordActivity(null, ACTIVITY_EXTRACT, null, documentURI, activities.EXCLUDED_MIMETYPE, "Downstream pipeline rejected mime type 'text/plain;charset=utf-8'");
+      activities.recordActivity(null, ACTIVITY_EXTRACT, null, documentURI, IOutputAddActivity.EXCLUDED_MIMETYPE, "Downstream pipeline rejected mime type 'text/plain;charset=utf-8'");
       return DOCUMENTSTATUS_REJECTED;
     }
 
@@ -970,7 +970,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
 
         if (!activities.checkLengthIndexable(ds.getBinaryLength())) {
           activities.noDocument();
-          resultCode = activities.EXCLUDED_LENGTH;
+          resultCode = IOutputAddActivity.EXCLUDED_LENGTH;
           description = "Downstream pipeline rejected document with length " + ds.getBinaryLength();
           return DOCUMENTSTATUS_REJECTED;
         }
