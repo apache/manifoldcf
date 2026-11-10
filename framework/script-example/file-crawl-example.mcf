@@ -29,8 +29,8 @@ if __args__.__size__ == 4 then
   set username = __args__[2];
   set password = __args__[3];
 else
-  set username = "";
-  set password = "";
+  set username = "admin";
+  set password = "admin";
 ;
 
 set baseurl = (new url basepath) + "json";

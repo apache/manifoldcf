@@ -58,16 +58,44 @@ public class APIServlet extends HttpServlet
 
   protected APIProfile getAPISession(IThreadContext tc, HttpServletRequest request)
   {
+    APIProfile ap;
     Object x = request.getSession().getAttribute("apiprofile");
     if (x == null || !(x instanceof APIProfile))
     {
-      // Basic login
-      APIProfile ap = new APIProfile();
+      ap = new APIProfile();
       request.getSession().setAttribute("apiprofile",ap);
-      ap.login(tc,"","");
-      return ap;
     }
-    return (APIProfile)x;
+    else
+    {
+      ap = (APIProfile)x;
+    }
+
+    if (!ap.getLoggedOn())
+    {
+      // Check for HTTP Basic Authentication header
+      String authHeader = request.getHeader("Authorization");
+      if (authHeader != null && authHeader.regionMatches(true, 0, "Basic ", 0, 6))
+      {
+        try
+        {
+          String base64Credentials = authHeader.substring(6).trim();
+          byte[] credDecoded = Base64.getDecoder().decode(base64Credentials);
+          String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+          int colonIndex = credentials.indexOf(":");
+          if (colonIndex != -1)
+          {
+            String userId = credentials.substring(0, colonIndex);
+            String password = credentials.substring(colonIndex + 1);
+            ap.login(tc, userId, password);
+          }
+        }
+        catch (Exception e)
+        {
+          Logging.api.debug("Error decoding basic auth header: " + e.getMessage(), e);
+        }
+      }
+    }
+    return ap;
   }
   
   /** The get method.
@@ -226,6 +254,7 @@ public class APIServlet extends HttpServlet
   protected static void sendUnauthorizedResponse(HttpServletResponse response)
     throws IOException
   {
+    response.setHeader("WWW-Authenticate", "Basic realm=\"ManifoldCF API\"");
     response.setStatus(response.SC_UNAUTHORIZED);
     sendNullJSON(response);
   }

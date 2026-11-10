@@ -56,6 +56,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpEntity;
@@ -201,9 +202,30 @@ public class ManifoldCFInstance
   
   // These methods allow communication with the ManifoldCF api webapp, via the locally-instantiated jetty
   
+  protected String apiLoginUserName = "admin";
+  protected String apiLoginPassword = "admin";
+
+  public void setAPILogin(String userID, String password)
+  {
+    this.apiLoginUserName = userID;
+    this.apiLoginPassword = password;
+  }
+
+  protected void addAuthHeader(HttpRequestBase method)
+  {
+    if (apiLoginUserName != null && !apiLoginUserName.isEmpty())
+    {
+      String auth = apiLoginUserName + ":" + (apiLoginPassword != null ? apiLoginPassword : "");
+      byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+      method.setHeader("Authorization", "Basic " + new String(encodedAuth, StandardCharsets.UTF_8));
+    }
+  }
+
   public void loginAPI(String userID, String password)
     throws Exception
   {
+    this.apiLoginUserName = userID;
+    this.apiLoginPassword = password;
     Configuration requestObject = new Configuration();
     ConfigurationNode cn = new ConfigurationNode("userID");
     cn.setValue(userID);
@@ -405,6 +427,7 @@ public class ManifoldCFInstance
   {
     HttpClient client = HttpClients.createDefault();
     HttpGet method = new HttpGet(apiURL);
+    addAuthHeader(method);
     try
     {
       HttpResponse response = client.execute(method);
@@ -430,6 +453,7 @@ public class ManifoldCFInstance
   {
     HttpClient client = HttpClients.createDefault();
     HttpDelete method = new HttpDelete(apiURL);
+    addAuthHeader(method);
     try
     {
       HttpResponse response = client.execute(method);
@@ -457,6 +481,7 @@ public class ManifoldCFInstance
   {
     HttpClient client = HttpClients.createDefault();
     HttpPut method = new HttpPut(apiURL);
+    addAuthHeader(method);
     try
     {
       method.setEntity(new StringEntity(input,ContentType.create("text/plain",StandardCharsets.UTF_8)));
@@ -485,6 +510,7 @@ public class ManifoldCFInstance
   {
     HttpClient client = HttpClients.createDefault();
     HttpPost method = new HttpPost(apiURL);
+    addAuthHeader(method);
     try
     {
       method.setEntity(new StringEntity(input,ContentType.create("text/plain",StandardCharsets.UTF_8)));

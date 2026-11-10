@@ -1079,9 +1079,9 @@ start[.bat|.sh]
             <tr><td>org.apache.manifoldcf.login.name</td><td>No</td><td>Default auth implementation crawler UI login user ID (defaults to "admin")</td></tr>
             <tr><td>org.apache.manifoldcf.login.password</td><td>No</td><td>Default auth implementation crawler UI login user password (defaults to "admin")</td></tr>
             <tr><td>org.apache.manifoldcf.login.password.obfuscated</td><td>No</td><td>Default auth implementation obfuscated crawler UI login user password (defaults to "admin")</td></tr>
-            <tr><td>org.apache.manifoldcf.apilogin.name</td><td>No</td><td>Default auth implementation API login user ID (defaults to "")</td></tr>
-            <tr><td>org.apache.manifoldcf.apilogin.password</td><td>No</td><td>Default auth implementation API login user password (defaults to "")</td></tr>
-            <tr><td>org.apache.manifoldcf.apilogin.password.obfuscated</td><td>No</td><td>Default auth implementation obfuscated API login user password (defaults to "")</td></tr>
+            <tr><td>org.apache.manifoldcf.apilogin.name</td><td>No</td><td>Default auth implementation API login user ID (defaults to matching org.apache.manifoldcf.login.name, "admin")</td></tr>
+            <tr><td>org.apache.manifoldcf.apilogin.password</td><td>No</td><td>Default auth implementation API login user password (defaults to matching org.apache.manifoldcf.login.password, "admin")</td></tr>
+            <tr><td>org.apache.manifoldcf.apilogin.password.obfuscated</td><td>No</td><td>Default auth implementation obfuscated API login user password (defaults to matching org.apache.manifoldcf.login.password.obfuscated, "admin")</td></tr>
             <tr><td>org.apache.manifoldcf.login.ldap.providerurl</td><td>No</td><td>LDAP auth implementation provider URL (defaults to "")</td></tr>
             <tr><td>org.apache.manifoldcf.login.ldap.securityauthenticationtype</td><td>No</td><td>LDAP auth implementation auth type (defaults to "simple")</td></tr>
             <tr><td>org.apache.manifoldcf.login.ldap.securityprincipal</td><td>No</td><td>LDAP auth implementation security principal (defaults to "")</td></tr>

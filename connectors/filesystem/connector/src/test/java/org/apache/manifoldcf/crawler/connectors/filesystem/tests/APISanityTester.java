@@ -64,7 +64,7 @@ public class APISanityTester
     Configuration requestObject;
     Configuration result;
 
-    instance.loginAPI("","");
+    instance.loginAPI("admin","admin");
     
     connectionObject = new ConfigurationNode("repositoryconnection");
     

@@ -46,8 +46,8 @@ public class DefaultAuthenticator implements IAuth
     loginUserName = LockManagerFactory.getStringProperty(threadContext,loginUserNameProperty,"admin");
     loginPassword = LockManagerFactory.getPossiblyObfuscatedStringProperty(threadContext,loginPasswordProperty,"admin");
 
-    apiLoginUserName = LockManagerFactory.getStringProperty(threadContext,apiLoginUserNameProperty,"");
-    apiLoginPassword = LockManagerFactory.getPossiblyObfuscatedStringProperty(threadContext,apiLoginPasswordProperty,"");
+    apiLoginUserName = LockManagerFactory.getStringProperty(threadContext,apiLoginUserNameProperty,loginUserName);
+    apiLoginPassword = LockManagerFactory.getPossiblyObfuscatedStringProperty(threadContext,apiLoginPasswordProperty,loginPassword);
   }
     
   /** Verify UI login */
@@ -65,7 +65,7 @@ public class DefaultAuthenticator implements IAuth
   @Override
   public boolean verifyAPILogin(final String userId, final String password)
     throws ManifoldCFException {
-    if (userId != null && password != null)
+    if (userId != null && password != null && !userId.isEmpty() && apiLoginUserName != null && !apiLoginUserName.isEmpty())
     {
       return userId.equals(apiLoginUserName) &&  password.equals(apiLoginPassword);
     }
