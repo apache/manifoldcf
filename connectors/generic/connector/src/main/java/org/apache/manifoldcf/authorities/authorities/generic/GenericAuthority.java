@@ -680,7 +680,8 @@ public class GenericAuthority extends org.apache.manifoldcf.authorities.authorit
           JAXBContext context;
           context = JAXBContext.newInstance(Auth.class);
           Unmarshaller m = context.createUnmarshaller();
-          auth = (Auth) m.unmarshal(response.getEntity().getContent());
+          auth = (Auth) m.unmarshal(
+              org.apache.manifoldcf.core.common.XMLParserFactory.newSecureSAXSource(response.getEntity().getContent()));
         } catch (JAXBException ex) {
           exception = ex;
         } finally {

@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
-<!DOCTYPE web-app
-	PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.2//EN"
-	"http://java.sun.com/j2ee/dtds/web-app_2.2.dtd">
-
 <!-- Licensed to the Apache Software Foundation (ASF) under one or more
      contributor license agreements. See the NOTICE file distributed with
      this work for additional information regarding copyright ownership.
@@ -20,31 +16,39 @@
      limitations under the License.
 -->
 
-<web-app>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+  https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+  version="6.0">
   <display-name>ManifoldCF Authorities API Webapp</display-name>
 
   <description>ManifoldCF Authorities API Webapp</description>
 
   <servlet>
-	<servlet-name>UserACLServlet</servlet-name>
-    	<servlet-class>org.apache.manifoldcf.authorityservlet.UserACLServlet</servlet-class>
+    <servlet-name>UserACLServlet</servlet-name>
+    <servlet-class>org.apache.manifoldcf.authorityservlet.UserACLServlet</servlet-class>
   </servlet>
 
   <servlet-mapping>
-        <servlet-name>UserACLServlet</servlet-name>
-        <url-pattern>/UserACLs</url-pattern>
+    <servlet-name>UserACLServlet</servlet-name>
+    <url-pattern>/UserACLs</url-pattern>
   </servlet-mapping>
 
   <session-config>
-	<session-timeout>5</session-timeout>
+    <session-timeout>5</session-timeout>
   </session-config>
+
+  <listener>
+    <listener-class>org.apache.manifoldcf.authorityservice.ServletListener</listener-class>
+  </listener>
 
   <security-constraint>
     <web-resource-collection>
       <web-resource-name>
         ManifoldCF Authority Service
       </web-resource-name>
-      <url-pattern>*</url-pattern>
+      <url-pattern>/*</url-pattern>
     </web-resource-collection>
     <auth-constraint>
       <role-name>authorityuser</role-name>
@@ -59,8 +63,8 @@
 
   <security-role>
     <description>
-            This role describes people who are allowed to use the
-            ManifoldCF Authority Service.
+      This role describes people who are allowed to use the
+      ManifoldCF Authority Service.
     </description>
     <role-name>authorityuser</role-name>
   </security-role>

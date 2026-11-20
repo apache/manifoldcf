@@ -18,6 +18,9 @@
 */
 package org.apache.manifoldcf.ui.beans;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.util.*;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
@@ -44,6 +47,10 @@ public class AdminProfile implements HttpSessionBindingListener, IAuthorizer
   private boolean manageUsers = false;
   /** Password mapper */
   private PasswordMapper passwordMapper = null;
+  /** Per-session request token */
+  private String requestToken = null;
+
+  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
   /** Session identifier */
   private String sessionIdentifier = null;
@@ -107,6 +114,9 @@ public class AdminProfile implements HttpSessionBindingListener, IAuthorizer
         this.userID = userID;
         manageUsers = false;
         passwordMapper = new PasswordMapper();
+        byte[] tokenBytes = new byte[32];
+        SECURE_RANDOM.nextBytes(tokenBytes);
+        requestToken = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
       }
     }
     catch (ManifoldCFException e)
@@ -147,6 +157,29 @@ public class AdminProfile implements HttpSessionBindingListener, IAuthorizer
   {
     return passwordMapper;
   }
+
+  /** Get the per-session request token.
+  *@return the request token, or null if not logged in.
+  */
+  public String getRequestToken()
+  {
+    return requestToken;
+  }
+
+  /** Validate a supplied request token against the active session token.
+  *@param candidate the token supplied with the request.
+  *@return true if valid.
+  */
+  public boolean validateRequestToken(final String candidate)
+  {
+    if (!isLoggedIn || requestToken == null || candidate == null || candidate.isEmpty())
+    {
+      return false;
+    }
+    return MessageDigest.isEqual(
+      requestToken.getBytes(StandardCharsets.UTF_8),
+      candidate.getBytes(StandardCharsets.UTF_8));
+  }
   
   // Nuke stuff for security and the garbage
   // collector threads
@@ -158,6 +191,7 @@ public class AdminProfile implements HttpSessionBindingListener, IAuthorizer
     manageUsers = false;
     loginTime = -1L;
     passwordMapper = null;
+    requestToken = null;
   }
 
   /** Check user capability */

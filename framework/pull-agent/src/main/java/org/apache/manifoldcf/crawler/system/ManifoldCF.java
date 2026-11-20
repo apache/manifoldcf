@@ -5507,15 +5507,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
       {
-        // Get the connection's configuration, clear out the children, and copy new ones from the child.
-        ConfigParams cp = connection.getConfigParams();
-        cp.clearChildren();
-        int j = 0;
-        while (j < child.getChildCount())
-        {
-          ConfigurationNode cn = child.findChild(j++);
-          cp.addChild(cp.getChildCount(),new ConfigNode(cn));
-        }
+        processConfigParams(connection.getConfigParams(), child);
       }
       else
         throw new ManifoldCFException("Unrecognized output connection field: '"+childType+"'");
@@ -5555,15 +5547,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       connectionNode.addChild(connectionNode.getChildCount(),child);
     }
     
-    ConfigParams cp = connection.getConfigParams();
-    child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
-    j = 0;
-    while (j < cp.getChildCount())
-    {
-      ConfigurationNode cn = cp.findChild(j++);
-      child.addChild(child.getChildCount(),cn);
-    }
-    connectionNode.addChild(connectionNode.getChildCount(),child);
+    formatConfigParams(connectionNode, connection.getConfigParams());
 
   }
 
@@ -5619,15 +5603,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
       {
-        // Get the connection's configuration, clear out the children, and copy new ones from the child.
-        ConfigParams cp = connection.getConfigParams();
-        cp.clearChildren();
-        int j = 0;
-        while (j < child.getChildCount())
-        {
-          ConfigurationNode cn = child.findChild(j++);
-          cp.addChild(cp.getChildCount(),new ConfigNode(cn));
-        }
+        processConfigParams(connection.getConfigParams(), child);
       }
       else
         throw new ManifoldCFException("Unrecognized output connection field: '"+childType+"'");
@@ -5667,15 +5643,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       connectionNode.addChild(connectionNode.getChildCount(),child);
     }
     
-    ConfigParams cp = connection.getConfigParams();
-    child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
-    j = 0;
-    while (j < cp.getChildCount())
-    {
-      ConfigurationNode cn = cp.findChild(j++);
-      child.addChild(child.getChildCount(),cn);
-    }
-    connectionNode.addChild(connectionNode.getChildCount(),child);
+    formatConfigParams(connectionNode, connection.getConfigParams());
 
   }
 
@@ -5749,15 +5717,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
       {
-        // Get the connection's configuration, clear out the children, and copy new ones from the child.
-        ConfigParams cp = connection.getConfigParams();
-        cp.clearChildren();
-        int j = 0;
-        while (j < child.getChildCount())
-        {
-          ConfigurationNode cn = child.findChild(j++);
-          cp.addChild(cp.getChildCount(),new ConfigNode(cn));
-        }
+        processConfigParams(connection.getConfigParams(), child);
       }
       else
         throw new ManifoldCFException("Unrecognized authority connection field: '"+childType+"'");
@@ -5816,15 +5776,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
     child.setValue(connection.getAuthGroup());
     connectionNode.addChild(connectionNode.getChildCount(),child);
 
-    ConfigParams cp = connection.getConfigParams();
-    child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
-    j = 0;
-    while (j < cp.getChildCount())
-    {
-      ConfigurationNode cn = cp.findChild(j++);
-      child.addChild(child.getChildCount(),cn);
-    }
-    connectionNode.addChild(connectionNode.getChildCount(),child);
+    formatConfigParams(connectionNode, connection.getConfigParams());
 
   }
 
@@ -5886,15 +5838,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
       {
-        // Get the connection's configuration, clear out the children, and copy new ones from the child.
-        ConfigParams cp = connection.getConfigParams();
-        cp.clearChildren();
-        int j = 0;
-        while (j < child.getChildCount())
-        {
-          ConfigurationNode cn = child.findChild(j++);
-          cp.addChild(cp.getChildCount(),new ConfigNode(cn));
-        }
+        processConfigParams(connection.getConfigParams(), child);
       }
       else
         throw new ManifoldCFException("Unrecognized mapping connection field: '"+childType+"'");
@@ -5941,15 +5885,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       connectionNode.addChild(connectionNode.getChildCount(),child);
     }
     
-    ConfigParams cp = connection.getConfigParams();
-    child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
-    j = 0;
-    while (j < cp.getChildCount())
-    {
-      ConfigurationNode cn = cp.findChild(j++);
-      child.addChild(child.getChildCount(),cn);
-    }
-    connectionNode.addChild(connectionNode.getChildCount(),child);
+    formatConfigParams(connectionNode, connection.getConfigParams());
 
   }
 
@@ -6005,15 +5941,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
       {
-        // Get the connection's configuration, clear out the children, and copy new ones from the child.
-        ConfigParams cp = connection.getConfigParams();
-        cp.clearChildren();
-        int j = 0;
-        while (j < child.getChildCount())
-        {
-          ConfigurationNode cn = child.findChild(j++);
-          cp.addChild(cp.getChildCount(),new ConfigNode(cn));
-        }
+        processConfigParams(connection.getConfigParams(), child);
       }
       else if (childType.equals(CONNECTIONNODE_ACLAUTHORITY))
       {
@@ -6091,15 +6019,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       connectionNode.addChild(connectionNode.getChildCount(),child);
     }
     
-    ConfigParams cp = connection.getConfigParams();
-    child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
-    j = 0;
-    while (j < cp.getChildCount())
-    {
-      ConfigurationNode cn = cp.findChild(j++);
-      child.addChild(child.getChildCount(),cn);
-    }
-    connectionNode.addChild(connectionNode.getChildCount(),child);
+    formatConfigParams(connectionNode, connection.getConfigParams());
 
     if (connection.getACLAuthority() != null)
     {
@@ -6190,15 +6110,7 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       }
       else if (childType.equals(CONNECTIONNODE_CONFIGURATION))
       {
-        // Get the connection's configuration, clear out the children, and copy new ones from the child.
-        ConfigParams cp = connection.getConfigParams();
-        cp.clearChildren();
-        int j = 0;
-        while (j < child.getChildCount())
-        {
-          ConfigurationNode cn = child.findChild(j++);
-          cp.addChild(cp.getChildCount(),new ConfigNode(cn));
-        }
+        processConfigParams(connection.getConfigParams(), child);
       }
       else
         throw new ManifoldCFException("Unrecognized notification connection field: '"+childType+"'");
@@ -6238,16 +6150,61 @@ public class ManifoldCF extends org.apache.manifoldcf.agents.system.ManifoldCF
       connectionNode.addChild(connectionNode.getChildCount(),child);
     }
     
-    ConfigParams cp = connection.getConfigParams();
-    child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
-    j = 0;
-    while (j < cp.getChildCount())
-    {
-      ConfigurationNode cn = cp.findChild(j++);
-      child.addChild(child.getChildCount(),cn);
-    }
-    connectionNode.addChild(connectionNode.getChildCount(),child);
+    formatConfigParams(connectionNode, connection.getConfigParams());
 
+  }
+
+  /** Process connection configuration parameters, preserving existing obfuscated values when masked.
+  */
+  protected static void processConfigParams(final ConfigParams cp, final ConfigurationNode configNode)
+  {
+    final Map<String,ConfigurationNode> existingParams = new HashMap<String,ConfigurationNode>();
+    for (int j = 0; j < cp.getChildCount(); j++)
+    {
+      final ConfigurationNode existing = cp.findChild(j);
+      if ("_PARAMETER_".equals(existing.getType()))
+      {
+        final String paramName = existing.getAttributeValue("name");
+        if (paramName != null)
+        {
+          existingParams.put(paramName, new ConfigurationNode(existing));
+        }
+      }
+    }
+    cp.clearChildren();
+    for (int j = 0; j < configNode.getChildCount(); j++)
+    {
+      final ConfigurationNode cn = configNode.findChild(j);
+      ConfigNode nodeToAdd = new ConfigNode(cn);
+      if ("_PARAMETER_".equals(nodeToAdd.getType()) && ConfigParams.OBFUSCATED_MASK.equals(nodeToAdd.getValue()))
+      {
+        final String paramName = nodeToAdd.getAttributeValue("name");
+        final ConfigurationNode preserved = paramName != null ? existingParams.get(paramName) : null;
+        if (preserved != null)
+        {
+          nodeToAdd = new ConfigNode(preserved);
+        }
+      }
+      cp.addChild(cp.getChildCount(), nodeToAdd);
+    }
+  }
+
+  /** Format connection configuration parameters for API output, masking obfuscated values.
+  */
+  protected static void formatConfigParams(final ConfigurationNode connectionNode, final ConfigParams cp)
+  {
+    final ConfigurationNode child = new ConfigurationNode(CONNECTIONNODE_CONFIGURATION);
+    for (int j = 0; j < cp.getChildCount(); j++)
+    {
+      final ConfigurationNode cn = cp.findChild(j);
+      final ConfigurationNode copy = new ConfigurationNode(cn);
+      if (ConfigParams.isObfuscatedNode(copy) && copy.getValue() != null && !copy.getValue().isEmpty())
+      {
+        copy.setValue(ConfigParams.OBFUSCATED_MASK);
+      }
+      child.addChild(child.getChildCount(), copy);
+    }
+    connectionNode.addChild(connectionNode.getChildCount(), child);
   }
 
   // End of connection API code

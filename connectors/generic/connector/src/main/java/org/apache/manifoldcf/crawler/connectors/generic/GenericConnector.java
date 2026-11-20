@@ -1156,8 +1156,7 @@ public class GenericConnector extends BaseRepositoryConnector {
           }
 
           try {
-            SAXParserFactory factory = SAXParserFactory.newInstance();
-            factory.setNamespaceAware(true);
+            SAXParserFactory factory = org.apache.manifoldcf.core.common.XMLParserFactory.newSecureSAXParserFactory(true);
             SAXParser parser = factory.newSAXParser();
             DefaultHandler handler = new SAXSeedingHandler(seedBuffer);
             parser.parse(response.getEntity().getContent(), handler);
@@ -1231,7 +1230,8 @@ public class GenericConnector extends BaseRepositoryConnector {
           JAXBContext context;
           context = JAXBContext.newInstance(Items.class);
           Unmarshaller m = context.createUnmarshaller();
-          Items items = (Items) m.unmarshal(response.getEntity().getContent());
+          Items items = (Items) m.unmarshal(
+              org.apache.manifoldcf.core.common.XMLParserFactory.newSecureSAXSource(response.getEntity().getContent()));
           if (items.items != null) {
             for (Item item : items.items) {
               documentCache.put(item.id, item);

@@ -349,7 +349,7 @@ public class XMLDoc
   {
     Document doc = null;
     try {
-      DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      DocumentBuilderFactory factory = XMLParserFactory.newSafeDocumentBuilderFactoryAllowingDoctype(false);
       factory.setValidating(false);
       DocumentBuilder builder;
 
