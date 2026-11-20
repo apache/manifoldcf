@@ -33,8 +33,6 @@ import org.apache.poi.hpsf.SummaryInformation;
 import org.apache.poi.hpsf.PropertySetFactory;
 import org.apache.poi.hpsf.PropertySet;
 import org.apache.poi.hpsf.NoPropertySetStreamException;
-import org.apache.poi.hpsf.MarkUnsupportedException;
-import org.apache.poi.hpsf.UnexpectedPropertySetTypeException;
 
 import java.util.*;
 import java.io.*;
@@ -1080,13 +1078,6 @@ public class GTSConnector extends org.apache.manifoldcf.agents.output.BaseOutput
       catch (NoPropertySetStreamException e)
       {
         // This means we couldn't figure out what the application was
-        appName = null;
-        return;
-      }
-      catch (MarkUnsupportedException e)
-      {
-        // Bad code; need to suport mark operation.
-        Logging.ingest.error("Need to feed a stream that supports mark(): "+e.getMessage(),e);
         appName = null;
         return;
       }

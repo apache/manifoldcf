@@ -20,16 +20,15 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 
-import org.apache.tika.config.TikaConfig;
+import org.apache.tika.config.loader.TikaJsonConfig;
+import org.apache.tika.config.loader.TikaLoader;
 import org.apache.tika.exception.TikaException;
+import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.mime.MediaType;
-import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
-import org.apache.tika.parser.html.HtmlParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.apache.tika.sax.WriteOutContentHandler;
 import org.xml.sax.ContentHandler;
@@ -39,28 +38,33 @@ import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 
 public class TikaParser {
 
+  private final TikaLoader loader;
   private final Parser parser;
 
   public TikaParser(final String tikaConfig)
     throws ManifoldCFException {
-    if (tikaConfig == null || tikaConfig.length() == 0) {
-      parser = new AutoDetectParser();
-    } else {
-      final InputStream is = new ByteArrayInputStream(tikaConfig.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-      try {
-        final TikaConfig conf = new TikaConfig(is);
-        parser = new AutoDetectParser(conf);
-      } catch (TikaException | IOException | SAXException e) {
-        throw new ManifoldCFException(e.getMessage(), e);
+    final ClassLoader classLoader = getClass().getClassLoader();
+    try {
+      if (tikaConfig == null || tikaConfig.isBlank()) {
+        loader = TikaLoader.loadDefault(classLoader);
+      } else {
+        final String trimmed = tikaConfig.trim();
+        if (trimmed.startsWith("<")) {
+          throw new ManifoldCFException(
+            "Invalid Tika configuration: Apache Tika 4.x uses JSON configuration format instead of legacy XML tika-config.xml");
+        }
+        try (InputStream is = new ByteArrayInputStream(trimmed.getBytes(StandardCharsets.UTF_8))) {
+          final TikaJsonConfig conf = TikaJsonConfig.load(is);
+          loader = TikaLoader.load(conf, classLoader);
+        }
       }
+      parser = loader.loadAutoDetectParser();
+    } catch (ManifoldCFException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new ManifoldCFException(e.getMessage(), e);
     }
   }
-  
-  /*
-      Map<MediaType, Parser> parsers = ((AutoDetectParser) parser).getParsers();
-      parsers.put(MediaType.APPLICATION_XML, new HtmlParser());
-      ((AutoDetectParser) parser).setParsers(parsers);
-  */
 
   public static ContentHandler newWriteOutBodyContentHandler(Writer w, int writeLimit) {
     final ContentHandler writeOutContentHandler = new WriteOutContentHandler(w, writeLimit);
@@ -69,9 +73,11 @@ public class TikaParser {
 
   public void parse(InputStream stream, Metadata metadata, ContentHandler handler)
     throws IOException, SAXException, TikaException {
-    ParseContext context = new ParseContext();
+    ParseContext context = loader.loadParseContext();
     context.set(Parser.class, parser);
-    parser.parse(stream, handler, metadata, context);
+    try (TikaInputStream tis = TikaInputStream.get(stream, metadata)) {
+      parser.parse(tis, handler, metadata, context);
+    }
   }
 
 }

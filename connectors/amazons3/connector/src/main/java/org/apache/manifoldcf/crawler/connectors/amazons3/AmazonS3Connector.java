@@ -52,11 +52,6 @@ import org.apache.manifoldcf.crawler.interfaces.IExistingVersions;
 import org.apache.manifoldcf.crawler.interfaces.IProcessActivity;
 import org.apache.manifoldcf.crawler.interfaces.ISeedingActivity;
 import org.apache.manifoldcf.crawler.system.Logging;
-import org.apache.tika.Tika;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.sax.BodyContentHandler;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;

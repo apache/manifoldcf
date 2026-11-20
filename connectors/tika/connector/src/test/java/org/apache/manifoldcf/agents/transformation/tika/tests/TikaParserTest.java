@@ -23,15 +23,22 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.manifoldcf.agents.transformation.tika.TikaConfig;
+import org.apache.manifoldcf.agents.transformation.tika.TikaExtractor;
 import org.apache.manifoldcf.agents.transformation.tika.TikaParser;
+import org.apache.manifoldcf.connectorcommon.extmimemap.ExtensionMimeMap;
+import org.apache.manifoldcf.core.interfaces.ConfigParams;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.tika.exception.TikaException;
+import org.apache.tika.exception.WriteLimitReachedException;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.TikaMetadataKeys;
+import org.apache.tika.metadata.TikaCoreProperties;
+import org.apache.tika.sax.boilerpipe.BoilerpipeContentHandler;
 import org.junit.Test;
-import org.junit.Ignore;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
+
+import de.l3s.boilerpipe.extractors.ArticleExtractor;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
@@ -47,59 +54,128 @@ public class TikaParserTest {
 
   @Test
   public void testSimple() throws IOException, SAXException, TikaException, ManifoldCFException {
+    TikaParser tikaParser = new TikaParser(null);
     for (String doc : docs) {
-      String path = doc;
-      InputStream stream = getClass().getResourceAsStream(path);
-      Metadata metadata = new Metadata();
-      metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, new File(getClass().getResource(path).getFile()).getName());
-      TikaParser tikaParser = new TikaParser(null);
-      ContentHandler unlimitedHandler
-        = tikaParser.newWriteOutBodyContentHandler(new StringWriter(), -1);
-      tikaParser.parse(stream, metadata, unlimitedHandler);
- 
-      assertThat(unlimitedHandler.toString().length(), not(0));
-      assertThat(metadata.get("Content-Type"), notNullValue());
-      assertThat(metadata.get("resourceName"), notNullValue());
+      try (InputStream stream = getClass().getResourceAsStream(doc)) {
+        Metadata metadata = new Metadata();
+        metadata.add(TikaCoreProperties.RESOURCE_NAME_KEY, new File(getClass().getResource(doc).getFile()).getName());
+        ContentHandler unlimitedHandler
+          = TikaParser.newWriteOutBodyContentHandler(new StringWriter(), -1);
+        tikaParser.parse(stream, metadata, unlimitedHandler);
+
+        assertThat(unlimitedHandler.toString().length(), not(0));
+        assertThat(metadata.get("Content-Type"), notNullValue());
+        assertThat(metadata.get(TikaCoreProperties.RESOURCE_NAME_KEY), notNullValue());
+      }
     }
   }
 
   @Test
   public void testExtractWithWriteLimit() throws IOException, SAXException, TikaException, ManifoldCFException {
+    TikaParser tikaParser = new TikaParser(null);
     for (String doc : docs) {
-      String path = doc;
-      InputStream stream = getClass().getResourceAsStream(path);
-      Metadata metadata = new Metadata();
-      metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, new File(getClass().getResource(path).getFile()).getName());
-      TikaParser tikaParser = new TikaParser(null);
-      ContentHandler limitedHandler
-        = tikaParser.newWriteOutBodyContentHandler(new StringWriter(), 100 * 1000);
-      tikaParser.parse(stream, metadata, limitedHandler);
+      try (InputStream stream = getClass().getResourceAsStream(doc)) {
+        Metadata metadata = new Metadata();
+        metadata.add(TikaCoreProperties.RESOURCE_NAME_KEY, new File(getClass().getResource(doc).getFile()).getName());
+        ContentHandler limitedHandler
+          = TikaParser.newWriteOutBodyContentHandler(new StringWriter(), 100 * 1000);
+        tikaParser.parse(stream, metadata, limitedHandler);
 
-      assertThat(limitedHandler.toString().length(), not(0));
-      assertThat(metadata.get("Content-Type"), notNullValue());
-      assertThat(metadata.get("resourceName"), notNullValue());
+        assertThat(limitedHandler.toString().length(), not(0));
+        assertThat(metadata.get("Content-Type"), notNullValue());
+        assertThat(metadata.get(TikaCoreProperties.RESOURCE_NAME_KEY), notNullValue());
+      }
     }
   }
 
   @Test
-  @Ignore
-  public void testExtractWithTooShortWriteLimit() throws ManifoldCFException {
+  public void testExtractWithTooShortWriteLimit() throws IOException, ManifoldCFException {
+    TikaParser tikaParser = new TikaParser(null);
     for (String doc : docs) {
-      String path = doc;
-      InputStream stream = getClass().getResourceAsStream(path);
-      Metadata metadata = new Metadata();
-      metadata.add(TikaMetadataKeys.RESOURCE_NAME_KEY, new File(getClass().getResource(path).getFile()).getName());
-      TikaParser tikaParser = new TikaParser(null);
-      ContentHandler limitedHandler
-        = tikaParser.newWriteOutBodyContentHandler(new StringWriter(), 10);
-      try {
-        tikaParser.parse(stream, metadata, limitedHandler);
-        fail("Should not get here");
-      } catch (Exception e) {
-        assert e instanceof SAXException;
-        assertThat(e.toString().indexOf("org.apache.tika.sax.WriteOutContentHandler$WriteLimitReachedException"), not(-1));
+      try (InputStream stream = getClass().getResourceAsStream(doc)) {
+        Metadata metadata = new Metadata();
+        metadata.add(TikaCoreProperties.RESOURCE_NAME_KEY, new File(getClass().getResource(doc).getFile()).getName());
+        ContentHandler limitedHandler
+          = TikaParser.newWriteOutBodyContentHandler(new StringWriter(), 10);
+        try {
+          tikaParser.parse(stream, metadata, limitedHandler);
+          fail("Expected WriteLimitReachedException for " + doc);
+        } catch (Exception e) {
+          assertTrue("Expected SAXException, got " + e.getClass().getName(), e instanceof SAXException);
+          assertTrue("Expected WriteLimitReachedException, got " + e, WriteLimitReachedException.isWriteLimitReached(e));
+        }
       }
     }
+  }
+
+  @Test
+  public void testBoilerpipeExtraction() throws IOException, SAXException, TikaException, ManifoldCFException {
+    TikaParser tikaParser = new TikaParser(null);
+    try (InputStream stream = getClass().getResourceAsStream("/test-documents/testHTML.html")) {
+      Metadata metadata = new Metadata();
+      metadata.add(TikaCoreProperties.RESOURCE_NAME_KEY, "testHTML.html");
+      StringWriter writer = new StringWriter();
+      ContentHandler handler = new BoilerpipeContentHandler(
+        TikaParser.newWriteOutBodyContentHandler(writer, -1),
+        ArticleExtractor.INSTANCE);
+      tikaParser.parse(stream, metadata, handler);
+
+      assertThat(writer.toString().trim().length(), not(0));
+    }
+  }
+
+  @Test
+  public void testCustomJsonAndBlankConfigs() throws IOException, SAXException, TikaException, ManifoldCFException {
+    for (String config : new String[]{"", "   \n  ", "{}", "{\"parse-context\": {}}"}) {
+      TikaParser tikaParser = new TikaParser(config);
+      try (InputStream stream = getClass().getResourceAsStream("/test-documents/testHTML.html")) {
+        Metadata metadata = new Metadata();
+        metadata.add(TikaCoreProperties.RESOURCE_NAME_KEY, "testHTML.html");
+        StringWriter writer = new StringWriter();
+        tikaParser.parse(stream, metadata, TikaParser.newWriteOutBodyContentHandler(writer, -1));
+        assertThat(writer.toString().length(), not(0));
+      }
+    }
+  }
+
+  @Test
+  public void testLegacyXmlConfigRejected() {
+    try {
+      new TikaParser("<properties><parsers/></properties>");
+      fail("Expected ManifoldCFException for legacy XML Tika config");
+    } catch (ManifoldCFException e) {
+      assertTrue("Expected JSON migration hint, got: " + e.getMessage(),
+        e.getMessage().contains("JSON"));
+    }
+  }
+
+  @Test
+  public void testCheckValidatesConfig() throws ManifoldCFException {
+    TikaExtractor extractor = new TikaExtractor();
+    try {
+      ConfigParams validParams = new ConfigParams();
+      validParams.setParameter(TikaConfig.PARAM_TIKACONFIG, "{}");
+      extractor.connect(validParams);
+      assertEquals("Connection working", extractor.check());
+      extractor.disconnect();
+
+      ConfigParams invalidParams = new ConfigParams();
+      invalidParams.setParameter(TikaConfig.PARAM_TIKACONFIG, "<properties/>");
+      extractor.connect(invalidParams);
+      String status = extractor.check();
+      assertTrue("Expected invalid config status, got: " + status,
+        status.startsWith("Invalid Tika configuration:") && status.contains("JSON"));
+    } finally {
+      extractor.disconnect();
+    }
+  }
+
+  @Test
+  public void testExtensionMimeMap() {
+    assertEquals("application/pdf", ExtensionMimeMap.mapToMimeType("pdf"));
+    assertEquals("text/html", ExtensionMimeMap.mapToMimeType("html"));
+    assertEquals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ExtensionMimeMap.mapToMimeType("xlsx"));
   }
 
 }

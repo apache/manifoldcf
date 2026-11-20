@@ -206,16 +206,6 @@
         <artifactId>tika-core</artifactId>
         <version>${tika.version}</version>
     </dependency>
-    <dependency>
-        <groupId>org.apache.tika</groupId>
-        <artifactId>tika-parsers</artifactId>
-        <version>${tika.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>de.l3s.boilerpipe</groupId>
-        <artifactId>boilerpipe</artifactId>
-        <version>${boilerpipe.version}</version>
-    </dependency>
     
     <!-- Testing dependencies -->
     

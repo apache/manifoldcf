@@ -57,7 +57,7 @@
     <axis.version>1.4</axis.version>
     <wsdl4j.version>1.6.2</wsdl4j.version>
     <castor.version>1.0.5</castor.version>
-    <commons-codec.version>1.10</commons-codec.version>
+    <commons-codec.version>1.19.0</commons-codec.version>
     <commons-io.version>2.22.0</commons-io.version>
     <commons-logging.version>1.2</commons-logging.version>
     <commons-collections.version>3.2.2</commons-collections.version>
@@ -86,9 +86,10 @@
     <slf4j.version>2.0.13</slf4j.version>
     <jaxb.version>2.2.6</jaxb.version>
     <zookeeper.version>3.9.1</zookeeper.version>
-    <xmlbeans.version>3.1.0</xmlbeans.version>
-    <poi.version>4.1.2</poi.version>
-    <tika.version>1.28.1</tika.version>
+    <xmlbeans.version>5.3.0</xmlbeans.version>
+    <poi.version>5.5.1</poi.version>
+    <tika.version>4.2.0</tika.version>
+    <jackson.version>2.21.2</jackson.version>
     <boilerpipe.version>1.1.0</boilerpipe.version>
     <hadoop.version>3.3.6</hadoop.version>
     <tomcat.version>10.1.25</tomcat.version>
@@ -99,7 +100,7 @@
     <jna.version>5.10.0</jna.version>
     <gson.version>2.8.0</gson.version>
     <guava.version>21.0</guava.version>
-    <jsoup.version>1.7.2</jsoup.version>
+    <jsoup.version>1.23.2</jsoup.version>
     <cxf.version>3.5.9</cxf.version>
     <jaxws-ri.version>2.3.2</jaxws-ri.version>
     <maven-source-plugin.version>3.4.0</maven-source-plugin.version>

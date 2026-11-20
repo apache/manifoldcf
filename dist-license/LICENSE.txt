@@ -358,14 +358,29 @@ License: BSD License (https://github.com/sinjax/JMatIO/blob/master/license.txt)
 This product includes a java-libpst.jar.
 License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
-This product includes a vorbis-java-core.jar and vorbis-java-tika.jar.
+This product includes a vorbis-java-core.jar.
 License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 This product includes a metadata-extractor.jar.
 License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
-This product includes a bcprov-jdk15.jar and a bcmail-jdk15.jar.
+This product includes a bcprov-jdk18on.jar, bcpkix-jdk18on.jar, bcutil-jdk18on.jar, and bcjmail-jdk18on.jar.
 License: BouncyCastle license (http://www.bouncycastle.org/licence.html) [MIT derivative]
+
+This product includes a commons-secure-xml.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a commonmark.jar, commonmark-ext-gfm-tables.jar, and commonmark-ext-gfm-strikethrough.jar.
+License: BSD 2-Clause License (https://github.com/commonmark/commonmark-java/blob/main/LICENSE.txt)
+
+This product includes a jwarc.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a picocli.jar.
+License: Apache 2 (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+This product includes a jsoup.jar.
+License: MIT license (http://opensource.org/licenses/MIT)
 
 This product includes a juniversalchardet.jar.
 License: Mozilla Public License 1.1 (MPL 1.1) (http://www.mozilla.org/MPL/MPL-1.1.html)

@@ -19,17 +19,20 @@
 
 package org.apache.manifoldcf.connectorcommon.extmimemap;
 
-import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.tika.Tika;
+import org.apache.tika.detect.DefaultDetector;
+import org.apache.tika.parser.EmptyParser;
 
 /** Map file extension to a mime type.
 */
 public class ExtensionMimeMap
 {
+  private static final Tika TIKA = new Tika(new DefaultDetector(), EmptyParser.INSTANCE);
+
   /** Map extension to mime type */
   public static String mapToMimeType(String extension)
   {
-    return new Tika().detect("x."+extension);
+    return TIKA.detect("x."+extension);
   }
   
 }
