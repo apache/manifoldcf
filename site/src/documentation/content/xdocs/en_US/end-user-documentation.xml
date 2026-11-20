@@ -1097,14 +1097,17 @@
                     to metadata field names appropriate for further use downstream in the pipeline.</p>
                 <p>As with all document transformers,  more than one Tika Content Extractor transformation filter can be used in a single pipeline.  In the case
                     of the Tika Content Extractor, this does not seem to be of much utility.</p>
-                <p>The Tika Content Extractor transformation connection type does not require anything other than standard configuration information.</p>
+                <p>The Tika Content Extractor transformation connection type includes an optional "Tika Config" tab where you can supply a custom Apache Tika 4.x JSON configuration
+                    (note that Apache Tika 4.x uses JSON configuration format instead of legacy XML <code>tika-config.xml</code>; leave the field blank to use Tika defaults).</p>
                 <p>The Tika Content Extractor transformation connection type contributes three tabs to a job definition.  These are the "Field mapping" tab, the "Exceptions" tab,
                     and the "Boilerplate" tab.  The "Field mapping" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/tika-job-field-mapping.PNG" alt="Tika Content Extractor specification, Field Mapping tab" width="80%"/>
                 <br/><br/>
                 <p>Enter a Tika-generated metadata field name, and a final field name, and click the "Add" button to add the mapping to the list.  Uncheck the
-                    "Keep all metadata" checkbox if you want unspecified Tika metadata to be excluded from the final document.</p>
+                    "Keep all metadata" checkbox if you want unspecified Tika metadata to be excluded from the final document.  Note that Apache Tika 4.x uses normalized
+                    metadata keys (such as <code>tk:resource-name</code>, <code>dc:title</code>, <code>dc:creator</code>, and <code>dcterms:created</code>); if you are migrating
+                    existing field mappings from Tika 1.x–3.x, update your source field names accordingly or configure Tika's <code>LegacyKeyMigrationFilter</code> in Tika Config.</p>
                 <p>The "Exceptions" tab looks like this:</p>
                 <br/><br/>
                 <figure src="images/en_US/tika-job-exceptions.PNG" alt="Tika Content Extractor specification, Exceptions tab" width="80%"/>

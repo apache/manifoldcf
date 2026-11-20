@@ -168,7 +168,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     {
       activities.noDocument();
       activities.recordActivity(null, ACTIVITY_EXTRACT, null, documentURI,
-        activities.EXCLUDED_MIMETYPE, "Downstream pipeline rejected mime type 'text/plain;charset=utf-8'");
+        IOutputAddActivity.EXCLUDED_MIMETYPE, "Downstream pipeline rejected mime type 'text/plain;charset=utf-8'");
       return DOCUMENTSTATUS_REJECTED;
     }
 
@@ -211,7 +211,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       }
       if (document.getMimeType() != null)
         metadata.add("Content-Type", document.getMimeType());
-      metadata.add("stream_size", new Long(document.getBinaryLength()).toString());
+      metadata.add("stream_size", Long.toString(document.getBinaryLength()));
 
       // We only log the extraction
       long startTime = System.currentTimeMillis();
@@ -227,7 +227,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
           try
           {
             // Use tika to parse stuff
-            ContentHandler handler = tikaParser.newWriteOutBodyContentHandler(w, sp.writeLimit());
+            ContentHandler handler = TikaParser.newWriteOutBodyContentHandler(w, sp.writeLimit());
             if (extractorClassInstance != null)
               handler = new BoilerpipeContentHandler(handler, extractorClassInstance);
             try
@@ -275,14 +275,14 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
         finally
         {
           os.close();
-          length = new Long(ds.getBinaryLength());
+          length = Long.valueOf(ds.getBinaryLength());
         }
         
         // Check to be sure downstream pipeline will accept document of specified length
         if (!activities.checkLengthIndexable(ds.getBinaryLength()))
         {
           activities.noDocument();
-          resultCode = activities.EXCLUDED_LENGTH;
+          resultCode = IOutputAddActivity.EXCLUDED_LENGTH;
           description = "Downstream pipeline rejected document with length "+ds.getBinaryLength();
           return DOCUMENTSTATUS_REJECTED;
         }
@@ -291,7 +291,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
       finally
       {
         // Log the extraction processing
-        activities.recordActivity(new Long(startTime), ACTIVITY_EXTRACT, length, documentURI,
+        activities.recordActivity(Long.valueOf(startTime), ACTIVITY_EXTRACT, length, documentURI,
           resultCode, description);
       }
       
@@ -462,6 +462,16 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     if (tikaParser == null) {
       tikaParser = new TikaParser(tikaConfig);
     }
+  }
+
+  @Override
+  public String check() throws ManifoldCFException {
+    try {
+      new TikaParser(tikaConfig);
+    } catch (ManifoldCFException e) {
+      return "Invalid Tika configuration: " + e.getMessage();
+    }
+    return super.check();
   }
   
   /**

@@ -35,7 +35,7 @@ import org.jsoup.select.Elements;
 import org.jsoup.nodes.Document.OutputSettings;
 import org.jsoup.nodes.Entities.EscapeMode;
 import org.jsoup.parser.Parser;
-import org.jsoup.safety.Whitelist;
+import org.jsoup.safety.Safelist;
 
 public class JsoupProcessing {
 
@@ -175,10 +175,10 @@ public class JsoupProcessing {
     }
 
     if (stripHtml) {
-      finalDoc = Jsoup.clean(docToKeep.html(),"",Whitelist.none(),new OutputSettings().prettyPrint(false));
+      finalDoc = Jsoup.clean(docToKeep.html(),"",Safelist.none(),new OutputSettings().prettyPrint(false));
     }
     else {
-      finalDoc = Jsoup.clean(docToKeep.html(),Whitelist.relaxed());
+      finalDoc = Jsoup.clean(docToKeep.html(),Safelist.relaxed());
     }
     // Jsoup escapes entities (eg '&' becomes '&amp;'), we don't want that as the extracted text must remain as it is, so unescape them 
     finalDoc = Parser.unescapeEntities(finalDoc, true);

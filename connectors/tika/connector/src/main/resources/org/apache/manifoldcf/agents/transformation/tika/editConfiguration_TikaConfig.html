@@ -20,8 +20,9 @@
 <table class="displaytable">
   <tr><td class="separator" colspan="2"><hr/></td></tr>
   <tr>
-    <td class="value" colspan="2">
-      <textarea name="tikaconfig" rows="20" cols="120">$Encoder.bodyEscape($TIKACONFIG)</textarea>
+    <td class="description"><nobr>$Encoder.bodyEscape($ResourceBundle.getString('TikaExtractor.TikaConfig'))</nobr></td>
+    <td class="value">
+      <textarea name="tikaconfig" rows="20" cols="120" placeholder="$Encoder.attributeEscape($ResourceBundle.getString('TikaExtractor.TikaConfigPlaceholder'))">$Encoder.bodyEscape($TIKACONFIG)</textarea>
     </td>
   </tr>
 </table>

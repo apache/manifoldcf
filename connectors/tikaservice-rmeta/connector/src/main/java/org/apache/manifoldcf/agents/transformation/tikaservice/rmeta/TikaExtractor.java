@@ -49,6 +49,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.NoHttpResponseException;
@@ -605,6 +606,63 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     return true;
   }
 
+  private static boolean isContentField(final String fieldName) {
+    return fieldName.contentEquals("X-TIKA:content")
+        || fieldName.contentEquals(TikaCoreProperties.TIKA_CONTENT.getName());
+  }
+
+  private static boolean isTikaInternalPrefix(final String fieldName) {
+    return fieldName.startsWith("X-TIKA")
+        || fieldName.startsWith(TikaCoreProperties.TIKA_META_PREFIX);
+  }
+
+  private static boolean isTikaExceptionPrefix(final String fieldName) {
+    return fieldName.startsWith("X-TIKA:EXCEPTION:")
+        || fieldName.startsWith(TikaCoreProperties.TIKA_META_EXCEPTION_PREFIX);
+  }
+
+  private static boolean isWriteLimitReachedField(final String fieldName) {
+    return fieldName.contentEquals("X-TIKA:EXCEPTION:write_limit_reached")
+        || fieldName.contentEquals(TikaCoreProperties.WRITE_LIMIT_REACHED.getName());
+  }
+
+  private static boolean isEmbeddedResourceLimitField(final String fieldName) {
+    return fieldName.contentEquals("X-TIKA:EXCEPTION:embedded_resource_limit_reached")
+        || fieldName.contentEquals(TikaCoreProperties.EMBEDDED_RESOURCE_LIMIT_REACHED.getName());
+  }
+
+  private static boolean isExceptionWarnField(final String fieldName) {
+    return fieldName.contentEquals("X-TIKA:EXCEPTION:warn")
+        || fieldName.contentEquals(TikaCoreProperties.TIKA_META_EXCEPTION_WARNING.getName());
+  }
+
+  private static boolean isTruncatedMetadataField(final String fieldName) {
+    return fieldName.startsWith("X-TIKA:WARN:truncated_metadata")
+        || fieldName.startsWith(TikaCoreProperties.TRUNCATED_METADATA.getName());
+  }
+
+  private static boolean isResourceNameField(final String fieldName) {
+    return fieldName.contentEquals("resourceName")
+        || fieldName.contentEquals(TikaCoreProperties.RESOURCE_NAME_KEY.getName());
+  }
+
+  private static long parseRetryAfterMs(final CloseableHttpResponse response, final long defaultDelayMs) {
+    if (response != null) {
+      final Header retryAfter = response.getFirstHeader("Retry-After");
+      if (retryAfter != null && retryAfter.getValue() != null) {
+        try {
+          final long seconds = Long.parseLong(retryAfter.getValue().trim());
+          if (seconds > 0L) {
+            return seconds * 1000L;
+          }
+        } catch (final NumberFormatException ignored) {
+          // Non-numeric Retry-After (e.g. HTTP-date); fall back to default
+        }
+      }
+    }
+    return defaultDelayMs;
+  }
+
   private void triggerServiceInterruption(final String documentURI, final Exception e) throws ServiceInterruption {
     // Retry retryNumber times, retryInterval ms between retries, and abort if
     // doesn't
@@ -799,11 +857,11 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                         if (fieldName != null) {
                           if (fieldName.startsWith("X-Parsed-By")) {
                             skipMetadata(jParser);
-                          } else if (fieldName.contentEquals("X-TIKA:content")) {
+                          } else if (isContentField(fieldName)) {
                             // Consume content
                             jParser.nextToken();
                             length += jParser.getText(w);
-                          } else if (!fieldName.startsWith("X-TIKA")) {
+                          } else if (!isTikaInternalPrefix(fieldName)) {
                             token = jParser.nextToken();
                             if (!metadata.containsKey(fieldName)) {
                               totalMetadataLength += fieldName.length();
@@ -848,14 +906,14 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                               totalMetadataLength -= fieldName.length();
                               metadata.remove(fieldName);
                             }
-                          } else if (fieldName.startsWith("X-TIKA:EXCEPTION:")) { // deal with Tika exceptions
+                          } else if (isTikaExceptionPrefix(fieldName)) { // deal with Tika exceptions
                             boolean unknownException = false;
-                            if (fieldName.contentEquals("X-TIKA:EXCEPTION:write_limit_reached")) {
+                            if (isWriteLimitReachedField(fieldName)) {
                               resultCode = "TRUNCATEDOK";
                               truncated = true;
-                            } else if (fieldName.contentEquals("X-TIKA:EXCEPTION:embedded_resource_limit_reached")) {
+                            } else if (isEmbeddedResourceLimitField(fieldName)) {
                               resources_limit = true;
-                            } else if (!fieldName.contentEquals("X-TIKA:EXCEPTION:warn")) { // If the exception is other than a warning message
+                            } else if (!isExceptionWarnField(fieldName)) { // If the exception is other than a warning message
                               unknownException = true;
                               resultCode = "TIKAEXCEPTION";
                               description += getTikaExceptionDesc(jParser) + System.lineSeparator();
@@ -863,7 +921,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                             if (!unknownException) {
                               skipMetadata(jParser);
                             }
-                          } else if (fieldName.startsWith("X-TIKA:WARN:truncated_metadata")) {
+                          } else if (isTruncatedMetadataField(fieldName)) {
                             metadataTruncated = true;
                             skipMetadata(jParser);
                           } else {
@@ -883,18 +941,20 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                     if (token != null && token == JsonToken.END_OBJECT && sp.extractArchives) {
                       // For embedded resource we only gather resourceNames and resources content, skip the rest
                       while ((token = jParser.nextToken()) != null) {
-                        final String fieldName = jParser.getCurrentName();
-                        if (fieldName != null && fieldName.contentEquals("resourceName")) {
-                          token = jParser.nextToken();
-                          if (jParser.getTextLength() <= sp.maxMetadataValueLength) {
-                            embeddedResourcesNames.add(jParser.getText());
-                          } else {
-                            metadataSkipped = true;
+                        if (token == JsonToken.FIELD_NAME) {
+                          final String fieldName = jParser.getCurrentName();
+                          if (fieldName != null && isResourceNameField(fieldName)) {
+                            token = jParser.nextToken();
+                            if (jParser.getTextLength() <= sp.maxMetadataValueLength) {
+                              embeddedResourcesNames.add(jParser.getText());
+                            } else {
+                              metadataSkipped = true;
+                            }
+                          } else if (fieldName != null && isContentField(fieldName)) {
+                            // Add embedded resource content to main document content
+                            jParser.nextToken();
+                            length += jParser.getText(w);
                           }
-                        } else if (fieldName != null && fieldName.contentEquals("X-TIKA:content")) {
-                          // Add embedded resource content to main document content
-                          jParser.nextToken();
-                          length += jParser.getText(w);
                         }
                       }
                     }
@@ -930,15 +990,16 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
                     description += "Some metadata have been truncated by Tika because they exceeded the limits specified in the Tika conf" + System.lineSeparator();
                   }
                 }
-              } else if (responseCode == 503) {
-                // Service interruption; Tika trying to come up.
-                // Retry unlimited times, retryInterval ms between retries
-                resultCode = "TIKASERVERUNAVAILABLE";
-                description = "Tika Server was unavailable: 503 " + response.getStatusLine().getReasonPhrase();
+              } else if (responseCode == 503 || responseCode == 429) {
+                // Service interruption; Tika trying to come up (503) or Tika Pipes workers saturated (429).
+                // Retry unlimited times, honoring Retry-After if present, otherwise retryInterval ms between retries
+                resultCode = (responseCode == 429) ? "TIKASERVERBUSY" : "TIKASERVERUNAVAILABLE";
+                description = "Tika Server was unavailable: " + responseCode + " " + response.getStatusLine().getReasonPhrase();
                 tikaServerResultCode = handleTikaServerError(description);
-                Logging.ingest.warn("Tika Server unavailable, retrying...");
+                Logging.ingest.warn("Tika Server unavailable (" + responseCode + "), retrying...");
                 final long currentTime = System.currentTimeMillis();
-                throw new ServiceInterruption("Tika Server unavailable, retrying...", new Exception(description), currentTime + retryInterval, -1L, -1, false);
+                final long delayMs = parseRetryAfterMs(response, retryInterval);
+                throw new ServiceInterruption("Tika Server unavailable, retrying...", new Exception(description), currentTime + delayMs, -1L, -1, false);
               } else {
                 if (responseCode == 500) {
                   resultCode = "TIKASERVERERROR";

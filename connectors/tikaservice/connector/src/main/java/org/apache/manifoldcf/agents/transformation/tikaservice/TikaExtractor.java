@@ -40,11 +40,13 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
@@ -57,6 +59,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.util.EntityUtils;
 import org.apache.manifoldcf.agents.interfaces.IOutputAddActivity;
 import org.apache.manifoldcf.agents.interfaces.IOutputCheckActivity;
 import org.apache.manifoldcf.agents.interfaces.RepositoryDocument;
@@ -72,6 +75,7 @@ import org.apache.manifoldcf.core.interfaces.SpecificationNode;
 import org.apache.manifoldcf.core.interfaces.VersionContext;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -128,15 +132,18 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
   
   /** Metadata URI */
   protected final static URI metaURI;
-  /** Content URI */
+  /** Content URI (Tika Server 2.x/3.x/4.x plain text endpoint) */
   protected final static URI contentURI;
+  /** Legacy content URI fallback for older Tika Server 1.x instances */
+  protected final static URI legacyContentURI;
   /** Check URI */
   protected final static URI checkURI;
   
   static {
     try {
       metaURI = new URI("/meta");
-      contentURI = new URI("/tika");
+      contentURI = new URI("/tika/text");
+      legacyContentURI = new URI("/tika");
       checkURI = new URI("/detect/stream");
     } catch (URISyntaxException e) {
       throw new RuntimeException(e.getMessage());
@@ -272,16 +279,51 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
     httpPut.addHeader("Accept", "application/json");
     final HttpEntity entity = new InputStreamEntity(new ByteArrayInputStream("this is a test".getBytes(StandardCharsets.UTF_8)));
     httpPut.setEntity(entity);
-    HttpResponse response;
+    HttpResponse response = null;
     try {
-      response = this.httpClient.execute(tikaHost, httpPut);
-    } catch (IOException e) {
-      return "Connection error: "+e.getMessage();
+      try {
+        response = this.httpClient.execute(tikaHost, httpPut);
+      } catch (IOException e) {
+        return "Connection error: "+e.getMessage();
+      }
+      if (response.getStatusLine().getStatusCode() != 200) {
+        return "Bad response: "+response.getStatusLine();
+      }
+      return super.check();
+    } finally {
+      closeResponseQuietly(response);
     }
-    if (response.getStatusLine().getStatusCode() != 200) {
-      return "Bad response: "+response.getStatusLine();
+  }
+
+  private static void closeResponseQuietly(final HttpResponse response) {
+    if (response == null) {
+      return;
     }
-    return super.check();
+    EntityUtils.consumeQuietly(response.getEntity());
+    if (response instanceof CloseableHttpResponse) {
+      try {
+        ((CloseableHttpResponse) response).close();
+      } catch (IOException ignored) {
+        // Ignore close errors during cleanup
+      }
+    }
+  }
+
+  private static long parseRetryAfterMs(final HttpResponse response, final long defaultDelayMs) {
+    if (response != null) {
+      final Header retryAfter = response.getFirstHeader("Retry-After");
+      if (retryAfter != null && retryAfter.getValue() != null) {
+        try {
+          final long seconds = Long.parseLong(retryAfter.getValue().trim());
+          if (seconds > 0L) {
+            return seconds * 1000L;
+          }
+        } catch (NumberFormatException ignored) {
+          // Non-numeric Retry-After (e.g. HTTP-date); fall back to default
+        }
+      }
+    }
+    return defaultDelayMs;
   }
   
   /**
@@ -634,57 +676,79 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             }
             int responseCode = response.getStatusLine().getStatusCode();
             if (responseCode == 200 || responseCode == 204) {
-              tikaServerIs = response.getEntity().getContent();
               try {
-                final BufferedReader br = new BufferedReader(new InputStreamReader(tikaServerIs, java.nio.charset.StandardCharsets.UTF_8));
-                final JSONParser parser = new JSONParser();
-                JSONObject metaJson;
-                final StringBuilder sb = new StringBuilder();
-                String output;
-                while ((output = br.readLine()) != null) {
-                  sb.append(output);
-                }
-                metaJson = (JSONObject) parser.parse(sb.toString());
-                for (Object key : metaJson.keySet()) {
-                  String metadataKey = key.toString();
-                  String metadataValue =  metaJson.get(key).toString();
-                  
-                  // Replace the content type by the one found by Tika
-                  if(metadataKey.equals("Content-Type")) {
-                    metadata.remove(metadataKey);
+                tikaServerIs = response.getEntity().getContent();
+                try {
+                  final BufferedReader br = new BufferedReader(new InputStreamReader(tikaServerIs, java.nio.charset.StandardCharsets.UTF_8));
+                  final JSONParser parser = new JSONParser();
+                  JSONObject metaJson;
+                  final StringBuilder sb = new StringBuilder();
+                  String output;
+                  while ((output = br.readLine()) != null) {
+                    sb.append(output);
                   }
-                  
-                  metadata.add(metadataKey, metadataValue);
+                  metaJson = (JSONObject) parser.parse(sb.toString());
+                  for (Object key : metaJson.keySet()) {
+                    String metadataKey = key.toString();
+                    Object rawValue = metaJson.get(key);
+                    if (rawValue == null) {
+                      continue;
+                    }
+
+                    // Replace the content type by the one found by Tika
+                    if (metadataKey.equals("Content-Type")) {
+                      metadata.remove(metadataKey);
+                    }
+
+                    if (rawValue instanceof JSONArray) {
+                      for (Object item : (JSONArray) rawValue) {
+                        if (item != null) {
+                          metadata.addTrusted(metadataKey, item.toString());
+                        }
+                      }
+                    } else {
+                      metadata.addTrusted(metadataKey, rawValue.toString());
+                    }
+                  }
+                } finally {
+                  tikaServerIs.close();
                 }
               } finally {
-                tikaServerIs.close();
+                closeResponseQuietly(response);
               }
-            } else if (responseCode == 503) {
+            } else if (responseCode == 503 || responseCode == 429) {
+              final long retryDelayMs = parseRetryAfterMs(response, 10000L);
+              final String retryReason = (responseCode == 429)
+                  ? "Tika server busy (429), retrying"
+                  : "Tika restarting, retrying";
+              closeResponseQuietly(response);
               if (sp.ignoreException()) {
-                return handleTikaServerRejects("Tika restarting, retrying");
+                return handleTikaServerRejects(retryReason);
               }
-              // Service interruption; Tika trying to come up.
-              // Retry for 10 minutes, 10000 ms between retries, and abort if doesn't work
+              // Service interruption; Tika busy or trying to come up.
+              // Retry for 10 minutes, and abort if doesn't work
               final long currentTime = System.currentTimeMillis();
-              throw new ServiceInterruption("Tika restarting, retrying",null,currentTime + 10000L,
-                currentTime + 60000L * 10L,-1,true);
+              throw new ServiceInterruption(retryReason, null, currentTime + retryDelayMs,
+                currentTime + 60000L * 10L, -1, true);
             } else {
+              final String reasonPhrase = response.getStatusLine().getReasonPhrase();
+              closeResponseQuietly(response);
               activities.noDocument();
               if (responseCode == 422) {
                 resultCode = "TIKASERVERREJECTS";
                 description = "Tika Server rejected document with the following reason: "
-                    + response.getStatusLine().getReasonPhrase();
+                    + reasonPhrase;
                 handleTikaServerRejects(description);
               } else {
                 resultCode = "TIKASERVERERROR";
                 description = "Tika Server failed to parse document with the following error: "
-                    + response.getStatusLine().getReasonPhrase();
+                    + reasonPhrase;
                 handleTikaServerError(description);
               }
               return DOCUMENTSTATUS_REJECTED;
             }
 
-            // Content
+            // Content (prefer /tika/text for Tika Server 2.x/3.x/4.x, fall back to /tika on 404/405 for Tika Server 1.x)
             httpPut = new HttpPut(contentURI);
             if (!mime.isEmpty()) {
               httpPut.addHeader("Content-Type", mime);
@@ -693,9 +757,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             entity = new InputStreamEntity(ds.getInputStream());
             httpPut.setEntity(entity);
             try {
-              //System.out.println("About to do a content PUT");
               response = this.httpClient.execute(tikaHost, httpPut);
-              //System.out.println("... content PUT succeeded");
             } catch (IOException e) {
               if (sp.ignoreException()) {
                 return handleTikaServerException(e);
@@ -707,40 +769,73 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             }
 
             responseCode = response.getStatusLine().getStatusCode();
-            if (responseCode == 200 || responseCode == 204) {
-              tikaServerIs = response.getEntity().getContent();
+            if (responseCode == 404 || responseCode == 405) {
+              closeResponseQuietly(response);
+              httpPut = new HttpPut(legacyContentURI);
+              if (!mime.isEmpty()) {
+                httpPut.addHeader("Content-Type", mime);
+              }
+              httpPut.addHeader("Accept", "text/plain");
+              entity = new InputStreamEntity(ds.getInputStream());
+              httpPut.setEntity(entity);
               try {
-                responseDs = new FileDestinationStorage();
-                final OutputStream os2 = responseDs.getOutputStream();
-                try {
-                  IOUtils.copyLarge(tikaServerIs, os2, 0L, sp.writeLimit);
-                } finally {
-                  os2.close();
+                response = this.httpClient.execute(tikaHost, httpPut);
+              } catch (IOException e) {
+                if (sp.ignoreException()) {
+                  return handleTikaServerException(e);
                 }
-                length = Long.valueOf(responseDs.getBinaryLength());
+                final long currentTime = System.currentTimeMillis();
+                throw new ServiceInterruption("Tika down, retrying: "+e.getMessage(),e,currentTime + 10000L,
+                  currentTime + 60000L * 10L,-1,true);
+              }
+              responseCode = response.getStatusLine().getStatusCode();
+            }
+
+            if (responseCode == 200 || responseCode == 204) {
+              try {
+                tikaServerIs = response.getEntity().getContent();
+                try {
+                  responseDs = new FileDestinationStorage();
+                  final OutputStream os2 = responseDs.getOutputStream();
+                  try {
+                    IOUtils.copyLarge(tikaServerIs, os2, 0L, sp.writeLimit);
+                  } finally {
+                    os2.close();
+                  }
+                  length = Long.valueOf(responseDs.getBinaryLength());
+                } finally {
+                  tikaServerIs.close();
+                }
               } finally {
-                tikaServerIs.close();
+                closeResponseQuietly(response);
               }
-            } else if (responseCode == 503) {
+            } else if (responseCode == 503 || responseCode == 429) {
+              final long retryDelayMs = parseRetryAfterMs(response, 10000L);
+              final String retryReason = (responseCode == 429)
+                  ? "Tika server busy (429), retrying"
+                  : "Tika restarting, retrying";
+              closeResponseQuietly(response);
               if (sp.ignoreException()) {
-                return handleTikaServerRejects("Tika restarting, retrying");
+                return handleTikaServerRejects(retryReason);
               }
-              // Service interruption; Tika trying to come up.
-              // Retry for 10 minutes, 10000 ms between retries, and abort if doesn't work
+              // Service interruption; Tika busy or trying to come up.
+              // Retry for 10 minutes, and abort if doesn't work
               final long currentTime = System.currentTimeMillis();
-              throw new ServiceInterruption("Tika restarting, retrying",null,currentTime + 10000L,
-                currentTime + 60000L * 10L,-1,true);
+              throw new ServiceInterruption(retryReason, null, currentTime + retryDelayMs,
+                currentTime + 60000L * 10L, -1, true);
             } else {
+              final String reasonPhrase = response.getStatusLine().getReasonPhrase();
+              closeResponseQuietly(response);
               activities.noDocument();
               if (responseCode == 422) {
                 resultCode = "TIKASERVERREJECTS";
                 description = "Tika Server rejected document with the following reason: "
-                    + response.getStatusLine().getReasonPhrase();
+                    + reasonPhrase;
                 return handleTikaServerRejects(description);
               } else {
                 resultCode = "TIKASERVERERROR";
                 description = "Tika Server failed to parse document with the following error: "
-                    + response.getStatusLine().getReasonPhrase();
+                    + reasonPhrase;
                 return handleTikaServerError(description);
               }
             }
@@ -788,7 +883,7 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
           // mapper eventually...
           String[] metaNames = metadata.names();
           for (String mName : metaNames) {
-            String value = metadata.get(mName);
+            String[] values = metadata.getValues(mName);
             if (sp.lowerNames()) {
               StringBuilder sb = new StringBuilder();
               for (int i = 0; i < mName.length(); i++) {
@@ -803,10 +898,10 @@ public class TikaExtractor extends org.apache.manifoldcf.agents.transformation.B
             }
             String target = sp.getMapping(mName);
             if (target != null) {
-              docCopy.addField(target, value);
+              docCopy.addField(target, values);
             } else {
               if (sp.keepAllMetadata()) {
-                docCopy.addField(mName, value);
+                docCopy.addField(mName, values);
               }
             }
           }
