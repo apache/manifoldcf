@@ -18,9 +18,12 @@
  */
 package org.apache.manifoldcf.agents.output.mongodboutput.tests;
 
+import java.time.Duration;
+
 import org.junit.After;
 import org.junit.Before;
 
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.mongodb.MongoDBContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -54,7 +57,10 @@ public class BaseITHSQLDB extends org.apache.manifoldcf.crawler.tests.BaseITHSQL
 	@Before
 	public void setUpMongoDB() throws Exception {
 		if (mongoDBContainer == null) {
-			mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:9.0.2"));
+			mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:9.0.2"))
+					.withEnv("GLIBC_TUNABLES", "glibc.pthread.rseq=1")
+					.waitingFor(Wait.forLogMessage("(?i).*waiting for connections.*", 1)
+							.withStartupTimeout(Duration.ofMinutes(2)));
 			mongoDBContainer.start();
 		}
 		BaseITSanityTestUtils.TARGET_HOST_VALUE = mongoDBContainer.getHost();

@@ -39,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,6 +57,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.mongodb.MongoDBContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -93,7 +95,10 @@ public class GridFSRepositoryConnectorHSQLDBIT extends BaseHSQLDB {
 
     @BeforeClass
     public static void startMongoDB() {
-        mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:9.0.2"));
+        mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:9.0.2"))
+                .withEnv("GLIBC_TUNABLES", "glibc.pthread.rseq=1")
+                .waitingFor(Wait.forLogMessage("(?i).*waiting for connections.*", 1)
+                        .withStartupTimeout(Duration.ofMinutes(2)));
         mongoDBContainer.start();
     }
 
