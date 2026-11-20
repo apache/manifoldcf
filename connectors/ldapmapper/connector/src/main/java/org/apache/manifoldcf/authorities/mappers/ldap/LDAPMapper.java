@@ -404,7 +404,7 @@ public class LDAPMapper extends org.apache.manifoldcf.authorities.mappers.BaseMa
    * @return SearchResult for given domain user logon name. (Should throws an exception if user is not found.)
    */
   protected SearchResult getUserEntry(final LdapContext ctx, final String userName) throws ManifoldCFException {
-    final String searchFilter = userSearch.replaceAll("\\{0\\}", escapeDN(userName));
+    final String searchFilter = userSearch.replace("{0}", org.apache.manifoldcf.connectorcommon.common.LdapEscaper.escapeFilter(userName));
     final SearchControls searchCtls = new SearchControls();
     searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
     final String[] attrIds = new String[4];
@@ -428,42 +428,7 @@ public class LDAPMapper extends org.apache.manifoldcf.authorities.mappers.BaseMa
   }
 
   public static String escapeDN(final String name) {
-    final StringBuilder sb = new StringBuilder(); // If using JDK >= 1.5 consider using StringBuilder
-    if ((name.length() > 0) && ((name.charAt(0) == ' ') || (name.charAt(0) == '#'))) {
-      sb.append('\\'); // add the leading backslash if needed
-    }
-    for (int i = 0; i < name.length(); i++) {
-      final char curChar = name.charAt(i);
-      switch (curChar) {
-      case '\\':
-        sb.append("\\\\");
-        break;
-      case ',':
-        sb.append("\\,");
-        break;
-      case '+':
-        sb.append("\\+");
-        break;
-      case '"':
-        sb.append("\\\"");
-        break;
-      case '<':
-        sb.append("\\<");
-        break;
-      case '>':
-        sb.append("\\>");
-        break;
-      case ';':
-        sb.append("\\;");
-        break;
-      default:
-        sb.append(curChar);
-      }
-    }
-    if ((name.length() > 1) && (name.charAt(name.length() - 1) == ' ')) {
-      sb.insert(sb.length() - 1, '\\'); // add the trailing backslash if needed
-    }
-    return sb.toString();
+    return org.apache.manifoldcf.connectorcommon.common.LdapEscaper.escapeDN(name);
   }
 
   /**
@@ -477,7 +442,7 @@ public class LDAPMapper extends org.apache.manifoldcf.authorities.mappers.BaseMa
     final LdapContext lcontext = getSession();
 
     try {
-      final String searchFilter = userSearch.replaceAll("\\{0\\}", escapeDN(userName));
+      final String searchFilter = userSearch.replace("{0}", org.apache.manifoldcf.connectorcommon.common.LdapEscaper.escapeFilter(userName));
       if (Logging.mappingConnectors.isDebugEnabled())
         Logging.mappingConnectors.debug("SearchFilter=" + searchFilter);
 

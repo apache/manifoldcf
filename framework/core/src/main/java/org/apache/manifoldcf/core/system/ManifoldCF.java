@@ -796,9 +796,34 @@ public class ManifoldCF
     return iv;
   }
   
-  private static String OBFUSCATION_PASSCODE = "NowIsTheTime";
-  private static String OBFUSCATION_SALT = "Salty";
-  
+  /** Optional property for configuring the obfuscation passcode */
+  public static final String obfuscationPasscodeProperty = "org.apache.manifoldcf.obfuscation.passcode";
+  /** Optional property for configuring the obfuscation salt */
+  public static final String obfuscationSaltProperty = "org.apache.manifoldcf.obfuscation.salt";
+
+  private static final String LEGACY_OBFUSCATION_PASSCODE = "NowIsTheTime";
+  private static final String LEGACY_OBFUSCATION_SALT = "Salty";
+
+  private static String resolveObfuscationPasscode()
+  {
+    String val = localConfiguration != null ? getProperty(obfuscationPasscodeProperty) : System.getProperty(obfuscationPasscodeProperty);
+    if (val == null || val.isEmpty())
+    {
+      val = System.getenv("MCF_OBFUSCATION_PASSCODE");
+    }
+    return (val != null && !val.isEmpty()) ? val : LEGACY_OBFUSCATION_PASSCODE;
+  }
+
+  private static String resolveObfuscationSalt()
+  {
+    String val = localConfiguration != null ? getProperty(obfuscationSaltProperty) : System.getProperty(obfuscationSaltProperty);
+    if (val == null || val.isEmpty())
+    {
+      val = System.getenv("MCF_OBFUSCATION_SALT");
+    }
+    return (val != null && !val.isEmpty()) ? val : LEGACY_OBFUSCATION_SALT;
+  }
+
   /** Encode a string in a reversible obfuscation.
   *@param input is the input string.
   *@return the output string.
@@ -806,7 +831,7 @@ public class ManifoldCF
   public static String obfuscate(String input)
     throws ManifoldCFException
   {
-    return encrypt(OBFUSCATION_SALT, OBFUSCATION_PASSCODE, input);
+    return encrypt(resolveObfuscationSalt(), resolveObfuscationPasscode(), input);
   }
   
   /** Decode a string encoded using the obfuscation
@@ -817,7 +842,20 @@ public class ManifoldCF
   public static String deobfuscate(String input)
     throws ManifoldCFException
   {
-    return decrypt(OBFUSCATION_SALT, OBFUSCATION_PASSCODE, input);
+    final String salt = resolveObfuscationSalt();
+    final String passcode = resolveObfuscationPasscode();
+    try
+    {
+      return decrypt(salt, passcode, input);
+    }
+    catch (ManifoldCFException e)
+    {
+      if (!LEGACY_OBFUSCATION_SALT.equals(salt) || !LEGACY_OBFUSCATION_PASSCODE.equals(passcode))
+      {
+        return decrypt(LEGACY_OBFUSCATION_SALT, LEGACY_OBFUSCATION_PASSCODE, input);
+      }
+      throw e;
+    }
   }
   
   /** Encrypt a string in a reversible encryption.

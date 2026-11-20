@@ -54,7 +54,7 @@ public class XMLStream
   {
     try
     {
-      SAXParserFactory parserFactory = SAXParserFactory.newInstance();
+      SAXParserFactory parserFactory = org.apache.manifoldcf.core.common.XMLParserFactory.newSafeSAXParserFactoryAllowingDoctype(false);
       SAXParser parser = parserFactory.newSAXParser();
       xr = parser.getXMLReader();
       xr.setContentHandler(new MyContentHandler());

@@ -261,8 +261,7 @@ public class OpenSearchServerConnection {
     StringReader sw = null;
     try {
       sw = new StringReader(response);
-      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-      dbf.setNamespaceAware(true); // never forget this!
+      DocumentBuilderFactory dbf = org.apache.manifoldcf.core.common.XMLParserFactory.newSecureDocumentBuilderFactory(true);
       DocumentBuilder builder;
       builder = dbf.newDocumentBuilder();
       xmlResponse = builder.parse(new InputSource(sw));

@@ -21,6 +21,7 @@ package org.apache.manifoldcf.core.interfaces;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.manifoldcf.core.system.ManifoldCF;
@@ -35,6 +36,10 @@ public class ConfigParams extends Configuration
   /** The parameter type node */
   protected final static String PARAMETER_TYPE = "_PARAMETER_";
   protected final static String ATTR_NAME = "name";
+  /** Attribute marking a parameter node as obfuscated */
+  public final static String ATTR_OBFUSCATED = "obfuscated";
+  /** Mask placeholder returned for obfuscated parameters in API responses */
+  public final static String OBFUSCATED_MASK = "********";
 
   // The parameter map (which stores name/value pairs also listed in the children)
   protected Map<String,String> params = new HashMap<String,String>();
@@ -169,6 +174,11 @@ public class ConfigParams extends Configuration
   */
   public void setParameter(String key, String value)
   {
+    setParameter(key, value, false);
+  }
+
+  protected void setParameter(String key, String value, boolean obfuscated)
+  {
     // See if we've got it
     if (params.get(key) != null)
     {
@@ -193,6 +203,10 @@ public class ConfigParams extends Configuration
     {
       ConfigNode cn = new ConfigNode(PARAMETER_TYPE);
       cn.setAttribute(ATTR_NAME,key);
+      if (obfuscated)
+      {
+        cn.setAttribute(ATTR_OBFUSCATED,"true");
+      }
       cn.setValue(value);
       addChild(getChildCount(),cn);
     }
@@ -216,7 +230,38 @@ public class ConfigParams extends Configuration
         value = "";
       }
     }
-    setParameter(key,value);
+    setParameter(key,value,true);
+  }
+
+  /** Determine whether a configuration node holds an obfuscated/sensitive parameter.
+  *@param cn is the configuration node to inspect.
+  *@return true if the node is marked obfuscated or matches a sensitive parameter name.
+  */
+  public static boolean isObfuscatedNode(final ConfigurationNode cn)
+  {
+    if (cn == null || !PARAMETER_TYPE.equals(cn.getType()))
+    {
+      return false;
+    }
+    if ("true".equalsIgnoreCase(cn.getAttributeValue(ATTR_OBFUSCATED)))
+    {
+      return true;
+    }
+    final String name = cn.getAttributeValue(ATTR_NAME);
+    if (name == null)
+    {
+      return false;
+    }
+    final String lower = name.toLowerCase(Locale.ROOT);
+    return lower.contains("password")
+        || lower.contains("secret")
+        || lower.endsWith("pass")
+        || lower.contains("apikey")
+        || lower.contains("api_key")
+        || lower.contains("apitoken")
+        || lower.contains("api_token")
+        || lower.contains("privatekey")
+        || lower.contains("private_key");
   }
 
   /** List parameters.

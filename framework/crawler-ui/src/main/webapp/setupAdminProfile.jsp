@@ -38,6 +38,7 @@ if (password == null)
 adminprofile.login(threadContext,userID,password);
 if (adminprofile.getLoggedOn())
 {
+  request.changeSessionId();
   String nextUri = request.getParameter("nextUrl");
   if (nextUri == null)
   {
@@ -45,7 +46,16 @@ if (adminprofile.getLoggedOn())
   }
   else
   {
-    response.sendRedirect(URLDecoder.decode(nextUri));
+    String decoded = URLDecoder.decode(nextUri).trim();
+    if (decoded.isEmpty() || decoded.startsWith("//") || decoded.startsWith("\\")
+        || decoded.contains("://") || decoded.contains("\r") || decoded.contains("\n"))
+    {
+      response.sendRedirect("index.jsp");
+    }
+    else
+    {
+      response.sendRedirect(decoded);
+    }
   }
 }
 else

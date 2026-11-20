@@ -34,6 +34,7 @@ import org.apache.manifoldcf.core.interfaces.IThreadContext;
 import org.apache.manifoldcf.core.interfaces.LockManagerFactory;
 import org.apache.manifoldcf.core.interfaces.ManifoldCFException;
 import org.apache.manifoldcf.core.system.Logging;
+import org.apache.manifoldcf.core.util.LdapEscaper;
 
 public class LdapAuthenticator implements IAuth {
 
@@ -78,9 +79,12 @@ public class LdapAuthenticator implements IAuth {
 
     environment.put(Context.SECURITY_AUTHENTICATION,
         securityAuthenticationType);
+    final String escapedPrincipalUser = securityPrincipal.contains("=")
+        ? LdapEscaper.escapeDN(userID)
+        : userID;
     environment.put(
         Context.SECURITY_PRINCIPAL,
-        substituteUser(securityPrincipal, userID));
+        substituteUser(securityPrincipal, escapedPrincipalUser));
     environment.put(Context.SECURITY_CREDENTIALS, password);
 
     return environment;
@@ -136,7 +140,7 @@ public class LdapAuthenticator implements IAuth {
           results = ctx
               .search("",
                   substituteUser(contextSearchQuery,
-                      userId), controls);
+                      LdapEscaper.escapeFilter(userId)), controls);
           // is the user in the group?
           while (results.hasMore()) {
             SearchResult searchResult = (SearchResult) results

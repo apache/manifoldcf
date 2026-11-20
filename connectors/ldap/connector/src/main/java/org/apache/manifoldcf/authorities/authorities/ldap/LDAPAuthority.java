@@ -28,7 +28,6 @@ import org.apache.manifoldcf.core.interfaces.*;
 import org.apache.manifoldcf.connectorcommon.interfaces.*;
 import org.apache.manifoldcf.core.common.LDAPSSLSocketFactory;
 
-import static org.apache.manifoldcf.connectorcommon.common.LdapEscaper.escapeDN;
 import static org.apache.manifoldcf.connectorcommon.common.LdapEscaper.escapeFilter;
 
 /**
@@ -454,7 +453,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
       ArrayList theGroups = new ArrayList();
       theGroups.addAll(forcedTokens);
 
-      String usrName = userName.split("@")[0];
+      String usrName = userName.split("@", -1)[0];
       if (userNameAttr != null && !"".equals(userNameAttr)) {
         if (usrRecord.getAttributes() != null) {
           Attribute attr = usrRecord.getAttributes().get(userNameAttr);
@@ -858,7 +857,7 @@ public class LDAPAuthority extends org.apache.manifoldcf.authorities.authorities
    */
   protected SearchResult getUserEntry(LdapContext ctx, String userName)
     throws ManifoldCFException {
-    String searchFilter = userSearch.replaceAll("\\{0\\}", escapeDN(userName.split("@")[0]));
+    String searchFilter = userSearch.replace("{0}", escapeFilter(userName.split("@", -1)[0]));
     SearchControls searchCtls = new SearchControls();
     searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 

@@ -34,6 +34,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport"
             content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="mcf-token" content="<%=org.apache.manifoldcf.ui.util.Encoder.attributeEscape(adminprofile.getRequestToken() != null ? adminprofile.getRequestToken() : "")%>">
     <!-- Bootstrap -->
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
     <link href="bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet" type="text/css"/>

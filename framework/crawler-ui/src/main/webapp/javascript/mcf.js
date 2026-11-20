@@ -467,10 +467,19 @@ $.ManifoldCF.submit=function (form)
   formData.append('client_timezone_offset',timezone_offset);
   formData.append('client_timezone',timezone);
 
+  var mcfToken = $('meta[name="mcf-token"]').attr('content');
+  var requestHeaders = {};
+  if (mcfToken)
+  {
+    formData.append('mcf_token', mcfToken);
+    requestHeaders['X-MCF-Token'] = mcfToken;
+  }
+
   $.ajax({
     type: method,
     url: action,
     data: formData,
+    headers: requestHeaders,
     cache: false,
     contentType: false,
     processData: false

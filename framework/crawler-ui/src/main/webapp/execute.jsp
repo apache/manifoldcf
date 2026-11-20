@@ -42,6 +42,30 @@
 
   try
   {
+    if (!"POST".equalsIgnoreCase(request.getMethod()))
+    {
+      response.sendError(jakarta.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+      return;
+    }
+
+    String fetchSite = request.getHeader("Sec-Fetch-Site");
+    if ("cross-site".equalsIgnoreCase(fetchSite))
+    {
+      response.sendError(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
+      return;
+    }
+
+    String requestToken = request.getHeader("X-MCF-Token");
+    if (requestToken == null || requestToken.isEmpty())
+    {
+      requestToken = variableContext.getParameter("mcf_token");
+    }
+    if (!adminprofile.validateRequestToken(requestToken))
+    {
+      response.sendError(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
+      return;
+    }
+
     // Make a few things we will need
     // Get the job manager handle
     IJobManager manager = JobManagerFactory.make(threadContext);
